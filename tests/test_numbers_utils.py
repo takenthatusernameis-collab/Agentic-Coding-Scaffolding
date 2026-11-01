@@ -23,6 +23,7 @@ from numbers_utils import (
     is_perfect_number,
     is_perfect_power,
     is_pandigital_number,
+    is_kaprekar_number,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
