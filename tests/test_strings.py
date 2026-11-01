@@ -2293,3 +2293,208 @@ class TestRepeatString(unittest.TestCase):
     def test_repeat_string_non_int_count_raises(self):
         with self.assertRaises(TypeError):
             repeat_string("x", 2.0)  # type: ignore[arg-type]
+
+
+
+
+
+
+class TestStringsBoundaryComprehensive(unittest.TestCase):
+    """Comprehensive boundary tests for strings.py (empty, whitespace, unicode, types)."""
+
+    def test_empty_and_whitespace(self):
+        from strings import (
+            is_blank,
+            is_palindrome,
+            remove_whitespace,
+            strip_leading_newlines,
+            strip_trailing_newlines,
+        )
+
+        self.assertTrue(is_blank(""))
+        self.assertTrue(is_blank("   "))
+        self.assertTrue(is_blank("\t\n"))
+        self.assertFalse(is_blank("a"))
+
+        self.assertEqual(remove_whitespace("a b\tc\n"), "abc")
+        self.assertTrue(is_palindrome(""))
+        self.assertTrue(is_palindrome("   "))
+        self.assertTrue(is_palindrome("\t"))
+
+        self.assertEqual(strip_leading_newlines("\n\na"), "a")
+        self.assertEqual(strip_trailing_newlines("a\n\n"), "a")
+        self.assertEqual(strip_leading_newlines("a"), "a")
+        self.assertEqual(strip_trailing_newlines("a"), "a")
+        self.assertEqual(strip_leading_newlines(""), "")
+        self.assertEqual(strip_trailing_newlines(""), "")
+
+    def test_unicode_edge_cases(self):
+        from strings import (
+            reverse_string,
+            reverse_words,
+            capitalize_words,
+            slugify,
+            is_palindrome,
+        )
+
+        self.assertEqual(reverse_string("你好"), "好你")
+        self.assertEqual(reverse_words("你好 世界"), "世界 你好")
+        self.assertTrue(is_palindrome("abcb a"))
+        self.assertEqual(capitalize_words("héllo wörld"), "Héllo Wörld")
+        self.assertEqual(slugify("Hello World!"), "hello-world")
+
+    def test_type_errors_common(self):
+        from strings import (
+            is_palindrome,
+            reverse_string,
+            reverse_words,
+            capitalize_words,
+            title_case,
+            swap_case,
+            count_vowels,
+            count_consonants,
+            count_letters,
+            count_digits,
+            count_whitespace,
+            remove_digits,
+            remove_whitespace,
+            remove_punctuation,
+            pad_left,
+            pad_right,
+            levenshtein_distance,
+            is_anagram,
+            common_prefix,
+            common_suffix,
+            is_subsequence,
+            slugify,
+            is_blank,
+            lstrip_chars,
+            rstrip_chars,
+            strip_chars,
+            ensure_prefix,
+            ensure_suffix,
+            replace_many,
+            between,
+            count_occurrences,
+            find,
+            rfind,
+            starts_with,
+            ends_with,
+            partition,
+            rpartition,
+            take,
+            drop,
+            chunk_string,
+            split_lines,
+            strip_leading_newlines,
+            strip_trailing_newlines,
+            repeat_string,
+            truncate_bytes,
+        )
+
+        for fn, args in [
+            (is_palindrome, (123,)),
+            (reverse_string, (123,)),
+            (reverse_words, (123,)),
+            (capitalize_words, (123,)),
+            (title_case, (123,)),
+            (swap_case, (123,)),
+            (count_vowels, (123,)),
+            (count_consonants, (123,)),
+            (count_letters, (123,)),
+            (count_digits, (123,)),
+            (count_whitespace, (123,)),
+            (remove_digits, (123,)),
+            (remove_whitespace, (123,)),
+            (remove_punctuation, (123,)),
+            (pad_left, (123, 5)),
+            (pad_right, (123, 5)),
+
+            (levenshtein_distance, (123, "a")),
+            (is_anagram, (123, "a")),
+            (common_prefix, (123, "a")),
+            (common_suffix, (123, "a")),
+
+            (is_subsequence, (123, "a")),
+
+            (slugify, (123,)),
+            (is_blank, (123,)),
+            (lstrip_chars, (123, "a")),
+            (rstrip_chars, (123, "a")),
+            (strip_chars, (123, "a")),
+            (ensure_prefix, (123, "x")),
+            (ensure_suffix, (123, "x")),
+            (replace_many, (123, {})),
+            (between, (123, "a", "b")),
+            (count_occurrences, (123, "a")),
+            (find, (123, "a")),
+            (rfind, (123, "a")),
+            (starts_with, (123, "a")),
+            (ends_with, (123, "a")),
+            (partition, (123, "a")),
+            (rpartition, (123, "a")),
+            (take, (123, 5)),
+            (drop, (123, 5)),
+            (chunk_string, (123, 2)),
+            (split_lines, (123,)),
+            (strip_leading_newlines, (123,)),
+            (strip_trailing_newlines, (123,)),
+            (repeat_string, (123, 2)),
+            (truncate_bytes, (123, 5)),
+        ]:
+            with self.subTest(fn=fn.__name__):
+                with self.assertRaises(TypeError):
+                    fn(*args)
+
+    def test_empty_string_various(self):
+        from strings import (
+            count_vowels,
+            count_consonants,
+            count_letters,
+            count_digits,
+            count_whitespace,
+            remove_digits,
+            remove_punctuation,
+            levenshtein_distance,
+            common_prefix,
+            common_suffix,
+            is_subsequence,
+            pad_left,
+            pad_right,
+            chunk_string,
+            repeat_string,
+            reverse_string,
+            reverse_words,
+            join_lines,
+        )
+
+        self.assertEqual(reverse_string(""), "")
+        self.assertEqual(reverse_words(""), "")
+        self.assertEqual(count_vowels(""), 0)
+        self.assertEqual(count_consonants(""), 0)
+        self.assertEqual(count_letters(""), 0)
+        self.assertEqual(count_digits(""), 0)
+        self.assertEqual(count_whitespace(""), 0)
+        self.assertEqual(remove_digits(""), "")
+        self.assertEqual(remove_punctuation(""), "")
+        self.assertEqual(levenshtein_distance("", ""), 0)
+        self.assertEqual(common_prefix("", "abc"), "")
+        self.assertEqual(common_suffix("abc", ""), "")
+        self.assertTrue(is_subsequence("", "abc"))
+        self.assertTrue(is_subsequence("abc", "abc"))
+        self.assertFalse(is_subsequence("abcd", "abc"))
+        self.assertEqual(pad_left("", 3), "   ")
+        self.assertEqual(pad_right("", 3), "   ")
+        self.assertEqual(chunk_string("", 2), [])
+        self.assertEqual(repeat_string("", 5), "")
+        self.assertEqual(join_lines([]), "")
+
+    def test_single_char_cases(self):
+        from strings import is_palindrome, reverse_string, is_anagram, count_vowels, count_consonants
+
+        self.assertTrue(is_palindrome("a"))
+        self.assertEqual(reverse_string("a"), "a")
+        self.assertTrue(is_anagram("a", "a"))
+        self.assertFalse(is_anagram("a", "b"))
+        self.assertEqual(count_vowels("a"), 1)
+        self.assertEqual(count_consonants("b"), 1)
