@@ -1,3 +1,10 @@
+## Unreleased — added is_strong_prime to prime_utils
+
+- Added `is_strong_prime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a strong prime — a prime greater than the arithmetic mean of its nearest primes above and below (equivalently, closer to the next prime than to the previous one; OEIS A051634, e.g. 11, 17, 29, 37, 41, 59, ...), reusing the existing `is_prime`, `prev_prime`, and `next_prime` helpers and using the strictly neighbouring primes `prev_prime(n - 1)` and `next_prime(n + 1)`. Returns False for balanced primes (e.g. 5), weak primes (e.g. 7, 13, 23), non-primes, and numbers below 11.
+- Added `TestIsStrongPrime` to `tests/test_prime_utils.py` covering known strong primes (40 values matching OEIS A051634), balanced/weak primes, non-primes, the boundary primes 2/3/5, negatives/zero, and the `TypeError` paths (10 new tests). Imported `is_strong_prime` at the top of the test file to match the module's `__all__` contract.
+- Updated the `prime_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
 ## Unreleased — refreshed stale tests/test_numbers_utils.py embedded copy
 
 - The preceding `chore(kilo): checkpoint agent session` commit (d38b5fe) added `is_semiperfect_number` to `numbers_utils.py` and `TestIsSemiperfectNumber` to `tests/test_numbers_utils.py` but did not regenerate the embedded copy of `tests/test_numbers_utils.py` inside `scaffold.sh`, violating the project's scaffold-sync invariant (`python tools/refresh_scaffold.py --check` reported `stale: tests/test_numbers_utils.py`).

@@ -35,6 +35,7 @@ from prime_utils import (
     is_sexy_prime,
     is_sophie_germain_prime,
     is_squarefree,
+    is_strong_prime,
     is_truncatable_prime,
     is_twin_prime,
     is_wilson_prime,
@@ -1446,6 +1447,44 @@ class TestIsFermatNumber(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_fermat_number(3.0)
+
+
+class TestIsStrongPrime(unittest.TestCase):
+    def test_known_strong_primes(self):
+        # OEIS A051634: 11, 17, 29, 37, 41, 59, 67, 71, 79, 97, ...
+        for n in (11, 17, 29, 37, 41, 59, 67, 71, 79, 97, 101, 107,
+                  127, 137, 149, 163, 179, 191, 197, 223, 227, 239,
+                  251, 269, 277, 281, 307, 311, 331, 347, 367, 379,
+                  397, 419, 431, 439, 457, 461, 479, 487, 499):
+            self.assertTrue(is_strong_prime(n), n)
+
+    def test_balanced_and_weak_primes(self):
+        # 5 is balanced ((3 + 7) / 2 == 5); 7, 13, 19, 23 are weak.
+        for n in (5, 7, 13, 19, 23, 31, 43, 47, 53, 61, 73, 83, 89, 103,
+                  109, 113, 131, 139, 151, 157, 167, 173, 181, 193, 199):
+            self.assertFalse(is_strong_prime(n), n)
+
+    def test_non_primes(self):
+        for n in (1, 4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24,
+                  25, 26, 27, 28, 30, 100, 1000):
+            self.assertFalse(is_strong_prime(n), n)
+
+    def test_boundary_primes(self):
+        # 2 and 3 have no prime below them; 5 is balanced.
+        for n in (2, 3, 5):
+            self.assertFalse(is_strong_prime(n), n)
+
+    def test_negatives_and_zero(self):
+        for n in (0, -1, -2, -3, -5, -7, -11, -17, -100):
+            self.assertFalse(is_strong_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_strong_prime(11.0)
+        with self.assertRaises(TypeError):
+            is_strong_prime("11")
+        with self.assertRaises(TypeError):
+            is_strong_prime(True)
 
 
 if __name__ == "__main__":

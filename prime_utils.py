@@ -54,6 +54,7 @@ __all__: List[str] = [
     "is_perfect_power",
     "is_powerful_number",
     "is_fermat_number",
+    "is_strong_prime",
 ]
 
 
@@ -1538,3 +1539,64 @@ def is_fermat_number(n: int) -> bool:
     # m == 2^(2^k). Check that log2(m) is a power of two.
     exponent = m.bit_length() - 1
     return exponent > 0 and (exponent & (exponent - 1)) == 0
+
+
+def is_strong_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a strong prime.
+
+    A strong prime is a prime number that is greater than the arithmetic
+    mean of the nearest primes above and below it. Equivalently, *n* is a
+    strong prime when it is prime and ``n - prev_prime(n) > next_prime(n) - n``
+    (i.e. it sits closer to the next prime than to the previous one). When the
+    prime equals the mean it is a balanced prime; when it is less it is a weak
+    prime. The first few strong primes are 11, 17, 29, 37, 41, 59, 67, 71, 79,
+    97, ... (OEIS A051634).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a strong prime, ``False`` otherwise. The primes 2,
+        3, and 5 are not strong primes (2 and 3 have no prime below them; 5 is
+        balanced).
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_strong_prime(11)
+        True
+        >>> is_strong_prime(17)
+        True
+        >>> is_strong_prime(29)
+        True
+        >>> is_strong_prime(37)
+        True
+        >>> is_strong_prime(7)
+        False
+        >>> is_strong_prime(13)
+        False
+        >>> is_strong_prime(19)
+        False
+        >>> is_strong_prime(5)
+        False
+        >>> is_strong_prime(2)
+        False
+        >>> is_strong_prime(3)
+        False
+        >>> is_strong_prime(4)
+        False
+        >>> is_strong_prime(1)
+        False
+        >>> is_strong_prime(0)
+        False
+        >>> is_strong_prime(-7)
+        False
+    """
+    _require_int(n, "n")
+    if n < 11 or not is_prime(n):
+        return False
+    # 2, 3, and 5 are not strong primes (2 and 3 have no prime below them;
+    # 5 is balanced: (3 + 7) / 2 == 5). Every prime >= 7 has a predecessor.
+    # Use the strictly neighbouring primes: prev_prime(n-1) and next_prime(n+1).
+    return (n - prev_prime(n - 1)) > (next_prime(n + 1) - n)
