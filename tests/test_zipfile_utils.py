@@ -23,6 +23,25 @@ class TestZipfileUtils(unittest.TestCase):
         self.assertTrue(is_zipfile(self.archive))
         names = list_names(self.archive)
         self.assertEqual(len(names), 1)
+        self.assertTrue(names[0].endswith("a.txt"))
+
+    def test_create_archive_returns_path(self):
+        result = create_archive(self.archive, [self.src])
+        self.assertEqual(result, self.archive)
+
+    def test_extract_all_content(self):
+        create_archive(self.archive, [self.src])
+        dest = os.path.join(self.tmpdir, "extracted")
+        os.mkdir(dest)
+        extract_all(self.archive, dest)
+        found = False
+        for root, _, files in os.walk(dest):
+            for filename in files:
+                if filename == "a.txt":
+                    with open(os.path.join(root, filename), "r", encoding="utf-8") as handle:
+                        self.assertEqual(handle.read(), "hello")
+                    found = True
+        self.assertTrue(found)
 
     def test_extract_all(self):
         create_archive(self.archive, [self.src])
@@ -109,6 +128,9 @@ class TestIsZipfileBoundary(unittest.TestCase):
 
     def test_is_zipfile_false_for_non_zip(self):
         self.assertFalse(is_zipfile(self.src))
+
+    def test_is_zipfile_false_for_non_zip_path(self):
+        self.assertFalse(is_zipfile(pathlib.Path(self.src)))
 
 
 class TestZipfileUtilsBoundary(unittest.TestCase):
