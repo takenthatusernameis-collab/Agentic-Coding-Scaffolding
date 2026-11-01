@@ -7,7 +7,6 @@ on invalid arguments.
 """
 
 import zipfile as _zipfile
-from typing import Any
 
 __all__ = [
     "create_archive",
@@ -90,13 +89,21 @@ def extract_all(path: str, dest: str = ".") -> None:
         zf.extractall(dest)
 
 
-def is_zipfile(path: Any) -> bool:
+def is_zipfile(path: str) -> bool:
     """Return ``True`` if *path* points to a valid ZIP archive.
 
     Args:
-        path: Path to test.
+        path: Path to a ZIP archive.
 
     Returns:
         ``True`` when *path* is a ZIP archive, otherwise ``False``.
+
+    Raises:
+        TypeError: If *path* is not a str.
+        ValueError: If *path* is empty.
     """
+    if not isinstance(path, str):
+        raise TypeError("path must be a str")
+    if not path:
+        raise ValueError("path must not be empty")
     return _zipfile.is_zipfile(path)

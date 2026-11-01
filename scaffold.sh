@@ -6344,7 +6344,6 @@ on invalid arguments.
 """
 
 import zipfile as _zipfile
-from typing import Any
 
 __all__ = [
     "create_archive",
@@ -6427,15 +6426,23 @@ def extract_all(path: str, dest: str = ".") -> None:
         zf.extractall(dest)
 
 
-def is_zipfile(path: Any) -> bool:
+def is_zipfile(path: str) -> bool:
     """Return ``True`` if *path* points to a valid ZIP archive.
 
     Args:
-        path: Path to test.
+        path: Path to a ZIP archive.
 
     Returns:
         ``True`` when *path* is a ZIP archive, otherwise ``False``.
+
+    Raises:
+        TypeError: If *path* is not a str.
+        ValueError: If *path* is empty.
     """
+    if not isinstance(path, str):
+        raise TypeError("path must be a str")
+    if not path:
+        raise ValueError("path must not be empty")
     return _zipfile.is_zipfile(path)
 ZIPFILE_UTILS
 
@@ -7958,6 +7965,73 @@ class TestZipfileUtils(unittest.TestCase):
             create_archive("", [self.src])
         with self.assertRaises(ValueError):
             create_archive(self.archive, [])
+
+
+class TestListNamesBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+        create_archive(self.archive, [self.src])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_list_names_type_errors(self):
+        with self.assertRaises(TypeError):
+            list_names(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            list_names("")
+
+
+class TestExtractAllBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+        create_archive(self.archive, [self.src])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_extract_all_type_errors(self):
+        with self.assertRaises(TypeError):
+            extract_all(123, self.tmpdir)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            extract_all(self.archive, 123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            extract_all("", self.tmpdir)
+        with self.assertRaises(ValueError):
+            extract_all(self.archive, "")
+
+
+class TestIsZipfileBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+        create_archive(self.archive, [self.src])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_is_zipfile_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_zipfile(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_zipfile("")
+
+    def test_is_zipfile_true_for_archive(self):
+        self.assertTrue(is_zipfile(self.archive))
+
+    def test_is_zipfile_false_for_non_zip(self):
+        self.assertFalse(is_zipfile(self.src))
 
 
 if __name__ == "__main__":
@@ -47727,6 +47801,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — audited zipfile_utils boundary cases
+
+- Found that `is_zipfile` in `zipfile_utils.py` performed no input validation, unlike `create_archive`, `list_names`, and `extract_all`, contradicting the module's documented convention that all functions raise `TypeError`/`ValueError` on invalid arguments. Added `TypeError` for non-str paths and `ValueError` for empty paths to `is_zipfile`, typed its parameter as `str`, and dropped the now-unused `Any` import.
+- Added `TestListNamesBoundary`, `TestExtractAllBoundary`, and `TestIsZipfileBoundary` to `tests/test_zipfile_utils.py` covering the `TypeError`/`ValueError` paths for `list_names`, `extract_all`'s `dest`, and `is_zipfile`, plus positive/negative `is_zipfile` cases (7 new tests; 8 tests now pass for the module). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Synchronized `zipfile_utils.py`, `tests/test_zipfile_utils.py`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — audited and hardened file_utils boundary cases
 
 - Audited every public helper in `file_utils.py` against boundary inputs: empty paths, missing files, directories passed to file readers, non-str/non-Path types, nested destination creation, empty directories, and recursive/non-recursive globbing. Found that the module accepted non-str/non-Path arguments without raising `TypeError` (they fell through to `OSError`/`TypeError` from the stdlib), leaving a gap against the project's validation convention.

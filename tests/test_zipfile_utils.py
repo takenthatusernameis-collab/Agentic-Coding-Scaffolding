@@ -43,5 +43,72 @@ class TestZipfileUtils(unittest.TestCase):
             create_archive(self.archive, [])
 
 
+class TestListNamesBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+        create_archive(self.archive, [self.src])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_list_names_type_errors(self):
+        with self.assertRaises(TypeError):
+            list_names(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            list_names("")
+
+
+class TestExtractAllBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+        create_archive(self.archive, [self.src])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_extract_all_type_errors(self):
+        with self.assertRaises(TypeError):
+            extract_all(123, self.tmpdir)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            extract_all(self.archive, 123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            extract_all("", self.tmpdir)
+        with self.assertRaises(ValueError):
+            extract_all(self.archive, "")
+
+
+class TestIsZipfileBoundary(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.mkdtemp(prefix="zipfile-utils-test-")
+        self.src = os.path.join(self.tmpdir, "a.txt")
+        with open(self.src, "w", encoding="utf-8") as handle:
+            handle.write("hello")
+        self.archive = os.path.join(self.tmpdir, "out.zip")
+        create_archive(self.archive, [self.src])
+
+    def tearDown(self) -> None:
+        shutil.rmtree(self.tmpdir, ignore_errors=True)
+
+    def test_is_zipfile_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_zipfile(123)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            is_zipfile("")
+
+    def test_is_zipfile_true_for_archive(self):
+        self.assertTrue(is_zipfile(self.archive))
+
+    def test_is_zipfile_false_for_non_zip(self):
+        self.assertFalse(is_zipfile(self.src))
+
+
 if __name__ == "__main__":
     unittest.main()

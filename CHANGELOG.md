@@ -1,3 +1,9 @@
+## Unreleased — audited zipfile_utils boundary cases
+
+- Found that `is_zipfile` in `zipfile_utils.py` performed no input validation, unlike `create_archive`, `list_names`, and `extract_all`, contradicting the module's documented convention that all functions raise `TypeError`/`ValueError` on invalid arguments. Added `TypeError` for non-str paths and `ValueError` for empty paths to `is_zipfile`, typed its parameter as `str`, and dropped the now-unused `Any` import.
+- Added `TestListNamesBoundary`, `TestExtractAllBoundary`, and `TestIsZipfileBoundary` to `tests/test_zipfile_utils.py` covering the `TypeError`/`ValueError` paths for `list_names`, `extract_all`'s `dest`, and `is_zipfile`, plus positive/negative `is_zipfile` cases (7 new tests; 8 tests now pass for the module). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Synchronized `zipfile_utils.py`, `tests/test_zipfile_utils.py`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — audited and hardened file_utils boundary cases
 
 - Audited every public helper in `file_utils.py` against boundary inputs: empty paths, missing files, directories passed to file readers, non-str/non-Path types, nested destination creation, empty directories, and recursive/non-recursive globbing. Found that the module accepted non-str/non-Path arguments without raising `TypeError` (they fell through to `OSError`/`TypeError` from the stdlib), leaving a gap against the project's validation convention.
