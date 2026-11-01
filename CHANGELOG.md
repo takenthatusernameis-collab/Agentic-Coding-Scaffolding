@@ -1,3 +1,8 @@
+## Unreleased — refreshed stale tests/test_numbers_utils.py embedded copy
+
+- The preceding `chore(kilo): checkpoint agent session` commit (d38b5fe) added `is_semiperfect_number` to `numbers_utils.py` and `TestIsSemiperfectNumber` to `tests/test_numbers_utils.py` but did not regenerate the embedded copy of `tests/test_numbers_utils.py` inside `scaffold.sh`, violating the project's scaffold-sync invariant (`python tools/refresh_scaffold.py --check` reported `stale: tests/test_numbers_utils.py`).
+- Refreshed the embedded copy of `tests/test_numbers_utils.py` inside `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync, and the scaffold-sync tests pass.
+
 ## Unreleased — added is_semiperfect_number to numbers_utils
 
 - Added `is_semiperfect_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a positive integer that can be expressed as the sum of some subset of its proper divisors (e.g. 12 = 6 + 4 + 2, 18 = 12 + 6, 20 = 10 + 8 + 2), reusing the existing `proper_divisors` helper and a bounded subset-sum check. Perfect numbers are semiperfect; powers of two, primes, and weird numbers are not.
