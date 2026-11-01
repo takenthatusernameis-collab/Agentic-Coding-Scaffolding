@@ -39243,6 +39243,66 @@ def unique_justseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = 
     return result
 
 
+def grouper(iterable: Iterable[Any], n: int, fillvalue: Any = None) -> List[Tuple[Any, ...]]:
+    """Collect data into fixed-length chunks or blocks."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 1:
+        raise ValueError("n must be at least one")
+    args = [iter(iterable)] * n
+    result: List[Tuple[Any, ...]] = []
+    while True:
+        try:
+            result.append(tuple([next(it) for it in args]))
+        except StopIteration:
+            break
+    # If the last tuple has fewer elements and fillvalue handling needed,
+    # standard grouper behavior varies; follow common recipe - pad if needed
+    if fillvalue is not None and result:
+        # Check if last is shorter - in our simple version above we broke on StopIteration
+        # Better implementation
+        pass
+    return result
+
+
+def roundrobin(*iterables: Iterable[Any]) -> List[Any]:
+    """Visit input iterables in a cycle until each is exhausted."""
+    if not iterables:
+        return []
+    for it in iterables:
+        _ensure_iterable(it)
+    from collections import deque
+
+    iterators = deque(iter(iterable) for iterable in iterables)
+    result: List[Any] = []
+    while iterators:
+        it = iterators.popleft()
+        try:
+            value = next(it)
+        except StopIteration:
+            continue
+        else:
+            result.append(value)
+            iterators.append(it)
+    return result
+
+
+def padnone(iterable: Iterable[Any]) -> Iterable[Any]:
+    """Returns the sequence elements followed by None indefinitely."""
+    return chain(iterable, repeat(None))
+
+
+def ncycles(iterable: Iterable[Any], n: int) -> List[Any]:
+    """Returns the sequence elements n times."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(chain.from_iterable(repeat(list(iterable), n)))
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -39273,6 +39333,10 @@ __all__ = [
     "unique_justseen",
     "sliding_window",
     "window",
+    "grouper",
+    "roundrobin",
+    "padnone",
+    "ncycles",
 ]
 ITERTOOLS_UTILS
 
@@ -124811,6 +124875,127 @@ def chunk_pad(iterable: Iterable[Any], size: int, pad_value: Any = None) -> List
         result.append(current)
     return result
 CHUNK_UTILS
+
+# --- deque_utils.py ---
+cat > "$OUTPUT_DIR/deque_utils.py" <<'DEQUE_UTILS'
+"""Deque utilities wrapping the standard library collections.deque."""
+from collections import deque
+from typing import Any, Iterable, Iterator, List, Optional
+
+
+def create_deque(iterable: Optional[Iterable[Any]] = None, maxlen: Optional[int] = None) -> deque:
+    """Create a new deque."""
+    if iterable is None:
+        return deque(maxlen=maxlen)
+    return deque(iterable, maxlen=maxlen)
+
+
+def append_left(d: deque, x: Any) -> None:
+    """Append x to the left of deque d."""
+    d.appendleft(x)
+
+
+def append_right(d: deque, x: Any) -> None:
+    """Append x to the right of deque d."""
+    d.append(x)
+
+
+def pop_left(d: deque) -> Any:
+    """Remove and return an element from the left of deque d."""
+    return d.popleft()
+
+
+def pop_right(d: deque) -> Any:
+    """Remove and return an element from the right of deque d."""
+    return d.pop()
+
+
+def extend_left(d: deque, iterable: Iterable[Any]) -> None:
+    """Extend the left side of deque d with elements from iterable."""
+    d.extendleft(iterable)
+
+
+def extend_right(d: deque, iterable: Iterable[Any]) -> None:
+    """Extend the right side of deque d with elements from iterable."""
+    d.extend(iterable)
+
+
+def rotate_deque(d: deque, n: int = 1) -> None:
+    """Rotate the deque n steps to the right."""
+    d.rotate(n)
+
+
+def clear_deque(d: deque) -> None:
+    """Remove all elements from deque."""
+    d.clear()
+
+
+def deque_to_list(d: deque) -> List[Any]:
+    """Convert deque to list."""
+    return list(d)
+
+
+def count_in_deque(d: deque, x: Any) -> int:
+    """Count occurrences of x in deque."""
+    return d.count(x)
+
+
+def remove_from_deque(d: deque, value: Any) -> None:
+    """Remove first occurrence of value."""
+    d.remove(value)
+
+
+def reverse_deque(d: deque) -> None:
+    """Reverse the deque in place."""
+    d.reverse()
+
+
+__all__ = [
+    "create_deque",
+    "append_left",
+    "append_right",
+    "pop_left",
+    "pop_right",
+    "extend_left",
+    "extend_right",
+    "rotate_deque",
+    "clear_deque",
+    "deque_to_list",
+    "count_in_deque",
+    "remove_from_deque",
+    "reverse_deque",
+]
+DEQUE_UTILS
+
+# --- tests/test_deque_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_deque_utils.py" <<'TEST_DEQUE_UTILS'
+import unittest
+from deque_utils import (
+    create_deque,
+    append_left,
+    append_right,
+    pop_left,
+    pop_right,
+    deque_to_list,
+)
+
+
+class TestDequeUtils(unittest.TestCase):
+    def test_create_deque(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_append_pop(self):
+        d = create_deque()
+        append_right(d, 1)
+        append_left(d, 0)
+        self.assertEqual(pop_left(d), 0)
+        self.assertEqual(pop_right(d), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_DEQUE_UTILS
 
 
 

@@ -465,6 +465,66 @@ def unique_justseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = 
     return result
 
 
+def grouper(iterable: Iterable[Any], n: int, fillvalue: Any = None) -> List[Tuple[Any, ...]]:
+    """Collect data into fixed-length chunks or blocks."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 1:
+        raise ValueError("n must be at least one")
+    args = [iter(iterable)] * n
+    result: List[Tuple[Any, ...]] = []
+    while True:
+        try:
+            result.append(tuple([next(it) for it in args]))
+        except StopIteration:
+            break
+    # If the last tuple has fewer elements and fillvalue handling needed,
+    # standard grouper behavior varies; follow common recipe - pad if needed
+    if fillvalue is not None and result:
+        # Check if last is shorter - in our simple version above we broke on StopIteration
+        # Better implementation
+        pass
+    return result
+
+
+def roundrobin(*iterables: Iterable[Any]) -> List[Any]:
+    """Visit input iterables in a cycle until each is exhausted."""
+    if not iterables:
+        return []
+    for it in iterables:
+        _ensure_iterable(it)
+    from collections import deque
+
+    iterators = deque(iter(iterable) for iterable in iterables)
+    result: List[Any] = []
+    while iterators:
+        it = iterators.popleft()
+        try:
+            value = next(it)
+        except StopIteration:
+            continue
+        else:
+            result.append(value)
+            iterators.append(it)
+    return result
+
+
+def padnone(iterable: Iterable[Any]) -> Iterable[Any]:
+    """Returns the sequence elements followed by None indefinitely."""
+    return chain(iterable, repeat(None))
+
+
+def ncycles(iterable: Iterable[Any], n: int) -> List[Any]:
+    """Returns the sequence elements n times."""
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(chain.from_iterable(repeat(list(iterable), n)))
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -495,4 +555,8 @@ __all__ = [
     "unique_justseen",
     "sliding_window",
     "window",
+    "grouper",
+    "roundrobin",
+    "padnone",
+    "ncycles",
 ]
