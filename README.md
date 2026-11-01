@@ -59,7 +59,7 @@ dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple
 datetime_utils.py           # Date and time utility functions
 dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
-file_utils.py               # File and path utility functions
+file_utils.py               # File and path utility functions (read_text, write_text, read_json, write_json, ensure_dir, list_files, copy_file, delete_file)
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
@@ -704,7 +704,7 @@ The project includes database utilities in `dbm_utils.py` wrapping the standard 
 
 ## File Utilities Module
 
-The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text`, `write_text`, `read_json`, `write_json`, `ensure_dir`, `list_files`, `copy_file`, and `delete_file`. The module is tested in `tests/test_file_utils.py`.
+The project includes a file utilities module in `file_utils.py` with functions for file and path operations: `read_text` reads text content from a file, `write_text` writes text content to a file (creating parent directories as needed), `read_json` parses JSON content from a file, `write_json` serializes JSON content to a file (creating parent directories as needed), `ensure_dir` ensures a directory exists and returns its Path, `list_files` lists files in a directory with optional glob pattern and recursive search, `copy_file` copies a file from source to destination (creating parent directories as needed), and `delete_file` deletes a file if it exists (no-op for missing files). All functions validate their path arguments and raise `TypeError` on non-str/non-Path inputs, and `read_text`/`read_json` raise `FileNotFoundError` for missing files while `list_files` raises `FileNotFoundError` for missing directories and `ValueError` for non-directory paths. The module is tested in `tests/test_file_utils.py`.
 
 ## File Input Utilities Module
 

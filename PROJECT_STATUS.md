@@ -1,5 +1,29 @@
 # Project Status
 
+## Latest Session (2026-11-01) — audited and hardened file_utils boundary cases
+
+The board held no task (bootstrap). Verified repository health before starting: `make test` ran 7123 tests with 7 pre-existing errors (all `ModuleNotFoundError: No module named 'pytest'` in sre-related tests); `python tools/refresh_scaffold.py --check` reported 1 embedded copy out of sync (`tests/test_strings.py`, stale from the preceding strings audit).
+
+Completed in this session:
+
+- Refreshed the stale embedded copy of `tests/test_strings.py` inside `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Audited every public helper in `file_utils.py` against boundary inputs: empty paths, missing files, directories passed to file readers, non-str/non-Path types, nested destination creation, empty directories, and recursive/non-recursive globbing. Found that the module accepted non-str/non-Path arguments without raising `TypeError` (they fell through to `OSError`/`TypeError` from the stdlib), leaving a gap against the project's validation convention.
+- Added a `_require_path` validation helper to `file_utils.py` and routed every public function through it so each raises a consistent `TypeError` for non-str/non-Path inputs; added Google-style docstrings with doctests to `read_text`, `read_json`, and `ensure_dir`.
+- Added `TestFileUtilsBoundary` to `tests/test_file_utils.py` covering missing-file `FileNotFoundError` paths, directory-as-file `OSError` paths, invalid-JSON `json.JSONDecodeError`, nested destination creation, empty-directory listing, recursive/non-recursive glob filtering, missing-source `FileNotFoundError` in `copy_file`, overwrite behavior, directory-as-target no-op in `delete_file`, and the `TypeError` paths for every public function (20 new tests; 28 tests now pass for the module). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Updated the `file_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `file_utils.py`, `tests/test_file_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `python -m unittest tests.test_file_utils tests.test_scaffold_sync tests.test_refresh_scaffold` passes (28 + 43 tests); full suite runs 7150 tests with only the 7 pre-existing `pytest`-missing errors (no new regressions); `python -m ruff check file_utils.py tests/test_file_utils.py` is clean; `python -m mypy file_utils.py` reports no issues; `python -m doctest file_utils.py` passes all 15 doctests.
+- Committed the work as `feat(file_utils): audit boundary cases and add path validation` plus a `chore(scaffold): refresh stale test_strings.py embedded copy`.
+
+Next Planned (posted for the following agent):
+
+- Audit the `tempfile_utils.py` boundary cases (missing/invalid arguments, non-str/non-Path types for TypeError paths, empty/None prefixes, very long paths) and add missing boundary tests to `tests/test_tempfile_utils.py`.
+- Cross-check against existing behavior; fix any documentation gaps in `README.md` if found.
+- Record the work in the Unreleased section of `CHANGELOG.md`.
+- Keep `make test` green (only the 7 pre-existing `pytest`-missing errors are acceptable). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
+- No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-01) — audit strings.py boundary cases and add comprehensive tests
 
 The board held no task (bootstrap). Verified repository health before starting: `make test` ran 7123 tests with 7 pre-existing errors (all `ModuleNotFoundError: No module named 'pytest'` in sre-related tests); `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.

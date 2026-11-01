@@ -1,3 +1,11 @@
+## Unreleased — audited and hardened file_utils boundary cases
+
+- Audited every public helper in `file_utils.py` against boundary inputs: empty paths, missing files, directories passed to file readers, non-str/non-Path types, nested destination creation, empty directories, and recursive/non-recursive globbing. Found that the module accepted non-str/non-Path arguments without raising `TypeError` (they fell through to `OSError`/`TypeError` from the stdlib), leaving a gap against the project's validation convention.
+- Added a `_require_path` validation helper to `file_utils.py` and routed every public function through it so each raises a consistent `TypeError` for non-str/non-Path inputs; added Google-style docstrings with doctests to `read_text`, `read_json`, and `ensure_dir`.
+- Added `TestFileUtilsBoundary` to `tests/test_file_utils.py` covering missing-file `FileNotFoundError` paths, directory-as-file `OSError` paths, invalid-JSON `json.JSONDecodeError`, nested destination creation, empty-directory listing, recursive/non-recursive glob filtering, missing-source `FileNotFoundError` in `copy_file`, overwrite behavior, directory-as-target no-op in `delete_file`, and the `TypeError` paths for every public function (20 new tests). Imported nothing new beyond the existing public API to match the module's `__all__` contract.
+- Updated the `file_utils` module tree entry and prose section of `README.md`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
 ## Unreleased — added is_strong_prime to prime_utils
 
 - Added `is_strong_prime(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is a strong prime — a prime greater than the arithmetic mean of its nearest primes above and below (equivalently, closer to the next prime than to the previous one; OEIS A051634, e.g. 11, 17, 29, 37, 41, 59, ...), reusing the existing `is_prime`, `prev_prime`, and `next_prime` helpers and using the strictly neighbouring primes `prev_prime(n - 1)` and `next_prime(n + 1)`. Returns False for balanced primes (e.g. 5), weak primes (e.g. 7, 13, 23), non-primes, and numbers below 11.
