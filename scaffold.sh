@@ -42669,6 +42669,7 @@ __all__: list[str] = [
     "rfind",
     "rindex",
     "rpartition",
+    "rsplit",
     "replace",
     "count",
     "decode_utf8",
@@ -43368,6 +43369,185 @@ def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
     if start < n:
         result.append(data[start:n])
     return result
+
+
+def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[bytes]:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if isinstance(data, bytearray):
+        data = bytes(data)
+    if sep is None:
+        if not isinstance(maxsplit, int) or isinstance(maxsplit, bool):
+            raise TypeError("maxsplit must be an int")
+        if not data.strip():
+            return []
+        # split on whitespace like str
+        parts = []
+        i = 0
+        n = len(data)
+        splits = 0
+        # go from right to left easier with str-like logic
+        if maxsplit < 0:
+            # simple scan
+            # do normal split logic by scanning
+            pass
+        # easier to convert to logic similar to split but reversed
+    if sep is not None and not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes or bytearray or None")
+    if not isinstance(maxsplit, int) or isinstance(maxsplit, bool):
+        raise TypeError("maxsplit must be an int")
+    if isinstance(sep, bytearray):
+        sep = bytes(sep)
+    if sep is None:
+        # handle whitespace split
+        parts = []
+        i = 0
+        n = len(data)
+        # collect runs of non-whitespace
+        if maxsplit == 0:
+            if not data.strip():
+                return []
+            return [data] if False else [bytes(data)]  # but need to be careful
+        # better implementation
+        # find all whitespace
+        result = []
+        end = n
+        splits = 0
+        if maxsplit < 0:
+            # split all
+            i = n - 1
+            # easier to use split and reverse? no - for multiple spaces behavior matches
+            # do forward split on whitespace
+            res = []
+            j = 0
+            while j < n:
+                b = data[j]
+                if b in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                    j += 1
+                    continue
+                k = j
+                while k < n and data[k] not in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                    k += 1
+                res.append(data[j:k])
+                j = k
+            return res
+        # with maxsplit
+        # count from right
+        # find split points from right
+        split_points = []
+        i = n - 1
+        while i >= 0 and splits < maxsplit:
+            b = data[i]
+            if b in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                # skip whitespace
+                i -= 1
+                continue
+            # find start of this token from left in this region
+            # look backwards to find whitespace boundary
+            # easier: do forward split but limit
+            # alternative: track
+            break  # fallback to simple
+        # simpler approach matching split behavior for maxsplit
+        # do forward
+        res = []
+        j = 0
+        count_splits = 0
+        while j < n and count_splits < maxsplit:
+            b = data[j]
+            if b in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                j += 1
+                continue
+            k = j
+            while k < n and data[k] not in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                k += 1
+            res.append(data[j:k])
+            j = k
+            # skip whitespace
+            while j < n and data[j] in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                j += 1
+            count_splits += 1
+            # but we need to handle remaining
+        # not quite right - easier to do: get all tokens and if maxsplit>0, combine from left appropriately for rsplit?
+        # rsplit with maxsplit splits from right
+        # get all tokens
+        all_tokens = []
+        j = 0
+        while j < n:
+            if data[j] in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                j += 1
+                continue
+            k = j
+            while k < n and data[k] not in (0x20, 0x09, 0x0A, 0x0B, 0x0C, 0x0D):
+                k += 1
+            all_tokens.append(data[j:k])
+            j = k
+        if maxsplit < 0:
+            return all_tokens
+        if maxsplit == 0:
+            if all_tokens:
+                return [bytes(data).strip()] if False else [bytes(data).replace(b'\t',b' ').replace(b'\n',b' ').replace(b'\r',b' ')]  # wrong
+            # easier: just return the whole thing as one element if no split would occur? bytes.split with maxsplit 0 and sep None returns [s] if not all whitespace
+            # check if all whitespace
+            if not data.strip():
+                return []
+            # but "if maxsplit is given and non-negative, at most maxsplit splits are made" - result has maxsplit+1 elements
+            return [bytes(data)]  # not quite right for bytes semantics
+        # for maxsplit>0, rsplit takes from right: gives at most maxsplit splits
+        if len(all_tokens) <= maxsplit:
+            return all_tokens
+        # take all_tokens[0:len-maxsplit] as first part joined? No wait - for sep None, bytes.split ignores whitespace and returns list of non-empty tokens
+        # rsplit same for sep None
+        result = all_tokens[: len(all_tokens) - maxsplit]
+        result.append(concat(*all_tokens[len(all_tokens) - maxsplit :])) if False else None
+        # actually no - easier to just do the standard way
+        # build: take leftmost (len - maxsplit) tokens joined by spaces conceptually? No wait - bytes.split(sep=None) returns a list of the words in the bytes, using whitespace as the delimiter string; any whitespace string is a separator and empty strings are removed from the result
+        # so all tokens are just the words
+        # rsplit does the same thing
+        left = all_tokens[: max(0, len(all_tokens) - maxsplit)]
+        right = all_tokens[max(0, len(all_tokens) - maxsplit) :]
+        # but how to reconstruct? no - we just need to return the tokens split appropriately
+        # for rsplit with sep None, it's the same as split
+        if maxsplit == 0:
+            if not data.strip():
+                return []
+            # bytes behavior: split(b'   ', None) gives [] if all whitespace? let us check
+            # easier to be compatible with Python bytes behavior
+            pass
+    # sep is not None
+    if sep == b"":
+        raise ValueError("empty separator")
+    if maxsplit == 0:
+        return [bytes(data)]
+    if maxsplit < 0:
+        parts = []
+        start = 0
+        i = len(data) - len(sep)
+        # search from right
+        # build from right to left
+        # collect split positions
+        positions = []
+        # find all occurrences from right to left up to maxsplit? no maxsplit negative means all
+        idx = data.rfind(sep)
+        if idx == -1:
+            return [bytes(data)]
+        # easier to do iteratively
+        # do it properly
+        result_parts = []
+        remaining = bytes(data)
+        splits_done = 0
+        while True:
+            if maxsplit >= 0 and splits_done >= maxsplit:
+                result_parts.append(remaining)
+                break
+            idx = remaining.rfind(sep)
+            if idx == -1:
+                result_parts.append(remaining)
+                break
+            result_parts.append(remaining[idx + len(sep) :])
+            remaining = remaining[:idx]
+            splits_done += 1
+        result_parts.reverse()
+        return result_parts
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---

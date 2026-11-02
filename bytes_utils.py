@@ -21,6 +21,7 @@ __all__: list[str] = [
     "rfind",
     "rindex",
     "rpartition",
+    "rsplit",
     "replace",
     "count",
     "decode_utf8",
