@@ -8,6 +8,7 @@ from tempfile_utils import (
     NamedTemporaryFile,
     SpooledTemporaryFile,
     TemporaryDirectory,
+    TemporaryFile,
     get_tempdir,
     gettempprefix,
     mkdtemp,
@@ -87,6 +88,31 @@ class TestSpooledTemporaryFile(unittest.TestCase):
             f.write(b"hello")
             f.seek(0)
             self.assertEqual(f.read(), b"hello")
+
+
+class TestTemporaryFile(unittest.TestCase):
+    def test_temporary_file_basic(self):
+        with TemporaryFile(mode="w+b") as f:
+            f.write(b"hello")
+            f.seek(0)
+            self.assertEqual(f.read(), b"hello")
+
+    def test_temporary_file_text_mode(self):
+        with TemporaryFile(mode="w+") as f:
+            f.write("hello")
+            f.flush()
+            f.seek(0)
+            self.assertEqual(f.read(), "hello")
+
+    def test_temporary_file_type_errors_all(self):
+        cases = [
+            ("mode", 123), ("buffering", "x"), ("buffering", True),
+            ("encoding", 123), ("newline", 123), ("suffix", 123),
+            ("prefix", 123), ("dir", 123),
+        ]
+        for name, val in cases:
+            with self.assertRaises(TypeError):
+                TemporaryFile(**{name: val})
 
 
 class TestTempfileBoundary(unittest.TestCase):

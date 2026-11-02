@@ -9,6 +9,7 @@ __all__ = [
     "NamedTemporaryFile",
     "SpooledTemporaryFile",
     "TemporaryDirectory",
+    "TemporaryFile",
     "get_tempdir",
     "gettempprefix",
     "mkdtemp",
@@ -149,6 +150,63 @@ def NamedTemporaryFile(
         prefix=_coerce_path_or_none(prefix),
         dir=_coerce_path_or_none(dir),
         delete=delete,
+        **kwargs,
+    )
+
+
+def TemporaryFile(
+    mode: str = "w+b",
+    buffering: int = -1,
+    encoding: Optional[str] = None,
+    newline: Optional[str] = None,
+    suffix: Union[str, Path] = "",
+    prefix: Optional[Union[str, Path]] = None,
+    dir: Optional[Union[str, Path]] = None,
+    **kwargs: Any,
+) -> IO[Any]:
+    """Return a file-like object for an unnamed temporary file.
+
+    Args:
+        mode: File opening mode.
+        buffering: Buffering policy.
+        encoding: Text encoding.
+        newline: Newline handling.
+        suffix: Suffix for the temporary file name.
+        prefix: Prefix for the temporary file name.
+        dir: Directory in which the file is created.
+        **kwargs: Additional arguments passed to :func:`tempfile.TemporaryFile`.
+
+    Returns:
+        IO: A file-like object.
+
+    Raises:
+        TypeError: If arguments have invalid types.
+
+    >>> with TemporaryFile() as f:
+    ...     _ = f.write(b"hello")
+    ...     f.seek(0)
+    ...     f.read()
+    b'hello'
+    """
+    if not isinstance(mode, str):
+        raise TypeError(f"mode must be a str, got {type(mode).__name__}")
+    if not isinstance(buffering, int) or isinstance(buffering, bool):
+        raise TypeError(f"buffering must be an int, got {type(buffering).__name__}")
+    if encoding is not None and not isinstance(encoding, str):
+        raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
+    if newline is not None and not isinstance(newline, str):
+        raise TypeError(f"newline must be a str or None, got {type(newline).__name__}")
+    suffix = _require_path_or_none(suffix, "suffix")
+    prefix = _require_path_or_none(prefix, "prefix")
+    dir = _require_path_or_none(dir, "dir")
+    return tempfile.TemporaryFile(
+        mode=mode,
+        buffering=buffering,
+        encoding=encoding,
+        newline=newline,
+        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
+        prefix=_coerce_path_or_none(prefix),
+        dir=_coerce_path_or_none(dir),
         **kwargs,
     )
 
