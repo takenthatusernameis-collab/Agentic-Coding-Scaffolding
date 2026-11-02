@@ -1,3 +1,11 @@
+## Unreleased — added comprehensive tests for queue_utils
+
+- Audited `queue_utils.py` (a `Queue` class with 11 methods plus 6 module-level helpers) and found only 3 tests covering the happy path and the two empty-queue `IndexError` paths; `clear`, `to_list`, `from_list`, the `enqueue` return value, and the round-trip drain were untested.
+- Rewrote `tests/test_queue_utils.py` with 17 tests covering every public helper and method: default/empty/list construction, `enqueue`/`dequeue`/`peek` happy paths and return values, the `IndexError` paths on empty queues, `is_empty`/`size` transitions, `clear` (including on an already-empty queue), `to_list` returning an independent copy, `from_list` (including the empty-list case), and a full round-trip drain. Imported every public name at the top of the test file to match the module's `__all__` contract.
+- Synchronized `tests/test_queue_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes (7405 tests, +17 over the previous run).
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added comprehensive tests for deque_utils
 
 - Audited `deque_utils.py` (13 public helpers) and found only 2 tests covering 5 helpers; the remaining helpers (`clear_deque`, `count_in_deque`, `remove_from_deque`, `reverse_deque`, `extend_left`, `extend_right`, `rotate_deque`) had no test coverage.
