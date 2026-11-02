@@ -9,6 +9,7 @@ __all__ = [
     "cartesian_product",
     "difference",
     "intersection",
+    "is_disjoint",
     "is_subset",
     "is_superset",
     "power_set",
@@ -77,6 +78,29 @@ def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return _to_set(a).issuperset(_to_set(b))
+
+
+def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` and ``b`` share no common elements.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` if the intersection of ``a`` and ``b`` is empty, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_disjoint([1, 2], [3, 4])
+        True
+        >>> is_disjoint([1, 2], [2, 3])
+        False
+    """
+    return not (_to_set(a) & _to_set(b))
 
 
 def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:

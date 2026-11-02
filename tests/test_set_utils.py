@@ -6,6 +6,7 @@ from set_utils import (
     cartesian_product,
     difference,
     intersection,
+    is_disjoint,
     is_subset,
     is_superset,
     power_set,
@@ -37,6 +38,31 @@ class TestIsSuperset(unittest.TestCase):
 
     def test_is_superset_equal(self) -> None:
         self.assertTrue(is_superset([1, 2], [1, 2]))
+
+
+class TestIsDisjoint(unittest.TestCase):
+    def test_disjoint_true(self):
+        self.assertTrue(is_disjoint([1, 2], [3, 4]))
+
+    def test_disjoint_false(self):
+        self.assertFalse(is_disjoint([1, 2], [2, 3]))
+
+    def test_disjoint_equal(self):
+        self.assertFalse(is_disjoint([1, 2], [1, 2]))
+
+    def test_disjoint_empty(self):
+        self.assertTrue(is_disjoint([], [1, 2, 3]))
+        self.assertTrue(is_disjoint([1, 2, 3], []))
+        self.assertTrue(is_disjoint([], []))
+
+    def test_disjoint_overlap_single(self):
+        self.assertFalse(is_disjoint([1, 2, 3], [3, 4, 5]))
+
+    def test_disjoint_type_error(self):
+        with self.assertRaises(TypeError):
+            is_disjoint(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_disjoint([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIntersection(unittest.TestCase):

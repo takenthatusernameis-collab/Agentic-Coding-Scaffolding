@@ -21007,6 +21007,7 @@ from set_utils import (
     cartesian_product,
     difference,
     intersection,
+    is_disjoint,
     is_subset,
     is_superset,
     power_set,
@@ -21038,6 +21039,31 @@ class TestIsSuperset(unittest.TestCase):
 
     def test_is_superset_equal(self) -> None:
         self.assertTrue(is_superset([1, 2], [1, 2]))
+
+
+class TestIsDisjoint(unittest.TestCase):
+    def test_disjoint_true(self):
+        self.assertTrue(is_disjoint([1, 2], [3, 4]))
+
+    def test_disjoint_false(self):
+        self.assertFalse(is_disjoint([1, 2], [2, 3]))
+
+    def test_disjoint_equal(self):
+        self.assertFalse(is_disjoint([1, 2], [1, 2]))
+
+    def test_disjoint_empty(self):
+        self.assertTrue(is_disjoint([], [1, 2, 3]))
+        self.assertTrue(is_disjoint([1, 2, 3], []))
+        self.assertTrue(is_disjoint([], []))
+
+    def test_disjoint_overlap_single(self):
+        self.assertFalse(is_disjoint([1, 2, 3], [3, 4, 5]))
+
+    def test_disjoint_type_error(self):
+        with self.assertRaises(TypeError):
+            is_disjoint(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_disjoint([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIntersection(unittest.TestCase):
@@ -31130,6 +31156,7 @@ __all__ = [
     "cartesian_product",
     "difference",
     "intersection",
+    "is_disjoint",
     "is_subset",
     "is_superset",
     "power_set",
@@ -31198,6 +31225,29 @@ def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return _to_set(a).issuperset(_to_set(b))
+
+
+def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` and ``b`` share no common elements.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` if the intersection of ``a`` and ``b`` is empty, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_disjoint([1, 2], [3, 4])
+        True
+        >>> is_disjoint([1, 2], [2, 3])
+        False
+    """
+    return not (_to_set(a) & _to_set(b))
 
 
 def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
@@ -50331,6 +50381,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_disjoint to set_utils
+
+- Added `is_disjoint(a, b)` to `set_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-iterable arguments; it returns `True` when the two iterables share no common elements and `False` otherwise. Added `TestIsDisjoint` (6 tests) to `tests/test_set_utils.py` covering disjoint/s overlapping/identical/empty inputs and the `TypeError` paths. Imported `is_disjoint` at the top of the test file to match the module's `__all__` contract. Updated the `set_utils` module tree entry and prose section of `README.md`.
+- Synchronized `set_utils.py`, `tests/test_set_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_set_utils` passes; `python -m doctest set_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed greeting_utils __all__ export for format_good_luck
 
 - Added `format_good_luck` to `greeting_utils.__all__` so every public attribute defined by the module is exported, closing a contract gap left when the helper was introduced. This restores the public-API invariant enforced by `tests/test_public_api.py`. Synchronized `greeting_utils.py`, `tests/test_greeting_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -52264,7 +52321,7 @@ dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten,
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
-set_utils.py             # Set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+set_utils.py             # Set operation utilities (subset, superset, disjoint, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
@@ -52956,7 +53013,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 
