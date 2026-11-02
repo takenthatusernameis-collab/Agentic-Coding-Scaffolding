@@ -1,3 +1,12 @@
+## Unreleased — added comprehensive tests for deque_utils
+
+- Audited `deque_utils.py` (13 public helpers) and found only 2 tests covering 5 helpers; the remaining helpers (`clear_deque`, `count_in_deque`, `remove_from_deque`, `reverse_deque`, `extend_left`, `extend_right`, `rotate_deque`) had no test coverage.
+- Rewrote `tests/test_deque_utils.py` with 26 tests covering every public helper: happy paths, empty/single-element boundaries, `maxlen` eviction, positive/negative/full-cycle rotation, the `IndexError` paths on empty deques, and the `ValueError` path for `remove_from_deque` on a missing value. Imported every public name at the top of the test file to match the module's `__all__` contract.
+- Corrected the stale `deque_utils` prose in `README.md`, which described a different API (`count_deque`, `copy_deque`, `index_deque`, `insert_deque`, `deque_len`, `is_empty`, `maxlen_deque`, `to_list`, `from_iterable`, re-exported `Deque`) than the module actually implements. The prose now matches the real public API (`count_in_deque`, `remove_from_deque`, `deque_to_list`, etc.).
+- Synchronized `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes (7388 tests, +24 over the previous run); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — extended __all__ contract guard to all top-level modules
 
 - Audited the public-API ``__all__`` contract across every top-level module in the repository (264 modules). Every module already defines ``__all__`` and every public attribute defined by a module is exported — no gaps found, so no ``__all__`` edits were needed.

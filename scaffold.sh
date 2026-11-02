@@ -49795,6 +49795,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added comprehensive tests for deque_utils
+
+- Audited `deque_utils.py` (13 public helpers) and found only 2 tests covering 5 helpers; the remaining helpers (`clear_deque`, `count_in_deque`, `remove_from_deque`, `reverse_deque`, `extend_left`, `extend_right`, `rotate_deque`) had no test coverage.
+- Rewrote `tests/test_deque_utils.py` with 26 tests covering every public helper: happy paths, empty/single-element boundaries, `maxlen` eviction, positive/negative/full-cycle rotation, the `IndexError` paths on empty deques, and the `ValueError` path for `remove_from_deque` on a missing value. Imported every public name at the top of the test file to match the module's `__all__` contract.
+- Corrected the stale `deque_utils` prose in `README.md`, which described a different API (`count_deque`, `copy_deque`, `index_deque`, `insert_deque`, `deque_len`, `is_empty`, `maxlen_deque`, `to_list`, `from_iterable`, re-exported `Deque`) than the module actually implements. The prose now matches the real public API (`count_in_deque`, `remove_from_deque`, `deque_to_list`, etc.).
+- Synchronized `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes (7388 tests, +24 over the previous run); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — extended __all__ contract guard to all top-level modules
 
 - Audited the public-API ``__all__`` contract across every top-level module in the repository (264 modules). Every module already defines ``__all__`` and every public attribute defined by a module is exported — no gaps found, so no ``__all__`` edits were needed.
@@ -52698,7 +52707,7 @@ The project includes deprecation utilities in `deprecation_utils.py` for marking
 
 ## Deque Utilities Module
 
-The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue with an optional max length, `append_left` and `append_right` add elements to ends, `pop_left` and `pop_right` remove elements from ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque, `clear_deque` empties it, `count_deque` counts occurrences of a value, `remove_deque` removes the first occurrence, `reverse_deque` reverses the deque in place returning `None`, `copy_deque` creates a shallow copy, `index_deque` finds the index of a value within bounds, `insert_deque` inserts at a position, `deque_len` reports the length, `is_empty` reports whether empty, `maxlen_deque` reports the max length or `None`, `to_list` converts to a list, and `from_iterable` creates from an iterable. The class `Deque` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation over standard library objects, so it works on every platform and never touches the filesystem or network. The module is tested in `tests/test_deque_utils.py`.
+The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, and `deque_to_list` converts it to a list. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
 
 ## Ring Buffer Utilities Module
 
@@ -130899,17 +130908,34 @@ import unittest
 from deque_utils import (
     append_left,
     append_right,
+    clear_deque,
+    count_in_deque,
     create_deque,
     deque_to_list,
+    extend_left,
+    extend_right,
     pop_left,
     pop_right,
+    remove_from_deque,
+    reverse_deque,
+    rotate_deque,
 )
 
 
 class TestDequeUtils(unittest.TestCase):
     def test_create_deque(self):
-        d = create_deque([1, 2, 3])
-        self.assertEqual(deque_to_list(d), [1, 2, 3])
+        self.assertEqual(deque_to_list(create_deque([1, 2, 3])), [1, 2, 3])
+
+    def test_create_deque_default(self):
+        self.assertEqual(deque_to_list(create_deque()), [])
+
+    def test_create_deque_maxlen_drops_oldest(self):
+        d = create_deque([1, 2, 3], maxlen=2)
+        self.assertEqual(deque_to_list(d), [2, 3])
+
+    def test_create_deque_maxlen_none(self):
+        d = create_deque(maxlen=None)
+        self.assertEqual(deque_to_list(d), [])
 
     def test_append_pop(self):
         d = create_deque()
@@ -130917,6 +130943,114 @@ class TestDequeUtils(unittest.TestCase):
         append_left(d, 0)
         self.assertEqual(pop_left(d), 0)
         self.assertEqual(pop_right(d), 1)
+
+    def test_append_left_preserves_order(self):
+        d = create_deque([1, 2])
+        append_left(d, 0)
+        self.assertEqual(deque_to_list(d), [0, 1, 2])
+
+    def test_append_right_preserves_order(self):
+        d = create_deque([1, 2])
+        append_right(d, 3)
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_pop_left_empty_raises(self):
+        with self.assertRaises(IndexError):
+            pop_left(create_deque())
+
+    def test_pop_right_empty_raises(self):
+        with self.assertRaises(IndexError):
+            pop_right(create_deque())
+
+    def test_extend_right(self):
+        d = create_deque([1])
+        extend_right(d, [2, 3])
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_extend_left_preserves_order(self):
+        d = create_deque([3])
+        extend_left(d, [2, 1])
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_extend_left_empty(self):
+        d = create_deque([1])
+        extend_left(d, [])
+        self.assertEqual(deque_to_list(d), [1])
+
+    def test_rotate_positive(self):
+        d = create_deque([1, 2, 3])
+        rotate_deque(d, 1)
+        self.assertEqual(deque_to_list(d), [3, 1, 2])
+
+    def test_rotate_negative(self):
+        d = create_deque([1, 2, 3])
+        rotate_deque(d, -1)
+        self.assertEqual(deque_to_list(d), [2, 3, 1])
+
+    def test_rotate_default(self):
+        d = create_deque([1, 2, 3])
+        rotate_deque(d)
+        self.assertEqual(deque_to_list(d), [3, 1, 2])
+
+    def test_rotate_full_cycle(self):
+        d = create_deque([1, 2, 3])
+        rotate_deque(d, 3)
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_clear_deque(self):
+        d = create_deque([1, 2, 3])
+        clear_deque(d)
+        self.assertEqual(deque_to_list(d), [])
+
+    def test_clear_deque_empty(self):
+        d = create_deque()
+        clear_deque(d)
+        self.assertEqual(deque_to_list(d), [])
+
+    def test_count_in_deque(self):
+        d = create_deque([1, 2, 1, 3, 1])
+        self.assertEqual(count_in_deque(d, 1), 3)
+        self.assertEqual(count_in_deque(d, 2), 1)
+        self.assertEqual(count_in_deque(d, 9), 0)
+
+    def test_remove_from_deque(self):
+        d = create_deque([1, 2, 3, 2])
+        remove_from_deque(d, 2)
+        self.assertEqual(deque_to_list(d), [1, 3, 2])
+
+    def test_remove_from_deque_missing_raises(self):
+        with self.assertRaises(ValueError):
+            remove_from_deque(create_deque([1, 2, 3]), 9)
+
+    def test_reverse_deque(self):
+        d = create_deque([1, 2, 3])
+        reverse_deque(d)
+        self.assertEqual(deque_to_list(d), [3, 2, 1])
+
+    def test_reverse_deque_single(self):
+        d = create_deque([1])
+        reverse_deque(d)
+        self.assertEqual(deque_to_list(d), [1])
+
+    def test_reverse_deque_empty(self):
+        d = create_deque()
+        reverse_deque(d)
+        self.assertEqual(deque_to_list(d), [])
+
+    def test_deque_to_list(self):
+        d = create_deque([1, 2, 3])
+        result = deque_to_list(d)
+        self.assertIsInstance(result, list)
+        self.assertEqual(result, [1, 2, 3])
+        # The original deque is unchanged.
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_maxlen_enforced_on_append(self):
+        d = create_deque(maxlen=2)
+        append_right(d, 1)
+        append_right(d, 2)
+        append_right(d, 3)
+        self.assertEqual(deque_to_list(d), [2, 3])
 
 
 if __name__ == "__main__":
