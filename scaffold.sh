@@ -4763,6 +4763,7 @@ __all__ = [
     "str_validator",
     "bool_validator",
     "url_validator",
+    "T",
 ]
 
 T = TypeVar("T")
@@ -49563,6 +49564,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — extended __all__ public-API contract to non-wrapper modules
+
+- Audited the non-wrapper modules named in the previous Next Planned (`calculator.py`, `config_schema.py`, `hello.py`) for `__all__` contract gaps against the project convention that every top-level, non-underscore name defined by the module must be exported.
+- `calculator.py` and `hello.py` were already complete.
+- Found a real contract gap in `config_schema.py`: `T = TypeVar("T")` is defined at module scope (line 49) but omitted from `__all__`, violating the public-API export contract. Every other module in the repository that defines a `T` TypeVar exports it in `__all__` (29 modules, e.g. `collections_utils`, `functools_utils`, `statistics_utils`), so `config_schema.py` was inconsistent.
+- Added `T` to `config_schema.__all__` next to the other public names (15 exports total).
+- Verified: every name in `__all__` is importable and no public attribute is missing; `make test` passes (7351 tests); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- Note: `config_schema.py` is embedded in `scaffold.sh`, so the embedded copy was refreshed to stay byte-identical to the repository source.
+
 ## Unreleased — fixed stats __all__ gap for range_stat
 
 - Found that `stats.py` implemented `range_stat(numbers)` as a public function (with typed signature, Google-style docstring with doctests, and `TypeError`/`ValueError` validation) but omitted it from the module's `__all__` list, violating the public API export contract that every public attribute must be listed in `__all__`. Added `range_stat` to `stats.__all__` next to its `range` alias.

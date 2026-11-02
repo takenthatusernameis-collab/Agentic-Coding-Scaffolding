@@ -44,6 +44,7 @@ __all__ = [
     "str_validator",
     "bool_validator",
     "url_validator",
+    "T",
 ]
 
 T = TypeVar("T")

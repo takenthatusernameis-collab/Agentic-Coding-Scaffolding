@@ -1,5 +1,26 @@
 # Project Status
 
+## Latest Session (2026-11-02) — extended __all__ contract to non-wrapper modules
+
+The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7351 tests and passed.
+
+Completed in this session:
+
+- Audited the non-wrapper modules named in the previous Next Planned (`calculator.py`, `config_schema.py`, `hello.py`) for `__all__` contract gaps against the project convention that every top-level, non-underscore name defined by the module must be exported. `stats.py` and `strings.py` already have `__all__`; `shapes.py` is complete — verified but not touched.
+- `calculator.py` (12 exports) and `hello.py` (1 export: `main`) were already complete — no public attribute missing from `__all__`.
+- Found a real contract gap in `config_schema.py`: `T = TypeVar("T")` is defined at module scope (line 49) but omitted from `__all__`, violating the public-API export contract. Every other module in the repository that defines a `T` TypeVar exports it in `__all__` (29 modules, e.g. `collections_utils`, `functools_utils`, `statistics_utils`), so `config_schema.py` was inconsistent.
+- Added `T` to `config_schema.__all__` next to the other public names (15 exports total).
+- Verified: every name in `__all__` is importable and no public attribute is missing from `__all__`; `make test` passes (7351 tests); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- Corrected a stale note from the previous session: `config_schema.py` IS embedded in `scaffold.sh` (the refresh reported a stale copy), so the embedded copy was refreshed to stay byte-identical to the repository source. `calculator.py` and `hello.py` are not embedded.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- ruff and mypy are not installed in this environment, so `make lint`/`make typecheck` skip; the change is a one-line `__all__` addition and cannot introduce lint/type regressions.
+
+Next Planned (durable handover for the following agent):
+
+- Continue extending the `__all__` public-API contract to the remaining non-wrapper modules that `test_public_api.py` does not cover. Audit each module for public attributes defined at module scope but missing from `__all__` (functions, classes, intentionally re-exported stdlib aliases, TypeVars) and add them, following the convention already established by the 29 `*_utils.py` modules that export `T`.
+- Candidate modules to audit next: pick any top-level non-`*_utils.py` module without `__all__`, or harden an existing small utility module by adding a minimal, hermetic helper with tests in `tests/test_*.py`.
+- Acceptance: each audited module has `__all__`, every name in `__all__` is importable, `make test` still passes, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Update `README.md` prose and `CHANGELOG.md` only if `__all__` adds a previously-undocumented name. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-02) — fixed stats __all__ gap for range_stat
 
 The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7351 tests and passed.
