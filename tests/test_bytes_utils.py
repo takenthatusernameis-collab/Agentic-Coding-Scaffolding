@@ -17,7 +17,9 @@ from bytes_utils import (
     rpartition,
     splitlines,
     starts_with,
+    lower,
     to_hex,
+    upper,
     xor,
 )
 
@@ -56,6 +58,14 @@ class TestBytesUtils(unittest.TestCase):
     def test_reverse(self):
         self.assertEqual(reverse(b"abc"), b"cba")
         self.assertEqual(reverse(bytearray(b"ab")), b"ba")
+
+    def test_upper(self):
+        self.assertEqual(upper(b"abc"), b"ABC")
+        self.assertEqual(upper(bytearray(b"ab")), b"AB")
+
+    def test_lower(self):
+        self.assertEqual(lower(b"ABC"), b"abc")
+        self.assertEqual(lower(bytearray(b"AB")), b"ab")
 
     def test_contains(self):
         self.assertTrue(contains(b"hello", b"ll"))

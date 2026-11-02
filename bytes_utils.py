@@ -900,3 +900,49 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
             splits_done += 1
         result_parts.reverse()
         return result_parts
+
+
+def upper(data: bytes) -> bytes:
+    """Return an uppercased copy of *data*.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Uppercased bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> upper(b"abc")
+        b'ABC'
+        >>> upper(bytearray(b"ab"))
+        b'AB'
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).upper()
+
+
+def lower(data: bytes) -> bytes:
+    """Return a lowercased copy of *data*.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Lowercased bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> lower(b"ABC")
+        b'abc'
+        >>> lower(bytearray(b"AB"))
+        b'ab'
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).lower()
