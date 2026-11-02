@@ -105,15 +105,33 @@ class TestFileUtilsBoundary(unittest.TestCase):
     def test_read_text_non_string_raises_typeerror(self) -> None:
         with self.assertRaises(TypeError):
             read_text(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_text(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_text([])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_text({})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_text(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_text(b"bytes")  # type: ignore[arg-type]
 
     def test_write_text_creates_nested_path(self) -> None:
         nested = Path(self.temp_dir) / "a" / "b" / "c.txt"
         write_text(nested, "deep")
         self.assertEqual(nested.read_text(), "deep")
+        # Accepts Path objects as well
+        nested2 = Path(self.temp_dir) / "x" / "y" / "z.txt"
+        write_text(nested2, "")
+        self.assertEqual(nested2.read_text(), "")
 
     def test_write_text_non_string_raises_typeerror(self) -> None:
         with self.assertRaises(TypeError):
             write_text(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            write_text(None, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            write_text([], "x")  # type: ignore[arg-type]
 
     def test_read_json_missing_file(self) -> None:
         with self.assertRaises(FileNotFoundError):
@@ -130,24 +148,47 @@ class TestFileUtilsBoundary(unittest.TestCase):
     def test_read_json_non_string_raises_typeerror(self) -> None:
         with self.assertRaises(TypeError):
             read_json(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_json(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            read_json({})  # type: ignore[arg-type]
 
     def test_write_json_non_string_raises_typeerror(self) -> None:
         with self.assertRaises(TypeError):
             write_json(123, {})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            write_json(None, {})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            write_json([], {})  # type: ignore[arg-type]
 
     def test_write_json_round_trip(self) -> None:
         path = Path(self.temp_dir) / "data.json"
         data = {"unicode": "héllo", "list": [1, 2, 3]}
         write_json(path, data)
         self.assertEqual(read_json(path), data)
+        # Write empty dict
+        path2 = Path(self.temp_dir) / "empty.json"
+        write_json(path2, {})
+        self.assertEqual(read_json(path2), {})
+        # Write list
+        path3 = Path(self.temp_dir) / "list.json"
+        write_json(path3, [1, "a", None])
+        self.assertEqual(read_json(path3), [1, "a", None])
 
     def test_ensure_dir_existing(self) -> None:
         result = ensure_dir(self.temp_dir)
         self.assertEqual(result, Path(self.temp_dir))
+        # Already exists nested dir
+        existing = Path(self.temp_dir) / "exists"
+        existing.mkdir()
+        result2 = ensure_dir(existing)
+        self.assertTrue(result2.is_dir())
 
     def test_ensure_dir_non_string_raises_typeerror(self) -> None:
         with self.assertRaises(TypeError):
             ensure_dir(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_dir(None)  # type: ignore[arg-type]
 
     def test_list_files_missing_dir(self) -> None:
         with self.assertRaises(FileNotFoundError):
@@ -162,6 +203,8 @@ class TestFileUtilsBoundary(unittest.TestCase):
     def test_list_files_non_string_raises_typeerror(self) -> None:
         with self.assertRaises(TypeError):
             list_files(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            list_files(None)  # type: ignore[arg-type]
 
     def test_list_files_pattern_recursive(self) -> None:
         root = Path(self.temp_dir)
@@ -177,6 +220,8 @@ class TestFileUtilsBoundary(unittest.TestCase):
 
     def test_list_files_empty_dir(self) -> None:
         self.assertEqual(list_files(self.temp_dir), [])
+        # With pattern
+        self.assertEqual(list_files(self.temp_dir, pattern="*.txt"), [])
 
     def test_copy_file_missing_src(self) -> None:
         with self.assertRaises(FileNotFoundError):
@@ -187,6 +232,10 @@ class TestFileUtilsBoundary(unittest.TestCase):
             copy_file(123, "x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             copy_file("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            copy_file(None, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            copy_file("x", None)  # type: ignore[arg-type]
 
     def test_copy_file_overwrites(self) -> None:
         src = Path(self.temp_dir) / "src.txt"
@@ -200,6 +249,8 @@ class TestFileUtilsBoundary(unittest.TestCase):
     def test_delete_file_non_string_raises_typeerror(self) -> None:
         with self.assertRaises(TypeError):
             delete_file(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            delete_file(None)  # type: ignore[arg-type]
 
     def test_delete_file_directory_is_noop(self) -> None:
         # delete_file only unlinks regular files; directories are left alone.
@@ -207,6 +258,34 @@ class TestFileUtilsBoundary(unittest.TestCase):
         sub.mkdir()
         delete_file(sub)
         self.assertTrue(sub.exists())
+
+    def test_read_text_binary_roundtrip_text_mode(self) -> None:
+        # utf-8 text with unicode
+        p = Path(self.temp_dir) / "uni.txt"
+        write_text(p, "café\n日本語")
+        self.assertEqual(read_text(p), "café\n日本語")
+
+    def test_write_text_empty_content(self) -> None:
+        p = Path(self.temp_dir) / "empty.txt"
+        write_text(p, "")
+        self.assertEqual(p.read_text(encoding="utf-8"), "")
+        self.assertEqual(read_text(p), "")
+
+    def test_empty_string_path_behaviour(self) -> None:
+        # Empty string path is not a valid path to a file/dir in expected cases
+        with self.assertRaises((FileNotFoundError, IsADirectoryError, OSError, ValueError)):
+            read_text("")
+        # list_files("") resolves to current directory in this implementation
+        res = list_files("")
+        self.assertIsInstance(res, list)
+
+    def test_list_files_accepts_path_object(self) -> None:
+        root = Path(self.temp_dir)
+        (root / "x.txt").write_text("x")
+        files = list_files(root)
+        self.assertEqual(len(files), 1)
+        files2 = list_files(str(root))
+        self.assertEqual(len(files2), 1)
 
 
 if __name__ == "__main__":

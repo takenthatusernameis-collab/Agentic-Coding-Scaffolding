@@ -1,4 +1,5 @@
 ## Unreleased — extended __all__ public-API contract to non-wrapper modules
+- Audit `file_utils.py` boundary cases (empty paths, missing files/directories, binary/unicode text, non-string/Path types) and add comprehensive boundary tests to `tests/test_file_utils.py`.
 
 - Audited the non-wrapper modules named in the previous Next Planned (`calculator.py`, `config_schema.py`, `hello.py`) for `__all__` contract gaps against the project convention that every top-level, non-underscore name defined by the module must be exported.
 - `calculator.py` and `hello.py` were already complete.
