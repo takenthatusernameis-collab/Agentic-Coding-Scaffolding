@@ -42686,6 +42686,10 @@ __all__: list[str] = [
     "splitlines",
     "upper",
     "lower",
+    "capitalize",
+    "title",
+    "swapcase",
+    "casefold",
 ]
 
 
@@ -43594,6 +43598,30 @@ def lower(data: bytes) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).lower()
+
+
+def capitalize(data: bytes) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).capitalize()
+
+
+def title(data: bytes) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).title()
+
+
+def swapcase(data: bytes) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).swapcase()
+
+
+def casefold(data: bytes) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).casefold()
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
