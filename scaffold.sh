@@ -6343,9 +6343,9 @@ functions validate their inputs and raise ``TypeError`` or ``ValueError``
 on invalid arguments.
 """
 
+import zipfile as _zipfile
 from pathlib import Path
 from typing import Iterable, Union
-import zipfile as _zipfile
 
 __all__ = [
     "create_archive",
@@ -17967,11 +17967,11 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
 
     def test_unicode_edge_cases(self):
         from strings import (
+            capitalize_words,
+            is_palindrome,
             reverse_string,
             reverse_words,
-            capitalize_words,
             slugify,
-            is_palindrome,
         )
 
         self.assertEqual(reverse_string("你好"), "好你")
@@ -17982,50 +17982,50 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
 
     def test_type_errors_common(self):
         from strings import (
-            is_palindrome,
-            reverse_string,
-            reverse_words,
+            between,
             capitalize_words,
-            title_case,
-            swap_case,
-            count_vowels,
-            count_consonants,
-            count_letters,
-            count_digits,
-            count_whitespace,
-            remove_digits,
-            remove_whitespace,
-            remove_punctuation,
-            pad_left,
-            pad_right,
-            levenshtein_distance,
-            is_anagram,
+            chunk_string,
             common_prefix,
             common_suffix,
-            is_subsequence,
-            slugify,
-            is_blank,
-            lstrip_chars,
-            rstrip_chars,
-            strip_chars,
+            count_consonants,
+            count_digits,
+            count_letters,
+            count_occurrences,
+            count_vowels,
+            count_whitespace,
+            drop,
+            ends_with,
             ensure_prefix,
             ensure_suffix,
-            replace_many,
-            between,
-            count_occurrences,
             find,
-            rfind,
-            starts_with,
-            ends_with,
+            is_anagram,
+            is_blank,
+            is_palindrome,
+            is_subsequence,
+            levenshtein_distance,
+            lstrip_chars,
+            pad_left,
+            pad_right,
             partition,
+            remove_digits,
+            remove_punctuation,
+            remove_whitespace,
+            repeat_string,
+            replace_many,
+            reverse_string,
+            reverse_words,
+            rfind,
             rpartition,
-            take,
-            drop,
-            chunk_string,
+            rstrip_chars,
+            slugify,
             split_lines,
+            starts_with,
+            strip_chars,
             strip_leading_newlines,
             strip_trailing_newlines,
-            repeat_string,
+            swap_case,
+            take,
+            title_case,
             truncate_bytes,
         )
 
@@ -18085,24 +18085,24 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
 
     def test_empty_string_various(self):
         from strings import (
-            count_vowels,
-            count_consonants,
-            count_letters,
-            count_digits,
-            count_whitespace,
-            remove_digits,
-            remove_punctuation,
-            levenshtein_distance,
+            chunk_string,
             common_prefix,
             common_suffix,
+            count_consonants,
+            count_digits,
+            count_letters,
+            count_vowels,
+            count_whitespace,
             is_subsequence,
+            join_lines,
+            levenshtein_distance,
             pad_left,
             pad_right,
-            chunk_string,
+            remove_digits,
+            remove_punctuation,
             repeat_string,
             reverse_string,
             reverse_words,
-            join_lines,
         )
 
         self.assertEqual(reverse_string(""), "")
@@ -18127,7 +18127,13 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
         self.assertEqual(join_lines([]), "")
 
     def test_single_char_cases(self):
-        from strings import is_palindrome, reverse_string, is_anagram, count_vowels, count_consonants
+        from strings import (
+            count_consonants,
+            count_vowels,
+            is_anagram,
+            is_palindrome,
+            reverse_string,
+        )
 
         self.assertTrue(is_palindrome("a"))
         self.assertEqual(reverse_string("a"), "a")
@@ -21841,12 +21847,12 @@ from prompt_utils import (
     indent_lines,
     is_blank,
     join_lines,
-    remove_prefix,
-    remove_suffix,
     last_line,
     lstrip_lines,
     normalize_line_endings,
     remove_blank_lines,
+    remove_prefix,
+    remove_suffix,
     reverse_lines,
     rstrip_lines,
     split_lines,
@@ -26528,8 +26534,6 @@ cat > "$OUTPUT_DIR/tests/test_tempfile_utils.py" <<'TESTTEMPFILEUTILS'
 
 import os
 import unittest
-from pathlib import Path
-
 from pathlib import Path
 
 from tempfile_utils import (
@@ -43710,7 +43714,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         if not data.strip():
             return []
         # split on whitespace like str
-        parts = []
         i = 0
         n = len(data)
         splits = 0
@@ -43728,7 +43731,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         sep = bytes(sep)
     if sep is None:
         # handle whitespace split
-        parts = []
         i = 0
         n = len(data)
         # collect runs of non-whitespace
@@ -43739,7 +43741,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         # better implementation
         # find all whitespace
         result = []
-        end = n
         splits = 0
         if maxsplit < 0:
             # split all
@@ -43762,7 +43763,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         # with maxsplit
         # count from right
         # find split points from right
-        split_points = []
         i = n - 1
         while i >= 0 and splits < maxsplit:
             b = data[i]
@@ -43831,8 +43831,8 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         # build: take leftmost (len - maxsplit) tokens joined by spaces conceptually? No wait - bytes.split(sep=None) returns a list of the words in the bytes, using whitespace as the delimiter string; any whitespace string is a separator and empty strings are removed from the result
         # so all tokens are just the words
         # rsplit does the same thing
-        left = all_tokens[: max(0, len(all_tokens) - maxsplit)]
-        right = all_tokens[max(0, len(all_tokens) - maxsplit) :]
+        all_tokens[: max(0, len(all_tokens) - maxsplit)]
+        all_tokens[max(0, len(all_tokens) - maxsplit) :]
         # but how to reconstruct? no - we just need to return the tokens split appropriately
         # for rsplit with sep None, it's the same as split
         if maxsplit == 0:
@@ -43847,13 +43847,10 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
     if maxsplit == 0:
         return [bytes(data)]
     if maxsplit < 0:
-        parts = []
-        start = 0
         i = len(data) - len(sep)
         # search from right
         # build from right to left
         # collect split positions
-        positions = []
         # find all occurrences from right to left up to maxsplit? no maxsplit negative means all
         idx = data.rfind(sep)
         if idx == -1:
@@ -128043,6 +128040,7 @@ import unittest
 from case_utils import (
     camel_case,
     constant_case,
+    convert_case,
     dot_case,
     kebab_case,
     pascal_case,
@@ -128053,7 +128051,6 @@ from case_utils import (
     spinal_case,
     title_case,
     train_case,
-    convert_case,
 )
 
 
