@@ -13,6 +13,7 @@ __all__ = [
     "flatten_dict",
     "invert_dict",
     "safe_get",
+    "select_keys",
     "unflatten_dict",
 ]
 
@@ -127,3 +128,23 @@ def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
         Filtered dictionary.
     """
     return {k: v for k, v in d.items() if predicate(k, v)}
+
+
+def select_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
+    """Select a subset of keys from a dictionary.
+
+    Args:
+        d: Source dictionary.
+        keys: Keys to select.
+
+    Returns:
+        New dictionary containing only the selected keys that exist in d.
+
+    Raises:
+        TypeError: If d is not a dict or keys is not a list.
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not isinstance(keys, list):
+        raise TypeError("keys must be a list")
+    return {k: d[k] for k in keys if k in d}

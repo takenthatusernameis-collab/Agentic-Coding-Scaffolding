@@ -2,7 +2,7 @@
 
 import unittest
 
-from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, unflatten_dict
+from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, select_keys, unflatten_dict
 
 
 class TestDeepMerge(unittest.TestCase):
@@ -102,3 +102,23 @@ class TestFilterDict(unittest.TestCase):
         d = {"a1": 1, "b1": 2, "a2": 3}
         result = filter_dict(d, lambda k, v: k.startswith("a"))
         self.assertEqual(len(result), 2)
+
+
+class TestSelectKeys(unittest.TestCase):
+    def test_select_keys_basic(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        self.assertEqual(select_keys(d, ["a", "c"]), {"a": 1, "c": 3})
+
+    def test_select_keys_missing(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(select_keys(d, ["a", "z"]), {"a": 1})
+
+    def test_select_keys_empty(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(select_keys(d, []), {})
+
+    def test_select_keys_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            select_keys("x", ["a"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            select_keys({"a": 1}, "a")  # type: ignore[arg-type]

@@ -30960,6 +30960,7 @@ __all__ = [
     "flatten_dict",
     "invert_dict",
     "safe_get",
+    "select_keys",
     "unflatten_dict",
 ]
 
@@ -31074,6 +31075,26 @@ def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
         Filtered dictionary.
     """
     return {k: v for k, v in d.items() if predicate(k, v)}
+
+
+def select_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
+    """Select a subset of keys from a dictionary.
+
+    Args:
+        d: Source dictionary.
+        keys: Keys to select.
+
+    Returns:
+        New dictionary containing only the selected keys that exist in d.
+
+    Raises:
+        TypeError: If d is not a dict or keys is not a list.
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not isinstance(keys, list):
+        raise TypeError("keys must be a list")
+    return {k: d[k] for k in keys if k in d}
 DICTUTILS
 # --- json_utils.py ---
 cat > "$OUTPUT_DIR/json_utils.py" <<'JSONUTILS'
@@ -40360,7 +40381,7 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 
 import unittest
 
-from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, unflatten_dict
+from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, select_keys, unflatten_dict
 
 
 class TestDeepMerge(unittest.TestCase):
@@ -40460,6 +40481,26 @@ class TestFilterDict(unittest.TestCase):
         d = {"a1": 1, "b1": 2, "a2": 3}
         result = filter_dict(d, lambda k, v: k.startswith("a"))
         self.assertEqual(len(result), 2)
+
+
+class TestSelectKeys(unittest.TestCase):
+    def test_select_keys_basic(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        self.assertEqual(select_keys(d, ["a", "c"]), {"a": 1, "c": 3})
+
+    def test_select_keys_missing(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(select_keys(d, ["a", "z"]), {"a": 1})
+
+    def test_select_keys_empty(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(select_keys(d, []), {})
+
+    def test_select_keys_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            select_keys("x", ["a"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            select_keys({"a": 1}, "a")  # type: ignore[arg-type]
 TESTDICTUTILS
 
 # --- terminal_utils.py ---
