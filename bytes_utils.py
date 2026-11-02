@@ -50,6 +50,10 @@ __all__: list[str] = [
     "isspace",
     "istitle",
     "isupper",
+    "isdecimal",
+    "isnumeric",
+    "isprintable",
+    "isidentifier",
     "join",
     "expandtabs",
     "decode_ascii",
@@ -1038,6 +1042,30 @@ def isupper(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isupper()
+
+
+def isdecimal(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isdecimal()
+
+
+def isnumeric(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isnumeric()
+
+
+def isprintable(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isprintable()
+
+
+def isidentifier(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isidentifier()
 
 
 def join(iterable: object, sep: bytes = b"") -> bytes:
