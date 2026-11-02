@@ -20304,6 +20304,7 @@ __all__ = [
     "merge_dicts",
     "omit",
     "pick",
+    "invert_dict",
 ]
 
 
@@ -20347,6 +20348,36 @@ def flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dic
         else:
             items.append((new_key, v))
     return dict(items)
+
+
+def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
+    """Return a new dictionary with keys and values swapped.
+
+    Args:
+        d: The dictionary to invert.
+
+    Returns:
+        A new dictionary mapping each value of *d* to its key.
+
+    Raises:
+        TypeError: If *d* is not a dictionary.
+        ValueError: If *d* contains duplicate values, since the inverse would
+            be ambiguous.
+
+    Examples:
+        >>> invert_dict({"a": 1, "b": 2})
+        {1: 'a', 2: 'b'}
+        >>> invert_dict({})
+        {}
+    """
+    if not isinstance(d, dict):
+        raise TypeError(f"d must be a dict, got {type(d).__name__}")
+    inverted: Dict[V, K] = {}
+    for key, value in d.items():
+        if value in inverted:
+            raise ValueError(f"cannot invert dict with duplicate value: {value!r}")
+        inverted[value] = key
+    return inverted
 DATA
 
 # --- datetime_utils.py ---
@@ -24313,7 +24344,7 @@ cat > "$OUTPUT_DIR/tests/test_data_utils.py" <<'TESTDATA'
 
 import unittest
 
-from data_utils import deep_copy, flatten_dict, merge_dicts, omit, pick
+from data_utils import deep_copy, flatten_dict, invert_dict, merge_dicts, omit, pick
 
 
 class TestDeepCopy(unittest.TestCase):
@@ -24428,6 +24459,29 @@ class TestFlattenDict(unittest.TestCase):
         d = {"a": 1, "b": {"c": 2}, "d": {"e": {"f": 3}}}
         result = flatten_dict(d)
         self.assertEqual(result, {"a": 1, "b.c": 2, "d.e.f": 3})
+
+
+class TestInvertDict(unittest.TestCase):
+    def test_invert_dict_basic(self) -> None:
+        self.assertEqual(invert_dict({"a": 1, "b": 2}), {1: "a", 2: "b"})
+
+    def test_invert_dict_empty(self) -> None:
+        self.assertEqual(invert_dict({}), {})
+
+    def test_invert_dict_single(self) -> None:
+        self.assertEqual(invert_dict({"x": 42}), {42: "x"})
+
+    def test_invert_dict_duplicate_values(self) -> None:
+        with self.assertRaises(ValueError):
+            invert_dict({"a": 1, "b": 1})
+
+    def test_invert_dict_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            invert_dict(["a", "b"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict("ab")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -49741,6 +49795,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added invert_dict to data_utils
+
+- Added `invert_dict(d)` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments, and `ValueError` for duplicate values; it returns a new dictionary mapping each value of *d* to its key. Added `TestInvertDict` to `tests/test_data_utils.py` covering basic inversion, empty/single dicts, the duplicate-value `ValueError`, and non-dict `TypeError` paths (6 new tests). Imported `invert_dict` at the top of the test file to match the module's `__all__` contract.
+- Synchronized `data_utils.py`, `tests/test_data_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_data_utils` passes (26 tests); `python -m doctest data_utils.py` passes.
+
 ## Unreleased — added is_square to math_utils
 
 - Added `is_square(n)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-int arguments (rejecting bool), and `ValueError` for negative inputs; it returns True when *n* is a perfect square (the square of an integer), reusing the existing `_require_int` helper and `math.isqrt`. Added `TestIsSquare` to `tests/test_math_utils.py` covering perfect squares, non-perfect squares, the negative `ValueError` path, and the non-int/bool `TypeError` paths (6 new tests). Imported `is_square` at the top of the test file to match the module's `__all__` contract.
@@ -52160,7 +52220,7 @@ The project includes a mathematical utilities module in `math_utils.py` with fun
 
 ## Data Utilities Module
 
-The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict`. The module is tested in `tests/test_data_utils.py`.
+The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `flatten_dict`, `invert_dict`, `merge_dicts`, `pick`, and `omit`. The module is tested in `tests/test_data_utils.py`.
 
 ## Dataclasses Utilities Module
 

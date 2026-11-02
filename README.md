@@ -689,7 +689,7 @@ The project includes a mathematical utilities module in `math_utils.py` with fun
 
 ## Data Utilities Module
 
-The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `merge_dicts`, `pick`, `omit`, and `flatten_dict`. The module is tested in `tests/test_data_utils.py`.
+The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `flatten_dict`, `invert_dict`, `merge_dicts`, `pick`, and `omit`. The module is tested in `tests/test_data_utils.py`.
 
 ## Dataclasses Utilities Module
 

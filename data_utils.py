@@ -13,6 +13,7 @@ __all__ = [
     "merge_dicts",
     "omit",
     "pick",
+    "invert_dict",
 ]
 
 
@@ -56,3 +57,33 @@ def flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dic
         else:
             items.append((new_key, v))
     return dict(items)
+
+
+def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
+    """Return a new dictionary with keys and values swapped.
+
+    Args:
+        d: The dictionary to invert.
+
+    Returns:
+        A new dictionary mapping each value of *d* to its key.
+
+    Raises:
+        TypeError: If *d* is not a dictionary.
+        ValueError: If *d* contains duplicate values, since the inverse would
+            be ambiguous.
+
+    Examples:
+        >>> invert_dict({"a": 1, "b": 2})
+        {1: 'a', 2: 'b'}
+        >>> invert_dict({})
+        {}
+    """
+    if not isinstance(d, dict):
+        raise TypeError(f"d must be a dict, got {type(d).__name__}")
+    inverted: Dict[V, K] = {}
+    for key, value in d.items():
+        if value in inverted:
+            raise ValueError(f"cannot invert dict with duplicate value: {value!r}")
+        inverted[value] = key
+    return inverted

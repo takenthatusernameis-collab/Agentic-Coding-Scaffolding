@@ -2,7 +2,7 @@
 
 import unittest
 
-from data_utils import deep_copy, flatten_dict, merge_dicts, omit, pick
+from data_utils import deep_copy, flatten_dict, invert_dict, merge_dicts, omit, pick
 
 
 class TestDeepCopy(unittest.TestCase):
@@ -117,6 +117,29 @@ class TestFlattenDict(unittest.TestCase):
         d = {"a": 1, "b": {"c": 2}, "d": {"e": {"f": 3}}}
         result = flatten_dict(d)
         self.assertEqual(result, {"a": 1, "b.c": 2, "d.e.f": 3})
+
+
+class TestInvertDict(unittest.TestCase):
+    def test_invert_dict_basic(self) -> None:
+        self.assertEqual(invert_dict({"a": 1, "b": 2}), {1: "a", 2: "b"})
+
+    def test_invert_dict_empty(self) -> None:
+        self.assertEqual(invert_dict({}), {})
+
+    def test_invert_dict_single(self) -> None:
+        self.assertEqual(invert_dict({"x": 42}), {42: "x"})
+
+    def test_invert_dict_duplicate_values(self) -> None:
+        with self.assertRaises(ValueError):
+            invert_dict({"a": 1, "b": 1})
+
+    def test_invert_dict_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            invert_dict(["a", "b"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict("ab")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

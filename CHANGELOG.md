@@ -1,3 +1,9 @@
+## Unreleased — added invert_dict to data_utils
+
+- Added `invert_dict(d)` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments, and `ValueError` for duplicate values; it returns a new dictionary mapping each value of *d* to its key. Added `TestInvertDict` to `tests/test_data_utils.py` covering basic inversion, empty/single dicts, the duplicate-value `ValueError`, and non-dict `TypeError` paths (6 new tests). Imported `invert_dict` at the top of the test file to match the module's `__all__` contract.
+- Synchronized `data_utils.py`, `tests/test_data_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_data_utils` passes (26 tests); `python -m doctest data_utils.py` passes.
+
 ## Unreleased — added is_square to math_utils
 
 - Added `is_square(n)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-int arguments (rejecting bool), and `ValueError` for negative inputs; it returns True when *n* is a perfect square (the square of an integer), reusing the existing `_require_int` helper and `math.isqrt`. Added `TestIsSquare` to `tests/test_math_utils.py` covering perfect squares, non-perfect squares, the negative `ValueError` path, and the non-int/bool `TypeError` paths (6 new tests). Imported `is_square` at the top of the test file to match the module's `__all__` contract.
