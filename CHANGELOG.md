@@ -1,3 +1,9 @@
+## Unreleased — fixed bytes_utils __all__ regression
+
+- Fixed a regression introduced by the preceding bytes_utils session: `upper` and `lower` were added as public functions but omitted from the module's `__all__` list, which caused `tests/test_public_api.py::test_every_public_attribute_is_exported` to fail. Added both names to `__all__` so every public attribute is exported per the module contract.
+- Verified: `make test` runs 7668 tests and passes (previously 1 failure); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- Synchronized `bytes_utils.py` and `scaffold.sh` with `make refresh-scaffold`.
+
 ## Unreleased — added partition and rpartition to bytes_utils
 
 - Added `partition(data, sep)` and `rpartition(data, sep)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes-like arguments; they wrap `bytes.partition`/`bytes.rpartition`, returning a ``(before, sep, after)`` 3-tuple split on the first/last occurrence of *sep* and returning ``(data, b"", b"")`` / ``(b"", b"", data)`` when *sep* is absent.

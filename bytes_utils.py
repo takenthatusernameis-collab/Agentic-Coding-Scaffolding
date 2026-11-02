@@ -36,6 +36,8 @@ __all__: list[str] = [
     "removeprefix",
     "removesuffix",
     "splitlines",
+    "upper",
+    "lower",
 ]
 
 

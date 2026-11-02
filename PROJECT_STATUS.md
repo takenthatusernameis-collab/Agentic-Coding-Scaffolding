@@ -1,5 +1,25 @@
 # Project Status
 
+## Latest Session (2026-11-02) — fixed bytes_utils __all__ regression
+
+The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
+
+Completed in this session:
+
+- Ran the full test suite and found a regression from the preceding bytes_utils session: `tests/test_public_api.py::TestPublicAPI::test_every_public_attribute_is_exported` failed because `upper` and `lower` were added as public functions to `bytes_utils.py` but omitted from the module's `__all__` list.
+- Added `upper` and `lower` to `bytes_utils.__all__` so every public attribute is exported per the module contract.
+- Updated the `bytes_utils` module tree entry in `README.md` to list `upper` and `lower`.
+- Recorded the fix in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` runs 7668 tests and passes (previously 1 failure); `python -m ruff check bytes_utils.py` reports the same 13 pre-existing errors as before the change (no new regressions); `python -m mypy bytes_utils.py` reports the same 8 pre-existing errors as before the change (no new regressions).
+
+Next Planned (posted for the following agent):
+
+- Continue hardening the small utility modules (e.g. `prompt_utils.py`, `string_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-01) — audited version_utils untested aliases and added tests
 
 The board held no task (continuation per Next Planned). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` state was healthy with only pre-existing `pytest`-missing errors in unrelated tests.
