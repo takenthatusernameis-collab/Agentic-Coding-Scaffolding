@@ -55,6 +55,8 @@ __all__: List[str] = [
     "is_powerful_number",
     "is_fermat_number",
     "is_strong_prime",
+    "is_balanced_prime",
+    "is_weak_prime",
 ]
 
 
@@ -1600,3 +1602,83 @@ def is_strong_prime(n: int) -> bool:
     # 5 is balanced: (3 + 7) / 2 == 5). Every prime >= 7 has a predecessor.
     # Use the strictly neighbouring primes: prev_prime(n-1) and next_prime(n+1).
     return (n - prev_prime(n - 1)) > (next_prime(n + 1) - n)
+
+
+def is_balanced_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a balanced prime.
+
+    A balanced prime is a prime number that is equal to the arithmetic mean
+    of the two nearest primes above and below it, i.e.
+    ``2 * n == prev_prime(n - 1) + next_prime(n + 1)``. The first few balanced
+    primes are 5, 53, 157, 173, 211, 257, 263, 373, ... (OEIS A006562).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a balanced prime, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_balanced_prime(5)
+        True
+        >>> is_balanced_prime(53)
+        True
+        >>> is_balanced_prime(157)
+        True
+        >>> is_balanced_prime(11)
+        False
+        >>> is_balanced_prime(7)
+        False
+        >>> is_balanced_prime(2)
+        False
+        >>> is_balanced_prime(4)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n) or n < 5:
+        return False
+    return 2 * n == prev_prime(n - 1) + next_prime(n + 1)
+
+
+def is_weak_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a weak prime.
+
+    A weak prime is a prime number that is less than the arithmetic mean
+    of the two nearest primes above and below it, i.e.
+    ``n < (prev_prime(n - 1) + next_prime(n + 1)) / 2``. The first few weak
+    primes are 7, 13, 19, 23, 31, 43, ... (OEIS A014224).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a weak prime, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_weak_prime(7)
+        True
+        >>> is_weak_prime(13)
+        True
+        >>> is_weak_prime(19)
+        True
+        >>> is_weak_prime(23)
+        True
+        >>> is_weak_prime(11)
+        False
+        >>> is_weak_prime(5)
+        False
+        >>> is_weak_prime(2)
+        False
+        >>> is_weak_prime(4)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n) or n < 7:
+        return False
+    return n < (prev_prime(n - 1) + next_prime(n + 1)) / 2

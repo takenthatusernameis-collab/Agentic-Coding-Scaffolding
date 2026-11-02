@@ -36,6 +36,8 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_strong_prime,
+    is_balanced_prime,
+    is_weak_prime,
     is_truncatable_prime,
     is_twin_prime,
     is_wilson_prime,
@@ -1489,3 +1491,69 @@ class TestIsStrongPrime(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsBalancedPrime(unittest.TestCase):
+    def test_known_balanced_primes(self):
+        # OEIS A006562: balanced primes
+        for n in (5, 53, 157, 173, 211, 257, 263, 373, 563, 593, 607, 653,
+                  733, 947, 977, 1103, 1123, 1187, 1223, 1367, 1511,
+                  1753, 1907, 2287, 2417, 2677, 2903, 2963, 3307):
+            self.assertTrue(is_balanced_prime(n), n)
+
+    def test_strong_and_weak_primes(self):
+        for n in (7, 11, 13, 17, 19, 23, 29, 31, 37):
+            self.assertFalse(is_balanced_prime(n), n)
+
+    def test_non_primes(self):
+        for n in (1, 4, 6, 8, 9, 10, 54):
+            self.assertFalse(is_balanced_prime(n), n)
+
+    def test_boundary(self):
+        for n in (2, 3):
+            self.assertFalse(is_balanced_prime(n), n)
+
+    def test_negatives_and_zero(self):
+        for n in (0, -1, -5, -53):
+            self.assertFalse(is_balanced_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_balanced_prime(5.0)
+        with self.assertRaises(TypeError):
+            is_balanced_prime("5")
+        with self.assertRaises(TypeError):
+            is_balanced_prime(True)
+
+
+class TestIsWeakPrime(unittest.TestCase):
+    def test_known_weak_primes(self):
+        # OEIS A014224 weak primes (less than mean of neighbors)
+        for n in (7, 13, 19, 23, 31, 43, 47, 103, 109,
+                  131, 139, 151, 167, 181, 193, 199, 229, 241,
+                  271, 283, 293):
+            self.assertTrue(is_weak_prime(n), n)
+
+    def test_strong_and_balanced_primes(self):
+        for n in (5, 11, 17, 29, 37, 41, 53):
+            self.assertFalse(is_weak_prime(n), n)
+
+    def test_non_primes(self):
+        for n in (1, 4, 6, 8, 9, 10, 14):
+            self.assertFalse(is_weak_prime(n), n)
+
+    def test_boundary(self):
+        for n in (2, 3):
+            self.assertFalse(is_weak_prime(n), n)
+
+    def test_negatives_and_zero(self):
+        for n in (0, -1, -7, -13):
+            self.assertFalse(is_weak_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_weak_prime(7.0)
+        with self.assertRaises(TypeError):
+            is_weak_prime("7")
+        with self.assertRaises(TypeError):
+            is_weak_prime(True)

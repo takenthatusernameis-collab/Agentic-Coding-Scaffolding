@@ -1,3 +1,10 @@
+## Unreleased — added balanced and weak prime predicates
+
+- Added `is_balanced_prime(n)` and `is_weak_prime(n)` to `prime_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation via `_require_int`. `is_balanced_prime` returns True when a prime equals the arithmetic mean of its two nearest primes (e.g. 5, 53, 157, 173, 211); `is_weak_prime` returns True when a prime is less than the arithmetic mean of its two nearest primes (e.g. 7, 13, 19, 23, 31). Added `TestIsBalancedPrime` and `TestIsWeakPrime` to `tests/test_prime_utils.py` covering known values, disjointness from the other categories, non-primes, boundary cases, and `TypeError` paths. Updated the `prime_utils` module tree entry and prose section of `README.md`.
+- Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_prime_utils` passes (262 tests); `python -m doctest prime_utils.py` passes (no new doctest failures).
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added del_nested to data_utils
 
 - Added `del_nested(d, path, sep=".")` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments and non-string paths, `ValueError` for empty paths, and a boolean return indicating whether a key was deleted. Added `TestDelNested` to `tests/test_data_utils.py` covering basic deletion, deep paths, missing paths, empty dicts, intermediate non-dict values, custom separators, and the `TypeError`/`ValueError` paths (12 new tests). Imported `del_nested` at the top of the test file to match the module's `__all__` contract.
