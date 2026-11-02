@@ -42690,6 +42690,18 @@ __all__: list[str] = [
     "title",
     "swapcase",
     "casefold",
+    "isalnum",
+    "isalpha",
+    "isascii",
+    "isdigit",
+    "islower",
+    "isspace",
+    "istitle",
+    "isupper",
+    "join",
+    "expandtabs",
+    "decode_ascii",
+    "encode_ascii",
 ]
 
 
@@ -43625,6 +43637,85 @@ def casefold(data: bytes) -> bytes:
         return bytes(data).decode("utf-8").casefold().encode("utf-8")
     except UnicodeError:
         return bytes(data).lower()
+
+
+
+def isalnum(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isalnum()
+
+
+def isalpha(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isalpha()
+
+
+def isascii(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isascii()
+
+
+def isdigit(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isdigit()
+
+
+def islower(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).islower()
+
+
+def isspace(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isspace()
+
+
+def istitle(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).istitle()
+
+
+def isupper(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isupper()
+
+
+def join(iterable: object, sep: bytes = b"") -> bytes:
+    if not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes or bytearray")
+    return bytes(sep).join(iterable)  # type: ignore[arg-type]
+
+
+def expandtabs(data: bytes, tabsize: int = 8) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(tabsize, int):
+        raise TypeError("tabsize must be int")
+    return bytes(data).expandtabs(tabsize)
+
+
+def decode_ascii(data: bytes, errors: str = "strict") -> str:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be str")
+    return bytes(data).decode("ascii", errors=errors)
+
+
+def encode_ascii(s: str, errors: str = "strict") -> bytes:
+    if not isinstance(s, str):
+        raise TypeError("s must be str")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be str")
+    return s.encode("ascii", errors=errors)
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -43653,6 +43744,8 @@ from bytes_utils import (
     title,
     swapcase,
     casefold,
+    join,
+    expandtabs,
     to_hex,
     upper,
     xor,
@@ -43726,6 +43819,22 @@ class TestBytesUtils(unittest.TestCase):
         self.assertEqual(casefold(b"Hello"), b"hello")
         self.assertEqual(casefold(bytearray(b"Hello")), b"hello")
         self.assertEqual(casefold(b""), b"")
+
+    def test_join(self):
+        self.assertEqual(join([b"ab", b"cd"]), b"abcd")
+        self.assertEqual(join([b"a", b"b"], b"-"), b"a-b")
+        self.assertEqual(join([], b"-"), b"")
+        with self.assertRaises(TypeError):
+            join([b"ab"], "x")
+
+    def test_expandtabs(self):
+        self.assertEqual(expandtabs(b"a\tb"), b"a       b")
+        self.assertEqual(expandtabs(b"a\tb", 4), b"a   b")
+        self.assertEqual(expandtabs(bytearray(b"a\tb")), b"a       b")
+        with self.assertRaises(TypeError):
+            expandtabs("a\tb")
+        with self.assertRaises(TypeError):
+            expandtabs(b"a\tb", "4")
 
     def test_contains(self):
         self.assertTrue(contains(b"hello", b"ll"))
