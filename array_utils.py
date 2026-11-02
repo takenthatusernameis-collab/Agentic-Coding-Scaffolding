@@ -161,18 +161,6 @@ def array_clear(arr: array) -> None:
     del arr[:]
 
 
-def array_typecode(arr: array) -> str:
-    """Return the typecode character used to create the array."""
-    _require_array(arr, "arr")
-    return arr.typecode
-
-
-def array_byteswap(arr: array) -> None:
-    """Swap bytes in place if array is not single byte."""
-    _require_array(arr, "arr")
-    arr.byteswap()
-
-
 def array_count(arr: array, item: Any) -> int:
     """Count occurrences of item in array."""
     _require_array(arr, "arr")
