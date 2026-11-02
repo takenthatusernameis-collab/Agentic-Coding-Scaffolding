@@ -49795,6 +49795,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — extended __all__ contract guard to all top-level modules
+
+- Audited the public-API ``__all__`` contract across every top-level module in the repository (264 modules). Every module already defines ``__all__`` and every public attribute defined by a module is exported — no gaps found, so no ``__all__`` edits were needed.
+- Identified a real durability gap: ``tests/test_public_api.py`` only guarded ``*_utils.py`` wrapper modules, leaving non-wrapper modules (``stats.py``, ``strings.py``, ``shapes.py``, ``prompt_utils.py``, ...) unguarded. That gap is how earlier regressions (``upper``/``lower`` missing from ``bytes_utils.__all__``) slipped through unnoticed.
+- Extended ``_iter_wrapper_modules`` in ``tests/test_public_api.py`` to discover every top-level module (wrapper or not), so the contract is enforced repo-wide. Verified the test catches the regression it previously missed: temporarily removing a name from ``math_utils.__all__`` fails the test, and restoring it passes.
+- Updated the ``README.md`` Overview to document the repo-wide ``__all__`` contract and its test guard.
+- Verified: ``make test`` passes (7364 tests); ``python tools/refresh_scaffold.py --check`` reports all embedded copies in sync (``test_public_api.py`` is not embedded in ``scaffold.sh``, so no refresh was needed).
+- No changes to ``.github/workflows/**``.
+
 ## Unreleased — added invert_dict to data_utils
 
 - Added `invert_dict(d)` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments, and `ValueError` for duplicate values; it returns a new dictionary mapping each value of *d* to its key. Added `TestInvertDict` to `tests/test_data_utils.py` covering basic inversion, empty/single dicts, the duplicate-value `ValueError`, and non-dict `TypeError` paths (6 new tests). Imported `invert_dict` at the top of the test file to match the module's `__all__` contract.
@@ -51541,6 +51550,15 @@ This repository provides a foundation for agentic coding projects. It includes:
 - Project configuration for Kilo (AGENTS.md, kilo.json)
 - Custom subagents and commands for scaffolding tasks
 - A task handover protocol between agent sessions
+
+Every top-level module exposes its public API through an ``__all__`` list, and
+``tests/test_public_api.py`` enforces that contract repo-wide: any public
+attribute a module defines (a top-level, non-underscore name that is callable
+or a re-exported standard library alias) must be listed in ``__all__``. The
+contract covers non-wrapper modules (``stats.py``, ``strings.py``,
+``shapes.py``, ``prompt_utils.py``) as well as ``*_utils.py`` wrapper modules,
+so regressions such as a public helper missing from ``__all__`` are caught by
+the test suite rather than slipping through.
 
 ## Architecture
 

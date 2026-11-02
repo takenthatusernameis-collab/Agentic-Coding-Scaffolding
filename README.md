@@ -11,6 +11,15 @@ This repository provides a foundation for agentic coding projects. It includes:
 - Custom subagents and commands for scaffolding tasks
 - A task handover protocol between agent sessions
 
+Every top-level module exposes its public API through an ``__all__`` list, and
+``tests/test_public_api.py`` enforces that contract repo-wide: any public
+attribute a module defines (a top-level, non-underscore name that is callable
+or a re-exported standard library alias) must be listed in ``__all__``. The
+contract covers non-wrapper modules (``stats.py``, ``strings.py``,
+``shapes.py``, ``prompt_utils.py``) as well as ``*_utils.py`` wrapper modules,
+so regressions such as a public helper missing from ``__all__`` are caught by
+the test suite rather than slipping through.
+
 ## Architecture
 
 ```
