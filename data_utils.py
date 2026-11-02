@@ -10,10 +10,11 @@ __all__ = [
     "V",
     "deep_copy",
     "flatten_dict",
+    "get_nested",
+    "invert_dict",
     "merge_dicts",
     "omit",
     "pick",
-    "invert_dict",
 ]
 
 
@@ -87,3 +88,46 @@ def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
             raise ValueError(f"cannot invert dict with duplicate value: {value!r}")
         inverted[value] = key
     return inverted
+
+
+def get_nested(d: Dict[str, Any], path: str, default: Any = None, sep: str = ".") -> Any:
+    """Return the value at a dot-separated path in a nested dictionary.
+
+    Traverses *d* using the segments of *path* split on *sep*. When a segment
+    is missing or an intermediate value is not a dictionary, *default* is
+    returned instead of raising.
+
+    Args:
+        d: The dictionary to traverse.
+        path: A dot-separated key path, e.g. ``"a.b.c"``.
+        default: Value returned when *path* does not exist in *d*.
+        sep: Separator between path segments (default: ``"."``).
+
+    Returns:
+        The value stored at *path*, or *default* when the path is absent.
+
+    Raises:
+        TypeError: If *d* is not a dictionary or *path* is not a string.
+
+    Examples:
+        >>> get_nested({"a": {"b": 1}}, "a.b")
+        1
+        >>> get_nested({"a": {"b": {"c": 3}}}, "a.b.c")
+        3
+        >>> get_nested({"a": {"b": 1}}, "a.c", default=0)
+        0
+        >>> get_nested({"a": 1}, "a.b", default="missing")
+        'missing'
+        >>> get_nested({}, "a.b", default="missing")
+        'missing'
+    """
+    if not isinstance(d, dict):
+        raise TypeError(f"d must be a dict, got {type(d).__name__}")
+    if not isinstance(path, str):
+        raise TypeError(f"path must be a string, got {type(path).__name__}")
+    current: Any = d
+    for segment in path.split(sep):
+        if not isinstance(current, dict) or segment not in current:
+            return default
+        current = current[segment]
+    return current

@@ -2,7 +2,7 @@
 
 import unittest
 
-from data_utils import deep_copy, flatten_dict, invert_dict, merge_dicts, omit, pick
+from data_utils import deep_copy, flatten_dict, get_nested, invert_dict, merge_dicts, omit, pick
 
 
 class TestDeepCopy(unittest.TestCase):
@@ -140,6 +140,42 @@ class TestInvertDict(unittest.TestCase):
             invert_dict("ab")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             invert_dict(None)  # type: ignore[arg-type]
+
+
+class TestGetNested(unittest.TestCase):
+    def test_get_nested_basic(self) -> None:
+        self.assertEqual(get_nested({"a": {"b": 1}}, "a.b"), 1)
+
+    def test_get_nested_deep(self) -> None:
+        self.assertEqual(get_nested({"a": {"b": {"c": 3}}}, "a.b.c"), 3)
+
+    def test_get_nested_missing_returns_default(self) -> None:
+        self.assertIsNone(get_nested({"a": {"b": 1}}, "a.c"))
+        self.assertEqual(get_nested({"a": {"b": 1}}, "a.c", default=0), 0)
+
+    def test_get_nested_missing_top_level(self) -> None:
+        self.assertIsNone(get_nested({"a": 1}, "b"))
+
+    def test_get_nested_empty_dict(self) -> None:
+        self.assertIsNone(get_nested({}, "a.b"))
+
+    def test_get_nested_intermediate_not_dict(self) -> None:
+        self.assertIsNone(get_nested({"a": 1}, "a.b"))
+
+    def test_get_nested_custom_separator(self) -> None:
+        self.assertEqual(get_nested({"a": {"b": 2}}, "a/b", sep="/"), 2)
+
+    def test_get_nested_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            get_nested(["a", "b"], "a.b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_nested("ab", "a.b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_nested(None, "a.b")  # type: ignore[arg-type]
+
+    def test_get_nested_rejects_non_string_path(self) -> None:
+        with self.assertRaises(TypeError):
+            get_nested({"a": 1}, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
