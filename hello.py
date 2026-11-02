@@ -1,5 +1,7 @@
 import sys
 
+__all__ = ["main"]
+
 
 def main(name: str = "World") -> None:
     """Print a greeting for the given name.

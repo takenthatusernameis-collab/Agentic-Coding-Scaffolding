@@ -4667,6 +4667,8 @@ PYPROJECT
 cat > "$OUTPUT_DIR/hello.py" <<'HELLO'
 import sys
 
+__all__ = ["main"]
+
 
 def main(name: str = "World") -> None:
     """Print a greeting for the given name.
@@ -4745,6 +4747,23 @@ from __future__ import annotations
 import re
 from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar, Union
 from urllib.parse import urlparse
+
+__all__ = [
+    "ConfigValidationError",
+    "ConfigSchema",
+    "SchemaField",
+    "Validator",
+    "choices_validator",
+    "email_validator",
+    "float_validator",
+    "hostname_validator",
+    "int_validator",
+    "range_validator",
+    "regex_validator",
+    "str_validator",
+    "bool_validator",
+    "url_validator",
+]
 
 T = TypeVar("T")
 
@@ -8875,6 +8894,20 @@ TEST_GC_UTILS
 # --- calculator.py ---
 
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
+__all__ = [
+    "add",
+    "subtract",
+    "multiply",
+    "divide",
+    "modulo",
+    "floor_divide",
+    "power",
+    "sqrt",
+    "negate",
+    "absolute",
+]
+
+
 def add(a: float, b: float) -> float:
     """Return the sum of a and b."""
     return a + b
@@ -45751,18 +45784,6 @@ def array_clear(arr: array) -> None:
     """
     _require_array(arr, "arr")
     del arr[:]
-
-
-def array_typecode(arr: array) -> str:
-    """Return the typecode character used to create the array."""
-    _require_array(arr, "arr")
-    return arr.typecode
-
-
-def array_byteswap(arr: array) -> None:
-    """Swap bytes in place if array is not single byte."""
-    _require_array(arr, "arr")
-    arr.byteswap()
 
 
 def array_count(arr: array, item: Any) -> int:
