@@ -1,3 +1,11 @@
+## Unreleased — added tests for bytes_utils predicate and ascii helpers
+
+- Audited the `bytes_utils` helpers added in the preceding session (`isalnum`, `isalpha`, `isascii`, `isdigit`, `islower`, `isspace`, `istitle`, `isupper`, `join`, `expandtabs`, `decode_ascii`, `encode_ascii`) and found they were committed to `bytes_utils.py` and `scaffold.sh` without corresponding tests in `tests/test_bytes_utils.py`, leaving the new public API uncovered.
+- Added `TestPredicates` and `TestAsciiHelpers` to `tests/test_bytes_utils.py` covering happy paths (including `bytearray` inputs and empty data), boundary cases, and the `TypeError`/`ValueError` paths for all twelve helpers (29 new tests). Imported the new names at the top of the test file to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md` to list the new helpers.
+- Synchronized `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes (7674 tests, 3866 subtests); `python -m ruff check .` reports the same 34 pre-existing errors as before the change (no new regressions); `python -m mypy .` reports the same 63 pre-existing errors as before the change (no new regressions).
+
 ## Unreleased — fixed bytes_utils __all__ regression
 
 - Fixed a regression introduced by the preceding bytes_utils session: `upper` and `lower` were added as public functions but omitted from the module's `__all__` list, which caused `tests/test_public_api.py::test_every_public_attribute_is_exported` to fail. Added both names to `__all__` so every public attribute is exported per the module contract.

@@ -1,6 +1,26 @@
 # Project Status
 
-## Latest Session (2026-11-02) — fixed bytes_utils __all__ regression
+## Latest Session (2026-11-02) — added tests for bytes_utils predicate and ascii helpers
+
+The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies (`bytes_utils.py`, `tests/test_bytes_utils.py`).
+
+Completed in this session:
+
+- Refreshed the embedded copies in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Committed the scaffold refresh.
+- Audited the `bytes_utils` helpers added in the preceding session (`isalnum`, `isalpha`, `isascii`, `isdigit`, `islower`, `isspace`, `istitle`, `isupper`, `join`, `expandtabs`, `decode_ascii`, `encode_ascii`). They were committed to `bytes_utils.py` and `scaffold.sh` but had no corresponding tests in `tests/test_bytes_utils.py`, leaving the new public API uncovered.
+- Added `TestPredicates` and `TestAsciiHelpers` to `tests/test_bytes_utils.py` covering happy paths (including `bytearray` inputs and empty data), boundary cases, and the `TypeError` paths for all twelve helpers (29 new tests). Imported the new names at the top of the test file to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md` to list the new helpers.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` passes (7674 tests, 3866 subtests); `python -m ruff check .` reports the same 34 pre-existing errors as before the change (no new regressions); `python -m mypy .` reports the same 63 pre-existing errors as before the change (no new regressions).
+
+Next Planned (posted for the following agent):
+
+- Continue hardening the small utility modules (e.g. `prompt_utils.py`, `string_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync.
 

@@ -1,13 +1,28 @@
 import unittest
 
 from bytes_utils import (
+    capitalize,
+    casefold,
     chunk,
     concat,
     contains,
+    decode_ascii,
+    encode_ascii,
     ends_with,
+    expandtabs,
     from_hex,
     index,
     index_of,
+    isalnum,
+    isalpha,
+    isascii,
+    isdigit,
+    islower,
+    isspace,
+    istitle,
+    isupper,
+    join,
+    lower,
     partition,
     removeprefix,
     removesuffix,
@@ -17,13 +32,8 @@ from bytes_utils import (
     rpartition,
     splitlines,
     starts_with,
-    lower,
-    capitalize,
-    title,
     swapcase,
-    casefold,
-    join,
-    expandtabs,
+    title,
     to_hex,
     upper,
     xor,
@@ -149,6 +159,107 @@ class TestBytesUtils(unittest.TestCase):
             xor(b"abc", b"")
         with self.assertRaises(ValueError):
             chunk(b"abc", 0)
+
+
+class TestPredicates(unittest.TestCase):
+    def test_isalnum(self):
+        self.assertTrue(isalnum(b"abc123"))
+        self.assertTrue(isalnum(bytearray(b"abc123")))
+        self.assertFalse(isalnum(b"abc 123"))
+        self.assertFalse(isalnum(b""))
+        self.assertFalse(isalnum(b"!@#"))
+
+    def test_isalpha(self):
+        self.assertTrue(isalpha(b"abc"))
+        self.assertTrue(isalpha(bytearray(b"ABC")))
+        self.assertFalse(isalpha(b"abc123"))
+        self.assertFalse(isalpha(b""))
+        self.assertFalse(isalpha(b"ab c"))
+
+    def test_isascii(self):
+        self.assertTrue(isascii(b"abc"))
+        self.assertTrue(isascii(bytearray(b"123")))
+        self.assertFalse(isascii(b"\x80"))
+        self.assertTrue(isascii(b""))
+
+    def test_isdigit(self):
+        self.assertTrue(isdigit(b"123"))
+        self.assertTrue(isdigit(bytearray(b"0")))
+        self.assertFalse(isdigit(b"12a"))
+        self.assertFalse(isdigit(b""))
+        self.assertFalse(isdigit(b"1.5"))
+
+    def test_islower(self):
+        self.assertTrue(islower(b"abc"))
+        self.assertTrue(islower(bytearray(b"abc123")))
+        self.assertFalse(islower(b"ABC"))
+        self.assertFalse(islower(b"Abc"))
+        self.assertFalse(islower(b""))
+        self.assertFalse(islower(b" "))
+
+    def test_isspace(self):
+        self.assertTrue(isspace(b"   "))
+        self.assertTrue(isspace(bytearray(b"\t\n")))
+        self.assertFalse(isspace(b""))
+        self.assertFalse(isspace(b"a"))
+
+    def test_istitle(self):
+        self.assertTrue(istitle(b"Hello World"))
+        self.assertTrue(istitle(bytearray(b"Hello")))
+        self.assertFalse(istitle(b"hello world"))
+        self.assertFalse(istitle(b"HelloWorld"))
+        self.assertFalse(istitle(b""))
+
+    def test_isupper(self):
+        self.assertTrue(isupper(b"ABC"))
+        self.assertTrue(isupper(bytearray(b"ABC123")))
+        self.assertFalse(isupper(b"abc"))
+        self.assertFalse(isupper(b"Abc"))
+        self.assertFalse(isupper(b""))
+        self.assertFalse(isupper(b" "))
+
+    def test_type_errors(self):
+        for fn in (
+            isalnum,
+            isalpha,
+            isascii,
+            isdigit,
+            islower,
+            isspace,
+            istitle,
+            isupper,
+        ):
+            with self.assertRaises(TypeError):
+                fn("abc")
+            with self.assertRaises(TypeError):
+                fn(123)
+
+
+class TestAsciiHelpers(unittest.TestCase):
+    def test_decode_ascii(self):
+        self.assertEqual(decode_ascii(b"abc"), "abc")
+        self.assertEqual(decode_ascii(bytearray(b"hi")), "hi")
+        self.assertEqual(decode_ascii(b"\x00\x01"), "\x00\x01")
+
+    def test_decode_ascii_errors(self):
+        with self.assertRaises(UnicodeDecodeError):
+            decode_ascii(b"\x80")
+        with self.assertRaises(TypeError):
+            decode_ascii("abc")
+        with self.assertRaises(TypeError):
+            decode_ascii(b"abc", errors=123)
+
+    def test_encode_ascii(self):
+        self.assertEqual(encode_ascii("abc"), b"abc")
+        self.assertEqual(encode_ascii("", errors="ignore"), b"")
+
+    def test_encode_ascii_errors(self):
+        with self.assertRaises(UnicodeEncodeError):
+            encode_ascii("café")
+        with self.assertRaises(TypeError):
+            encode_ascii(b"abc")
+        with self.assertRaises(TypeError):
+            encode_ascii("abc", errors=123)
 
 
 class TestIndexOf(unittest.TestCase):
