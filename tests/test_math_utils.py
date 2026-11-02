@@ -12,6 +12,7 @@ from math_utils import (
     is_even,
     is_odd,
     is_prime,
+    is_square,
     lcm,
     permutation,
 )
@@ -193,6 +194,37 @@ class TestIsComposite(unittest.TestCase):
             is_composite("4")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_composite(True)  # type: ignore[arg-type]
+
+
+class TestIsSquare(unittest.TestCase):
+    def test_perfect_squares(self) -> None:
+        self.assertTrue(is_square(0))
+        self.assertTrue(is_square(1))
+        self.assertTrue(is_square(4))
+        self.assertTrue(is_square(9))
+        self.assertTrue(is_square(16))
+        self.assertTrue(is_square(25))
+        self.assertTrue(is_square(100))
+        self.assertTrue(is_square(10000))
+
+    def test_non_perfect_squares(self) -> None:
+        self.assertFalse(is_square(2))
+        self.assertFalse(is_square(3))
+        self.assertFalse(is_square(15))
+        self.assertFalse(is_square(17))
+        self.assertFalse(is_square(99))
+
+    def test_negative_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            is_square(-1)
+
+    def test_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_square(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_square("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_square(True)  # type: ignore[arg-type]
 
 
 class TestClamp(unittest.TestCase):

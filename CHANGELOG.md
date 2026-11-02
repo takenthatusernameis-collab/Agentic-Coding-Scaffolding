@@ -1,3 +1,9 @@
+## Unreleased — added is_square to math_utils
+
+- Added `is_square(n)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-int arguments (rejecting bool), and `ValueError` for negative inputs; it returns True when *n* is a perfect square (the square of an integer), reusing the existing `_require_int` helper and `math.isqrt`. Added `TestIsSquare` to `tests/test_math_utils.py` covering perfect squares, non-perfect squares, the negative `ValueError` path, and the non-int/bool `TypeError` paths (6 new tests). Imported `is_square` at the top of the test file to match the module's `__all__` contract.
+- Synchronized `math_utils.py` and `tests/test_math_utils.py` embedded copies in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_math_utils` passes (56 tests); `python -m doctest math_utils.py` passes.
+
 ## Unreleased — extended __all__ public-API contract to non-wrapper modules
 - Audit `file_utils.py` boundary cases (empty paths, missing files/directories, binary/unicode text, non-string/Path types) and add comprehensive boundary tests to `tests/test_file_utils.py`.
 

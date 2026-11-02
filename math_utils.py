@@ -12,6 +12,7 @@ __all__: List[str] = [
     "lcm",
     "is_prime",
     "is_composite",
+    "is_square",
     "clamp",
     "is_even",
     "is_odd",
@@ -206,6 +207,39 @@ def is_composite(n: int) -> bool:
     if n < 2:
         raise ValueError("Composite check is only defined for integers >= 2")
     return not is_prime(n)
+
+
+def is_square(n: int) -> bool:
+    """Return True if *n* is a perfect square.
+
+    A perfect square is a non-negative integer that is the square of an
+    integer (e.g. 0, 1, 4, 9, 16, 25).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a perfect square, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
+
+    Examples:
+        >>> is_square(0)
+        True
+        >>> is_square(1)
+        True
+        >>> is_square(16)
+        True
+        >>> is_square(15)
+        False
+    """
+    n = _require_int(n, "n")
+    if n < 0:
+        raise ValueError("Perfect square check is only defined for non-negative integers")
+    root = math.isqrt(n)
+    return root * root == n
 
 
 def clamp(value: float, min_val: float, max_val: float) -> float:

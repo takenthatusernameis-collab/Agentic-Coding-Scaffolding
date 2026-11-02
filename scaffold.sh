@@ -19899,6 +19899,7 @@ __all__: List[str] = [
     "lcm",
     "is_prime",
     "is_composite",
+    "is_square",
     "clamp",
     "is_even",
     "is_odd",
@@ -20093,6 +20094,39 @@ def is_composite(n: int) -> bool:
     if n < 2:
         raise ValueError("Composite check is only defined for integers >= 2")
     return not is_prime(n)
+
+
+def is_square(n: int) -> bool:
+    """Return True if *n* is a perfect square.
+
+    A perfect square is a non-negative integer that is the square of an
+    integer (e.g. 0, 1, 4, 9, 16, 25).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a perfect square, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
+
+    Examples:
+        >>> is_square(0)
+        True
+        >>> is_square(1)
+        True
+        >>> is_square(16)
+        True
+        >>> is_square(15)
+        False
+    """
+    n = _require_int(n, "n")
+    if n < 0:
+        raise ValueError("Perfect square check is only defined for non-negative integers")
+    root = math.isqrt(n)
+    return root * root == n
 
 
 def clamp(value: float, min_val: float, max_val: float) -> float:
@@ -23918,6 +23952,7 @@ from math_utils import (
     is_even,
     is_odd,
     is_prime,
+    is_square,
     lcm,
     permutation,
 )
@@ -24099,6 +24134,37 @@ class TestIsComposite(unittest.TestCase):
             is_composite("4")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_composite(True)  # type: ignore[arg-type]
+
+
+class TestIsSquare(unittest.TestCase):
+    def test_perfect_squares(self) -> None:
+        self.assertTrue(is_square(0))
+        self.assertTrue(is_square(1))
+        self.assertTrue(is_square(4))
+        self.assertTrue(is_square(9))
+        self.assertTrue(is_square(16))
+        self.assertTrue(is_square(25))
+        self.assertTrue(is_square(100))
+        self.assertTrue(is_square(10000))
+
+    def test_non_perfect_squares(self) -> None:
+        self.assertFalse(is_square(2))
+        self.assertFalse(is_square(3))
+        self.assertFalse(is_square(15))
+        self.assertFalse(is_square(17))
+        self.assertFalse(is_square(99))
+
+    def test_negative_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            is_square(-1)
+
+    def test_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_square(1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_square("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_square(True)  # type: ignore[arg-type]
 
 
 class TestClamp(unittest.TestCase):
@@ -49674,6 +49740,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_square to math_utils
+
+- Added `is_square(n)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-int arguments (rejecting bool), and `ValueError` for negative inputs; it returns True when *n* is a perfect square (the square of an integer), reusing the existing `_require_int` helper and `math.isqrt`. Added `TestIsSquare` to `tests/test_math_utils.py` covering perfect squares, non-perfect squares, the negative `ValueError` path, and the non-int/bool `TypeError` paths (6 new tests). Imported `is_square` at the top of the test file to match the module's `__all__` contract.
+- Synchronized `math_utils.py` and `tests/test_math_utils.py` embedded copies in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_math_utils` passes (56 tests); `python -m doctest math_utils.py` passes.
+
 ## Unreleased — extended __all__ public-API contract to non-wrapper modules
 - Audit `file_utils.py` boundary cases (empty paths, missing files/directories, binary/unicode text, non-string/Path types) and add comprehensive boundary tests to `tests/test_file_utils.py`.
 
@@ -51450,7 +51522,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, count_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, clamp, is_even, combination, permutation)
+math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, is_square, clamp, is_even, combination, permutation)
 mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
@@ -52083,7 +52155,7 @@ MIT
 
 ## Math Utilities Module
 
-The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `is_composite`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `is_composite`, `is_square`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
 
 ## Data Utilities Module
 
