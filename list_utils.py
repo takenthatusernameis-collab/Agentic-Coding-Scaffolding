@@ -11,6 +11,7 @@ __all__ = [
     "chunks",
     "drop",
     "find",
+    "flatten",
     "group_by",
     "intersperse",
     "partition",
@@ -264,4 +265,35 @@ def chunks(lst: List[T], size: int) -> List[List[T]]:
     result: List[List[T]] = []
     for i in range(0, len(lst), size):
         result.append(lst[i : i + size])
+    return result
+
+
+def flatten(lst: List[List[T]]) -> List[T]:
+    """Flatten a list of lists one level deep.
+
+    Args:
+        lst: The list of lists to flatten.
+
+    Returns:
+        A single list containing every element of the inner lists, in order.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or if any element of ``lst`` is
+            not a list.
+
+    Examples:
+        >>> flatten([[1, 2], [3, 4], [5]])
+        [1, 2, 3, 4, 5]
+        >>> flatten([[], [1], [2, 3]])
+        [1, 2, 3]
+        >>> flatten([["a", "b"], ["c"]])
+        ['a', 'b', 'c']
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    result: List[T] = []
+    for item in lst:
+        if not isinstance(item, list):
+            raise TypeError("all elements of lst must be lists")
+        result.extend(item)
     return result

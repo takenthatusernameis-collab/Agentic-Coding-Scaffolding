@@ -2,7 +2,7 @@
 
 import unittest
 
-from list_utils import chunks, drop, find, group_by, intersperse, partition, safe_get, take
+from list_utils import chunks, drop, find, flatten, group_by, intersperse, partition, safe_get, take
 
 
 class TestPartition(unittest.TestCase):
@@ -221,6 +221,31 @@ class TestChunks(unittest.TestCase):
     def test_chunks_size_not_int_raises(self) -> None:
         with self.assertRaises(TypeError):
             chunks([1, 2, 3], 2.0)  # type: ignore[arg-type]
+
+
+class TestFlatten(unittest.TestCase):
+    def test_flatten_basic(self) -> None:
+        self.assertEqual(flatten([[1, 2], [3, 4], [5]]), [1, 2, 3, 4, 5])
+
+    def test_flatten_with_empty_inner(self) -> None:
+        self.assertEqual(flatten([[], [1], [2, 3]]), [1, 2, 3])
+
+    def test_flatten_strings(self) -> None:
+        self.assertEqual(flatten([["a", "b"], ["c"]]), ["a", "b", "c"])
+
+    def test_flatten_empty_outer(self) -> None:
+        self.assertEqual(flatten([]), [])
+
+    def test_flatten_preserves_order(self) -> None:
+        self.assertEqual(flatten([[3], [1, 2], [4]]), [3, 1, 2, 4])
+
+    def test_flatten_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            flatten("not a list")  # type: ignore[arg-type]
+
+    def test_flatten_non_list_element_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            flatten([[1, 2], 3])  # type: ignore[list-item]
 
 
 if __name__ == "__main__":
