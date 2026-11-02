@@ -768,5 +768,43 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
+from string_utils import split_paragraphs
+
+
+class TestSplitParagraphs(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(split_paragraphs("Hello\n\nWorld"), ["Hello", "World"])
+
+    def test_preserve_internal_line_breaks(self):
+        self.assertEqual(split_paragraphs("A\nB\n\nC"), ["A\nB", "C"])
+
+    def test_multiple_blank_lines(self):
+        self.assertEqual(split_paragraphs("Hello\n\n\n\nWorld"), ["Hello", "World"])
+
+    def test_crlf(self):
+        self.assertEqual(split_paragraphs("Hello\r\n\r\nWorld"), ["Hello", "World"])
+
+    def test_leading_trailing_blank_lines(self):
+        self.assertEqual(split_paragraphs("\n\nHello\n\nWorld\n\n"), ["Hello", "World"])
+
+    def test_empty_string(self):
+        self.assertEqual(split_paragraphs(""), [])
+
+    def test_whitespace_only_paragraphs(self):
+        self.assertEqual(split_paragraphs("   \n\n\t\n\n   "), [])
+
+    def test_single_paragraph(self):
+        self.assertEqual(split_paragraphs("hello world"), ["hello world"])
+
+    def test_single_paragraph_with_newlines(self):
+        self.assertEqual(split_paragraphs("line1\nline2"), ["line1\nline2"])
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    split_paragraphs(value)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

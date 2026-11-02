@@ -1,3 +1,10 @@
+## Unreleased — added split_paragraphs to string_utils
+
+- Added `split_paragraphs(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. Added `TestSplitParagraphs` to `tests/test_string_utils.py` covering basic splits, internal line breaks, multiple blank lines, CRLF, leading/trailing blank lines, empty/whitespace-only inputs, and the `TypeError` path (10 new tests). Imported `split_paragraphs` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`.
+- Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_string_utils` passes (187 tests, 50 subtests); `python -m doctest string_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_disjoint to set_utils
 
 - Added `is_disjoint(a, b)` to `set_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-iterable arguments; it returns `True` when the two iterables share no common elements and `False` otherwise. Added `TestIsDisjoint` (6 tests) to `tests/test_set_utils.py` covering disjoint/s overlapping/identical/empty inputs and the `TypeError` paths. Imported `is_disjoint` at the top of the test file to match the module's `__all__` contract. Updated the `set_utils` module tree entry and prose section of `README.md`.

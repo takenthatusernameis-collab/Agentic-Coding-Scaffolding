@@ -20,6 +20,7 @@ __all__: List[str] = [
     "title_case",
     "dedent_text",
     "reverse_words",
+    "split_paragraphs",
 ]
 
 _SMALL_WORDS = {
@@ -592,3 +593,43 @@ def reverse_words(text: str) -> str:
     """
     _require_string(text, "text")
     return " ".join(text.split()[::-1])
+
+
+def split_paragraphs(text: str) -> List[str]:
+    """Split *text* into paragraphs separated by blank lines.
+
+    Paragraphs are separated by one or more blank lines (lines containing
+    only whitespace). Leading and trailing blank lines are ignored, and
+    line endings are normalized.
+
+    Args:
+        text: The text to split into paragraphs.
+
+    Returns:
+        A list of paragraph strings with internal line breaks preserved.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> split_paragraphs("Hello\\n\\nWorld")
+        ['Hello', 'World']
+        >>> split_paragraphs("A\\nB\\n\\nC")
+        ['A\\nB', 'C']
+        >>> split_paragraphs("")
+        []
+        >>> split_paragraphs("   \\n\\n   ")
+        []
+    """
+    _require_string(text, "text")
+    if not text:
+        return []
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    paragraphs = re.split(r"\n[ \t]*\n+", normalized)
+    result: List[str] = []
+    for para in paragraphs:
+        stripped = para.strip()
+        if stripped == "":
+            continue
+        result.append(stripped)
+    return result

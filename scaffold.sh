@@ -22119,6 +22119,44 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
+from string_utils import split_paragraphs
+
+
+class TestSplitParagraphs(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(split_paragraphs("Hello\n\nWorld"), ["Hello", "World"])
+
+    def test_preserve_internal_line_breaks(self):
+        self.assertEqual(split_paragraphs("A\nB\n\nC"), ["A\nB", "C"])
+
+    def test_multiple_blank_lines(self):
+        self.assertEqual(split_paragraphs("Hello\n\n\n\nWorld"), ["Hello", "World"])
+
+    def test_crlf(self):
+        self.assertEqual(split_paragraphs("Hello\r\n\r\nWorld"), ["Hello", "World"])
+
+    def test_leading_trailing_blank_lines(self):
+        self.assertEqual(split_paragraphs("\n\nHello\n\nWorld\n\n"), ["Hello", "World"])
+
+    def test_empty_string(self):
+        self.assertEqual(split_paragraphs(""), [])
+
+    def test_whitespace_only_paragraphs(self):
+        self.assertEqual(split_paragraphs("   \n\n\t\n\n   "), [])
+
+    def test_single_paragraph(self):
+        self.assertEqual(split_paragraphs("hello world"), ["hello world"])
+
+    def test_single_paragraph_with_newlines(self):
+        self.assertEqual(split_paragraphs("line1\nline2"), ["line1\nline2"])
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    split_paragraphs(value)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTSTRINGUTILS
@@ -31775,6 +31813,7 @@ __all__: List[str] = [
     "title_case",
     "dedent_text",
     "reverse_words",
+    "split_paragraphs",
 ]
 
 _SMALL_WORDS = {
@@ -32347,6 +32386,46 @@ def reverse_words(text: str) -> str:
     """
     _require_string(text, "text")
     return " ".join(text.split()[::-1])
+
+
+def split_paragraphs(text: str) -> List[str]:
+    """Split *text* into paragraphs separated by blank lines.
+
+    Paragraphs are separated by one or more blank lines (lines containing
+    only whitespace). Leading and trailing blank lines are ignored, and
+    line endings are normalized.
+
+    Args:
+        text: The text to split into paragraphs.
+
+    Returns:
+        A list of paragraph strings with internal line breaks preserved.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> split_paragraphs("Hello\\n\\nWorld")
+        ['Hello', 'World']
+        >>> split_paragraphs("A\\nB\\n\\nC")
+        ['A\\nB', 'C']
+        >>> split_paragraphs("")
+        []
+        >>> split_paragraphs("   \\n\\n   ")
+        []
+    """
+    _require_string(text, "text")
+    if not text:
+        return []
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    paragraphs = re.split(r"\n[ \t]*\n+", normalized)
+    result: List[str] = []
+    for para in paragraphs:
+        stripped = para.strip()
+        if stripped == "":
+            continue
+        result.append(stripped)
+    return result
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
@@ -50479,6 +50558,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added split_paragraphs to string_utils
+
+- Added `split_paragraphs(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. Added `TestSplitParagraphs` to `tests/test_string_utils.py` covering basic splits, internal line breaks, multiple blank lines, CRLF, leading/trailing blank lines, empty/whitespace-only inputs, and the `TypeError` path (10 new tests). Imported `split_paragraphs` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`.
+- Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_string_utils` passes (187 tests, 50 subtests); `python -m doctest string_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_disjoint to set_utils
 
 - Added `is_disjoint(a, b)` to `set_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-iterable arguments; it returns `True` when the two iterables share no common elements and `False` otherwise. Added `TestIsDisjoint` (6 tests) to `tests/test_set_utils.py` covering disjoint/s overlapping/identical/empty inputs and the `TypeError` paths. Imported `is_disjoint` at the top of the test file to match the module's `__all__` contract. Updated the `set_utils` module tree entry and prose section of `README.md`.
@@ -52422,7 +52508,7 @@ csv_utils.py             # CSV utility functions (read/write/append as dicts or 
 set_utils.py             # Set operation utilities (subset, superset, disjoint, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, reverse_words, split_paragraphs)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var, is_class_var, is_callable, is_tuple, is_list_type, is_dict_type, is_none_type, is_any, unwrap_optional, get_origin_name)
 type_check_utils.py        # Type checking utilities (is_str, is_int, is_float, is_bool, is_list, is_dict, is_tuple, is_set, is_frozenset, is_none, is_numeric, is_iterable, is_callable, ensure_type, coerce_to_str) with input validation
@@ -53123,7 +53209,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, and `dedent_text`. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, and `split_paragraphs`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 
