@@ -42,6 +42,16 @@ __all__: list[str] = [
     "title",
     "swapcase",
     "casefold",
+    "isalnum",
+    "isalpha",
+    "isascii",
+    "isdigit",
+    "islower",
+    "isspace",
+    "istitle",
+    "isupper",
+    "decode_ascii",
+    "encode_ascii",
 ]
 
 
@@ -973,5 +983,72 @@ def swapcase(data: bytes) -> bytes:
 def casefold(data: bytes) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    return bytes(data).casefold()
+    try:
+        return bytes(data).decode("utf-8").casefold().encode("utf-8")
+    except UnicodeError:
+        return bytes(data).lower()
 
+
+
+def isalnum(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isalnum()
+
+
+def isalpha(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isalpha()
+
+
+def isascii(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isascii()
+
+
+def isdigit(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isdigit()
+
+
+def islower(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).islower()
+
+
+def isspace(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isspace()
+
+
+def istitle(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).istitle()
+
+
+def isupper(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isupper()
+
+
+def decode_ascii(data: bytes, errors: str = "strict") -> str:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be str")
+    return bytes(data).decode("ascii", errors=errors)
+
+
+def encode_ascii(s: str, errors: str = "strict") -> bytes:
+    if not isinstance(s, str):
+        raise TypeError("s must be str")
+    if not isinstance(errors, str):
+        raise TypeError("errors must be str")
+    return s.encode("ascii", errors=errors)

@@ -18,6 +18,10 @@ from bytes_utils import (
     splitlines,
     starts_with,
     lower,
+    capitalize,
+    title,
+    swapcase,
+    casefold,
     to_hex,
     upper,
     xor,
@@ -66,6 +70,31 @@ class TestBytesUtils(unittest.TestCase):
     def test_lower(self):
         self.assertEqual(lower(b"ABC"), b"abc")
         self.assertEqual(lower(bytearray(b"AB")), b"ab")
+
+    def test_capitalize(self):
+        self.assertEqual(capitalize(b"hello world"), b"Hello world")
+        self.assertEqual(capitalize(b"HELLO"), b"Hello")
+        self.assertEqual(capitalize(bytearray(b"hello")), b"Hello")
+        self.assertEqual(capitalize(b""), b"")
+
+    def test_title(self):
+        self.assertEqual(title(b"hello world"), b"Hello World")
+        self.assertEqual(title(b"hello-world"), b"Hello-World")
+        self.assertEqual(title(b"HELLO WORLD"), b"Hello World")
+        self.assertEqual(title(bytearray(b"hello world")), b"Hello World")
+        self.assertEqual(title(b""), b"")
+
+    def test_swapcase(self):
+        self.assertEqual(swapcase(b"Hello World"), b"hELLO wORLD")
+        self.assertEqual(swapcase(b"HELLO"), b"hello")
+        self.assertEqual(swapcase(b"hello"), b"HELLO")
+        self.assertEqual(swapcase(bytearray(b"Hello")), b"hELLO")
+        self.assertEqual(swapcase(b""), b"")
+
+    def test_casefold(self):
+        self.assertEqual(casefold(b"Hello"), b"hello")
+        self.assertEqual(casefold(bytearray(b"Hello")), b"hello")
+        self.assertEqual(casefold(b""), b"")
 
     def test_contains(self):
         self.assertTrue(contains(b"hello", b"ll"))
