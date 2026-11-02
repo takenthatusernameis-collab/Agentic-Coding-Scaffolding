@@ -1,3 +1,11 @@
+## Unreleased — added comprehensive boundary tests for bz2_utils
+
+- Audited `bz2_utils.py` (5 helpers) and found only 3 tests covering the two round-trip happy paths and `bz2_open`; boundary cases (empty data, single byte, compression levels, invalid/decompressed data, non-bytes inputs, out-of-range levels, missing files, directories, text mode, pathlib paths, idempotency) were untested.
+- Rewrote `tests/test_bz2_utils.py` with 22 tests covering every helper: empty/single-byte/large round-trips, every valid compression level, invalid bz2 data and non-bytes `TypeError` paths, out-of-range `ValueError` paths, `bz2_write` empty/overwrite/level cases, `bz2_read` missing-file and directory cases, `bz2_open` binary/text/level/pathlib/default-mode cases, and compress idempotency. Imported every public name at the top of the test file to match the module's `__all__` contract.
+- Synchronized `tests/test_bz2_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes (7424 tests, +22 over the previous run).
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added comprehensive tests for queue_utils
 
 - Audited `queue_utils.py` (a `Queue` class with 11 methods plus 6 module-level helpers) and found only 3 tests covering the happy path and the two empty-queue `IndexError` paths; `clear`, `to_list`, `from_list`, the `enqueue` return value, and the round-trip drain were untested.

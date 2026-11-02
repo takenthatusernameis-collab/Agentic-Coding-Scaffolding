@@ -860,7 +860,7 @@ The project includes codecs utilities in `codecs_utils.py` wrapping the standard
 
 ## Bz2 Utilities Module
 
-The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the standard library `bz2` module: `bz2_compress` compresses bytes, `bz2_decompress` decompresses bz2-compressed bytes, `bz2_open` opens a bz2 file with optional compression level, `bz2_write` writes bytes to a bz2 file, and `bz2_read` reads and decompresses a bz2 file. The module is tested in `tests/test_bz2_utils.py`.
+The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the standard library `bz2` module: `bz2_compress` compresses bytes with an optional compression level, `bz2_decompress` decompresses bz2-compressed bytes, `bz2_open` opens a bz2 file in binary or text mode with an optional compression level, `bz2_write` writes bytes to a bz2 file, and `bz2_read` reads and decompresses a bz2 file. The module is tested in `tests/test_bz2_utils.py`, which covers round-trips (empty, single-byte, and large inputs), every valid compression level, invalid bz2 data and non-bytes `TypeError` paths, out-of-range `ValueError` paths, missing-file and directory cases, text mode, pathlib paths, and compress idempotency.
 
 ## Gzip Utilities Module
 
