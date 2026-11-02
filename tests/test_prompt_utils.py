@@ -31,6 +31,7 @@ from prompt_utils import (
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
+    extract_sentences,
     first_line,
     format_prompt_template,
     has_leading_newline,
@@ -153,6 +154,36 @@ class TestExtractKeywords(unittest.TestCase):
     def test_extract_keywords_rejects_negative_min_length(self):
         with self.assertRaises(ValueError):
             extract_keywords("hello", min_length=-1)
+
+
+class TestExtractSentences(unittest.TestCase):
+    def test_extract_sentences_basic(self):
+        result = extract_sentences("Hello world. How are you? I'm fine!")
+        self.assertEqual(result, ["Hello world.", "How are you?", "I'm fine!"])
+
+    def test_extract_sentences_single(self):
+        result = extract_sentences("Hello!")
+        self.assertEqual(result, ["Hello!"])
+
+    def test_extract_sentences_none(self):
+        result = extract_sentences("No punctuation here")
+        self.assertEqual(result, [])
+
+    def test_extract_sentences_empty(self):
+        result = extract_sentences("")
+        self.assertEqual(result, [])
+
+    def test_extract_sentences_whitespace_only(self):
+        result = extract_sentences("   ")
+        self.assertEqual(result, [])
+
+    def test_extract_sentences_with_newlines(self):
+        result = extract_sentences("Hello.\nHow are you?")
+        self.assertEqual(result, ["Hello.", "How are you?"])
+
+    def test_extract_sentences_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            extract_sentences(123)  # type: ignore[arg-type]
 
 
 class TestWrapPrompt(unittest.TestCase):

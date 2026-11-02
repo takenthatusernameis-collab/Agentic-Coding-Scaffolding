@@ -16,6 +16,7 @@ __all__: List[str] = [
     "format_prompt_template",
     "clean_prompt",
     "extract_keywords",
+    "extract_sentences",
     "extract_placeholders",
     "has_placeholders",
     "wrap_prompt",
@@ -222,6 +223,42 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
         if k not in seen:
             seen.add(k)
             result.append(k)
+    return result
+
+
+def extract_sentences(text: str) -> List[str]:
+    """Extract individual sentences from *text*.
+
+    A sentence is delimited by a terminating punctuation mark (``.``,
+    ``!`` or ``?``) followed by whitespace or end of string. Whitespace
+    is stripped from each extracted sentence; empty sentences are omitted.
+
+    Args:
+        text: The text to extract sentences from.
+
+    Returns:
+        A list of sentence strings.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> extract_sentences("Hello world. How are you?")
+        ['Hello world.', 'How are you?']
+        >>> extract_sentences("Hello!")
+        ['Hello!']
+        >>> extract_sentences("")
+        []
+    """
+    _require_string(text, "text")
+    if not text.strip():
+        return []
+    sentences = re.findall(r"[^.!?]+[.!?](?:\s+|$)", text)
+    result: List[str] = []
+    for sentence in sentences:
+        stripped = sentence.strip()
+        if stripped:
+            result.append(stripped)
     return result
 
 

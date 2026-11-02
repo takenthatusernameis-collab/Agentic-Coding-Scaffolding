@@ -21791,6 +21791,7 @@ from prompt_utils import (
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
+    extract_sentences,
     first_line,
     format_prompt_template,
     has_leading_newline,
@@ -21913,6 +21914,36 @@ class TestExtractKeywords(unittest.TestCase):
     def test_extract_keywords_rejects_negative_min_length(self):
         with self.assertRaises(ValueError):
             extract_keywords("hello", min_length=-1)
+
+
+class TestExtractSentences(unittest.TestCase):
+    def test_extract_sentences_basic(self):
+        result = extract_sentences("Hello world. How are you? I'm fine!")
+        self.assertEqual(result, ["Hello world.", "How are you?", "I'm fine!"])
+
+    def test_extract_sentences_single(self):
+        result = extract_sentences("Hello!")
+        self.assertEqual(result, ["Hello!"])
+
+    def test_extract_sentences_none(self):
+        result = extract_sentences("No punctuation here")
+        self.assertEqual(result, [])
+
+    def test_extract_sentences_empty(self):
+        result = extract_sentences("")
+        self.assertEqual(result, [])
+
+    def test_extract_sentences_whitespace_only(self):
+        result = extract_sentences("   ")
+        self.assertEqual(result, [])
+
+    def test_extract_sentences_with_newlines(self):
+        result = extract_sentences("Hello.\nHow are you?")
+        self.assertEqual(result, ["Hello.", "How are you?"])
+
+    def test_extract_sentences_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            extract_sentences(123)  # type: ignore[arg-type]
 
 
 class TestWrapPrompt(unittest.TestCase):
@@ -32768,6 +32799,7 @@ __all__: List[str] = [
     "format_prompt_template",
     "clean_prompt",
     "extract_keywords",
+    "extract_sentences",
     "extract_placeholders",
     "has_placeholders",
     "wrap_prompt",
@@ -32974,6 +33006,42 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
         if k not in seen:
             seen.add(k)
             result.append(k)
+    return result
+
+
+def extract_sentences(text: str) -> List[str]:
+    """Extract individual sentences from *text*.
+
+    A sentence is delimited by a terminating punctuation mark (``.``,
+    ``!`` or ``?``) followed by whitespace or end of string. Whitespace
+    is stripped from each extracted sentence; empty sentences are omitted.
+
+    Args:
+        text: The text to extract sentences from.
+
+    Returns:
+        A list of sentence strings.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> extract_sentences("Hello world. How are you?")
+        ['Hello world.', 'How are you?']
+        >>> extract_sentences("Hello!")
+        ['Hello!']
+        >>> extract_sentences("")
+        []
+    """
+    _require_string(text, "text")
+    if not text.strip():
+        return []
+    sentences = re.findall(r"[^.!?]+[.!?](?:\s+|$)", text)
+    result: List[str] = []
+    for sentence in sentences:
+        stripped = sentence.strip()
+        if stripped:
+            result.append(stripped)
     return result
 
 
@@ -42698,6 +42766,10 @@ __all__: list[str] = [
     "isspace",
     "istitle",
     "isupper",
+    "isdecimal",
+    "isnumeric",
+    "isprintable",
+    "isidentifier",
     "join",
     "expandtabs",
     "decode_ascii",
@@ -43686,6 +43758,30 @@ def isupper(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isupper()
+
+
+def isdecimal(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isdecimal()
+
+
+def isnumeric(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isnumeric()
+
+
+def isprintable(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isprintable()
+
+
+def isidentifier(data: bytes) -> bool:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bytes(data).isidentifier()
 
 
 def join(iterable: object, sep: bytes = b"") -> bytes:
@@ -49197,6 +49293,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added extract_sentences to prompt_utils
+
+- Added `extract_sentences(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; it extracts sentences delimited by `.`, `!`, or `?` followed by whitespace or end of string, strips whitespace from each sentence, omits empty sentences, and returns `[]` for blank/empty input.
+- Added `TestExtractSentences` to `tests/test_prompt_utils.py` covering basic extraction, single sentence, no punctuation, empty/whitespace-only input, newlines, and the `TypeError` path (7 new tests). Imported `extract_sentences` at the top of the test file to match the module's `__all__` contract.
+- Updated the `prompt_utils` prose section of `README.md`.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes all tests.
+
 ## Unreleased — added tests for bytes_utils predicate and ascii helpers
 
 - Audited the `bytes_utils` helpers added in the preceding session (`isalnum`, `isalpha`, `isascii`, `isdigit`, `islower`, `isspace`, `istitle`, `isupper`, `join`, `expandtabs`, `decode_ascii`, `encode_ascii`) and found they were committed to `bytes_utils.py` and `scaffold.sh` without corresponding tests in `tests/test_bytes_utils.py`, leaving the new public API uncovered.
@@ -51817,7 +51921,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

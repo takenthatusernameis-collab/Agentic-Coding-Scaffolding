@@ -1,3 +1,11 @@
+## Unreleased — added extract_sentences to prompt_utils
+
+- Added `extract_sentences(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; it extracts sentences delimited by `.`, `!`, or `?` followed by whitespace or end of string, strips whitespace from each sentence, omits empty sentences, and returns `[]` for blank/empty input.
+- Added `TestExtractSentences` to `tests/test_prompt_utils.py` covering basic extraction, single sentence, no punctuation, empty/whitespace-only input, newlines, and the `TypeError` path (7 new tests). Imported `extract_sentences` at the top of the test file to match the module's `__all__` contract.
+- Updated the `prompt_utils` prose section of `README.md`.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes all tests.
+
 ## Unreleased — added tests for bytes_utils predicate and ascii helpers
 
 - Audited the `bytes_utils` helpers added in the preceding session (`isalnum`, `isalpha`, `isascii`, `isdigit`, `islower`, `isspace`, `istitle`, `isupper`, `join`, `expandtabs`, `decode_ascii`, `encode_ascii`) and found they were committed to `bytes_utils.py` and `scaffold.sh` without corresponding tests in `tests/test_bytes_utils.py`, leaving the new public API uncovered.
