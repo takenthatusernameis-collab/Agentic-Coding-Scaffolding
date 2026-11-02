@@ -15,6 +15,7 @@ __all__ = [
     "merge_dicts",
     "omit",
     "pick",
+    "set_nested",
 ]
 
 
@@ -131,3 +132,46 @@ def get_nested(d: Dict[str, Any], path: str, default: Any = None, sep: str = "."
             return default
         current = current[segment]
     return current
+
+
+def set_nested(d: Dict[str, Any], path: str, value: Any, sep: str = ".") -> Dict[str, Any]:
+    """Set a value at a dot-separated path in a nested dictionary.
+
+    Creates intermediate dictionaries as needed along the path. If an
+    intermediate value exists but is not a dictionary, it will be replaced
+    with a new dictionary so that the assignment can proceed.
+
+    Args:
+        d: The dictionary to modify.
+        path: A dot-separated key path, e.g. ``"a.b.c"``.
+        value: The value to set.
+        sep: Separator between path segments (default: ``"."``).
+
+    Returns:
+        The modified dictionary (same object, mutated).
+
+    Raises:
+        TypeError: If *d* is not a dictionary or *path* is not a string.
+        ValueError: If *path* is empty.
+
+    Examples:
+        >>> d = {}
+        >>> set_nested(d, "a.b.c", 1)
+        {'a': {'b': {'c': 1}}}
+        >>> set_nested(d, "a.b.d", 2)
+        {'a': {'b': {'c': 1, 'd': 2}}}
+    """
+    if not isinstance(d, dict):
+        raise TypeError(f"d must be a dict, got {type(d).__name__}")
+    if not isinstance(path, str):
+        raise TypeError(f"path must be a string, got {type(path).__name__}")
+    segments = path.split(sep)
+    if not segments or segments == [""]:
+        raise ValueError("path must not be empty")
+    current: Dict[str, Any] = d
+    for segment in segments[:-1]:
+        if segment not in current or not isinstance(current[segment], dict):
+            current[segment] = {}
+        current = current[segment]
+    current[segments[-1]] = value
+    return d
