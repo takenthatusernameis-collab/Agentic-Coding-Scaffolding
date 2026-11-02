@@ -12,6 +12,7 @@ __all__ = [
     "filter_dict",
     "flatten_dict",
     "invert_dict",
+    "omit_keys",
     "safe_get",
     "select_keys",
     "unflatten_dict",
@@ -148,3 +149,24 @@ def select_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
     if not isinstance(keys, list):
         raise TypeError("keys must be a list")
     return {k: d[k] for k in keys if k in d}
+
+
+def omit_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
+    """Return a new dictionary excluding the given keys.
+
+    Args:
+        d: Source dictionary.
+        keys: Keys to omit.
+
+    Returns:
+        New dictionary containing all keys except those in ``keys``.
+
+    Raises:
+        TypeError: If d is not a dict or keys is not a list.
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not isinstance(keys, list):
+        raise TypeError("keys must be a list")
+    key_set = set(keys)
+    return {k: v for k, v in d.items() if k not in key_set}

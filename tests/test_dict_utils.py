@@ -2,7 +2,7 @@
 
 import unittest
 
-from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, select_keys, unflatten_dict
+from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, omit_keys, safe_get, select_keys, unflatten_dict
 
 
 class TestDeepMerge(unittest.TestCase):
@@ -122,3 +122,23 @@ class TestSelectKeys(unittest.TestCase):
             select_keys("x", ["a"])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             select_keys({"a": 1}, "a")  # type: ignore[arg-type]
+
+
+class TestOmitKeys(unittest.TestCase):
+    def test_omit_keys_basic(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        self.assertEqual(omit_keys(d, ["b"]), {"a": 1, "c": 3})
+
+    def test_omit_keys_missing(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(omit_keys(d, ["z"]), {"a": 1})
+
+    def test_omit_keys_empty(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(omit_keys(d, []), {"a": 1})
+
+    def test_omit_keys_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            omit_keys("x", ["a"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            omit_keys({"a": 1}, "a")  # type: ignore[arg-type]
