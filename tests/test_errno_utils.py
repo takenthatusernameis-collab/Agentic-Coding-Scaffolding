@@ -1,7 +1,7 @@
 import errno
 import unittest
 
-from errno_utils import errorcode, is_errno, strerror
+from errno_utils import errorcode, errno_code, is_errno, strerror
 
 
 class TestErrnoUtils(unittest.TestCase):
@@ -17,6 +17,14 @@ class TestErrnoUtils(unittest.TestCase):
     def test_is_errno(self):
         self.assertTrue(is_errno(errno.EEXIST, "EEXIST"))
         self.assertFalse(is_errno(errno.EEXIST, "ENOENT"))
+
+    def test_errno_code(self):
+        self.assertEqual(errno_code("EEXIST"), errno.EEXIST)
+        self.assertIsNone(errno_code("NOT_A_REAL_ERRNO"))
+
+    def test_errno_code_type_error(self):
+        with self.assertRaises(TypeError):
+            errno_code(123)
 
 
 if __name__ == "__main__":

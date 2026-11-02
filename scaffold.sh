@@ -51809,6 +51809,7 @@ concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessP
 concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
+deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, remove_from_deque, reverse_deque)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
@@ -51824,6 +51825,7 @@ statistics_utils.py        # Statistical utility functions (harmonic mean, geome
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var, is_class_var, is_callable, is_tuple, is_list_type, is_dict_type, is_none_type, is_any, unwrap_optional, get_origin_name)
+type_check_utils.py        # Type checking utilities (is_str, is_int, is_float, is_bool, is_list, is_dict, is_tuple, is_set, is_frozenset, is_none, is_numeric, is_iterable, is_callable, ensure_type, coerce_to_str) with input validation
 path_utils.py              # Path manipulation utilities (join, normalize, components, extensions)
 color_utils.py             # Color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
 colorsys_utils.py          # Colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
@@ -51836,6 +51838,7 @@ os_utils.py                # Operating system utilities (platform info, CPU coun
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
+ossaudiodev_utils.py      # OSS audio device utilities wrapping the standard library ossaudiodev module (open, openmixer, re-exports OSSAudioError, error, AFMT_S16_LE, SOUND_MIXER_PCM, is_available)
 sndhdr_utils.py            # Sound format detection utilities wrapping stdlib sndhdr (what, whathdr, tests, is_available) with input validation
 uu_utils.py                # Uuencode utilities wrapping stdlib uu (uu_encode, uu_decode, encode_uu, decode_uu, parse_uu_header, is_uuencoded)
 zipapp_utils.py            # Zipapp utilities wrapping stdlib zipapp (create_archive/create_zipapp, get_interpreter/get_zipapp_interpreter, is_zipapp_archive)
@@ -51932,6 +51935,8 @@ signal_utils.py            # Signal utilities wrapping the standard library sign
 http_utils.py              # HTTP status codes and response handling utilities
 id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
+html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
+html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
 bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, decode_ascii, encode_ascii)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
@@ -59731,22 +59736,30 @@ import os as _os
 
 __all__ = [
     "errorcode",
+    "errno_code",
     "is_errno",
     "strerror",
 ]
 
 
 
-def errorcode(code):
+def errorcode(code: int):
     return _errno.errorcode.get(code)
 
 
-def strerror(code):
+def strerror(code: int):
     return _os.strerror(code)
 
 
-def is_errno(code, name):
+def is_errno(code: int, name: str) -> bool:
     return getattr(_errno, name, None) == code
+
+
+def errno_code(name: str):
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    value = getattr(_errno, name, None)
+    return value if isinstance(value, int) else None
 ERRNO_UTILS
 
 # --- tests/test_errno_utils.py ---
@@ -59754,7 +59767,7 @@ cat > "$OUTPUT_DIR/tests/test_errno_utils.py" <<'TEST_ERRNO_UTILS'
 import errno
 import unittest
 
-from errno_utils import errorcode, is_errno, strerror
+from errno_utils import errorcode, errno_code, is_errno, strerror
 
 
 class TestErrnoUtils(unittest.TestCase):
@@ -59770,6 +59783,14 @@ class TestErrnoUtils(unittest.TestCase):
     def test_is_errno(self):
         self.assertTrue(is_errno(errno.EEXIST, "EEXIST"))
         self.assertFalse(is_errno(errno.EEXIST, "ENOENT"))
+
+    def test_errno_code(self):
+        self.assertEqual(errno_code("EEXIST"), errno.EEXIST)
+        self.assertIsNone(errno_code("NOT_A_REAL_ERRNO"))
+
+    def test_errno_code_type_error(self):
+        with self.assertRaises(TypeError):
+            errno_code(123)
 
 
 if __name__ == "__main__":
