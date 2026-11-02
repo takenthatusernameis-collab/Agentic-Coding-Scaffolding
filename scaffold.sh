@@ -8905,6 +8905,7 @@ __all__ = [
     "sqrt",
     "negate",
     "absolute",
+    "clamp",
 ]
 
 
@@ -8980,6 +8981,17 @@ def negate(a: float) -> float:
 def absolute(a: float) -> float:
     """Return the absolute value of a."""
     return abs(a)
+
+
+def clamp(value: float, low: float, high: float) -> float:
+    """Clamp value to the inclusive range [low, high].
+
+    Raises:
+        ValueError: If low > high.
+    """
+    if low > high:
+        raise ValueError("low must not exceed high.")
+    return max(low, min(high, value))
 CALCULATOR
 
 # --- tests/test_calculator.py ---
