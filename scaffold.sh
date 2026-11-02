@@ -40976,6 +40976,32 @@ def format_encouragement(name: str, message: str = "You've got this") -> str:
     if not isinstance(message, str):
         raise TypeError("message must be a str")
     return f"{name}, {message}!"
+
+
+def format_good_luck(name: str, wish: str = "Good luck") -> str:
+    """Return a formatted good luck wish for the given name.
+
+    Args:
+        name: The name to wish luck to.
+        wish: The wish phrase to use. Defaults to "Good luck".
+
+    Returns:
+        A string of the form "{wish}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``wish`` is not a str.
+
+    Examples:
+        >>> format_good_luck("Alice")
+        "Good luck, Alice!"
+        >>> format_good_luck("Bob", "Best of luck")
+        'Best of luck, Bob!'
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(wish, str):
+        raise TypeError("wish must be a str")
+    return f"{wish}, {name}!"
 GREETING_UTILS
 
 # --- tests/test_greeting_utils.py ---
@@ -40989,6 +41015,7 @@ from greeting_utils import (
     format_encouragement,
     format_farewell,
     format_greeting,
+    format_good_luck,
     format_names,
     format_thanks,
     format_welcome,
@@ -41135,6 +41162,25 @@ class TestFormatEncouragement(unittest.TestCase):
     def test_type_error_message(self):
         with self.assertRaises(TypeError):
             format_encouragement("Alice", 5)  # type: ignore[arg-type]
+
+
+class TestFormatGoodLuck(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_good_luck("Alice"), "Good luck, Alice!")
+
+    def test_custom_wish(self):
+        self.assertEqual(format_good_luck("Bob", "Best of luck"), "Best of luck, Bob!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_good_luck(""), "Good luck, !")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_good_luck(123)  # type: ignore[arg-type]
+
+    def test_type_error_wish(self):
+        with self.assertRaises(TypeError):
+            format_good_luck("Alice", 5)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
