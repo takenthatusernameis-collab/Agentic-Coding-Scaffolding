@@ -38,6 +38,8 @@ __all__: List[str] = [
     "ensure_suffix",
     "ensure_leading_newline",
     "ensure_surrounded_by_newlines",
+    "remove_prefix",
+    "remove_suffix",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -878,6 +880,36 @@ def ensure_prefix(text: str, prefix: str) -> str:
     return prefix + text
 
 
+def remove_prefix(text: str, prefix: str) -> str:
+    """Remove *prefix* from the start of *text* if present.
+
+    Args:
+        text: The text to normalize.
+        prefix: The prefix to remove.
+
+    Returns:
+        *text* with *prefix* removed if it was present.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> remove_prefix("hello world", "hello ")
+        'world'
+        >>> remove_prefix("hello world", "bye ")
+        'hello world'
+        >>> remove_prefix("", "hello")
+        ''
+        >>> remove_prefix("hello", "")
+        'hello'
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    if prefix and text.startswith(prefix):
+        return text[len(prefix) :]
+    return text
+
+
 def ensure_suffix(text: str, suffix: str) -> str:
     """Ensure *text* ends with *suffix*.
 
@@ -909,6 +941,36 @@ def ensure_suffix(text: str, suffix: str) -> str:
     if text.endswith(suffix):
         return text
     return text + suffix
+
+
+def remove_suffix(text: str, suffix: str) -> str:
+    """Remove *suffix* from the end of *text* if present.
+
+    Args:
+        text: The text to normalize.
+        suffix: The suffix to remove.
+
+    Returns:
+        *text* with *suffix* removed if it was present.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> remove_suffix("hello world", " world")
+        'hello'
+        >>> remove_suffix("hello world", " bye")
+        'hello world'
+        >>> remove_suffix("hello", "")
+        'hello'
+        >>> remove_suffix("", "hello")
+        ''
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    if suffix and text.endswith(suffix):
+        return text[: -len(suffix)]
+    return text
 
 
 def ensure_leading_newline(text: str) -> str:

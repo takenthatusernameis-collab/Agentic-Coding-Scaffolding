@@ -21786,6 +21786,8 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
+    ensure_prefix,
+    ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
     estimate_token_count,
@@ -21799,6 +21801,9 @@ from prompt_utils import (
     has_trailing_newline,
     indent_lines,
     is_blank,
+    join_lines,
+    remove_prefix,
+    remove_suffix,
     last_line,
     lstrip_lines,
     normalize_line_endings,
@@ -23049,6 +23054,140 @@ class TestIsBlank(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_blank(123)
+
+
+
+class TestEnsurePrefix(unittest.TestCase):
+    def test_add_prefix(self):
+        self.assertEqual(ensure_prefix("world", "hello "), "hello world")
+
+    def test_already_has_prefix(self):
+        self.assertEqual(ensure_prefix("hello world", "hello "), "hello world")
+
+    def test_empty_text_adds_prefix(self):
+        self.assertEqual(ensure_prefix("", "hello"), "hello")
+
+    def test_empty_prefix(self):
+        self.assertEqual(ensure_prefix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            ensure_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_prefix(self):
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", None)  # type: ignore[arg-type]
+
+
+class TestEnsureSuffix(unittest.TestCase):
+    def test_add_suffix(self):
+        self.assertEqual(ensure_suffix("hello", " world"), "hello world")
+
+    def test_already_has_suffix(self):
+        self.assertEqual(ensure_suffix("hello world", " world"), "hello world")
+
+    def test_empty_text_adds_suffix(self):
+        self.assertEqual(ensure_suffix("", "hello"), "hello")
+
+    def test_empty_suffix(self):
+        self.assertEqual(ensure_suffix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            ensure_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestJoinLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(join_lines(["a", "b", "c"]), "a\nb\nc")
+
+    def test_custom_separator(self):
+        self.assertEqual(join_lines(["a", "b"], ", "), "a, b")
+
+    def test_empty(self):
+        self.assertEqual(join_lines([]), "")
+
+    def test_tuple(self):
+        self.assertEqual(join_lines(("a", "b")), "a\nb")
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            join_lines(123)  # type: ignore[arg-type]
+
+    def test_rejects_non_string_items(self):
+        with self.assertRaises(TypeError):
+            join_lines(["a", 123])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            join_lines(["a", None])  # type: ignore[arg-type]
+
+    def test_rejects_non_str_separator(self):
+        with self.assertRaises(TypeError):
+            join_lines(["a", "b"], separator=123)  # type: ignore[arg-type]
+
+
+
+class TestRemovePrefix(unittest.TestCase):
+    def test_remove_existing_prefix(self):
+        self.assertEqual(remove_prefix("hello world", "hello "), "world")
+
+    def test_no_prefix(self):
+        self.assertEqual(remove_prefix("hello world", "bye "), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(remove_prefix("", "hello"), "")
+
+    def test_empty_prefix(self):
+        self.assertEqual(remove_prefix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            remove_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_prefix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_prefix(self):
+        with self.assertRaises(TypeError):
+            remove_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_prefix("x", None)  # type: ignore[arg-type]
+
+
+class TestRemoveSuffix(unittest.TestCase):
+    def test_remove_existing_suffix(self):
+        self.assertEqual(remove_suffix("hello world", " world"), "hello")
+
+    def test_no_suffix(self):
+        self.assertEqual(remove_suffix("hello world", " bye"), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(remove_suffix("", "hello"), "")
+
+    def test_empty_suffix(self):
+        self.assertEqual(remove_suffix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            remove_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_suffix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            remove_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_suffix("x", None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -32821,6 +32960,8 @@ __all__: List[str] = [
     "ensure_suffix",
     "ensure_leading_newline",
     "ensure_surrounded_by_newlines",
+    "remove_prefix",
+    "remove_suffix",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
@@ -33661,6 +33802,36 @@ def ensure_prefix(text: str, prefix: str) -> str:
     return prefix + text
 
 
+def remove_prefix(text: str, prefix: str) -> str:
+    """Remove *prefix* from the start of *text* if present.
+
+    Args:
+        text: The text to normalize.
+        prefix: The prefix to remove.
+
+    Returns:
+        *text* with *prefix* removed if it was present.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> remove_prefix("hello world", "hello ")
+        'world'
+        >>> remove_prefix("hello world", "bye ")
+        'hello world'
+        >>> remove_prefix("", "hello")
+        ''
+        >>> remove_prefix("hello", "")
+        'hello'
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    if prefix and text.startswith(prefix):
+        return text[len(prefix) :]
+    return text
+
+
 def ensure_suffix(text: str, suffix: str) -> str:
     """Ensure *text* ends with *suffix*.
 
@@ -33692,6 +33863,36 @@ def ensure_suffix(text: str, suffix: str) -> str:
     if text.endswith(suffix):
         return text
     return text + suffix
+
+
+def remove_suffix(text: str, suffix: str) -> str:
+    """Remove *suffix* from the end of *text* if present.
+
+    Args:
+        text: The text to normalize.
+        suffix: The suffix to remove.
+
+    Returns:
+        *text* with *suffix* removed if it was present.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> remove_suffix("hello world", " world")
+        'hello'
+        >>> remove_suffix("hello world", " bye")
+        'hello world'
+        >>> remove_suffix("hello", "")
+        'hello'
+        >>> remove_suffix("", "hello")
+        ''
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    if suffix and text.endswith(suffix):
+        return text[: -len(suffix)]
+    return text
 
 
 def ensure_leading_newline(text: str) -> str:
@@ -49293,7 +49494,7 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added extract_sentences to prompt_utils
+## Unreleased — added ensure_prefix/remove_prefix/ensure_suffix/remove_suffix/join_lines/split_lines/is_blank to prompt_utils and tests
 
 - Added `extract_sentences(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; it extracts sentences delimited by `.`, `!`, or `?` followed by whitespace or end of string, strips whitespace from each sentence, omits empty sentences, and returns `[]` for blank/empty input.
 - Added `TestExtractSentences` to `tests/test_prompt_utils.py` covering basic extraction, single sentence, no punctuation, empty/whitespace-only input, newlines, and the `TypeError` path (7 new tests). Imported `extract_sentences` at the top of the test file to match the module's `__all__` contract.
@@ -51921,7 +52122,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `    strip_lines`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `    first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

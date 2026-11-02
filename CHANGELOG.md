@@ -1,4 +1,4 @@
-## Unreleased — added extract_sentences to prompt_utils
+## Unreleased — added ensure_prefix/remove_prefix/ensure_suffix/remove_suffix/join_lines/split_lines/is_blank to prompt_utils and tests
 
 - Added `extract_sentences(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; it extracts sentences delimited by `.`, `!`, or `?` followed by whitespace or end of string, strips whitespace from each sentence, omits empty sentences, and returns `[]` for blank/empty input.
 - Added `TestExtractSentences` to `tests/test_prompt_utils.py` covering basic extraction, single sentence, no punctuation, empty/whitespace-only input, newlines, and the `TypeError` path (7 new tests). Imported `extract_sentences` at the top of the test file to match the module's `__all__` contract.

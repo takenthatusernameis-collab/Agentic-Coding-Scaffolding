@@ -26,6 +26,8 @@ from prompt_utils import (
     count_words,
     dedent_lines,
     ensure_leading_newline,
+    ensure_prefix,
+    ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
     estimate_token_count,
@@ -39,6 +41,9 @@ from prompt_utils import (
     has_trailing_newline,
     indent_lines,
     is_blank,
+    join_lines,
+    remove_prefix,
+    remove_suffix,
     last_line,
     lstrip_lines,
     normalize_line_endings,
@@ -1289,3 +1294,137 @@ class TestIsBlank(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             is_blank(123)
+
+
+
+class TestEnsurePrefix(unittest.TestCase):
+    def test_add_prefix(self):
+        self.assertEqual(ensure_prefix("world", "hello "), "hello world")
+
+    def test_already_has_prefix(self):
+        self.assertEqual(ensure_prefix("hello world", "hello "), "hello world")
+
+    def test_empty_text_adds_prefix(self):
+        self.assertEqual(ensure_prefix("", "hello"), "hello")
+
+    def test_empty_prefix(self):
+        self.assertEqual(ensure_prefix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            ensure_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_prefix(self):
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_prefix("x", None)  # type: ignore[arg-type]
+
+
+class TestEnsureSuffix(unittest.TestCase):
+    def test_add_suffix(self):
+        self.assertEqual(ensure_suffix("hello", " world"), "hello world")
+
+    def test_already_has_suffix(self):
+        self.assertEqual(ensure_suffix("hello world", " world"), "hello world")
+
+    def test_empty_text_adds_suffix(self):
+        self.assertEqual(ensure_suffix("", "hello"), "hello")
+
+    def test_empty_suffix(self):
+        self.assertEqual(ensure_suffix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            ensure_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestJoinLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(join_lines(["a", "b", "c"]), "a\nb\nc")
+
+    def test_custom_separator(self):
+        self.assertEqual(join_lines(["a", "b"], ", "), "a, b")
+
+    def test_empty(self):
+        self.assertEqual(join_lines([]), "")
+
+    def test_tuple(self):
+        self.assertEqual(join_lines(("a", "b")), "a\nb")
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            join_lines(123)  # type: ignore[arg-type]
+
+    def test_rejects_non_string_items(self):
+        with self.assertRaises(TypeError):
+            join_lines(["a", 123])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            join_lines(["a", None])  # type: ignore[arg-type]
+
+    def test_rejects_non_str_separator(self):
+        with self.assertRaises(TypeError):
+            join_lines(["a", "b"], separator=123)  # type: ignore[arg-type]
+
+
+
+class TestRemovePrefix(unittest.TestCase):
+    def test_remove_existing_prefix(self):
+        self.assertEqual(remove_prefix("hello world", "hello "), "world")
+
+    def test_no_prefix(self):
+        self.assertEqual(remove_prefix("hello world", "bye "), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(remove_prefix("", "hello"), "")
+
+    def test_empty_prefix(self):
+        self.assertEqual(remove_prefix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            remove_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_prefix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_prefix(self):
+        with self.assertRaises(TypeError):
+            remove_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_prefix("x", None)  # type: ignore[arg-type]
+
+
+class TestRemoveSuffix(unittest.TestCase):
+    def test_remove_existing_suffix(self):
+        self.assertEqual(remove_suffix("hello world", " world"), "hello")
+
+    def test_no_suffix(self):
+        self.assertEqual(remove_suffix("hello world", " bye"), "hello world")
+
+    def test_empty_text(self):
+        self.assertEqual(remove_suffix("", "hello"), "")
+
+    def test_empty_suffix(self):
+        self.assertEqual(remove_suffix("hello", ""), "hello")
+
+    def test_rejects_non_str_text(self):
+        with self.assertRaises(TypeError):
+            remove_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_suffix(None, "x")  # type: ignore[arg-type]
+
+    def test_rejects_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            remove_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_suffix("x", None)  # type: ignore[arg-type]
