@@ -28413,6 +28413,7 @@ __all__ = [
     "chunks",
     "drop",
     "find",
+    "flatten",
     "group_by",
     "intersperse",
     "partition",
@@ -28667,6 +28668,37 @@ def chunks(lst: List[T], size: int) -> List[List[T]]:
     for i in range(0, len(lst), size):
         result.append(lst[i : i + size])
     return result
+
+
+def flatten(lst: List[List[T]]) -> List[T]:
+    """Flatten a list of lists one level deep.
+
+    Args:
+        lst: The list of lists to flatten.
+
+    Returns:
+        A single list containing every element of the inner lists, in order.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or if any element of ``lst`` is
+            not a list.
+
+    Examples:
+        >>> flatten([[1, 2], [3, 4], [5]])
+        [1, 2, 3, 4, 5]
+        >>> flatten([[], [1], [2, 3]])
+        [1, 2, 3]
+        >>> flatten([["a", "b"], ["c"]])
+        ['a', 'b', 'c']
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    result: List[T] = []
+    for item in lst:
+        if not isinstance(item, list):
+            raise TypeError("all elements of lst must be lists")
+        result.extend(item)
+    return result
 LISTUTILS
 # --- tests/test_list_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
@@ -28674,7 +28706,7 @@ cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
 
 import unittest
 
-from list_utils import chunks, drop, find, group_by, intersperse, partition, safe_get, take
+from list_utils import chunks, drop, find, flatten, group_by, intersperse, partition, safe_get, take
 
 
 class TestPartition(unittest.TestCase):
@@ -28893,6 +28925,31 @@ class TestChunks(unittest.TestCase):
     def test_chunks_size_not_int_raises(self) -> None:
         with self.assertRaises(TypeError):
             chunks([1, 2, 3], 2.0)  # type: ignore[arg-type]
+
+
+class TestFlatten(unittest.TestCase):
+    def test_flatten_basic(self) -> None:
+        self.assertEqual(flatten([[1, 2], [3, 4], [5]]), [1, 2, 3, 4, 5])
+
+    def test_flatten_with_empty_inner(self) -> None:
+        self.assertEqual(flatten([[], [1], [2, 3]]), [1, 2, 3])
+
+    def test_flatten_strings(self) -> None:
+        self.assertEqual(flatten([["a", "b"], ["c"]]), ["a", "b", "c"])
+
+    def test_flatten_empty_outer(self) -> None:
+        self.assertEqual(flatten([]), [])
+
+    def test_flatten_preserves_order(self) -> None:
+        self.assertEqual(flatten([[3], [1, 2], [4]]), [3, 1, 2, 4])
+
+    def test_flatten_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            flatten("not a list")  # type: ignore[arg-type]
+
+    def test_flatten_non_list_element_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            flatten([[1, 2], 3])  # type: ignore[list-item]
 
 
 if __name__ == "__main__":
@@ -52951,7 +53008,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `drop`, `take`, `intersperse`, and `chunks`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `flatten`, `drop`, `take`, `intersperse`, and `chunks`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 
