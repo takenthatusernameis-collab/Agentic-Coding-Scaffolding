@@ -43223,10 +43223,8 @@ def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
         raise TypeError("fillbyte must be bytes or bytearray")
     fb = bytes(fillbyte)
     if len(fb) != 1:
-        fb = fb[:1] or b" "
-    else:
-        fb = fb
-    return bytes(data).center(width, fb[:1]) if len(fb) != 1 else bytes(data).center(width, fb)
+        raise ValueError("fillbyte must be a single byte")
+    return bytes(data).center(width, fb)
 
 
 def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
