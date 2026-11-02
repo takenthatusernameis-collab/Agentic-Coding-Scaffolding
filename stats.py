@@ -6,6 +6,7 @@ from typing import List, Sequence, TypeVar
 T = TypeVar("T", int, float)
 
 __all__: List[str] = [
+    "T",
     "mean",
     "median",
     "median_low",
