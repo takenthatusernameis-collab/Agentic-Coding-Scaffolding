@@ -68,6 +68,7 @@ __all__: List[str] = [
     "count_unique_words",
     "join_lines",
     "split_lines",
+    "chomp",
 ]
 
 
@@ -1802,6 +1803,36 @@ def join_lines(lines: Any, separator: str = "\n") -> str:
         if not isinstance(item, str):
             raise TypeError("lines must contain only strings")
     return separator.join(items)
+
+
+def chomp(text: str) -> str:
+    """Remove a trailing newline (``\\n``) or carriage-return newline (``\\r\\n``) from *text*.
+
+    Args:
+        text: The text to trim.
+
+    Returns:
+        *text* with at most one trailing line ending removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> chomp("hello\\n")
+        'hello'
+        >>> chomp("hello\\r\\n")
+        'hello'
+        >>> chomp("hello")
+        'hello'
+        >>> chomp("")
+        ''
+    """
+    _require_string(text, "text")
+    if text.endswith("\r\n"):
+        return text[:-2]
+    if text.endswith("\n") or text.endswith("\r"):
+        return text[:-1]
+    return text
 
 
 def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
