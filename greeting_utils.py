@@ -2,6 +2,7 @@ __all__ = [
     "format_apology",
     "format_birthday_wish",
     "format_congrats",
+    "format_encouragement",
     "format_farewell",
     "format_greeting",
     "format_names",
@@ -178,3 +179,29 @@ def multi_greet(names: list[str], greeting: str = "Hello") -> dict[str, str]:
         if not isinstance(name, str):
             raise TypeError("names must contain only str elements")
     return {name: format_greeting(name, greeting) for name in names}
+
+
+def format_encouragement(name: str, message: str = "You've got this") -> str:
+    """Return a formatted encouragement string for the given name.
+
+    Args:
+        name: The name to encourage.
+        message: The encouragement message to use. Defaults to "You've got this".
+
+    Returns:
+        A string of the form "{name}, {message}!".
+
+    Raises:
+        TypeError: If ``name`` or ``message`` is not a str.
+
+    Examples:
+        >>> format_encouragement("Alice")
+        "Alice, You've got this!"
+        >>> format_encouragement("Bob", "Keep going")
+        'Bob, Keep going!'
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(message, str):
+        raise TypeError("message must be a str")
+    return f"{name}, {message}!"

@@ -40773,6 +40773,7 @@ __all__ = [
     "format_apology",
     "format_birthday_wish",
     "format_congrats",
+    "format_encouragement",
     "format_farewell",
     "format_greeting",
     "format_names",
@@ -40949,6 +40950,32 @@ def multi_greet(names: list[str], greeting: str = "Hello") -> dict[str, str]:
         if not isinstance(name, str):
             raise TypeError("names must contain only str elements")
     return {name: format_greeting(name, greeting) for name in names}
+
+
+def format_encouragement(name: str, message: str = "You've got this") -> str:
+    """Return a formatted encouragement string for the given name.
+
+    Args:
+        name: The name to encourage.
+        message: The encouragement message to use. Defaults to "You've got this".
+
+    Returns:
+        A string of the form "{name}, {message}!".
+
+    Raises:
+        TypeError: If ``name`` or ``message`` is not a str.
+
+    Examples:
+        >>> format_encouragement("Alice")
+        "Alice, You've got this!"
+        >>> format_encouragement("Bob", "Keep going")
+        'Bob, Keep going!'
+    """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(message, str):
+        raise TypeError("message must be a str")
+    return f"{name}, {message}!"
 GREETING_UTILS
 
 # --- tests/test_greeting_utils.py ---
@@ -40959,6 +40986,7 @@ from greeting_utils import (
     format_apology,
     format_birthday_wish,
     format_congrats,
+    format_encouragement,
     format_farewell,
     format_greeting,
     format_names,
@@ -41088,6 +41116,25 @@ class TestMultiGreet(unittest.TestCase):
 
     def test_empty_list(self):
         self.assertEqual(multi_greet([]), {})
+
+
+class TestFormatEncouragement(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_encouragement("Alice"), "Alice, You've got this!")
+
+    def test_custom_message(self):
+        self.assertEqual(format_encouragement("Bob", "Keep going"), "Bob, Keep going!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_encouragement(""), ", You've got this!")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_encouragement(123)  # type: ignore[arg-type]
+
+    def test_type_error_message(self):
+        with self.assertRaises(TypeError):
+            format_encouragement("Alice", 5)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -50237,6 +50284,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added format_encouragement to greeting_utils
+
+- Added `format_encouragement(name, message="You've got this!")` to `greeting_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns a string of the form `"{name}, {message}!"`. Added `TestFormatEncouragement` to `tests/test_greeting_utils.py` covering the default message, custom message, empty name, and the `TypeError` paths (5 new tests). Imported `format_encouragement` at the top of the test file to match the module's `__all__` contract. Updated the `greeting_utils` module tree entry and prose section of `README.md`.
+- Synchronized `greeting_utils.py`, `tests/test_greeting_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_greeting_utils` passes; `python -m doctest greeting_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added balanced and weak prime predicates
 
 - Added `is_balanced_prime(n)` and `is_weak_prime(n)` to `prime_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation via `_require_int`. `is_balanced_prime` returns True when a prime equals the arithmetic mean of its two nearest primes (e.g. 5, 53, 157, 173, 211); `is_weak_prime` returns True when a prime is less than the arithmetic mean of its two nearest primes (e.g. 7, 13, 19, 23, 31). Added `TestIsBalancedPrime` and `TestIsWeakPrime` to `tests/test_prime_utils.py` covering known values, disjointness from the other categories, non-primes, boundary cases, and `TypeError` paths. Updated the `prime_utils` module tree entry and prose section of `README.md`.
@@ -52186,7 +52240,7 @@ sunau_utils.py             # Sun AU format utilities wrapping stdlib sunau (open
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
-greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell)
+greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
 version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version)
@@ -53429,7 +53483,7 @@ The project includes garbage collector utilities in `gc_utils.py` wrapping the s
 
 ## Greeting Utilities Module
 
-The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person, `format_names` renders a greeting for a list of people, and `format_farewell` renders a farewell for a person. The module is tested in `tests/test_greeting_utils.py`.
+The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person, `format_names` renders a greeting for a list of people, `format_farewell` renders a farewell for a person, and `format_encouragement` renders an encouragement message for a person. The module is tested in `tests/test_greeting_utils.py`.
 
 ## Importlib Utilities Module
 

@@ -4,6 +4,7 @@ from greeting_utils import (
     format_apology,
     format_birthday_wish,
     format_congrats,
+    format_encouragement,
     format_farewell,
     format_greeting,
     format_names,
@@ -133,6 +134,25 @@ class TestMultiGreet(unittest.TestCase):
 
     def test_empty_list(self):
         self.assertEqual(multi_greet([]), {})
+
+
+class TestFormatEncouragement(unittest.TestCase):
+    def test_default(self):
+        self.assertEqual(format_encouragement("Alice"), "Alice, You've got this!")
+
+    def test_custom_message(self):
+        self.assertEqual(format_encouragement("Bob", "Keep going"), "Bob, Keep going!")
+
+    def test_empty_name(self):
+        self.assertEqual(format_encouragement(""), ", You've got this!")
+
+    def test_type_error_name(self):
+        with self.assertRaises(TypeError):
+            format_encouragement(123)  # type: ignore[arg-type]
+
+    def test_type_error_message(self):
+        with self.assertRaises(TypeError):
+            format_encouragement("Alice", 5)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

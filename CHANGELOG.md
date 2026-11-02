@@ -1,3 +1,10 @@
+## Unreleased — added format_encouragement to greeting_utils
+
+- Added `format_encouragement(name, message="You've got this!")` to `greeting_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns a string of the form `"{name}, {message}!"`. Added `TestFormatEncouragement` to `tests/test_greeting_utils.py` covering the default message, custom message, empty name, and the `TypeError` paths (5 new tests). Imported `format_encouragement` at the top of the test file to match the module's `__all__` contract. Updated the `greeting_utils` module tree entry and prose section of `README.md`.
+- Synchronized `greeting_utils.py`, `tests/test_greeting_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_greeting_utils` passes; `python -m doctest greeting_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added balanced and weak prime predicates
 
 - Added `is_balanced_prime(n)` and `is_weak_prime(n)` to `prime_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation via `_require_int`. `is_balanced_prime` returns True when a prime equals the arithmetic mean of its two nearest primes (e.g. 5, 53, 157, 173, 211); `is_weak_prime` returns True when a prime is less than the arithmetic mean of its two nearest primes (e.g. 7, 13, 19, 23, 31). Added `TestIsBalancedPrime` and `TestIsWeakPrime` to `tests/test_prime_utils.py` covering known values, disjointness from the other categories, non-primes, boundary cases, and `TypeError` paths. Updated the `prime_utils` module tree entry and prose section of `README.md`.

@@ -156,7 +156,7 @@ sunau_utils.py             # Sun AU format utilities wrapping stdlib sunau (open
 threading_utils.py         # Threading utilities wrapping the standard library threading module
 networking_utils.py         # Networking utilities for TCP ports, hostname resolution, and local IP detection
 graphlib_utils.py          # Graph and dependency resolution utilities (topological sort, cycle detection)
-greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell)
+greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
 version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version)
@@ -1399,7 +1399,7 @@ The project includes garbage collector utilities in `gc_utils.py` wrapping the s
 
 ## Greeting Utilities Module
 
-The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person, `format_names` renders a greeting for a list of people, and `format_farewell` renders a farewell for a person. The module is tested in `tests/test_greeting_utils.py`.
+The project includes greeting utilities in `greeting_utils.py`: `format_greeting` renders a greeting for a person, `format_names` renders a greeting for a list of people, `format_farewell` renders a farewell for a person, and `format_encouragement` renders an encouragement message for a person. The module is tested in `tests/test_greeting_utils.py`.
 
 ## Importlib Utilities Module
 
