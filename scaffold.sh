@@ -14110,6 +14110,7 @@ __all__: List[str] = [
     "pstdev",
     "skewness",
     "range",
+    "range_stat",
     "min_value",
     "max_value",
     "midrange",
@@ -18315,6 +18316,7 @@ from stats import (
     quantile,
     quartile,
     range,
+    range_stat,
     root_mean_square,
     skewness,
     standard_error,
@@ -18427,6 +18429,43 @@ class TestRange(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             range([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestRangeStat(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(range_stat([1, 2, 3, 4, 5]), 4.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(range_stat([5]), 0.0)
+
+    def test_negative(self) -> None:
+        self.assertEqual(range_stat([-2, 4]), 6.0)
+
+    def test_unsorted(self) -> None:
+        self.assertEqual(range_stat([9, 1, 5]), 8.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(range_stat([1.5, 2.5, 4.0]), 2.5)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            range_stat([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            range_stat((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            range_stat(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            range_stat([True, 1, 2])  # type: ignore[type-var]
+
+    def test_matches_range_alias(self) -> None:
+        self.assertIs(range_stat, range)
 
 
 class TestMean(unittest.TestCase):
@@ -49494,6 +49533,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed stats __all__ gap for range_stat
+
+- Found that `stats.py` implemented `range_stat(numbers)` as a public function (with typed signature, Google-style docstring with doctests, and `TypeError`/`ValueError` validation) but omitted it from the module's `__all__` list, violating the public API export contract that every public attribute must be listed in `__all__`. Added `range_stat` to `stats.__all__` next to its `range` alias.
+- Added `TestRangeStat` to `tests/test_stats.py` covering basic range, single-element, negative, unsorted, float inputs, empty-list `ValueError`, and the non-list/non-numeric/bool `TypeError` paths (9 new tests), plus an assertion that `range_stat` is the same object as the `range` alias. Imported `range_stat` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` prose section of `README.md` to document `range_stat` alongside the `range` alias.
+- Verified: `make test` passes; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+
 ## Unreleased — added ensure_prefix/remove_prefix/ensure_suffix/remove_suffix/join_lines/split_lines/is_blank to prompt_utils and tests
 
 - Added `extract_sentences(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; it extracts sentences delimited by `.`, `!`, or `?` followed by whitespace or end of string, strips whitespace from each sentence, omits empty sentences, and returns `[]` for blank/empty input.
@@ -51876,7 +51922,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` (aliased from `range_stat`) returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

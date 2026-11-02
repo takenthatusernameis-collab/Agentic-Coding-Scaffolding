@@ -1,3 +1,10 @@
+## Unreleased — fixed stats __all__ gap for range_stat
+
+- Found that `stats.py` implemented `range_stat(numbers)` as a public function (with typed signature, Google-style docstring with doctests, and `TypeError`/`ValueError` validation) but omitted it from the module's `__all__` list, violating the public API export contract that every public attribute must be listed in `__all__`. Added `range_stat` to `stats.__all__` next to its `range` alias.
+- Added `TestRangeStat` to `tests/test_stats.py` covering basic range, single-element, negative, unsorted, float inputs, empty-list `ValueError`, and the non-list/non-numeric/bool `TypeError` paths (9 new tests), plus an assertion that `range_stat` is the same object as the `range` alias. Imported `range_stat` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` prose section of `README.md` to document `range_stat` alongside the `range` alias.
+- Verified: `make test` passes; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+
 ## Unreleased — added ensure_prefix/remove_prefix/ensure_suffix/remove_suffix/join_lines/split_lines/is_blank to prompt_utils and tests
 
 - Added `extract_sentences(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation; it extracts sentences delimited by `.`, `!`, or `?` followed by whitespace or end of string, strips whitespace from each sentence, omits empty sentences, and returns `[]` for blank/empty input.

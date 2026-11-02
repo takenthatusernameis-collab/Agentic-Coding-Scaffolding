@@ -19,6 +19,7 @@ __all__: List[str] = [
     "pstdev",
     "skewness",
     "range",
+    "range_stat",
     "min_value",
     "max_value",
     "midrange",

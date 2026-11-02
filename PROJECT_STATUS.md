@@ -1,5 +1,27 @@
 # Project Status
 
+## Latest Session (2026-11-02) — fixed stats __all__ gap for range_stat
+
+The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7351 tests and passed.
+
+Completed in this session:
+
+- Audited the candidate modules named in the previous Next Planned (`prompt_utils.py`, `string_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`) for `__all__` contract gaps. `prompt_utils` (344 tests), `string_utils` (177 tests + 45 subtests), `prime_utils` (250 tests), and `version_utils` (209 tests) are fully covered and complete.
+- Found a real contract gap: `stats.range_stat` was a fully-implemented public function (typed signature, Google-style docstring with doctests, `TypeError`/`ValueError` validation) but missing from `stats.__all__`, violating the public-API export contract that every public attribute must be listed in `__all__`. This gap was invisible to `tests/test_public_api.py` because that suite only guards `*_utils.py` modules — `stats.py` is a non-wrapper module and falls outside its discovery.
+- Added `range_stat` to `stats.__all__` next to its `range` alias.
+- Added `TestRangeStat` to `tests/test_stats.py` covering basic range, single-element, negative, unsorted, float inputs, empty-list `ValueError`, and the non-list/non-numeric/bool `TypeError` paths (9 new tests), plus an assertion that `range_stat` is the same object as the `range` alias. Imported `range_stat` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` prose section of `README.md` to document `range_stat` alongside the `range` alias.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified the work: `make test` passes (7351 tests); `python -m ruff check stats.py tests/test_stats.py` is clean; `python -m mypy stats.py tests/test_stats.py` reports no issues; the repo-wide `python -m ruff check .` still reports the same 34 pre-existing errors and `python -m mypy .` the same 71 pre-existing errors (no new regressions). The 6 pre-existing `stats.py` doctest failures (`geometric_mean`, `kurtosis`, `median`, `mode`, `winsorized_stddev` — float formatting) are unchanged by this edit; `range_stat`'s 3 doctests pass.
+
+Next Planned (durable handover for the following agent):
+
+- Extend the `__all__` public-API contract to the non-wrapper modules that `test_public_api.py` does not cover. Audit and add `__all__` to `calculator.py`, `config_schema.py`, and `hello.py` (list every top-level, non-underscore name defined by the module — functions, classes, intentionally re-exported stdlib aliases — but not imported names like `typing.List`). `stats.py` and `strings.py` already have `__all__`; `shapes.py` is complete — verify but do not touch.
+- Acceptance: each module has `__all__`, every name in `__all__` is importable, `make test` still passes, `python -m ruff check <files>` and `python -m mypy <files>` are clean, and the repo-wide ruff (34) / mypy (71) error counts are unchanged. Update `README.md` prose and `CHANGELOG.md` only if `__all__` adds a previously-undocumented name.
+- Note: `calculator.py`, `config_schema.py`, and `hello.py` are NOT embedded in `scaffold.sh` (only `*_utils.py` modules are), so no scaffold refresh is needed — confirm with `python tools/refresh_scaffold.py --check` regardless.
+- No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-02) — added tests for bytes_utils predicate and ascii helpers
 
 The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies (`bytes_utils.py`, `tests/test_bytes_utils.py`).

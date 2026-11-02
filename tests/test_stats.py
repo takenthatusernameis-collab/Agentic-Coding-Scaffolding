@@ -35,6 +35,7 @@ from stats import (
     quantile,
     quartile,
     range,
+    range_stat,
     root_mean_square,
     skewness,
     standard_error,
@@ -147,6 +148,43 @@ class TestRange(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             range([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestRangeStat(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(range_stat([1, 2, 3, 4, 5]), 4.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(range_stat([5]), 0.0)
+
+    def test_negative(self) -> None:
+        self.assertEqual(range_stat([-2, 4]), 6.0)
+
+    def test_unsorted(self) -> None:
+        self.assertEqual(range_stat([9, 1, 5]), 8.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(range_stat([1.5, 2.5, 4.0]), 2.5)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            range_stat([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            range_stat((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            range_stat(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            range_stat([True, 1, 2])  # type: ignore[type-var]
+
+    def test_matches_range_alias(self) -> None:
+        self.assertIs(range_stat, range)
 
 
 class TestMean(unittest.TestCase):
