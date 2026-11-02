@@ -1,7 +1,35 @@
 import calendar
 import datetime
+import unittest
 
 import calendar_utils as m
+
+
+class TestDaysBetween(unittest.TestCase):
+    def test_positive_span(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 1, 1), datetime.date(2024, 1, 10)), 9)
+
+    def test_negative_span(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365)
+
+    def test_same_day(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 3, 1), datetime.date(2024, 3, 1)), 0)
+
+    def test_leap_year_span(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 2, 1), datetime.date(2024, 3, 1)), 29)
+
+    def test_datetime_inputs(self):
+        start = datetime.datetime(2024, 1, 1, 12, 0, 0)
+        end = datetime.datetime(2024, 1, 3, 8, 0, 0)
+        self.assertEqual(m.days_between(start, end), 2)
+
+    def test_type_error_date1(self):
+        with self.assertRaises(TypeError):
+            m.days_between("2024-01-01", datetime.date(2024, 1, 10))  # type: ignore[arg-type]
+
+    def test_type_error_date2(self):
+        with self.assertRaises(TypeError):
+            m.days_between(datetime.date(2024, 1, 1), None)  # type: ignore[arg-type]
 
 
 def test_is_leap_year():

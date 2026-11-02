@@ -1,3 +1,15 @@
+## Unreleased — fixed greeting_utils __all__ export for format_good_luck
+
+- Added `format_good_luck` to `greeting_utils.__all__` so every public attribute defined by the module is exported, closing a contract gap left when the helper was introduced. This restores the public-API invariant enforced by `tests/test_public_api.py`. Synchronized `greeting_utils.py`, `tests/test_greeting_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
+## Unreleased — added days_between to calendar_utils
+
+- Added `days_between(date1, date2)` to `calendar_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-date/datetime arguments; it returns the number of days from *date1* to *date2* (positive when *date2* is later, negative when earlier, zero when equal), ignoring time components. Added `TestDaysBetween` to `tests/test_calendar_utils.py` covering positive/negative spans, the same day, a leap-year span, datetime inputs (time components ignored), and the `TypeError` paths (7 new tests). Imported nothing new beyond the existing public API to match the module's `__all__` contract. Updated the `calendar_utils` module tree entry and prose section of `README.md`.
+- Synchronized `calendar_utils.py`, `tests/test_calendar_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_calendar_utils` passes; `python -m doctest calendar_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added format_encouragement to greeting_utils
 
 - Added `format_encouragement(name, message="You've got this!")` to `greeting_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns a string of the form `"{name}, {message}!"`. Added `TestFormatEncouragement` to `tests/test_greeting_utils.py` covering the default message, custom message, empty name, and the `TypeError` paths (5 new tests). Imported `format_encouragement` at the top of the test file to match the module's `__all__` contract. Updated the `greeting_utils` module tree entry and prose section of `README.md`.

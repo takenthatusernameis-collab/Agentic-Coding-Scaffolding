@@ -40775,6 +40775,7 @@ __all__ = [
     "format_congrats",
     "format_encouragement",
     "format_farewell",
+    "format_good_luck",
     "format_greeting",
     "format_names",
     "format_thanks",
@@ -50330,6 +50331,18 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed greeting_utils __all__ export for format_good_luck
+
+- Added `format_good_luck` to `greeting_utils.__all__` so every public attribute defined by the module is exported, closing a contract gap left when the helper was introduced. This restores the public-API invariant enforced by `tests/test_public_api.py`. Synchronized `greeting_utils.py`, `tests/test_greeting_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
+## Unreleased — added days_between to calendar_utils
+
+- Added `days_between(date1, date2)` to `calendar_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-date/datetime arguments; it returns the number of days from *date1* to *date2* (positive when *date2* is later, negative when earlier, zero when equal), ignoring time components. Added `TestDaysBetween` to `tests/test_calendar_utils.py` covering positive/negative spans, the same day, a leap-year span, datetime inputs (time components ignored), and the `TypeError` paths (7 new tests). Imported nothing new beyond the existing public API to match the module's `__all__` contract. Updated the `calendar_utils` module tree entry and prose section of `README.md`.
+- Synchronized `calendar_utils.py`, `tests/test_calendar_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_calendar_utils` passes; `python -m doctest calendar_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added format_encouragement to greeting_utils
 
 - Added `format_encouragement(name, message="You've got this!")` to `greeting_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns a string of the form `"{name}, {message}!"`. Added `TestFormatEncouragement` to `tests/test_greeting_utils.py` covering the default message, custom message, empty name, and the `TypeError` paths (5 new tests). Imported `format_encouragement` at the top of the test file to match the module's `__all__` contract. Updated the `greeting_utils` module tree entry and prose section of `README.md`.
@@ -52376,7 +52389,7 @@ base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
 case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation, plus a convert_case dispatcher
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
-calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months)
+calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months, days_between)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
 cgi_utils.py                 # CGI utilities wrapping the standard library cgi module (FieldStorage, MiniFieldStorage, escape, parse, parse_header, parse_multipart, parse_qs, parse_qsl, is_available) with input validation
 cgitb_utils.py              # Cgitb utilities wrapping the standard library cgitb module (enable, disable, reset, lookup, scanvars, handler, text, html, small, strong, grey, pink, blue, is_available) with input validation
@@ -53513,7 +53526,7 @@ The project includes exit handler utilities in `atexit_utils.py` wrapping the st
 
 ## Calendar Utilities Module
 
-The project includes calendar utilities in `calendar_utils.py` wrapping the standard library `calendar` module: `is_leap_year` reports whether a year is a leap year, `days_in_month` returns the number of days in a month, `first_day_of_month` returns the weekday a month starts on, `month_name` and `day_name` return localized names, `month_calendar` renders a month grid, `weekdays_in_month` and `weekend_days_in_month` collect the matching dates, `is_weekend` reports whether a date falls on a weekend, and `add_months` shifts a date by a number of months. The module is tested in `tests/test_calendar_utils.py`.
+The project includes calendar utilities in `calendar_utils.py` wrapping the standard library `calendar` module: `is_leap_year` reports whether a year is a leap year, `days_in_month` returns the number of days in a month, `first_day_of_month` returns the weekday a month starts on, `month_name` and `day_name` return localized names, `month_calendar` renders a month grid, `weekdays_in_month` and `weekend_days_in_month` collect the matching dates, `is_weekend` reports whether a date falls on a weekend, `add_months` shifts a date by a number of months, and `days_between` returns the number of days from one date to another. The module is tested in `tests/test_calendar_utils.py`.
 
 ## Complex Mathematics Utilities Module
 
@@ -54604,6 +54617,7 @@ from typing import List
 __all__ = [
     "add_months",
     "day_name",
+    "days_between",
     "days_in_month",
     "first_day_of_month",
     "is_leap_year",
@@ -54705,14 +54719,73 @@ def add_months(d, months: int):
     month = (d.month - 1 + months) % 12 + 1
     day = min(d.day, calendar.monthrange(year, month)[1])
     return date(year, month, day)
+
+
+def days_between(date1, date2) -> int:
+    """Return the number of days from *date1* to *date2*.
+
+    Args:
+        date1: The start date (a :class:`~datetime.date` or :class:`~datetime.datetime`).
+        date2: The end date (a :class:`~datetime.date` or :class:`~datetime.datetime`).
+
+    Returns:
+        The number of days between the two dates, positive when *date2* is after
+        *date1*, negative when *date2* is before *date1*, and zero when they are
+        the same day. Time components are ignored.
+
+    Raises:
+        TypeError: If either argument is not a date or datetime.
+
+    Examples:
+        >>> days_between(date(2024, 1, 1), date(2024, 1, 10))
+        9
+        >>> days_between(date(2024, 12, 31), date(2024, 1, 1))
+        -365
+        >>> days_between(date(2024, 3, 1), date(2024, 3, 1))
+        0
+    """
+    for value, name in ((date1, "date1"), (date2, "date2")):
+        if not (hasattr(value, "year") and hasattr(value, "month") and hasattr(value, "day")):
+            raise TypeError(f"{name} must be a date or datetime")
+    start = date(date1.year, date1.month, date1.day)
+    end = date(date2.year, date2.month, date2.day)
+    return (end - start).days
 CALENDAR_UTILS
 
 # --- tests/test_calendar_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_calendar_utils.py" <<'TEST_CALENDAR_UTILS'
 import calendar
 import datetime
+import unittest
 
 import calendar_utils as m
+
+
+class TestDaysBetween(unittest.TestCase):
+    def test_positive_span(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 1, 1), datetime.date(2024, 1, 10)), 9)
+
+    def test_negative_span(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365)
+
+    def test_same_day(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 3, 1), datetime.date(2024, 3, 1)), 0)
+
+    def test_leap_year_span(self):
+        self.assertEqual(m.days_between(datetime.date(2024, 2, 1), datetime.date(2024, 3, 1)), 29)
+
+    def test_datetime_inputs(self):
+        start = datetime.datetime(2024, 1, 1, 12, 0, 0)
+        end = datetime.datetime(2024, 1, 3, 8, 0, 0)
+        self.assertEqual(m.days_between(start, end), 2)
+
+    def test_type_error_date1(self):
+        with self.assertRaises(TypeError):
+            m.days_between("2024-01-01", datetime.date(2024, 1, 10))  # type: ignore[arg-type]
+
+    def test_type_error_date2(self):
+        with self.assertRaises(TypeError):
+            m.days_between(datetime.date(2024, 1, 1), None)  # type: ignore[arg-type]
 
 
 def test_is_leap_year():

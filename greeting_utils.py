@@ -4,6 +4,7 @@ __all__ = [
     "format_congrats",
     "format_encouragement",
     "format_farewell",
+    "format_good_luck",
     "format_greeting",
     "format_names",
     "format_thanks",
