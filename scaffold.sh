@@ -20433,6 +20433,7 @@ __all__ = [
     "K",
     "V",
     "deep_copy",
+    "del_nested",
     "flatten_dict",
     "get_nested",
     "invert_dict",
@@ -20599,6 +20600,54 @@ def set_nested(d: Dict[str, Any], path: str, value: Any, sep: str = ".") -> Dict
         current = current[segment]
     current[segments[-1]] = value
     return d
+
+
+def del_nested(d: Dict[str, Any], path: str, sep: str = ".") -> bool:
+    """Delete the value at a dot-separated path in a nested dictionary.
+
+    Traverses *d* using the segments of *path* split on *sep* and removes the
+    final key if it exists. Returns True when a key was deleted, False when
+    the path does not exist or an intermediate value is not a dictionary.
+
+    Args:
+        d: The dictionary to modify.
+        path: A dot-separated key path, e.g. ``"a.b.c"``.
+        sep: Separator between path segments (default: ``"."``).
+
+    Returns:
+        True when a key was deleted, False when the path is absent.
+
+    Raises:
+        TypeError: If *d* is not a dictionary or *path* is not a string.
+        ValueError: If *path* is empty.
+
+    Examples:
+        >>> d = {"a": {"b": 1}}
+        >>> del_nested(d, "a.b")
+        True
+        >>> d
+        {'a': {}}
+        >>> del_nested(d, "a.c")
+        False
+        >>> del_nested({}, "a.b")
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError(f"d must be a dict, got {type(d).__name__}")
+    if not isinstance(path, str):
+        raise TypeError(f"path must be a string, got {type(path).__name__}")
+    segments = path.split(sep)
+    if not path or not any(segments):
+        raise ValueError("path must not be empty")
+    current: Dict[str, Any] = d
+    for segment in segments[:-1]:
+        if segment not in current or not isinstance(current[segment], dict):
+            return False
+        current = current[segment]
+    if segments[-1] not in current:
+        return False
+    del current[segments[-1]]
+    return True
 DATA
 
 # --- datetime_utils.py ---
@@ -24565,7 +24614,7 @@ cat > "$OUTPUT_DIR/tests/test_data_utils.py" <<'TESTDATA'
 
 import unittest
 
-from data_utils import deep_copy, flatten_dict, get_nested, invert_dict, merge_dicts, omit, pick
+from data_utils import deep_copy, del_nested, flatten_dict, get_nested, invert_dict, merge_dicts, omit, pick
 
 
 class TestDeepCopy(unittest.TestCase):
@@ -24739,6 +24788,58 @@ class TestGetNested(unittest.TestCase):
     def test_get_nested_rejects_non_string_path(self) -> None:
         with self.assertRaises(TypeError):
             get_nested({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestDelNested(unittest.TestCase):
+    def test_del_nested_basic(self) -> None:
+        d = {"a": {"b": 1}}
+        self.assertTrue(del_nested(d, "a.b"))
+        self.assertEqual(d, {"a": {}})
+
+    def test_del_nested_deep(self) -> None:
+        d = {"a": {"b": {"c": 3}}}
+        self.assertTrue(del_nested(d, "a.b.c"))
+        self.assertEqual(d, {"a": {"b": {}}})
+
+    def test_del_nested_missing_path_returns_false(self) -> None:
+        d = {"a": {"b": 1}}
+        self.assertFalse(del_nested(d, "a.c"))
+        self.assertEqual(d, {"a": {"b": 1}})
+
+    def test_del_nested_missing_top_level(self) -> None:
+        d = {"a": 1}
+        self.assertFalse(del_nested(d, "b"))
+        self.assertEqual(d, {"a": 1})
+
+    def test_del_nested_empty_dict(self) -> None:
+        self.assertFalse(del_nested({}, "a.b"))
+
+    def test_del_nested_intermediate_not_dict(self) -> None:
+        d = {"a": 1}
+        self.assertFalse(del_nested(d, "a.b"))
+
+    def test_del_nested_custom_separator(self) -> None:
+        d = {"a": {"b": 2}}
+        self.assertTrue(del_nested(d, "a/b", sep="/"))
+        self.assertEqual(d, {"a": {}})
+
+    def test_del_nested_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            del_nested(["a", "b"], "a.b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            del_nested("ab", "a.b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            del_nested(None, "a.b")  # type: ignore[arg-type]
+
+    def test_del_nested_rejects_non_string_path(self) -> None:
+        with self.assertRaises(TypeError):
+            del_nested({"a": 1}, 1)  # type: ignore[arg-type]
+
+    def test_del_nested_rejects_empty_path(self) -> None:
+        with self.assertRaises(ValueError):
+            del_nested({"a": 1}, "")
+        with self.assertRaises(ValueError):
+            del_nested({"a": 1}, ".")
 
 
 if __name__ == "__main__":
@@ -50052,6 +50153,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added del_nested to data_utils
+
+- Added `del_nested(d, path, sep=".")` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments and non-string paths, `ValueError` for empty paths, and a boolean return indicating whether a key was deleted. Added `TestDelNested` to `tests/test_data_utils.py` covering basic deletion, deep paths, missing paths, empty dicts, intermediate non-dict values, custom separators, and the `TypeError`/`ValueError` paths (12 new tests). Imported `del_nested` at the top of the test file to match the module's `__all__` contract.
+- Updated the `data_utils` prose section of `README.md` to document `del_nested` and `set_nested`.
+- Synchronized `data_utils.py`, `tests/test_data_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_data_utils` passes; `python -m doctest data_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added get_nested to data_utils
 
 - Added `get_nested(d, path, default=None, sep=".")` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments and non-string paths, and a `default` value returned when a path segment is missing or an intermediate value is not a dict. Added `TestGetNested` to `tests/test_data_utils.py` covering basic and deep traversal, missing-path defaults, a custom separator, non-dict intermediates, and the `TypeError` paths (9 new tests). Imported `get_nested` at the top of the test file to match the module's `__all__` contract.
@@ -52533,7 +52642,7 @@ The project includes a mathematical utilities module in `math_utils.py` with fun
 
 ## Data Utilities Module
 
-The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `flatten_dict`, `get_nested`, `invert_dict`, `merge_dicts`, `pick`, and `omit`. The module is tested in `tests/test_data_utils.py`.
+The project includes a data utilities module in `data_utils.py` with functions for data manipulation: `deep_copy`, `del_nested`, `flatten_dict`, `get_nested`, `invert_dict`, `merge_dicts`, `omit`, `pick`, and `set_nested`. The module is tested in `tests/test_data_utils.py`.
 
 ## Dataclasses Utilities Module
 

@@ -1,3 +1,11 @@
+## Unreleased — added del_nested to data_utils
+
+- Added `del_nested(d, path, sep=".")` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments and non-string paths, `ValueError` for empty paths, and a boolean return indicating whether a key was deleted. Added `TestDelNested` to `tests/test_data_utils.py` covering basic deletion, deep paths, missing paths, empty dicts, intermediate non-dict values, custom separators, and the `TypeError`/`ValueError` paths (12 new tests). Imported `del_nested` at the top of the test file to match the module's `__all__` contract.
+- Updated the `data_utils` prose section of `README.md` to document `del_nested` and `set_nested`.
+- Synchronized `data_utils.py`, `tests/test_data_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_data_utils` passes; `python -m doctest data_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added get_nested to data_utils
 
 - Added `get_nested(d, path, default=None, sep=".")` to `data_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, `TypeError` validation for non-dict arguments and non-string paths, and a `default` value returned when a path segment is missing or an intermediate value is not a dict. Added `TestGetNested` to `tests/test_data_utils.py` covering basic and deep traversal, missing-path defaults, a custom separator, non-dict intermediates, and the `TypeError` paths (9 new tests). Imported `get_nested` at the top of the test file to match the module's `__all__` contract.

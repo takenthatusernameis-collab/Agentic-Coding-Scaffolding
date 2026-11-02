@@ -2,7 +2,7 @@
 
 import unittest
 
-from data_utils import deep_copy, flatten_dict, get_nested, invert_dict, merge_dicts, omit, pick
+from data_utils import deep_copy, del_nested, flatten_dict, get_nested, invert_dict, merge_dicts, omit, pick
 
 
 class TestDeepCopy(unittest.TestCase):
@@ -176,6 +176,58 @@ class TestGetNested(unittest.TestCase):
     def test_get_nested_rejects_non_string_path(self) -> None:
         with self.assertRaises(TypeError):
             get_nested({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestDelNested(unittest.TestCase):
+    def test_del_nested_basic(self) -> None:
+        d = {"a": {"b": 1}}
+        self.assertTrue(del_nested(d, "a.b"))
+        self.assertEqual(d, {"a": {}})
+
+    def test_del_nested_deep(self) -> None:
+        d = {"a": {"b": {"c": 3}}}
+        self.assertTrue(del_nested(d, "a.b.c"))
+        self.assertEqual(d, {"a": {"b": {}}})
+
+    def test_del_nested_missing_path_returns_false(self) -> None:
+        d = {"a": {"b": 1}}
+        self.assertFalse(del_nested(d, "a.c"))
+        self.assertEqual(d, {"a": {"b": 1}})
+
+    def test_del_nested_missing_top_level(self) -> None:
+        d = {"a": 1}
+        self.assertFalse(del_nested(d, "b"))
+        self.assertEqual(d, {"a": 1})
+
+    def test_del_nested_empty_dict(self) -> None:
+        self.assertFalse(del_nested({}, "a.b"))
+
+    def test_del_nested_intermediate_not_dict(self) -> None:
+        d = {"a": 1}
+        self.assertFalse(del_nested(d, "a.b"))
+
+    def test_del_nested_custom_separator(self) -> None:
+        d = {"a": {"b": 2}}
+        self.assertTrue(del_nested(d, "a/b", sep="/"))
+        self.assertEqual(d, {"a": {}})
+
+    def test_del_nested_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            del_nested(["a", "b"], "a.b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            del_nested("ab", "a.b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            del_nested(None, "a.b")  # type: ignore[arg-type]
+
+    def test_del_nested_rejects_non_string_path(self) -> None:
+        with self.assertRaises(TypeError):
+            del_nested({"a": 1}, 1)  # type: ignore[arg-type]
+
+    def test_del_nested_rejects_empty_path(self) -> None:
+        with self.assertRaises(ValueError):
+            del_nested({"a": 1}, "")
+        with self.assertRaises(ValueError):
+            del_nested({"a": 1}, ".")
 
 
 if __name__ == "__main__":

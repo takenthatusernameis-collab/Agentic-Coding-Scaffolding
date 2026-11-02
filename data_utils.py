@@ -9,6 +9,7 @@ __all__ = [
     "K",
     "V",
     "deep_copy",
+    "del_nested",
     "flatten_dict",
     "get_nested",
     "invert_dict",
@@ -175,3 +176,51 @@ def set_nested(d: Dict[str, Any], path: str, value: Any, sep: str = ".") -> Dict
         current = current[segment]
     current[segments[-1]] = value
     return d
+
+
+def del_nested(d: Dict[str, Any], path: str, sep: str = ".") -> bool:
+    """Delete the value at a dot-separated path in a nested dictionary.
+
+    Traverses *d* using the segments of *path* split on *sep* and removes the
+    final key if it exists. Returns True when a key was deleted, False when
+    the path does not exist or an intermediate value is not a dictionary.
+
+    Args:
+        d: The dictionary to modify.
+        path: A dot-separated key path, e.g. ``"a.b.c"``.
+        sep: Separator between path segments (default: ``"."``).
+
+    Returns:
+        True when a key was deleted, False when the path is absent.
+
+    Raises:
+        TypeError: If *d* is not a dictionary or *path* is not a string.
+        ValueError: If *path* is empty.
+
+    Examples:
+        >>> d = {"a": {"b": 1}}
+        >>> del_nested(d, "a.b")
+        True
+        >>> d
+        {'a': {}}
+        >>> del_nested(d, "a.c")
+        False
+        >>> del_nested({}, "a.b")
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError(f"d must be a dict, got {type(d).__name__}")
+    if not isinstance(path, str):
+        raise TypeError(f"path must be a string, got {type(path).__name__}")
+    segments = path.split(sep)
+    if not path or not any(segments):
+        raise ValueError("path must not be empty")
+    current: Dict[str, Any] = d
+    for segment in segments[:-1]:
+        if segment not in current or not isinstance(current[segment], dict):
+            return False
+        current = current[segment]
+    if segments[-1] not in current:
+        return False
+    del current[segments[-1]]
+    return True
