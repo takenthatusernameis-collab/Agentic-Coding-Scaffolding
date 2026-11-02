@@ -754,7 +754,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         if not data.strip():
             return []
         # split on whitespace like str
-        parts = []
         i = 0
         n = len(data)
         splits = 0
@@ -772,7 +771,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         sep = bytes(sep)
     if sep is None:
         # handle whitespace split
-        parts = []
         i = 0
         n = len(data)
         # collect runs of non-whitespace
@@ -783,7 +781,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         # better implementation
         # find all whitespace
         result = []
-        end = n
         splits = 0
         if maxsplit < 0:
             # split all
@@ -806,7 +803,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         # with maxsplit
         # count from right
         # find split points from right
-        split_points = []
         i = n - 1
         while i >= 0 and splits < maxsplit:
             b = data[i]
@@ -875,8 +871,8 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
         # build: take leftmost (len - maxsplit) tokens joined by spaces conceptually? No wait - bytes.split(sep=None) returns a list of the words in the bytes, using whitespace as the delimiter string; any whitespace string is a separator and empty strings are removed from the result
         # so all tokens are just the words
         # rsplit does the same thing
-        left = all_tokens[: max(0, len(all_tokens) - maxsplit)]
-        right = all_tokens[max(0, len(all_tokens) - maxsplit) :]
+        all_tokens[: max(0, len(all_tokens) - maxsplit)]
+        all_tokens[max(0, len(all_tokens) - maxsplit) :]
         # but how to reconstruct? no - we just need to return the tokens split appropriately
         # for rsplit with sep None, it's the same as split
         if maxsplit == 0:
@@ -891,13 +887,10 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
     if maxsplit == 0:
         return [bytes(data)]
     if maxsplit < 0:
-        parts = []
-        start = 0
         i = len(data) - len(sep)
         # search from right
         # build from right to left
         # collect split positions
-        positions = []
         # find all occurrences from right to left up to maxsplit? no maxsplit negative means all
         idx = data.rfind(sep)
         if idx == -1:

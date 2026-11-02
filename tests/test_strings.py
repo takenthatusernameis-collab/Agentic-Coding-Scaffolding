@@ -2332,11 +2332,11 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
 
     def test_unicode_edge_cases(self):
         from strings import (
+            capitalize_words,
+            is_palindrome,
             reverse_string,
             reverse_words,
-            capitalize_words,
             slugify,
-            is_palindrome,
         )
 
         self.assertEqual(reverse_string("你好"), "好你")
@@ -2347,50 +2347,50 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
 
     def test_type_errors_common(self):
         from strings import (
-            is_palindrome,
-            reverse_string,
-            reverse_words,
+            between,
             capitalize_words,
-            title_case,
-            swap_case,
-            count_vowels,
-            count_consonants,
-            count_letters,
-            count_digits,
-            count_whitespace,
-            remove_digits,
-            remove_whitespace,
-            remove_punctuation,
-            pad_left,
-            pad_right,
-            levenshtein_distance,
-            is_anagram,
+            chunk_string,
             common_prefix,
             common_suffix,
-            is_subsequence,
-            slugify,
-            is_blank,
-            lstrip_chars,
-            rstrip_chars,
-            strip_chars,
+            count_consonants,
+            count_digits,
+            count_letters,
+            count_occurrences,
+            count_vowels,
+            count_whitespace,
+            drop,
+            ends_with,
             ensure_prefix,
             ensure_suffix,
-            replace_many,
-            between,
-            count_occurrences,
             find,
-            rfind,
-            starts_with,
-            ends_with,
+            is_anagram,
+            is_blank,
+            is_palindrome,
+            is_subsequence,
+            levenshtein_distance,
+            lstrip_chars,
+            pad_left,
+            pad_right,
             partition,
+            remove_digits,
+            remove_punctuation,
+            remove_whitespace,
+            repeat_string,
+            replace_many,
+            reverse_string,
+            reverse_words,
+            rfind,
             rpartition,
-            take,
-            drop,
-            chunk_string,
+            rstrip_chars,
+            slugify,
             split_lines,
+            starts_with,
+            strip_chars,
             strip_leading_newlines,
             strip_trailing_newlines,
-            repeat_string,
+            swap_case,
+            take,
+            title_case,
             truncate_bytes,
         )
 
@@ -2450,24 +2450,24 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
 
     def test_empty_string_various(self):
         from strings import (
-            count_vowels,
-            count_consonants,
-            count_letters,
-            count_digits,
-            count_whitespace,
-            remove_digits,
-            remove_punctuation,
-            levenshtein_distance,
+            chunk_string,
             common_prefix,
             common_suffix,
+            count_consonants,
+            count_digits,
+            count_letters,
+            count_vowels,
+            count_whitespace,
             is_subsequence,
+            join_lines,
+            levenshtein_distance,
             pad_left,
             pad_right,
-            chunk_string,
+            remove_digits,
+            remove_punctuation,
             repeat_string,
             reverse_string,
             reverse_words,
-            join_lines,
         )
 
         self.assertEqual(reverse_string(""), "")
@@ -2492,7 +2492,13 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
         self.assertEqual(join_lines([]), "")
 
     def test_single_char_cases(self):
-        from strings import is_palindrome, reverse_string, is_anagram, count_vowels, count_consonants
+        from strings import (
+            count_consonants,
+            count_vowels,
+            is_anagram,
+            is_palindrome,
+            reverse_string,
+        )
 
         self.assertTrue(is_palindrome("a"))
         self.assertEqual(reverse_string("a"), "a")

@@ -4,8 +4,6 @@ import os
 import unittest
 from pathlib import Path
 
-from pathlib import Path
-
 from tempfile_utils import (
     NamedTemporaryFile,
     SpooledTemporaryFile,

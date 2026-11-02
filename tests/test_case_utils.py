@@ -5,6 +5,7 @@ import unittest
 from case_utils import (
     camel_case,
     constant_case,
+    convert_case,
     dot_case,
     kebab_case,
     pascal_case,
@@ -15,7 +16,6 @@ from case_utils import (
     spinal_case,
     title_case,
     train_case,
-    convert_case,
 )
 
 

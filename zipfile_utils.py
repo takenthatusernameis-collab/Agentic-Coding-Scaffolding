@@ -6,9 +6,9 @@ functions validate their inputs and raise ``TypeError`` or ``ValueError``
 on invalid arguments.
 """
 
+import zipfile as _zipfile
 from pathlib import Path
 from typing import Iterable, Union
-import zipfile as _zipfile
 
 __all__ = [
     "create_archive",
