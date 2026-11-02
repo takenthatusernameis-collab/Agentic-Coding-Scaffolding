@@ -22,6 +22,8 @@ from bytes_utils import (
     title,
     swapcase,
     casefold,
+    join,
+    expandtabs,
     to_hex,
     upper,
     xor,
@@ -95,6 +97,22 @@ class TestBytesUtils(unittest.TestCase):
         self.assertEqual(casefold(b"Hello"), b"hello")
         self.assertEqual(casefold(bytearray(b"Hello")), b"hello")
         self.assertEqual(casefold(b""), b"")
+
+    def test_join(self):
+        self.assertEqual(join([b"ab", b"cd"]), b"abcd")
+        self.assertEqual(join([b"a", b"b"], b"-"), b"a-b")
+        self.assertEqual(join([], b"-"), b"")
+        with self.assertRaises(TypeError):
+            join([b"ab"], "x")
+
+    def test_expandtabs(self):
+        self.assertEqual(expandtabs(b"a\tb"), b"a       b")
+        self.assertEqual(expandtabs(b"a\tb", 4), b"a   b")
+        self.assertEqual(expandtabs(bytearray(b"a\tb")), b"a       b")
+        with self.assertRaises(TypeError):
+            expandtabs("a\tb")
+        with self.assertRaises(TypeError):
+            expandtabs(b"a\tb", "4")
 
     def test_contains(self):
         self.assertTrue(contains(b"hello", b"ll"))

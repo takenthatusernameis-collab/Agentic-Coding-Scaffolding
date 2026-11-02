@@ -50,6 +50,8 @@ __all__: list[str] = [
     "isspace",
     "istitle",
     "isupper",
+    "join",
+    "expandtabs",
     "decode_ascii",
     "encode_ascii",
 ]
@@ -1036,6 +1038,20 @@ def isupper(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isupper()
+
+
+def join(iterable: object, sep: bytes = b"") -> bytes:
+    if not isinstance(sep, (bytes, bytearray)):
+        raise TypeError("sep must be bytes or bytearray")
+    return bytes(sep).join(iterable)  # type: ignore[arg-type]
+
+
+def expandtabs(data: bytes, tabsize: int = 8) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(tabsize, int):
+        raise TypeError("tabsize must be int")
+    return bytes(data).expandtabs(tabsize)
 
 
 def decode_ascii(data: bytes, errors: str = "strict") -> str:
