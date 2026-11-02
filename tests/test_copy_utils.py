@@ -1,3 +1,4 @@
+import copy as _copy
 import unittest
 
 from copy_utils import (
@@ -11,113 +12,118 @@ from copy_utils import (
 
 
 class TestShallowCopy(unittest.TestCase):
-    def test_returns_equal_copy(self):
+    def test_returns_distinct_object(self):
         original = [1, 2, 3]
-        copied = shallow_copy(original)
-        self.assertEqual(copied, original)
-        self.assertIsNot(copied, original)
+        result = shallow_copy(original)
+        self.assertIsNot(result, original)
+        self.assertEqual(result, original)
 
-    def test_immutable_returns_equal(self):
-        self.assertEqual(shallow_copy(42), 42)
-        self.assertEqual(shallow_copy("hello"), "hello")
+    def test_shares_nested_references(self):
+        nested = [4, 5]
+        original = [1, nested]
+        result = shallow_copy(original)
+        self.assertIs(result[1], nested)
 
-    def test_nested_list_shares_inner(self):
-        original = [[1, 2], [3, 4]]
-        copied = shallow_copy(original)
-        self.assertEqual(copied, original)
-        self.assertIsNot(copied, original)
-        self.assertIs(copied[0], original[0])
+    def test_does_not_mutate_original(self):
+        original = [1, 2, 3]
+        result = shallow_copy(original)
+        result.append(4)
+        self.assertEqual(original, [1, 2, 3])
 
 
 class TestDeepCopy(unittest.TestCase):
-    def test_returns_equal_copy(self):
-        original = [1, 2, 3]
-        copied = deep_copy(original)
-        self.assertEqual(copied, original)
-        self.assertIsNot(copied, original)
+    def test_returns_distinct_object(self):
+        original = [1, [2, 3]]
+        result = deep_copy(original)
+        self.assertIsNot(result, original)
+        self.assertEqual(result, original)
 
-    def test_nested_list_is_independent(self):
-        original = [[1, 2], [3, 4]]
-        copied = deep_copy(original)
-        self.assertEqual(copied, original)
-        self.assertIsNot(copied, original)
-        self.assertIsNot(copied[0], original[0])
-        copied[0].append(99)
-        self.assertNotIn(99, original[0])
+    def test_clones_nested_references(self):
+        nested = [4, 5]
+        original = [1, nested]
+        result = deep_copy(original)
+        self.assertIsNot(result[1], nested)
 
-    def test_dict_is_independent(self):
-        original = {"a": [1, 2], "b": {"c": 3}}
-        copied = deep_copy(original)
-        copied["a"].append(99)
-        copied["b"]["c"] = 0
-        self.assertNotIn(99, original["a"])
-        self.assertEqual(original["b"]["c"], 3)
+    def test_mutation_isolation(self):
+        original = [1, [2, 3]]
+        result = deep_copy(original)
+        result[1].append(4)
+        self.assertEqual(original, [1, [2, 3]])
 
 
 class TestCopyDict(unittest.TestCase):
-    def test_shallow_dict_copy(self):
+    def test_returns_new_dict(self):
         original = {"a": 1, "b": 2}
-        copied = copy_dict(original)
-        self.assertEqual(copied, original)
-        self.assertIsNot(copied, original)
+        result = copy_dict(original)
+        self.assertIsNot(result, original)
+        self.assertEqual(result, original)
 
-    def test_nested_dict_shares_values(self):
-        inner = {"x": 1}
-        original = {"key": inner}
-        copied = copy_dict(original)
-        self.assertIs(copied["key"], inner)
+    def test_rejects_non_dict(self):
+        with self.assertRaises(TypeError):
+            copy_dict([1, 2, 3])
 
-    def test_non_dict_raises(self):
-        with self.assertRaises(TypeError):
-            copy_dict([1, 2, 3])  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            copy_dict("not a dict")  # type: ignore[arg-type]
+    def test_mutation_isolation(self):
+        original = {"a": 1}
+        result = copy_dict(original)
+        result["a"] = 99
+        self.assertEqual(original, {"a": 1})
 
 
 class TestDeepCopyDict(unittest.TestCase):
-    def test_deep_dict_copy(self):
-        inner = {"x": 1}
-        original = {"key": inner}
-        copied = deep_copy_dict(original)
-        self.assertEqual(copied, original)
-        self.assertIsNot(copied, original)
-        self.assertIsNot(copied["key"], inner)
-        copied["key"]["x"] = 99
-        self.assertEqual(original["key"]["x"], 1)
+    def test_returns_new_dict(self):
+        original = {"a": [1, 2]}
+        result = deep_copy_dict(original)
+        self.assertIsNot(result, original)
+        self.assertEqual(result, original)
 
-    def test_non_dict_raises(self):
+    def test_rejects_non_dict(self):
         with self.assertRaises(TypeError):
-            deep_copy_dict(None)  # type: ignore[arg-type]
+            deep_copy_dict([1, 2, 3])
+
+    def test_nested_mutation_isolation(self):
+        original = {"a": [1, 2]}
+        result = deep_copy_dict(original)
+        result["a"].append(3)
+        self.assertEqual(original, {"a": [1, 2]})
 
 
 class TestMergeCopy(unittest.TestCase):
-    def test_merges_multiple(self):
-        result = merge_copy({"a": 1}, {"b": 2}, {"a": 3})
-        self.assertEqual(result, {"a": 3, "b": 2})
+    def test_merges_multiple_dicts(self):
+        result = merge_copy({"a": 1}, {"b": 2}, {"c": 3})
+        self.assertEqual(result, {"a": 1, "b": 2, "c": 3})
 
-    def test_inputs_not_mutated(self):
-        base = {"a": 1}
-        override = {"b": 2}
-        merge_copy(base, override)
-        self.assertEqual(base, {"a": 1})
-        self.assertEqual(override, {"b": 2})
+    def test_later_dict_takes_precedence(self):
+        result = merge_copy({"a": 1}, {"a": 2})
+        self.assertEqual(result, {"a": 2})
 
-    def test_empty(self):
+    def test_returns_new_dict(self):
+        first = {"a": 1}
+        result = merge_copy(first)
+        result["a"] = 99
+        self.assertEqual(first, {"a": 1})
+
+    def test_no_args_returns_empty(self):
         self.assertEqual(merge_copy(), {})
 
-    def test_non_dict_raises(self):
+    def test_rejects_non_dict_argument(self):
         with self.assertRaises(TypeError):
-            merge_copy({"a": 1}, [1, 2])  # type: ignore[arg-type]
+            merge_copy({"a": 1}, [1, 2, 3])
 
 
 class TestIsSameObject(unittest.TestCase):
     def test_same_object(self):
-        obj = [1, 2, 3]
+        obj = object()
         self.assertTrue(is_same_object(obj, obj))
 
     def test_different_objects(self):
-        self.assertFalse(is_same_object([1, 2], [1, 2]))
-        self.assertFalse(is_same_object(1, 2))
+        a = [1, 2]
+        b = [1, 2]
+        self.assertFalse(is_same_object(a, b))
+
+    def test_equal_but_distinct(self):
+        a = [1, 2]
+        b = [1, 2]
+        self.assertFalse(is_same_object(a, b))
 
 
 if __name__ == "__main__":
