@@ -31,6 +31,8 @@ from number_utils import (
     is_nan,
     is_negative,
     is_neon_number,
+    is_odious_number,
+    is_evil_number,
     is_non_negative,
     is_non_positive,
     is_pentagonal_number,
@@ -1002,8 +1004,72 @@ class TestIsAutomorphicNumber(unittest.TestCase):
             is_automorphic_number(5.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_automorphic_number(True)  # type: ignore[arg-type]
+with self.assertRaises(TypeError):
+            is_duck_number(None)  # type: ignore[arg-type]
+
+
+class TestIsOdiousNumber(unittest.TestCase):
+    def test_odious_numbers(self) -> None:
+        from number_utils import is_odious_number
+
+        for n in (1, 2, 4, 7, 8, 11, 13, 14, 19, 21, 22, 25, 26, 28, 31, 32):
+            self.assertTrue(is_odious_number(n), n)
+
+    def test_non_odious_numbers(self) -> None:
+        from number_utils import is_odious_number
+
+        for n in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
+            self.assertFalse(is_odious_number(n), n)
+
+    def test_negative_returns_false(self) -> None:
+        from number_utils import is_odious_number
+
+        self.assertFalse(is_odious_number(-1))
+        self.assertFalse(is_odious_number(-7))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_odious_number
+
         with self.assertRaises(TypeError):
-            is_automorphic_number(None)  # type: ignore[arg-type]
+            is_odious_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odious_number(7.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odious_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odious_number(None)  # type: ignore[arg-type]
+
+
+class TestIsEvilNumber(unittest.TestCase):
+    def test_evil_numbers(self) -> None:
+        from number_utils import is_evil_number
+
+        for n in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
+            self.assertTrue(is_evil_number(n), n)
+
+    def test_non_evil_numbers(self) -> None:
+        from number_utils import is_evil_number
+
+        for n in (1, 2, 4, 7, 8, 11, 13, 14, 19, 21, 22, 25, 26, 28, 31, 32):
+            self.assertFalse(is_evil_number(n), n)
+
+    def test_negative_returns_false(self) -> None:
+        from number_utils import is_evil_number
+
+        self.assertFalse(is_evil_number(-1))
+        self.assertFalse(is_evil_number(-6))
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_evil_number
+
+        with self.assertRaises(TypeError):
+            is_evil_number("6")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_evil_number(6.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_evil_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_evil_number(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
