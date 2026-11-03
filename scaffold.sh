@@ -9041,6 +9041,8 @@ __all__ = [
     "round_to",
     "factorial",
     "gcd",
+    "lcm",
+    "round_to",
 ]
 
 
@@ -9350,6 +9352,33 @@ def gcd(a: int, b: int) -> int:
     while b_abs:
         a_abs, b_abs = b_abs, a_abs % b_abs
     return a_abs
+
+
+def lcm(a: int, b: int) -> int:
+    """Return the least common multiple of a and b.
+
+    Both numbers must be integers and non-negative.
+
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Returns:
+        The least common multiple of a and b.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int (bools rejected).
+        ValueError: If either value is negative.
+    """
+    if isinstance(a, bool) or isinstance(b, bool):
+        raise TypeError("a and b must be ints")
+    if not isinstance(a, int) or not isinstance(b, int):
+        raise TypeError("a and b must be ints")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    if a == 0 or b == 0:
+        return 0
+    return abs(a * b) // gcd(a, b)
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9365,6 +9394,7 @@ from calculator import (
     divide,
     factorial,
     gcd,
+    lcm,
     multiply,
     negate,
     percentage,
@@ -9708,6 +9738,32 @@ class TestGCD(unittest.TestCase):
             gcd(-1, 2)
         with self.assertRaises(ValueError):
             gcd(1, -1)
+
+
+class TestLCM(unittest.TestCase):
+    def test_lcm_basic(self):
+        self.assertEqual(lcm(4, 6), 12)
+        self.assertEqual(lcm(3, 5), 15)
+        self.assertEqual(lcm(0, 5), 0)
+        self.assertEqual(lcm(5, 0), 0)
+
+    def test_lcm_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            lcm(4.0, 2)
+        with self.assertRaises(TypeError):
+            lcm(4, "2")
+
+    def test_lcm_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            lcm(True, 2)
+        with self.assertRaises(TypeError):
+            lcm(2, False)
+
+    def test_lcm_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            lcm(-1, 2)
+        with self.assertRaises(ValueError):
+            lcm(1, -1)
 
 
 if __name__ == "__main__":

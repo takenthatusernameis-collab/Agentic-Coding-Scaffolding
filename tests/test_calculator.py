@@ -9,6 +9,7 @@ from calculator import (
     divide,
     factorial,
     gcd,
+    lcm,
     multiply,
     negate,
     percentage,
@@ -352,6 +353,32 @@ class TestGCD(unittest.TestCase):
             gcd(-1, 2)
         with self.assertRaises(ValueError):
             gcd(1, -1)
+
+
+class TestLCM(unittest.TestCase):
+    def test_lcm_basic(self):
+        self.assertEqual(lcm(4, 6), 12)
+        self.assertEqual(lcm(3, 5), 15)
+        self.assertEqual(lcm(0, 5), 0)
+        self.assertEqual(lcm(5, 0), 0)
+
+    def test_lcm_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            lcm(4.0, 2)
+        with self.assertRaises(TypeError):
+            lcm(4, "2")
+
+    def test_lcm_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            lcm(True, 2)
+        with self.assertRaises(TypeError):
+            lcm(2, False)
+
+    def test_lcm_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            lcm(-1, 2)
+        with self.assertRaises(ValueError):
+            lcm(1, -1)
 
 
 if __name__ == "__main__":

@@ -17,6 +17,8 @@ __all__ = [
     "round_to",
     "factorial",
     "gcd",
+    "lcm",
+    "round_to",
 ]
 
 
@@ -326,3 +328,30 @@ def gcd(a: int, b: int) -> int:
     while b_abs:
         a_abs, b_abs = b_abs, a_abs % b_abs
     return a_abs
+
+
+def lcm(a: int, b: int) -> int:
+    """Return the least common multiple of a and b.
+
+    Both numbers must be integers and non-negative.
+
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Returns:
+        The least common multiple of a and b.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int (bools rejected).
+        ValueError: If either value is negative.
+    """
+    if isinstance(a, bool) or isinstance(b, bool):
+        raise TypeError("a and b must be ints")
+    if not isinstance(a, int) or not isinstance(b, int):
+        raise TypeError("a and b must be ints")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    if a == 0 or b == 0:
+        return 0
+    return abs(a * b) // gcd(a, b)
