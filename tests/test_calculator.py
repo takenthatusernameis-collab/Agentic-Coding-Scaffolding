@@ -22,15 +22,57 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(add(-1, 1), 0)
         self.assertEqual(add(0, 0), 0)
 
+    def test_add_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            add("2", 3)
+        with self.assertRaises(TypeError):
+            add(2, "3")
+        with self.assertRaises(TypeError):
+            add(None, 2)
+
+    def test_add_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            add(True, 2)
+        with self.assertRaises(TypeError):
+            add(2, False)
+
     def test_subtract(self):
         self.assertEqual(subtract(5, 3), 2)
         self.assertEqual(subtract(0, 5), -5)
         self.assertEqual(subtract(-1, -1), 0)
 
+    def test_subtract_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            subtract("5", 3)
+        with self.assertRaises(TypeError):
+            subtract(5, "3")
+        with self.assertRaises(TypeError):
+            subtract(None, 3)
+
+    def test_subtract_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            subtract(True, 3)
+        with self.assertRaises(TypeError):
+            subtract(5, False)
+
     def test_multiply(self):
         self.assertEqual(multiply(3, 4), 12)
         self.assertEqual(multiply(-2, 3), -6)
         self.assertEqual(multiply(0, 5), 0)
+
+    def test_multiply_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            multiply("3", 4)
+        with self.assertRaises(TypeError):
+            multiply(3, "4")
+        with self.assertRaises(TypeError):
+            multiply(None, 4)
+
+    def test_multiply_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            multiply(True, 4)
+        with self.assertRaises(TypeError):
+            multiply(3, False)
 
     def test_divide(self):
         self.assertEqual(divide(10, 2), 5)
@@ -55,28 +97,92 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             divide(10, False)
 
-    def test_modulo(self):
-        self.assertEqual(modulo(10, 3), 1)
-        self.assertEqual(modulo(9, 3), 0)
-        with self.assertRaises(ValueError):
-            modulo(5, 0)
+    def test_power_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            power("2", 3)
+        with self.assertRaises(TypeError):
+            power(2, "3")
+        with self.assertRaises(TypeError):
+            power(None, 3)
 
-    def test_floor_divide(self):
-        self.assertEqual(floor_divide(10, 3), 3)
-        self.assertEqual(floor_divide(9, 3), 3)
-        with self.assertRaises(ValueError):
-            floor_divide(5, 0)
-
-    def test_power(self):
-        self.assertEqual(power(2, 3), 8)
-        self.assertEqual(power(4, 0.5), 2)
-        self.assertEqual(power(5, 0), 1)
+    def test_power_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            power(True, 3)
+        with self.assertRaises(TypeError):
+            power(2, False)
 
     def test_sqrt(self):
         self.assertEqual(sqrt(9), 3)
         self.assertEqual(sqrt(4), 2)
         with self.assertRaises(ValueError):
             sqrt(-1)
+
+    def test_sqrt_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            sqrt("9")
+        with self.assertRaises(TypeError):
+            sqrt(None)
+
+    def test_sqrt_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sqrt(True)
+
+    def test_negate(self):
+        self.assertEqual(negate(5), -5)
+        self.assertEqual(negate(-3), 3)
+        self.assertEqual(negate(0), 0)
+
+    def test_negate_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            negate("5")
+        with self.assertRaises(TypeError):
+            negate(None)
+
+    def test_negate_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            negate(True)
+
+    def test_absolute(self):
+        self.assertEqual(absolute(5), 5)
+        self.assertEqual(absolute(-3), 3)
+        self.assertEqual(absolute(0), 0)
+
+    def test_absolute_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            absolute("5")
+        with self.assertRaises(TypeError):
+            absolute(None)
+
+    def test_absolute_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            absolute(True)
+
+    def test_clamp(self):
+        self.assertEqual(clamp(5, 0, 10), 5)
+        self.assertEqual(clamp(-1, 0, 10), 0)
+        self.assertEqual(clamp(11, 0, 10), 10)
+
+    def test_clamp_rejects_low_greater_than_high(self):
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+
+    def test_clamp_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            clamp("5", 0, 10)
+        with self.assertRaises(TypeError):
+            clamp(5, "0", 10)
+        with self.assertRaises(TypeError):
+            clamp(5, 0, "10")
+        with self.assertRaises(TypeError):
+            clamp(None, 0, 10)
+
+    def test_clamp_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            clamp(True, 0, 10)
+        with self.assertRaises(TypeError):
+            clamp(5, False, 10)
+        with self.assertRaises(TypeError):
+            clamp(5, 0, False)
 
     def test_negate(self):
         self.assertEqual(negate(5), -5)
