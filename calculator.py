@@ -15,6 +15,8 @@ __all__ = [
     "percentage",
     "average_of_two",
     "round_to",
+    "factorial",
+    "gcd",
 ]
 
 
@@ -263,3 +265,64 @@ def round_to(value: float, places: int = 0) -> float:
     if places < 0:
         raise ValueError("places must be non-negative")
     return float(round(value, places))
+
+
+def factorial(n: int) -> int:
+    """Return n factorial (n!).
+
+    Args:
+        n: The non-negative integer to compute factorial of.
+
+    Returns:
+        The factorial of n as an integer.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
+
+    Examples:
+        >>> factorial(0)
+        1
+        >>> factorial(5)
+        120
+        >>> factorial(3)
+        6
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result
+
+
+def gcd(a: int, b: int) -> int:
+    """Return the greatest common divisor of a and b.
+
+    Uses Euclid's algorithm. Both numbers must be integers; only
+    non-negative results are returned (gcd(0,0) returns 0).
+
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Returns:
+        The greatest common divisor of |a| and |b|.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int (bools rejected).
+        ValueError: If either value is negative.
+    """
+    if isinstance(a, bool) or isinstance(b, bool):
+        raise TypeError("a and b must be ints")
+    if not isinstance(a, int) or not isinstance(b, int):
+        raise TypeError("a and b must be ints")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    a_abs = abs(a)
+    b_abs = abs(b)
+    while b_abs:
+        a_abs, b_abs = b_abs, a_abs % b_abs
+    return a_abs

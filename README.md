@@ -677,7 +677,7 @@ The `Makefile` bundles the common development tasks:
 
 ## Calculator Module
 
-The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, divide, modulo, floor_divide, power, sqrt, negate, absolute, clamp, reciprocal, percentage, average_of_two, and round_to. `round_to(value, places=0)` rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and validates its inputs, raising `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. The module is tested in `tests/test_calculator.py`.
+The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, divide, modulo, floor_divide, power, sqrt, negate, absolute, clamp, reciprocal, percentage, average_of_two, round_to, factorial, and gcd. `round_to(value, places=0)` rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and validates its inputs, raising `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. `factorial(n)` returns `n!` for a non-negative integer `n`, raising `TypeError` if `n` is not an int (including bools) and `ValueError` if `n` is negative. `gcd(a, b)` returns the greatest common divisor of two non-negative integers using Euclid's algorithm, raising `TypeError` if inputs are not ints (bools rejected) and `ValueError` if either is negative. The module is tested in `tests/test_calculator.py`.
 
 ## Shapes Module
 

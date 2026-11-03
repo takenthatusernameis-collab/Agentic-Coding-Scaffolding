@@ -9039,6 +9039,8 @@ __all__ = [
     "percentage",
     "average_of_two",
     "round_to",
+    "factorial",
+    "gcd",
 ]
 
 
@@ -9287,6 +9289,67 @@ def round_to(value: float, places: int = 0) -> float:
     if places < 0:
         raise ValueError("places must be non-negative")
     return float(round(value, places))
+
+
+def factorial(n: int) -> int:
+    """Return n factorial (n!).
+
+    Args:
+        n: The non-negative integer to compute factorial of.
+
+    Returns:
+        The factorial of n as an integer.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is negative.
+
+    Examples:
+        >>> factorial(0)
+        1
+        >>> factorial(5)
+        120
+        >>> factorial(3)
+        6
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    result = 1
+    for i in range(2, n + 1):
+        result *= i
+    return result
+
+
+def gcd(a: int, b: int) -> int:
+    """Return the greatest common divisor of a and b.
+
+    Uses Euclid's algorithm. Both numbers must be integers; only
+    non-negative results are returned (gcd(0,0) returns 0).
+
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Returns:
+        The greatest common divisor of |a| and |b|.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int (bools rejected).
+        ValueError: If either value is negative.
+    """
+    if isinstance(a, bool) or isinstance(b, bool):
+        raise TypeError("a and b must be ints")
+    if not isinstance(a, int) or not isinstance(b, int):
+        raise TypeError("a and b must be ints")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    a_abs = abs(a)
+    b_abs = abs(b)
+    while b_abs:
+        a_abs, b_abs = b_abs, a_abs % b_abs
+    return a_abs
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9300,6 +9363,8 @@ from calculator import (
     average_of_two,
     clamp,
     divide,
+    factorial,
+    gcd,
     multiply,
     negate,
     percentage,
@@ -9591,6 +9656,58 @@ class TestRoundTo(unittest.TestCase):
     def test_round_to_rejects_negative_places(self):
         with self.assertRaises(ValueError):
             round_to(2.5, -1)
+
+
+class TestFactorial(unittest.TestCase):
+    def test_factorial_base_cases(self):
+        self.assertEqual(factorial(0), 1)
+        self.assertEqual(factorial(1), 1)
+        self.assertEqual(factorial(3), 6)
+        self.assertEqual(factorial(5), 120)
+
+    def test_factorial_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            factorial(5.0)
+        with self.assertRaises(TypeError):
+            factorial("5")
+        with self.assertRaises(TypeError):
+            factorial(None)
+
+    def test_factorial_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            factorial(True)
+        with self.assertRaises(TypeError):
+            factorial(False)
+
+    def test_factorial_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            factorial(-1)
+
+
+class TestGCD(unittest.TestCase):
+    def test_gcd_basic(self):
+        self.assertEqual(gcd(48, 18), 6)
+        self.assertEqual(gcd(18, 48), 6)
+        self.assertEqual(gcd(0, 5), 5)
+        self.assertEqual(gcd(0, 0), 0)
+
+    def test_gcd_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            gcd(4.0, 2)
+        with self.assertRaises(TypeError):
+            gcd(4, "2")
+
+    def test_gcd_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            gcd(True, 2)
+        with self.assertRaises(TypeError):
+            gcd(2, False)
+
+    def test_gcd_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            gcd(-1, 2)
+        with self.assertRaises(ValueError):
+            gcd(1, -1)
 
 
 if __name__ == "__main__":
@@ -51836,9 +51953,9 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added round_to to calculator
+## Unreleased — added gcd to calculator
 
-- Added `round_to(value, places=0)` to `calculator.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and raises `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. Added `TestRoundTo` to `tests/test_calculator.py` covering zero/custom places, integer inputs, and the `TypeError`/`ValueError` paths (8 new tests). Imported `round_to` at the top of the test file to match the module's `__all__` contract. Updated the `calculator` module prose section of `README.md`. Synchronized `calculator.py`, `tests/test_calculator.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_calculator.py -v` passes; `python -m doctest calculator.py` passes.
+- Added `gcd(a, b)` to `calculator.py` with typed signature, `__all__` export, Google-style docstring, and validation; it returns the greatest common divisor of two non-negative integers using Euclid's algorithm with `gcd(0,0)=0`, raises `TypeError` if inputs are not ints (bools rejected), and `ValueError` if either is negative. Added `TestGCD` to `tests/test_calculator.py` covering basic cases and validation paths. Updated `README.md` to document `gcd`. Synchronized `calculator.py`, `tests/test_calculator.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_calculator.py -v` passes.
 - No changes to `.github/workflows/**`.
 
 ## Unreleased — audit interval_utils and math_utils boundary cases
@@ -54378,7 +54495,7 @@ The `Makefile` bundles the common development tasks:
 
 ## Calculator Module
 
-The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, divide, modulo, floor_divide, power, sqrt, negate, absolute, clamp, reciprocal, percentage, average_of_two, and round_to. `round_to(value, places=0)` rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and validates its inputs, raising `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. The module is tested in `tests/test_calculator.py`.
+The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, divide, modulo, floor_divide, power, sqrt, negate, absolute, clamp, reciprocal, percentage, average_of_two, round_to, factorial, and gcd. `round_to(value, places=0)` rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and validates its inputs, raising `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. `factorial(n)` returns `n!` for a non-negative integer `n`, raising `TypeError` if `n` is not an int (including bools) and `ValueError` if `n` is negative. `gcd(a, b)` returns the greatest common divisor of two non-negative integers using Euclid's algorithm, raising `TypeError` if inputs are not ints (bools rejected) and `ValueError` if either is negative. The module is tested in `tests/test_calculator.py`.
 
 ## Shapes Module
 

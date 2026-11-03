@@ -7,6 +7,8 @@ from calculator import (
     average_of_two,
     clamp,
     divide,
+    factorial,
+    gcd,
     multiply,
     negate,
     percentage,
@@ -298,6 +300,58 @@ class TestRoundTo(unittest.TestCase):
     def test_round_to_rejects_negative_places(self):
         with self.assertRaises(ValueError):
             round_to(2.5, -1)
+
+
+class TestFactorial(unittest.TestCase):
+    def test_factorial_base_cases(self):
+        self.assertEqual(factorial(0), 1)
+        self.assertEqual(factorial(1), 1)
+        self.assertEqual(factorial(3), 6)
+        self.assertEqual(factorial(5), 120)
+
+    def test_factorial_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            factorial(5.0)
+        with self.assertRaises(TypeError):
+            factorial("5")
+        with self.assertRaises(TypeError):
+            factorial(None)
+
+    def test_factorial_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            factorial(True)
+        with self.assertRaises(TypeError):
+            factorial(False)
+
+    def test_factorial_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            factorial(-1)
+
+
+class TestGCD(unittest.TestCase):
+    def test_gcd_basic(self):
+        self.assertEqual(gcd(48, 18), 6)
+        self.assertEqual(gcd(18, 48), 6)
+        self.assertEqual(gcd(0, 5), 5)
+        self.assertEqual(gcd(0, 0), 0)
+
+    def test_gcd_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            gcd(4.0, 2)
+        with self.assertRaises(TypeError):
+            gcd(4, "2")
+
+    def test_gcd_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            gcd(True, 2)
+        with self.assertRaises(TypeError):
+            gcd(2, False)
+
+    def test_gcd_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            gcd(-1, 2)
+        with self.assertRaises(ValueError):
+            gcd(1, -1)
 
 
 if __name__ == "__main__":
