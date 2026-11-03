@@ -1,3 +1,10 @@
+## Unreleased — added has_build_metadata to version_utils
+
+- Added `has_build_metadata(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when a version string contains a `+` build metadata suffix and `False` otherwise. Added `TestHasBuildMetadata` to `tests/test_version_utils.py` covering present/absent/empty inputs and the `TypeError` path (4 new tests). Imported `has_build_metadata` at the top of the test file to match the module's `__all__` contract. Updated the `version_utils` module tree entry and prose section of `README.md`.
+- Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_version_utils` passes; `python -m doctest version_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added split_paragraphs to string_utils
 
 - Added `split_paragraphs(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. Added `TestSplitParagraphs` to `tests/test_string_utils.py` covering basic splits, internal line breaks, multiple blank lines, CRLF, leading/trailing blank lines, empty/whitespace-only inputs, and the `TypeError` path (10 new tests). Imported `split_paragraphs` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`.

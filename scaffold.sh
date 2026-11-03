@@ -50601,6 +50601,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_build_metadata to version_utils
+
+- Added `has_build_metadata(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when a version string contains a `+` build metadata suffix and `False` otherwise. Added `TestHasBuildMetadata` to `tests/test_version_utils.py` covering present/absent/empty inputs and the `TypeError` path (4 new tests). Imported `has_build_metadata` at the top of the test file to match the module's `__all__` contract. Updated the `version_utils` module tree entry and prose section of `README.md`.
+- Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_version_utils` passes; `python -m doctest version_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added split_paragraphs to string_utils
 
 - Added `split_paragraphs(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. Added `TestSplitParagraphs` to `tests/test_string_utils.py` covering basic splits, internal line breaks, multiple blank lines, CRLF, leading/trailing blank lines, empty/whitespace-only inputs, and the `TypeError` path (10 new tests). Imported `split_paragraphs` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`.
@@ -52586,7 +52593,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version)
+version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, has_build_metadata)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -53507,7 +53514,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -102406,6 +102413,7 @@ __all__ = [
     "from_tuple",
     "get_build",
     "get_build_metadata",
+    "has_build_metadata",
     "get_major_version",
     "get_minor_version",
     "get_patch_version",
@@ -102997,6 +103005,39 @@ def get_build_metadata(version: str) -> str | None:
 get_build = get_build_metadata
 
 
+def has_build_metadata(version: str) -> bool:
+    """Return True if *version* carries a build metadata suffix.
+
+    A build metadata suffix is everything after the first ``+`` character
+    (e.g. ``"1.2.3+20130313144700"``). This is a lightweight boolean
+    companion to :func:`get_build_metadata` that reports whether a version
+    string has any build metadata at all.
+
+    Args:
+        version: A dotted version string, optionally with build metadata.
+
+    Returns:
+        True if *version* contains a ``+`` build metadata suffix, False
+        otherwise.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_build_metadata("1.2.3+20130313144700")
+        True
+        >>> has_build_metadata("1.2.3-rc1+build.123")
+        True
+        >>> has_build_metadata("1.2.3")
+        False
+        >>> has_build_metadata("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return "+" in version
+
+
 def strip_prerelease(version: str) -> str:
     """Remove prerelease suffix from a version string.
 
@@ -103346,6 +103387,7 @@ from version_utils import (
     from_tuple,
     get_build,
     get_build_metadata,
+    has_build_metadata,
     get_major_version,
     get_minor_version,
     get_patch_version,
@@ -104100,6 +104142,23 @@ class TestGetBuildMetadata(unittest.TestCase):
 
     def test_alias(self):
         self.assertEqual(get_build("1.2.3+beta"), "beta")
+
+
+class TestHasBuildMetadata(unittest.TestCase):
+    def test_returns_true_when_present(self):
+        self.assertTrue(has_build_metadata("1.2.3+20130313144700"))
+        self.assertTrue(has_build_metadata("1.0.0+build.123"))
+        self.assertTrue(has_build_metadata("1.2.3-rc1+build.123"))
+
+    def test_returns_false_when_not_present(self):
+        self.assertFalse(has_build_metadata("1.2.3"))
+        self.assertFalse(has_build_metadata("2.0.0"))
+        self.assertFalse(has_build_metadata("1.2.3-rc1"))
+        self.assertFalse(has_build_metadata(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            has_build_metadata(123)  # type: ignore[arg-type]
 
 
 class TestStripPrerelease(unittest.TestCase):
