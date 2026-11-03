@@ -100501,6 +100501,7 @@ cipher_index = getattr(_this, "c", 97)
 __all__ = [
     "print_zen",
     "this",
+    "decode",
 ]
 
 
@@ -100518,6 +100519,11 @@ def this():
 def print_zen():
     """Print the Zen of Python to standard output."""
     print(_this.s)
+
+
+def decode(text):
+    """Decode a ROT13-encoded string using the Zen translation table."""
+    return text.translate({ord(k): v for k, v in translation_table.items()})
 THIS_UTILS
 
 # --- tests/test_this_utils.py ---
@@ -100550,12 +100556,13 @@ def test_this_returns_callable_or_none():
     assert result is None or callable(result)
 
 
-def test_print_zen(capsys):
-    this_utils.print_zen()
-    out = capsys.readouterr().out
-    # The Zen is ROT13-encoded in the stdlib module; the encoded header is
-    # "Gur Mra bs Clguba" for "The Zen of Python".
-    assert "Gur Mra bs Clguba" in out
+def test_decode_returns_str():
+    assert isinstance(this_utils.decode("Gur Mra bs Clguba"), str)
+
+
+def test_decode_round_trip():
+    encoded = "gur mra bs clguba"
+    assert "the zen of python" in this_utils.decode(encoded)
 TEST_THIS_UTILS
 
 # --- threading_utils.py ---

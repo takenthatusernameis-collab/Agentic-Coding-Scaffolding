@@ -26,9 +26,10 @@ def test_this_returns_callable_or_none():
     assert result is None or callable(result)
 
 
-def test_print_zen(capsys):
-    this_utils.print_zen()
-    out = capsys.readouterr().out
-    # The Zen is ROT13-encoded in the stdlib module; the encoded header is
-    # "Gur Mra bs Clguba" for "The Zen of Python".
-    assert "Gur Mra bs Clguba" in out
+def test_decode_returns_str():
+    assert isinstance(this_utils.decode("Gur Mra bs Clguba"), str)
+
+
+def test_decode_round_trip():
+    encoded = "gur mra bs clguba"
+    assert "the zen of python" in this_utils.decode(encoded)

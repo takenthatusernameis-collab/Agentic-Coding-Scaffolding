@@ -20,6 +20,7 @@ cipher_index = getattr(_this, "c", 97)
 __all__ = [
     "print_zen",
     "this",
+    "decode",
 ]
 
 
@@ -37,3 +38,8 @@ def this():
 def print_zen():
     """Print the Zen of Python to standard output."""
     print(_this.s)
+
+
+def decode(text):
+    """Decode a ROT13-encoded string using the Zen translation table."""
+    return text.translate({ord(k): v for k, v in translation_table.items()})
