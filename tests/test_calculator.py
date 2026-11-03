@@ -9,6 +9,8 @@ from calculator import (
     divide,
     factorial,
     gcd,
+    hypotenuse,
+    is_coprime,
     is_even,
     is_odd,
     is_perfect_square,
@@ -25,9 +27,6 @@ from calculator import (
     sign,
     sqrt,
     subtract,
-    hypotenuse,
-    is_power_of_two,
-    is_coprime,
 )
 
 
