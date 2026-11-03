@@ -26,6 +26,7 @@ __all__ = [
     "get_build",
     "get_build_metadata",
     "has_build_metadata",
+    "has_prerelease",
     "get_major_version",
     "get_minor_version",
     "get_patch_version",
@@ -648,6 +649,38 @@ def has_build_metadata(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "+" in version
+
+def has_prerelease(version: str) -> bool:
+    """Return True if *version* carries a pre-release suffix.
+
+    A pre-release suffix is everything after the first ``-`` character
+    (e.g. ``"1.2.3-rc1"``). This is a lightweight boolean companion to
+    :func:`get_prerelease` that reports whether a version string has any
+    pre-release suffix at all.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if *version* contains a ``-`` pre-release suffix, False
+        otherwise.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_prerelease("1.2.3-rc1")
+        True
+        >>> has_prerelease("1.2.3-rc1+build.123")
+        True
+        >>> has_prerelease("1.2.3")
+        False
+        >>> has_prerelease("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return "-" in version
 
 
 def strip_prerelease(version: str) -> str:

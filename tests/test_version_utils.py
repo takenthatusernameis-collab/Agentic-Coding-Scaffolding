@@ -25,13 +25,14 @@ from version_utils import (
     from_tuple,
     get_build,
     get_build_metadata,
-    has_build_metadata,
     get_major_version,
     get_minor_version,
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
     greater_than,
+    has_build_metadata,
+    has_prerelease,
     increment,
     increment_major,
     increment_minor,
@@ -797,6 +798,23 @@ class TestHasBuildMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_build_metadata(123)  # type: ignore[arg-type]
+
+
+class TestHasPrerelease(unittest.TestCase):
+    def test_returns_true_when_present(self):
+        self.assertTrue(has_prerelease("1.2.3-rc1"))
+        self.assertTrue(has_prerelease("1.0.0-alpha.1"))
+        self.assertTrue(has_prerelease("1.2.3-rc1+build.123"))
+
+    def test_returns_false_when_not_present(self):
+        self.assertFalse(has_prerelease("1.2.3"))
+        self.assertFalse(has_prerelease("2.0.0"))
+        self.assertFalse(has_prerelease("1.2.3+build.123"))
+        self.assertFalse(has_prerelease(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            has_prerelease(123)  # type: ignore[arg-type]
 
 
 class TestStripPrerelease(unittest.TestCase):

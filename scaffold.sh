@@ -102414,6 +102414,7 @@ __all__ = [
     "get_build",
     "get_build_metadata",
     "has_build_metadata",
+    "has_prerelease",
     "get_major_version",
     "get_minor_version",
     "get_patch_version",
@@ -103037,6 +103038,38 @@ def has_build_metadata(version: str) -> bool:
         raise TypeError("version must be a string")
     return "+" in version
 
+def has_prerelease(version: str) -> bool:
+    """Return True if *version* carries a pre-release suffix.
+
+    A pre-release suffix is everything after the first ``-`` character
+    (e.g. ``"1.2.3-rc1"``). This is a lightweight boolean companion to
+    :func:`get_prerelease` that reports whether a version string has any
+    pre-release suffix at all.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if *version* contains a ``-`` pre-release suffix, False
+        otherwise.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_prerelease("1.2.3-rc1")
+        True
+        >>> has_prerelease("1.2.3-rc1+build.123")
+        True
+        >>> has_prerelease("1.2.3")
+        False
+        >>> has_prerelease("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return "-" in version
+
 
 def strip_prerelease(version: str) -> str:
     """Remove prerelease suffix from a version string.
@@ -103387,13 +103420,14 @@ from version_utils import (
     from_tuple,
     get_build,
     get_build_metadata,
-    has_build_metadata,
     get_major_version,
     get_minor_version,
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
     greater_than,
+    has_build_metadata,
+    has_prerelease,
     increment,
     increment_major,
     increment_minor,
@@ -104159,6 +104193,23 @@ class TestHasBuildMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_build_metadata(123)  # type: ignore[arg-type]
+
+
+class TestHasPrerelease(unittest.TestCase):
+    def test_returns_true_when_present(self):
+        self.assertTrue(has_prerelease("1.2.3-rc1"))
+        self.assertTrue(has_prerelease("1.0.0-alpha.1"))
+        self.assertTrue(has_prerelease("1.2.3-rc1+build.123"))
+
+    def test_returns_false_when_not_present(self):
+        self.assertFalse(has_prerelease("1.2.3"))
+        self.assertFalse(has_prerelease("2.0.0"))
+        self.assertFalse(has_prerelease("1.2.3+build.123"))
+        self.assertFalse(has_prerelease(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            has_prerelease(123)  # type: ignore[arg-type]
 
 
 class TestStripPrerelease(unittest.TestCase):
