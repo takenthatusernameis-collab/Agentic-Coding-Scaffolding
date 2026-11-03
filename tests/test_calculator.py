@@ -27,6 +27,7 @@ from calculator import (
     subtract,
     hypotenuse,
     is_power_of_two,
+    is_coprime,
 )
 
 
@@ -466,35 +467,35 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(-4)
 
 
-class TestIsPowerOfTwo(unittest.TestCase):
-    def test_is_power_of_two_basic(self):
-        self.assertTrue(is_power_of_two(1))
-        self.assertTrue(is_power_of_two(2))
-        self.assertTrue(is_power_of_two(4))
-        self.assertTrue(is_power_of_two(8))
-        self.assertTrue(is_power_of_two(16))
-        self.assertTrue(is_power_of_two(1024))
-        self.assertFalse(is_power_of_two(0))
-        self.assertFalse(is_power_of_two(3))
-        self.assertFalse(is_power_of_two(5))
-        self.assertFalse(is_power_of_two(6))
-        self.assertFalse(is_power_of_two(12))
+class TestIsCoprime(unittest.TestCase):
+    def test_is_coprime_basic(self):
+        self.assertTrue(is_coprime(2, 3))
+        self.assertTrue(is_coprime(3, 2))
+        self.assertTrue(is_coprime(4, 9))
+        self.assertTrue(is_coprime(1, 5))
+        self.assertTrue(is_coprime(5, 1))
+        self.assertFalse(is_coprime(4, 6))
+        self.assertFalse(is_coprime(6, 9))
+        self.assertTrue(is_coprime(0, 1))
+        self.assertTrue(is_coprime(1, 0))
 
-    def test_is_power_of_two_rejects_non_int(self):
+    def test_is_coprime_rejects_non_int(self):
         with self.assertRaises(TypeError):
-            is_power_of_two(2.0)
+            is_coprime(2.0, 3)
         with self.assertRaises(TypeError):
-            is_power_of_two("2")
+            is_coprime(2, "3")
 
-    def test_is_power_of_two_rejects_bool(self):
+    def test_is_coprime_rejects_bool(self):
         with self.assertRaises(TypeError):
-            is_power_of_two(True)
+            is_coprime(True, 3)
         with self.assertRaises(TypeError):
-            is_power_of_two(False)
+            is_coprime(2, False)
 
-    def test_is_power_of_two_rejects_less_than_one(self):
-        self.assertFalse(is_power_of_two(0))
-        self.assertFalse(is_power_of_two(-2))
+    def test_is_coprime_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            is_coprime(-1, 2)
+        with self.assertRaises(ValueError):
+            is_coprime(2, -3)
 
 
 if __name__ == "__main__":

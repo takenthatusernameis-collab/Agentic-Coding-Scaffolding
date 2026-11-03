@@ -27,6 +27,7 @@ __all__ = [
     "sign",
     "is_perfect_square",
     "is_power_of_two",
+    "is_coprime",
     "hypotenuse",
 ]
 
@@ -556,6 +557,26 @@ def is_perfect_square(n: int) -> bool:
         raise ValueError("n must be non-negative")
     root = int(n ** 0.5)
     return root * root == n or (root + 1) * (root + 1) == n
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return True if a and b are coprime (gcd is 1).
+
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int (bools rejected).
+        ValueError: If either value is negative.
+    """
+    if isinstance(a, bool) or isinstance(b, bool):
+        raise TypeError("a and b must be ints")
+    if not isinstance(a, int) or not isinstance(b, int):
+        raise TypeError("a and b must be ints")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    return gcd(a, b) == 1
 
 
 def hypotenuse(a: float, b: float) -> float:
