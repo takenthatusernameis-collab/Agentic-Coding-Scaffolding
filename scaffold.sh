@@ -30997,6 +30997,7 @@ __all__ = [
     "filter_dict",
     "flatten_dict",
     "invert_dict",
+    "omit_keys",
     "safe_get",
     "select_keys",
     "unflatten_dict",
@@ -31133,6 +31134,27 @@ def select_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
     if not isinstance(keys, list):
         raise TypeError("keys must be a list")
     return {k: d[k] for k in keys if k in d}
+
+
+def omit_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
+    """Return a new dictionary excluding the given keys.
+
+    Args:
+        d: Source dictionary.
+        keys: Keys to omit.
+
+    Returns:
+        New dictionary containing all keys except those in ``keys``.
+
+    Raises:
+        TypeError: If d is not a dict or keys is not a list.
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not isinstance(keys, list):
+        raise TypeError("keys must be a list")
+    key_set = set(keys)
+    return {k: v for k, v in d.items() if k not in key_set}
 DICTUTILS
 # --- json_utils.py ---
 cat > "$OUTPUT_DIR/json_utils.py" <<'JSONUTILS'
@@ -40460,7 +40482,7 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 
 import unittest
 
-from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, safe_get, select_keys, unflatten_dict
+from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, omit_keys, safe_get, select_keys, unflatten_dict
 
 
 class TestDeepMerge(unittest.TestCase):
@@ -40580,6 +40602,26 @@ class TestSelectKeys(unittest.TestCase):
             select_keys("x", ["a"])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             select_keys({"a": 1}, "a")  # type: ignore[arg-type]
+
+
+class TestOmitKeys(unittest.TestCase):
+    def test_omit_keys_basic(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        self.assertEqual(omit_keys(d, ["b"]), {"a": 1, "c": 3})
+
+    def test_omit_keys_missing(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(omit_keys(d, ["z"]), {"a": 1})
+
+    def test_omit_keys_empty(self) -> None:
+        d = {"a": 1}
+        self.assertEqual(omit_keys(d, []), {"a": 1})
+
+    def test_omit_keys_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            omit_keys("x", ["a"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            omit_keys({"a": 1}, "a")  # type: ignore[arg-type]
 TESTDICTUTILS
 
 # --- terminal_utils.py ---
