@@ -29,6 +29,7 @@ __all__ = [
     "is_power_of_two",
     "is_coprime",
     "hypotenuse",
+    "distance",
 ]
 
 

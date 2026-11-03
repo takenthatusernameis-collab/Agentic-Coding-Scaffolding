@@ -9050,7 +9050,10 @@ __all__ = [
     "mod_pow",
     "sign",
     "is_perfect_square",
+    "is_power_of_two",
+    "is_coprime",
     "hypotenuse",
+    "distance",
 ]
 
 
@@ -9547,6 +9550,22 @@ def sign(x: float) -> int:
     return 0
 
 
+def is_power_of_two(n: int) -> bool:
+    """Return True if n is a power of two.
+
+    Args:
+        n: The integer to check.
+
+    Raises:
+        TypeError: If n is not an int or is a bool.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 1:
+        return False
+    return (n & (n - 1)) == 0
+
+
 def is_perfect_square(n: int) -> bool:
     """Return True if n is a perfect square.
 
@@ -9563,6 +9582,26 @@ def is_perfect_square(n: int) -> bool:
         raise ValueError("n must be non-negative")
     root = int(n ** 0.5)
     return root * root == n or (root + 1) * (root + 1) == n
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return True if a and b are coprime (gcd is 1).
+
+    Args:
+        a: The first integer.
+        b: The second integer.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int (bools rejected).
+        ValueError: If either value is negative.
+    """
+    if isinstance(a, bool) or isinstance(b, bool):
+        raise TypeError("a and b must be ints")
+    if not isinstance(a, int) or not isinstance(b, int):
+        raise TypeError("a and b must be ints")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    return gcd(a, b) == 1
 
 
 def hypotenuse(a: float, b: float) -> float:
@@ -9589,6 +9628,27 @@ def hypotenuse(a: float, b: float) -> float:
     if a < 0 or b < 0:
         raise ValueError("a and b must be non-negative")
     return sqrt(a * a + b * b)
+
+
+def distance(x1: float, y1: float, x2: float, y2: float) -> float:
+    """Return the Euclidean distance between two points.
+
+    Args:
+        x1: x-coordinate of the first point.
+        y1: y-coordinate of the first point.
+        x2: x-coordinate of the second point.
+        y2: y-coordinate of the second point.
+
+    Returns:
+        sqrt((x2 - x1)^2 + (y2 - y1)^2).
+
+    Raises:
+        TypeError: If any argument is not a real number or is a bool.
+    """
+    for value in (x1, y1, x2, y2):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError("coordinates must be real numbers")
+    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9601,9 +9661,12 @@ from calculator import (
     add,
     average_of_two,
     clamp,
+    distance,
     divide,
     factorial,
     gcd,
+    hypotenuse,
+    is_coprime,
     is_even,
     is_odd,
     is_perfect_square,
@@ -9620,7 +9683,6 @@ from calculator import (
     sign,
     sqrt,
     subtract,
-    hypotenuse,
 )
 
 
@@ -10025,6 +10087,72 @@ class TestIsOdd(unittest.TestCase):
             is_odd(False)
 
 
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_is_perfect_square_basic(self):
+        self.assertTrue(is_perfect_square(0))
+        self.assertTrue(is_perfect_square(1))
+        self.assertTrue(is_perfect_square(4))
+        self.assertTrue(is_perfect_square(9))
+        self.assertTrue(is_perfect_square(16))
+        self.assertTrue(is_perfect_square(25))
+        self.assertTrue(is_perfect_square(144))
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(3))
+        self.assertFalse(is_perfect_square(8))
+        self.assertFalse(is_perfect_square(10))
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(50))
+
+    def test_is_perfect_square_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(4.0)
+        with self.assertRaises(TypeError):
+            is_perfect_square("4")
+
+    def test_is_perfect_square_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(True)
+        with self.assertRaises(TypeError):
+            is_perfect_square(False)
+
+    def test_is_perfect_square_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            is_perfect_square(-1)
+        with self.assertRaises(ValueError):
+            is_perfect_square(-4)
+
+
+class TestIsCoprime(unittest.TestCase):
+    def test_is_coprime_basic(self):
+        self.assertTrue(is_coprime(2, 3))
+        self.assertTrue(is_coprime(3, 2))
+        self.assertTrue(is_coprime(4, 9))
+        self.assertTrue(is_coprime(1, 5))
+        self.assertTrue(is_coprime(5, 1))
+        self.assertFalse(is_coprime(4, 6))
+        self.assertFalse(is_coprime(6, 9))
+        self.assertTrue(is_coprime(0, 1))
+        self.assertTrue(is_coprime(1, 0))
+
+    def test_is_coprime_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_coprime(2.0, 3)
+        with self.assertRaises(TypeError):
+            is_coprime(2, "3")
+
+    def test_is_coprime_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_coprime(True, 3)
+        with self.assertRaises(TypeError):
+            is_coprime(2, False)
+
+    def test_is_coprime_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            is_coprime(-1, 2)
+        with self.assertRaises(ValueError):
+            is_coprime(2, -3)
+
+
 if __name__ == "__main__":
     unittest.main()
 
@@ -10149,6 +10277,27 @@ class TestHypotenuse(unittest.TestCase):
             hypotenuse(-3, 4)
         with self.assertRaises(ValueError):
             hypotenuse(3, -4)
+
+
+class TestDistance(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(distance(0, 0, 3, 4), 5)
+        self.assertEqual(distance(0, 0, 0, 0), 0)
+        self.assertAlmostEqual(distance(1, 1, 4, 5), 5)
+
+    def test_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            distance("0", 0, 3, 4)
+        with self.assertRaises(TypeError):
+            distance(0, None, 3, 4)
+        with self.assertRaises(TypeError):
+            distance(0, 0, [], 4)
+
+    def test_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            distance(True, 0, 3, 4)
+        with self.assertRaises(TypeError):
+            distance(0, False, 3, 4)
 TESTCALC
 
 # --- config_utils.py ---
