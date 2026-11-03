@@ -37,6 +37,8 @@ from bytes_utils import (
     to_hex,
     upper,
     xor,
+    maketrans,
+    translate,
 )
 
 
@@ -536,3 +538,82 @@ class TestSplitlines(unittest.TestCase):
             splitlines(b"hello\n", keepends="true")
         with self.assertRaises(TypeError):
             splitlines(123)
+
+
+class TestMaketrans(unittest.TestCase):
+    def test_basic_mapping(self):
+        table = maketrans(b"ab", b"xy")
+        self.assertEqual(table[97], 120)  # ord('a') -> ord('x')
+        self.assertEqual(table[98], 121)  # ord('b') -> ord('y')
+
+    def test_identity_for_unmapped_bytes(self):
+        table = maketrans(b"ab", b"xy")
+        self.assertEqual(table[99], 99)  # ord('c') unchanged
+        self.assertEqual(table[0], 0)
+        self.assertEqual(table[255], 255)
+
+    def test_empty_inputs_identity(self):
+        self.assertEqual(maketrans(b"", b""), bytes(range(256)))
+
+    def test_multiple_pairs(self):
+        table = maketrans(b"abc", b"123")
+        self.assertEqual(table[97], 49)  # 'a' -> '1'
+        self.assertEqual(table[98], 50)  # 'b' -> '2'
+        self.assertEqual(table[99], 51)  # 'c' -> '3'
+
+    def test_bytearray_input(self):
+        table = maketrans(bytearray(b"ab"), bytearray(b"xy"))
+        self.assertEqual(table[97], 120)
+        self.assertEqual(table[98], 121)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            maketrans("ab", b"xy")
+        with self.assertRaises(TypeError):
+            maketrans(b"ab", "xy")
+        with self.assertRaises(TypeError):
+            maketrans(123, b"xy")
+
+    def test_length_mismatch(self):
+        with self.assertRaises(ValueError):
+            maketrans(b"ab", b"xyz")
+        with self.assertRaises(ValueError):
+            maketrans(b"abc", b"xy")
+
+
+class TestTranslate(unittest.TestCase):
+    def test_basic_translation(self):
+        self.assertEqual(
+            translate(b"abc", maketrans(b"ab", b"xy")), b"xyc"
+        )
+
+    def test_identity_table(self):
+        self.assertEqual(translate(b"abc", bytes(range(256))), b"abc")
+
+    def test_empty_data(self):
+        self.assertEqual(translate(b"", maketrans(b"ab", b"xy")), b"")
+
+    def test_bytearray_input(self):
+        self.assertEqual(
+            translate(bytearray(b"abc"), maketrans(b"ab", b"xy")), b"xyc"
+        )
+
+    def test_full_byte_range(self):
+        self.assertEqual(
+            translate(bytes(range(256)), maketrans(b"\x00\x01", b"\x01\x00")),
+            bytes([1, 0]) + bytes(range(2, 256)),
+        )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            translate("abc", maketrans(b"ab", b"xy"))
+        with self.assertRaises(TypeError):
+            translate(b"abc", "table")
+        with self.assertRaises(TypeError):
+            translate(123, maketrans(b"ab", b"xy"))
+
+    def test_table_length_errors(self):
+        with self.assertRaises(ValueError):
+            translate(b"abc", b"short")
+        with self.assertRaises(ValueError):
+            translate(b"abc", bytes(range(255)))

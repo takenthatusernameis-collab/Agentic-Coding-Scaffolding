@@ -58,6 +58,8 @@ __all__: list[str] = [
     "expandtabs",
     "decode_ascii",
     "encode_ascii",
+    "maketrans",
+    "translate",
 ]
 
 
@@ -1089,3 +1091,79 @@ def encode_ascii(s: str, errors: str = "strict") -> bytes:
     if not isinstance(errors, str):
         raise TypeError("errors must be str")
     return s.encode("ascii", errors=errors)
+
+
+def maketrans(frm: bytes, to: bytes) -> bytes:
+    """Return a 256-byte translation table for :func:`translate`.
+
+    Each byte of *frm* is mapped to the byte at the same position in *to*;
+    all other byte values map to themselves. The result can be passed to
+    :func:`translate` to replace bytes in a bytes-like object.
+
+    Args:
+        frm: Bytes or bytearray whose bytes are mapped to replacements.
+        to: Bytes or bytearray of the same length as *frm* giving the
+            replacement bytes.
+
+    Returns:
+        A bytes object of length 256 suitable for :func:`translate`.
+
+    Raises:
+        TypeError: If *frm* or *to* is not bytes or bytearray.
+        ValueError: If *frm* and *to* do not have the same length.
+
+    Examples:
+        >>> table = maketrans(b"ab", b"xy")
+        >>> table[97]  # ord('a')
+        120
+        >>> table[98]  # ord('b')
+        121
+        >>> maketrans(b"", b"") == bytes(range(256))
+        True
+    """
+    if not isinstance(frm, (bytes, bytearray)):
+        raise TypeError("frm must be bytes or bytearray")
+    if not isinstance(to, (bytes, bytearray)):
+        raise TypeError("to must be bytes or bytearray")
+    if len(frm) != len(to):
+        raise ValueError("frm and to must have the same length")
+    table = bytearray(range(256))
+    for b_from, b_to in zip(frm, to):
+        table[b_from] = b_to
+    return bytes(table)
+
+
+def translate(data: bytes, table: bytes) -> bytes:
+    """Return a copy of *data* with each byte replaced according to *table*.
+
+    *table* must be a bytes object of length 256 (as produced by
+    :func:`maketrans`); each byte value *b* in *data* is replaced by
+    *table[b]*.
+
+    Args:
+        data: Bytes or bytearray to translate.
+        table: A 256-byte translation table.
+
+    Returns:
+        The translated bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray, or *table* is not
+            bytes.
+        ValueError: If *table* is not exactly 256 bytes long.
+
+    Examples:
+        >>> translate(b"abc", maketrans(b"ab", b"xy"))
+        b'xyc'
+        >>> translate(b"abc", bytes(range(256)))
+        b'abc'
+        >>> translate(b"", maketrans(b"ab", b"xy"))
+        b''
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(table, bytes):
+        raise TypeError("table must be bytes")
+    if len(table) != 256:
+        raise ValueError("table must be exactly 256 bytes long")
+    return bytes(data).translate(table)

@@ -44383,6 +44383,8 @@ __all__: list[str] = [
     "expandtabs",
     "decode_ascii",
     "encode_ascii",
+    "maketrans",
+    "translate",
 ]
 
 
@@ -45414,6 +45416,82 @@ def encode_ascii(s: str, errors: str = "strict") -> bytes:
     if not isinstance(errors, str):
         raise TypeError("errors must be str")
     return s.encode("ascii", errors=errors)
+
+
+def maketrans(frm: bytes, to: bytes) -> bytes:
+    """Return a 256-byte translation table for :func:`translate`.
+
+    Each byte of *frm* is mapped to the byte at the same position in *to*;
+    all other byte values map to themselves. The result can be passed to
+    :func:`translate` to replace bytes in a bytes-like object.
+
+    Args:
+        frm: Bytes or bytearray whose bytes are mapped to replacements.
+        to: Bytes or bytearray of the same length as *frm* giving the
+            replacement bytes.
+
+    Returns:
+        A bytes object of length 256 suitable for :func:`translate`.
+
+    Raises:
+        TypeError: If *frm* or *to* is not bytes or bytearray.
+        ValueError: If *frm* and *to* do not have the same length.
+
+    Examples:
+        >>> table = maketrans(b"ab", b"xy")
+        >>> table[97]  # ord('a')
+        120
+        >>> table[98]  # ord('b')
+        121
+        >>> maketrans(b"", b"") == bytes(range(256))
+        True
+    """
+    if not isinstance(frm, (bytes, bytearray)):
+        raise TypeError("frm must be bytes or bytearray")
+    if not isinstance(to, (bytes, bytearray)):
+        raise TypeError("to must be bytes or bytearray")
+    if len(frm) != len(to):
+        raise ValueError("frm and to must have the same length")
+    table = bytearray(range(256))
+    for b_from, b_to in zip(frm, to):
+        table[b_from] = b_to
+    return bytes(table)
+
+
+def translate(data: bytes, table: bytes) -> bytes:
+    """Return a copy of *data* with each byte replaced according to *table*.
+
+    *table* must be a bytes object of length 256 (as produced by
+    :func:`maketrans`); each byte value *b* in *data* is replaced by
+    *table[b]*.
+
+    Args:
+        data: Bytes or bytearray to translate.
+        table: A 256-byte translation table.
+
+    Returns:
+        The translated bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray, or *table* is not
+            bytes.
+        ValueError: If *table* is not exactly 256 bytes long.
+
+    Examples:
+        >>> translate(b"abc", maketrans(b"ab", b"xy"))
+        b'xyc'
+        >>> translate(b"abc", bytes(range(256)))
+        b'abc'
+        >>> translate(b"", maketrans(b"ab", b"xy"))
+        b''
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(table, bytes):
+        raise TypeError("table must be bytes")
+    if len(table) != 256:
+        raise ValueError("table must be exactly 256 bytes long")
+    return bytes(data).translate(table)
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -45457,6 +45535,8 @@ from bytes_utils import (
     to_hex,
     upper,
     xor,
+    maketrans,
+    translate,
 )
 
 
@@ -45956,6 +46036,85 @@ class TestSplitlines(unittest.TestCase):
             splitlines(b"hello\n", keepends="true")
         with self.assertRaises(TypeError):
             splitlines(123)
+
+
+class TestMaketrans(unittest.TestCase):
+    def test_basic_mapping(self):
+        table = maketrans(b"ab", b"xy")
+        self.assertEqual(table[97], 120)  # ord('a') -> ord('x')
+        self.assertEqual(table[98], 121)  # ord('b') -> ord('y')
+
+    def test_identity_for_unmapped_bytes(self):
+        table = maketrans(b"ab", b"xy")
+        self.assertEqual(table[99], 99)  # ord('c') unchanged
+        self.assertEqual(table[0], 0)
+        self.assertEqual(table[255], 255)
+
+    def test_empty_inputs_identity(self):
+        self.assertEqual(maketrans(b"", b""), bytes(range(256)))
+
+    def test_multiple_pairs(self):
+        table = maketrans(b"abc", b"123")
+        self.assertEqual(table[97], 49)  # 'a' -> '1'
+        self.assertEqual(table[98], 50)  # 'b' -> '2'
+        self.assertEqual(table[99], 51)  # 'c' -> '3'
+
+    def test_bytearray_input(self):
+        table = maketrans(bytearray(b"ab"), bytearray(b"xy"))
+        self.assertEqual(table[97], 120)
+        self.assertEqual(table[98], 121)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            maketrans("ab", b"xy")
+        with self.assertRaises(TypeError):
+            maketrans(b"ab", "xy")
+        with self.assertRaises(TypeError):
+            maketrans(123, b"xy")
+
+    def test_length_mismatch(self):
+        with self.assertRaises(ValueError):
+            maketrans(b"ab", b"xyz")
+        with self.assertRaises(ValueError):
+            maketrans(b"abc", b"xy")
+
+
+class TestTranslate(unittest.TestCase):
+    def test_basic_translation(self):
+        self.assertEqual(
+            translate(b"abc", maketrans(b"ab", b"xy")), b"xyc"
+        )
+
+    def test_identity_table(self):
+        self.assertEqual(translate(b"abc", bytes(range(256))), b"abc")
+
+    def test_empty_data(self):
+        self.assertEqual(translate(b"", maketrans(b"ab", b"xy")), b"")
+
+    def test_bytearray_input(self):
+        self.assertEqual(
+            translate(bytearray(b"abc"), maketrans(b"ab", b"xy")), b"xyc"
+        )
+
+    def test_full_byte_range(self):
+        self.assertEqual(
+            translate(bytes(range(256)), maketrans(b"\x00\x01", b"\x01\x00")),
+            bytes([1, 0]) + bytes(range(2, 256)),
+        )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            translate("abc", maketrans(b"ab", b"xy"))
+        with self.assertRaises(TypeError):
+            translate(b"abc", "table")
+        with self.assertRaises(TypeError):
+            translate(123, maketrans(b"ab", b"xy"))
+
+    def test_table_length_errors(self):
+        with self.assertRaises(ValueError):
+            translate(b"abc", b"short")
+        with self.assertRaises(ValueError):
+            translate(b"abc", bytes(range(255)))
 TESTBYTESUTILS
 
 # --- base64_utils.py ---
@@ -51026,6 +51185,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added maketrans and translate to bytes_utils
+
+- Added `maketrans(frm, to)` and `translate(data, table)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError`/`ValueError` validation; `maketrans` builds a 256-byte translation table mapping each byte of *frm* to the corresponding byte of *to* (identity elsewhere), and `translate` replaces each byte of *data* according to a 256-byte table, wrapping `bytes.maketrans`/`bytes.translate`. Added `TestMaketrans` and `TestTranslate` to `tests/test_bytes_utils.py` covering mapping, identity, empty inputs, bytearray input, type errors, length mismatches, full-range translation, and table-length validation (19 new tests). Imported `maketrans` and `translate` at the top of the test file to match the module's `__all__` contract. Updated the `bytes_utils` module tree entry and prose section of `README.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_bytes_utils` passes; `python -m doctest bytes_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added abs_difference to calculator
 
 - Added `abs_difference(a, b)` to `calculator.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-real-number arguments; it returns the absolute difference |a - b|. Added `TestAbsDifference` to `tests/test_calculator.py` covering positive, reversed, equal, both-negative, mixed-sign, and float inputs plus the `TypeError` paths for non-numeric and bool arguments (8 new tests). Imported `abs_difference` at the top of the test file to match the module's `__all__` contract. Synchronized `calculator.py`, `tests/test_calculator.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_calculator.py -v` passes (19 tests); `python -m doctest calculator.py` passes (3 doctests).
@@ -53114,7 +53280,7 @@ id_utils.py                # Identifier generation and validation utilities (gen
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, decode_ascii, encode_ascii)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, decode_ascii, encode_ascii, maketrans, translate)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -53886,7 +54052,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, and `maketrans`/`translate` build and apply a 256-byte translation table. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 
