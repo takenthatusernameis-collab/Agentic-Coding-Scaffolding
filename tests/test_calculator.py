@@ -11,6 +11,7 @@ from calculator import (
     gcd,
     is_even,
     is_odd,
+    is_perfect_square,
     is_prime,
     lcm,
     mod_pow,
@@ -525,3 +526,32 @@ class TestSign(unittest.TestCase):
             sign(None)
         with self.assertRaises(TypeError):
             sign([])
+
+
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(is_perfect_square(0))
+        self.assertTrue(is_perfect_square(1))
+        self.assertTrue(is_perfect_square(4))
+        self.assertTrue(is_perfect_square(9))
+        self.assertTrue(is_perfect_square(16))
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(3))
+        self.assertFalse(is_perfect_square(5))
+        self.assertFalse(is_perfect_square(8))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(4.0)
+        with self.assertRaises(TypeError):
+            is_perfect_square("4")
+
+    def test_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(True)
+        with self.assertRaises(TypeError):
+            is_perfect_square(False)
+
+    def test_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            is_perfect_square(-1)

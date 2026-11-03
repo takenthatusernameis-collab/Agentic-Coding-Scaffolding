@@ -519,3 +519,21 @@ def sign(x: float) -> int:
     if x < 0:
         return -1
     return 0
+
+
+def is_perfect_square(n: int) -> bool:
+    """Return True if n is a perfect square.
+
+    Args:
+        n: The integer to check.
+
+    Raises:
+        TypeError: If n is not an int or is a bool.
+        ValueError: If n is negative.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    root = int(n ** 0.5)
+    return root * root == n or (root + 1) * (root + 1) == n

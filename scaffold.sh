@@ -9543,6 +9543,24 @@ def sign(x: float) -> int:
     if x < 0:
         return -1
     return 0
+
+
+def is_perfect_square(n: int) -> bool:
+    """Return True if n is a perfect square.
+
+    Args:
+        n: The integer to check.
+
+    Raises:
+        TypeError: If n is not an int or is a bool.
+        ValueError: If n is negative.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    root = int(n ** 0.5)
+    return root * root == n or (root + 1) * (root + 1) == n
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9560,6 +9578,7 @@ from calculator import (
     gcd,
     is_even,
     is_odd,
+    is_perfect_square,
     is_prime,
     lcm,
     mod_pow,
@@ -10074,6 +10093,35 @@ class TestSign(unittest.TestCase):
             sign(None)
         with self.assertRaises(TypeError):
             sign([])
+
+
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(is_perfect_square(0))
+        self.assertTrue(is_perfect_square(1))
+        self.assertTrue(is_perfect_square(4))
+        self.assertTrue(is_perfect_square(9))
+        self.assertTrue(is_perfect_square(16))
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(3))
+        self.assertFalse(is_perfect_square(5))
+        self.assertFalse(is_perfect_square(8))
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(4.0)
+        with self.assertRaises(TypeError):
+            is_perfect_square("4")
+
+    def test_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(True)
+        with self.assertRaises(TypeError):
+            is_perfect_square(False)
+
+    def test_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            is_perfect_square(-1)
 TESTCALC
 
 # --- config_utils.py ---
