@@ -1,6 +1,5 @@
 """Tests for bz2_utils."""
 
-import bz2
 import os
 import tempfile
 from pathlib import Path

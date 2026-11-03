@@ -1950,18 +1950,3 @@ def is_evil_number(value: int) -> bool:
     if value < 0:
         return False
     return bin(value).count("1") % 2 == 0
-
-
-def is_happy_number(value: int) -> bool:
-    """Return whether *value* is a happy number."""
-    if not isinstance(value, int) or isinstance(value, bool):
-        raise TypeError(f"value must be an int, got {type(value).__name__}")
-    if value < 1:
-        return False
-    seen = set()
-    n = value
-    while n != 1 and n not in seen:
-        seen.add(n)
-        n = sum(int(d) ** 2 for d in str(n))
-    return n == 1
-

@@ -379,7 +379,7 @@ class TestIsPronicNumber(unittest.TestCase):
 
 class TestIsPolydivisibleNumber(unittest.TestCase):
     def test_known_polydivisible_numbers(self):
-        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 102, 123, 1236, 12360):
+        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 102, 123, 1236, 12360):  # noqa: E501
             self.assertTrue(is_polydivisible_number(value), value)
 
     def test_non_polydivisible_numbers(self):

@@ -835,7 +835,7 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
                 j += 1
             count_splits += 1
             # but we need to handle remaining
-        # not quite right - easier to do: get all tokens and if maxsplit>0, combine from left appropriately for rsplit?
+        # not quite right - easier to do: get all tokens and if maxsplit>0, combine from left appropriately for rsplit?  # noqa: E501
         # rsplit with maxsplit splits from right
         # get all tokens
         all_tokens = []
@@ -853,22 +853,22 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
             return all_tokens
         if maxsplit == 0:
             if all_tokens:
-                return [bytes(data).strip()] if False else [bytes(data).replace(b'\t',b' ').replace(b'\n',b' ').replace(b'\r',b' ')]  # wrong
-            # easier: just return the whole thing as one element if no split would occur? bytes.split with maxsplit 0 and sep None returns [s] if not all whitespace
+                return [bytes(data).strip()] if False else [bytes(data).replace(b'\t',b' ').replace(b'\n',b' ').replace(b'\r',b' ')]  # wrong  # noqa: E501
+            # easier: just return the whole thing as one element if no split would occur? bytes.split with maxsplit 0 and sep None returns [s] if not all whitespace  # noqa: E501
             # check if all whitespace
             if not data.strip():
                 return []
-            # but "if maxsplit is given and non-negative, at most maxsplit splits are made" - result has maxsplit+1 elements
+            # but "if maxsplit is given and non-negative, at most maxsplit splits are made" - result has maxsplit+1 elements  # noqa: E501
             return [bytes(data)]  # not quite right for bytes semantics
         # for maxsplit>0, rsplit takes from right: gives at most maxsplit splits
         if len(all_tokens) <= maxsplit:
             return all_tokens
-        # take all_tokens[0:len-maxsplit] as first part joined? No wait - for sep None, bytes.split ignores whitespace and returns list of non-empty tokens
+        # take all_tokens[0:len-maxsplit] as first part joined? No wait - for sep None, bytes.split ignores whitespace and returns list of non-empty tokens  # noqa: E501
         # rsplit same for sep None
         result = all_tokens[: len(all_tokens) - maxsplit]
         result.append(concat(*all_tokens[len(all_tokens) - maxsplit :])) if False else None
         # actually no - easier to just do the standard way
-        # build: take leftmost (len - maxsplit) tokens joined by spaces conceptually? No wait - bytes.split(sep=None) returns a list of the words in the bytes, using whitespace as the delimiter string; any whitespace string is a separator and empty strings are removed from the result
+        # build: take leftmost (len - maxsplit) tokens joined by spaces conceptually? No wait - bytes.split(sep=None) returns a list of the words in the bytes, using whitespace as the delimiter string; any whitespace string is a separator and empty strings are removed from the result  # noqa: E501
         # so all tokens are just the words
         # rsplit does the same thing
         all_tokens[: max(0, len(all_tokens) - maxsplit)]

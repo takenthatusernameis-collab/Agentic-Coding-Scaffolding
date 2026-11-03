@@ -46,7 +46,7 @@ def _as_path_str(value: object, name: str = "path") -> str:
     path_str = str(path)
     if path_str == "":
         raise ValueError(f"{name} must not be empty")
-    # Path('') string representation is '.' in Python - but for our API, empty Path should be rejected
+    # Path('') string representation is '.' in Python - empty Path rejected
     if isinstance(value, Path) and value == Path(""):
         raise ValueError(f"{name} must not be empty")
     if isinstance(path, Path) and path == Path(""):

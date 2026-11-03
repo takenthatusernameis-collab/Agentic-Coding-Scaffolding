@@ -2,7 +2,16 @@
 
 import unittest
 
-from data_utils import deep_copy, del_nested, flatten_dict, get_nested, invert_dict, merge_dicts, omit, pick
+from data_utils import (
+    deep_copy,
+    del_nested,
+    flatten_dict,
+    get_nested,
+    invert_dict,
+    merge_dicts,
+    omit,
+    pick,
+)
 
 
 class TestDeepCopy(unittest.TestCase):

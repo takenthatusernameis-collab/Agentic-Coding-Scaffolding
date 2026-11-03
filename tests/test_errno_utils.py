@@ -1,7 +1,7 @@
 import errno
 import unittest
 
-from errno_utils import errorcode, errno_code, is_errno, strerror
+from errno_utils import errno_code, errorcode, is_errno, strerror
 
 
 class TestErrnoUtils(unittest.TestCase):

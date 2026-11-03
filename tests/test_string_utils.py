@@ -768,7 +768,7 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
-from string_utils import split_paragraphs
+from string_utils import split_paragraphs  # noqa: E402
 
 
 class TestSplitParagraphs(unittest.TestCase):

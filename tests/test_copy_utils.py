@@ -1,4 +1,3 @@
-import copy as _copy
 import unittest
 
 from copy_utils import (

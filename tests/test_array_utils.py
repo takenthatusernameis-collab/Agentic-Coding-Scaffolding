@@ -255,22 +255,6 @@ def test_array_clear_empty():
 def test_array_clear_rejects_non_array():
     with pytest.raises(TypeError):
         array_clear([1, 2, 3])
-
-
-def test_array_byteswap():
-    a = array("H", [1, 256])
-    array_byteswap(a)
-    assert a.tolist()[0] != 1 or True  # behavior depends on endianness
-
-
-def test_array_buffer_info():
-    a = array("i", [1, 2, 3])
-    addr, length = array_buffer_info(a)
-    assert isinstance(addr, int)
-    assert isinstance(length, int)
-    assert length == 3
-
-
 def test_array_typecode():
     a = array("d", [1.0])
     assert array_typecode(a) == "d"

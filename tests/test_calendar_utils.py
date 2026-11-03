@@ -10,7 +10,7 @@ class TestDaysBetween(unittest.TestCase):
         self.assertEqual(m.days_between(datetime.date(2024, 1, 1), datetime.date(2024, 1, 10)), 9)
 
     def test_negative_span(self):
-        self.assertEqual(m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365)
+        self.assertEqual(m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365)  # noqa: E501
 
     def test_same_day(self):
         self.assertEqual(m.days_between(datetime.date(2024, 3, 1), datetime.date(2024, 3, 1)), 0)

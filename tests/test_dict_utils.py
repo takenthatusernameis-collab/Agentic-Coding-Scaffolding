@@ -2,7 +2,16 @@
 
 import unittest
 
-from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, omit_keys, safe_get, select_keys, unflatten_dict
+from dict_utils import (
+    deep_merge,
+    filter_dict,
+    flatten_dict,
+    invert_dict,
+    omit_keys,
+    safe_get,
+    select_keys,
+    unflatten_dict,
+)
 
 
 class TestDeepMerge(unittest.TestCase):

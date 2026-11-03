@@ -18,6 +18,7 @@ __all__ = [
     "deprecated",
 ]
 
+@overload
 def deprecated(
     func: Callable[..., T],
     *,
@@ -28,7 +29,7 @@ def deprecated(
 
 
 @overload
-def deprecated(
+def deprecated(  # noqa: E501
     func: None = None,
     *,
     version: Optional[str] = None,
