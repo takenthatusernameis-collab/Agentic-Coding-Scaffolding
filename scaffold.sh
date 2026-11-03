@@ -9029,6 +9029,7 @@ TEST_GC_UTILS
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
 __all__ = [
     "add",
+    "abs_difference",
     "subtract",
     "multiply",
     "divide",
@@ -9045,6 +9046,34 @@ __all__ = [
 def add(a: float, b: float) -> float:
     """Return the sum of a and b."""
     return a + b
+
+
+def abs_difference(a: float, b: float) -> float:
+    """Return the absolute difference |a - b|.
+
+    Args:
+        a: The first number.
+        b: The second number.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+
+    Examples:
+        >>> abs_difference(5, 3)
+        2
+        >>> abs_difference(3, 5)
+        2
+        >>> abs_difference(-2, -5)
+        3
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    return abs(a - b)
 
 
 def subtract(a: float, b: float) -> float:
@@ -9133,6 +9162,7 @@ import unittest
 
 from calculator import (
     absolute,
+    abs_difference,
     add,
     divide,
     floor_divide,
@@ -9202,6 +9232,40 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(absolute(5), 5)
         self.assertEqual(absolute(-3), 3)
         self.assertEqual(absolute(0), 0)
+
+
+class TestAbsDifference(unittest.TestCase):
+    def test_abs_difference_positive(self):
+        self.assertEqual(abs_difference(5, 3), 2)
+
+    def test_abs_difference_reversed(self):
+        self.assertEqual(abs_difference(3, 5), 2)
+
+    def test_abs_difference_equal(self):
+        self.assertEqual(abs_difference(4, 4), 0)
+
+    def test_abs_difference_both_negative(self):
+        self.assertEqual(abs_difference(-2, -5), 3)
+
+    def test_abs_difference_mixed_signs(self):
+        self.assertEqual(abs_difference(-3, 5), 8)
+
+    def test_abs_difference_floats(self):
+        self.assertEqual(abs_difference(5.5, 3.2), 2.3)
+
+    def test_abs_difference_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            abs_difference("5", 3)
+        with self.assertRaises(TypeError):
+            abs_difference(5, "3")
+        with self.assertRaises(TypeError):
+            abs_difference(None, 3)
+
+    def test_abs_difference_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            abs_difference(True, 3)
+        with self.assertRaises(TypeError):
+            abs_difference(5, False)
 
 
 if __name__ == "__main__":
@@ -50896,6 +50960,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added abs_difference to calculator
+
+- Added `abs_difference(a, b)` to `calculator.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-real-number arguments; it returns the absolute difference |a - b|. Added `TestAbsDifference` to `tests/test_calculator.py` covering positive, reversed, equal, both-negative, mixed-sign, and float inputs plus the `TypeError` paths for non-numeric and bool arguments (8 new tests). Imported `abs_difference` at the top of the test file to match the module's `__all__` contract. Synchronized `calculator.py`, `tests/test_calculator.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_calculator.py -v` passes (19 tests); `python -m doctest calculator.py` passes (3 doctests).
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_metadata to version_utils
 - Added `has_metadata(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when a version string contains either a `-` prerelease suffix or a `+` build metadata suffix (or both), and `False` otherwise. Added `TestHasMetadata` to `tests/test_version_utils.py` covering present/absent/empty inputs and the `TypeError` path (3 new tests). Imported `has_metadata` at the top of the test file to match the module's `__all__` contract. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_version_utils.py -v` passes; `python -m doctest version_utils.py` passes.
 

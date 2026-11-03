@@ -2,6 +2,7 @@ import unittest
 
 from calculator import (
     absolute,
+    abs_difference,
     add,
     divide,
     floor_divide,
@@ -71,6 +72,40 @@ class TestCalculator(unittest.TestCase):
         self.assertEqual(absolute(5), 5)
         self.assertEqual(absolute(-3), 3)
         self.assertEqual(absolute(0), 0)
+
+
+class TestAbsDifference(unittest.TestCase):
+    def test_abs_difference_positive(self):
+        self.assertEqual(abs_difference(5, 3), 2)
+
+    def test_abs_difference_reversed(self):
+        self.assertEqual(abs_difference(3, 5), 2)
+
+    def test_abs_difference_equal(self):
+        self.assertEqual(abs_difference(4, 4), 0)
+
+    def test_abs_difference_both_negative(self):
+        self.assertEqual(abs_difference(-2, -5), 3)
+
+    def test_abs_difference_mixed_signs(self):
+        self.assertEqual(abs_difference(-3, 5), 8)
+
+    def test_abs_difference_floats(self):
+        self.assertEqual(abs_difference(5.5, 3.2), 2.3)
+
+    def test_abs_difference_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            abs_difference("5", 3)
+        with self.assertRaises(TypeError):
+            abs_difference(5, "3")
+        with self.assertRaises(TypeError):
+            abs_difference(None, 3)
+
+    def test_abs_difference_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            abs_difference(True, 3)
+        with self.assertRaises(TypeError):
+            abs_difference(5, False)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 __all__ = [
     "add",
+    "abs_difference",
     "subtract",
     "multiply",
     "divide",
@@ -16,6 +17,34 @@ __all__ = [
 def add(a: float, b: float) -> float:
     """Return the sum of a and b."""
     return a + b
+
+
+def abs_difference(a: float, b: float) -> float:
+    """Return the absolute difference |a - b|.
+
+    Args:
+        a: The first number.
+        b: The second number.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+
+    Examples:
+        >>> abs_difference(5, 3)
+        2
+        >>> abs_difference(3, 5)
+        2
+        >>> abs_difference(-2, -5)
+        3
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    return abs(a - b)
 
 
 def subtract(a: float, b: float) -> float:
