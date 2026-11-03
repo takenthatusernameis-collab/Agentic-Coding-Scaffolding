@@ -1,22 +1,22 @@
 # Project Status
 
-## Latest Session (2026-11-03) — restored scaffold-sync invariant (bootstrap session)
+## Latest Session (2026-11-03) — fixed calculator.__all__ gap for distance
 
-The board held no task (bootstrap session). Verified repository health before starting: `make test` ran 7665 tests with 171 scaffold-sync failures (179 embedded copies in scaffold.sh out of sync with repository sources); `python tools/refresh_scaffold.py --check` reported 179 stale embedded copies.
+The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies (calculator.py, tests/test_calculator.py); `make test` ran 7717 tests with 1 failure.
 
 Completed in this session:
 
-- Ran `make refresh-scaffold` to restore byte-identical embedded copies of every wrapper module, test, and `.kilo/command/scaffold-project.md` in `scaffold.sh`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
-- Verified: all 43 scaffold-sync + refresh-scaffold tests pass; `tests.test_public_api` `__all__` contract holds for every top-level module; full suite runs 7665 tests and passes; no new regressions introduced (change is scaffold sync only).
-- `__all__` public-API contract is complete for all top-level modules (calculator.py, config_schema.py, hello.py, stats.py, strings.py, shapes.py, utils.py verified in prior sessions) — no `__all__` gaps remain.
+- Ran `make refresh-scaffold` to restore byte-identical embedded copies of calculator.py and tests/test_calculator.py in `scaffold.sh`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Found a real contract gap: `calculator.distance` was a fully-implemented public function (typed signature, Google-style docstring, `TypeError` validation) but missing from `calculator.__all__`, violating the public-API export contract that every public attribute must be listed in `__all__`. The gap was caught by `tests/test_public_api.py` (which enforces the `__all__` contract for every top-level module) as the only test failure in the suite.
+- Added `distance` to `calculator.__all__` next to `hypotenuse` (32 exports total).
+- Verified: `make test` passes (7717 tests); `make lint` passes (ruff, all checks passed); `make typecheck` shows only pre-existing errors (62 errors in 9 files, unchanged before and after this change — unrelated to calculator.py); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
 
 Next Planned (durable handover for the following agent):
 
-- Harden a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`. Candidate modules: `number_utils.py`, `numbers_utils.py`, `hello.py`, `calculator.py`, `stats.py`.
-- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
-- Keep `make test` green (7665 tests). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Update `README.md` prose and `CHANGELOG.md` only if `__all__` adds a previously-undocumented name. No changes to `.github/workflows/**`.
-- Acceptance: `make test` passes, `refresh_scaffold --check` in sync, no new lint/type regressions.
+- Continue extending the `__all__` public-API contract to the remaining non-wrapper modules that `test_public_api.py` does not cover. Audit each module for public attributes defined at module scope but missing from `__all__` (functions, classes, intentionally re-exported stdlib aliases, TypeVars) and add them, following the convention already established by the `*_utils.py` modules.
+- Candidate modules to audit next: pick any top-level non-`*_utils.py` module without `__all__`, or harden an existing small utility module by adding a minimal, hermetic helper with tests in `tests/test_*.py`.
+- Acceptance: each audited module has `__all__`, every name in `__all__` is importable, `make test` still passes, `make lint` passes, and `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Update `README.md` prose and `CHANGELOG.md` only if `__all__` adds a previously-undocumented name. No changes to `.github/workflows/**`.
 
 ## Latest Session (2026-11-02) — extended __all__ contract to non-wrapper modules
 
