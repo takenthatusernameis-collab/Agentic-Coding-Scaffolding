@@ -16,7 +16,6 @@ bit_utils
 builtins_utils
 bytes_utils
 bz2_utils
-c_utils.py
 cache_utils
 calculator
 calendar_utils
@@ -44,8 +43,9 @@ context_utils
 contextlib_utils
 contextvars_utils
 cooldown_utils
+copy_utils
+copyreg_utils
 cprofile_utils
-creg_utils.py
 crypto_utils
 csv_utils
 ctypes_utils
@@ -157,7 +157,6 @@ profile_utils
 prompt_utils
 pstats_utils
 pty_utils
-public_api
 pwd_utils
 py_compile_utils
 pyclbr_utils
@@ -170,7 +169,6 @@ random_utils
 rate_limiter_utils
 re_utils
 readline_utils
-refresh_scaffold
 regex_utils
 reprlib_utils
 resource_utils
@@ -178,9 +176,7 @@ retry_utils
 ring_buffer_utils
 rlcompleter_utils
 roman_utils
-ru_utils.py
-scaffold
-scaffold_sync
+runpy_utils
 sched_utils
 secrets_utils
 select_utils
