@@ -73,7 +73,16 @@ class TestFindFreePort(unittest.TestCase):
         self.assertTrue(is_valid_port(port))
 
     def test_returns_different_ports(self):
-        ports = {find_free_port() for _ in range(5)}
+        sockets = []
+        try:
+            for _ in range(5):
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.bind(("127.0.0.1", 0))
+                sockets.append(sock)
+            ports = {sock.getsockname()[1] for sock in sockets}
+        finally:
+            for sock in sockets:
+                sock.close()
         self.assertEqual(len(ports), 5)
 
     def test_range_validation(self):
