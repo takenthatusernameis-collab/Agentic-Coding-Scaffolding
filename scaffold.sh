@@ -9047,6 +9047,7 @@ __all__ = [
     "is_prime",
     "combination",
     "permutation",
+    "mod_pow",
 ]
 
 
@@ -9497,6 +9498,24 @@ def is_prime(n: int) -> bool:
         else:
             return False
     return True
+
+
+def mod_pow(base: int, exp: int, mod: int) -> int:
+    """Return (base ** exp) mod mod.
+
+    Raises:
+        TypeError: If base, exp, or mod are not ints.
+        ValueError: If exp is negative or mod <= 0.
+    """
+    if isinstance(base, bool) or isinstance(exp, bool) or isinstance(mod, bool):
+        raise TypeError("base, exp, and mod must be ints")
+    if not isinstance(base, int) or not isinstance(exp, int) or not isinstance(mod, int):
+        raise TypeError("base, exp, and mod must be ints")
+    if exp < 0:
+        raise ValueError("exp must be non-negative")
+    if mod <= 0:
+        raise ValueError("mod must be positive")
+    return pow(base, exp, mod)
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9517,6 +9536,7 @@ from calculator import (
     is_odd,
     is_prime,
     lcm,
+    mod_pow,
     multiply,
     negate,
     percentage,
@@ -9971,6 +9991,38 @@ class TestIsPrime(unittest.TestCase):
             is_prime(1)
         with self.assertRaises(ValueError):
             is_prime(-2)
+
+
+class TestModPow(unittest.TestCase):
+    def test_mod_pow_basic(self):
+        self.assertEqual(mod_pow(2, 10, 1000), 24)
+        self.assertEqual(mod_pow(3, 2, 10), 9)
+
+    def test_mod_pow_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            mod_pow(2.0, 10, 1000)
+        with self.assertRaises(TypeError):
+            mod_pow(2, "10", 1000)
+        with self.assertRaises(TypeError):
+            mod_pow(2, 10, 1000.0)
+
+    def test_mod_pow_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            mod_pow(True, 2, 10)
+        with self.assertRaises(TypeError):
+            mod_pow(2, False, 10)
+        with self.assertRaises(TypeError):
+            mod_pow(2, 2, True)
+
+    def test_mod_pow_rejects_negative_exp(self):
+        with self.assertRaises(ValueError):
+            mod_pow(2, -1, 10)
+
+    def test_mod_pow_rejects_non_positive_mod(self):
+        with self.assertRaises(ValueError):
+            mod_pow(2, 1, 0)
+        with self.assertRaises(ValueError):
+            mod_pow(2, 1, -3)
 TESTCALC
 
 # --- config_utils.py ---

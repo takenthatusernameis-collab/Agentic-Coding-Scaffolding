@@ -23,6 +23,7 @@ __all__ = [
     "is_prime",
     "combination",
     "permutation",
+    "mod_pow",
 ]
 
 
@@ -473,3 +474,21 @@ def is_prime(n: int) -> bool:
         else:
             return False
     return True
+
+
+def mod_pow(base: int, exp: int, mod: int) -> int:
+    """Return (base ** exp) mod mod.
+
+    Raises:
+        TypeError: If base, exp, or mod are not ints.
+        ValueError: If exp is negative or mod <= 0.
+    """
+    if isinstance(base, bool) or isinstance(exp, bool) or isinstance(mod, bool):
+        raise TypeError("base, exp, and mod must be ints")
+    if not isinstance(base, int) or not isinstance(exp, int) or not isinstance(mod, int):
+        raise TypeError("base, exp, and mod must be ints")
+    if exp < 0:
+        raise ValueError("exp must be non-negative")
+    if mod <= 0:
+        raise ValueError("mod must be positive")
+    return pow(base, exp, mod)
