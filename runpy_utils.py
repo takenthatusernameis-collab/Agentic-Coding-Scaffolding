@@ -8,7 +8,6 @@ __all__ = [
 ]
 
 
-
 def run_module(mod_name, init_globals=None, run_name=None, alter_sys=False):
     if not isinstance(mod_name, str):
         raise TypeError("mod_name must be a str")

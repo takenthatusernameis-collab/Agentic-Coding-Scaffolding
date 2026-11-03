@@ -23,7 +23,6 @@ __all__ = [
 ]
 
 
-
 def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Connection:
     """Open a connection to the SQLite database *database*.
 

@@ -71,7 +71,11 @@ def mkstemp(
     suffix = _require_path_or_none(suffix, "suffix")
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
-    return tempfile.mkstemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))  # noqa: E501
+    return tempfile.mkstemp(
+        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
+        prefix=_coerce_path_or_none(prefix),
+        dir=_coerce_path_or_none(dir),
+    )  # noqa: E501
 
 
 def mkdtemp(
@@ -95,7 +99,11 @@ def mkdtemp(
     suffix = _require_path_or_none(suffix, "suffix")
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
-    return tempfile.mkdtemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))  # noqa: E501
+    return tempfile.mkdtemp(
+        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
+        prefix=_coerce_path_or_none(prefix),
+        dir=_coerce_path_or_none(dir),
+    )  # noqa: E501
 
 
 def NamedTemporaryFile(
@@ -235,7 +243,9 @@ def TemporaryDirectory(
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
     if not isinstance(ignore_cleanup_errors, bool):
-        raise TypeError(f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}")  # noqa: E501
+        raise TypeError(
+            f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}"
+        )  # noqa: E501
     return tempfile.TemporaryDirectory(
         suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
         prefix=_coerce_path_or_none(prefix),

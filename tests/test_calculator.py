@@ -1,14 +1,12 @@
 import unittest
 
 from calculator import (
+    abs_difference,
     absolute,
+    add,
     average_of_two,
     clamp,
-    abs_difference,
-    add,
     divide,
-    floor_divide,
-    modulo,
     multiply,
     negate,
     percentage,
@@ -187,17 +185,6 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             clamp(5, 0, False)
 
-    def test_negate(self):
-        self.assertEqual(negate(5), -5)
-        self.assertEqual(negate(-3), 3)
-        self.assertEqual(negate(0), 0)
-
-    def test_absolute(self):
-        self.assertEqual(absolute(5), 5)
-        self.assertEqual(absolute(-3), 3)
-        self.assertEqual(absolute(0), 0)
-
-
 class TestAbsDifference(unittest.TestCase):
     def test_abs_difference_positive(self):
         self.assertEqual(abs_difference(5, 3), 2)
@@ -230,8 +217,6 @@ class TestAbsDifference(unittest.TestCase):
             abs_difference(True, 3)
         with self.assertRaises(TypeError):
             abs_difference(5, False)
-
-
 
 
 class TestClamp(unittest.TestCase):

@@ -125,6 +125,7 @@ class OptionParseError(OptionError):
         """Return the message without the option prefix."""
         return self.msg
 
+
 #: Hide an option from the generated help text.
 SUPPRESS_HELP = optparse.SUPPRESS_HELP
 
@@ -165,9 +166,7 @@ def _require_parser(parser: Any) -> OptionParser:
         TypeError: If *parser* is not an :class:`optparse.OptionParser`.
     """
     if not isinstance(parser, OptionParser):
-        raise TypeError(
-            f"parser must be an optparse.OptionParser, got {type(parser).__name__}"
-        )
+        raise TypeError(f"parser must be an optparse.OptionParser, got {type(parser).__name__}")
     return parser
 
 
@@ -263,9 +262,7 @@ def _validate_flags(flags: Sequence[str]) -> List[str]:
             )
         if len(flag) == 2:
             if flag[0] != "-" or flag[1] == "-":
-                raise ValueError(
-                    f"invalid short option string {flag!r}: must be of the form -x"
-                )
+                raise ValueError(f"invalid short option string {flag!r}: must be of the form -x")
         elif not flag.startswith("--") or flag[2] == "-":
             raise ValueError(
                 f"invalid long option string {flag!r}: must start with -- "
@@ -328,9 +325,7 @@ def _type_converter(converter: Callable[..., Any]) -> Callable[..., Any]:
             for parameter in parameters
             if parameter.kind in (parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD)
         ]
-        variadic = any(
-            parameter.kind is parameter.VAR_POSITIONAL for parameter in parameters
-        )
+        variadic = any(parameter.kind is parameter.VAR_POSITIONAL for parameter in parameters)
         if variadic or len(positional) >= 3:
             return converter
 
@@ -388,10 +383,7 @@ def _normalize_type(type_: Optional[Union[str, Callable[..., Any]]]) -> Optional
         return name
     if callable(type_):
         return None
-    raise TypeError(
-        "type must be a str, a type, or a callable, "
-        f"got {type(type_).__name__}"
-    )
+    raise TypeError(f"type must be a str, a type, or a callable, got {type(type_).__name__}")
 
 
 def make_parser(
@@ -427,9 +419,7 @@ def make_parser(
     _require_optional_str("version", version)
     _require_optional_str("epilog", epilog)
     if not isinstance(add_help_option, bool):
-        raise TypeError(
-            f"add_help_option must be a bool, got {type(add_help_option).__name__}"
-        )
+        raise TypeError(f"add_help_option must be a bool, got {type(add_help_option).__name__}")
     if conflict_handler not in ("error", "resolve"):
         raise ValueError(
             f"invalid conflict handler: {conflict_handler!r}, expected 'error' or 'resolve'"
@@ -647,9 +637,7 @@ def _validate_args(args: Optional[Sequence[str]]) -> Optional[List[str]]:
     try:
         entries = list(args)
     except TypeError as exc:
-        raise TypeError(
-            f"args must be a sequence of strings, got {type(args).__name__}"
-        ) from exc
+        raise TypeError(f"args must be a sequence of strings, got {type(args).__name__}") from exc
     for entry in entries:
         if not isinstance(entry, str):
             raise TypeError(f"args entries must be str, got {type(entry).__name__}")
@@ -684,9 +672,7 @@ def parse_args(
     """
     target = _require_parser(parser)
     if on_error not in ERROR_MODES:
-        raise ValueError(
-            f"invalid error mode: {on_error!r}, expected 'exit' or 'raise'"
-        )
+        raise ValueError(f"invalid error mode: {on_error!r}, expected 'exit' or 'raise'")
     command_line = _validate_args(args)
     if on_error == "exit":
         options, remaining = target.parse_args(command_line)
@@ -700,9 +686,7 @@ def parse_args(
         if status == 0:
             raise
         message = buffer.getvalue().strip()
-        raise OptionParseError(
-            message or f"option parsing failed with status {status}"
-        ) from exc
+        raise OptionParseError(message or f"option parsing failed with status {status}") from exc
     return options, remaining
 
 
@@ -723,9 +707,7 @@ def get_option(parser: OptionParser, option_string: str) -> Optional[Option]:
     target = _require_parser(parser)
     _require_str("option_string", option_string)
     if len(option_string) < 2 or not option_string.startswith("-"):
-        raise ValueError(
-            f"invalid option string {option_string!r}: must start with a dash"
-        )
+        raise ValueError(f"invalid option string {option_string!r}: must start with a dash")
     return target.get_option(option_string)
 
 
@@ -746,9 +728,7 @@ def has_option(parser: OptionParser, option_string: str) -> bool:
     target = _require_parser(parser)
     _require_str("option_string", option_string)
     if len(option_string) < 2 or not option_string.startswith("-"):
-        raise ValueError(
-            f"invalid option string {option_string!r}: must start with a dash"
-        )
+        raise ValueError(f"invalid option string {option_string!r}: must start with a dash")
     return target.has_option(option_string)
 
 
@@ -766,9 +746,7 @@ def remove_option(parser: OptionParser, option_string: str) -> None:
     target = _require_parser(parser)
     _require_str("option_string", option_string)
     if len(option_string) < 2 or not option_string.startswith("-"):
-        raise ValueError(
-            f"invalid option string {option_string!r}: must start with a dash"
-        )
+        raise ValueError(f"invalid option string {option_string!r}: must start with a dash")
     target.remove_option(option_string)
 
 

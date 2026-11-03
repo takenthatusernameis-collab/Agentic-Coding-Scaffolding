@@ -1,4 +1,5 @@
 """Sorting utility functions."""
+
 __all__ = [
     "bubble_sort",
     "is_sorted",
@@ -6,7 +7,6 @@ __all__ = [
     "nth_largest",
     "top_n",
 ]
-
 
 
 def is_sorted(items, *, key=None, reverse=False):

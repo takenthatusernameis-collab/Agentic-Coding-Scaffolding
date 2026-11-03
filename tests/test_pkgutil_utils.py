@@ -61,7 +61,6 @@ class TestPkgutilUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             iter_modules([self.pkg], prefix=5)
 
-
     def test_walk_packages_finds_nested_modules(self):
         names = dict(walk_packages([self.pkg], prefix="samplepkg."))
         self.assertIn("samplepkg.mod", names)

@@ -40,9 +40,7 @@ supports_unicode_filenames: bool = _posixpath.supports_unicode_filenames
 ALLOW_MISSING: Any = _posixpath.ALLOW_MISSING
 
 #: The splitter of a path into a drive, a root, and a tail.
-_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(
-    _posixpath, "splitroot", None
-)
+_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(_posixpath, "splitroot", None)
 #: The predicate that reports whether a path is a junction.
 _ISJUNCTION: Optional[Callable[[Any], bool]] = getattr(_posixpath, "isjunction", None)
 
@@ -703,7 +701,7 @@ def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Un
 
 
 def splitroot(
-    p: Union[str, bytes, os.PathLike]
+    p: Union[str, bytes, os.PathLike],
 ) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
     """Split a path into a drive, a root, and a tail.
 

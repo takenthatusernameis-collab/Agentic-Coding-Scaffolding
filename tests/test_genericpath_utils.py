@@ -124,7 +124,7 @@ class TestFileStats(unittest.TestCase):
     """Test getsize, getatime, getmtime, getctime."""
 
     def test_getsize_returns_file_size(self):
-        with tempfile.NamedTemporaryFile(delete=False, mode='w') as f:
+        with tempfile.NamedTemporaryFile(delete=False, mode="w") as f:
             f.write("hello")
             temp_path = f.name
         try:
@@ -206,7 +206,7 @@ class TestSameFile(unittest.TestCase):
         with tempfile.NamedTemporaryFile(delete=False) as f:
             temp_path = f.name
         try:
-            with open(temp_path, 'r') as f1, open(temp_path, 'r') as f2:
+            with open(temp_path, "r") as f1, open(temp_path, "r") as f2:
                 self.assertTrue(sameopenfile(f1.fileno(), f2.fileno()))
         finally:
             os.unlink(temp_path)

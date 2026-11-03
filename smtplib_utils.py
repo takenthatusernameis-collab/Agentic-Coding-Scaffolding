@@ -261,8 +261,7 @@ def _require_source_address(
         return None
     if not isinstance(value, (tuple, list)) or len(value) != 2:
         raise TypeError(
-            "source_address must be a (host, port) pair or None, "
-            f"got {type(value).__name__}"
+            f"source_address must be a (host, port) pair or None, got {type(value).__name__}"
         )
     host = _require_str(value[0], "source_address[0]")
     port = _require_port(value[1], "source_address[1]")
@@ -290,15 +289,12 @@ def _require_addresses(value: Any, name: str) -> List[str]:
             collected = list(value)
         except TypeError as exc:
             raise TypeError(
-                f"{name} must be a str or an iterable of str, "
-                f"got {type(value).__name__}"
+                f"{name} must be a str or an iterable of str, got {type(value).__name__}"
             ) from exc
         candidates = []
         for index, item in enumerate(collected):
             if not isinstance(item, str):
-                raise TypeError(
-                    f"{name}[{index}] must be a str, got {type(item).__name__}"
-                )
+                raise TypeError(f"{name}[{index}] must be a str, got {type(item).__name__}")
             candidates.append(item)
     for index, candidate in enumerate(candidates):
         if not candidate.strip():
@@ -320,9 +316,7 @@ def _require_message(value: Any, name: str) -> email.message.Message:
         TypeError: If *value* is not an :class:`email.message.Message`.
     """
     if not isinstance(value, email.message.Message):
-        raise TypeError(
-            f"{name} must be an email.message.Message, got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be an email.message.Message, got {type(value).__name__}")
     return value
 
 
@@ -340,9 +334,7 @@ def _require_client(value: Any, name: str) -> _smtplib.SMTP:
         TypeError: If *value* is not an SMTP client.
     """
     if not isinstance(value, _smtplib.SMTP):
-        raise TypeError(
-            f"{name} must be an smtplib.SMTP instance, got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be an smtplib.SMTP instance, got {type(value).__name__}")
     return value
 
 
@@ -363,9 +355,7 @@ def _require_options(value: Any, name: str) -> List[str]:
     options: List[str] = []
     for index, item in enumerate(value):
         if not isinstance(item, str):
-            raise TypeError(
-                f"{name}[{index}] must be a str, got {type(item).__name__}"
-            )
+            raise TypeError(f"{name}[{index}] must be a str, got {type(item).__name__}")
         if not item:
             raise ValueError(f"{name}[{index}] must not be empty")
         if "\r" in item or "\n" in item:
@@ -722,9 +712,7 @@ def build_message(
         file_name = _require_str(attachment[0], f"attachments[{index}][0]")
         payload = attachment[1]
         if not isinstance(payload, bytes):
-            raise TypeError(
-                f"attachments[{index}][1] must be bytes, got {type(payload).__name__}"
-            )
+            raise TypeError(f"attachments[{index}][1] must be bytes, got {type(payload).__name__}")
         if not file_name:
             raise ValueError(f"attachments[{index}][0] must not be empty")
         maintype, subtype = _guess_media_type(file_name)

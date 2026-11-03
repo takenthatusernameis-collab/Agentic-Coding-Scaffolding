@@ -1,6 +1,5 @@
 """Tests for nturl2path_utils."""
 
-
 from nturl2path_utils import pathname2url, url2pathname
 
 

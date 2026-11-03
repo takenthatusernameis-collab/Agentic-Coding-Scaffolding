@@ -82,9 +82,7 @@ def _check_address_like(value: object, name: str) -> None:
     names an address.
     """
     if isinstance(value, bool) or not isinstance(value, (str, int, bytes)):
-        raise TypeError(
-            f"{name} must be a str, an int, or bytes, got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be a str, an int, or bytes, got {type(value).__name__}")
 
 
 def _check_address_pair(value: object, name: str) -> None:
@@ -96,9 +94,7 @@ def _check_address_pair(value: object, name: str) -> None:
         raise ValueError(f"{name} must hold two items, got {len(value)}")
     _check_address_like(value[0], name)
     if isinstance(value[1], bool) or not isinstance(value[1], int):
-        raise TypeError(
-            f"the prefix length must be an int, got {type(value[1]).__name__}"
-        )
+        raise TypeError(f"the prefix length must be an int, got {type(value[1]).__name__}")
 
 
 def _check_address(value: object, name: str) -> None:
@@ -370,12 +366,8 @@ def subnets(
     """
     _check_network(network, "network")
     if isinstance(prefixlen_diff, bool) or not isinstance(prefixlen_diff, int):
-        raise TypeError(
-            f"prefixlen_diff must be an int, got {type(prefixlen_diff).__name__}"
-        )
-    if new_prefix is not None and (
-        isinstance(new_prefix, bool) or not isinstance(new_prefix, int)
-    ):
+        raise TypeError(f"prefixlen_diff must be an int, got {type(prefixlen_diff).__name__}")
+    if new_prefix is not None and (isinstance(new_prefix, bool) or not isinstance(new_prefix, int)):
         raise TypeError(f"new_prefix must be an int or None, got {type(new_prefix).__name__}")
     if new_prefix is not None and prefixlen_diff != 1:
         raise ValueError("prefixlen_diff and new_prefix must not be set together")
@@ -416,9 +408,7 @@ def summarize_addresses(addresses: Iterable[Address | Network]) -> list[Network]
             versions.add(item.version)
             networks.append(_ipaddress.ip_network(f"{item}/{item.max_prefixlen}"))
         else:
-            raise TypeError(
-                f"addresses must hold addresses or networks, got {type(item).__name__}"
-            )
+            raise TypeError(f"addresses must hold addresses or networks, got {type(item).__name__}")
     if len(versions) > 1:
         raise ValueError("addresses of different versions cannot be summarized together")
     summarized: list[Network] = []

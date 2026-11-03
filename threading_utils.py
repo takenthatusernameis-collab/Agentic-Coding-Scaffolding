@@ -31,7 +31,6 @@ __all__ = [
 ]
 
 
-
 def _validate_callable(value: Any, name: str) -> None:
     """Validate that *value* is callable, raising ``TypeError`` otherwise.
 

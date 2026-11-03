@@ -17,7 +17,6 @@ __all__ = [
 ]
 
 
-
 class RateLimiter:
     """Token bucket rate limiter.
 

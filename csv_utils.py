@@ -12,7 +12,6 @@ __all__ = [
 ]
 
 
-
 def read_csv(
     path: str,
     delimiter: str = ",",

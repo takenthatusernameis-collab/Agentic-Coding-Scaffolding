@@ -12,7 +12,6 @@ __all__ = [
 ]
 
 
-
 def add_extension(module, name, code):
     return _copyreg.add_extension(module, name, code)
 

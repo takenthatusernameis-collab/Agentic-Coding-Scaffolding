@@ -14,7 +14,6 @@ __all__ = [
 ]
 
 
-
 def scheduler(timefunc=time.monotonic, delayfunc=time.sleep) -> sched.scheduler:
     return sched.scheduler(timefunc, delayfunc)
 

@@ -28,7 +28,6 @@ __all__ = [
 ]
 
 
-
 class SemanticVersion:
     """A parsed semantic version: MAJOR.MINOR.PATCH with optional pre-release/build."""
 

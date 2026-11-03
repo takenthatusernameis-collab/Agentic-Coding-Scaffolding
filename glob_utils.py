@@ -10,7 +10,6 @@ __all__ = [
 ]
 
 
-
 def glob_pattern(pattern, *, root_dir=None, dir_fd=None, recursive=False):
     if not isinstance(pattern, str):
         raise TypeError("pattern must be a str")

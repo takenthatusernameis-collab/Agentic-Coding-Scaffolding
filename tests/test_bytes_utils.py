@@ -23,6 +23,7 @@ from bytes_utils import (
     isupper,
     join,
     lower,
+    maketrans,
     partition,
     removeprefix,
     removesuffix,
@@ -35,10 +36,9 @@ from bytes_utils import (
     swapcase,
     title,
     to_hex,
+    translate,
     upper,
     xor,
-    maketrans,
-    translate,
 )
 
 
@@ -583,9 +583,7 @@ class TestMaketrans(unittest.TestCase):
 
 class TestTranslate(unittest.TestCase):
     def test_basic_translation(self):
-        self.assertEqual(
-            translate(b"abc", maketrans(b"ab", b"xy")), b"xyc"
-        )
+        self.assertEqual(translate(b"abc", maketrans(b"ab", b"xy")), b"xyc")
 
     def test_identity_table(self):
         self.assertEqual(translate(b"abc", bytes(range(256))), b"abc")
@@ -594,9 +592,7 @@ class TestTranslate(unittest.TestCase):
         self.assertEqual(translate(b"", maketrans(b"ab", b"xy")), b"")
 
     def test_bytearray_input(self):
-        self.assertEqual(
-            translate(bytearray(b"abc"), maketrans(b"ab", b"xy")), b"xyc"
-        )
+        self.assertEqual(translate(bytearray(b"abc"), maketrans(b"ab", b"xy")), b"xyc")
 
     def test_full_byte_range(self):
         self.assertEqual(

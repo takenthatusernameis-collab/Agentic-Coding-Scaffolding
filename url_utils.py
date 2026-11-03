@@ -14,7 +14,6 @@ __all__ = [
 ]
 
 
-
 def is_valid_url(url: str, schemes: Optional[List[str]] = None) -> bool:
     """Validate a URL string.
 

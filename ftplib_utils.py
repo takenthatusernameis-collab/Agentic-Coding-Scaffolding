@@ -59,9 +59,11 @@ def create_ftp(
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
-        if (not isinstance(source_address[0], str)
-                or not isinstance(source_address[1], int)
-                or isinstance(source_address[1], bool)):
+        if (
+            not isinstance(source_address[0], str)
+            or not isinstance(source_address[1], int)
+            or isinstance(source_address[1], bool)
+        ):
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
@@ -102,9 +104,11 @@ def create_ftp_tls(
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
-        if (not isinstance(source_address[0], str)
-                or not isinstance(source_address[1], int)
-                or isinstance(source_address[1], bool)):
+        if (
+            not isinstance(source_address[0], str)
+            or not isinstance(source_address[1], int)
+            or isinstance(source_address[1], bool)
+        ):
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
@@ -142,9 +146,11 @@ def connect_ftp(
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
-        if (not isinstance(source_address[0], str)
-                or not isinstance(source_address[1], int)
-                or isinstance(source_address[1], bool)):
+        if (
+            not isinstance(source_address[0], str)
+            or not isinstance(source_address[1], int)
+            or isinstance(source_address[1], bool)
+        ):
             raise TypeError("source_address must be a (host, port) tuple or None")
     return ftp.connect(host, port, timeout, source_address)  # type: ignore[arg-type]
 

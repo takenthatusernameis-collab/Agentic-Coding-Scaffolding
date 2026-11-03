@@ -42,9 +42,7 @@ class TestTabnannyUtils(unittest.TestCase):
         import tabnanny_utils
 
         self.assertIsNotNone(tabnanny_utils.__all__)
-        self.assertEqual(
-            len(tabnanny_utils.__all__), len(set(tabnanny_utils.__all__))
-        )
+        self.assertEqual(len(tabnanny_utils.__all__), len(set(tabnanny_utils.__all__)))
         self.assertEqual(tabnanny_utils.__all__, sorted(tabnanny_utils.__all__))
         for name in tabnanny_utils.__all__:
             self.assertTrue(hasattr(tabnanny_utils, name), name)

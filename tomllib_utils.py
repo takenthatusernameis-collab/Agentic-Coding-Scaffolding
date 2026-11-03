@@ -11,7 +11,6 @@ __all__ = [
 ]
 
 
-
 def read_toml(path: str) -> Any:
     """Read TOML data from a file."""
     with open(path, "rb") as f:

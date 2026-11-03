@@ -21,7 +21,6 @@ __all__ = [
 ]
 
 
-
 def render_template(template: str, *args: Any, **kwargs: Any) -> str:
     """Render a template string using ``str.format()``.
 

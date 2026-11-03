@@ -196,7 +196,7 @@ def anchor_for(relative: str, scaffold_text: str) -> int:
     """
     stem = Path(relative).stem
     if stem.startswith("test_"):
-        module = f"{stem[len('test_'):]}.py"
+        module = f"{stem[len('test_') :]}.py"
         for match in embedded_blocks(scaffold_text):
             if match.group("path") == module:
                 return match.end()

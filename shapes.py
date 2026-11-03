@@ -75,7 +75,7 @@ def circle_area(radius: float) -> float:
     """
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return math.pi * radius ** 2
+    return math.pi * radius**2
 
 
 def circle_perimeter(radius: float) -> float:
@@ -425,7 +425,8 @@ def regular_polygon_area(n: int, side_length: float) -> float:
         raise ValueError("n must be at least 3")
     if side_length < 0:
         raise ValueError("Side length cannot be negative.")
-    return (n * side_length ** 2) / (4 * math.tan(math.pi / n))
+    return (n * side_length**2) / (4 * math.tan(math.pi / n))
+
 
 def regular_polygon_perimeter(n: int, side_length: float) -> float:
     """Return the perimeter of a regular polygon with n sides.
@@ -462,7 +463,7 @@ def rectangle_diagonal(length: float, width: float) -> float:
     """Return the diagonal of a rectangle."""
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
-    return float((length ** 2 + width ** 2) ** 0.5)
+    return float((length**2 + width**2) ** 0.5)
 
 
 def sector_area(radius: float, angle_degrees: float) -> float:
@@ -485,7 +486,7 @@ def sector_area(radius: float, angle_degrees: float) -> float:
         raise TypeError("angle_degrees must be a number")
     if angle_degrees < 0 or angle_degrees > 360:
         raise ValueError("angle_degrees must be between 0 and 360")
-    return (angle_degrees / 360.0) * math.pi * radius ** 2
+    return (angle_degrees / 360.0) * math.pi * radius**2
 
 
 def arc_length(radius: float, angle_degrees: float) -> float:
@@ -544,7 +545,7 @@ def sphere_surface_area(radius: float) -> float:
         raise TypeError("radius must be a number")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return float(4 * math.pi * radius ** 2)
+    return float(4 * math.pi * radius**2)
 
 
 def sphere_volume(radius: float) -> float:
@@ -553,7 +554,7 @@ def sphere_volume(radius: float) -> float:
         raise TypeError("radius must be a number")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return float((4 / 3) * math.pi * radius ** 3)
+    return float((4 / 3) * math.pi * radius**3)
 
 
 def cube_surface_area(side: float) -> float:
@@ -562,7 +563,7 @@ def cube_surface_area(side: float) -> float:
         raise TypeError("side must be a number")
     if side < 0:
         raise ValueError("Side cannot be negative.")
-    return float(6 * side ** 2)
+    return float(6 * side**2)
 
 
 def cube_volume(side: float) -> float:
@@ -571,7 +572,7 @@ def cube_volume(side: float) -> float:
         raise TypeError("side must be a number")
     if side < 0:
         raise ValueError("Side cannot be negative.")
-    return float(side ** 3)
+    return float(side**3)
 
 
 def cuboid_surface_area(length: float, width: float, height: float) -> float:
@@ -622,7 +623,7 @@ def cylinder_surface_area(radius: float, height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float(2 * math.pi * radius ** 2 + 2 * math.pi * radius * height)
+    return float(2 * math.pi * radius**2 + 2 * math.pi * radius * height)
 
 
 def cylinder_volume(radius: float, height: float) -> float:
@@ -635,7 +636,7 @@ def cylinder_volume(radius: float, height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float(math.pi * radius ** 2 * height)
+    return float(math.pi * radius**2 * height)
 
 
 def cone_surface_area(radius: float, slant_height: float) -> float:
@@ -648,7 +649,7 @@ def cone_surface_area(radius: float, slant_height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if slant_height < 0:
         raise ValueError("Slant height cannot be negative.")
-    return float(math.pi * radius ** 2 + math.pi * radius * slant_height)
+    return float(math.pi * radius**2 + math.pi * radius * slant_height)
 
 
 def cone_volume(radius: float, height: float) -> float:
@@ -661,7 +662,7 @@ def cone_volume(radius: float, height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float((1 / 3) * math.pi * radius ** 2 * height)
+    return float((1 / 3) * math.pi * radius**2 * height)
 
 
 def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
@@ -702,9 +703,7 @@ def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, f
     return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
 
 
-def point_in_circle(
-    point: tuple[float, float], center: tuple[float, float], radius: float
-) -> bool:
+def point_in_circle(point: tuple[float, float], center: tuple[float, float], radius: float) -> bool:
     """Return True if point is inside or on the circle."""
     if not isinstance(radius, (int, float)) or isinstance(radius, bool):
         raise TypeError("radius must be a number")

@@ -10,7 +10,6 @@ __all__ = [
 ]
 
 
-
 def cfmakeraw(mode):
     return _tty.cfmakeraw(mode)
 

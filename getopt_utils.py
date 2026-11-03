@@ -8,7 +8,6 @@ __all__ = [
 ]
 
 
-
 def getopt(args, shortopts, longopts=()):
     if not isinstance(args, (list, tuple)):
         raise TypeError("args must be a list or tuple")

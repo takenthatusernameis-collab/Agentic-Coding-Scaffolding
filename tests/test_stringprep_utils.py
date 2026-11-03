@@ -174,9 +174,7 @@ class TestStringprepUtils(unittest.TestCase):
 
     def test_all_is_sorted_and_unique(self):
         self.assertIsNotNone(stringprep_utils.__all__)
-        self.assertEqual(
-            len(stringprep_utils.__all__), len(set(stringprep_utils.__all__))
-        )
+        self.assertEqual(len(stringprep_utils.__all__), len(set(stringprep_utils.__all__)))
         self.assertEqual(stringprep_utils.__all__, sorted(stringprep_utils.__all__))
         for name in stringprep_utils.__all__:
             self.assertTrue(hasattr(stringprep_utils, name), name)

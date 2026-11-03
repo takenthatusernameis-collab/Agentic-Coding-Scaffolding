@@ -256,9 +256,7 @@ def wrap_text(text: str, width: int = 70) -> str:
     return textwrap.fill(text, width=width)
 
 
-def wrap_words(
-    text: str, width: int = 70, break_long_words: bool = True
-) -> str:
+def wrap_words(text: str, width: int = 70, break_long_words: bool = True) -> str:
     """Wrap *text* into lines of at most *width* characters.
 
     Words are split on whitespace and greedily packed into lines. A word

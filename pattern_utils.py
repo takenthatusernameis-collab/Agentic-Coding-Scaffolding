@@ -22,7 +22,6 @@ __all__ = [
 ]
 
 
-
 class Singleton(type):
     """Metaclass that restricts a class to a single instance.
 

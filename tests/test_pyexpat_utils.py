@@ -257,7 +257,7 @@ class TestHandlers(unittest.TestCase):
             instructions.append((target, data))
 
         pyexpat_utils.set_processing_instruction_handler(parser, instruction)
-        pyexpat_utils.parse_text(parser, '<?target data?><doc/>')
+        pyexpat_utils.parse_text(parser, "<?target data?><doc/>")
         self.assertEqual(instructions, [("target", "data")])
 
 

@@ -74,6 +74,7 @@ __all__ = [
     "sign",
 ]
 
+
 def _require_number(value: object, name: str) -> Number:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number, got {type(value).__name__}")
@@ -157,7 +158,7 @@ def round_half_up(value: Number, places: int = 0) -> float:
         raise TypeError(f"places must be an int, got {type(places).__name__}")
     if places < 0:
         raise ValueError("places must be non-negative")
-    factor = 10 ** places
+    factor = 10**places
     scaled = value * factor
     if scaled >= 0:
         return float(math.floor(scaled + 0.5) / factor)
@@ -357,7 +358,7 @@ def is_pronic_number(value: Number) -> bool:
     if int(value) != value or value < 0:
         return False
     n = int(value)
-    root = int(n ** 0.5)
+    root = int(n**0.5)
     return root * (root + 1) == n or (root + 1) * (root + 2) == n
 
 
@@ -586,9 +587,9 @@ def is_perfect_cube(value: Number) -> bool:
     root = int(round(abs(n) ** (1.0 / 3.0)))
     while (root + 1) ** 3 <= abs(n):
         root += 1
-    while root ** 3 > abs(n):
+    while root**3 > abs(n):
         root -= 1
-    return root ** 3 == abs(n)
+    return root**3 == abs(n)
 
 
 def is_perfect_square(value: Number) -> bool:
@@ -612,9 +613,9 @@ def is_perfect_square(value: Number) -> bool:
     root = int(round(abs(n) ** 0.5))
     while (root + 1) ** 2 <= abs(n):
         root += 1
-    while root ** 2 > abs(n):
+    while root**2 > abs(n):
         root -= 1
-    return root ** 2 == abs(n)
+    return root**2 == abs(n)
 
 
 def is_power_of_two(value: Number) -> bool:
@@ -687,7 +688,7 @@ def is_perfect_power(value: Number) -> bool:
         for candidate in (a - 1, a, a + 1):
             if candidate < 2:
                 continue
-            if candidate ** b == n:
+            if candidate**b == n:
                 return True
     return False
 
@@ -747,7 +748,6 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
     if denominator == 0:
         return 0.0
     return numerator / denominator
-
 
 
 def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:
@@ -1292,7 +1292,7 @@ def is_happy_number(value: int) -> bool:
         True
         >>> is_happy_number(2)
         False
-        """
+    """
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     if value < 0:
@@ -1303,7 +1303,6 @@ def is_happy_number(value: int) -> bool:
         seen.add(n)
         n = sum(int(d) * int(d) for d in str(n))
     return n == 1
-
 
 
 def is_kaprekar_number(value: int) -> bool:

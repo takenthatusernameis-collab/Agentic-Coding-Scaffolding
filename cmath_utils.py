@@ -40,7 +40,6 @@ __all__ = [
 ]
 
 
-
 def _validate_number(value: Any, name: str) -> None:
     """Validate that *value* is a numeric type, raising ``TypeError`` otherwise.
 

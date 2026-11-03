@@ -15,9 +15,9 @@ __all__ = [
 ]
 
 
-
 def warn(
-    message: Union[Warning, str], category: Type[Warning] = UserWarning,
+    message: Union[Warning, str],
+    category: Type[Warning] = UserWarning,
     stacklevel: int = 1,
 ) -> None:
     """Issue a warning."""
@@ -31,8 +31,10 @@ def warn(
 
 
 def simplefilter(
-    action: str, category: Type[Warning] = Warning,
-    lineno: int = 0, append: bool = False,
+    action: str,
+    category: Type[Warning] = Warning,
+    lineno: int = 0,
+    append: bool = False,
 ) -> None:
     """Insert a simple entry into the list of warnings filters."""
     if not isinstance(action, str):
@@ -45,14 +47,16 @@ def simplefilter(
         raise TypeError("lineno must be an integer")
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
-    warnings.simplefilter(
-        cast(Action, action), category=category, lineno=lineno, append=append
-    )
+    warnings.simplefilter(cast(Action, action), category=category, lineno=lineno, append=append)
 
 
 def filterwarnings(
-    action: str, message: str = "", category: Type[Warning] = Warning,
-    module: str = "", lineno: int = 0, append: bool = False,
+    action: str,
+    message: str = "",
+    category: Type[Warning] = Warning,
+    module: str = "",
+    lineno: int = 0,
+    append: bool = False,
 ) -> None:
     """Insert an entry into the list of warnings filters."""
     if not isinstance(action, str):
@@ -70,8 +74,12 @@ def filterwarnings(
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
     warnings.filterwarnings(
-        cast(Action, action), message=message, category=category,
-        module=module, lineno=lineno, append=append,
+        cast(Action, action),
+        message=message,
+        category=category,
+        module=module,
+        lineno=lineno,
+        append=append,
     )
 
 
@@ -88,8 +96,12 @@ def catch_warnings(record: bool = False, module=None):
 
 
 def showwarning(
-    message: Warning, category: Type[Warning], filename: str, lineno: int,
-    file=None, line: Optional[str] = None,
+    message: Warning,
+    category: Type[Warning],
+    filename: str,
+    lineno: int,
+    file=None,
+    line: Optional[str] = None,
 ) -> None:
     """Call showwarning with arguments."""
     if not isinstance(message, Warning):
@@ -106,7 +118,10 @@ def showwarning(
 
 
 def formatwarning(
-    message: Warning, category: Type[Warning], filename: str, lineno: int,
+    message: Warning,
+    category: Type[Warning],
+    filename: str,
+    lineno: int,
     line: Optional[str] = None,
 ) -> str:
     """Format a warning the standard way."""

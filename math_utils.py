@@ -297,6 +297,7 @@ def is_even(value: int) -> bool:
     value = _require_int(value, "value")
     return value % 2 == 0
 
+
 def is_odd(value: int) -> bool:
     """Return True if *value* is an odd integer.
 

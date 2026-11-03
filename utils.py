@@ -70,13 +70,6 @@ __all__ = [
 ]
 
 
-
-
-
-
-
-
-
 class Comparable(Protocol):
     def __lt__(self, other: Any) -> bool: ...
 

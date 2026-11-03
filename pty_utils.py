@@ -241,9 +241,7 @@ def spawn(
         raise ValueError("argv must not be empty")
     for index, argument in enumerate(argv):
         if not isinstance(argument, str):
-            raise TypeError(
-                f"argv[{index}] must be a str, got {type(argument).__name__}"
-            )
+            raise TypeError(f"argv[{index}] must be a str, got {type(argument).__name__}")
     for name, callback in (("master_read", master_read), ("stdin_read", stdin_read)):
         if callback is not None and not callable(callback):
             raise TypeError(f"{name} must be callable, got {type(callback).__name__}")

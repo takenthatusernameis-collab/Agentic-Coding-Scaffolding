@@ -20,7 +20,6 @@ __all__ = [
 ]
 
 
-
 def _parser() -> configparser.ConfigParser:
     parser = _CasePreservingConfigParser()
     return parser

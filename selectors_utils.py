@@ -28,7 +28,6 @@ __all__ = [
 ]
 
 
-
 def _validate_fileobj(value: Any, name: str) -> None:
     """Validate that *value* is a file object or integer file descriptor.
 

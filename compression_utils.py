@@ -20,7 +20,6 @@ __all__ = [
 ]
 
 
-
 def gzip_compress(data: Union[bytes, str], encoding: str = "utf-8") -> bytes:
     """Compress data using gzip."""
     if isinstance(data, str):

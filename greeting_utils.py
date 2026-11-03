@@ -12,6 +12,7 @@ __all__ = [
     "multi_greet",
 ]
 
+
 def format_greeting(name: str, greeting: str = "Hello") -> str:
     """Return a formatted greeting string for the given name.
 

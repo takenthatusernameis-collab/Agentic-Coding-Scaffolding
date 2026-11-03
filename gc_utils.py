@@ -19,7 +19,6 @@ __all__ = [
 ]
 
 
-
 def enable() -> None:
     gc.enable()
 

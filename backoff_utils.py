@@ -8,7 +8,6 @@ __all__ = [
 ]
 
 
-
 def constant_backoff(delay: float) -> float:
     """Return a fixed backoff delay for every attempt.
 

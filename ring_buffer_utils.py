@@ -22,7 +22,6 @@ __all__ = [
 ]
 
 
-
 class RingBuffer(Generic[T]):
     """A fixed-capacity circular buffer.
 

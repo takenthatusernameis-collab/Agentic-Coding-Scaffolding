@@ -37,7 +37,10 @@ class TestParseUrl(unittest.TestCase):
     """Verify parsing a URL into its components."""
 
     def test_parse_url_matches_the_standard_library(self):
-        self.assertEqual(parse_url("https://example.com:8080/path;params?q=1#frag"), _urllib_parse.urlparse("https://example.com:8080/path;params?q=1#frag"))
+        self.assertEqual(
+            parse_url("https://example.com:8080/path;params?q=1#frag"),
+            _urllib_parse.urlparse("https://example.com:8080/path;params?q=1#frag"),
+        )
 
     def test_parse_url_reports_the_components(self):
         result = parse_url("https://user:pass@example.com:8080/path;params?key=value#fragment")
@@ -87,7 +90,10 @@ class TestUrlsplit(unittest.TestCase):
     """Verify splitting a URL without separating the parameters."""
 
     def test_urlsplit_matches_the_standard_library(self):
-        self.assertEqual(urlsplit("https://example.com/path;params?q=1#frag"), _urllib_parse.urlsplit("https://example.com/path;params?q=1#frag"))
+        self.assertEqual(
+            urlsplit("https://example.com/path;params?q=1#frag"),
+            _urllib_parse.urlsplit("https://example.com/path;params?q=1#frag"),
+        )
 
     def test_urlsplit_reports_the_components(self):
         result = urlsplit("https://example.com/path?q=1#frag")
@@ -266,7 +272,10 @@ class TestDefrag(unittest.TestCase):
     """Verify removing the fragment from a URL."""
 
     def test_defrag_matches_the_standard_library(self):
-        self.assertEqual(defrag("https://example.com/path#frag"), _urllib_parse.urldefrag("https://example.com/path#frag"))
+        self.assertEqual(
+            defrag("https://example.com/path#frag"),
+            _urllib_parse.urldefrag("https://example.com/path#frag"),
+        )
 
     def test_defrag_returns_the_url_and_the_fragment(self):
         self.assertEqual(

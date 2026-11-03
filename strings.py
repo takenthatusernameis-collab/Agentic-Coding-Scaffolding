@@ -1148,7 +1148,7 @@ def is_integer(s: str) -> bool:
     s_stripped = s.strip()
     if not s_stripped:
         return False
-    if s_stripped[0] in ('+', '-'):
+    if s_stripped[0] in ("+", "-"):
         if len(s_stripped) == 1:
             return False
         return s_stripped[1:].isdigit()
@@ -1211,9 +1211,7 @@ def is_decimal(s: str) -> bool:
         return False
     if "." in s_stripped:
         int_part, _, frac_part = s_stripped.partition(".")
-        return bool(
-            int_part.isdigit() and frac_part.isdigit() and (int_part or frac_part)
-        )
+        return bool(int_part.isdigit() and frac_part.isdigit() and (int_part or frac_part))
     return s_stripped.isdigit()
 
 
@@ -1631,7 +1629,7 @@ def common_suffix(s1: str, s2: str) -> str:
     index = 0
     while index < limit and s1[-1 - index] == s2[-1 - index]:
         index += 1
-    return s1[len(s1) - index:]
+    return s1[len(s1) - index :]
 
 
 def char_frequency(s: str) -> dict:
@@ -1896,7 +1894,6 @@ def count_letters(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
-
 
 
 def count_punctuation(s: str) -> int:

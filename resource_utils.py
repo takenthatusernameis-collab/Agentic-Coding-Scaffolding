@@ -353,12 +353,7 @@ def _check_limits(soft: int, hard: int, current: Limit) -> None:
     infinity = RLIM_INFINITY
     if soft != infinity and hard != infinity and soft > hard:
         raise ValueError(f"the soft limit ({soft}) must not exceed the hard limit ({hard})")
-    if (
-        soft != infinity
-        and hard != infinity
-        and current.hard != infinity
-        and soft > current.hard
-    ):
+    if soft != infinity and hard != infinity and current.hard != infinity and soft > current.hard:
         raise ValueError(
             f"the soft limit ({soft}) must not exceed the hard limit "
             f"the process may raise ({current.hard})"

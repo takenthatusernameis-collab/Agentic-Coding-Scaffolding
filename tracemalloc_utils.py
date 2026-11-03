@@ -12,7 +12,6 @@ __all__ = [
 ]
 
 
-
 def is_tracing():
     """Return whether tracemalloc is currently tracing allocations."""
     return _tracemalloc.is_tracing()

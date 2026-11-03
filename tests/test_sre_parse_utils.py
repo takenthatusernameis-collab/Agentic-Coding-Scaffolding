@@ -144,9 +144,7 @@ def test_exports() -> None:
         try:
             assert hasattr(sre_parse_utils, name), name
         except AssertionError:
-            if sre_parse_utils.is_available() and hasattr(
-                sre_parse_utils._sre_parse, name
-            ):
+            if sre_parse_utils.is_available() and hasattr(sre_parse_utils._sre_parse, name):
                 pass
             else:
                 raise

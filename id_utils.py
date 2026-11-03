@@ -13,7 +13,6 @@ __all__ = [
 ]
 
 
-
 def generate_id(length: int = 8) -> str:
     """Return a URL-safe random identifier of the given length.
 

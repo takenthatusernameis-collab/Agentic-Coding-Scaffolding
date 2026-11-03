@@ -249,9 +249,7 @@ def _require_count(value: Any, name: str = "count") -> int:
     return value
 
 
-def _require_handler(
-    value: Any, name: str
-) -> Optional[Callable[..., Any]]:
+def _require_handler(value: Any, name: str) -> Optional[Callable[..., Any]]:
     """Return *value* as a handler of the parser.
 
     Args:
@@ -524,9 +522,7 @@ def set_end_element_handler(parser: Any, handler: Any) -> None:
     parser.EndElementHandler = func
 
 
-def set_element_handlers(
-    parser: Any, start_handler: Any, end_handler: Any
-) -> None:
+def set_element_handlers(parser: Any, start_handler: Any, end_handler: Any) -> None:
     """Set the handlers that are called when an element starts and ends.
 
     Args:
@@ -635,7 +631,5 @@ def attribute_mapping(attributes: Any) -> ElementAttributes:
         TypeError: If *attributes* is not a mapping.
     """
     if not isinstance(attributes, Mapping):
-        raise TypeError(
-            f"attributes must be a mapping, got {type(attributes).__name__}"
-        )
+        raise TypeError(f"attributes must be a mapping, got {type(attributes).__name__}")
     return {str(key): str(value) for key, value in attributes.items()}

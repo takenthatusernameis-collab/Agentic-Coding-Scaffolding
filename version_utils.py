@@ -93,7 +93,7 @@ def parse_version(version: str) -> Tuple[int, ...]:
     if not version:
         raise TypeError("version must be a non-empty string")
     # Strip leading 'v' or 'V' if present
-    if version and version[0] in ('v', 'V'):
+    if version and version[0] in ("v", "V"):
         version = version[1:]
     if not version:
         raise ValueError("invalid version")
@@ -123,7 +123,6 @@ def version_to_tuple(version: str) -> Tuple[int, ...]:
 to_tuple = version_to_tuple
 
 
-
 def compare_versions(a: str, b: str) -> int:
     """Compare two version strings. Return -1/0/1 like strcmp."""
     va = parse_version(a)
@@ -138,7 +137,6 @@ def compare_versions(a: str, b: str) -> int:
 cmp_versions = compare_versions
 compare = compare_versions
 cmp = compare_versions
-
 
 
 def is_greater(a: str, b: str) -> bool:
@@ -163,7 +161,6 @@ is_newer = is_greater
 is_older = is_less
 
 
-
 def normalize_version(version: str, length: int = 3) -> str:
     """Pad a version string with zero components to the given length."""
     if not isinstance(version, str):
@@ -173,7 +170,7 @@ def normalize_version(version: str, length: int = 3) -> str:
     if length < 0:
         raise ValueError("length must be non-negative")
     # Handle v prefix
-    if version and version[0] in ('v', 'V'):
+    if version and version[0] in ("v", "V"):
         version = version[1:]
     parts = list(parse_version(version))
     while len(parts) < length:
@@ -192,7 +189,6 @@ def tuple_to_version(version_tuple: Tuple[int, ...]) -> str:
 
 
 from_tuple = tuple_to_version
-
 
 
 def bump_major(version: str) -> str:
@@ -220,7 +216,6 @@ def bump_major(version: str) -> str:
 
 
 increment_major = bump_major
-
 
 
 def bump_minor(version: str) -> str:
@@ -251,7 +246,6 @@ def bump_minor(version: str) -> str:
 
 
 increment_minor = bump_minor
-
 
 
 def bump_patch(version: str) -> str:
@@ -312,10 +306,7 @@ def bump_version(version: str, part: str = "patch") -> str:
         return bump_minor(version)
     if normalized == "patch":
         return bump_patch(version)
-    raise ValueError(
-        "part must be one of 'major', 'minor', or 'patch', "
-        f"got {part!r}"
-    )
+    raise ValueError(f"part must be one of 'major', 'minor', or 'patch', got {part!r}")
 
 
 bump = bump_version
@@ -437,7 +428,6 @@ def is_valid_version(version: object) -> bool:
 is_semver = is_valid_version
 
 
-
 def get_major_version(version: str) -> int:
     """Return the major version component.
 
@@ -498,7 +488,6 @@ def get_patch_version(version: str) -> int:
 major = get_major_version
 minor = get_minor_version
 patch = get_patch_version
-
 
 
 def is_stable(version: str) -> bool:
@@ -676,6 +665,7 @@ def has_build_metadata(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "+" in version
+
 
 def has_prerelease(version: str) -> bool:
     """Return True if *version* carries a pre-release suffix.
@@ -950,10 +940,7 @@ def decrement_version(version: str, part: str = "patch") -> str:
         return decrement_minor(version)
     if normalized == "patch":
         return decrement_patch(version)
-    raise ValueError(
-        "part must be one of 'major', 'minor', or 'patch', "
-        f"got {part!r}"
-    )
+    raise ValueError(f"part must be one of 'major', 'minor', or 'patch', got {part!r}")
 
 
 decrement = decrement_version
@@ -1017,9 +1004,7 @@ def is_version_at_most(version: str, maximum: str) -> bool:
     return compare_versions(version, maximum) <= 0
 
 
-def is_version_between(
-    version: str, lower: str, upper: str, inclusive: bool = True
-) -> bool:
+def is_version_between(version: str, lower: str, upper: str, inclusive: bool = True) -> bool:
     """Return True if *version* is between *lower* and *upper*.
 
     Args:
@@ -1054,9 +1039,7 @@ def is_version_between(
     if not isinstance(inclusive, bool):
         raise TypeError("inclusive must be a bool")
     if inclusive:
-        return compare_versions(version, lower) >= 0 and compare_versions(
-            version, upper
-        ) <= 0
+        return compare_versions(version, lower) >= 0 and compare_versions(version, upper) <= 0
     return compare_versions(version, lower) > 0 and compare_versions(version, upper) < 0
 
 

@@ -31,9 +31,7 @@ except Exception:  # pragma: no cover
 def _sre_compile_module() -> Any:
     """Return the standard library ``sre_compile`` module."""
     if _sre_compile is None:  # pragma: no cover
-        raise RuntimeError(
-            "the standard library 'sre_compile' module is not available"
-        )
+        raise RuntimeError("the standard library 'sre_compile' module is not available")
     return _sre_compile
 
 

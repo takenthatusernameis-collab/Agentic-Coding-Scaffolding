@@ -76,9 +76,7 @@ def _require_path(path: Any) -> Optional[Sequence[str]]:
     try:
         entries = list(path)
     except TypeError as exc:
-        raise TypeError(
-            f"path must be a sequence of strings, got {type(path).__name__}"
-        ) from exc
+        raise TypeError(f"path must be a sequence of strings, got {type(path).__name__}") from exc
     for entry in entries:
         if not isinstance(entry, str):
             raise TypeError(f"path entries must be str, got {type(entry).__name__}")
@@ -103,9 +101,7 @@ def _require_module_dict(result: Any) -> Dict[str, Any]:
     return result
 
 
-def read_module(
-    module_name: str, path: Optional[Sequence[str]] = None
-) -> Dict[str, Class]:
+def read_module(module_name: str, path: Optional[Sequence[str]] = None) -> Dict[str, Class]:
     """Return the classes defined in *module_name*.
 
     The source of *module_name* is read statically — it is never imported or
@@ -128,9 +124,7 @@ def read_module(
     return pyclbr.readmodule(module_name, search_path)
 
 
-def read_module_ex(
-    module_name: str, path: Optional[Sequence[str]] = None
-) -> Dict[str, Any]:
+def read_module_ex(module_name: str, path: Optional[Sequence[str]] = None) -> Dict[str, Any]:
     """Return the classes and functions defined in *module_name*.
 
     Like :func:`read_module`, but the result also contains the top-level
@@ -169,9 +163,7 @@ def class_names(result: Dict[str, Any]) -> List[str]:
         TypeError: If *result* is not a mapping.
     """
     target = _require_module_dict(result)
-    return sorted(
-        name for name, value in target.items() if isinstance(value, Class)
-    )
+    return sorted(name for name, value in target.items() if isinstance(value, Class))
 
 
 def function_names(result: Dict[str, Any]) -> List[str]:
@@ -188,9 +180,7 @@ def function_names(result: Dict[str, Any]) -> List[str]:
         TypeError: If *result* is not a mapping.
     """
     target = _require_module_dict(result)
-    return sorted(
-        name for name, value in target.items() if isinstance(value, Function)
-    )
+    return sorted(name for name, value in target.items() if isinstance(value, Function))
 
 
 def find_class(result: Dict[str, Any], name: str) -> Optional[Class]:

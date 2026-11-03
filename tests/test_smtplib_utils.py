@@ -76,25 +76,15 @@ class TestExports(unittest.TestCase):
 
     def test_error_classes_exported(self):
         self.assertIs(smtplib_utils.SMTPException, smtplib.SMTPException)
-        self.assertIs(
-            smtplib_utils.SMTPNotSupportedError, smtplib.SMTPNotSupportedError
-        )
-        self.assertIs(
-            smtplib_utils.SMTPServerDisconnected, smtplib.SMTPServerDisconnected
-        )
-        self.assertIs(
-            smtplib_utils.SMTPResponseException, smtplib.SMTPResponseException
-        )
+        self.assertIs(smtplib_utils.SMTPNotSupportedError, smtplib.SMTPNotSupportedError)
+        self.assertIs(smtplib_utils.SMTPServerDisconnected, smtplib.SMTPServerDisconnected)
+        self.assertIs(smtplib_utils.SMTPResponseException, smtplib.SMTPResponseException)
         self.assertIs(smtplib_utils.SMTPSenderRefused, smtplib.SMTPSenderRefused)
-        self.assertIs(
-            smtplib_utils.SMTPRecipientsRefused, smtplib.SMTPRecipientsRefused
-        )
+        self.assertIs(smtplib_utils.SMTPRecipientsRefused, smtplib.SMTPRecipientsRefused)
         self.assertIs(smtplib_utils.SMTPDataError, smtplib.SMTPDataError)
         self.assertIs(smtplib_utils.SMTPConnectError, smtplib.SMTPConnectError)
         self.assertIs(smtplib_utils.SMTPHeloError, smtplib.SMTPHeloError)
-        self.assertIs(
-            smtplib_utils.SMTPAuthenticationError, smtplib.SMTPAuthenticationError
-        )
+        self.assertIs(smtplib_utils.SMTPAuthenticationError, smtplib.SMTPAuthenticationError)
 
 
 class TestAddressHelpers(unittest.TestCase):
@@ -212,9 +202,7 @@ class TestParseEhloFeatures(unittest.TestCase):
         features = smtplib_utils.parse_ehlo_features(
             "mail.example.com Hello\nSIZE 35882577\n8BITMIME\nHELP"
         )
-        self.assertEqual(
-            features, {"size": "35882577", "8bitmime": "", "help": ""}
-        )
+        self.assertEqual(features, {"size": "35882577", "8bitmime": "", "help": ""})
 
     def test_raw_reply_form(self):
         features = smtplib_utils.parse_ehlo_features(
@@ -227,9 +215,7 @@ class TestParseEhloFeatures(unittest.TestCase):
         self.assertEqual(features, {"size": "100"})
 
     def test_auth_mechanisms_are_merged(self):
-        features = smtplib_utils.parse_ehlo_features(
-            "AUTH LOGIN PLAIN", skip_greeting=False
-        )
+        features = smtplib_utils.parse_ehlo_features("AUTH LOGIN PLAIN", skip_greeting=False)
         self.assertEqual(features, {"auth": "LOGIN PLAIN"})
 
     def test_empty_response(self):
@@ -296,9 +282,7 @@ class TestBuildMessage(unittest.TestCase):
             html="<p>Body</p>",
         )
         self.assertEqual(message.get_content_type(), "multipart/alternative")
-        self.assertEqual(
-            message.get_body(preferencelist=("plain",)).get_content().strip(), "Body"
-        )
+        self.assertEqual(message.get_body(preferencelist=("plain",)).get_content().strip(), "Body")
         self.assertEqual(
             message.get_body(preferencelist=("html",)).get_content().strip(), "<p>Body</p>"
         )
@@ -466,8 +450,11 @@ class TestCreateSmtpSsl(unittest.TestCase):
 
     def test_client_wraps_the_socket(self):
         fake, patcher = connected_socket([GREETING])
-        with patcher, mock.patch.object(
-            ssl.SSLContext, "wrap_socket", side_effect=lambda sock, **kwargs: sock
+        with (
+            patcher,
+            mock.patch.object(
+                ssl.SSLContext, "wrap_socket", side_effect=lambda sock, **kwargs: sock
+            ),
         ):
             client = smtplib_utils.create_smtp_ssl(
                 "mail.example.com", 465, local_hostname="client.example.org"
@@ -507,13 +494,17 @@ class TestSend(unittest.TestCase):
         return fake, patcher
 
     def test_send_text_runs_a_full_transaction(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-            "221 Bye\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+                "221 Bye\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -538,13 +529,17 @@ class TestSend(unittest.TestCase):
         self.assertEqual(commands[5], "quit")
 
     def test_bcc_reaches_the_envelope_only(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -563,13 +558,17 @@ class TestSend(unittest.TestCase):
         self.assertNotIn("Bcc: hidden@example.com", commands[4])
 
     def test_refused_recipient_is_reported(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "550 No such user\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "550 No such user\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -587,11 +586,15 @@ class TestSend(unittest.TestCase):
         self.assertEqual(refused["bob@example.com"][1], b"No such user")
 
     def test_all_recipients_refused_raises(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "550 No such user\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "550 No such user\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -609,12 +612,16 @@ class TestSend(unittest.TestCase):
         self.assertIn("rset", fake.commands())
 
     def test_send_message_uses_the_message_headers(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         message = smtplib_utils.build_message(
             "alice@example.com", ["bob@example.com"], "Report", "The body"
@@ -650,12 +657,16 @@ class TestSend(unittest.TestCase):
             smtplib_utils.send_message(client, message, mail_options=(5,))  # type: ignore[arg-type]
 
     def test_mail_options_are_forwarded(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -686,22 +697,14 @@ class TestErrorPredicates(unittest.TestCase):
                 smtplib.SMTPRecipientsRefused({"a": (550, b"x")})
             )
         )
-        self.assertTrue(
-            smtplib_utils.is_smtp_data_error(smtplib.SMTPDataError(451, b"x"))
-        )
-        self.assertTrue(
-            smtplib_utils.is_smtp_helo_error(smtplib.SMTPHeloError(550, b"x"))
-        )
-        self.assertTrue(
-            smtplib_utils.is_smtp_not_supported(smtplib.SMTPNotSupportedError("x"))
-        )
+        self.assertTrue(smtplib_utils.is_smtp_data_error(smtplib.SMTPDataError(451, b"x")))
+        self.assertTrue(smtplib_utils.is_smtp_helo_error(smtplib.SMTPHeloError(550, b"x")))
+        self.assertTrue(smtplib_utils.is_smtp_not_supported(smtplib.SMTPNotSupportedError("x")))
         self.assertTrue(
             smtplib_utils.is_smtp_server_disconnected(smtplib.SMTPServerDisconnected("x"))
         )
         self.assertTrue(
-            smtplib_utils.is_smtp_authentication_error(
-                smtplib.SMTPAuthenticationError(535, b"x")
-            )
+            smtplib_utils.is_smtp_authentication_error(smtplib.SMTPAuthenticationError(535, b"x"))
         )
 
     def test_predicates_reject_other_errors(self):
@@ -716,9 +719,7 @@ class TestErrorPredicates(unittest.TestCase):
         self.assertFalse(smtplib_utils.is_smtp_authentication_error(ValueError("x")))
 
     def test_response_error_is_an_smtp_error(self):
-        self.assertTrue(
-            smtplib_utils.is_smtp_error(smtplib.SMTPResponseException(500, "x"))
-        )
+        self.assertTrue(smtplib_utils.is_smtp_error(smtplib.SMTPResponseException(500, "x")))
 
 
 if __name__ == "__main__":

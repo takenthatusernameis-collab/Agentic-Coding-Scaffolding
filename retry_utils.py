@@ -12,7 +12,6 @@ __all__ = [
 ]
 
 
-
 def retry(
     max_attempts: int = 3,
     delay: float = 0.1,

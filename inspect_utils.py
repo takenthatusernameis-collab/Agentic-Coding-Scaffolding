@@ -28,7 +28,6 @@ __all__ = [
 ]
 
 
-
 def get_callable_name(func: Any) -> str:
     """Return the name of *func* or the class name of a callable instance.
 

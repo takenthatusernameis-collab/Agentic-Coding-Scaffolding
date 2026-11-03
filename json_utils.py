@@ -13,7 +13,6 @@ __all__ = [
 ]
 
 
-
 def read_json(path: str) -> Any:
     """Read JSON data from a file."""
     with open(path, "r", encoding="utf-8") as f:

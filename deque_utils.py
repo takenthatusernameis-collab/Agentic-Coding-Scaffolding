@@ -1,4 +1,5 @@
 """Deque utilities wrapping the standard library collections.deque."""
+
 from collections import deque
 from typing import Any, Iterable, List, Optional
 

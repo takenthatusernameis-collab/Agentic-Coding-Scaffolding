@@ -36,11 +36,7 @@ PYPROJECT_HEREDOC = re.compile(
 
 def module_names() -> list[str]:
     """Return the repository's stdlib wrapper module stems."""
-    return sorted(
-        path.name[: -len(".py")]
-        for path in ROOT.glob("*_utils.py")
-        if path.is_file()
-    )
+    return sorted(path.name[: -len(".py")] for path in ROOT.glob("*_utils.py") if path.is_file())
 
 
 def embedded_bodies(scaffold_text: str) -> dict[str, list[str]]:

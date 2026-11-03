@@ -12,7 +12,6 @@ __all__ = [
 ]
 
 
-
 def wrap_text(text: str, width: int = 70) -> List[str]:
     """Wrap *text* into a list of lines no longer than *width*."""
     if not isinstance(text, str):

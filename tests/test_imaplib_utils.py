@@ -135,9 +135,7 @@ class TestParseCapabilities(unittest.TestCase):
         self.assertEqual(parsed, ["IMAP4rev1", "STARTTLS"])
 
     def test_parse_bracketed_capability_greeting(self):
-        parsed = imaplib_utils.parse_capabilities(
-            "* OK [CAPABILITY IMAP4rev1 AUTH=PLAIN] Ready"
-        )
+        parsed = imaplib_utils.parse_capabilities("* OK [CAPABILITY IMAP4rev1 AUTH=PLAIN] Ready")
         self.assertEqual(parsed, ["IMAP4rev1", "AUTH=PLAIN"])
 
     def test_parse_plain_capability_string(self):
@@ -188,9 +186,7 @@ class TestFlags(unittest.TestCase):
             imaplib_utils.parse_flags("(\\Seen)")  # type: ignore[arg-type]
 
     def test_parse_fetch_flags_from_fetch_response(self):
-        parsed = imaplib_utils.parse_fetch_flags(
-            "* 1 FETCH (UID 12 FLAGS (\\Seen \\Deleted))"
-        )
+        parsed = imaplib_utils.parse_fetch_flags("* 1 FETCH (UID 12 FLAGS (\\Seen \\Deleted))")
         self.assertEqual(parsed, ["\\Seen", "\\Deleted"])
 
     def test_parse_fetch_flags_without_flags_section(self):
@@ -201,9 +197,7 @@ class TestFlags(unittest.TestCase):
             imaplib_utils.parse_fetch_flags(None)  # type: ignore[arg-type]
 
     def test_format_flags_from_sequence(self):
-        self.assertEqual(
-            imaplib_utils.format_flags(["\\Seen", "\\Draft"]), "(\\Seen \\Draft)"
-        )
+        self.assertEqual(imaplib_utils.format_flags(["\\Seen", "\\Draft"]), "(\\Seen \\Draft)")
 
     def test_format_flags_from_string(self):
         self.assertEqual(imaplib_utils.format_flags("  \\Seen   \\Draft "), "(\\Seen \\Draft)")
@@ -220,9 +214,7 @@ class TestFlags(unittest.TestCase):
 
 class TestInternalDate(unittest.TestCase):
     def test_parse_internaldate(self):
-        parsed = imaplib_utils.parse_internaldate(
-            b'INTERNALDATE "05-Feb-2024 10:20:30 +0100"'
-        )
+        parsed = imaplib_utils.parse_internaldate(b'INTERNALDATE "05-Feb-2024 10:20:30 +0100"')
         self.assertIsNotNone(parsed)
         assert parsed is not None
         self.assertEqual(parsed.tm_year, 2024)

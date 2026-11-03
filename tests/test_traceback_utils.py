@@ -47,8 +47,13 @@ class TestExtractTb(unittest.TestCase):
 
     def test_extract_tb_with_limit(self):
         try:
-            def f1(): raise IndexError()
-            def f2(): f1()
+
+            def f1():
+                raise IndexError()
+
+            def f2():
+                f1()
+
             f2()
         except IndexError:
             _, _, tb = sys.exc_info()

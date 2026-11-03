@@ -62,8 +62,7 @@ class TestPublicAPI(unittest.TestCase):
 
     def test_every_module_has_all(self) -> None:
         missing_all = [
-            name for name in self.modules
-            if not hasattr(importlib.import_module(name), "__all__")
+            name for name in self.modules if not hasattr(importlib.import_module(name), "__all__")
         ]
         self.assertEqual(missing_all, [], f"modules missing __all__: {missing_all}")
 

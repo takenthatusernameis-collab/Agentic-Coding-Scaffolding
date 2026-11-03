@@ -10,7 +10,6 @@ __all__ = [
 ]
 
 
-
 def interact(banner=None, readfunc=None, local=None, exitmsg=None):
     """Run an interactive console (wrapping ``code.interact``)."""
     return _code.interact(banner=banner, readfunc=readfunc, local=local, exitmsg=exitmsg)

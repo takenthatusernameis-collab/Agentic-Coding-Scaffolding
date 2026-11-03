@@ -624,6 +624,7 @@ class TestStringUtilsBoundary(unittest.TestCase):
     def test_is_isogram_punctuation_heavy(self):
         self.assertTrue(is_isogram("a.b,c!d?e;f:g"))
         self.assertFalse(is_isogram("a.b,a!c?d;e:f"))
+
     def test_lines_respect_width(self):
         text = "The quick brown fox jumps over the lazy dog"
         for width in (1, 5, 10, 20, 70):
@@ -746,8 +747,6 @@ class TestDedentText(unittest.TestCase):
                     dedent_text(value)  # type: ignore[arg-type]
 
 
-
-
 class TestReverseWords(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(reverse_words("hello world"), "world hello")
@@ -768,7 +767,7 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
-from string_utils import split_paragraphs, count_words  # noqa: E402
+from string_utils import count_words, split_paragraphs  # noqa: E402
 
 
 class TestSplitParagraphs(unittest.TestCase):

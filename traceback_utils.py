@@ -19,9 +19,9 @@ __all__ = [
 ]
 
 
-
-def format_exception(etype_or_exc: Any, value: Any = None,
-                    tb: Any = None, *args, **kwargs) -> List[str]:
+def format_exception(
+    etype_or_exc: Any, value: Any = None, tb: Any = None, *args, **kwargs
+) -> List[str]:
     """Format a stack trace and the exception information."""
     if value is None and isinstance(etype_or_exc, BaseException):
         exc = etype_or_exc
@@ -64,8 +64,8 @@ def format_exc(limit: Optional[int] = None, chain: bool = True) -> str:
     if not isinstance(chain, bool):
         raise TypeError("chain must be a bool")
     result = traceback.format_exc(limit=limit, chain=chain)
-    if result == 'NoneType: None\n':
-        return ''
+    if result == "NoneType: None\n":
+        return ""
     return result
 
 
@@ -85,13 +85,20 @@ def extract_stack(f=None, limit: Optional[int] = None) -> List[Any]:
     return traceback.extract_stack(f, limit=limit)
 
 
-def print_exception(etype_or_exc: Any, value: Any = None, tb: Any = None,
-                    limit: Optional[int] = None, file=None, **kwargs) -> None:
+def print_exception(
+    etype_or_exc: Any,
+    value: Any = None,
+    tb: Any = None,
+    limit: Optional[int] = None,
+    file=None,
+    **kwargs,
+) -> None:
     """Print exception information and stack trace."""
     if value is None and isinstance(etype_or_exc, BaseException):
         exc = etype_or_exc
-        traceback.print_exception(type(exc), exc, exc.__traceback__,
-                                 limit=limit, file=file, **kwargs)
+        traceback.print_exception(
+            type(exc), exc, exc.__traceback__, limit=limit, file=file, **kwargs
+        )
         return
     etype = etype_or_exc
     if not isinstance(etype, type) or not issubclass(etype, BaseException):

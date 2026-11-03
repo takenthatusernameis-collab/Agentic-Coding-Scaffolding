@@ -80,9 +80,7 @@ async def sleep(seconds: float) -> None:
     await _asyncio.sleep(seconds)
 
 
-async def to_thread(
-    func: Callable[..., T], /, *args: Any, **kwargs: Any
-) -> T:
+async def to_thread(func: Callable[..., T], /, *args: Any, **kwargs: Any) -> T:
     """Run *func* in a worker thread and return its result.
 
     Args:
@@ -96,9 +94,7 @@ async def to_thread(
     return await _asyncio.to_thread(func, *args, **kwargs)
 
 
-async def wait_for(
-    coro: Coroutine[Any, Any, T], timeout: Optional[float] = None
-) -> T:
+async def wait_for(coro: Coroutine[Any, Any, T], timeout: Optional[float] = None) -> T:
     """Wait for *coro* with an optional *timeout*.
 
     Args:

@@ -65,18 +65,14 @@ def _require_text(value: object, name: str) -> str:
 def _require_table(table: object) -> _symtable.SymbolTable:
     """Return *table* when it is a symbol table, otherwise raise ``TypeError``."""
     if not isinstance(table, _symtable.SymbolTable):
-        raise TypeError(
-            f"table must be a symtable.SymbolTable, got {type(table).__name__}"
-        )
+        raise TypeError(f"table must be a symtable.SymbolTable, got {type(table).__name__}")
     return table
 
 
 def _require_symbol(symbol: object) -> _symtable.Symbol:
     """Return *symbol* when it is a symbol, otherwise raise ``TypeError``."""
     if not isinstance(symbol, _symtable.Symbol):
-        raise TypeError(
-            f"symbol must be a symtable.Symbol, got {type(symbol).__name__}"
-        )
+        raise TypeError(f"symbol must be a symtable.Symbol, got {type(symbol).__name__}")
     return symbol
 
 
@@ -119,9 +115,7 @@ def build_symbol_table(
     source_name = _require_text(filename, "filename")
     mode = _require_text(compile_type, "compile_type")
     if mode not in COMPILE_TYPES:
-        raise ValueError(
-            f"compile_type must be one of {', '.join(COMPILE_TYPES)}, got {mode!r}"
-        )
+        raise ValueError(f"compile_type must be one of {', '.join(COMPILE_TYPES)}, got {mode!r}")
     return _symtable.symtable(source, source_name, mode)
 
 
@@ -139,9 +133,7 @@ def _module_source(name: str) -> str:
     return origin
 
 
-def lookup_symbol_table(
-    name: str, filename: Optional[str] = None
-) -> _symtable.SymbolTable:
+def lookup_symbol_table(name: str, filename: Optional[str] = None) -> _symtable.SymbolTable:
     """Look up the symbol table of an importable module.
 
     The module is located with :func:`importlib.util.find_spec` and its
@@ -253,9 +245,7 @@ def iter_scopes(
             stack.append((path + (child.get_name(),), child))
 
 
-def find_scope(
-    table: _symtable.SymbolTable, name: str
-) -> Optional[_symtable.SymbolTable]:
+def find_scope(table: _symtable.SymbolTable, name: str) -> Optional[_symtable.SymbolTable]:
     """Find a nested scope by name.
 
     Args:

@@ -17,7 +17,6 @@ __all__ = [
 ]
 
 
-
 def load_config(file_path: Union[str, Path]) -> Dict[str, Any]:
     """Load configuration from a JSON file.
 

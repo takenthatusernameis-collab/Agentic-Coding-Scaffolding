@@ -106,9 +106,14 @@ class TestTemporaryFile(unittest.TestCase):
 
     def test_temporary_file_type_errors_all(self):
         cases = [
-            ("mode", 123), ("buffering", "x"), ("buffering", True),
-            ("encoding", 123), ("newline", 123), ("suffix", 123),
-            ("prefix", 123), ("dir", 123),
+            ("mode", 123),
+            ("buffering", "x"),
+            ("buffering", True),
+            ("encoding", 123),
+            ("newline", 123),
+            ("suffix", 123),
+            ("prefix", 123),
+            ("dir", 123),
         ]
         for name, val in cases:
             with self.assertRaises(TypeError):
@@ -138,9 +143,15 @@ class TestTempfileBoundary(unittest.TestCase):
 
     def test_named_temporary_file_type_errors_all(self):
         cases = [
-            ("mode", 123), ("buffering", "x"), ("buffering", True),
-            ("encoding", 123), ("newline", 123), ("suffix", 123),
-            ("prefix", 123), ("dir", 123), ("delete", "yes"),
+            ("mode", 123),
+            ("buffering", "x"),
+            ("buffering", True),
+            ("encoding", 123),
+            ("newline", 123),
+            ("suffix", 123),
+            ("prefix", 123),
+            ("dir", 123),
+            ("delete", "yes"),
         ]
         for name, val in cases:
             with self.assertRaises(TypeError):
@@ -153,9 +164,16 @@ class TestTempfileBoundary(unittest.TestCase):
 
     def test_spooled_temporary_file_type_errors_all(self):
         cases = [
-            ("max_size", "x"), ("max_size", True), ("mode", 123),
-            ("buffering", "x"), ("buffering", True), ("encoding", 123),
-            ("newline", 123), ("suffix", 123), ("prefix", 123), ("dir", 123),
+            ("max_size", "x"),
+            ("max_size", True),
+            ("mode", 123),
+            ("buffering", "x"),
+            ("buffering", True),
+            ("encoding", 123),
+            ("newline", 123),
+            ("suffix", 123),
+            ("prefix", 123),
+            ("dir", 123),
         ]
         for name, val in cases:
             with self.assertRaises(TypeError):

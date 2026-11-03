@@ -85,9 +85,7 @@ def _validate_file(file: Any) -> None:
             raise ValueError("file must be a valid file descriptor")
         return
     if not hasattr(file, "write") or not callable(file.write):
-        raise TypeError(
-            f"file must be a writable file object or None, got {type(file).__name__}"
-        )
+        raise TypeError(f"file must be a writable file object or None, got {type(file).__name__}")
     fileno = getattr(file, "fileno", None)
     if fileno is None:
         return

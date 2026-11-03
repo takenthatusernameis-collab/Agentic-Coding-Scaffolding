@@ -1272,9 +1272,30 @@ class TestIsTruncatablePrime(unittest.TestCase):
     def test_non_truncatable_primes(self):
         # Primes that fail left- or right-truncation
         for n in [
-            11, 13, 17, 19, 29, 31, 41, 43, 47, 59,
-            61, 67, 71, 79, 83, 89, 97, 101, 103,
-            107, 109, 113, 127, 131,
+            11,
+            13,
+            17,
+            19,
+            29,
+            31,
+            41,
+            43,
+            47,
+            59,
+            61,
+            67,
+            71,
+            79,
+            83,
+            89,
+            97,
+            101,
+            103,
+            107,
+            109,
+            113,
+            127,
+            131,
         ]:
             self.assertFalse(is_truncatable_prime(n), n)
 
@@ -1454,21 +1475,107 @@ class TestIsFermatNumber(unittest.TestCase):
 class TestIsStrongPrime(unittest.TestCase):
     def test_known_strong_primes(self):
         # OEIS A051634: 11, 17, 29, 37, 41, 59, 67, 71, 79, 97, ...
-        for n in (11, 17, 29, 37, 41, 59, 67, 71, 79, 97, 101, 107,
-                  127, 137, 149, 163, 179, 191, 197, 223, 227, 239,
-                  251, 269, 277, 281, 307, 311, 331, 347, 367, 379,
-                  397, 419, 431, 439, 457, 461, 479, 487, 499):
+        for n in (
+            11,
+            17,
+            29,
+            37,
+            41,
+            59,
+            67,
+            71,
+            79,
+            97,
+            101,
+            107,
+            127,
+            137,
+            149,
+            163,
+            179,
+            191,
+            197,
+            223,
+            227,
+            239,
+            251,
+            269,
+            277,
+            281,
+            307,
+            311,
+            331,
+            347,
+            367,
+            379,
+            397,
+            419,
+            431,
+            439,
+            457,
+            461,
+            479,
+            487,
+            499,
+        ):
             self.assertTrue(is_strong_prime(n), n)
 
     def test_balanced_and_weak_primes(self):
         # 5 is balanced ((3 + 7) / 2 == 5); 7, 13, 19, 23 are weak.
-        for n in (5, 7, 13, 19, 23, 31, 43, 47, 53, 61, 73, 83, 89, 103,
-                  109, 113, 131, 139, 151, 157, 167, 173, 181, 193, 199):
+        for n in (
+            5,
+            7,
+            13,
+            19,
+            23,
+            31,
+            43,
+            47,
+            53,
+            61,
+            73,
+            83,
+            89,
+            103,
+            109,
+            113,
+            131,
+            139,
+            151,
+            157,
+            167,
+            173,
+            181,
+            193,
+            199,
+        ):
             self.assertFalse(is_strong_prime(n), n)
 
     def test_non_primes(self):
-        for n in (1, 4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24,
-                  25, 26, 27, 28, 30, 100, 1000):
+        for n in (
+            1,
+            4,
+            6,
+            8,
+            9,
+            10,
+            12,
+            14,
+            15,
+            16,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            27,
+            28,
+            30,
+            100,
+            1000,
+        ):
             self.assertFalse(is_strong_prime(n), n)
 
     def test_boundary_primes(self):
@@ -1496,9 +1603,37 @@ if __name__ == "__main__":
 class TestIsBalancedPrime(unittest.TestCase):
     def test_known_balanced_primes(self):
         # OEIS A006562: balanced primes
-        for n in (5, 53, 157, 173, 211, 257, 263, 373, 563, 593, 607, 653,
-                  733, 947, 977, 1103, 1123, 1187, 1223, 1367, 1511,
-                  1753, 1907, 2287, 2417, 2677, 2903, 2963, 3307):
+        for n in (
+            5,
+            53,
+            157,
+            173,
+            211,
+            257,
+            263,
+            373,
+            563,
+            593,
+            607,
+            653,
+            733,
+            947,
+            977,
+            1103,
+            1123,
+            1187,
+            1223,
+            1367,
+            1511,
+            1753,
+            1907,
+            2287,
+            2417,
+            2677,
+            2903,
+            2963,
+            3307,
+        ):
             self.assertTrue(is_balanced_prime(n), n)
 
     def test_strong_and_weak_primes(self):
@@ -1529,9 +1664,29 @@ class TestIsBalancedPrime(unittest.TestCase):
 class TestIsWeakPrime(unittest.TestCase):
     def test_known_weak_primes(self):
         # OEIS A014224 weak primes (less than mean of neighbors)
-        for n in (7, 13, 19, 23, 31, 43, 47, 103, 109,
-                  131, 139, 151, 167, 181, 193, 199, 229, 241,
-                  271, 283, 293):
+        for n in (
+            7,
+            13,
+            19,
+            23,
+            31,
+            43,
+            47,
+            103,
+            109,
+            131,
+            139,
+            151,
+            167,
+            181,
+            193,
+            199,
+            229,
+            241,
+            271,
+            283,
+            293,
+        ):
             self.assertTrue(is_weak_prime(n), n)
 
     def test_strong_and_balanced_primes(self):

@@ -81,9 +81,7 @@ class TestAddOption(unittest.TestCase):
         self.assertEqual(options.count, 7)
 
     def test_add_option_accepts_a_converter(self) -> None:
-        optparse_utils.add_option(
-            self.parser, "--count", type_=optparse_utils.int_type
-        )
+        optparse_utils.add_option(self.parser, "--count", type_=optparse_utils.int_type)
         options, _ = optparse_utils.parse_args(self.parser, ["--count", "7"])
         self.assertEqual(options.count, 7)
 
@@ -98,18 +96,14 @@ class TestAddOption(unittest.TestCase):
     def test_add_option_rejects_an_invalid_value(self) -> None:
         optparse_utils.add_option(self.parser, "--count", type_="int")
         with self.assertRaises(optparse_utils.OptionParseError):
-            optparse_utils.parse_args(
-                self.parser, ["--count", "seven"], on_error="raise"
-            )
+            optparse_utils.parse_args(self.parser, ["--count", "seven"], on_error="raise")
 
     def test_add_option_restricts_the_choices(self) -> None:
         optparse_utils.add_option(self.parser, "--mode", choices=["fast", "slow"])
         options, _ = optparse_utils.parse_args(self.parser, ["--mode", "fast"])
         self.assertEqual(options.mode, "fast")
         with self.assertRaises(optparse_utils.OptionParseError):
-            optparse_utils.parse_args(
-                self.parser, ["--mode", "medium"], on_error="raise"
-            )
+            optparse_utils.parse_args(self.parser, ["--mode", "medium"], on_error="raise")
 
     def test_add_option_uses_the_default(self) -> None:
         optparse_utils.add_option(self.parser, "--file", default="fallback")
@@ -122,9 +116,7 @@ class TestAddOption(unittest.TestCase):
         self.assertIsNone(defaults.file)
 
     def test_add_option_supports_a_constant(self) -> None:
-        optparse_utils.add_option(
-            self.parser, "--level", action="store_const", const=3
-        )
+        optparse_utils.add_option(self.parser, "--level", action="store_const", const=3)
         options, _ = optparse_utils.parse_args(self.parser, ["--level"])
         self.assertEqual(options.level, 3)
 
@@ -281,9 +273,7 @@ class TestParseArgs(unittest.TestCase):
         optparse_utils.add_flag(self.parser, "--verbose")
 
     def test_parse_args_returns_values_and_arguments(self) -> None:
-        options, remaining = optparse_utils.parse_args(
-            self.parser, ["--file", "demo.txt", "extra"]
-        )
+        options, remaining = optparse_utils.parse_args(self.parser, ["--file", "demo.txt", "extra"])
         self.assertEqual(options.file, "demo.txt")
         self.assertEqual(remaining, ["extra"])
 
@@ -378,6 +368,7 @@ class TestParserQueries(unittest.TestCase):
         self.assertIn("demo", optparse_utils.format_usage(self.parser))
         self.assertIn("the file", optparse_utils.format_help(self.parser))
         self.assertEqual(optparse_utils.get_prog_name(self.parser), "demo")
+
     def test_format_option_help_describes_a_single_option(self) -> None:
         option = optparse_utils.get_option(self.parser, "--file")
         self.assertIsNotNone(option)
@@ -394,16 +385,12 @@ class TestSuppressedOptions(unittest.TestCase):
 
     def test_suppressed_option_is_hidden_from_the_help(self) -> None:
         parser = optparse_utils.make_parser(prog="demo")
-        optparse_utils.add_option(
-            parser, "--secret", help_text=optparse_utils.SUPPRESS_HELP
-        )
+        optparse_utils.add_option(parser, "--secret", help_text=optparse_utils.SUPPRESS_HELP)
         self.assertNotIn("secret", optparse_utils.format_help(parser))
         self.assertTrue(parser.has_option("--secret"))
 
     def test_suppressed_usage_is_honoured(self) -> None:
-        parser = optparse_utils.make_parser(
-            prog="demo", usage=optparse_utils.SUPPRESS_USAGE
-        )
+        parser = optparse_utils.make_parser(prog="demo", usage=optparse_utils.SUPPRESS_USAGE)
         self.assertEqual(optparse_utils.get_usage(parser), "")
 
 

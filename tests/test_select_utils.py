@@ -11,9 +11,7 @@ class TestSelect(unittest.TestCase):
     def test_select_returns_lists(self):
         read_fd, write_fd = os.pipe()
         try:
-            readable, writable, exceptional = select_utils.select(
-                [read_fd], [write_fd], [], 0
-            )
+            readable, writable, exceptional = select_utils.select([read_fd], [write_fd], [], 0)
             self.assertIsInstance(readable, list)
             self.assertIsInstance(writable, list)
             self.assertIsInstance(exceptional, list)
@@ -24,9 +22,7 @@ class TestSelect(unittest.TestCase):
     def test_select_no_timeout(self):
         read_fd, write_fd = os.pipe()
         try:
-            readable, writable, exceptional = select_utils.select(
-                [read_fd], [write_fd], [], 0
-            )
+            readable, writable, exceptional = select_utils.select([read_fd], [write_fd], [], 0)
             self.assertTrue(all(isinstance(fd, int) for fd in readable + writable + exceptional))
             self.assertIn(write_fd, writable)
         finally:

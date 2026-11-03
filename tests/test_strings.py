@@ -312,6 +312,7 @@ class TestIsIsogram(unittest.TestCase):
             is_isogram(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_isogram(123)  # type: ignore[arg-type]
+
     def test_anagram_basic(self):
         self.assertTrue(is_anagram("listen", "silent"))
 
@@ -377,6 +378,7 @@ class TestTruncate(unittest.TestCase):
 
     def test_truncate_zero_length(self):
         self.assertEqual(truncate("hello", 0), "")
+
     def test_truncate_empty_input(self):
         self.assertEqual(truncate("", 5), "")
 
@@ -578,8 +580,6 @@ class TestIsBlank(unittest.TestCase):
     def test_is_blank_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_blank(None)  # type: ignore[arg-type]
-
-
 
 
 class TestNormalizeWhitespace(unittest.TestCase):
@@ -1738,7 +1738,6 @@ class TestChunkString(unittest.TestCase):
             chunk_string("abc", True)  # type: ignore[arg-type]
 
 
-
 class TestInitials(unittest.TestCase):
     def test_basic(self):
         from strings import initials
@@ -2172,6 +2171,7 @@ class TestEnsureSurroundedByNewlines(unittest.TestCase):
 class TestNewlineHelpers(unittest.TestCase):
     def test_count_leading_newlines(self):
         from strings import count_leading_newlines
+
         self.assertEqual(count_leading_newlines("hello"), 0)
         self.assertEqual(count_leading_newlines("\nhello"), 1)
         self.assertEqual(count_leading_newlines("\n\nhello"), 2)
@@ -2182,6 +2182,7 @@ class TestNewlineHelpers(unittest.TestCase):
 
     def test_count_trailing_newlines(self):
         from strings import count_trailing_newlines
+
         self.assertEqual(count_trailing_newlines("hello"), 0)
         self.assertEqual(count_trailing_newlines("hello\n"), 1)
         self.assertEqual(count_trailing_newlines("hello\n\n"), 2)
@@ -2192,6 +2193,7 @@ class TestNewlineHelpers(unittest.TestCase):
 
     def test_strip_leading_newlines(self):
         from strings import strip_leading_newlines
+
         self.assertEqual(strip_leading_newlines("\n\nhello"), "hello")
         self.assertEqual(strip_leading_newlines("hello"), "hello")
         self.assertEqual(strip_leading_newlines(""), "")
@@ -2202,6 +2204,7 @@ class TestNewlineHelpers(unittest.TestCase):
 
     def test_strip_trailing_newlines(self):
         from strings import strip_trailing_newlines
+
         self.assertEqual(strip_trailing_newlines("hello\n\n"), "hello")
         self.assertEqual(strip_trailing_newlines("hello"), "hello")
         self.assertEqual(strip_trailing_newlines(""), "")
@@ -2295,10 +2298,6 @@ class TestRepeatString(unittest.TestCase):
     def test_repeat_string_non_int_count_raises(self):
         with self.assertRaises(TypeError):
             repeat_string("x", 2.0)  # type: ignore[arg-type]
-
-
-
-
 
 
 class TestStringsBoundaryComprehensive(unittest.TestCase):
@@ -2411,14 +2410,11 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
             (remove_punctuation, (123,)),
             (pad_left, (123, 5)),
             (pad_right, (123, 5)),
-
             (levenshtein_distance, (123, "a")),
             (is_anagram, (123, "a")),
             (common_prefix, (123, "a")),
             (common_suffix, (123, "a")),
-
             (is_subsequence, (123, "a")),
-
             (slugify, (123,)),
             (is_blank, (123,)),
             (lstrip_chars, (123, "a")),

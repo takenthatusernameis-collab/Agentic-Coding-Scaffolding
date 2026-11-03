@@ -214,9 +214,7 @@ class TestDescriptors(unittest.TestCase):
     def test_open_fd_creates_and_reads_a_file(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "file.txt")
-            descriptor = self.track(
-                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
-            )
+            descriptor = self.track(open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600))
             write_all(descriptor, b"hello")
             self.assertEqual(file_size(path), 5)
             self.assertEqual(read_at(descriptor, 5, 0), b"hello")
@@ -302,9 +300,7 @@ class TestDescriptors(unittest.TestCase):
     def test_write_at_does_not_move_the_position(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "file.txt")
-            descriptor = self.track(
-                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
-            )
+            descriptor = self.track(open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600))
             write_at(descriptor, b"world", 6)
             write_at(descriptor, b"hello ", 0)
             self.assertEqual(read_at(descriptor, 11, 0), b"hello world")
@@ -377,9 +373,7 @@ class TestDescriptors(unittest.TestCase):
     def test_sync_fd_and_sync_data_write_the_file(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "file.txt")
-            descriptor = self.track(
-                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
-            )
+            descriptor = self.track(open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600))
             write_all(descriptor, b"data")
             sync_fd(descriptor)
             sync_data(descriptor)

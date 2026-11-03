@@ -11,7 +11,6 @@ __all__ = [
 ]
 
 
-
 def pformat(obj, indent=1, width=80, depth=None, compact=False, sort_dicts=True):
     return _pprint.pformat(
         obj, indent=indent, width=width, depth=depth, compact=compact, sort_dicts=sort_dicts

@@ -27,15 +27,11 @@ def _require_list(value: object, name: str) -> List[int]:
         raise TypeError(f"{name} must be a list, got {type(value).__name__}")
     for index, item in enumerate(value):
         if isinstance(item, bool) or not isinstance(item, int):
-            raise TypeError(
-                f"{name}[{index}] must be an int, got {type(item).__name__}"
-            )
+            raise TypeError(f"{name}[{index}] must be an int, got {type(item).__name__}")
     return value
 
 
-def _require_optional_number(
-    value: object, name: str
-) -> Optional[float]:
+def _require_optional_number(value: object, name: str) -> Optional[float]:
     """Return *value* as a float when it is a number or None, otherwise raise."""
     if value is None:
         return None
@@ -95,9 +91,7 @@ def select(
     writes = _require_list(wlist, "wlist")
     exceptions = _require_list(xlist, "xlist")
     timeout_value = _require_optional_number(timeout, "timeout")
-    readable, writable, exceptional = _select.select(
-        reads, writes, exceptions, timeout_value
-    )
+    readable, writable, exceptional = _select.select(reads, writes, exceptions, timeout_value)
     return list(readable), list(writable), list(exceptional)
 
 
@@ -128,17 +122,13 @@ def poll_register(poller: _select.poll, fd: int, events: int) -> None:
         OSError: If *fd* is invalid.
     """
     if not hasattr(poller, "register"):
-        raise TypeError(
-            "poller must be a select.poll-like object with a register method"
-        )
+        raise TypeError("poller must be a select.poll-like object with a register method")
     file_descriptor = _require_int(fd, "fd")
     event_mask = _require_int(events, "events")
     poller.register(file_descriptor, event_mask)
 
 
-def poll_poll(
-    poller: _select.poll, timeout: Optional[float] = None
-) -> List[Tuple[int, int]]:
+def poll_poll(poller: _select.poll, timeout: Optional[float] = None) -> List[Tuple[int, int]]:
     """Poll a poll object for registered events.
 
     Args:
@@ -153,9 +143,7 @@ def poll_poll(
         ValueError: If *timeout* is negative.
     """
     if not hasattr(poller, "poll"):
-        raise TypeError(
-            "poller must be a select.poll-like object with a poll method"
-        )
+        raise TypeError("poller must be a select.poll-like object with a poll method")
     timeout_value = _require_optional_number(timeout, "timeout")
     return poller.poll(timeout_value)
 

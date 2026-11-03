@@ -40,9 +40,7 @@ class Either(Generic[L, R]):
         return Either.left(value)
 
     @staticmethod
-    def from_optional(
-        value: Optional[R], left_value: L
-    ) -> "Either[L, R]":
+    def from_optional(value: Optional[R], left_value: L) -> "Either[L, R]":
         """Create Either from optional value."""
         if value is None:
             return Either.left(left_value)

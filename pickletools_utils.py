@@ -56,9 +56,7 @@ def _require_pickle_data(value: Any, name: str) -> PickleData:
         return value
     if hasattr(value, "read"):
         return cast(PickleData, value)
-    raise TypeError(
-        f"{name} must be bytes or a binary file object, got {type(value).__name__}"
-    )
+    raise TypeError(f"{name} must be bytes or a binary file object, got {type(value).__name__}")
 
 
 def _require_out(value: Any) -> Optional[IO[str]]:

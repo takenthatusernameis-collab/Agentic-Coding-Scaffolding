@@ -11,7 +11,6 @@ __all__ = [
 ]
 
 
-
 def is_keyword(word):
     """Return ``True`` if ``word`` is a Python keyword."""
     if not isinstance(word, str):

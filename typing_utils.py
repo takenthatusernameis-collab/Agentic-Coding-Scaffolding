@@ -11,7 +11,6 @@ __all__ = [
 ]
 
 
-
 def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
     """Return a dictionary containing type hints for a function, method, or module.
 

@@ -55,9 +55,7 @@ def read_text(path: Union[str, Path]) -> str:
         return f.read()
 
 
-def write_text(
-    path: Union[str, Path], content: str, encoding: str = "utf-8"
-) -> None:
+def write_text(path: Union[str, Path], content: str, encoding: str = "utf-8") -> None:
     """Write text content to a file, creating parent directories as needed.
 
     Args:

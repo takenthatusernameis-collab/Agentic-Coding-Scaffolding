@@ -18,6 +18,7 @@ __all__ = [
 def ABC():
     return _abc.ABC
 
+
 def ABCMeta():
     return _abc.ABCMeta
 

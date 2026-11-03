@@ -60,6 +60,7 @@ class TestBackoffUtils(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
     def test_constant_backoff(self):
         self.assertEqual(constant_backoff(1.0), 1.0)
         self.assertEqual(constant_backoff(0.5), 0.5)

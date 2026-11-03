@@ -17,7 +17,6 @@ __all__ = [
 ]
 
 
-
 def harmonic_mean(numbers: List[T | float]) -> float:
     """Return the harmonic mean of a list of numbers.
 

@@ -30,15 +30,12 @@ _ROMAN_DIGITS = {
     "M": 1000,
 }
 
-_ROMAN_PATTERN = (
-    r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
-)
+_ROMAN_PATTERN = r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
 __all__ = [
     "from_roman",
     "is_valid_roman",
     "to_roman",
 ]
-
 
 
 def to_roman(number: int) -> str:
@@ -85,7 +82,7 @@ def from_roman(roman: str) -> int:
     total = 0
     index = 0
     for value, symbol in _ROMAN_NUMERALS:
-        while roman[index:index + len(symbol)] == symbol:
+        while roman[index : index + len(symbol)] == symbol:
             total += value
             index += len(symbol)
     if index != len(roman):

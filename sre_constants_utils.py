@@ -214,9 +214,7 @@ def op_code(name: Any) -> int:
 def get_all() -> Dict[str, Any]:
     """Return all public constants from the module."""
     if _sre_constants is None:
-        raise RuntimeError(
-            "the standard library 'sre_constants' module is not available"
-        )
+        raise RuntimeError("the standard library 'sre_constants' module is not available")
     result = {}
     for k in dir(_sre_constants):
         if not k.startswith("_"):
@@ -227,9 +225,7 @@ def get_all() -> Dict[str, Any]:
 def error_codes() -> Dict[str, int]:
     """Return error codes if available."""
     if _sre_constants is None:
-        raise RuntimeError(
-            "the standard library 'sre_constants' module is not available"
-        )
+        raise RuntimeError("the standard library 'sre_constants' module is not available")
     codes = getattr(_sre_constants, "error_codes", None)
     if isinstance(codes, dict):
         return dict(codes)

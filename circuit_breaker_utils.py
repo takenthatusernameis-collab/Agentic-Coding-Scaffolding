@@ -29,7 +29,6 @@ __all__ = [
 ]
 
 
-
 class CircuitOpenError(RuntimeError):
     """Raised when an operation is rejected because the circuit is open."""
 

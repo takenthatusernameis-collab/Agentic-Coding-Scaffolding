@@ -12,7 +12,6 @@ __all__ = [
 ]
 
 
-
 def getline(filename, lineno, module_globals=None):
     if not isinstance(filename, str):
         raise TypeError("filename must be a str")

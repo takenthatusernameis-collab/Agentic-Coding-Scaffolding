@@ -22,7 +22,6 @@ __all__ = [
 ]
 
 
-
 class ThreadPool:
     """Context manager wrapper around ThreadPoolExecutor.
 

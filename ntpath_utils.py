@@ -44,9 +44,7 @@ supports_unicode_filenames: bool = _ntpath.supports_unicode_filenames
 ALLOW_MISSING: Any = _ntpath.ALLOW_MISSING
 
 #: The splitter of a path into a drive, a root, and a tail.
-_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(
-    _ntpath, "splitroot", None
-)
+_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(_ntpath, "splitroot", None)
 #: The predicate that reports whether a path is a junction.
 _ISJUNCTION: Optional[Callable[[Any], bool]] = getattr(_ntpath, "isjunction", None)
 #: The predicate that reports whether a path is on a development drive.
@@ -836,7 +834,7 @@ def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Un
 
 
 def splitroot(
-    p: Union[str, bytes, os.PathLike]
+    p: Union[str, bytes, os.PathLike],
 ) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
     """Split a path into a drive, a root, and a tail.
 

@@ -79,6 +79,7 @@ class TestEscapePlaceholders(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             escape_placeholders(123)  # type: ignore[arg-type]
+
     def test_truncate_short_text(self):
         result = truncate_prompt("Hello", 10)
         self.assertEqual(result, "Hello")
@@ -329,7 +330,6 @@ class TestCountPlaceholders(unittest.TestCase):
             count_placeholders(123)  # type: ignore[arg-type]
 
 
-
 class TestCountSentences(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(count_sentences("Hello world. How are you?"), 2)
@@ -400,6 +400,7 @@ class TestIndentLines(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
+
 class TestDedentLines(unittest.TestCase):
     def test_basic(self):
         result = dedent_lines("    a\n      b")
@@ -423,12 +424,16 @@ class TestDedentLines(unittest.TestCase):
 class TestRemoveBlankLines(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(remove_blank_lines("a\n\nb\n\n\nc"), "a\nb\nc")
+
     def test_no_blanks(self):
         self.assertEqual(remove_blank_lines("a\nb\nc"), "a\nb\nc")
+
     def test_empty(self):
         self.assertEqual(remove_blank_lines(""), "")
+
     def test_whitespace_only_lines(self):
         self.assertEqual(remove_blank_lines("a\n   \n\tb\n"), "a\n\tb")
+
     def test_type_error(self):
         with self.assertRaises(TypeError):
             remove_blank_lines(123)  # type: ignore[arg-type]
@@ -1133,6 +1138,8 @@ class TestCountDigits(unittest.TestCase):
             count_digits(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_digits(None)  # type: ignore[arg-type]
+
+
 class TestCountLetters(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(count_letters(""), 0)
@@ -1312,7 +1319,6 @@ class TestIsBlank(unittest.TestCase):
             is_blank(123)
 
 
-
 class TestEnsurePrefix(unittest.TestCase):
     def test_add_prefix(self):
         self.assertEqual(ensure_prefix("world", "hello "), "hello world")
@@ -1391,7 +1397,6 @@ class TestJoinLines(unittest.TestCase):
     def test_rejects_non_str_separator(self):
         with self.assertRaises(TypeError):
             join_lines(["a", "b"], separator=123)  # type: ignore[arg-type]
-
 
 
 class TestRemovePrefix(unittest.TestCase):

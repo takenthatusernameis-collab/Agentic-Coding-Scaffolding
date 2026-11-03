@@ -52,9 +52,7 @@ DuplicateOptionError = configparser.DuplicateOptionError
 DEFAULTSECT = getattr(configparser, "DEFAULTSECT", "DEFAULT")
 
 
-def load_config(
-    file_path: Union[str, Path], encoding: str = "utf-8"
-) -> Dict[str, Dict[str, str]]:
+def load_config(file_path: Union[str, Path], encoding: str = "utf-8") -> Dict[str, Dict[str, str]]:
     """Load configuration from an INI-style file.
 
     Args:

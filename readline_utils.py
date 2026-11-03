@@ -110,9 +110,7 @@ def _require_function(name: str) -> Any:
     """
     function = getattr(_readline_module(), name, None)
     if function is None:  # pragma: no cover - a platform specific build
-        raise RuntimeError(
-            f"the standard library module 'readline' does not provide '{name}'"
-        )
+        raise RuntimeError(f"the standard library module 'readline' does not provide '{name}'")
     return function
 
 

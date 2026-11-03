@@ -19,7 +19,12 @@ __all__ = [
 
 def add(a: float, b: float) -> float:
     """Return the sum of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return a + b
 
@@ -54,14 +59,24 @@ def abs_difference(a: float, b: float) -> float:
 
 def subtract(a: float, b: float) -> float:
     """Return the difference of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return a - b
 
 
 def multiply(a: float, b: float) -> float:
     """Return the product of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return a * b
 
@@ -92,7 +107,12 @@ def modulo(a: float, b: float) -> float:
         TypeError: If either argument is not a real number (int or float).
         ValueError: If b is zero.
     """
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
@@ -106,7 +126,12 @@ def floor_divide(a: float, b: float) -> float:
         TypeError: If either argument is not a real number (int or float).
         ValueError: If b is zero.
     """
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
@@ -115,9 +140,14 @@ def floor_divide(a: float, b: float) -> float:
 
 def power(a: float, b: float) -> float:
     """Return a raised to the power b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
-    return float(a ** b)
+    return float(a**b)
 
 
 def sqrt(a: float) -> float:
@@ -131,7 +161,7 @@ def sqrt(a: float) -> float:
         raise TypeError("a must be a real number")
     if a < 0:
         raise ValueError("Cannot take square root of negative number.")
-    return float(a ** 0.5)
+    return float(a**0.5)
 
 
 def negate(a: float) -> float:
@@ -155,7 +185,14 @@ def clamp(value: float, low: float, high: float) -> float:
         TypeError: If any argument is not a real number (int or float).
         ValueError: If low > high.
     """
-    if isinstance(value, bool) or isinstance(low, bool) or isinstance(high, bool) or not isinstance(value, (int, float)) or not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
+    if (
+        isinstance(value, bool)
+        or isinstance(low, bool)
+        or isinstance(high, bool)
+        or not isinstance(value, (int, float))
+        or not isinstance(low, (int, float))
+        or not isinstance(high, (int, float))
+    ):
         raise TypeError("value, low, and high must be real numbers")
     if low > high:
         raise ValueError("low must not exceed high.")
@@ -182,6 +219,11 @@ def percentage(value: float, percent: float) -> float:
 
 def average_of_two(a: float, b: float) -> float:
     """Return the average of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return float((a + b) / 2.0)

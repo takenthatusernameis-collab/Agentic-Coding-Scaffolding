@@ -50,9 +50,7 @@ def parse_invalidation_mode(value: Union[str, PycInvalidationMode, None]) -> Pyc
         return py_compile.PycInvalidationMode[value.strip().upper()]
     except KeyError as exc:
         valid = ", ".join(m.name for m in PycInvalidationMode)
-        raise ValueError(
-            f"unknown invalidation_mode {value!r}; valid modes are: {valid}"
-        ) from exc
+        raise ValueError(f"unknown invalidation_mode {value!r}; valid modes are: {valid}") from exc
 
 
 def get_invalidation_mode(

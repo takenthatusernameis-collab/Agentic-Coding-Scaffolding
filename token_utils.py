@@ -13,7 +13,6 @@ __all__ = [
 ]
 
 
-
 def is_eof(tok):
     """Return ``True`` if *tok* is an end-of-file token."""
     return _token.ISEOF(tok)

@@ -27,7 +27,6 @@ __all__ = [
 ]
 
 
-
 def this():
     """Return the ``this`` module's ``this`` callable.
 

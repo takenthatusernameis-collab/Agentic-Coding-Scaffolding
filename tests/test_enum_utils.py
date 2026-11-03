@@ -104,6 +104,7 @@ def test_auto():
     class AutoEnum(Enum):
         FIRST = auto()
         SECOND = auto()
+
     assert AutoEnum.FIRST.value != AutoEnum.SECOND.value
 
 

@@ -21,7 +21,6 @@ __all__ = [
 ]
 
 
-
 def is_leap_year(year: int) -> bool:
     if not isinstance(year, int):
         raise TypeError("year must be an int")

@@ -10,7 +10,6 @@ __all__ = [
 ]
 
 
-
 def match(name: str, pattern: str) -> bool:
     """Return True if *name* matches *pattern* (case-normalized on OS)."""
     if not isinstance(name, str):

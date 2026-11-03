@@ -14,7 +14,6 @@ __all__ = [
 ]
 
 
-
 def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
     """Parse a string into a datetime object.
 

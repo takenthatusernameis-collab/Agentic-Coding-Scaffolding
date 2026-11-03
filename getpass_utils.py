@@ -8,7 +8,6 @@ __all__ = [
 ]
 
 
-
 def getpass(prompt="Password: ", stream=None):
     return _getpass.getpass(prompt, stream)
 

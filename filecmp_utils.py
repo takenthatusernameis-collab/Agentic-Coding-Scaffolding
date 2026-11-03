@@ -26,9 +26,7 @@ def cmp_files(a: str, b: str, shallow: bool = True) -> bool:
     return filecmp.cmp(a, b, shallow=shallow)
 
 
-def cmp_directories(
-    a: str, b: str, shallow: bool = True, hide: Sequence[str] | None = None
-) -> Any:
+def cmp_directories(a: str, b: str, shallow: bool = True, hide: Sequence[str] | None = None) -> Any:
     """Compare two directories and return a dircmp object.
 
     Args:

@@ -109,6 +109,8 @@ class TestBindtextdomain(unittest.TestCase):
             bindtextdomain(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             bindtextdomain("myapp", 123)  # type: ignore[arg-type]
+
+
 class TestInstall(unittest.TestCase):
     def test_installs_underscore_in_builtins(self):
         try:

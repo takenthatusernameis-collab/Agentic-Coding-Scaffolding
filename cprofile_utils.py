@@ -277,9 +277,7 @@ def runcall(func: Callable[..., _T], /, *args: Any, **kwargs: Any) -> _T:
     return result
 
 
-def profile_call(
-    func: Callable[..., _T], /, *args: Any, **kwargs: Any
-) -> Tuple[_T, Stats]:
+def profile_call(func: Callable[..., _T], /, *args: Any, **kwargs: Any) -> Tuple[_T, Stats]:
     """Profile a single call and return its result together with its statistics.
 
     Args:

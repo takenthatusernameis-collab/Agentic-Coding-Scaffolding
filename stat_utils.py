@@ -18,7 +18,6 @@ __all__ = [
 ]
 
 
-
 def file_mode(path: str | os.PathLike[str]) -> int:
     """Return the permission bits of *path* (the low 12 bits of ``st_mode``).
 

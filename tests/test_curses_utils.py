@@ -11,9 +11,7 @@ class TestModuleContract(unittest.TestCase):
     """Test the contract of the module."""
 
     def test_all_is_sorted_and_unique(self):
-        self.assertEqual(
-            curses_utils.__all__, sorted(set(curses_utils.__all__))
-        )
+        self.assertEqual(curses_utils.__all__, sorted(set(curses_utils.__all__)))
 
     def test_every_name_exists(self):
         for name in curses_utils.__all__:
@@ -111,19 +109,13 @@ class TestDelegation(unittest.TestCase):
             longname.assert_called_once_with()
 
     def test_termattrs_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "termattrs"
-        ) as termattrs:
+        with mock.patch.object(curses_utils._curses, "termattrs") as termattrs:
             termattrs.return_value = curses_utils.A_BOLD | curses_utils.A_REVERSE
-            self.assertEqual(
-                curses_utils.termattrs(), curses_utils.A_BOLD | curses_utils.A_REVERSE
-            )
+            self.assertEqual(curses_utils.termattrs(), curses_utils.A_BOLD | curses_utils.A_REVERSE)
             termattrs.assert_called_once_with()
 
     def test_use_default_colors_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "use_default_colors"
-        ) as use_default_colors:
+        with mock.patch.object(curses_utils._curses, "use_default_colors") as use_default_colors:
             use_default_colors.return_value = curses_utils.OK
             self.assertEqual(curses_utils.use_default_colors(), curses_utils.OK)
             use_default_colors.assert_called_once_with()
@@ -136,16 +128,12 @@ class TestDelegation(unittest.TestCase):
     def test_init_pair_delegates(self):
         with mock.patch.object(curses_utils._curses, "init_pair") as init_pair:
             curses_utils.init_pair(1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK)
-            init_pair.assert_called_once_with(
-                1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK
-            )
+            init_pair.assert_called_once_with(1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK)
 
     def test_color_pair_delegates(self):
         with mock.patch.object(curses_utils._curses, "color_pair") as color_pair:
             color_pair.return_value = curses_utils.A_COLOR | 1
-            self.assertEqual(
-                curses_utils.color_pair(1), curses_utils.A_COLOR | 1
-            )
+            self.assertEqual(curses_utils.color_pair(1), curses_utils.A_COLOR | 1)
             color_pair.assert_called_once_with(1)
 
     def test_napms_delegates(self):
@@ -209,9 +197,7 @@ class TestDelegation(unittest.TestCase):
             typeahead.assert_called_once_with(1)
 
     def test_mouseinterval_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "mouseinterval"
-        ) as mouseinterval:
+        with mock.patch.object(curses_utils._curses, "mouseinterval") as mouseinterval:
             mouseinterval.return_value = 0
             self.assertEqual(curses_utils.mouseinterval(0), 0)
             mouseinterval.assert_called_once_with(0)
@@ -241,26 +227,18 @@ class TestDelegation(unittest.TestCase):
             resetty.assert_called_once_with()
 
     def test_def_and_reset_prog_mode_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "def_prog_mode"
-        ) as def_prog_mode:
+        with mock.patch.object(curses_utils._curses, "def_prog_mode") as def_prog_mode:
             curses_utils.def_prog_mode()
             def_prog_mode.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "reset_prog_mode"
-        ) as reset_prog_mode:
+        with mock.patch.object(curses_utils._curses, "reset_prog_mode") as reset_prog_mode:
             curses_utils.reset_prog_mode()
             reset_prog_mode.assert_called_once_with()
 
     def test_def_and_reset_shell_mode_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "def_shell_mode"
-        ) as def_shell_mode:
+        with mock.patch.object(curses_utils._curses, "def_shell_mode") as def_shell_mode:
             curses_utils.def_shell_mode()
             def_shell_mode.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "reset_shell_mode"
-        ) as reset_shell_mode:
+        with mock.patch.object(curses_utils._curses, "reset_shell_mode") as reset_shell_mode:
             curses_utils.reset_shell_mode()
             reset_shell_mode.assert_called_once_with()
 
@@ -320,9 +298,7 @@ class TestDelegation(unittest.TestCase):
             halfdelay.assert_called_once_with(10)
 
     def test_delay_output_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "delay_output"
-        ) as delay_output:
+        with mock.patch.object(curses_utils._curses, "delay_output") as delay_output:
             curses_utils.delay_output(50)
             delay_output.assert_called_once_with(50)
 
@@ -361,17 +337,13 @@ class TestDelegation(unittest.TestCase):
             resizeterm.assert_called_once_with(20, 40)
 
     def test_is_term_resized_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "is_term_resized"
-        ) as is_term_resized:
+        with mock.patch.object(curses_utils._curses, "is_term_resized") as is_term_resized:
             is_term_resized.return_value = False
             self.assertFalse(curses_utils.is_term_resized(20, 40))
             is_term_resized.assert_called_once_with(20, 40)
 
     def test_update_lines_cols_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "update_lines_cols"
-        ) as update_lines_cols:
+        with mock.patch.object(curses_utils._curses, "update_lines_cols") as update_lines_cols:
             curses_utils.update_lines_cols()
             update_lines_cols.assert_called_once_with()
 
@@ -381,35 +353,25 @@ class TestDelegation(unittest.TestCase):
             setupterm.assert_called_once_with("xterm")
 
     def test_get_escdelay_and_set_escdelay_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "get_escdelay"
-        ) as get_escdelay:
+        with mock.patch.object(curses_utils._curses, "get_escdelay") as get_escdelay:
             get_escdelay.return_value = 250
             self.assertEqual(curses_utils.get_escdelay(), 250)
             get_escdelay.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "set_escdelay"
-        ) as set_escdelay:
+        with mock.patch.object(curses_utils._curses, "set_escdelay") as set_escdelay:
             curses_utils.set_escdelay(100)
             set_escdelay.assert_called_once_with(100)
 
     def test_get_tabsize_and_set_tabsize_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "get_tabsize"
-        ) as get_tabsize:
+        with mock.patch.object(curses_utils._curses, "get_tabsize") as get_tabsize:
             get_tabsize.return_value = 8
             self.assertEqual(curses_utils.get_tabsize(), 8)
             get_tabsize.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "set_tabsize"
-        ) as set_tabsize:
+        with mock.patch.object(curses_utils._curses, "set_tabsize") as set_tabsize:
             curses_utils.set_tabsize(4)
             set_tabsize.assert_called_once_with(4)
 
     def test_can_change_color_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "can_change_color"
-        ) as can_change_color:
+        with mock.patch.object(curses_utils._curses, "can_change_color") as can_change_color:
             can_change_color.return_value = True
             self.assertTrue(curses_utils.can_change_color())
             can_change_color.assert_called_once_with()
@@ -460,15 +422,11 @@ class TestTypeValidation(unittest.TestCase):
 
     def test_init_pair_rejects_non_ints(self):
         with self.assertRaises(TypeError):
-            curses_utils.init_pair(
-                "1", curses_utils.COLOR_RED, curses_utils.COLOR_BLACK
-            )  # type: ignore[arg-type]
+            curses_utils.init_pair("1", curses_utils.COLOR_RED, curses_utils.COLOR_BLACK)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             curses_utils.init_pair(1, "red", curses_utils.COLOR_BLACK)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            curses_utils.init_pair(
-                1, curses_utils.COLOR_RED, "black"
-            )  # type: ignore[arg-type]
+            curses_utils.init_pair(1, curses_utils.COLOR_RED, "black")  # type: ignore[arg-type]
 
     def test_color_pair_rejects_a_non_int(self):
         with self.assertRaises(TypeError):

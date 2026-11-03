@@ -45,7 +45,6 @@ __all__ = [
 ]
 
 
-
 def _format_offset(offset: _dt.timedelta) -> str:
     """Format a :class:`datetime.timedelta` as an ISO-style ``[±]HH:MM`` string."""
     total_seconds = int(offset.total_seconds())

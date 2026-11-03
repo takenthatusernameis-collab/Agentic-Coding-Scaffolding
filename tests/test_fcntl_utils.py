@@ -78,6 +78,7 @@ class TestFcntlUtils(unittest.TestCase):
         self.assertEqual(fcntl_utils.F_DUPFD, fcntl.F_DUPFD)
         self.assertEqual(fcntl_utils.F_DUPFD_CLOEXEC, fcntl.F_DUPFD_CLOEXEC)
         self.assertEqual(fcntl_utils.FD_CLOEXEC, fcntl.FD_CLOEXEC)
+
     def test_flock_locks_the_file(self):
         other = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
         try:

@@ -89,9 +89,7 @@ class TestEncodingsUtils(unittest.TestCase):
 
     def test_all_is_sorted_and_unique(self):
         self.assertIsNotNone(encodings_utils.__all__)
-        self.assertEqual(
-            len(encodings_utils.__all__), len(set(encodings_utils.__all__))
-        )
+        self.assertEqual(len(encodings_utils.__all__), len(set(encodings_utils.__all__)))
         self.assertEqual(encodings_utils.__all__, sorted(encodings_utils.__all__))
         for name in encodings_utils.__all__:
             self.assertTrue(hasattr(encodings_utils, name), name)

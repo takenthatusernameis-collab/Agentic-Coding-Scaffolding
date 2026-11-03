@@ -18,7 +18,6 @@ __all__ = [
 ]
 
 
-
 class timer:
     """Context manager for measuring execution time of a code block.
 

@@ -267,7 +267,6 @@ def is_coprime(a: int, b: int) -> bool:
 coprime = is_coprime
 
 
-
 def is_circular_prime(n: int) -> bool:
     """Return True if *n* is a circular prime.
 
@@ -471,7 +470,7 @@ def is_prime_power(n: int) -> bool:
         for candidate in [p - 1, p, p + 1]:
             if candidate < 2:
                 continue
-            pow_val = candidate ** k
+            pow_val = candidate**k
             if pow_val == n and is_prime(candidate):
                 return True
             if pow_val > n:
@@ -1423,7 +1422,7 @@ def is_perfect_power(n: int) -> bool:
         for candidate in [a - 1, a, a + 1]:
             if candidate < 2:
                 continue
-            pow_val = candidate ** b
+            pow_val = candidate**b
             if pow_val == n_abs:
                 return True
             if pow_val > n_abs:

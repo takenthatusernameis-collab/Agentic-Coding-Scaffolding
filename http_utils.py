@@ -88,7 +88,6 @@ __all__ = [
 ]
 
 
-
 def status_code_category(code: int) -> int:
     """Return the HTTP status code category (1-5) for a given code.
 

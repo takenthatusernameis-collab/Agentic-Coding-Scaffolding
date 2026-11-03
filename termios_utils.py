@@ -384,10 +384,7 @@ def _mode_to_attributes(mode: Sequence[Any]) -> Attributes:
         lflag=int(mode[3]),
         ispeed=int(mode[4]),
         ospeed=int(mode[5]),
-        cc=[
-            value[0] if isinstance(value, (bytes, bytearray)) else int(value)
-            for value in mode[6]
-        ],
+        cc=[value[0] if isinstance(value, (bytes, bytearray)) else int(value) for value in mode[6]],
     )
 
 
@@ -444,9 +441,7 @@ def set_attributes(fd: int, attributes: Attributes, when: int = TCSANOW) -> None
     if isinstance(when, bool) or not isinstance(when, int):
         raise TypeError(f"when must be an int, got {type(when).__name__}")
     if when not in (TCSANOW, TCSADRAIN, TCSAFLUSH):
-        raise ValueError(
-            f"when must be TCSANOW, TCSADRAIN, or TCSAFLUSH, got {when}"
-        )
+        raise ValueError(f"when must be TCSANOW, TCSADRAIN, or TCSAFLUSH, got {when}")
     module = _termios_module()
     module.tcsetattr(fd, when, _attributes_to_mode(attributes))
 
@@ -497,9 +492,7 @@ def make_cbreak(attributes: Attributes) -> Attributes:
     module = _tty_module()
     maker = getattr(module, "cfmakecbreak", None)
     if maker is None:
-        raise RuntimeError(
-            "the standard library module 'tty' does not provide cfmakecbreak"
-        )
+        raise RuntimeError("the standard library module 'tty' does not provide cfmakecbreak")
     mode = _attributes_to_mode(attributes)
     maker(mode)
     return _mode_to_attributes(mode)
@@ -612,9 +605,7 @@ def set_window_size(
     module = _termios_module()
     request = getattr(module, "TIOCSWINSZ", None)
     if request is None:
-        raise RuntimeError(
-            "the standard library module 'termios' does not provide TIOCSWINSZ"
-        )
+        raise RuntimeError("the standard library module 'termios' does not provide TIOCSWINSZ")
     if _fcntl is None:
         raise RuntimeError("the standard library module 'fcntl' is not available")
     _fcntl.ioctl(fd, request, struct.pack("HHHH", rows, columns, x_pixels, y_pixels))

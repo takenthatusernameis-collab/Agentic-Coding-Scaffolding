@@ -333,20 +333,20 @@ def has_placeholders(template: str) -> bool:
 def wrap_prompt(text: str, width: int = 80) -> str:
     """Wrap prompt text to a specific width.
 
-    Args:
-        text: The text to wrap.
-        width: The maximum line width.
+        Args:
+            text: The text to wrap.
+            width: The maximum line width.
 
-    Returns:
-        Wrapped text.
+        Returns:
+            Wrapped text.
 
-    Raises:
-        TypeError: If *text* is not a string or *width* is not an int.
-        ValueError: If *width* is negative.
+        Raises:
+            TypeError: If *text* is not a string or *width* is not an int.
+            ValueError: If *width* is negative.
 
-Examples:
-        >>> wrap_prompt("This is a long line that should be wrapped", 24)
-        'This is a long line that\nshould be wrapped'
+    Examples:
+            >>> wrap_prompt("This is a long line that should be wrapped", 24)
+            'This is a long line that\nshould be wrapped'
     """
     _require_string(text, "text")
     _require_int(width, "width")
@@ -632,6 +632,7 @@ def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -
         else:
             result.append(prefix + line)
     return "\n".join(result)
+
 
 def dedent_lines(text: str) -> str:
     """Remove common leading whitespace from every line in *text*.
@@ -1600,6 +1601,7 @@ def count_digits(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if "0" <= ch <= "9")
+
 
 def count_letters(text: str) -> int:
     """Return the number of ASCII letter characters (a-z, A-Z) in *text*.

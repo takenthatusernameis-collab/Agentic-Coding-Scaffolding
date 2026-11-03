@@ -914,7 +914,7 @@ def is_perfect_power(n: int) -> bool:
             if candidate < 2:
                 continue
             try:
-                if candidate ** b == n:
+                if candidate**b == n:
                     return True
             except OverflowError:
                 continue
@@ -1054,7 +1054,7 @@ def is_kaprekar_number(n: int) -> bool:
     for i in range(1, len(s)):
         left = s[:i]
         right = s[i:]
-        if right.lstrip("0") == "" :
+        if right.lstrip("0") == "":
             continue
         if int(left or "0") + int(right) == n:
             return True
@@ -1188,7 +1188,7 @@ def is_perfect_cube(n: int) -> bool:
     for candidate in (r - 1, r, r + 1):
         if candidate < 0:
             continue
-        if candidate ** 3 == m:
+        if candidate**3 == m:
             return True
     return False
 

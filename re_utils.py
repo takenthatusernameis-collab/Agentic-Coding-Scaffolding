@@ -20,7 +20,6 @@ __all__ = [
 ]
 
 
-
 def find_all(pattern: Union[str, re.Pattern], text: str) -> List[str]:
     """Find all non-overlapping matches of a pattern in text."""
     if isinstance(pattern, str):
@@ -86,9 +85,7 @@ def full_match(pattern: Union[str, re.Pattern], text: str) -> Optional[re.Match]
     return compiled.fullmatch(text)
 
 
-def split(
-    pattern: Union[str, re.Pattern], text: str, maxsplit: int = 0
-) -> List[str]:
+def split(pattern: Union[str, re.Pattern], text: str, maxsplit: int = 0) -> List[str]:
     """Split text by pattern."""
     if isinstance(pattern, str):
         compiled = re.compile(pattern)

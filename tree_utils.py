@@ -19,7 +19,6 @@ __all__ = [
 ]
 
 
-
 def get_nested(d: Dict[str, Any] | Any, keys: Iterable[str | int], default: Any = None) -> Any:
     """Safely get a value from a nested structure using a key path.
 

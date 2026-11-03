@@ -664,9 +664,7 @@ class TestSumOfCubes(unittest.TestCase):
 class TestCoefficientOfVariation(unittest.TestCase):
     def test_basic(self) -> None:
         # stddev(2,2,2,2)=0? no, use [1,2,3,4,5]: mean 3, pop std ~1.414
-        self.assertAlmostEqual(
-            coefficient_of_variation([1, 2, 3, 4, 5]), 1.4142135 / 3.0, places=6
-        )
+        self.assertAlmostEqual(coefficient_of_variation([1, 2, 3, 4, 5]), 1.4142135 / 3.0, places=6)
 
     def test_population_false(self) -> None:
         self.assertAlmostEqual(

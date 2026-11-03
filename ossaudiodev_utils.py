@@ -32,6 +32,7 @@ if ossaudiodev is not None:
     AFMT_S16_LE = getattr(ossaudiodev, "AFMT_S16_LE")
     SOUND_MIXER_PCM = getattr(ossaudiodev, "SOUND_MIXER_PCM")
 else:  # pragma: no cover
+
     def open(*args, **kwargs):  # type: ignore
         raise RuntimeError("ossaudiodev is not available")
 

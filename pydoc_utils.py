@@ -304,9 +304,7 @@ def resolve(thing: Any, *, forceload: bool = False) -> Any:
     return _pydoc.resolve(thing, forceload=forceload)
 
 
-def safeimport(
-    path: str, *, forceload: bool = False, cache: Optional[dict] = None
-) -> Any:
+def safeimport(path: str, *, forceload: bool = False, cache: Optional[dict] = None) -> Any:
     """Import the object named by *path*, returning ``None`` on failure.
 
     Unlike :func:`locate` this never raises an import error.
@@ -462,9 +460,7 @@ def parentname(object: Any, modname: str) -> str:
     return cast(str, func(object, modname))
 
 
-def visiblename(
-    name: str, *, all_names: Optional[Sequence[str]] = None, obj: Any = None
-) -> bool:
+def visiblename(name: str, *, all_names: Optional[Sequence[str]] = None, obj: Any = None) -> bool:
     """Report whether *name* is a visible name.
 
     Args:

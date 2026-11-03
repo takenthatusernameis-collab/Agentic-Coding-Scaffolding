@@ -1,6 +1,5 @@
 """Tests for math_utils module."""
 
-import math
 import unittest
 
 from math_utils import (
@@ -502,7 +501,7 @@ class TestMathUtilsBoundaries(unittest.TestCase):
             is_square(True)  # type: ignore[arg-type]
 
 
-class TestMathUtilsBoundaries(unittest.TestCase):
+class TestMathUtilsBoundariesExtra(unittest.TestCase):
     def test_factorial_bool_rejected(self) -> None:
         with self.assertRaises(TypeError):
             factorial(True)  # type: ignore[arg-type]

@@ -65,9 +65,7 @@ def _validate_prefix(prefix: str) -> str:
     return prefix
 
 
-def iter_modules(
-    path: Sequence[str] | None = None, prefix: str = ""
-) -> list[tuple[str, bool]]:
+def iter_modules(path: Sequence[str] | None = None, prefix: str = "") -> list[tuple[str, bool]]:
     """List the modules found in *path*.
 
     Args:
@@ -140,9 +138,7 @@ def get_data(package: str, resource: str) -> bytes:
     return data
 
 
-def read_text(
-    package: str, resource: str, encoding: str = "utf-8", errors: str = "strict"
-) -> str:
+def read_text(package: str, resource: str, encoding: str = "utf-8", errors: str = "strict") -> str:
     """Read a data file shipped inside *package* and decode it as text.
 
     Args:

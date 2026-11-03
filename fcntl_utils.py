@@ -202,8 +202,7 @@ def _validate_operation(operation: int) -> int:
     modes = [mode for mode in (LOCK_SH, LOCK_EX, LOCK_UN) if operation & mode]
     if len(modes) != 1:
         raise ValueError(
-            "operation must be exactly one of LOCK_SH, LOCK_EX, and LOCK_UN, "
-            f"got {operation}"
+            f"operation must be exactly one of LOCK_SH, LOCK_EX, and LOCK_UN, got {operation}"
         )
     return operation
 
@@ -224,9 +223,7 @@ def _validate_command(command: int) -> int:
     if isinstance(command, bool) or not isinstance(command, int):
         raise TypeError(f"command must be an int, got {type(command).__name__}")
     if command not in (F_LOCK, F_TLOCK, F_ULOCK):
-        raise ValueError(
-            f"command must be F_LOCK, F_TLOCK, or F_ULOCK, got {command}"
-        )
+        raise ValueError(f"command must be F_LOCK, F_TLOCK, or F_ULOCK, got {command}")
     return command
 
 
@@ -355,10 +352,7 @@ def lockf(
     if isinstance(whence, bool) or not isinstance(whence, int):
         raise TypeError(f"whence must be an int, got {type(whence).__name__}")
     if whence not in (os.SEEK_SET, os.SEEK_CUR, os.SEEK_END):
-        raise ValueError(
-            "whence must be os.SEEK_SET, os.SEEK_CUR, or os.SEEK_END, "
-            f"got {whence}"
-        )
+        raise ValueError(f"whence must be os.SEEK_SET, os.SEEK_CUR, or os.SEEK_END, got {whence}")
     module = _fcntl_module()
     module.lockf(fd, _host_lockf_command(command), length, start, whence)
 
@@ -588,9 +582,7 @@ def lock_kind(name: str, blocking: bool = True) -> int:
         raise TypeError(f"blocking must be a bool, got {type(blocking).__name__}")
     key = name.strip().lower()
     if key not in _LOCK_MODES:
-        raise ValueError(
-            f"name must be one of {sorted(_LOCK_MODES)}, got {name!r}"
-        )
+        raise ValueError(f"name must be one of {sorted(_LOCK_MODES)}, got {name!r}")
     operation = _LOCK_MODES[key]
     if not blocking:
         operation |= LOCK_NB

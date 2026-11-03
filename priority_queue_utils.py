@@ -22,7 +22,6 @@ __all__ = [
 ]
 
 
-
 class PriorityQueue(Generic[T]):
     """A heap-based priority queue implementation.
 

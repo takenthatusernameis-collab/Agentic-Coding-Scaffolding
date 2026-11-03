@@ -14,7 +14,6 @@ __all__ = [
 ]
 
 
-
 def extract_code_blocks(text: str) -> List[str]:
     """Extract fenced code blocks (``` ... ```) from markdown text."""
     pattern = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.DOTALL)

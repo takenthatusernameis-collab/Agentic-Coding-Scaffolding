@@ -19,7 +19,6 @@ __all__ = [
 ]
 
 
-
 def rgb_to_hls(r: float, g: float, b: float) -> HLS:
     return colorsys.rgb_to_hls(r, g, b)
 

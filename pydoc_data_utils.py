@@ -290,9 +290,7 @@ def search_topics(query: str) -> List[str]:
     needle = query.lower()
     topics = _standard_topics()
     return [
-        name
-        for name in sorted(topics)
-        if needle in name.lower() or needle in topics[name].lower()
+        name for name in sorted(topics) if needle in name.lower() or needle in topics[name].lower()
     ]
 
 

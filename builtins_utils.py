@@ -344,6 +344,7 @@ def iterator(object: Any, sentinel: Any = None) -> Iterator[Any]:
                 count = sentinel
                 for _ in range(count):
                     yield object()
+
             return _gen()
         return _builtins.iter(object, sentinel)
     try:

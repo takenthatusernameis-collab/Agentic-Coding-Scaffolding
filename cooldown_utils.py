@@ -83,9 +83,7 @@ class Cooldown:
         with self._lock:
             now = time.monotonic()
             if self._last_call is not None and now - self._last_call < self._interval:
-                raise TimeoutError(
-                    f"cooldown not ready: {self.remaining():.3f}s remaining"
-                )
+                raise TimeoutError(f"cooldown not ready: {self.remaining():.3f}s remaining")
             self._last_call = now
         return func(*args, **kwargs)
 

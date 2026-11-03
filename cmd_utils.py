@@ -10,7 +10,6 @@ __all__ = [
 ]
 
 
-
 class Cmd(_cmd.Cmd):
     """Thin subclass of :class:`cmd.Cmd` for convenience."""
 

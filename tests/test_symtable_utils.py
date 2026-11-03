@@ -6,7 +6,7 @@ import unittest
 
 import symtable_utils
 
-SAMPLE = '''
+SAMPLE = """
 import os
 from pathlib import Path
 
@@ -27,7 +27,7 @@ class Base:
 
     def method(self):
         return self.attribute
-'''
+"""
 
 
 class TestBuildSymbolTable(unittest.TestCase):

@@ -182,9 +182,7 @@ class TestCycleTake(unittest.TestCase):
 
 class TestPartition(unittest.TestCase):
     def test_partition_even_odd(self):
-        self.assertEqual(
-            partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0), ([2, 4], [1, 3, 5])
-        )
+        self.assertEqual(partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0), ([2, 4], [1, 3, 5]))
 
     def test_empty_iterable(self):
         self.assertEqual(partition([], bool), ([], []))
@@ -212,9 +210,7 @@ class TestPartition(unittest.TestCase):
 
 class TestZipLongestIterables(unittest.TestCase):
     def test_equal_length(self):
-        self.assertEqual(
-            zip_longest_iterables([1, 2], [3, 4]), [(1, 3), (2, 4)]
-        )
+        self.assertEqual(zip_longest_iterables([1, 2], [3, 4]), [(1, 3), (2, 4)])
 
     def test_fill_default_none(self):
         self.assertEqual(
@@ -303,8 +299,6 @@ class TestZipStrictIterables(unittest.TestCase):
     def test_non_iterable_raises_type_error(self):
         with self.assertRaises(TypeError):
             zip_strict_iterables([1, 2], 42)
-
-
 
 
 class TestDropWhilePred(unittest.TestCase):

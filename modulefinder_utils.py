@@ -110,9 +110,7 @@ def _require_search_path(path: Optional[Iterable[PathLike]]) -> Optional[List[st
         elif isinstance(entry, os.PathLike):
             search_path.append(os.fspath(entry))
         else:
-            raise TypeError(
-                f"path entries must be str or os.PathLike, got {type(entry).__name__}"
-            )
+            raise TypeError(f"path entries must be str or os.PathLike, got {type(entry).__name__}")
     return search_path
 
 
@@ -246,10 +244,7 @@ def find_modules(
         SyntaxError: If *script* is not valid Python source.
     """
     finder = load_script(script, path, excludes)
-    return {
-        name: getattr(module, "__file__", None)
-        for name, module in finder.modules.items()
-    }
+    return {name: getattr(module, "__file__", None) for name, module in finder.modules.items()}
 
 
 def missing_modules(
@@ -301,10 +296,7 @@ def missing_importers(
         SyntaxError: If *script* is not valid Python source.
     """
     finder = load_script(script, path, excludes)
-    return {
-        name: sorted(importers)
-        for name, importers in finder.badmodules.items()
-    }
+    return {name: sorted(importers) for name, importers in finder.badmodules.items()}
 
 
 def module_path(

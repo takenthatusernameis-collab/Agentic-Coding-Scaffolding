@@ -194,26 +194,38 @@ class _Params(tuple):
             return tuple.__new__(cls, vals)
         except Exception:
             try:
-                vals = (getattr(p,'nchannels'), getattr(p,'sampwidth'), getattr(p,'framerate'),
-                        getattr(p,'nframes'), getattr(p,'comptype'), getattr(p,'compname'))
+                vals = (
+                    getattr(p, "nchannels"),
+                    getattr(p, "sampwidth"),
+                    getattr(p, "framerate"),
+                    getattr(p, "nframes"),
+                    getattr(p, "comptype"),
+                    getattr(p, "compname"),
+                )
                 return tuple.__new__(cls, vals)
             except Exception:
                 return tuple.__new__(cls, p)
+
     @property
     def nchannels(self):
         return self[0]
+
     @property
     def sampwidth(self):
         return self[1]
+
     @property
     def framerate(self):
         return self[2]
+
     @property
     def nframes(self):
         return self[3]
+
     @property
     def comptype(self):
         return self[4]
+
     @property
     def compname(self):
         return self[5]
@@ -235,8 +247,7 @@ def get_params(wave_obj: Any):
         except Exception:
             return res
     raise TypeError(
-        "wave_obj must be a wave.Wave_read or wave.Wave_write, "
-        f"got {type(wave_obj).__name__}"
+        f"wave_obj must be a wave.Wave_read or wave.Wave_write, got {type(wave_obj).__name__}"
     )
 
 
@@ -275,9 +286,7 @@ def set_nframes(writer: _wave.Wave_write, nframes: int) -> None:
     writer.setnframes(_require_int(nframes, "nframes"))
 
 
-def set_comptype(
-    writer: _wave.Wave_write, comptype: str, compname: str
-) -> None:
+def set_comptype(writer: _wave.Wave_write, comptype: str, compname: str) -> None:
     """Set the compression type and name on a :class:`wave.Wave_write`."""
     _require_wave_write(writer, "writer")
     writer.setcomptype(_require_str(comptype, "comptype"), _require_str(compname, "compname"))
@@ -372,6 +381,5 @@ def close_wave(wave_obj: Any) -> None:
         _mark_closed(_require_wave_write(wave_obj, "wave_obj"))
         return
     raise TypeError(
-        "wave_obj must be a wave.Wave_read or wave.Wave_write, "
-        f"got {type(wave_obj).__name__}"
+        f"wave_obj must be a wave.Wave_read or wave.Wave_write, got {type(wave_obj).__name__}"
     )

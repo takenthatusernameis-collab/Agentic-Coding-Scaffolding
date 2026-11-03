@@ -269,14 +269,11 @@ def has_capability(capabilities: Union[str, Sequence[str]], name: str) -> bool:
     elif isinstance(capabilities, (list, tuple)):
         for index, item in enumerate(capabilities):
             if not isinstance(item, str):
-                raise TypeError(
-                    f"capabilities[{index}] must be a str, got {type(item).__name__}"
-                )
+                raise TypeError(f"capabilities[{index}] must be a str, got {type(item).__name__}")
         names = list(capabilities)
     else:
         raise TypeError(
-            "capabilities must be a str or a sequence of str, "
-            f"got {type(capabilities).__name__}"
+            f"capabilities must be a str or a sequence of str, got {type(capabilities).__name__}"
         )
     wanted = name.upper()
     return any(candidate.upper() == wanted for candidate in names)
@@ -353,9 +350,7 @@ def format_flags(flags: Union[str, Iterable[str]]) -> str:
         collected: List[str] = []
         for index, item in enumerate(flags):
             if not isinstance(item, str):
-                raise TypeError(
-                    f"flags[{index}] must be a str, got {type(item).__name__}"
-                )
+                raise TypeError(f"flags[{index}] must be a str, got {type(item).__name__}")
             collected.append(item)
         candidates = [item.strip() for item in collected]
     unique: List[str] = []

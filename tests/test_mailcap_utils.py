@@ -24,7 +24,7 @@ class TestMailcapUtils(unittest.TestCase):
 
     def test_read_mailcap_file(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".mailcap") as f:
-            f.write('text/plain; cat %s\n')
+            f.write("text/plain; cat %s\n")
             path = f.name
         try:
             with open(path) as fh:
@@ -34,7 +34,7 @@ class TestMailcapUtils(unittest.TestCase):
             os.unlink(path)
 
     def test_parse_line(self) -> None:
-        result = mailcap_utils.parse_line('text/plain; cat %s\n')
+        result = mailcap_utils.parse_line("text/plain; cat %s\n")
         self.assertIsInstance(result, tuple)
         self.assertEqual(len(result), 2)
 

@@ -1,5 +1,5 @@
-import unittest
 import math
+import unittest
 
 from interval_utils import (
     interval_contains,
@@ -363,7 +363,9 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
     def test_interval_overlaps_with_inf(self):
         self.assertTrue(interval_overlaps((0, float("inf")), (5, 10)))
         self.assertTrue(interval_overlaps((float("-inf"), 0), (-5, 5)))
-        self.assertFalse(interval_overlaps((0, 1), (float("inf"), float("inf") + 1)) if False else False)  # skip complex case
+        self.assertFalse(
+            interval_overlaps((0, 1), (float("inf"), float("inf") + 1)) if False else False
+        )  # skip complex case
 
     def test_interval_intersection_with_inf(self):
         self.assertEqual(interval_intersection((0, float("inf")), (5, 100)), (5, 100))
@@ -371,7 +373,9 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
     def test_interval_union_with_inf(self):
         self.assertEqual(interval_union((0, float("inf")), (5, 100)), (0, float("inf")))
-        self.assertEqual(interval_union((float("-inf"), 10), (0, float("inf"))), (float("-inf"), float("inf")))
+        self.assertEqual(
+            interval_union((float("-inf"), 10), (0, float("inf"))), (float("-inf"), float("inf"))
+        )
 
     def test_merge_intervals_with_inf(self):
         self.assertEqual(
@@ -448,12 +452,14 @@ if __name__ == "__main__":
     unittest.main()
 
 
-class TestIntervalUtilsBoundaries(unittest.TestCase):
+class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
     """Additional boundary tests for interval utilities."""
 
     def test_normalize_interval_inf(self):
         self.assertEqual(normalize_interval(float("inf"), 5), (5, float("inf")))
-        self.assertEqual(normalize_interval(float("-inf"), float("inf")), (float("-inf"), float("inf")))
+        self.assertEqual(
+            normalize_interval(float("-inf"), float("inf")), (float("-inf"), float("inf"))
+        )
 
     def test_normalize_interval_nan(self):
         # NaN comparisons are tricky; just ensure it doesn't crash unexpectedly
@@ -586,7 +592,7 @@ class TestIntervalUtilsBoundariesMore(unittest.TestCase):
         self.assertTrue(interval_is_subset((1, 2), (0, 3)))
         self.assertTrue(interval_is_subset((0, 3), (0, 3)))
         self.assertFalse(interval_is_subset((0, 4), (0, 3)))
-        self.assertFalse(interval_is_subset(( -1, 2), (0, 3)))
+        self.assertFalse(interval_is_subset((-1, 2), (0, 3)))
         with self.assertRaises(ValueError):
             interval_is_subset((1, 0), (0, 1))
         with self.assertRaises(ValueError):

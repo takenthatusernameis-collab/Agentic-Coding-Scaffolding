@@ -312,8 +312,6 @@ class TestMaxMinVersion(unittest.TestCase):
             min_version(["1.0.0", "bad"])
 
 
-
-
 class TestIsValidVersion(unittest.TestCase):
     def test_valid(self):
         for v in ("1", "1.0", "1.0.0", "0.0.0"):
@@ -433,7 +431,6 @@ class TestVersionSatisfiesMajor(unittest.TestCase):
     def test_bool_raises(self):
         with self.assertRaises(TypeError):
             version_satisfies_major("1.0.0", True)  # type: ignore[arg-type]
-
 
 
 class TestDecrementMajor(unittest.TestCase):
@@ -767,7 +764,6 @@ if __name__ == "__main__":
     unittest.main()
 
 
-
 class TestGetBuildMetadata(unittest.TestCase):
     def test_returns_metadata(self):
         self.assertEqual(get_build_metadata("1.2.3+20130313144700"), "20130313144700")
@@ -996,7 +992,6 @@ class TestIsVersionBetween(unittest.TestCase):
             is_version_between("1.0.0", "bad", "2.0.0")
         with self.assertRaises(ValueError):
             is_version_between("1.0.0", "1.0.0", "bad")
-
 
 
 class TestVersionUtilsAliases(unittest.TestCase):

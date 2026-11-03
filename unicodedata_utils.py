@@ -32,7 +32,7 @@ def unicodedata_name(char: str, default: str | None = None) -> str:
     return unicodedata.name(char, default)
 
 
-def unicodedata_normalize(form: Literal["NFC","NFD","NFKC","NFKD"], unistr: str) -> str:
+def unicodedata_normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], unistr: str) -> str:
     """Return the normal form of a Unicode string."""
     return unicodedata.normalize(form, unistr)
 

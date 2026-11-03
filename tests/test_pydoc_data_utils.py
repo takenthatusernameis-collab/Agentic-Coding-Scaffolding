@@ -211,7 +211,7 @@ class TestWrapTopic(unittest.TestCase):
 
     def test_wrap_topic_keeps_the_indented_parts(self):
         wrapped = wrap_topic("lambda", 40)
-        self.assertIn("   lambda_expr ::= \"lambda\" [parameter_list] \":\" expression", wrapped)
+        self.assertIn('   lambda_expr ::= "lambda" [parameter_list] ":" expression', wrapped)
 
     def test_wrap_topic_keeps_the_title(self):
         wrapped = wrap_topic("lambda", 40)

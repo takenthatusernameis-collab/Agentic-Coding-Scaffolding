@@ -40,7 +40,6 @@ __all__ = [
 ]
 
 
-
 def supports_color(stream: Optional[TextIO] = None) -> bool:
     """Return True if *stream* (default stdout) supports ANSI colors.
 

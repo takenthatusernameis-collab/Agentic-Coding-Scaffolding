@@ -47,40 +47,30 @@ class TestModulefinderUtils(unittest.TestCase):
     def test_find_dependencies_lists_imported_modules(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertIn(HELPER_NAME, dependencies)
 
     def test_find_dependencies_excludes_the_script_itself(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertNotIn("__main__", dependencies)
 
     def test_find_dependencies_are_sorted(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\nimport json\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertEqual(dependencies, sorted(dependencies))
 
     def test_find_dependencies_finds_standard_library_modules(self) -> None:
         script = self._write("app.py", "import base64\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._stdlib_search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._stdlib_search_path())
         self.assertIn("base64", dependencies)
 
     def test_find_dependencies_accepts_a_string_path(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            str(script), path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(str(script), path=self._search_path())
         self.assertIn(HELPER_NAME, dependencies)
 
     def test_find_dependencies_honours_excludes(self) -> None:
@@ -138,9 +128,7 @@ class TestModulefinderUtils(unittest.TestCase):
     def test_module_path_raises_key_error_for_unknown_modules(self) -> None:
         script = self._write("app.py", f"import {HELPER_NAME}\n")
         with self.assertRaises(KeyError):
-            modulefinder_utils.module_path(
-                script, "mf_unknown_module", path=self._search_path()
-            )
+            modulefinder_utils.module_path(script, "mf_unknown_module", path=self._search_path())
 
     def test_module_path_rejects_non_string_names(self) -> None:
         self._write_helper()
@@ -156,9 +144,7 @@ class TestModulefinderUtils(unittest.TestCase):
         self._write(f"{PACKAGE_NAME}/__init__.py", "VALUE = 1\n")
         script = self._write("app.py", f"import {PACKAGE_NAME}\n")
         self.assertTrue(
-            modulefinder_utils.is_package(
-                script, PACKAGE_NAME, path=self._search_path()
-            )
+            modulefinder_utils.is_package(script, PACKAGE_NAME, path=self._search_path())
         )
 
     def test_is_package_rejects_plain_modules(self) -> None:
@@ -172,9 +158,7 @@ class TestModulefinderUtils(unittest.TestCase):
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
         with self.assertRaises(KeyError):
-            modulefinder_utils.is_package(
-                script, "mf_unknown_module", path=self._search_path()
-            )
+            modulefinder_utils.is_package(script, "mf_unknown_module", path=self._search_path())
 
     def test_report_lists_the_dependencies(self) -> None:
         self._write_helper()
@@ -201,9 +185,7 @@ class TestModulefinderUtils(unittest.TestCase):
 
     def test_analysis_does_not_execute_the_script(self) -> None:
         script = self._write("app.py", "raise SystemExit('the script must not run')\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertEqual(dependencies, [])
 
     def test_analysis_does_not_import_the_analysed_modules(self) -> None:

@@ -19,7 +19,6 @@ __all__ = [
 ]
 
 
-
 def deep_merge(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
     """Recursively merge two dictionaries.
 

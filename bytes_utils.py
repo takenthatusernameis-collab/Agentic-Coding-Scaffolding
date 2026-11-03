@@ -855,7 +855,13 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
             return all_tokens
         if maxsplit == 0:
             if all_tokens:
-                return [bytes(data).strip()] if False else [bytes(data).replace(b'\t',b' ').replace(b'\n',b' ').replace(b'\r',b' ')]  # wrong  # noqa: E501
+                return (
+                    [bytes(data).strip()]
+                    if False
+                    else [
+                        bytes(data).replace(b"\t", b" ").replace(b"\n", b" ").replace(b"\r", b" ")
+                    ]
+                )  # wrong  # noqa: E501
             # easier: just return the whole thing as one element if no split would occur? bytes.split with maxsplit 0 and sep None returns [s] if not all whitespace  # noqa: E501
             # check if all whitespace
             if not data.strip():
@@ -988,7 +994,6 @@ def casefold(data: bytes) -> bytes:
         return bytes(data).decode("utf-8").casefold().encode("utf-8")
     except UnicodeError:
         return bytes(data).lower()
-
 
 
 def isalnum(data: bytes) -> bool:

@@ -75,8 +75,10 @@ def lru_memoize(func: Callable[..., T] = None, maxsize: int = 128) -> Callable[.
         ValueError: If ``maxsize`` is negative.
     """
     if func is None:
+
         def factory(f: Callable[..., T]) -> Callable[..., T]:
             return lru_memoize(f, maxsize=maxsize)
+
         return factory  # type: ignore[return-value]
 
     if not callable(func):

@@ -69,21 +69,13 @@ def extract_tags(
     class TagExtractor(HTMLParser):
         def handle_starttag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
-                results.append({
-                    "tag": tag_name,
-                    "attrs": dict(attrs),
-                    "type": "start",
-                    "data": ""
-                })
+                results.append({"tag": tag_name, "attrs": dict(attrs), "type": "start", "data": ""})
 
         def handle_startendtag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
-                results.append({
-                    "tag": tag_name,
-                    "attrs": dict(attrs),
-                    "type": "self_closing",
-                    "data": ""
-                })
+                results.append(
+                    {"tag": tag_name, "attrs": dict(attrs), "type": "self_closing", "data": ""}
+                )
 
         def handle_endtag(self, tag_name):
             if tag is None or tag_name == tag:

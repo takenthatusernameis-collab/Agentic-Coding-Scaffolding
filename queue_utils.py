@@ -13,7 +13,6 @@ __all__ = [
 ]
 
 
-
 class Queue:
     """A simple FIFO queue."""
 

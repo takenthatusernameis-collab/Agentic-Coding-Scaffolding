@@ -252,7 +252,6 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
     return L + interval_f * (n / 2 - cf) / f
 
 
-
 def mode(numbers: List[T | float]) -> float:
     """Return the mode (most frequent value) of a list of numbers.
 
@@ -381,9 +380,7 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
     if not population and len(numbers) < 2:
-        raise ValueError(
-            "Cannot calculate sample standard deviation with fewer than 2 elements"
-        )
+        raise ValueError("Cannot calculate sample standard deviation with fewer than 2 elements")
     var = variance(numbers, population=population)
     return math.sqrt(var)
 
@@ -587,7 +584,7 @@ def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
             f"got {trim_count} for list of length {n}"
         )
     sorted_nums = sorted(numbers)
-    trimmed = sorted_nums[trim_count: n - trim_count]
+    trimmed = sorted_nums[trim_count : n - trim_count]
     return sum(trimmed) / len(trimmed)
 
 
@@ -1290,9 +1287,7 @@ def moving_average(
         raise ValueError("window must be positive")
     n = len(numbers)
     if window > n:
-        raise ValueError(
-            f"window ({window}) cannot be larger than the list length ({n})"
-        )
+        raise ValueError(f"window ({window}) cannot be larger than the list length ({n})")
     if weights is not None:
         _require_numbers(weights, "weights")
         if len(weights) != window:
@@ -1303,9 +1298,7 @@ def moving_average(
         result: List[float] = []
         for i in builtins.range(n - window + 1):
             window_values = numbers[i : i + window]
-            weighted_sum = sum(
-                float(v) * float(w) for v, w in zip(window_values, weights)
-            )
+            weighted_sum = sum(float(v) * float(w) for v, w in zip(window_values, weights))
             result.append(weighted_sum / total_weight)
         return result
     result = []
@@ -1446,8 +1439,7 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
     n = len(numbers)
     if k >= n / 2:
         raise ValueError(
-            "k must be less than half the list length, "
-            f"got {k} for list of length {n}"
+            f"k must be less than half the list length, got {k} for list of length {n}"
         )
     if k == 0:
         return mean(numbers)
@@ -1492,8 +1484,7 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     n = len(numbers)
     if k >= n / 2:
         raise ValueError(
-            "k must be less than half the list length, "
-            f"got {k} for list of length {n}"
+            f"k must be less than half the list length, got {k} for list of length {n}"
         )
     if k == 0:
         return variance(numbers, population=population)
@@ -1507,9 +1498,7 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     return sq / denom
 
 
-def winsorized_stddev(
-    numbers: List[T | float], k: int = 1, population: bool = True
-) -> float:
+def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
     """Return the standard deviation of the winsorized values of *numbers*.
 
     Winsorizes by replacing the *k* smallest and *k* largest values with the

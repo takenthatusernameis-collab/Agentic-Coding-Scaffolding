@@ -10,7 +10,6 @@ __all__ = [
 ]
 
 
-
 def dumps(obj: Any, version: int = marshal.version) -> bytes:
     """
     Serialize an object to a bytes string using the marshal module.

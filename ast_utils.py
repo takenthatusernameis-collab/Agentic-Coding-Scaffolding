@@ -19,7 +19,6 @@ __all__ = [
 ]
 
 
-
 def parse(source, filename="<unknown>", mode="exec"):
     if not isinstance(source, str):
         raise TypeError("source must be a str")

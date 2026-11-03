@@ -20,7 +20,6 @@ __all__ = [
 ]
 
 
-
 def deep_copy(obj: Any) -> Any:
     """Create a deep copy of an object."""
     try:

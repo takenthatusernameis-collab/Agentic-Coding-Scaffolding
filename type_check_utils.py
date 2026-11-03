@@ -413,9 +413,7 @@ def is_namedtuple(value: object) -> bool:
     """
     if isinstance(value, type):
         return issubclass(value, tuple) and isinstance(getattr(value, "_fields", None), tuple)
-    return isinstance(value, tuple) and isinstance(
-        getattr(type(value), "_fields", None), tuple
-    )
+    return isinstance(value, tuple) and isinstance(getattr(type(value), "_fields", None), tuple)
 
 
 def is_typeddict(value: object) -> bool:
@@ -566,18 +564,14 @@ def ensure_type(value: object, expected_type: object, name: str = "value") -> ob
     """
     if not isinstance(expected_type, (type, tuple)):
         raise TypeError(
-            f"expected_type must be a type or tuple of types, "
-            f"got {type(expected_type).__name__}"
+            f"expected_type must be a type or tuple of types, got {type(expected_type).__name__}"
         )
     if not isinstance(value, expected_type):
         if isinstance(expected_type, tuple):
             expected_name = " or ".join(t.__name__ for t in expected_type)
         else:
             expected_name = expected_type.__name__
-        raise TypeError(
-            f"{name} must be of type {expected_name}, "
-            f"got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be of type {expected_name}, got {type(value).__name__}")
     return value
 
 
@@ -630,9 +624,7 @@ def coerce_to_int(value: object) -> int:
         return int(value)
     if isinstance(value, str):
         return int(value)
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to int"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to int")
 
 
 def coerce_to_float(value: object) -> float:
@@ -666,9 +658,7 @@ def coerce_to_float(value: object) -> float:
         return value
     if isinstance(value, str):
         return float(value)
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to float"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to float")
 
 
 def coerce_to_bool(value: object) -> bool:
@@ -710,9 +700,7 @@ def coerce_to_bool(value: object) -> bool:
         if lowered in ("false", "0", "no", "n", "off"):
             return False
         raise ValueError(f"cannot coerce {value!r} to bool")
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to bool"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to bool")
 
 
 def coerce_to_bytes(value: object) -> bytes:
@@ -742,6 +730,4 @@ def coerce_to_bytes(value: object) -> bytes:
         return value.encode("utf-8")
     if isinstance(value, (bytes, bytearray)):
         return bytes(value)
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to bytes"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to bytes")

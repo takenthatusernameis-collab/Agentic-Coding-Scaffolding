@@ -17,7 +17,6 @@ __all__ = [
 ]
 
 
-
 def is_email(email: Any) -> bool:
     """
     Check if a string is a valid email address (basic RFC-like validation).

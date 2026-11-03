@@ -1,6 +1,5 @@
 """Tests for pathlib_utils."""
 
-
 from pathlib_utils import (
     ensure_dir,
     exists,

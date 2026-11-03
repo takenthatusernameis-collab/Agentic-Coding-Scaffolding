@@ -15,7 +15,6 @@ __all__ = [
 ]
 
 
-
 def make_parser(
     prog: Optional[str] = None,
     description: Optional[str] = None,

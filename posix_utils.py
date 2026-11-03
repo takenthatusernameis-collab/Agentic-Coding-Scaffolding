@@ -637,9 +637,7 @@ def read_exactly(fd: int, size: int) -> bytes:
     while received < count:
         chunk = bytes(module.read(descriptor, count - received))
         if not chunk:
-            raise EOFError(
-                f"expected {count} bytes but the file ended after {received} bytes"
-            )
+            raise EOFError(f"expected {count} bytes but the file ended after {received} bytes")
         chunks.append(chunk)
         received += len(chunk)
     return b"".join(chunks)
@@ -724,8 +722,7 @@ def seek_fd(fd: int, offset: int, whence: int = os.SEEK_SET) -> int:
         raise TypeError(f"whence must be an int, got {type(whence).__name__}")
     if whence not in (os.SEEK_SET, os.SEEK_CUR, os.SEEK_END):
         raise ValueError(
-            "whence must be one of os.SEEK_SET, os.SEEK_CUR, os.SEEK_END, "
-            f"got {whence}"
+            f"whence must be one of os.SEEK_SET, os.SEEK_CUR, os.SEEK_END, got {whence}"
         )
     return int(module.lseek(descriptor, offset, whence))
 
@@ -1039,9 +1036,7 @@ def file_info(path: PathLike, follow_symlinks: bool = True) -> FileInfo:
     module = _posix_module()
     location = _require_path(path, "path")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     result = module.stat(location) if follow_symlinks else module.lstat(location)
     mode = int(result.st_mode)
     return FileInfo(
@@ -1160,9 +1155,7 @@ def path_accessible(path: PathLike, mode: int = os.F_OK) -> bool:
     if isinstance(mode, bool) or not isinstance(mode, int):
         raise TypeError(f"mode must be an int, got {type(mode).__name__}")
     if mode not in (os.F_OK, os.R_OK, os.W_OK, os.X_OK):
-        raise ValueError(
-            "mode must be one of os.F_OK, os.R_OK, os.W_OK, os.X_OK, " f"got {mode}"
-        )
+        raise ValueError(f"mode must be one of os.F_OK, os.R_OK, os.W_OK, os.X_OK, got {mode}")
     return bool(module.access(location, mode))
 
 
@@ -1462,15 +1455,11 @@ def read_xattr(path: PathLike, name: str, follow_symlinks: bool = True) -> bytes
     location = _require_path(path, "path")
     _require_text(name, "name")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     return bytes(module.getxattr(location, name, follow_symlinks=follow_symlinks))
 
 
-def write_xattr(
-    path: PathLike, name: str, value: bytes, follow_symlinks: bool = True
-) -> None:
+def write_xattr(path: PathLike, name: str, value: bytes, follow_symlinks: bool = True) -> None:
     """Set the value of an extended attribute of a path.
 
     Args:
@@ -1489,9 +1478,7 @@ def write_xattr(
     _require_text(name, "name")
     payload = _require_bytes(value, "value")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     module.setxattr(location, name, payload, follow_symlinks=follow_symlinks)
 
 
@@ -1512,9 +1499,7 @@ def list_xattrs(path: PathLike, follow_symlinks: bool = True) -> List[str]:
     module = _posix_module()
     location = _require_path(path, "path")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     return [str(item) for item in module.listxattr(location, follow_symlinks=follow_symlinks)]
 
 
@@ -1535,9 +1520,7 @@ def remove_xattr(path: PathLike, name: str, follow_symlinks: bool = True) -> Non
     location = _require_path(path, "path")
     _require_text(name, "name")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     module.removexattr(location, name, follow_symlinks=follow_symlinks)
 
 

@@ -99,11 +99,7 @@ class TestRefresh(unittest.TestCase):
         self.assertEqual(stale, [])
 
     def test_refresh_rewrites_a_template_with_the_placeholder(self):
-        text = (
-            "cat > \"$OUTPUT_DIR/README.md\" <<'__README__'\n"
-            "# an outdated title\n"
-            "__README__\n"
-        )
+        text = "cat > \"$OUTPUT_DIR/README.md\" <<'__README__'\n# an outdated title\n__README__\n"
         refreshed, changed, stale = refresh_scaffold.refresh(text)
         expected = refresh_scaffold.templated_body("README.md")
         assert expected is not None
@@ -114,11 +110,7 @@ class TestRefresh(unittest.TestCase):
     def test_refresh_keeps_a_current_template(self):
         expected = refresh_scaffold.templated_body("README.md")
         assert expected is not None
-        text = (
-            "cat > \"$OUTPUT_DIR/README.md\" <<'__README__'\n"
-            f"{expected}\n"
-            "__README__\n"
-        )
+        text = f"cat > \"$OUTPUT_DIR/README.md\" <<'__README__'\n{expected}\n__README__\n"
         refreshed, changed, stale = refresh_scaffold.refresh(text)
         self.assertEqual(refreshed, text)
         self.assertEqual(changed, [])
@@ -148,11 +140,7 @@ class TestRefresh(unittest.TestCase):
 
     def test_refresh_leaves_a_current_copy_untouched(self):
         body = (ROOT / "doctest_utils.py").read_text().rstrip("\n")
-        text = (
-            "cat > \"$OUTPUT_DIR/doctest_utils.py\" <<'DOCTEST_UTILS'\n"
-            f"{body}\n"
-            "DOCTEST_UTILS\n"
-        )
+        text = f"cat > \"$OUTPUT_DIR/doctest_utils.py\" <<'DOCTEST_UTILS'\n{body}\nDOCTEST_UTILS\n"
         refreshed, changed, stale = refresh_scaffold.refresh(text)
         self.assertEqual(refreshed, text)
         self.assertEqual(changed, [])
@@ -190,11 +178,11 @@ class TestMissingCopies(unittest.TestCase):
     def test_a_generator_without_a_module_reports_it(self):
         text = (ROOT / "scaffold.sh").read_text()
         trimmed = text.replace(
-            "cat > \"$OUTPUT_DIR/zipimport_utils.py\"",
-            "cat > \"$OUTPUT_DIR/other.py\"",
+            'cat > "$OUTPUT_DIR/zipimport_utils.py"',
+            'cat > "$OUTPUT_DIR/other.py"',
         ).replace(
-            "cat > \"$OUTPUT_DIR/tests/test_zipimport_utils.py\"",
-            "cat > \"$OUTPUT_DIR/tests/test_other.py\"",
+            'cat > "$OUTPUT_DIR/tests/test_zipimport_utils.py"',
+            'cat > "$OUTPUT_DIR/tests/test_other.py"',
         )
         missing = refresh_scaffold.missing_copies(trimmed)
         self.assertIn("zipimport_utils.py", missing)
@@ -227,8 +215,8 @@ class TestAddMissingCopies(unittest.TestCase):
         refreshed, added = refresh_scaffold.add_missing_copies(text)
         self.assertIn("tests/test_zipimport_utils.py", added)
         self.assertLess(
-            refreshed.index("cat > \"$OUTPUT_DIR/zipimport_utils.py\""),
-            refreshed.index("cat > \"$OUTPUT_DIR/tests/test_zipimport_utils.py\""),
+            refreshed.index('cat > "$OUTPUT_DIR/zipimport_utils.py"'),
+            refreshed.index('cat > "$OUTPUT_DIR/tests/test_zipimport_utils.py"'),
         )
 
     def test_a_created_block_is_separated_by_one_empty_line(self):

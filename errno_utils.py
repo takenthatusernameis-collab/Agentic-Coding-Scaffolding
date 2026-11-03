@@ -11,7 +11,6 @@ __all__ = [
 ]
 
 
-
 def errorcode(code: int):
     return _errno.errorcode.get(code)
 

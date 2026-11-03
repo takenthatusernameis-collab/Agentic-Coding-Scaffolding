@@ -54,7 +54,8 @@ __all__: list[str] = [
 
 # Known protocol constants for validation
 _KNOWN_PROTOCOLS = {
-    v for v in [
+    v
+    for v in [
         PROTOCOL_TLS,
         PROTOCOL_TLS_CLIENT,
         PROTOCOL_TLS_SERVER,
@@ -65,7 +66,8 @@ _KNOWN_PROTOCOLS = {
         PROTOCOL_SSLv23,
         PROTOCOL_SSLv2,
         PROTOCOL_SSLv3,
-    ] if v is not None
+    ]
+    if v is not None
 }
 
 
@@ -421,6 +423,7 @@ def cert_is_valid_at_time(cert: Any, time: Any = None) -> bool:
 
     if time is None:
         import time as _time
+
         check_time = _time.time()
     else:
         if not isinstance(time, (int, float)) or isinstance(time, bool):

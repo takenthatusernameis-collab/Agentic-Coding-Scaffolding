@@ -46,9 +46,7 @@ class TestCompileallUtils(unittest.TestCase):
 
     def test_compile_file_with_invalidation_mode(self) -> None:
         source = self._write("module.py")
-        self.assertTrue(
-            compileall_utils.compile_file(source, invalidation_mode="checked-hash")
-        )
+        self.assertTrue(compileall_utils.compile_file(source, invalidation_mode="checked-hash"))
         self.assertTrue(
             compileall_utils.compile_file(
                 source, invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH

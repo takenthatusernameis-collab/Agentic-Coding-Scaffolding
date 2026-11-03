@@ -63,7 +63,6 @@ if __name__ == "__main__":
     unittest.main()
 
 
-
 class TestLruMemoize(unittest.TestCase):
     def test_caches_result(self):
         calls = []

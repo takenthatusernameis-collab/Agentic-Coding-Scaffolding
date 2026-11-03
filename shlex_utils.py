@@ -9,7 +9,6 @@ __all__ = [
 ]
 
 
-
 def split(s, comments=False, posix=True):
     if not isinstance(s, str):
         raise TypeError("s must be a str")

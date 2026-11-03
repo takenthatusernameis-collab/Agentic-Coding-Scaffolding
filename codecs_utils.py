@@ -21,7 +21,6 @@ __all__ = [
 ]
 
 
-
 def encode(obj, encoding="utf-8", errors="strict"):
     """Encode *obj* using *encoding*."""
     return _codecs.encode(obj, encoding, errors)

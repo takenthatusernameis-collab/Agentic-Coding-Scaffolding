@@ -152,8 +152,7 @@ class TestTypeUtils(unittest.TestCase):
         self.assertEqual(unwrap_optional(t.Union[int, None]), int)
         self.assertEqual(unwrap_optional(int), int)
         self.assertEqual(unwrap_optional(str), str)
-        self.assertEqual(unwrap_optional(t.Union[int, str, None]),
-                         t.Union[int, str])
+        self.assertEqual(unwrap_optional(t.Union[int, str, None]), t.Union[int, str])
 
 
 if __name__ == "__main__":

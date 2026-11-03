@@ -10,7 +10,6 @@ __all__ = [
 ]
 
 
-
 def read_lines(files: Optional[Iterable[str]] = None, **kwargs: Any) -> List[str]:
     lines: List[str] = []
     with fileinput.input(files=files, **kwargs) as f:

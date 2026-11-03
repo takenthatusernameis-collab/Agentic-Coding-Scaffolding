@@ -174,14 +174,17 @@ class TestLerp(unittest.TestCase):
 class TestSign:
     def test_negative(self):
         from number_utils import sign
+
         assert sign(-5) == -1
 
     def test_zero(self):
         from number_utils import sign
+
         assert sign(0) == 0
 
     def test_positive(self):
         from number_utils import sign
+
         assert sign(3.5) == 1
 
     def test_non_number_raises(self):
@@ -355,7 +358,6 @@ class TestIsClose(unittest.TestCase):
             is_close(1.0, 1.0, rel_tol=-0.1)
         with self.assertRaises(ValueError):
             is_close(1.0, 1.0, abs_tol=-0.1)
-
 
 
 class TestIsHappyNumber(unittest.TestCase):
@@ -541,9 +543,41 @@ class TestIsPowerOfTwo(unittest.TestCase):
 class TestIsPerfectPower(unittest.TestCase):
     def test_perfect_powers(self) -> None:
         for n in (
-            4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 81, 100, 121, 125, 128, 144,
-            169, 196, 216, 225, 243, 256, 289, 324, 343, 361, 400, 512, 625,
-            729, 1000, 1024, 2 ** 20, 3 ** 10, 5 ** 6,
+            4,
+            8,
+            9,
+            16,
+            25,
+            27,
+            32,
+            36,
+            49,
+            64,
+            81,
+            100,
+            121,
+            125,
+            128,
+            144,
+            169,
+            196,
+            216,
+            225,
+            243,
+            256,
+            289,
+            324,
+            343,
+            361,
+            400,
+            512,
+            625,
+            729,
+            1000,
+            1024,
+            2**20,
+            3**10,
+            5**6,
         ):
             self.assertTrue(is_perfect_power(n), n)
 
@@ -673,8 +707,6 @@ class TestIsMultipleOfDivides(unittest.TestCase):
     def test_aliases(self) -> None:
         from number_utils import divides, is_divisible_by, is_multiple_of
 
-
-
         self.assertTrue(is_multiple_of(10, 2))
         self.assertTrue(divides(2, 10))
         self.assertTrue(is_multiple_of(0, 3))
@@ -692,7 +724,6 @@ class TestIsMultipleOfDivides(unittest.TestCase):
             is_divisible_by(10, 2.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_divisible_by(True, 2)  # type: ignore[arg-type]
-
 
 
 class TestIsEven(unittest.TestCase):
@@ -911,7 +942,6 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
-
 
 
 class TestIsArmstrongNumber(unittest.TestCase):
@@ -1203,7 +1233,6 @@ class TestIsPronicNumber(unittest.TestCase):
             is_pronic_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_pronic_number(None)  # type: ignore[arg-type]
-
 
 
 class TestIsSpyNumber(unittest.TestCase):

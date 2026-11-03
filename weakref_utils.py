@@ -19,7 +19,6 @@ __all__ = [
 ]
 
 
-
 class BoundMethodProtocol(Protocol):
     __func__: Callable[..., Any]
     __self__: Any
