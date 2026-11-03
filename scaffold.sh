@@ -9162,6 +9162,7 @@ import unittest
 
 from calculator import (
     absolute,
+    clamp,
     abs_difference,
     add,
     divide,
@@ -9266,6 +9267,27 @@ class TestAbsDifference(unittest.TestCase):
             abs_difference(True, 3)
         with self.assertRaises(TypeError):
             abs_difference(5, False)
+
+
+
+
+class TestClamp(unittest.TestCase):
+    def test_clamp_within_range(self):
+        self.assertEqual(clamp(5, 0, 10), 5)
+
+    def test_clamp_below_low(self):
+        self.assertEqual(clamp(-3, 0, 10), 0)
+
+    def test_clamp_above_high(self):
+        self.assertEqual(clamp(15, 0, 10), 10)
+
+    def test_clamp_boundary(self):
+        self.assertEqual(clamp(0, 0, 10), 0)
+        self.assertEqual(clamp(10, 0, 10), 10)
+
+    def test_clamp_invalid_range(self):
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
 
 
 if __name__ == "__main__":
