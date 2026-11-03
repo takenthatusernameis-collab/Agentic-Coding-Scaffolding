@@ -598,3 +598,33 @@ class TestCone(unittest.TestCase):
             cone_surface_area(True, 5)
         with self.assertRaises(TypeError):
             cone_volume(3, False)
+
+
+class TestPoints(unittest.TestCase):
+    def test_point_distance(self):
+        from shapes import point_distance
+
+        self.assertAlmostEqual(point_distance((0, 0), (3, 4)), 5.0)
+
+    def test_midpoint(self):
+        from shapes import midpoint
+
+        self.assertEqual(midpoint((0, 0), (2, 2)), (1.0, 1.0))
+
+    def test_point_in_circle(self):
+        from shapes import point_in_circle
+
+        self.assertTrue(point_in_circle((1, 1), (0, 0), 2))
+        self.assertFalse(point_in_circle((5, 5), (0, 0), 2))
+
+    def test_rejects_bad_point(self):
+        from shapes import point_distance
+
+        with self.assertRaises(TypeError):
+            point_distance("bad", (0, 0))  # type: ignore[arg-type]
+
+    def test_rejects_bool_radius(self):
+        from shapes import point_in_circle
+
+        with self.assertRaises(TypeError):
+            point_in_circle((1, 1), (0, 0), True)

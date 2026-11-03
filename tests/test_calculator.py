@@ -2,6 +2,7 @@ import unittest
 
 from calculator import (
     absolute,
+    average_of_two,
     clamp,
     abs_difference,
     add,
@@ -10,7 +11,9 @@ from calculator import (
     modulo,
     multiply,
     negate,
+    percentage,
     power,
+    reciprocal,
     sqrt,
     subtract,
 )
@@ -248,6 +251,23 @@ class TestClamp(unittest.TestCase):
     def test_clamp_invalid_range(self):
         with self.assertRaises(ValueError):
             clamp(5, 10, 0)
+
+    def test_reciprocal(self):
+        self.assertEqual(reciprocal(2), 0.5)
+        with self.assertRaises(ValueError):
+            reciprocal(0)
+        with self.assertRaises(TypeError):
+            reciprocal(True)
+
+    def test_percentage(self):
+        self.assertEqual(percentage(200, 10), 20.0)
+        with self.assertRaises(TypeError):
+            percentage(True, 10)
+
+    def test_average_of_two(self):
+        self.assertEqual(average_of_two(2, 4), 3.0)
+        with self.assertRaises(TypeError):
+            average_of_two(True, 4)
 
 
 if __name__ == "__main__":
