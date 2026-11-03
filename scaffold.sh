@@ -25207,6 +25207,129 @@ class TestMathUtilsBoundaries(unittest.TestCase):
             is_square(4.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_square(True)  # type: ignore[arg-type]
+
+
+class TestMathUtilsBoundaries(unittest.TestCase):
+    def test_factorial_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            factorial(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            factorial(False)  # type: ignore[arg-type]
+
+    def test_fibonacci_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            fibonacci(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            fibonacci(False)  # type: ignore[arg-type]
+
+    def test_gcd_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            gcd(True, 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(5, False)  # type: ignore[arg-type]
+
+    def test_lcm_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            lcm(True, 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, False)  # type: ignore[arg-type]
+
+    def test_is_prime_boundaries(self) -> None:
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(3))
+        with self.assertRaises(ValueError):
+            is_prime(1)
+        with self.assertRaises(ValueError):
+            is_prime(0)
+        with self.assertRaises(ValueError):
+            is_prime(-10)
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(2.0)  # type: ignore[arg-type]
+
+    def test_is_composite_boundaries(self) -> None:
+        self.assertTrue(is_composite(4))
+        self.assertTrue(is_composite(6))
+        self.assertFalse(is_composite(2))
+        self.assertFalse(is_composite(3))
+        self.assertFalse(is_composite(17))
+        with self.assertRaises(ValueError):
+            is_composite(1)
+        with self.assertRaises(ValueError):
+            is_composite(0)
+        with self.assertRaises(ValueError):
+            is_composite(-4)
+        with self.assertRaises(TypeError):
+            is_composite(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(4.0)  # type: ignore[arg-type]
+
+    def test_is_square_boundaries(self) -> None:
+        self.assertTrue(is_square(0))
+        self.assertTrue(is_square(1))
+        self.assertTrue(is_square(144))
+        self.assertFalse(is_square(2))
+        self.assertFalse(is_square(10))
+        with self.assertRaises(ValueError):
+            is_square(-1)
+        with self.assertRaises(ValueError):
+            is_square(-25)
+        with self.assertRaises(TypeError):
+            is_square(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_square(16.0)  # type: ignore[arg-type]
+
+    def test_clamp_boundaries(self) -> None:
+        self.assertEqual(clamp(5, 0, 10), 5)
+        self.assertEqual(clamp(-1, 0, 10), 0)
+        self.assertEqual(clamp(11, 0, 10), 10)
+        self.assertEqual(clamp(0, 0, 0), 0)
+        self.assertEqual(clamp(7.5, 0.0, 10.0), 7.5)
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+        with self.assertRaises(TypeError):
+            clamp(True, 0, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, False, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, 0, None)  # type: ignore[arg-type]
+
+    def test_is_even_odd_boundaries(self) -> None:
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(-2))
+        self.assertFalse(is_even(1))
+        self.assertTrue(is_odd(1))
+        self.assertTrue(is_odd(-3))
+        self.assertFalse(is_odd(2))
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(2.0)  # type: ignore[arg-type]
+
+    def test_combination_permutation_boundaries(self) -> None:
+        self.assertEqual(combination(4, 0), 1)
+        self.assertEqual(combination(4, 4), 1)
+        self.assertEqual(combination(5, 2), 10)
+        self.assertEqual(permutation(4, 0), 1)
+        self.assertEqual(permutation(4, 4), 24)
+        self.assertEqual(permutation(5, 2), 20)
+        with self.assertRaises(ValueError):
+            combination(-1, 2)
+        with self.assertRaises(ValueError):
+            combination(2, -1)
+        with self.assertRaises(ValueError):
+            combination(2, 5)
+        with self.assertRaises(ValueError):
+            permutation(-1, 1)
+        with self.assertRaises(ValueError):
+            permutation(1, -1)
+        with self.assertRaises(ValueError):
+            permutation(2, 3)
+        with self.assertRaises(TypeError):
+            combination(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(5, False)  # type: ignore[arg-type]
 TESTMATH
 
 # --- tests/test_data_utils.py ---
@@ -51519,12 +51642,122 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
     def test_interval_distance_identical(self):
         self.assertEqual(interval_distance((0, 5), (0, 5)), 0.0)
+
+
+class TestIntervalUtilsBoundariesMore(unittest.TestCase):
+    def test_merge_intervals_empty(self):
+        self.assertEqual(merge_intervals([]), [])
+
+    def test_merge_intervals_single(self):
+        self.assertEqual(merge_intervals([(1, 2)]), [(1, 2)])
+
+    def test_merge_intervals_touching_merged(self):
+        self.assertEqual(merge_intervals([(0, 1), (1, 2)]), [(0, 2)])
+
+    def test_merge_intervals_overlapping(self):
+        self.assertEqual(merge_intervals([(0, 2), (1, 3)]), [(0, 3)])
+
+    def test_merge_intervals_invalid_element_raises(self):
+        with self.assertRaises(ValueError):
+            merge_intervals([(1, 2), (5, 3)])
+        with self.assertRaises(ValueError):
+            merge_intervals([(1, 2), "bad"])  # type: ignore[arg-type]
+
+    def test_merge_intervals_non_list_raises(self):
+        with self.assertRaises(TypeError):
+            merge_intervals(((0, 1), (1, 2)))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge_intervals("bad")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge_intervals(None)  # type: ignore[arg-type]
+
+    def test_interval_union_disjoint(self):
+        self.assertIsNone(interval_union((0, 1), (2, 3)))
+        self.assertIsNone(interval_union((2, 3), (0, 1)))
+
+    def test_interval_union_touching(self):
+        self.assertEqual(interval_union((0, 1), (1, 2)), (0, 2))
+
+    def test_interval_intersection_disjoint(self):
+        self.assertIsNone(interval_intersection((0, 1), (2, 3)))
+
+    def test_interval_intersection_touching(self):
+        self.assertEqual(interval_intersection((0, 1), (1, 2)), (1, 1))
+
+    def test_interval_contains_invalid_interval(self):
+        with self.assertRaises(ValueError):
+            interval_contains((5, 1), 3)
+        with self.assertRaises(ValueError):
+            interval_contains("bad", 3)  # type: ignore[arg-type]
+
+    def test_interval_contains_value_types(self):
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), [])  # type: ignore[arg-type]
+
+    def test_interval_overlaps_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_overlaps((1, 0), (0, 1))
+        with self.assertRaises(ValueError):
+            interval_overlaps("bad", (0, 1))  # type: ignore[arg-type]
+
+    def test_interval_length_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_length((1, 0))
+
+    def test_interval_midpoint_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_midpoint((2, 1))
+
+    def test_interval_distance_overlapping(self):
+        self.assertEqual(interval_distance((0, 5), (2, 7)), 0.0)
+        self.assertEqual(interval_distance((0, 5), (5, 7)), 0.0)
+
+    def test_interval_distance_disjoint(self):
+        self.assertEqual(interval_distance((0, 1), (3, 4)), 2.0)
+        self.assertEqual(interval_distance((3, 4), (0, 1)), 2.0)
+
+    def test_interval_is_subset_cases(self):
+        self.assertTrue(interval_is_subset((1, 2), (0, 3)))
+        self.assertTrue(interval_is_subset((0, 3), (0, 3)))
+        self.assertFalse(interval_is_subset((0, 4), (0, 3)))
+        self.assertFalse(interval_is_subset(( -1, 2), (0, 3)))
+        with self.assertRaises(ValueError):
+            interval_is_subset((1, 0), (0, 1))
+        with self.assertRaises(ValueError):
+            interval_is_subset("bad", (0, 1))  # type: ignore[arg-type]
+
+    def test_interval_shift_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_shift((5, 1), 1)
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), None)  # type: ignore[arg-type]
+
+    def test_interval_symmetric_difference_overlapping(self):
+        result = interval_symmetric_difference((0, 3), (1, 4))
+        self.assertEqual(result, [(0, 1), (3, 4)])
+
+    def test_interval_symmetric_difference_identical(self):
+        result = interval_symmetric_difference((1, 2), (1, 2))
+        self.assertEqual(result, [])
+
+    def test_normalize_interval_list_inputs_not_expected_but_mixed(self):
+        self.assertEqual(normalize_interval(10, -10), (-10, 10))
 TEST_INTERVAL_UTILS
 
 
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — audit interval_utils and math_utils boundary cases
+
+- Audited `interval_utils.py` and `math_utils.py` boundary cases and added comprehensive tests for `TypeError`/`ValueError` paths, touching intervals, empty inputs, boolean rejection, and invalid interval elements. Added `TestIntervalUtilsBoundariesMore` to `tests/test_interval_utils.py` and `TestMathUtilsBoundaries` to `tests/test_math_utils.py`. Refreshed embedded copies via `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_interval_utils tests.test_math_utils` passes. No changes to `.github/workflows/**`.
+
 ## Unreleased — added maketrans and translate to bytes_utils
 
 - Added `maketrans(frm, to)` and `translate(data, table)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError`/`ValueError` validation; `maketrans` builds a 256-byte translation table mapping each byte of *frm* to the corresponding byte of *to* (identity elsewhere), and `translate` replaces each byte of *data* according to a 256-byte table, wrapping `bytes.maketrans`/`bytes.translate`. Added `TestMaketrans` and `TestTranslate` to `tests/test_bytes_utils.py` covering mapping, identity, empty inputs, bytearray input, type errors, length mismatches, full-range translation, and table-length validation (19 new tests). Imported `maketrans` and `translate` at the top of the test file to match the module's `__all__` contract. Updated the `bytes_utils` module tree entry and prose section of `README.md`.

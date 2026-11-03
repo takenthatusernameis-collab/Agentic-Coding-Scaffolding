@@ -500,3 +500,126 @@ class TestMathUtilsBoundaries(unittest.TestCase):
             is_square(4.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_square(True)  # type: ignore[arg-type]
+
+
+class TestMathUtilsBoundaries(unittest.TestCase):
+    def test_factorial_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            factorial(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            factorial(False)  # type: ignore[arg-type]
+
+    def test_fibonacci_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            fibonacci(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            fibonacci(False)  # type: ignore[arg-type]
+
+    def test_gcd_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            gcd(True, 5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(5, False)  # type: ignore[arg-type]
+
+    def test_lcm_bool_rejected(self) -> None:
+        with self.assertRaises(TypeError):
+            lcm(True, 6)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, False)  # type: ignore[arg-type]
+
+    def test_is_prime_boundaries(self) -> None:
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(3))
+        with self.assertRaises(ValueError):
+            is_prime(1)
+        with self.assertRaises(ValueError):
+            is_prime(0)
+        with self.assertRaises(ValueError):
+            is_prime(-10)
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(2.0)  # type: ignore[arg-type]
+
+    def test_is_composite_boundaries(self) -> None:
+        self.assertTrue(is_composite(4))
+        self.assertTrue(is_composite(6))
+        self.assertFalse(is_composite(2))
+        self.assertFalse(is_composite(3))
+        self.assertFalse(is_composite(17))
+        with self.assertRaises(ValueError):
+            is_composite(1)
+        with self.assertRaises(ValueError):
+            is_composite(0)
+        with self.assertRaises(ValueError):
+            is_composite(-4)
+        with self.assertRaises(TypeError):
+            is_composite(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_composite(4.0)  # type: ignore[arg-type]
+
+    def test_is_square_boundaries(self) -> None:
+        self.assertTrue(is_square(0))
+        self.assertTrue(is_square(1))
+        self.assertTrue(is_square(144))
+        self.assertFalse(is_square(2))
+        self.assertFalse(is_square(10))
+        with self.assertRaises(ValueError):
+            is_square(-1)
+        with self.assertRaises(ValueError):
+            is_square(-25)
+        with self.assertRaises(TypeError):
+            is_square(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_square(16.0)  # type: ignore[arg-type]
+
+    def test_clamp_boundaries(self) -> None:
+        self.assertEqual(clamp(5, 0, 10), 5)
+        self.assertEqual(clamp(-1, 0, 10), 0)
+        self.assertEqual(clamp(11, 0, 10), 10)
+        self.assertEqual(clamp(0, 0, 0), 0)
+        self.assertEqual(clamp(7.5, 0.0, 10.0), 7.5)
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+        with self.assertRaises(TypeError):
+            clamp(True, 0, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, False, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, 0, None)  # type: ignore[arg-type]
+
+    def test_is_even_odd_boundaries(self) -> None:
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(-2))
+        self.assertFalse(is_even(1))
+        self.assertTrue(is_odd(1))
+        self.assertTrue(is_odd(-3))
+        self.assertFalse(is_odd(2))
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(2.0)  # type: ignore[arg-type]
+
+    def test_combination_permutation_boundaries(self) -> None:
+        self.assertEqual(combination(4, 0), 1)
+        self.assertEqual(combination(4, 4), 1)
+        self.assertEqual(combination(5, 2), 10)
+        self.assertEqual(permutation(4, 0), 1)
+        self.assertEqual(permutation(4, 4), 24)
+        self.assertEqual(permutation(5, 2), 20)
+        with self.assertRaises(ValueError):
+            combination(-1, 2)
+        with self.assertRaises(ValueError):
+            combination(2, -1)
+        with self.assertRaises(ValueError):
+            combination(2, 5)
+        with self.assertRaises(ValueError):
+            permutation(-1, 1)
+        with self.assertRaises(ValueError):
+            permutation(1, -1)
+        with self.assertRaises(ValueError):
+            permutation(2, 3)
+        with self.assertRaises(TypeError):
+            combination(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(5, False)  # type: ignore[arg-type]

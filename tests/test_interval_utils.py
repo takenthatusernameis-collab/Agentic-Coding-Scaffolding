@@ -504,3 +504,109 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
     def test_interval_distance_identical(self):
         self.assertEqual(interval_distance((0, 5), (0, 5)), 0.0)
+
+
+class TestIntervalUtilsBoundariesMore(unittest.TestCase):
+    def test_merge_intervals_empty(self):
+        self.assertEqual(merge_intervals([]), [])
+
+    def test_merge_intervals_single(self):
+        self.assertEqual(merge_intervals([(1, 2)]), [(1, 2)])
+
+    def test_merge_intervals_touching_merged(self):
+        self.assertEqual(merge_intervals([(0, 1), (1, 2)]), [(0, 2)])
+
+    def test_merge_intervals_overlapping(self):
+        self.assertEqual(merge_intervals([(0, 2), (1, 3)]), [(0, 3)])
+
+    def test_merge_intervals_invalid_element_raises(self):
+        with self.assertRaises(ValueError):
+            merge_intervals([(1, 2), (5, 3)])
+        with self.assertRaises(ValueError):
+            merge_intervals([(1, 2), "bad"])  # type: ignore[arg-type]
+
+    def test_merge_intervals_non_list_raises(self):
+        with self.assertRaises(TypeError):
+            merge_intervals(((0, 1), (1, 2)))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge_intervals("bad")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge_intervals(None)  # type: ignore[arg-type]
+
+    def test_interval_union_disjoint(self):
+        self.assertIsNone(interval_union((0, 1), (2, 3)))
+        self.assertIsNone(interval_union((2, 3), (0, 1)))
+
+    def test_interval_union_touching(self):
+        self.assertEqual(interval_union((0, 1), (1, 2)), (0, 2))
+
+    def test_interval_intersection_disjoint(self):
+        self.assertIsNone(interval_intersection((0, 1), (2, 3)))
+
+    def test_interval_intersection_touching(self):
+        self.assertEqual(interval_intersection((0, 1), (1, 2)), (1, 1))
+
+    def test_interval_contains_invalid_interval(self):
+        with self.assertRaises(ValueError):
+            interval_contains((5, 1), 3)
+        with self.assertRaises(ValueError):
+            interval_contains("bad", 3)  # type: ignore[arg-type]
+
+    def test_interval_contains_value_types(self):
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), "5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), [])  # type: ignore[arg-type]
+
+    def test_interval_overlaps_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_overlaps((1, 0), (0, 1))
+        with self.assertRaises(ValueError):
+            interval_overlaps("bad", (0, 1))  # type: ignore[arg-type]
+
+    def test_interval_length_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_length((1, 0))
+
+    def test_interval_midpoint_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_midpoint((2, 1))
+
+    def test_interval_distance_overlapping(self):
+        self.assertEqual(interval_distance((0, 5), (2, 7)), 0.0)
+        self.assertEqual(interval_distance((0, 5), (5, 7)), 0.0)
+
+    def test_interval_distance_disjoint(self):
+        self.assertEqual(interval_distance((0, 1), (3, 4)), 2.0)
+        self.assertEqual(interval_distance((3, 4), (0, 1)), 2.0)
+
+    def test_interval_is_subset_cases(self):
+        self.assertTrue(interval_is_subset((1, 2), (0, 3)))
+        self.assertTrue(interval_is_subset((0, 3), (0, 3)))
+        self.assertFalse(interval_is_subset((0, 4), (0, 3)))
+        self.assertFalse(interval_is_subset(( -1, 2), (0, 3)))
+        with self.assertRaises(ValueError):
+            interval_is_subset((1, 0), (0, 1))
+        with self.assertRaises(ValueError):
+            interval_is_subset("bad", (0, 1))  # type: ignore[arg-type]
+
+    def test_interval_shift_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_shift((5, 1), 1)
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), None)  # type: ignore[arg-type]
+
+    def test_interval_symmetric_difference_overlapping(self):
+        result = interval_symmetric_difference((0, 3), (1, 4))
+        self.assertEqual(result, [(0, 1), (3, 4)])
+
+    def test_interval_symmetric_difference_identical(self):
+        result = interval_symmetric_difference((1, 2), (1, 2))
+        self.assertEqual(result, [])
+
+    def test_normalize_interval_list_inputs_not_expected_but_mixed(self):
+        self.assertEqual(normalize_interval(10, -10), (-10, 10))
