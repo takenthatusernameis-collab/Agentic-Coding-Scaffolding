@@ -21,6 +21,7 @@ __all__: List[str] = [
     "dedent_text",
     "reverse_words",
     "split_paragraphs",
+    "count_words",
 ]
 
 _SMALL_WORDS = {
@@ -633,3 +634,27 @@ def split_paragraphs(text: str) -> List[str]:
             continue
         result.append(stripped)
     return result
+
+
+def count_words(text: str) -> int:
+    """Count the whitespace-separated words in *text*.
+
+    Args:
+        text: The string whose words should be counted.
+
+    Returns:
+        The number of words in *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_words("hello world")
+        2
+        >>> count_words("  a   b  c ")
+        3
+        >>> count_words("")
+        0
+    """
+    _require_string(text, "text")
+    return len(text.split())

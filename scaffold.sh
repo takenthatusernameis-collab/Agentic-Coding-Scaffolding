@@ -22487,7 +22487,7 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
-from string_utils import split_paragraphs  # noqa: E402
+from string_utils import split_paragraphs, count_words  # noqa: E402
 
 
 class TestSplitParagraphs(unittest.TestCase):
@@ -22523,6 +22523,23 @@ class TestSplitParagraphs(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     split_paragraphs(value)  # type: ignore[arg-type]
+
+
+class TestCountWords(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_words("hello world"), 2)
+
+    def test_extra_whitespace(self):
+        self.assertEqual(count_words("  a   b  c "), 3)
+
+    def test_empty(self):
+        self.assertEqual(count_words(""), 0)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    count_words(value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -32365,6 +32382,7 @@ __all__: List[str] = [
     "dedent_text",
     "reverse_words",
     "split_paragraphs",
+    "count_words",
 ]
 
 _SMALL_WORDS = {
@@ -32977,6 +32995,30 @@ def split_paragraphs(text: str) -> List[str]:
             continue
         result.append(stripped)
     return result
+
+
+def count_words(text: str) -> int:
+    """Count the whitespace-separated words in *text*.
+
+    Args:
+        text: The string whose words should be counted.
+
+    Returns:
+        The number of words in *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_words("hello world")
+        2
+        >>> count_words("  a   b  c ")
+        3
+        >>> count_words("")
+        0
+    """
+    _require_string(text, "text")
+    return len(text.split())
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
