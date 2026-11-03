@@ -11,6 +11,9 @@ __all__ = [
     "negate",
     "absolute",
     "clamp",
+    "reciprocal",
+    "percentage",
+    "average_of_two",
 ]
 
 
@@ -157,3 +160,28 @@ def clamp(value: float, low: float, high: float) -> float:
     if low > high:
         raise ValueError("low must not exceed high.")
     return max(low, min(high, value))
+
+
+def reciprocal(x: float) -> float:
+    """Return 1/x."""
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        raise TypeError("x must be a real number")
+    if x == 0:
+        raise ValueError("Cannot divide by zero")
+    return float(1.0 / x)
+
+
+def percentage(value: float, percent: float) -> float:
+    """Return (value * percent) / 100."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("value must be a real number")
+    if isinstance(percent, bool) or not isinstance(percent, (int, float)):
+        raise TypeError("percent must be a real number")
+    return float((value * percent) / 100.0)
+
+
+def average_of_two(a: float, b: float) -> float:
+    """Return the average of a and b."""
+    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+        raise TypeError("a and b must be real numbers")
+    return float((a + b) / 2.0)

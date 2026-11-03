@@ -41,6 +41,9 @@ __all__: List[str] = [
     "cylinder_volume",
     "cone_surface_area",
     "cone_volume",
+    "point_distance",
+    "midpoint",
+    "point_in_circle",
 ]
 
 
@@ -659,3 +662,53 @@ def cone_volume(radius: float, height: float) -> float:
     if height < 0:
         raise ValueError("Height cannot be negative.")
     return float((1 / 3) * math.pi * radius ** 2 * height)
+
+
+def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
+    """Return the Euclidean distance between two points."""
+    if not isinstance(p1, (tuple, list)) or len(p1) != 2:
+        raise TypeError("p1 must be a point (x, y)")
+    if not isinstance(p2, (tuple, list)) or len(p2) != 2:
+        raise TypeError("p2 must be a point (x, y)")
+    x1, y1 = p1
+    x2, y2 = p2
+    if not isinstance(x1, (int, float)) or isinstance(x1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y1, (int, float)) or isinstance(y1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(x2, (int, float)) or isinstance(x2, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y2, (int, float)) or isinstance(y2, bool):
+        raise TypeError("coordinates must be numbers")
+    return float(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
+
+
+def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
+    """Return the midpoint between two points."""
+    if not isinstance(p1, (tuple, list)) or len(p1) != 2:
+        raise TypeError("p1 must be a point (x, y)")
+    if not isinstance(p2, (tuple, list)) or len(p2) != 2:
+        raise TypeError("p2 must be a point (x, y)")
+    x1, y1 = p1
+    x2, y2 = p2
+    if not isinstance(x1, (int, float)) or isinstance(x1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y1, (int, float)) or isinstance(y1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(x2, (int, float)) or isinstance(x2, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y2, (int, float)) or isinstance(y2, bool):
+        raise TypeError("coordinates must be numbers")
+    return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+
+
+def point_in_circle(
+    point: tuple[float, float], center: tuple[float, float], radius: float
+) -> bool:
+    """Return True if point is inside or on the circle."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    dist = point_distance(point, center)
+    return dist <= radius + 1e-9
