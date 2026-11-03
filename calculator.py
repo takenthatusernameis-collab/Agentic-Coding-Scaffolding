@@ -24,6 +24,7 @@ __all__ = [
     "combination",
     "permutation",
     "mod_pow",
+    "sign",
 ]
 
 
@@ -492,3 +493,29 @@ def mod_pow(base: int, exp: int, mod: int) -> int:
     if mod <= 0:
         raise ValueError("mod must be positive")
     return pow(base, exp, mod)
+
+
+def sign(x: float) -> int:
+    """Return the sign of a number: -1 if negative, 0 if zero, 1 if positive.
+
+    Args:
+        x: The number to check.
+
+    Raises:
+        TypeError: If x is not a real number (int or float) or is a bool.
+
+    Examples:
+        >>> sign(5)
+        1
+        >>> sign(-3)
+        -1
+        >>> sign(0)
+        0
+    """
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        raise TypeError("x must be a real number")
+    if x > 0:
+        return 1
+    if x < 0:
+        return -1
+    return 0

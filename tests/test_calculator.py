@@ -6,7 +6,6 @@ from calculator import (
     add,
     average_of_two,
     clamp,
-    combination,
     divide,
     factorial,
     gcd,
@@ -22,6 +21,7 @@ from calculator import (
     power,
     reciprocal,
     round_to,
+    sign,
     sqrt,
     subtract,
 )
@@ -501,3 +501,27 @@ class TestModPow(unittest.TestCase):
             mod_pow(2, 1, 0)
         with self.assertRaises(ValueError):
             mod_pow(2, 1, -3)
+
+
+class TestSign(unittest.TestCase):
+    def test_sign_basic(self):
+        self.assertEqual(sign(5), 1)
+        self.assertEqual(sign(-3), -1)
+        self.assertEqual(sign(0), 0)
+        self.assertEqual(sign(3.14), 1)
+        self.assertEqual(sign(-0.5), -1)
+        self.assertEqual(sign(-0.0), 0)
+
+    def test_sign_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sign(True)
+        with self.assertRaises(TypeError):
+            sign(False)
+
+    def test_sign_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            sign("5")
+        with self.assertRaises(TypeError):
+            sign(None)
+        with self.assertRaises(TypeError):
+            sign([])
