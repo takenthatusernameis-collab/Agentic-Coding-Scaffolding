@@ -677,7 +677,7 @@ The `Makefile` bundles the common development tasks:
 
 ## Calculator Module
 
-The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, and divide. The module is tested in `tests/test_calculator.py`.
+The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, divide, modulo, floor_divide, power, sqrt, negate, absolute, clamp, reciprocal, percentage, average_of_two, and round_to. `round_to(value, places=0)` rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and validates its inputs, raising `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. The module is tested in `tests/test_calculator.py`.
 
 ## Shapes Module
 

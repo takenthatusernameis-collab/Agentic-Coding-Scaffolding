@@ -1,3 +1,8 @@
+## Unreleased — added round_to to calculator
+
+- Added `round_to(value, places=0)` to `calculator.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and raises `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. Added `TestRoundTo` to `tests/test_calculator.py` covering zero/custom places, integer inputs, and the `TypeError`/`ValueError` paths (8 new tests). Imported `round_to` at the top of the test file to match the module's `__all__` contract. Updated the `calculator` module prose section of `README.md`. Synchronized `calculator.py`, `tests/test_calculator.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_calculator.py -v` passes; `python -m doctest calculator.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — audit interval_utils and math_utils boundary cases
 
 - Audited `interval_utils.py` and `math_utils.py` boundary cases and added comprehensive tests for `TypeError`/`ValueError` paths, touching intervals, empty inputs, boolean rejection, and invalid interval elements. Added `TestIntervalUtilsBoundariesMore` to `tests/test_interval_utils.py` and `TestMathUtilsBoundaries` to `tests/test_math_utils.py`. Refreshed embedded copies via `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_interval_utils tests.test_math_utils` passes. No changes to `.github/workflows/**`.

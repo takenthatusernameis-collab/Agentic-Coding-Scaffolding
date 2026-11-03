@@ -9038,6 +9038,7 @@ __all__ = [
     "reciprocal",
     "percentage",
     "average_of_two",
+    "round_to",
 ]
 
 
@@ -9251,6 +9252,41 @@ def average_of_two(a: float, b: float) -> float:
     ):
         raise TypeError("a and b must be real numbers")
     return float((a + b) / 2.0)
+
+
+def round_to(value: float, places: int = 0) -> float:
+    """Round a value to the given number of decimal places.
+
+    Uses banker's rounding (round-half-to-even), matching Python's built-in
+    :func:`round`.
+
+    Args:
+        value: The value to round.
+        places: The number of decimal places. Must be non-negative.
+
+    Returns:
+        The rounded value.
+
+    Raises:
+        TypeError: If *value* is not a real number (int or float) or *places*
+            is not an int.
+        ValueError: If *places* is negative.
+
+    Examples:
+        >>> round_to(2.5)
+        2.0
+        >>> round_to(3.5)
+        4.0
+        >>> round_to(3.14159, 2)
+        3.14
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("value must be a real number")
+    if isinstance(places, bool) or not isinstance(places, int):
+        raise TypeError(f"places must be an int, got {type(places).__name__}")
+    if places < 0:
+        raise ValueError("places must be non-negative")
+    return float(round(value, places))
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9269,6 +9305,7 @@ from calculator import (
     percentage,
     power,
     reciprocal,
+    round_to,
     sqrt,
     subtract,
 )
@@ -9510,6 +9547,50 @@ class TestClamp(unittest.TestCase):
         self.assertEqual(average_of_two(2, 4), 3.0)
         with self.assertRaises(TypeError):
             average_of_two(True, 4)
+
+
+class TestRoundTo(unittest.TestCase):
+    def test_round_to_zero_places(self):
+        self.assertEqual(round_to(2.5), 2.0)
+        self.assertEqual(round_to(3.5), 4.0)
+        self.assertEqual(round_to(2.4), 2.0)
+        self.assertEqual(round_to(-2.5), -2.0)
+
+    def test_round_to_custom_places(self):
+        self.assertEqual(round_to(3.14159, 2), 3.14)
+        self.assertEqual(round_to(3.146, 2), 3.15)
+        self.assertEqual(round_to(2.674, 2), 2.67)
+        self.assertEqual(round_to(10, 0), 10.0)
+
+    def test_round_to_integer_input(self):
+        self.assertEqual(round_to(7), 7.0)
+        self.assertEqual(round_to(7, 3), 7.0)
+
+    def test_round_to_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            round_to("2.5")
+        with self.assertRaises(TypeError):
+            round_to(None)
+        with self.assertRaises(TypeError):
+            round_to([1, 2])
+
+    def test_round_to_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            round_to(True)
+        with self.assertRaises(TypeError):
+            round_to(False)
+
+    def test_round_to_rejects_non_int_places(self):
+        with self.assertRaises(TypeError):
+            round_to(2.5, "2")
+        with self.assertRaises(TypeError):
+            round_to(2.5, None)
+        with self.assertRaises(TypeError):
+            round_to(2.5, True)
+
+    def test_round_to_rejects_negative_places(self):
+        with self.assertRaises(ValueError):
+            round_to(2.5, -1)
 
 
 if __name__ == "__main__":
@@ -51755,6 +51836,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added round_to to calculator
+
+- Added `round_to(value, places=0)` to `calculator.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and raises `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. Added `TestRoundTo` to `tests/test_calculator.py` covering zero/custom places, integer inputs, and the `TypeError`/`ValueError` paths (8 new tests). Imported `round_to` at the top of the test file to match the module's `__all__` contract. Updated the `calculator` module prose section of `README.md`. Synchronized `calculator.py`, `tests/test_calculator.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_calculator.py -v` passes; `python -m doctest calculator.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — audit interval_utils and math_utils boundary cases
 
 - Audited `interval_utils.py` and `math_utils.py` boundary cases and added comprehensive tests for `TypeError`/`ValueError` paths, touching intervals, empty inputs, boolean rejection, and invalid interval elements. Added `TestIntervalUtilsBoundariesMore` to `tests/test_interval_utils.py` and `TestMathUtilsBoundaries` to `tests/test_math_utils.py`. Refreshed embedded copies via `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_interval_utils tests.test_math_utils` passes. No changes to `.github/workflows/**`.
@@ -54292,7 +54378,7 @@ The `Makefile` bundles the common development tasks:
 
 ## Calculator Module
 
-The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, and divide. The module is tested in `tests/test_calculator.py`.
+The project includes a simple calculator module in `calculator.py` with functions for basic arithmetic operations: add, subtract, multiply, divide, modulo, floor_divide, power, sqrt, negate, absolute, clamp, reciprocal, percentage, average_of_two, and round_to. `round_to(value, places=0)` rounds *value* to *places* decimal places using banker's rounding (round-half-to-even) and validates its inputs, raising `TypeError` for non-numeric values or non-int *places* and `ValueError` for negative *places*. The module is tested in `tests/test_calculator.py`.
 
 ## Shapes Module
 

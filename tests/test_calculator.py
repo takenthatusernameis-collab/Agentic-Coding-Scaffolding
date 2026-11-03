@@ -12,6 +12,7 @@ from calculator import (
     percentage,
     power,
     reciprocal,
+    round_to,
     sqrt,
     subtract,
 )
@@ -253,6 +254,50 @@ class TestClamp(unittest.TestCase):
         self.assertEqual(average_of_two(2, 4), 3.0)
         with self.assertRaises(TypeError):
             average_of_two(True, 4)
+
+
+class TestRoundTo(unittest.TestCase):
+    def test_round_to_zero_places(self):
+        self.assertEqual(round_to(2.5), 2.0)
+        self.assertEqual(round_to(3.5), 4.0)
+        self.assertEqual(round_to(2.4), 2.0)
+        self.assertEqual(round_to(-2.5), -2.0)
+
+    def test_round_to_custom_places(self):
+        self.assertEqual(round_to(3.14159, 2), 3.14)
+        self.assertEqual(round_to(3.146, 2), 3.15)
+        self.assertEqual(round_to(2.674, 2), 2.67)
+        self.assertEqual(round_to(10, 0), 10.0)
+
+    def test_round_to_integer_input(self):
+        self.assertEqual(round_to(7), 7.0)
+        self.assertEqual(round_to(7, 3), 7.0)
+
+    def test_round_to_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            round_to("2.5")
+        with self.assertRaises(TypeError):
+            round_to(None)
+        with self.assertRaises(TypeError):
+            round_to([1, 2])
+
+    def test_round_to_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            round_to(True)
+        with self.assertRaises(TypeError):
+            round_to(False)
+
+    def test_round_to_rejects_non_int_places(self):
+        with self.assertRaises(TypeError):
+            round_to(2.5, "2")
+        with self.assertRaises(TypeError):
+            round_to(2.5, None)
+        with self.assertRaises(TypeError):
+            round_to(2.5, True)
+
+    def test_round_to_rejects_negative_places(self):
+        with self.assertRaises(ValueError):
+            round_to(2.5, -1)
 
 
 if __name__ == "__main__":

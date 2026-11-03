@@ -14,6 +14,7 @@ __all__ = [
     "reciprocal",
     "percentage",
     "average_of_two",
+    "round_to",
 ]
 
 
@@ -227,3 +228,38 @@ def average_of_two(a: float, b: float) -> float:
     ):
         raise TypeError("a and b must be real numbers")
     return float((a + b) / 2.0)
+
+
+def round_to(value: float, places: int = 0) -> float:
+    """Round a value to the given number of decimal places.
+
+    Uses banker's rounding (round-half-to-even), matching Python's built-in
+    :func:`round`.
+
+    Args:
+        value: The value to round.
+        places: The number of decimal places. Must be non-negative.
+
+    Returns:
+        The rounded value.
+
+    Raises:
+        TypeError: If *value* is not a real number (int or float) or *places*
+            is not an int.
+        ValueError: If *places* is negative.
+
+    Examples:
+        >>> round_to(2.5)
+        2.0
+        >>> round_to(3.5)
+        4.0
+        >>> round_to(3.14159, 2)
+        3.14
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("value must be a real number")
+    if isinstance(places, bool) or not isinstance(places, int):
+        raise TypeError(f"places must be an int, got {type(places).__name__}")
+    if places < 0:
+        raise ValueError("places must be non-negative")
+    return float(round(value, places))
