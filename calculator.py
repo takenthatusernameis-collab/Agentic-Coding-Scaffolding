@@ -61,8 +61,16 @@ def divide(a: float, b: float) -> float:
     """Return the quotient of a and b.
 
     Raises:
+        TypeError: If either argument is not a real number (int or float).
         ValueError: If b is zero.
     """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a / b

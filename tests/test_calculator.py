@@ -41,6 +41,20 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(ValueError):
             divide(5, 0)
 
+    def test_divide_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            divide("10", 2)
+        with self.assertRaises(TypeError):
+            divide(10, "2")
+        with self.assertRaises(TypeError):
+            divide(None, 2)
+
+    def test_divide_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            divide(True, 2)
+        with self.assertRaises(TypeError):
+            divide(10, False)
+
     def test_modulo(self):
         self.assertEqual(modulo(10, 3), 1)
         self.assertEqual(modulo(9, 3), 0)
