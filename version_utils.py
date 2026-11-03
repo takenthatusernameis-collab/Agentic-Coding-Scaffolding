@@ -26,6 +26,7 @@ __all__ = [
     "get_build",
     "get_build_metadata",
     "has_build_metadata",
+    "has_metadata",
     "has_prerelease",
     "get_major_version",
     "get_minor_version",
@@ -575,8 +576,8 @@ def get_prerelease(version: str) -> str | None:
     Examples:
         >>> get_prerelease("1.2.3-rc1")
         'rc1'
-        >>> get_prerelease("1.2.3")
-        None
+        >>> get_prerelease("1.2.3") is None
+        True
     """
     if not isinstance(version, str):
         raise TypeError("version must be a string")
@@ -605,8 +606,8 @@ def get_build_metadata(version: str) -> str | None:
     Examples:
         >>> get_build_metadata("1.2.3+20130313144700")
         '20130313144700'
-        >>> get_build_metadata("1.2.3")
-        None
+        >>> get_build_metadata("1.2.3") is None
+        True
     """
     if not isinstance(version, str):
         raise TypeError("version must be a string")
@@ -671,6 +672,8 @@ def has_prerelease(version: str) -> bool:
     Examples:
         >>> has_prerelease("1.2.3-rc1")
         True
+        >>> has_prerelease("1.0.0-alpha.1")
+        True
         >>> has_prerelease("1.2.3-rc1+build.123")
         True
         >>> has_prerelease("1.2.3")
@@ -681,6 +684,40 @@ def has_prerelease(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "-" in version
+
+
+def has_metadata(version: str) -> bool:
+    """Return True if *version* carries prerelease or build metadata.
+
+    A version may have a pre-release suffix (after ``-``) and/or build
+    metadata (after ``+``). This is a convenience boolean that reports
+    whether either form of metadata is present.
+
+    Args:
+        version: A dotted version string, optionally with metadata.
+
+    Returns:
+        True if *version* contains a ``-`` or ``+`` metadata suffix, False
+        otherwise.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_metadata("1.2.3-rc1")
+        True
+        >>> has_metadata("1.2.3+build.123")
+        True
+        >>> has_metadata("1.2.3-rc1+build.123")
+        True
+        >>> has_metadata("1.2.3")
+        False
+        >>> has_metadata("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return "-" in version or "+" in version
 
 
 def strip_prerelease(version: str) -> str:

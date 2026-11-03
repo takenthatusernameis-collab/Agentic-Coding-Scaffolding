@@ -32,6 +32,7 @@ from version_utils import (
     get_prerelease_tag,
     greater_than,
     has_build_metadata,
+    has_metadata,
     has_prerelease,
     increment,
     increment_major,
@@ -815,6 +816,22 @@ class TestHasPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_prerelease(123)  # type: ignore[arg-type]
+
+
+class TestHasMetadata(unittest.TestCase):
+    def test_returns_true_when_present(self):
+        self.assertTrue(has_metadata("1.2.3-rc1"))
+        self.assertTrue(has_metadata("1.0.0+build.123"))
+        self.assertTrue(has_metadata("1.2.3-rc1+build.123"))
+
+    def test_returns_false_when_not_present(self):
+        self.assertFalse(has_metadata("1.2.3"))
+        self.assertFalse(has_metadata("2.0.0"))
+        self.assertFalse(has_metadata(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            has_metadata(123)  # type: ignore[arg-type]
 
 
 class TestStripPrerelease(unittest.TestCase):
