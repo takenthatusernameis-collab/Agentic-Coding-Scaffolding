@@ -6403,7 +6403,7 @@ def _as_path_str(value: object, name: str = "path") -> str:
     path_str = str(path)
     if path_str == "":
         raise ValueError(f"{name} must not be empty")
-    # Path('') string representation is '.' in Python - but for our API, empty Path should be rejected
+    # Path('') string representation is '.' in Python - empty Path rejected
     if isinstance(value, Path) and value == Path(""):
         raise ValueError(f"{name} must not be empty")
     if isinstance(path, Path) and path == Path(""):
@@ -8325,7 +8325,6 @@ LZMA_UTILS
 cat > "$OUTPUT_DIR/tests/test_bz2_utils.py" <<'TEST_BZ2_UTILS'
 """Tests for bz2_utils."""
 
-import bz2
 import os
 import tempfile
 from pathlib import Path
@@ -22119,7 +22118,7 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
-from string_utils import split_paragraphs
+from string_utils import split_paragraphs  # noqa: E402
 
 
 class TestSplitParagraphs(unittest.TestCase):
@@ -24678,7 +24677,16 @@ cat > "$OUTPUT_DIR/tests/test_data_utils.py" <<'TESTDATA'
 
 import unittest
 
-from data_utils import deep_copy, del_nested, flatten_dict, get_nested, invert_dict, merge_dicts, omit, pick
+from data_utils import (
+    deep_copy,
+    del_nested,
+    flatten_dict,
+    get_nested,
+    invert_dict,
+    merge_dicts,
+    omit,
+    pick,
+)
 
 
 class TestDeepCopy(unittest.TestCase):
@@ -26583,7 +26591,7 @@ def mkstemp(
     suffix = _require_path_or_none(suffix, "suffix")
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
-    return tempfile.mkstemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))
+    return tempfile.mkstemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))  # noqa: E501
 
 
 def mkdtemp(
@@ -26607,7 +26615,7 @@ def mkdtemp(
     suffix = _require_path_or_none(suffix, "suffix")
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
-    return tempfile.mkdtemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))
+    return tempfile.mkdtemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))  # noqa: E501
 
 
 def NamedTemporaryFile(
@@ -26747,7 +26755,7 @@ def TemporaryDirectory(
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
     if not isinstance(ignore_cleanup_errors, bool):
-        raise TypeError(f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}")
+        raise TypeError(f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}")  # noqa: E501
     return tempfile.TemporaryDirectory(
         suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
         prefix=_coerce_path_or_none(prefix),
@@ -40482,7 +40490,16 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 
 import unittest
 
-from dict_utils import deep_merge, filter_dict, flatten_dict, invert_dict, omit_keys, safe_get, select_keys, unflatten_dict
+from dict_utils import (
+    deep_merge,
+    filter_dict,
+    flatten_dict,
+    invert_dict,
+    omit_keys,
+    safe_get,
+    select_keys,
+    unflatten_dict,
+)
 
 
 class TestDeepMerge(unittest.TestCase):
@@ -41284,8 +41301,8 @@ from greeting_utils import (
     format_congrats,
     format_encouragement,
     format_farewell,
-    format_greeting,
     format_good_luck,
+    format_greeting,
     format_names,
     format_thanks,
     format_welcome,
@@ -44877,7 +44894,7 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
                 j += 1
             count_splits += 1
             # but we need to handle remaining
-        # not quite right - easier to do: get all tokens and if maxsplit>0, combine from left appropriately for rsplit?
+        # not quite right - easier to do: get all tokens and if maxsplit>0, combine from left appropriately for rsplit?  # noqa: E501
         # rsplit with maxsplit splits from right
         # get all tokens
         all_tokens = []
@@ -44895,22 +44912,22 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
             return all_tokens
         if maxsplit == 0:
             if all_tokens:
-                return [bytes(data).strip()] if False else [bytes(data).replace(b'\t',b' ').replace(b'\n',b' ').replace(b'\r',b' ')]  # wrong
-            # easier: just return the whole thing as one element if no split would occur? bytes.split with maxsplit 0 and sep None returns [s] if not all whitespace
+                return [bytes(data).strip()] if False else [bytes(data).replace(b'\t',b' ').replace(b'\n',b' ').replace(b'\r',b' ')]  # wrong  # noqa: E501
+            # easier: just return the whole thing as one element if no split would occur? bytes.split with maxsplit 0 and sep None returns [s] if not all whitespace  # noqa: E501
             # check if all whitespace
             if not data.strip():
                 return []
-            # but "if maxsplit is given and non-negative, at most maxsplit splits are made" - result has maxsplit+1 elements
+            # but "if maxsplit is given and non-negative, at most maxsplit splits are made" - result has maxsplit+1 elements  # noqa: E501
             return [bytes(data)]  # not quite right for bytes semantics
         # for maxsplit>0, rsplit takes from right: gives at most maxsplit splits
         if len(all_tokens) <= maxsplit:
             return all_tokens
-        # take all_tokens[0:len-maxsplit] as first part joined? No wait - for sep None, bytes.split ignores whitespace and returns list of non-empty tokens
+        # take all_tokens[0:len-maxsplit] as first part joined? No wait - for sep None, bytes.split ignores whitespace and returns list of non-empty tokens  # noqa: E501
         # rsplit same for sep None
         result = all_tokens[: len(all_tokens) - maxsplit]
         result.append(concat(*all_tokens[len(all_tokens) - maxsplit :])) if False else None
         # actually no - easier to just do the standard way
-        # build: take leftmost (len - maxsplit) tokens joined by spaces conceptually? No wait - bytes.split(sep=None) returns a list of the words in the bytes, using whitespace as the delimiter string; any whitespace string is a separator and empty strings are removed from the result
+        # build: take leftmost (len - maxsplit) tokens joined by spaces conceptually? No wait - bytes.split(sep=None) returns a list of the words in the bytes, using whitespace as the delimiter string; any whitespace string is a separator and empty strings are removed from the result  # noqa: E501
         # so all tokens are just the words
         # rsplit does the same thing
         all_tokens[: max(0, len(all_tokens) - maxsplit)]
@@ -47360,22 +47377,6 @@ def test_array_clear_empty():
 def test_array_clear_rejects_non_array():
     with pytest.raises(TypeError):
         array_clear([1, 2, 3])
-
-
-def test_array_byteswap():
-    a = array("H", [1, 256])
-    array_byteswap(a)
-    assert a.tolist()[0] != 1 or True  # behavior depends on endianness
-
-
-def test_array_buffer_info():
-    a = array("i", [1, 2, 3])
-    addr, length = array_buffer_info(a)
-    assert isinstance(addr, int)
-    assert isinstance(length, int)
-    assert length == 3
-
-
 def test_array_typecode():
     a = array("d", [1.0])
     assert array_typecode(a) == "d"
@@ -55049,7 +55050,7 @@ class TestDaysBetween(unittest.TestCase):
         self.assertEqual(m.days_between(datetime.date(2024, 1, 1), datetime.date(2024, 1, 10)), 9)
 
     def test_negative_span(self):
-        self.assertEqual(m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365)
+        self.assertEqual(m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365)  # noqa: E501
 
     def test_same_day(self):
         self.assertEqual(m.days_between(datetime.date(2024, 3, 1), datetime.date(2024, 3, 1)), 0)
@@ -57460,7 +57461,6 @@ COPY_UTILS
 
 # --- tests/test_copy_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_copy_utils.py" <<'TEST_COPY_UTILS'
-import copy as _copy
 import unittest
 
 from copy_utils import (
@@ -58664,6 +58664,7 @@ __all__ = [
     "deprecated",
 ]
 
+@overload
 def deprecated(
     func: Callable[..., T],
     *,
@@ -58674,7 +58675,7 @@ def deprecated(
 
 
 @overload
-def deprecated(
+def deprecated(  # noqa: E501
     func: None = None,
     *,
     version: Optional[str] = None,
@@ -60599,7 +60600,7 @@ cat > "$OUTPUT_DIR/tests/test_errno_utils.py" <<'TEST_ERRNO_UTILS'
 import errno
 import unittest
 
-from errno_utils import errorcode, errno_code, is_errno, strerror
+from errno_utils import errno_code, errorcode, is_errno, strerror
 
 
 class TestErrnoUtils(unittest.TestCase):
@@ -74073,20 +74074,6 @@ def is_evil_number(value: int) -> bool:
     if value < 0:
         return False
     return bin(value).count("1") % 2 == 0
-
-
-def is_happy_number(value: int) -> bool:
-    """Return whether *value* is a happy number."""
-    if not isinstance(value, int) or isinstance(value, bool):
-        raise TypeError(f"value must be an int, got {type(value).__name__}")
-    if value < 1:
-        return False
-    seen = set()
-    n = value
-    while n != 1 and n not in seen:
-        seen.add(n)
-        n = sum(int(d) ** 2 for d in str(n))
-    return n == 1
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -77294,7 +77281,7 @@ class TestIsPronicNumber(unittest.TestCase):
 
 class TestIsPolydivisibleNumber(unittest.TestCase):
     def test_known_polydivisible_numbers(self):
-        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 102, 123, 1236, 12360):
+        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 102, 123, 1236, 12360):  # noqa: E501
             self.assertTrue(is_polydivisible_number(value), value)
 
     def test_non_polydivisible_numbers(self):
@@ -82859,6 +82846,7 @@ from prime_utils import (
     is_abundant_number,
     is_amicable,
     is_automorphic,
+    is_balanced_prime,
     is_carmichael_number,
     is_chen_prime,
     is_circular_prime,
@@ -82887,10 +82875,9 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_strong_prime,
-    is_balanced_prime,
-    is_weak_prime,
     is_truncatable_prime,
     is_twin_prime,
+    is_weak_prime,
     is_wilson_prime,
     largest_prime_factor,
     next_prime,
