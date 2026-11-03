@@ -18,6 +18,9 @@ translation_table = _this.d
 # The index of the key used in the cipher.
 cipher_index = getattr(_this, "c", 97)
 __all__ = [
+    "zen_of_python",
+    "translation_table",
+    "cipher_index",
     "print_zen",
     "this",
     "decode",
