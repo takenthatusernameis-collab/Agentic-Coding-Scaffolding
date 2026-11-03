@@ -25,6 +25,7 @@ from calculator import (
     sign,
     sqrt,
     subtract,
+    hypotenuse,
 )
 
 
@@ -528,30 +529,28 @@ class TestSign(unittest.TestCase):
             sign([])
 
 
-class TestIsPerfectSquare(unittest.TestCase):
+class TestHypotenuse(unittest.TestCase):
     def test_basic(self):
-        self.assertTrue(is_perfect_square(0))
-        self.assertTrue(is_perfect_square(1))
-        self.assertTrue(is_perfect_square(4))
-        self.assertTrue(is_perfect_square(9))
-        self.assertTrue(is_perfect_square(16))
-        self.assertFalse(is_perfect_square(2))
-        self.assertFalse(is_perfect_square(3))
-        self.assertFalse(is_perfect_square(5))
-        self.assertFalse(is_perfect_square(8))
+        self.assertEqual(hypotenuse(3, 4), 5)
+        self.assertEqual(hypotenuse(0, 0), 0)
+        self.assertAlmostEqual(hypotenuse(1, 1), 1.4142135623730951)
 
-    def test_rejects_non_int(self):
+    def test_hypotenuse_rejects_non_numeric(self):
         with self.assertRaises(TypeError):
-            is_perfect_square(4.0)
+            hypotenuse("3", 4)
         with self.assertRaises(TypeError):
-            is_perfect_square("4")
+            hypotenuse(3, None)
+        with self.assertRaises(TypeError):
+            hypotenuse([], 4)
 
-    def test_rejects_bool(self):
+    def test_hypotenuse_rejects_bool(self):
         with self.assertRaises(TypeError):
-            is_perfect_square(True)
+            hypotenuse(True, 4)
         with self.assertRaises(TypeError):
-            is_perfect_square(False)
+            hypotenuse(3, False)
 
-    def test_rejects_negative(self):
+    def test_hypotenuse_rejects_negative(self):
         with self.assertRaises(ValueError):
-            is_perfect_square(-1)
+            hypotenuse(-3, 4)
+        with self.assertRaises(ValueError):
+            hypotenuse(3, -4)

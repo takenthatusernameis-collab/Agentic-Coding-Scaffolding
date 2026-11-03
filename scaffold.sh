@@ -9049,6 +9049,8 @@ __all__ = [
     "permutation",
     "mod_pow",
     "sign",
+    "is_perfect_square",
+    "hypotenuse",
 ]
 
 
@@ -9561,6 +9563,32 @@ def is_perfect_square(n: int) -> bool:
         raise ValueError("n must be non-negative")
     root = int(n ** 0.5)
     return root * root == n or (root + 1) * (root + 1) == n
+
+
+def hypotenuse(a: float, b: float) -> float:
+    """Return the hypotenuse of a right triangle with legs a and b.
+
+    Args:
+        a: Length of first leg.
+        b: Length of second leg.
+
+    Returns:
+        sqrt(a^2 + b^2).
+
+    Raises:
+        TypeError: If a or b is not a real number or is a bool.
+        ValueError: If a or b is negative.
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    return sqrt(a * a + b * b)
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9592,6 +9620,7 @@ from calculator import (
     sign,
     sqrt,
     subtract,
+    hypotenuse,
 )
 
 
@@ -10095,33 +10124,31 @@ class TestSign(unittest.TestCase):
             sign([])
 
 
-class TestIsPerfectSquare(unittest.TestCase):
+class TestHypotenuse(unittest.TestCase):
     def test_basic(self):
-        self.assertTrue(is_perfect_square(0))
-        self.assertTrue(is_perfect_square(1))
-        self.assertTrue(is_perfect_square(4))
-        self.assertTrue(is_perfect_square(9))
-        self.assertTrue(is_perfect_square(16))
-        self.assertFalse(is_perfect_square(2))
-        self.assertFalse(is_perfect_square(3))
-        self.assertFalse(is_perfect_square(5))
-        self.assertFalse(is_perfect_square(8))
+        self.assertEqual(hypotenuse(3, 4), 5)
+        self.assertEqual(hypotenuse(0, 0), 0)
+        self.assertAlmostEqual(hypotenuse(1, 1), 1.4142135623730951)
 
-    def test_rejects_non_int(self):
+    def test_hypotenuse_rejects_non_numeric(self):
         with self.assertRaises(TypeError):
-            is_perfect_square(4.0)
+            hypotenuse("3", 4)
         with self.assertRaises(TypeError):
-            is_perfect_square("4")
+            hypotenuse(3, None)
+        with self.assertRaises(TypeError):
+            hypotenuse([], 4)
 
-    def test_rejects_bool(self):
+    def test_hypotenuse_rejects_bool(self):
         with self.assertRaises(TypeError):
-            is_perfect_square(True)
+            hypotenuse(True, 4)
         with self.assertRaises(TypeError):
-            is_perfect_square(False)
+            hypotenuse(3, False)
 
-    def test_rejects_negative(self):
+    def test_hypotenuse_rejects_negative(self):
         with self.assertRaises(ValueError):
-            is_perfect_square(-1)
+            hypotenuse(-3, 4)
+        with self.assertRaises(ValueError):
+            hypotenuse(3, -4)
 TESTCALC
 
 # --- config_utils.py ---

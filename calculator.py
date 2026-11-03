@@ -25,6 +25,8 @@ __all__ = [
     "permutation",
     "mod_pow",
     "sign",
+    "is_perfect_square",
+    "hypotenuse",
 ]
 
 
@@ -537,3 +539,29 @@ def is_perfect_square(n: int) -> bool:
         raise ValueError("n must be non-negative")
     root = int(n ** 0.5)
     return root * root == n or (root + 1) * (root + 1) == n
+
+
+def hypotenuse(a: float, b: float) -> float:
+    """Return the hypotenuse of a right triangle with legs a and b.
+
+    Args:
+        a: Length of first leg.
+        b: Length of second leg.
+
+    Returns:
+        sqrt(a^2 + b^2).
+
+    Raises:
+        TypeError: If a or b is not a real number or is a bool.
+        ValueError: If a or b is negative.
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    if a < 0 or b < 0:
+        raise ValueError("a and b must be non-negative")
+    return sqrt(a * a + b * b)
