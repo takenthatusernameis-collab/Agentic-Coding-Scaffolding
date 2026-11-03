@@ -9048,6 +9048,7 @@ __all__ = [
     "combination",
     "permutation",
     "mod_pow",
+    "sign",
 ]
 
 
@@ -9516,6 +9517,32 @@ def mod_pow(base: int, exp: int, mod: int) -> int:
     if mod <= 0:
         raise ValueError("mod must be positive")
     return pow(base, exp, mod)
+
+
+def sign(x: float) -> int:
+    """Return the sign of a number: -1 if negative, 0 if zero, 1 if positive.
+
+    Args:
+        x: The number to check.
+
+    Raises:
+        TypeError: If x is not a real number (int or float) or is a bool.
+
+    Examples:
+        >>> sign(5)
+        1
+        >>> sign(-3)
+        -1
+        >>> sign(0)
+        0
+    """
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        raise TypeError("x must be a real number")
+    if x > 0:
+        return 1
+    if x < 0:
+        return -1
+    return 0
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9528,7 +9555,6 @@ from calculator import (
     add,
     average_of_two,
     clamp,
-    combination,
     divide,
     factorial,
     gcd,
@@ -9544,6 +9570,7 @@ from calculator import (
     power,
     reciprocal,
     round_to,
+    sign,
     sqrt,
     subtract,
 )
@@ -10023,6 +10050,30 @@ class TestModPow(unittest.TestCase):
             mod_pow(2, 1, 0)
         with self.assertRaises(ValueError):
             mod_pow(2, 1, -3)
+
+
+class TestSign(unittest.TestCase):
+    def test_sign_basic(self):
+        self.assertEqual(sign(5), 1)
+        self.assertEqual(sign(-3), -1)
+        self.assertEqual(sign(0), 0)
+        self.assertEqual(sign(3.14), 1)
+        self.assertEqual(sign(-0.5), -1)
+        self.assertEqual(sign(-0.0), 0)
+
+    def test_sign_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sign(True)
+        with self.assertRaises(TypeError):
+            sign(False)
+
+    def test_sign_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            sign("5")
+        with self.assertRaises(TypeError):
+            sign(None)
+        with self.assertRaises(TypeError):
+            sign([])
 TESTCALC
 
 # --- config_utils.py ---
