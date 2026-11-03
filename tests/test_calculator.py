@@ -6,13 +6,18 @@ from calculator import (
     add,
     average_of_two,
     clamp,
+    combination,
     divide,
     factorial,
     gcd,
+    is_even,
+    is_odd,
+    is_prime,
     lcm,
     multiply,
     negate,
     percentage,
+    permutation,
     power,
     reciprocal,
     round_to,
@@ -381,5 +386,85 @@ class TestLCM(unittest.TestCase):
             lcm(1, -1)
 
 
+class TestIsEven(unittest.TestCase):
+    def test_is_even_basic(self):
+        self.assertTrue(is_even(2))
+        self.assertTrue(is_even(0))
+        self.assertTrue(is_even(-4))
+        self.assertFalse(is_even(3))
+        self.assertFalse(is_even(-1))
+
+    def test_is_even_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_even(2.0)
+        with self.assertRaises(TypeError):
+            is_even("2")
+
+    def test_is_even_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_even(True)
+        with self.assertRaises(TypeError):
+            is_even(False)
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_is_odd_basic(self):
+        self.assertTrue(is_odd(3))
+        self.assertTrue(is_odd(-1))
+        self.assertFalse(is_odd(2))
+        self.assertFalse(is_odd(0))
+
+    def test_is_odd_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_odd(3.0)
+        with self.assertRaises(TypeError):
+            is_odd("3")
+
+    def test_is_odd_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_odd(True)
+        with self.assertRaises(TypeError):
+            is_odd(False)
+
+
 if __name__ == "__main__":
     unittest.main()
+
+    def test_permutation_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            permutation(-1, 2)
+        with self.assertRaises(ValueError):
+            permutation(1, -1)
+
+    def test_permutation_rejects_k_greater_than_n(self):
+        with self.assertRaises(ValueError):
+            permutation(2, 3)
+
+
+class TestIsPrime(unittest.TestCase):
+    def test_is_prime_basic(self):
+        self.assertTrue(is_prime(2))
+        self.assertTrue(is_prime(3))
+        self.assertTrue(is_prime(5))
+        self.assertFalse(is_prime(4))
+        self.assertFalse(is_prime(9))
+
+    def test_is_prime_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_prime(3.0)
+        with self.assertRaises(TypeError):
+            is_prime("3")
+
+    def test_is_prime_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_prime(True)
+        with self.assertRaises(TypeError):
+            is_prime(False)
+
+    def test_is_prime_rejects_less_than_two(self):
+        with self.assertRaises(ValueError):
+            is_prime(0)
+        with self.assertRaises(ValueError):
+            is_prime(1)
+        with self.assertRaises(ValueError):
+            is_prime(-2)

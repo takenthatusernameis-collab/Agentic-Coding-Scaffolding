@@ -18,7 +18,11 @@ __all__ = [
     "factorial",
     "gcd",
     "lcm",
-    "round_to",
+    "is_even",
+    "is_odd",
+    "is_prime",
+    "combination",
+    "permutation",
 ]
 
 
@@ -355,3 +359,117 @@ def lcm(a: int, b: int) -> int:
     if a == 0 or b == 0:
         return 0
     return abs(a * b) // gcd(a, b)
+
+
+def is_even(value: int) -> bool:
+    """Return True if value is an even integer.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if value is even.
+
+    Raises:
+        TypeError: If value is not an int (bools rejected).
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("value must be an int")
+    return value % 2 == 0
+
+
+def is_odd(value: int) -> bool:
+    """Return True if value is an odd integer.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if value is odd.
+
+    Raises:
+        TypeError: If value is not an int (bools rejected).
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("value must be an int")
+    return value % 2 != 0
+
+
+def combination(n: int, k: int) -> int:
+    """Return the number of combinations of *n* items taken *k* at a time.
+
+    This is C(n, k) = n! / (k! * (n - k)!).
+    """
+    if isinstance(n, bool) or isinstance(k, bool):
+        raise TypeError("n and k must be ints")
+    if not isinstance(n, int) or not isinstance(k, int):
+        raise TypeError("n and k must be ints")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if k > n:
+        raise ValueError("k must not be greater than n")
+    k_small = min(k, n - k)
+    numerator = 1
+    denominator = 1
+    for i in range(n - k_small + 1, n + 1):
+        numerator *= i
+    for i in range(1, k_small + 1):
+        denominator *= i
+    return numerator // denominator
+
+
+def permutation(n: int, k: int) -> int:
+    """Return the number of permutations of *n* items taken *k* at a time.
+
+    This is P(n, k) = n! / (n - k)!.
+    """
+    if isinstance(n, bool) or isinstance(k, bool):
+        raise TypeError("n and k must be ints")
+    if not isinstance(n, int) or not isinstance(k, int):
+        raise TypeError("n and k must be ints")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+    if k > n:
+        raise ValueError("k must not be greater than n")
+    result = 1
+    for i in range(n - k + 1, n + 1):
+        result *= i
+    return result
+
+
+def is_prime(n: int) -> bool:
+    """Return True if n is a prime number.
+
+    Raises:
+        TypeError: If n is not an int.
+        ValueError: If n is less than 2.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 2:
+        raise ValueError("n must be >= 2")
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    r, s = 0, n - 1
+    while s % 2 == 0:
+        r += 1
+        s //= 2
+    # Simple test
+    for _ in range(128):
+        a = 2
+        x = pow(a, s, n)
+        if x == 1 or x == n - 1:
+            continue
+        for _ in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+    return True
