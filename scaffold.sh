@@ -1094,7 +1094,7 @@ def anchor_for(relative: str, scaffold_text: str) -> int:
     """
     stem = Path(relative).stem
     if stem.startswith("test_"):
-        module = f"{stem[len('test_'):]}.py"
+        module = f"{stem[len('test_') :]}.py"
         for match in embedded_blocks(scaffold_text):
             if match.group("path") == module:
                 return match.end()
@@ -2883,9 +2883,7 @@ async def sleep(seconds: float) -> None:
     await _asyncio.sleep(seconds)
 
 
-async def to_thread(
-    func: Callable[..., T], /, *args: Any, **kwargs: Any
-) -> T:
+async def to_thread(func: Callable[..., T], /, *args: Any, **kwargs: Any) -> T:
     """Run *func* in a worker thread and return its result.
 
     Args:
@@ -2899,9 +2897,7 @@ async def to_thread(
     return await _asyncio.to_thread(func, *args, **kwargs)
 
 
-async def wait_for(
-    coro: Coroutine[Any, Any, T], timeout: Optional[float] = None
-) -> T:
+async def wait_for(coro: Coroutine[Any, Any, T], timeout: Optional[float] = None) -> T:
     """Wait for *coro* with an optional *timeout*.
 
     Args:
@@ -5590,6 +5586,7 @@ __all__ = [
 def ABC():
     return _abc.ABC
 
+
 def ABCMeta():
     return _abc.ABCMeta
 
@@ -5703,7 +5700,6 @@ __all__ = [
     "unparse",
     "walk",
 ]
-
 
 
 def parse(source, filename="<unknown>", mode="exec"):
@@ -5893,7 +5889,6 @@ __all__ = [
     "unpickler",
     "validate_protocol",
 ]
-
 
 
 def dump(obj, file, protocol=None, *, fix_imports=True, buffer_callback=None):
@@ -6118,7 +6113,6 @@ __all__ = [
     "load",
     "loads",
 ]
-
 
 
 def dumps(obj: Any, version: int = marshal.version) -> bytes:
@@ -8556,7 +8550,6 @@ __all__ = [
 ]
 
 
-
 def enable() -> None:
     gc.enable()
 
@@ -8919,6 +8912,8 @@ class TestBindtextdomain(unittest.TestCase):
             bindtextdomain(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             bindtextdomain("myapp", 123)  # type: ignore[arg-type]
+
+
 class TestInstall(unittest.TestCase):
     def test_installs_underscore_in_builtins(self):
         try:
@@ -9048,7 +9043,12 @@ __all__ = [
 
 def add(a: float, b: float) -> float:
     """Return the sum of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return a + b
 
@@ -9083,14 +9083,24 @@ def abs_difference(a: float, b: float) -> float:
 
 def subtract(a: float, b: float) -> float:
     """Return the difference of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return a - b
 
 
 def multiply(a: float, b: float) -> float:
     """Return the product of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return a * b
 
@@ -9121,7 +9131,12 @@ def modulo(a: float, b: float) -> float:
         TypeError: If either argument is not a real number (int or float).
         ValueError: If b is zero.
     """
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
@@ -9135,7 +9150,12 @@ def floor_divide(a: float, b: float) -> float:
         TypeError: If either argument is not a real number (int or float).
         ValueError: If b is zero.
     """
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
@@ -9144,9 +9164,14 @@ def floor_divide(a: float, b: float) -> float:
 
 def power(a: float, b: float) -> float:
     """Return a raised to the power b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
-    return float(a ** b)
+    return float(a**b)
 
 
 def sqrt(a: float) -> float:
@@ -9160,7 +9185,7 @@ def sqrt(a: float) -> float:
         raise TypeError("a must be a real number")
     if a < 0:
         raise ValueError("Cannot take square root of negative number.")
-    return float(a ** 0.5)
+    return float(a**0.5)
 
 
 def negate(a: float) -> float:
@@ -9184,7 +9209,14 @@ def clamp(value: float, low: float, high: float) -> float:
         TypeError: If any argument is not a real number (int or float).
         ValueError: If low > high.
     """
-    if isinstance(value, bool) or isinstance(low, bool) or isinstance(high, bool) or not isinstance(value, (int, float)) or not isinstance(low, (int, float)) or not isinstance(high, (int, float)):
+    if (
+        isinstance(value, bool)
+        or isinstance(low, bool)
+        or isinstance(high, bool)
+        or not isinstance(value, (int, float))
+        or not isinstance(low, (int, float))
+        or not isinstance(high, (int, float))
+    ):
         raise TypeError("value, low, and high must be real numbers")
     if low > high:
         raise ValueError("low must not exceed high.")
@@ -9211,7 +9243,12 @@ def percentage(value: float, percent: float) -> float:
 
 def average_of_two(a: float, b: float) -> float:
     """Return the average of a and b."""
-    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
         raise TypeError("a and b must be real numbers")
     return float((a + b) / 2.0)
 CALCULATOR
@@ -9221,14 +9258,12 @@ cat > "$OUTPUT_DIR/tests/test_calculator.py" <<'TESTCALC'
 import unittest
 
 from calculator import (
+    abs_difference,
     absolute,
+    add,
     average_of_two,
     clamp,
-    abs_difference,
-    add,
     divide,
-    floor_divide,
-    modulo,
     multiply,
     negate,
     percentage,
@@ -9407,17 +9442,6 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             clamp(5, 0, False)
 
-    def test_negate(self):
-        self.assertEqual(negate(5), -5)
-        self.assertEqual(negate(-3), 3)
-        self.assertEqual(negate(0), 0)
-
-    def test_absolute(self):
-        self.assertEqual(absolute(5), 5)
-        self.assertEqual(absolute(-3), 3)
-        self.assertEqual(absolute(0), 0)
-
-
 class TestAbsDifference(unittest.TestCase):
     def test_abs_difference_positive(self):
         self.assertEqual(abs_difference(5, 3), 2)
@@ -9450,8 +9474,6 @@ class TestAbsDifference(unittest.TestCase):
             abs_difference(True, 3)
         with self.assertRaises(TypeError):
             abs_difference(5, False)
-
-
 
 
 class TestClamp(unittest.TestCase):
@@ -9513,7 +9535,6 @@ __all__ = [
     "save_config",
     "set_config_value",
 ]
-
 
 
 def load_config(file_path: Union[str, Path]) -> Dict[str, Any]:
@@ -10628,7 +10649,7 @@ def circle_area(radius: float) -> float:
     """
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return math.pi * radius ** 2
+    return math.pi * radius**2
 
 
 def circle_perimeter(radius: float) -> float:
@@ -10978,7 +10999,8 @@ def regular_polygon_area(n: int, side_length: float) -> float:
         raise ValueError("n must be at least 3")
     if side_length < 0:
         raise ValueError("Side length cannot be negative.")
-    return (n * side_length ** 2) / (4 * math.tan(math.pi / n))
+    return (n * side_length**2) / (4 * math.tan(math.pi / n))
+
 
 def regular_polygon_perimeter(n: int, side_length: float) -> float:
     """Return the perimeter of a regular polygon with n sides.
@@ -11015,7 +11037,7 @@ def rectangle_diagonal(length: float, width: float) -> float:
     """Return the diagonal of a rectangle."""
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
-    return float((length ** 2 + width ** 2) ** 0.5)
+    return float((length**2 + width**2) ** 0.5)
 
 
 def sector_area(radius: float, angle_degrees: float) -> float:
@@ -11038,7 +11060,7 @@ def sector_area(radius: float, angle_degrees: float) -> float:
         raise TypeError("angle_degrees must be a number")
     if angle_degrees < 0 or angle_degrees > 360:
         raise ValueError("angle_degrees must be between 0 and 360")
-    return (angle_degrees / 360.0) * math.pi * radius ** 2
+    return (angle_degrees / 360.0) * math.pi * radius**2
 
 
 def arc_length(radius: float, angle_degrees: float) -> float:
@@ -11097,7 +11119,7 @@ def sphere_surface_area(radius: float) -> float:
         raise TypeError("radius must be a number")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return float(4 * math.pi * radius ** 2)
+    return float(4 * math.pi * radius**2)
 
 
 def sphere_volume(radius: float) -> float:
@@ -11106,7 +11128,7 @@ def sphere_volume(radius: float) -> float:
         raise TypeError("radius must be a number")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return float((4 / 3) * math.pi * radius ** 3)
+    return float((4 / 3) * math.pi * radius**3)
 
 
 def cube_surface_area(side: float) -> float:
@@ -11115,7 +11137,7 @@ def cube_surface_area(side: float) -> float:
         raise TypeError("side must be a number")
     if side < 0:
         raise ValueError("Side cannot be negative.")
-    return float(6 * side ** 2)
+    return float(6 * side**2)
 
 
 def cube_volume(side: float) -> float:
@@ -11124,7 +11146,7 @@ def cube_volume(side: float) -> float:
         raise TypeError("side must be a number")
     if side < 0:
         raise ValueError("Side cannot be negative.")
-    return float(side ** 3)
+    return float(side**3)
 
 
 def cuboid_surface_area(length: float, width: float, height: float) -> float:
@@ -11175,7 +11197,7 @@ def cylinder_surface_area(radius: float, height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float(2 * math.pi * radius ** 2 + 2 * math.pi * radius * height)
+    return float(2 * math.pi * radius**2 + 2 * math.pi * radius * height)
 
 
 def cylinder_volume(radius: float, height: float) -> float:
@@ -11188,7 +11210,7 @@ def cylinder_volume(radius: float, height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float(math.pi * radius ** 2 * height)
+    return float(math.pi * radius**2 * height)
 
 
 def cone_surface_area(radius: float, slant_height: float) -> float:
@@ -11201,7 +11223,7 @@ def cone_surface_area(radius: float, slant_height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if slant_height < 0:
         raise ValueError("Slant height cannot be negative.")
-    return float(math.pi * radius ** 2 + math.pi * radius * slant_height)
+    return float(math.pi * radius**2 + math.pi * radius * slant_height)
 
 
 def cone_volume(radius: float, height: float) -> float:
@@ -11214,7 +11236,7 @@ def cone_volume(radius: float, height: float) -> float:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float((1 / 3) * math.pi * radius ** 2 * height)
+    return float((1 / 3) * math.pi * radius**2 * height)
 
 
 def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
@@ -11255,9 +11277,7 @@ def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, f
     return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
 
 
-def point_in_circle(
-    point: tuple[float, float], center: tuple[float, float], radius: float
-) -> bool:
+def point_in_circle(point: tuple[float, float], center: tuple[float, float], radius: float) -> bool:
     """Return True if point is inside or on the circle."""
     if not isinstance(radius, (int, float)) or isinstance(radius, bool):
         raise TypeError("radius must be a number")
@@ -13053,7 +13073,7 @@ def is_integer(s: str) -> bool:
     s_stripped = s.strip()
     if not s_stripped:
         return False
-    if s_stripped[0] in ('+', '-'):
+    if s_stripped[0] in ("+", "-"):
         if len(s_stripped) == 1:
             return False
         return s_stripped[1:].isdigit()
@@ -13116,9 +13136,7 @@ def is_decimal(s: str) -> bool:
         return False
     if "." in s_stripped:
         int_part, _, frac_part = s_stripped.partition(".")
-        return bool(
-            int_part.isdigit() and frac_part.isdigit() and (int_part or frac_part)
-        )
+        return bool(int_part.isdigit() and frac_part.isdigit() and (int_part or frac_part))
     return s_stripped.isdigit()
 
 
@@ -13536,7 +13554,7 @@ def common_suffix(s1: str, s2: str) -> str:
     index = 0
     while index < limit and s1[-1 - index] == s2[-1 - index]:
         index += 1
-    return s1[len(s1) - index:]
+    return s1[len(s1) - index :]
 
 
 def char_frequency(s: str) -> dict:
@@ -13801,7 +13819,6 @@ def count_letters(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
-
 
 
 def count_punctuation(s: str) -> int:
@@ -14175,13 +14192,6 @@ __all__ = [
     "values",
     "zip_with",
 ]
-
-
-
-
-
-
-
 
 
 class Comparable(Protocol):
@@ -14890,7 +14900,6 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
     return L + interval_f * (n / 2 - cf) / f
 
 
-
 def mode(numbers: List[T | float]) -> float:
     """Return the mode (most frequent value) of a list of numbers.
 
@@ -15019,9 +15028,7 @@ def stddev(numbers: List[T | float], population: bool = True) -> float:
     if not isinstance(population, bool):
         raise TypeError("population must be a bool")
     if not population and len(numbers) < 2:
-        raise ValueError(
-            "Cannot calculate sample standard deviation with fewer than 2 elements"
-        )
+        raise ValueError("Cannot calculate sample standard deviation with fewer than 2 elements")
     var = variance(numbers, population=population)
     return math.sqrt(var)
 
@@ -15225,7 +15232,7 @@ def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
             f"got {trim_count} for list of length {n}"
         )
     sorted_nums = sorted(numbers)
-    trimmed = sorted_nums[trim_count: n - trim_count]
+    trimmed = sorted_nums[trim_count : n - trim_count]
     return sum(trimmed) / len(trimmed)
 
 
@@ -15928,9 +15935,7 @@ def moving_average(
         raise ValueError("window must be positive")
     n = len(numbers)
     if window > n:
-        raise ValueError(
-            f"window ({window}) cannot be larger than the list length ({n})"
-        )
+        raise ValueError(f"window ({window}) cannot be larger than the list length ({n})")
     if weights is not None:
         _require_numbers(weights, "weights")
         if len(weights) != window:
@@ -15941,9 +15946,7 @@ def moving_average(
         result: List[float] = []
         for i in builtins.range(n - window + 1):
             window_values = numbers[i : i + window]
-            weighted_sum = sum(
-                float(v) * float(w) for v, w in zip(window_values, weights)
-            )
+            weighted_sum = sum(float(v) * float(w) for v, w in zip(window_values, weights))
             result.append(weighted_sum / total_weight)
         return result
     result = []
@@ -16084,8 +16087,7 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
     n = len(numbers)
     if k >= n / 2:
         raise ValueError(
-            "k must be less than half the list length, "
-            f"got {k} for list of length {n}"
+            f"k must be less than half the list length, got {k} for list of length {n}"
         )
     if k == 0:
         return mean(numbers)
@@ -16130,8 +16132,7 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     n = len(numbers)
     if k >= n / 2:
         raise ValueError(
-            "k must be less than half the list length, "
-            f"got {k} for list of length {n}"
+            f"k must be less than half the list length, got {k} for list of length {n}"
         )
     if k == 0:
         return variance(numbers, population=population)
@@ -16145,9 +16146,7 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     return sq / denom
 
 
-def winsorized_stddev(
-    numbers: List[T | float], k: int = 1, population: bool = True
-) -> float:
+def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
     """Return the standard deviation of the winsorized values of *numbers*.
 
     Winsorizes by replacing the *k* smallest and *k* largest values with the
@@ -16495,6 +16494,7 @@ class TestIsIsogram(unittest.TestCase):
             is_isogram(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_isogram(123)  # type: ignore[arg-type]
+
     def test_anagram_basic(self):
         self.assertTrue(is_anagram("listen", "silent"))
 
@@ -16560,6 +16560,7 @@ class TestTruncate(unittest.TestCase):
 
     def test_truncate_zero_length(self):
         self.assertEqual(truncate("hello", 0), "")
+
     def test_truncate_empty_input(self):
         self.assertEqual(truncate("", 5), "")
 
@@ -16761,8 +16762,6 @@ class TestIsBlank(unittest.TestCase):
     def test_is_blank_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_blank(None)  # type: ignore[arg-type]
-
-
 
 
 class TestNormalizeWhitespace(unittest.TestCase):
@@ -17921,7 +17920,6 @@ class TestChunkString(unittest.TestCase):
             chunk_string("abc", True)  # type: ignore[arg-type]
 
 
-
 class TestInitials(unittest.TestCase):
     def test_basic(self):
         from strings import initials
@@ -18355,6 +18353,7 @@ class TestEnsureSurroundedByNewlines(unittest.TestCase):
 class TestNewlineHelpers(unittest.TestCase):
     def test_count_leading_newlines(self):
         from strings import count_leading_newlines
+
         self.assertEqual(count_leading_newlines("hello"), 0)
         self.assertEqual(count_leading_newlines("\nhello"), 1)
         self.assertEqual(count_leading_newlines("\n\nhello"), 2)
@@ -18365,6 +18364,7 @@ class TestNewlineHelpers(unittest.TestCase):
 
     def test_count_trailing_newlines(self):
         from strings import count_trailing_newlines
+
         self.assertEqual(count_trailing_newlines("hello"), 0)
         self.assertEqual(count_trailing_newlines("hello\n"), 1)
         self.assertEqual(count_trailing_newlines("hello\n\n"), 2)
@@ -18375,6 +18375,7 @@ class TestNewlineHelpers(unittest.TestCase):
 
     def test_strip_leading_newlines(self):
         from strings import strip_leading_newlines
+
         self.assertEqual(strip_leading_newlines("\n\nhello"), "hello")
         self.assertEqual(strip_leading_newlines("hello"), "hello")
         self.assertEqual(strip_leading_newlines(""), "")
@@ -18385,6 +18386,7 @@ class TestNewlineHelpers(unittest.TestCase):
 
     def test_strip_trailing_newlines(self):
         from strings import strip_trailing_newlines
+
         self.assertEqual(strip_trailing_newlines("hello\n\n"), "hello")
         self.assertEqual(strip_trailing_newlines("hello"), "hello")
         self.assertEqual(strip_trailing_newlines(""), "")
@@ -18478,10 +18480,6 @@ class TestRepeatString(unittest.TestCase):
     def test_repeat_string_non_int_count_raises(self):
         with self.assertRaises(TypeError):
             repeat_string("x", 2.0)  # type: ignore[arg-type]
-
-
-
-
 
 
 class TestStringsBoundaryComprehensive(unittest.TestCase):
@@ -18594,14 +18592,11 @@ class TestStringsBoundaryComprehensive(unittest.TestCase):
             (remove_punctuation, (123,)),
             (pad_left, (123, 5)),
             (pad_right, (123, 5)),
-
             (levenshtein_distance, (123, "a")),
             (is_anagram, (123, "a")),
             (common_prefix, (123, "a")),
             (common_suffix, (123, "a")),
-
             (is_subsequence, (123, "a")),
-
             (slugify, (123,)),
             (is_blank, (123,)),
             (lstrip_chars, (123, "a")),
@@ -19499,9 +19494,7 @@ class TestSumOfCubes(unittest.TestCase):
 class TestCoefficientOfVariation(unittest.TestCase):
     def test_basic(self) -> None:
         # stddev(2,2,2,2)=0? no, use [1,2,3,4,5]: mean 3, pop std ~1.414
-        self.assertAlmostEqual(
-            coefficient_of_variation([1, 2, 3, 4, 5]), 1.4142135 / 3.0, places=6
-        )
+        self.assertAlmostEqual(coefficient_of_variation([1, 2, 3, 4, 5]), 1.4142135 / 3.0, places=6)
 
     def test_population_false(self) -> None:
         self.assertAlmostEqual(
@@ -20686,6 +20679,7 @@ def is_even(value: int) -> bool:
     value = _require_int(value, "value")
     return value % 2 == 0
 
+
 def is_odd(value: int) -> bool:
     """Return True if *value* is an odd integer.
 
@@ -20810,7 +20804,6 @@ __all__ = [
     "pick",
     "set_nested",
 ]
-
 
 
 def deep_copy(obj: Any) -> Any:
@@ -21034,7 +21027,6 @@ __all__ = [
     "is_leap_year",
     "parse_datetime",
 ]
-
 
 
 def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
@@ -22343,6 +22335,7 @@ class TestStringUtilsBoundary(unittest.TestCase):
     def test_is_isogram_punctuation_heavy(self):
         self.assertTrue(is_isogram("a.b,c!d?e;f:g"))
         self.assertFalse(is_isogram("a.b,a!c?d;e:f"))
+
     def test_lines_respect_width(self):
         text = "The quick brown fox jumps over the lazy dog"
         for width in (1, 5, 10, 20, 70):
@@ -22465,8 +22458,6 @@ class TestDedentText(unittest.TestCase):
                     dedent_text(value)  # type: ignore[arg-type]
 
 
-
-
 class TestReverseWords(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(reverse_words("hello world"), "world hello")
@@ -22487,7 +22478,7 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
-from string_utils import split_paragraphs, count_words  # noqa: E402
+from string_utils import count_words, split_paragraphs  # noqa: E402
 
 
 class TestSplitParagraphs(unittest.TestCase):
@@ -22715,6 +22706,7 @@ class TestEscapePlaceholders(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             escape_placeholders(123)  # type: ignore[arg-type]
+
     def test_truncate_short_text(self):
         result = truncate_prompt("Hello", 10)
         self.assertEqual(result, "Hello")
@@ -22965,7 +22957,6 @@ class TestCountPlaceholders(unittest.TestCase):
             count_placeholders(123)  # type: ignore[arg-type]
 
 
-
 class TestCountSentences(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(count_sentences("Hello world. How are you?"), 2)
@@ -23036,6 +23027,7 @@ class TestIndentLines(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
+
 class TestDedentLines(unittest.TestCase):
     def test_basic(self):
         result = dedent_lines("    a\n      b")
@@ -23059,12 +23051,16 @@ class TestDedentLines(unittest.TestCase):
 class TestRemoveBlankLines(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(remove_blank_lines("a\n\nb\n\n\nc"), "a\nb\nc")
+
     def test_no_blanks(self):
         self.assertEqual(remove_blank_lines("a\nb\nc"), "a\nb\nc")
+
     def test_empty(self):
         self.assertEqual(remove_blank_lines(""), "")
+
     def test_whitespace_only_lines(self):
         self.assertEqual(remove_blank_lines("a\n   \n\tb\n"), "a\n\tb")
+
     def test_type_error(self):
         with self.assertRaises(TypeError):
             remove_blank_lines(123)  # type: ignore[arg-type]
@@ -23769,6 +23765,8 @@ class TestCountDigits(unittest.TestCase):
             count_digits(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_digits(None)  # type: ignore[arg-type]
+
+
 class TestCountLetters(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(count_letters(""), 0)
@@ -23948,7 +23946,6 @@ class TestIsBlank(unittest.TestCase):
             is_blank(123)
 
 
-
 class TestEnsurePrefix(unittest.TestCase):
     def test_add_prefix(self):
         self.assertEqual(ensure_prefix("world", "hello "), "hello world")
@@ -24027,7 +24024,6 @@ class TestJoinLines(unittest.TestCase):
     def test_rejects_non_str_separator(self):
         with self.assertRaises(TypeError):
             join_lines(["a", "b"], separator=123)  # type: ignore[arg-type]
-
 
 
 class TestRemovePrefix(unittest.TestCase):
@@ -24380,8 +24376,7 @@ class TestTypeUtils(unittest.TestCase):
         self.assertEqual(unwrap_optional(t.Union[int, None]), int)
         self.assertEqual(unwrap_optional(int), int)
         self.assertEqual(unwrap_optional(str), str)
-        self.assertEqual(unwrap_optional(t.Union[int, str, None]),
-                         t.Union[int, str])
+        self.assertEqual(unwrap_optional(t.Union[int, str, None]), t.Union[int, str])
 
 
 if __name__ == "__main__":
@@ -24707,7 +24702,6 @@ TESTPATHUTILS
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
 
-import math
 import unittest
 
 from math_utils import (
@@ -25209,7 +25203,7 @@ class TestMathUtilsBoundaries(unittest.TestCase):
             is_square(True)  # type: ignore[arg-type]
 
 
-class TestMathUtilsBoundaries(unittest.TestCase):
+class TestMathUtilsBoundariesExtra(unittest.TestCase):
     def test_factorial_bool_rejected(self) -> None:
         with self.assertRaises(TypeError):
             factorial(True)  # type: ignore[arg-type]
@@ -26230,9 +26224,7 @@ def read_text(path: Union[str, Path]) -> str:
         return f.read()
 
 
-def write_text(
-    path: Union[str, Path], content: str, encoding: str = "utf-8"
-) -> None:
+def write_text(path: Union[str, Path], content: str, encoding: str = "utf-8") -> None:
     """Write text content to a file, creating parent directories as needed.
 
     Args:
@@ -26713,7 +26705,6 @@ __all__ = [
 ]
 
 
-
 def is_valid_url(url: str, schemes: Optional[List[str]] = None) -> bool:
     """Validate a URL string.
 
@@ -27035,7 +27026,6 @@ __all__ = [
 ]
 
 
-
 def find_all(pattern: Union[str, re.Pattern], text: str) -> List[str]:
     """Find all non-overlapping matches of a pattern in text."""
     if isinstance(pattern, str):
@@ -27101,9 +27091,7 @@ def full_match(pattern: Union[str, re.Pattern], text: str) -> Optional[re.Match]
     return compiled.fullmatch(text)
 
 
-def split(
-    pattern: Union[str, re.Pattern], text: str, maxsplit: int = 0
-) -> List[str]:
+def split(pattern: Union[str, re.Pattern], text: str, maxsplit: int = 0) -> List[str]:
     """Split text by pattern."""
     if isinstance(pattern, str):
         compiled = re.compile(pattern)
@@ -27252,7 +27240,11 @@ def mkstemp(
     suffix = _require_path_or_none(suffix, "suffix")
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
-    return tempfile.mkstemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))  # noqa: E501
+    return tempfile.mkstemp(
+        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
+        prefix=_coerce_path_or_none(prefix),
+        dir=_coerce_path_or_none(dir),
+    )  # noqa: E501
 
 
 def mkdtemp(
@@ -27276,7 +27268,11 @@ def mkdtemp(
     suffix = _require_path_or_none(suffix, "suffix")
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
-    return tempfile.mkdtemp(suffix=_coerce_path_or_none(suffix) if suffix is not None else "", prefix=_coerce_path_or_none(prefix), dir=_coerce_path_or_none(dir))  # noqa: E501
+    return tempfile.mkdtemp(
+        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
+        prefix=_coerce_path_or_none(prefix),
+        dir=_coerce_path_or_none(dir),
+    )  # noqa: E501
 
 
 def NamedTemporaryFile(
@@ -27416,7 +27412,9 @@ def TemporaryDirectory(
     prefix = _require_path_or_none(prefix, "prefix")
     dir = _require_path_or_none(dir, "dir")
     if not isinstance(ignore_cleanup_errors, bool):
-        raise TypeError(f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}")  # noqa: E501
+        raise TypeError(
+            f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}"
+        )  # noqa: E501
     return tempfile.TemporaryDirectory(
         suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
         prefix=_coerce_path_or_none(prefix),
@@ -28033,9 +28031,14 @@ class TestTemporaryFile(unittest.TestCase):
 
     def test_temporary_file_type_errors_all(self):
         cases = [
-            ("mode", 123), ("buffering", "x"), ("buffering", True),
-            ("encoding", 123), ("newline", 123), ("suffix", 123),
-            ("prefix", 123), ("dir", 123),
+            ("mode", 123),
+            ("buffering", "x"),
+            ("buffering", True),
+            ("encoding", 123),
+            ("newline", 123),
+            ("suffix", 123),
+            ("prefix", 123),
+            ("dir", 123),
         ]
         for name, val in cases:
             with self.assertRaises(TypeError):
@@ -28065,9 +28068,15 @@ class TestTempfileBoundary(unittest.TestCase):
 
     def test_named_temporary_file_type_errors_all(self):
         cases = [
-            ("mode", 123), ("buffering", "x"), ("buffering", True),
-            ("encoding", 123), ("newline", 123), ("suffix", 123),
-            ("prefix", 123), ("dir", 123), ("delete", "yes"),
+            ("mode", 123),
+            ("buffering", "x"),
+            ("buffering", True),
+            ("encoding", 123),
+            ("newline", 123),
+            ("suffix", 123),
+            ("prefix", 123),
+            ("dir", 123),
+            ("delete", "yes"),
         ]
         for name, val in cases:
             with self.assertRaises(TypeError):
@@ -28080,9 +28089,16 @@ class TestTempfileBoundary(unittest.TestCase):
 
     def test_spooled_temporary_file_type_errors_all(self):
         cases = [
-            ("max_size", "x"), ("max_size", True), ("mode", 123),
-            ("buffering", "x"), ("buffering", True), ("encoding", 123),
-            ("newline", 123), ("suffix", 123), ("prefix", 123), ("dir", 123),
+            ("max_size", "x"),
+            ("max_size", True),
+            ("mode", 123),
+            ("buffering", "x"),
+            ("buffering", True),
+            ("encoding", 123),
+            ("newline", 123),
+            ("suffix", 123),
+            ("prefix", 123),
+            ("dir", 123),
         ]
         for name, val in cases:
             with self.assertRaises(TypeError):
@@ -28400,7 +28416,6 @@ __all__ = [
     "max_length",
     "min_length",
 ]
-
 
 
 def is_email(email: Any) -> bool:
@@ -29770,7 +29785,6 @@ __all__ = [
 ]
 
 
-
 def getline(filename, lineno, module_globals=None):
     if not isinstance(filename, str):
         raise TypeError("filename must be a str")
@@ -30660,7 +30674,6 @@ __all__ = [
 ]
 
 
-
 class timer:
     """Context manager for measuring execution time of a code block.
 
@@ -30796,7 +30809,6 @@ __all__ = [
     "rate_limit",
     "token_bucket",
 ]
-
 
 
 class RateLimiter:
@@ -30935,7 +30947,6 @@ __all__ = [
     "retry_count",
     "retry_with_backoff",
 ]
-
 
 
 def retry(
@@ -31169,7 +31180,6 @@ __all__ = [
 ]
 
 
-
 class RingBuffer(Generic[T]):
     """A fixed-capacity circular buffer.
 
@@ -31345,7 +31355,6 @@ __all__ = [
     "push_priority",
     "size_priority",
 ]
-
 
 
 class PriorityQueue(Generic[T]):
@@ -31673,7 +31682,6 @@ __all__ = [
 ]
 
 
-
 def deep_merge(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
     """Recursively merge two dictionaries.
 
@@ -31842,7 +31850,6 @@ __all__ = [
 ]
 
 
-
 def read_json(path: str) -> Any:
     """Read JSON data from a file."""
     with open(path, "r", encoding="utf-8") as f:
@@ -31892,7 +31899,6 @@ __all__ = [
     "write_csv",
     "write_csv_from_lists",
 ]
-
 
 
 def read_csv(
@@ -32209,7 +32215,6 @@ __all__ = [
     "percentile",
     "z_score",
 ]
-
 
 
 def harmonic_mean(numbers: List[T | float]) -> float:
@@ -32740,9 +32745,7 @@ def wrap_text(text: str, width: int = 70) -> str:
     return textwrap.fill(text, width=width)
 
 
-def wrap_words(
-    text: str, width: int = 70, break_long_words: bool = True
-) -> str:
+def wrap_words(text: str, width: int = 70, break_long_words: bool = True) -> str:
     """Wrap *text* into lines of at most *width* characters.
 
     Words are split on whitespace and greedily packed into lines. A word
@@ -33166,7 +33169,6 @@ __all__ = [
 ]
 
 
-
 def get_nested(d: Dict[str, Any] | Any, keys: Iterable[str | int], default: Any = None) -> Any:
     """Safely get a value from a nested structure using a key path.
 
@@ -33431,7 +33433,6 @@ __all__ = [
     "zip_compress_files",
     "zip_extract",
 ]
-
 
 
 def gzip_compress(data: Union[bytes, str], encoding: str = "utf-8") -> bytes:
@@ -34909,20 +34910,20 @@ def has_placeholders(template: str) -> bool:
 def wrap_prompt(text: str, width: int = 80) -> str:
     """Wrap prompt text to a specific width.
 
-    Args:
-        text: The text to wrap.
-        width: The maximum line width.
+        Args:
+            text: The text to wrap.
+            width: The maximum line width.
 
-    Returns:
-        Wrapped text.
+        Returns:
+            Wrapped text.
 
-    Raises:
-        TypeError: If *text* is not a string or *width* is not an int.
-        ValueError: If *width* is negative.
+        Raises:
+            TypeError: If *text* is not a string or *width* is not an int.
+            ValueError: If *width* is negative.
 
-Examples:
-        >>> wrap_prompt("This is a long line that should be wrapped", 24)
-        'This is a long line that\nshould be wrapped'
+    Examples:
+            >>> wrap_prompt("This is a long line that should be wrapped", 24)
+            'This is a long line that\nshould be wrapped'
     """
     _require_string(text, "text")
     _require_int(width, "width")
@@ -35208,6 +35209,7 @@ def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -
         else:
             result.append(prefix + line)
     return "\n".join(result)
+
 
 def dedent_lines(text: str) -> str:
     """Remove common leading whitespace from every line in *text*.
@@ -36176,6 +36178,7 @@ def count_digits(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if "0" <= ch <= "9")
+
 
 def count_letters(text: str) -> int:
     """Return the number of ASCII letter characters (a-z, A-Z) in *text*.
@@ -37842,7 +37845,6 @@ __all__ = [
 ]
 
 
-
 def rgb_to_hls(r: float, g: float, b: float) -> HLS:
     return colorsys.rgb_to_hls(r, g, b)
 
@@ -37928,7 +37930,6 @@ __all__ = [
     "CircuitOpenError",
     "T",
 ]
-
 
 
 class CircuitOpenError(RuntimeError):
@@ -39485,7 +39486,6 @@ __all__ = [
     "run_async",
     "to_async",
 ]
-
 
 
 class ThreadPool:
@@ -41399,7 +41399,6 @@ __all__ = [
 ]
 
 
-
 def supports_color(stream: Optional[TextIO] = None) -> bool:
     """Return True if *stream* (default stdout) supports ANSI colors.
 
@@ -41782,6 +41781,7 @@ __all__ = [
     "format_welcome",
     "multi_greet",
 ]
+
 
 def format_greeting(name: str, greeting: str = "Hello") -> str:
     """Return a formatted greeting string for the given name.
@@ -43286,9 +43286,7 @@ class TestCycleTake(unittest.TestCase):
 
 class TestPartition(unittest.TestCase):
     def test_partition_even_odd(self):
-        self.assertEqual(
-            partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0), ([2, 4], [1, 3, 5])
-        )
+        self.assertEqual(partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0), ([2, 4], [1, 3, 5]))
 
     def test_empty_iterable(self):
         self.assertEqual(partition([], bool), ([], []))
@@ -43316,9 +43314,7 @@ class TestPartition(unittest.TestCase):
 
 class TestZipLongestIterables(unittest.TestCase):
     def test_equal_length(self):
-        self.assertEqual(
-            zip_longest_iterables([1, 2], [3, 4]), [(1, 3), (2, 4)]
-        )
+        self.assertEqual(zip_longest_iterables([1, 2], [3, 4]), [(1, 3), (2, 4)])
 
     def test_fill_default_none(self):
         self.assertEqual(
@@ -43407,8 +43403,6 @@ class TestZipStrictIterables(unittest.TestCase):
     def test_non_iterable_raises_type_error(self):
         with self.assertRaises(TypeError):
             zip_strict_iterables([1, 2], 42)
-
-
 
 
 class TestDropWhilePred(unittest.TestCase):
@@ -45628,7 +45622,13 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
             return all_tokens
         if maxsplit == 0:
             if all_tokens:
-                return [bytes(data).strip()] if False else [bytes(data).replace(b'\t',b' ').replace(b'\n',b' ').replace(b'\r',b' ')]  # wrong  # noqa: E501
+                return (
+                    [bytes(data).strip()]
+                    if False
+                    else [
+                        bytes(data).replace(b"\t", b" ").replace(b"\n", b" ").replace(b"\r", b" ")
+                    ]
+                )  # wrong  # noqa: E501
             # easier: just return the whole thing as one element if no split would occur? bytes.split with maxsplit 0 and sep None returns [s] if not all whitespace  # noqa: E501
             # check if all whitespace
             if not data.strip():
@@ -45761,7 +45761,6 @@ def casefold(data: bytes) -> bytes:
         return bytes(data).decode("utf-8").casefold().encode("utf-8")
     except UnicodeError:
         return bytes(data).lower()
-
 
 
 def isalnum(data: bytes) -> bool:
@@ -45969,6 +45968,7 @@ from bytes_utils import (
     isupper,
     join,
     lower,
+    maketrans,
     partition,
     removeprefix,
     removesuffix,
@@ -45981,10 +45981,9 @@ from bytes_utils import (
     swapcase,
     title,
     to_hex,
+    translate,
     upper,
     xor,
-    maketrans,
-    translate,
 )
 
 
@@ -46529,9 +46528,7 @@ class TestMaketrans(unittest.TestCase):
 
 class TestTranslate(unittest.TestCase):
     def test_basic_translation(self):
-        self.assertEqual(
-            translate(b"abc", maketrans(b"ab", b"xy")), b"xyc"
-        )
+        self.assertEqual(translate(b"abc", maketrans(b"ab", b"xy")), b"xyc")
 
     def test_identity_table(self):
         self.assertEqual(translate(b"abc", bytes(range(256))), b"abc")
@@ -46540,9 +46537,7 @@ class TestTranslate(unittest.TestCase):
         self.assertEqual(translate(b"", maketrans(b"ab", b"xy")), b"")
 
     def test_bytearray_input(self):
-        self.assertEqual(
-            translate(bytearray(b"abc"), maketrans(b"ab", b"xy")), b"xyc"
-        )
+        self.assertEqual(translate(bytearray(b"abc"), maketrans(b"ab", b"xy")), b"xyc")
 
     def test_full_byte_range(self):
         self.assertEqual(
@@ -48250,6 +48245,8 @@ def test_array_clear_empty():
 def test_array_clear_rejects_non_array():
     with pytest.raises(TypeError):
         array_clear([1, 2, 3])
+
+
 def test_array_typecode():
     a = array("d", [1.0])
     assert array_typecode(a) == "d"
@@ -49937,7 +49934,6 @@ __all__ = [
 ]
 
 
-
 def render_template(template: str, *args: Any, **kwargs: Any) -> str:
     """Render a template string using ``str.format()``.
 
@@ -50380,7 +50376,6 @@ __all__ = [
     "is_valid_semver",
     "parse_semver",
 ]
-
 
 
 class SemanticVersion:
@@ -51136,8 +51131,8 @@ INTERVALUTILS
 
 # --- tests/test_interval_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_interval_utils.py" <<'TEST_INTERVAL_UTILS'
-import unittest
 import math
+import unittest
 
 from interval_utils import (
     interval_contains,
@@ -51501,7 +51496,9 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
     def test_interval_overlaps_with_inf(self):
         self.assertTrue(interval_overlaps((0, float("inf")), (5, 10)))
         self.assertTrue(interval_overlaps((float("-inf"), 0), (-5, 5)))
-        self.assertFalse(interval_overlaps((0, 1), (float("inf"), float("inf") + 1)) if False else False)  # skip complex case
+        self.assertFalse(
+            interval_overlaps((0, 1), (float("inf"), float("inf") + 1)) if False else False
+        )  # skip complex case
 
     def test_interval_intersection_with_inf(self):
         self.assertEqual(interval_intersection((0, float("inf")), (5, 100)), (5, 100))
@@ -51509,7 +51506,9 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
     def test_interval_union_with_inf(self):
         self.assertEqual(interval_union((0, float("inf")), (5, 100)), (0, float("inf")))
-        self.assertEqual(interval_union((float("-inf"), 10), (0, float("inf"))), (float("-inf"), float("inf")))
+        self.assertEqual(
+            interval_union((float("-inf"), 10), (0, float("inf"))), (float("-inf"), float("inf"))
+        )
 
     def test_merge_intervals_with_inf(self):
         self.assertEqual(
@@ -51586,12 +51585,14 @@ if __name__ == "__main__":
     unittest.main()
 
 
-class TestIntervalUtilsBoundaries(unittest.TestCase):
+class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
     """Additional boundary tests for interval utilities."""
 
     def test_normalize_interval_inf(self):
         self.assertEqual(normalize_interval(float("inf"), 5), (5, float("inf")))
-        self.assertEqual(normalize_interval(float("-inf"), float("inf")), (float("-inf"), float("inf")))
+        self.assertEqual(
+            normalize_interval(float("-inf"), float("inf")), (float("-inf"), float("inf"))
+        )
 
     def test_normalize_interval_nan(self):
         # NaN comparisons are tricky; just ensure it doesn't crash unexpectedly
@@ -51724,7 +51725,7 @@ class TestIntervalUtilsBoundariesMore(unittest.TestCase):
         self.assertTrue(interval_is_subset((1, 2), (0, 3)))
         self.assertTrue(interval_is_subset((0, 3), (0, 3)))
         self.assertFalse(interval_is_subset((0, 4), (0, 3)))
-        self.assertFalse(interval_is_subset(( -1, 2), (0, 3)))
+        self.assertFalse(interval_is_subset((-1, 2), (0, 3)))
         with self.assertRaises(ValueError):
             interval_is_subset((1, 0), (0, 1))
         with self.assertRaises(ValueError):
@@ -55555,7 +55556,6 @@ __all__ = [
 ]
 
 
-
 def make_parser(
     prog: Optional[str] = None,
     description: Optional[str] = None,
@@ -56100,7 +56100,6 @@ __all__ = [
 ]
 
 
-
 def is_leap_year(year: int) -> bool:
     if not isinstance(year, int):
         raise TypeError("year must be an int")
@@ -56237,7 +56236,9 @@ class TestDaysBetween(unittest.TestCase):
         self.assertEqual(m.days_between(datetime.date(2024, 1, 1), datetime.date(2024, 1, 10)), 9)
 
     def test_negative_span(self):
-        self.assertEqual(m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365)  # noqa: E501
+        self.assertEqual(
+            m.days_between(datetime.date(2024, 12, 31), datetime.date(2024, 1, 1)), -365
+        )  # noqa: E501
 
     def test_same_day(self):
         self.assertEqual(m.days_between(datetime.date(2024, 3, 1), datetime.date(2024, 3, 1)), 0)
@@ -56472,7 +56473,6 @@ __all__ = [
     "tan",
     "tanh",
 ]
-
 
 
 def _validate_number(value: Any, name: str) -> None:
@@ -57261,7 +57261,6 @@ __all__ = [
 ]
 
 
-
 class Cmd(_cmd.Cmd):
     """Thin subclass of :class:`cmd.Cmd` for convenience."""
 
@@ -57315,7 +57314,6 @@ __all__ = [
     "interact",
     "interpreter_class",
 ]
-
 
 
 def interact(banner=None, readfunc=None, local=None, exitmsg=None):
@@ -57392,7 +57390,6 @@ __all__ = [
     "register",
     "register_error",
 ]
-
 
 
 def encode(obj, encoding="utf-8", errors="strict"):
@@ -57925,9 +57922,7 @@ class TestCompileallUtils(unittest.TestCase):
 
     def test_compile_file_with_invalidation_mode(self) -> None:
         source = self._write("module.py")
-        self.assertTrue(
-            compileall_utils.compile_file(source, invalidation_mode="checked-hash")
-        )
+        self.assertTrue(compileall_utils.compile_file(source, invalidation_mode="checked-hash"))
         self.assertTrue(
             compileall_utils.compile_file(
                 source, invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH
@@ -58176,9 +58171,7 @@ DuplicateOptionError = configparser.DuplicateOptionError
 DEFAULTSECT = getattr(configparser, "DEFAULTSECT", "DEFAULT")
 
 
-def load_config(
-    file_path: Union[str, Path], encoding: str = "utf-8"
-) -> Dict[str, Dict[str, str]]:
+def load_config(file_path: Union[str, Path], encoding: str = "utf-8") -> Dict[str, Dict[str, str]]:
     """Load configuration from an INI-style file.
 
     Args:
@@ -58793,7 +58786,6 @@ __all__ = [
     "pickle",
     "remove_extension",
 ]
-
 
 
 def add_extension(module, name, code):
@@ -59850,6 +59842,7 @@ __all__ = [
     "T",
     "deprecated",
 ]
+
 
 @overload
 def deprecated(
@@ -61377,9 +61370,7 @@ class TestEncodingsUtils(unittest.TestCase):
 
     def test_all_is_sorted_and_unique(self):
         self.assertIsNotNone(encodings_utils.__all__)
-        self.assertEqual(
-            len(encodings_utils.__all__), len(set(encodings_utils.__all__))
-        )
+        self.assertEqual(len(encodings_utils.__all__), len(set(encodings_utils.__all__)))
         self.assertEqual(encodings_utils.__all__, sorted(encodings_utils.__all__))
         for name in encodings_utils.__all__:
             self.assertTrue(hasattr(encodings_utils, name), name)
@@ -61720,6 +61711,7 @@ def test_auto():
     class AutoEnum(Enum):
         FIRST = auto()
         SECOND = auto()
+
     assert AutoEnum.FIRST.value != AutoEnum.SECOND.value
 
 
@@ -61760,7 +61752,6 @@ __all__ = [
     "is_errno",
     "strerror",
 ]
-
 
 
 def errorcode(code: int):
@@ -62183,9 +62174,7 @@ def _validate_file(file: Any) -> None:
             raise ValueError("file must be a valid file descriptor")
         return
     if not hasattr(file, "write") or not callable(file.write):
-        raise TypeError(
-            f"file must be a writable file object or None, got {type(file).__name__}"
-        )
+        raise TypeError(f"file must be a writable file object or None, got {type(file).__name__}")
     fileno = getattr(file, "fileno", None)
     if fileno is None:
         return
@@ -62715,8 +62704,7 @@ def _validate_operation(operation: int) -> int:
     modes = [mode for mode in (LOCK_SH, LOCK_EX, LOCK_UN) if operation & mode]
     if len(modes) != 1:
         raise ValueError(
-            "operation must be exactly one of LOCK_SH, LOCK_EX, and LOCK_UN, "
-            f"got {operation}"
+            f"operation must be exactly one of LOCK_SH, LOCK_EX, and LOCK_UN, got {operation}"
         )
     return operation
 
@@ -62737,9 +62725,7 @@ def _validate_command(command: int) -> int:
     if isinstance(command, bool) or not isinstance(command, int):
         raise TypeError(f"command must be an int, got {type(command).__name__}")
     if command not in (F_LOCK, F_TLOCK, F_ULOCK):
-        raise ValueError(
-            f"command must be F_LOCK, F_TLOCK, or F_ULOCK, got {command}"
-        )
+        raise ValueError(f"command must be F_LOCK, F_TLOCK, or F_ULOCK, got {command}")
     return command
 
 
@@ -62868,10 +62854,7 @@ def lockf(
     if isinstance(whence, bool) or not isinstance(whence, int):
         raise TypeError(f"whence must be an int, got {type(whence).__name__}")
     if whence not in (os.SEEK_SET, os.SEEK_CUR, os.SEEK_END):
-        raise ValueError(
-            "whence must be os.SEEK_SET, os.SEEK_CUR, or os.SEEK_END, "
-            f"got {whence}"
-        )
+        raise ValueError(f"whence must be os.SEEK_SET, os.SEEK_CUR, or os.SEEK_END, got {whence}")
     module = _fcntl_module()
     module.lockf(fd, _host_lockf_command(command), length, start, whence)
 
@@ -63101,9 +63084,7 @@ def lock_kind(name: str, blocking: bool = True) -> int:
         raise TypeError(f"blocking must be a bool, got {type(blocking).__name__}")
     key = name.strip().lower()
     if key not in _LOCK_MODES:
-        raise ValueError(
-            f"name must be one of {sorted(_LOCK_MODES)}, got {name!r}"
-        )
+        raise ValueError(f"name must be one of {sorted(_LOCK_MODES)}, got {name!r}")
     operation = _LOCK_MODES[key]
     if not blocking:
         operation |= LOCK_NB
@@ -63241,6 +63222,7 @@ class TestFcntlUtils(unittest.TestCase):
         self.assertEqual(fcntl_utils.F_DUPFD, fcntl.F_DUPFD)
         self.assertEqual(fcntl_utils.F_DUPFD_CLOEXEC, fcntl.F_DUPFD_CLOEXEC)
         self.assertEqual(fcntl_utils.FD_CLOEXEC, fcntl.FD_CLOEXEC)
+
     def test_flock_locks_the_file(self):
         other = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
         try:
@@ -63563,9 +63545,7 @@ def cmp_files(a: str, b: str, shallow: bool = True) -> bool:
     return filecmp.cmp(a, b, shallow=shallow)
 
 
-def cmp_directories(
-    a: str, b: str, shallow: bool = True, hide: Sequence[str] | None = None
-) -> Any:
+def cmp_directories(a: str, b: str, shallow: bool = True, hide: Sequence[str] | None = None) -> Any:
     """Compare two directories and return a dircmp object.
 
     Args:
@@ -63673,7 +63653,6 @@ __all__ = [
 ]
 
 
-
 def read_lines(files: Optional[Iterable[str]] = None, **kwargs: Any) -> List[str]:
     lines: List[str] = []
     with fileinput.input(files=files, **kwargs) as f:
@@ -63743,7 +63722,6 @@ __all__ = [
     "match_case",
     "translate",
 ]
-
 
 
 def match(name: str, pattern: str) -> bool:
@@ -64270,9 +64248,11 @@ def create_ftp(
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
-        if (not isinstance(source_address[0], str)
-                or not isinstance(source_address[1], int)
-                or isinstance(source_address[1], bool)):
+        if (
+            not isinstance(source_address[0], str)
+            or not isinstance(source_address[1], int)
+            or isinstance(source_address[1], bool)
+        ):
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
@@ -64313,9 +64293,11 @@ def create_ftp_tls(
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
-        if (not isinstance(source_address[0], str)
-                or not isinstance(source_address[1], int)
-                or isinstance(source_address[1], bool)):
+        if (
+            not isinstance(source_address[0], str)
+            or not isinstance(source_address[1], int)
+            or isinstance(source_address[1], bool)
+        ):
             raise TypeError("source_address must be a (host, port) tuple or None")
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
@@ -64353,9 +64335,11 @@ def connect_ftp(
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
-        if (not isinstance(source_address[0], str)
-                or not isinstance(source_address[1], int)
-                or isinstance(source_address[1], bool)):
+        if (
+            not isinstance(source_address[0], str)
+            or not isinstance(source_address[1], int)
+            or isinstance(source_address[1], bool)
+        ):
             raise TypeError("source_address must be a (host, port) tuple or None")
     return ftp.connect(host, port, timeout, source_address)  # type: ignore[arg-type]
 
@@ -64964,7 +64948,7 @@ class TestFileStats(unittest.TestCase):
     """Test getsize, getatime, getmtime, getctime."""
 
     def test_getsize_returns_file_size(self):
-        with tempfile.NamedTemporaryFile(delete=False, mode='w') as f:
+        with tempfile.NamedTemporaryFile(delete=False, mode="w") as f:
             f.write("hello")
             temp_path = f.name
         try:
@@ -65046,7 +65030,7 @@ class TestSameFile(unittest.TestCase):
         with tempfile.NamedTemporaryFile(delete=False) as f:
             temp_path = f.name
         try:
-            with open(temp_path, 'r') as f1, open(temp_path, 'r') as f2:
+            with open(temp_path, "r") as f1, open(temp_path, "r") as f2:
                 self.assertTrue(sameopenfile(f1.fileno(), f2.fileno()))
         finally:
             os.unlink(temp_path)
@@ -65116,9 +65100,7 @@ supports_unicode_filenames: bool = _posixpath.supports_unicode_filenames
 ALLOW_MISSING: Any = _posixpath.ALLOW_MISSING
 
 #: The splitter of a path into a drive, a root, and a tail.
-_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(
-    _posixpath, "splitroot", None
-)
+_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(_posixpath, "splitroot", None)
 #: The predicate that reports whether a path is a junction.
 _ISJUNCTION: Optional[Callable[[Any], bool]] = getattr(_posixpath, "isjunction", None)
 
@@ -65779,7 +65761,7 @@ def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Un
 
 
 def splitroot(
-    p: Union[str, bytes, os.PathLike]
+    p: Union[str, bytes, os.PathLike],
 ) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
     """Split a path into a drive, a root, and a tail.
 
@@ -66043,7 +66025,6 @@ __all__ = [
 ]
 
 
-
 def getopt(args, shortopts, longopts=()):
     if not isinstance(args, (list, tuple)):
         raise TypeError("args must be a list or tuple")
@@ -66119,7 +66100,6 @@ __all__ = [
 ]
 
 
-
 def getpass(prompt="Password: ", stream=None):
     return _getpass.getpass(prompt, stream)
 
@@ -66162,7 +66142,6 @@ __all__ = [
     "has_magic",
     "iglob",
 ]
-
 
 
 def glob_pattern(pattern, *, root_dir=None, dir_fd=None, recursive=False):
@@ -67220,7 +67199,6 @@ __all__ = [
 ]
 
 
-
 def status_code_category(code: int) -> int:
     """Return the HTTP status code category (1-5) for a given code.
 
@@ -67383,7 +67361,6 @@ __all__ = [
     "is_valid_id",
     "new_id",
 ]
-
 
 
 def generate_id(length: int = 8) -> str:
@@ -67765,14 +67742,11 @@ def has_capability(capabilities: Union[str, Sequence[str]], name: str) -> bool:
     elif isinstance(capabilities, (list, tuple)):
         for index, item in enumerate(capabilities):
             if not isinstance(item, str):
-                raise TypeError(
-                    f"capabilities[{index}] must be a str, got {type(item).__name__}"
-                )
+                raise TypeError(f"capabilities[{index}] must be a str, got {type(item).__name__}")
         names = list(capabilities)
     else:
         raise TypeError(
-            "capabilities must be a str or a sequence of str, "
-            f"got {type(capabilities).__name__}"
+            f"capabilities must be a str or a sequence of str, got {type(capabilities).__name__}"
         )
     wanted = name.upper()
     return any(candidate.upper() == wanted for candidate in names)
@@ -67849,9 +67823,7 @@ def format_flags(flags: Union[str, Iterable[str]]) -> str:
         collected: List[str] = []
         for index, item in enumerate(flags):
             if not isinstance(item, str):
-                raise TypeError(
-                    f"flags[{index}] must be a str, got {type(item).__name__}"
-                )
+                raise TypeError(f"flags[{index}] must be a str, got {type(item).__name__}")
             collected.append(item)
         candidates = [item.strip() for item in collected]
     unique: List[str] = []
@@ -68087,9 +68059,7 @@ class TestParseCapabilities(unittest.TestCase):
         self.assertEqual(parsed, ["IMAP4rev1", "STARTTLS"])
 
     def test_parse_bracketed_capability_greeting(self):
-        parsed = imaplib_utils.parse_capabilities(
-            "* OK [CAPABILITY IMAP4rev1 AUTH=PLAIN] Ready"
-        )
+        parsed = imaplib_utils.parse_capabilities("* OK [CAPABILITY IMAP4rev1 AUTH=PLAIN] Ready")
         self.assertEqual(parsed, ["IMAP4rev1", "AUTH=PLAIN"])
 
     def test_parse_plain_capability_string(self):
@@ -68140,9 +68110,7 @@ class TestFlags(unittest.TestCase):
             imaplib_utils.parse_flags("(\\Seen)")  # type: ignore[arg-type]
 
     def test_parse_fetch_flags_from_fetch_response(self):
-        parsed = imaplib_utils.parse_fetch_flags(
-            "* 1 FETCH (UID 12 FLAGS (\\Seen \\Deleted))"
-        )
+        parsed = imaplib_utils.parse_fetch_flags("* 1 FETCH (UID 12 FLAGS (\\Seen \\Deleted))")
         self.assertEqual(parsed, ["\\Seen", "\\Deleted"])
 
     def test_parse_fetch_flags_without_flags_section(self):
@@ -68153,9 +68121,7 @@ class TestFlags(unittest.TestCase):
             imaplib_utils.parse_fetch_flags(None)  # type: ignore[arg-type]
 
     def test_format_flags_from_sequence(self):
-        self.assertEqual(
-            imaplib_utils.format_flags(["\\Seen", "\\Draft"]), "(\\Seen \\Draft)"
-        )
+        self.assertEqual(imaplib_utils.format_flags(["\\Seen", "\\Draft"]), "(\\Seen \\Draft)")
 
     def test_format_flags_from_string(self):
         self.assertEqual(imaplib_utils.format_flags("  \\Seen   \\Draft "), "(\\Seen \\Draft)")
@@ -68172,9 +68138,7 @@ class TestFlags(unittest.TestCase):
 
 class TestInternalDate(unittest.TestCase):
     def test_parse_internaldate(self):
-        parsed = imaplib_utils.parse_internaldate(
-            b'INTERNALDATE "05-Feb-2024 10:20:30 +0100"'
-        )
+        parsed = imaplib_utils.parse_internaldate(b'INTERNALDATE "05-Feb-2024 10:20:30 +0100"')
         self.assertIsNotNone(parsed)
         assert parsed is not None
         self.assertEqual(parsed.tm_year, 2024)
@@ -68251,7 +68215,6 @@ __all__ = [
     "save_config",
     "set_config_value",
 ]
-
 
 
 def _parser() -> configparser.ConfigParser:
@@ -68782,7 +68745,6 @@ __all__ = [
     "is_builtin",
     "is_callable",
 ]
-
 
 
 def get_callable_name(func: Any) -> str:
@@ -69707,9 +69669,7 @@ def _check_address_like(value: object, name: str) -> None:
     names an address.
     """
     if isinstance(value, bool) or not isinstance(value, (str, int, bytes)):
-        raise TypeError(
-            f"{name} must be a str, an int, or bytes, got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be a str, an int, or bytes, got {type(value).__name__}")
 
 
 def _check_address_pair(value: object, name: str) -> None:
@@ -69721,9 +69681,7 @@ def _check_address_pair(value: object, name: str) -> None:
         raise ValueError(f"{name} must hold two items, got {len(value)}")
     _check_address_like(value[0], name)
     if isinstance(value[1], bool) or not isinstance(value[1], int):
-        raise TypeError(
-            f"the prefix length must be an int, got {type(value[1]).__name__}"
-        )
+        raise TypeError(f"the prefix length must be an int, got {type(value[1]).__name__}")
 
 
 def _check_address(value: object, name: str) -> None:
@@ -69995,12 +69953,8 @@ def subnets(
     """
     _check_network(network, "network")
     if isinstance(prefixlen_diff, bool) or not isinstance(prefixlen_diff, int):
-        raise TypeError(
-            f"prefixlen_diff must be an int, got {type(prefixlen_diff).__name__}"
-        )
-    if new_prefix is not None and (
-        isinstance(new_prefix, bool) or not isinstance(new_prefix, int)
-    ):
+        raise TypeError(f"prefixlen_diff must be an int, got {type(prefixlen_diff).__name__}")
+    if new_prefix is not None and (isinstance(new_prefix, bool) or not isinstance(new_prefix, int)):
         raise TypeError(f"new_prefix must be an int or None, got {type(new_prefix).__name__}")
     if new_prefix is not None and prefixlen_diff != 1:
         raise ValueError("prefixlen_diff and new_prefix must not be set together")
@@ -70041,9 +69995,7 @@ def summarize_addresses(addresses: Iterable[Address | Network]) -> list[Network]
             versions.add(item.version)
             networks.append(_ipaddress.ip_network(f"{item}/{item.max_prefixlen}"))
         else:
-            raise TypeError(
-                f"addresses must hold addresses or networks, got {type(item).__name__}"
-            )
+            raise TypeError(f"addresses must hold addresses or networks, got {type(item).__name__}")
     if len(versions) > 1:
         raise ValueError("addresses of different versions cannot be summarized together")
     summarized: list[Network] = []
@@ -70686,7 +70638,6 @@ __all__ = [
 ]
 
 
-
 def is_keyword(word):
     """Return ``True`` if ``word`` is a Python keyword."""
     if not isinstance(word, str):
@@ -71198,7 +71149,7 @@ class TestMailcapUtils(unittest.TestCase):
 
     def test_read_mailcap_file(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".mailcap") as f:
-            f.write('text/plain; cat %s\n')
+            f.write("text/plain; cat %s\n")
             path = f.name
         try:
             with open(path) as fh:
@@ -71208,7 +71159,7 @@ class TestMailcapUtils(unittest.TestCase):
             os.unlink(path)
 
     def test_parse_line(self) -> None:
-        result = mailcap_utils.parse_line('text/plain; cat %s\n')
+        result = mailcap_utils.parse_line("text/plain; cat %s\n")
         self.assertIsInstance(result, tuple)
         self.assertEqual(len(result), 2)
 
@@ -71259,7 +71210,6 @@ __all__ = [
     "is_heading",
     "strip_markdown",
 ]
-
 
 
 def extract_code_blocks(text: str) -> List[str]:
@@ -71458,8 +71408,10 @@ def lru_memoize(func: Callable[..., T] = None, maxsize: int = 128) -> Callable[.
         ValueError: If ``maxsize`` is negative.
     """
     if func is None:
+
         def factory(f: Callable[..., T]) -> Callable[..., T]:
             return lru_memoize(f, maxsize=maxsize)
+
         return factory  # type: ignore[return-value]
 
     if not callable(func):
@@ -71557,7 +71509,6 @@ class TestMemoize(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
 
 
 class TestLruMemoize(unittest.TestCase):
@@ -72320,9 +72271,7 @@ def _require_search_path(path: Optional[Iterable[PathLike]]) -> Optional[List[st
         elif isinstance(entry, os.PathLike):
             search_path.append(os.fspath(entry))
         else:
-            raise TypeError(
-                f"path entries must be str or os.PathLike, got {type(entry).__name__}"
-            )
+            raise TypeError(f"path entries must be str or os.PathLike, got {type(entry).__name__}")
     return search_path
 
 
@@ -72456,10 +72405,7 @@ def find_modules(
         SyntaxError: If *script* is not valid Python source.
     """
     finder = load_script(script, path, excludes)
-    return {
-        name: getattr(module, "__file__", None)
-        for name, module in finder.modules.items()
-    }
+    return {name: getattr(module, "__file__", None) for name, module in finder.modules.items()}
 
 
 def missing_modules(
@@ -72511,10 +72457,7 @@ def missing_importers(
         SyntaxError: If *script* is not valid Python source.
     """
     finder = load_script(script, path, excludes)
-    return {
-        name: sorted(importers)
-        for name, importers in finder.badmodules.items()
-    }
+    return {name: sorted(importers) for name, importers in finder.badmodules.items()}
 
 
 def module_path(
@@ -72662,40 +72605,30 @@ class TestModulefinderUtils(unittest.TestCase):
     def test_find_dependencies_lists_imported_modules(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertIn(HELPER_NAME, dependencies)
 
     def test_find_dependencies_excludes_the_script_itself(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertNotIn("__main__", dependencies)
 
     def test_find_dependencies_are_sorted(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\nimport json\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertEqual(dependencies, sorted(dependencies))
 
     def test_find_dependencies_finds_standard_library_modules(self) -> None:
         script = self._write("app.py", "import base64\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._stdlib_search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._stdlib_search_path())
         self.assertIn("base64", dependencies)
 
     def test_find_dependencies_accepts_a_string_path(self) -> None:
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            str(script), path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(str(script), path=self._search_path())
         self.assertIn(HELPER_NAME, dependencies)
 
     def test_find_dependencies_honours_excludes(self) -> None:
@@ -72753,9 +72686,7 @@ class TestModulefinderUtils(unittest.TestCase):
     def test_module_path_raises_key_error_for_unknown_modules(self) -> None:
         script = self._write("app.py", f"import {HELPER_NAME}\n")
         with self.assertRaises(KeyError):
-            modulefinder_utils.module_path(
-                script, "mf_unknown_module", path=self._search_path()
-            )
+            modulefinder_utils.module_path(script, "mf_unknown_module", path=self._search_path())
 
     def test_module_path_rejects_non_string_names(self) -> None:
         self._write_helper()
@@ -72771,9 +72702,7 @@ class TestModulefinderUtils(unittest.TestCase):
         self._write(f"{PACKAGE_NAME}/__init__.py", "VALUE = 1\n")
         script = self._write("app.py", f"import {PACKAGE_NAME}\n")
         self.assertTrue(
-            modulefinder_utils.is_package(
-                script, PACKAGE_NAME, path=self._search_path()
-            )
+            modulefinder_utils.is_package(script, PACKAGE_NAME, path=self._search_path())
         )
 
     def test_is_package_rejects_plain_modules(self) -> None:
@@ -72787,9 +72716,7 @@ class TestModulefinderUtils(unittest.TestCase):
         self._write_helper()
         script = self._write("app.py", f"import {HELPER_NAME}\n")
         with self.assertRaises(KeyError):
-            modulefinder_utils.is_package(
-                script, "mf_unknown_module", path=self._search_path()
-            )
+            modulefinder_utils.is_package(script, "mf_unknown_module", path=self._search_path())
 
     def test_report_lists_the_dependencies(self) -> None:
         self._write_helper()
@@ -72816,9 +72743,7 @@ class TestModulefinderUtils(unittest.TestCase):
 
     def test_analysis_does_not_execute_the_script(self) -> None:
         script = self._write("app.py", "raise SystemExit('the script must not run')\n")
-        dependencies = modulefinder_utils.find_dependencies(
-            script, path=self._search_path()
-        )
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
         self.assertEqual(dependencies, [])
 
     def test_analysis_does_not_import_the_analysed_modules(self) -> None:
@@ -73394,6 +73319,7 @@ __all__ = [
     "sign",
 ]
 
+
 def _require_number(value: object, name: str) -> Number:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number, got {type(value).__name__}")
@@ -73477,7 +73403,7 @@ def round_half_up(value: Number, places: int = 0) -> float:
         raise TypeError(f"places must be an int, got {type(places).__name__}")
     if places < 0:
         raise ValueError("places must be non-negative")
-    factor = 10 ** places
+    factor = 10**places
     scaled = value * factor
     if scaled >= 0:
         return float(math.floor(scaled + 0.5) / factor)
@@ -73677,7 +73603,7 @@ def is_pronic_number(value: Number) -> bool:
     if int(value) != value or value < 0:
         return False
     n = int(value)
-    root = int(n ** 0.5)
+    root = int(n**0.5)
     return root * (root + 1) == n or (root + 1) * (root + 2) == n
 
 
@@ -73906,9 +73832,9 @@ def is_perfect_cube(value: Number) -> bool:
     root = int(round(abs(n) ** (1.0 / 3.0)))
     while (root + 1) ** 3 <= abs(n):
         root += 1
-    while root ** 3 > abs(n):
+    while root**3 > abs(n):
         root -= 1
-    return root ** 3 == abs(n)
+    return root**3 == abs(n)
 
 
 def is_perfect_square(value: Number) -> bool:
@@ -73932,9 +73858,9 @@ def is_perfect_square(value: Number) -> bool:
     root = int(round(abs(n) ** 0.5))
     while (root + 1) ** 2 <= abs(n):
         root += 1
-    while root ** 2 > abs(n):
+    while root**2 > abs(n):
         root -= 1
-    return root ** 2 == abs(n)
+    return root**2 == abs(n)
 
 
 def is_power_of_two(value: Number) -> bool:
@@ -74007,7 +73933,7 @@ def is_perfect_power(value: Number) -> bool:
         for candidate in (a - 1, a, a + 1):
             if candidate < 2:
                 continue
-            if candidate ** b == n:
+            if candidate**b == n:
                 return True
     return False
 
@@ -74067,7 +73993,6 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
     if denominator == 0:
         return 0.0
     return numerator / denominator
-
 
 
 def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:
@@ -74612,7 +74537,7 @@ def is_happy_number(value: int) -> bool:
         True
         >>> is_happy_number(2)
         False
-        """
+    """
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     if value < 0:
@@ -74623,7 +74548,6 @@ def is_happy_number(value: int) -> bool:
         seen.add(n)
         n = sum(int(d) * int(d) for d in str(n))
     return n == 1
-
 
 
 def is_kaprekar_number(value: int) -> bool:
@@ -75450,14 +75374,17 @@ class TestLerp(unittest.TestCase):
 class TestSign:
     def test_negative(self):
         from number_utils import sign
+
         assert sign(-5) == -1
 
     def test_zero(self):
         from number_utils import sign
+
         assert sign(0) == 0
 
     def test_positive(self):
         from number_utils import sign
+
         assert sign(3.5) == 1
 
     def test_non_number_raises(self):
@@ -75631,7 +75558,6 @@ class TestIsClose(unittest.TestCase):
             is_close(1.0, 1.0, rel_tol=-0.1)
         with self.assertRaises(ValueError):
             is_close(1.0, 1.0, abs_tol=-0.1)
-
 
 
 class TestIsHappyNumber(unittest.TestCase):
@@ -75817,9 +75743,41 @@ class TestIsPowerOfTwo(unittest.TestCase):
 class TestIsPerfectPower(unittest.TestCase):
     def test_perfect_powers(self) -> None:
         for n in (
-            4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 81, 100, 121, 125, 128, 144,
-            169, 196, 216, 225, 243, 256, 289, 324, 343, 361, 400, 512, 625,
-            729, 1000, 1024, 2 ** 20, 3 ** 10, 5 ** 6,
+            4,
+            8,
+            9,
+            16,
+            25,
+            27,
+            32,
+            36,
+            49,
+            64,
+            81,
+            100,
+            121,
+            125,
+            128,
+            144,
+            169,
+            196,
+            216,
+            225,
+            243,
+            256,
+            289,
+            324,
+            343,
+            361,
+            400,
+            512,
+            625,
+            729,
+            1000,
+            1024,
+            2**20,
+            3**10,
+            5**6,
         ):
             self.assertTrue(is_perfect_power(n), n)
 
@@ -75949,8 +75907,6 @@ class TestIsMultipleOfDivides(unittest.TestCase):
     def test_aliases(self) -> None:
         from number_utils import divides, is_divisible_by, is_multiple_of
 
-
-
         self.assertTrue(is_multiple_of(10, 2))
         self.assertTrue(divides(2, 10))
         self.assertTrue(is_multiple_of(0, 3))
@@ -75968,7 +75924,6 @@ class TestIsMultipleOfDivides(unittest.TestCase):
             is_divisible_by(10, 2.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_divisible_by(True, 2)  # type: ignore[arg-type]
-
 
 
 class TestIsEven(unittest.TestCase):
@@ -76187,7 +76142,6 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
-
 
 
 class TestIsArmstrongNumber(unittest.TestCase):
@@ -76479,7 +76433,6 @@ class TestIsPronicNumber(unittest.TestCase):
             is_pronic_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_pronic_number(None)  # type: ignore[arg-type]
-
 
 
 class TestIsSpyNumber(unittest.TestCase):
@@ -77752,7 +77705,7 @@ def is_perfect_power(n: int) -> bool:
             if candidate < 2:
                 continue
             try:
-                if candidate ** b == n:
+                if candidate**b == n:
                     return True
             except OverflowError:
                 continue
@@ -77892,7 +77845,7 @@ def is_kaprekar_number(n: int) -> bool:
     for i in range(1, len(s)):
         left = s[:i]
         right = s[i:]
-        if right.lstrip("0") == "" :
+        if right.lstrip("0") == "":
             continue
         if int(left or "0") + int(right) == n:
             return True
@@ -78026,7 +77979,7 @@ def is_perfect_cube(n: int) -> bool:
     for candidate in (r - 1, r, r + 1):
         if candidate < 0:
             continue
-        if candidate ** 3 == m:
+        if candidate**3 == m:
             return True
     return False
 
@@ -78296,8 +78249,6 @@ class TestIsAlmostPerfectNumber(unittest.TestCase):
                 is_almost_perfect_number(value)
 
 
-
-
 class TestIsDuckNumber(unittest.TestCase):
     def test_duck_numbers(self):
         for value in (101, 203, 100, 10):
@@ -78320,15 +78271,58 @@ if __name__ == "__main__":
 class TestIsAbundantNumber(unittest.TestCase):
     def test_known_abundant_numbers(self):
         for value in (
-            12, 18, 20, 24, 30, 36, 40, 42, 48, 54, 56, 60, 66, 70, 72,
-            78, 80, 84, 88, 90, 96, 100,
+            12,
+            18,
+            20,
+            24,
+            30,
+            36,
+            40,
+            42,
+            48,
+            54,
+            56,
+            60,
+            66,
+            70,
+            72,
+            78,
+            80,
+            84,
+            88,
+            90,
+            96,
+            100,
         ):
             self.assertTrue(is_abundant_number(value), value)
 
     def test_non_abundant_numbers(self):
         for value in (
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 19,
-            21, 22, 23, 25, 26, 27, 28, 29,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            13,
+            14,
+            15,
+            16,
+            17,
+            19,
+            21,
+            22,
+            23,
+            25,
+            26,
+            27,
+            28,
+            29,
         ):
             self.assertFalse(is_abundant_number(value), value)
 
@@ -78404,16 +78398,110 @@ class TestIsStrongNumber(unittest.TestCase):
 class TestIsHarshadNumber(unittest.TestCase):
     def test_known_harshad_numbers(self):
         for value in (
-            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 18, 20, 21, 24, 27, 30, 36, 40, 42, 45, 48, 50, 54,
-            60, 63, 70, 72, 80, 81, 84, 90, 100,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            12,
+            18,
+            20,
+            21,
+            24,
+            27,
+            30,
+            36,
+            40,
+            42,
+            45,
+            48,
+            50,
+            54,
+            60,
+            63,
+            70,
+            72,
+            80,
+            81,
+            84,
+            90,
+            100,
         ):
             self.assertTrue(is_harshad_number(value), value)
 
     def test_non_harshad_numbers(self):
         for value in (
-            11, 13, 14, 15, 16, 17, 19, 22, 23, 25, 26, 28, 29, 31, 32, 33, 34, 35, 37, 38, 39, 41,
-            43, 44, 46, 47, 49, 51, 52, 53, 55, 56, 57, 58, 59, 61, 62, 64, 65, 66, 67, 68, 69, 71,
-            73, 74, 75, 76, 77, 78, 79, 82, 83, 85, 86, 87, 88, 89, 91, 92, 93, 94, 95, 96, 97, 98,
+            11,
+            13,
+            14,
+            15,
+            16,
+            17,
+            19,
+            22,
+            23,
+            25,
+            26,
+            28,
+            29,
+            31,
+            32,
+            33,
+            34,
+            35,
+            37,
+            38,
+            39,
+            41,
+            43,
+            44,
+            46,
+            47,
+            49,
+            51,
+            52,
+            53,
+            55,
+            56,
+            57,
+            58,
+            59,
+            61,
+            62,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            71,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            82,
+            83,
+            85,
+            86,
+            87,
+            88,
+            89,
+            91,
+            92,
+            93,
+            94,
+            95,
+            96,
+            97,
+            98,
             99,
         ):
             self.assertFalse(is_harshad_number(value), value)
@@ -78452,8 +78540,28 @@ class TestIsNeonNumber(unittest.TestCase):
 
 class TestIsArmstrongNumber(unittest.TestCase):
     def test_known_armstrong_numbers(self):
-        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 153, 370, 371, 407, 1634, 8208, 9474, 54748,
-                     92727, 93084):
+        for value in (
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            153,
+            370,
+            371,
+            407,
+            1634,
+            8208,
+            9474,
+            54748,
+            92727,
+            93084,
+        ):
             self.assertTrue(is_armstrong_number(value), value)
 
     def test_non_armstrong_numbers(self):
@@ -78533,7 +78641,34 @@ class TestIsPronicNumber(unittest.TestCase):
 
 class TestIsPolydivisibleNumber(unittest.TestCase):
     def test_known_polydivisible_numbers(self):
-        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 102, 123, 1236, 12360):  # noqa: E501
+        for value in (
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            12,
+            14,
+            16,
+            18,
+            20,
+            22,
+            24,
+            26,
+            28,
+            36,
+            48,
+            102,
+            123,
+            1236,
+            12360,
+        ):  # noqa: E501
             self.assertTrue(is_polydivisible_number(value), value)
 
     def test_non_polydivisible_numbers(self):
@@ -78551,7 +78686,6 @@ class TestIsPolydivisibleNumber(unittest.TestCase):
 
 
 class TestIsSpyNumber(unittest.TestCase):
-
     def test_known_spy_numbers(self):
         for value in (1, 2, 3, 4, 5, 6, 7, 8, 9, 22, 123, 132, 213, 231, 312, 321, 1124):
             self.assertTrue(is_spy_number(value), value)
@@ -78751,8 +78885,29 @@ class TestIsSemiperfectNumber(unittest.TestCase):
     def test_known_semiperfect_numbers(self):
         # numbers that equal the sum of some subset of their proper divisors
         values = (
-            6, 12, 18, 20, 24, 28, 30, 36, 40, 42, 48, 54, 56, 60, 66, 72, 78,
-            80, 84, 88, 90, 96, 100,
+            6,
+            12,
+            18,
+            20,
+            24,
+            28,
+            30,
+            36,
+            40,
+            42,
+            48,
+            54,
+            56,
+            60,
+            66,
+            72,
+            78,
+            80,
+            84,
+            88,
+            90,
+            96,
+            100,
         )
         for value in values:
             self.assertTrue(is_semiperfect_number(value), value)
@@ -79085,6 +79240,7 @@ class OptionParseError(OptionError):
         """Return the message without the option prefix."""
         return self.msg
 
+
 #: Hide an option from the generated help text.
 SUPPRESS_HELP = optparse.SUPPRESS_HELP
 
@@ -79125,9 +79281,7 @@ def _require_parser(parser: Any) -> OptionParser:
         TypeError: If *parser* is not an :class:`optparse.OptionParser`.
     """
     if not isinstance(parser, OptionParser):
-        raise TypeError(
-            f"parser must be an optparse.OptionParser, got {type(parser).__name__}"
-        )
+        raise TypeError(f"parser must be an optparse.OptionParser, got {type(parser).__name__}")
     return parser
 
 
@@ -79223,9 +79377,7 @@ def _validate_flags(flags: Sequence[str]) -> List[str]:
             )
         if len(flag) == 2:
             if flag[0] != "-" or flag[1] == "-":
-                raise ValueError(
-                    f"invalid short option string {flag!r}: must be of the form -x"
-                )
+                raise ValueError(f"invalid short option string {flag!r}: must be of the form -x")
         elif not flag.startswith("--") or flag[2] == "-":
             raise ValueError(
                 f"invalid long option string {flag!r}: must start with -- "
@@ -79288,9 +79440,7 @@ def _type_converter(converter: Callable[..., Any]) -> Callable[..., Any]:
             for parameter in parameters
             if parameter.kind in (parameter.POSITIONAL_ONLY, parameter.POSITIONAL_OR_KEYWORD)
         ]
-        variadic = any(
-            parameter.kind is parameter.VAR_POSITIONAL for parameter in parameters
-        )
+        variadic = any(parameter.kind is parameter.VAR_POSITIONAL for parameter in parameters)
         if variadic or len(positional) >= 3:
             return converter
 
@@ -79348,10 +79498,7 @@ def _normalize_type(type_: Optional[Union[str, Callable[..., Any]]]) -> Optional
         return name
     if callable(type_):
         return None
-    raise TypeError(
-        "type must be a str, a type, or a callable, "
-        f"got {type(type_).__name__}"
-    )
+    raise TypeError(f"type must be a str, a type, or a callable, got {type(type_).__name__}")
 
 
 def make_parser(
@@ -79387,9 +79534,7 @@ def make_parser(
     _require_optional_str("version", version)
     _require_optional_str("epilog", epilog)
     if not isinstance(add_help_option, bool):
-        raise TypeError(
-            f"add_help_option must be a bool, got {type(add_help_option).__name__}"
-        )
+        raise TypeError(f"add_help_option must be a bool, got {type(add_help_option).__name__}")
     if conflict_handler not in ("error", "resolve"):
         raise ValueError(
             f"invalid conflict handler: {conflict_handler!r}, expected 'error' or 'resolve'"
@@ -79607,9 +79752,7 @@ def _validate_args(args: Optional[Sequence[str]]) -> Optional[List[str]]:
     try:
         entries = list(args)
     except TypeError as exc:
-        raise TypeError(
-            f"args must be a sequence of strings, got {type(args).__name__}"
-        ) from exc
+        raise TypeError(f"args must be a sequence of strings, got {type(args).__name__}") from exc
     for entry in entries:
         if not isinstance(entry, str):
             raise TypeError(f"args entries must be str, got {type(entry).__name__}")
@@ -79644,9 +79787,7 @@ def parse_args(
     """
     target = _require_parser(parser)
     if on_error not in ERROR_MODES:
-        raise ValueError(
-            f"invalid error mode: {on_error!r}, expected 'exit' or 'raise'"
-        )
+        raise ValueError(f"invalid error mode: {on_error!r}, expected 'exit' or 'raise'")
     command_line = _validate_args(args)
     if on_error == "exit":
         options, remaining = target.parse_args(command_line)
@@ -79660,9 +79801,7 @@ def parse_args(
         if status == 0:
             raise
         message = buffer.getvalue().strip()
-        raise OptionParseError(
-            message or f"option parsing failed with status {status}"
-        ) from exc
+        raise OptionParseError(message or f"option parsing failed with status {status}") from exc
     return options, remaining
 
 
@@ -79683,9 +79822,7 @@ def get_option(parser: OptionParser, option_string: str) -> Optional[Option]:
     target = _require_parser(parser)
     _require_str("option_string", option_string)
     if len(option_string) < 2 or not option_string.startswith("-"):
-        raise ValueError(
-            f"invalid option string {option_string!r}: must start with a dash"
-        )
+        raise ValueError(f"invalid option string {option_string!r}: must start with a dash")
     return target.get_option(option_string)
 
 
@@ -79706,9 +79843,7 @@ def has_option(parser: OptionParser, option_string: str) -> bool:
     target = _require_parser(parser)
     _require_str("option_string", option_string)
     if len(option_string) < 2 or not option_string.startswith("-"):
-        raise ValueError(
-            f"invalid option string {option_string!r}: must start with a dash"
-        )
+        raise ValueError(f"invalid option string {option_string!r}: must start with a dash")
     return target.has_option(option_string)
 
 
@@ -79726,9 +79861,7 @@ def remove_option(parser: OptionParser, option_string: str) -> None:
     target = _require_parser(parser)
     _require_str("option_string", option_string)
     if len(option_string) < 2 or not option_string.startswith("-"):
-        raise ValueError(
-            f"invalid option string {option_string!r}: must start with a dash"
-        )
+        raise ValueError(f"invalid option string {option_string!r}: must start with a dash")
     target.remove_option(option_string)
 
 
@@ -80062,9 +80195,7 @@ class TestAddOption(unittest.TestCase):
         self.assertEqual(options.count, 7)
 
     def test_add_option_accepts_a_converter(self) -> None:
-        optparse_utils.add_option(
-            self.parser, "--count", type_=optparse_utils.int_type
-        )
+        optparse_utils.add_option(self.parser, "--count", type_=optparse_utils.int_type)
         options, _ = optparse_utils.parse_args(self.parser, ["--count", "7"])
         self.assertEqual(options.count, 7)
 
@@ -80079,18 +80210,14 @@ class TestAddOption(unittest.TestCase):
     def test_add_option_rejects_an_invalid_value(self) -> None:
         optparse_utils.add_option(self.parser, "--count", type_="int")
         with self.assertRaises(optparse_utils.OptionParseError):
-            optparse_utils.parse_args(
-                self.parser, ["--count", "seven"], on_error="raise"
-            )
+            optparse_utils.parse_args(self.parser, ["--count", "seven"], on_error="raise")
 
     def test_add_option_restricts_the_choices(self) -> None:
         optparse_utils.add_option(self.parser, "--mode", choices=["fast", "slow"])
         options, _ = optparse_utils.parse_args(self.parser, ["--mode", "fast"])
         self.assertEqual(options.mode, "fast")
         with self.assertRaises(optparse_utils.OptionParseError):
-            optparse_utils.parse_args(
-                self.parser, ["--mode", "medium"], on_error="raise"
-            )
+            optparse_utils.parse_args(self.parser, ["--mode", "medium"], on_error="raise")
 
     def test_add_option_uses_the_default(self) -> None:
         optparse_utils.add_option(self.parser, "--file", default="fallback")
@@ -80103,9 +80230,7 @@ class TestAddOption(unittest.TestCase):
         self.assertIsNone(defaults.file)
 
     def test_add_option_supports_a_constant(self) -> None:
-        optparse_utils.add_option(
-            self.parser, "--level", action="store_const", const=3
-        )
+        optparse_utils.add_option(self.parser, "--level", action="store_const", const=3)
         options, _ = optparse_utils.parse_args(self.parser, ["--level"])
         self.assertEqual(options.level, 3)
 
@@ -80262,9 +80387,7 @@ class TestParseArgs(unittest.TestCase):
         optparse_utils.add_flag(self.parser, "--verbose")
 
     def test_parse_args_returns_values_and_arguments(self) -> None:
-        options, remaining = optparse_utils.parse_args(
-            self.parser, ["--file", "demo.txt", "extra"]
-        )
+        options, remaining = optparse_utils.parse_args(self.parser, ["--file", "demo.txt", "extra"])
         self.assertEqual(options.file, "demo.txt")
         self.assertEqual(remaining, ["extra"])
 
@@ -80359,6 +80482,7 @@ class TestParserQueries(unittest.TestCase):
         self.assertIn("demo", optparse_utils.format_usage(self.parser))
         self.assertIn("the file", optparse_utils.format_help(self.parser))
         self.assertEqual(optparse_utils.get_prog_name(self.parser), "demo")
+
     def test_format_option_help_describes_a_single_option(self) -> None:
         option = optparse_utils.get_option(self.parser, "--file")
         self.assertIsNotNone(option)
@@ -80375,16 +80499,12 @@ class TestSuppressedOptions(unittest.TestCase):
 
     def test_suppressed_option_is_hidden_from_the_help(self) -> None:
         parser = optparse_utils.make_parser(prog="demo")
-        optparse_utils.add_option(
-            parser, "--secret", help_text=optparse_utils.SUPPRESS_HELP
-        )
+        optparse_utils.add_option(parser, "--secret", help_text=optparse_utils.SUPPRESS_HELP)
         self.assertNotIn("secret", optparse_utils.format_help(parser))
         self.assertTrue(parser.has_option("--secret"))
 
     def test_suppressed_usage_is_honoured(self) -> None:
-        parser = optparse_utils.make_parser(
-            prog="demo", usage=optparse_utils.SUPPRESS_USAGE
-        )
+        parser = optparse_utils.make_parser(prog="demo", usage=optparse_utils.SUPPRESS_USAGE)
         self.assertEqual(optparse_utils.get_usage(parser), "")
 
 
@@ -80845,7 +80965,6 @@ PATHLIB_UTILS
 cat > "$OUTPUT_DIR/tests/test_pathlib_utils.py" <<'TEST_PATHLIB_UTILS'
 """Tests for pathlib_utils."""
 
-
 from pathlib_utils import (
     ensure_dir,
     exists,
@@ -80920,7 +81039,6 @@ __all__ = [
     "StrategyContext",
     "T",
 ]
-
 
 
 class Singleton(type):
@@ -81325,9 +81443,7 @@ def _require_pickle_data(value: Any, name: str) -> PickleData:
         return value
     if hasattr(value, "read"):
         return cast(PickleData, value)
-    raise TypeError(
-        f"{name} must be bytes or a binary file object, got {type(value).__name__}"
-    )
+    raise TypeError(f"{name} must be bytes or a binary file object, got {type(value).__name__}")
 
 
 def _require_out(value: Any) -> Optional[IO[str]]:
@@ -81786,9 +81902,7 @@ def _validate_prefix(prefix: str) -> str:
     return prefix
 
 
-def iter_modules(
-    path: Sequence[str] | None = None, prefix: str = ""
-) -> list[tuple[str, bool]]:
+def iter_modules(path: Sequence[str] | None = None, prefix: str = "") -> list[tuple[str, bool]]:
     """List the modules found in *path*.
 
     Args:
@@ -81861,9 +81975,7 @@ def get_data(package: str, resource: str) -> bytes:
     return data
 
 
-def read_text(
-    package: str, resource: str, encoding: str = "utf-8", errors: str = "strict"
-) -> str:
+def read_text(package: str, resource: str, encoding: str = "utf-8", errors: str = "strict") -> str:
     """Read a data file shipped inside *package* and decode it as text.
 
     Args:
@@ -82028,7 +82140,6 @@ class TestPkgutilUtils(unittest.TestCase):
     def test_iter_modules_rejects_non_string_prefix(self):
         with self.assertRaises(TypeError):
             iter_modules([self.pkg], prefix=5)
-
 
     def test_walk_packages_finds_nested_modules(self):
         names = dict(walk_packages([self.pkg], prefix="samplepkg."))
@@ -82330,7 +82441,6 @@ __all__ = [
     "pprint",
     "saferepr",
 ]
-
 
 
 def pformat(obj, indent=1, width=80, depth=None, compact=False, sort_dicts=True):
@@ -82669,7 +82779,6 @@ def is_coprime(a: int, b: int) -> bool:
 coprime = is_coprime
 
 
-
 def is_circular_prime(n: int) -> bool:
     """Return True if *n* is a circular prime.
 
@@ -82873,7 +82982,7 @@ def is_prime_power(n: int) -> bool:
         for candidate in [p - 1, p, p + 1]:
             if candidate < 2:
                 continue
-            pow_val = candidate ** k
+            pow_val = candidate**k
             if pow_val == n and is_prime(candidate):
                 return True
             if pow_val > n:
@@ -83825,7 +83934,7 @@ def is_perfect_power(n: int) -> bool:
         for candidate in [a - 1, a, a + 1]:
             if candidate < 2:
                 continue
-            pow_val = candidate ** b
+            pow_val = candidate**b
             if pow_val == n_abs:
                 return True
             if pow_val > n_abs:
@@ -85362,9 +85471,30 @@ class TestIsTruncatablePrime(unittest.TestCase):
     def test_non_truncatable_primes(self):
         # Primes that fail left- or right-truncation
         for n in [
-            11, 13, 17, 19, 29, 31, 41, 43, 47, 59,
-            61, 67, 71, 79, 83, 89, 97, 101, 103,
-            107, 109, 113, 127, 131,
+            11,
+            13,
+            17,
+            19,
+            29,
+            31,
+            41,
+            43,
+            47,
+            59,
+            61,
+            67,
+            71,
+            79,
+            83,
+            89,
+            97,
+            101,
+            103,
+            107,
+            109,
+            113,
+            127,
+            131,
         ]:
             self.assertFalse(is_truncatable_prime(n), n)
 
@@ -85544,21 +85674,107 @@ class TestIsFermatNumber(unittest.TestCase):
 class TestIsStrongPrime(unittest.TestCase):
     def test_known_strong_primes(self):
         # OEIS A051634: 11, 17, 29, 37, 41, 59, 67, 71, 79, 97, ...
-        for n in (11, 17, 29, 37, 41, 59, 67, 71, 79, 97, 101, 107,
-                  127, 137, 149, 163, 179, 191, 197, 223, 227, 239,
-                  251, 269, 277, 281, 307, 311, 331, 347, 367, 379,
-                  397, 419, 431, 439, 457, 461, 479, 487, 499):
+        for n in (
+            11,
+            17,
+            29,
+            37,
+            41,
+            59,
+            67,
+            71,
+            79,
+            97,
+            101,
+            107,
+            127,
+            137,
+            149,
+            163,
+            179,
+            191,
+            197,
+            223,
+            227,
+            239,
+            251,
+            269,
+            277,
+            281,
+            307,
+            311,
+            331,
+            347,
+            367,
+            379,
+            397,
+            419,
+            431,
+            439,
+            457,
+            461,
+            479,
+            487,
+            499,
+        ):
             self.assertTrue(is_strong_prime(n), n)
 
     def test_balanced_and_weak_primes(self):
         # 5 is balanced ((3 + 7) / 2 == 5); 7, 13, 19, 23 are weak.
-        for n in (5, 7, 13, 19, 23, 31, 43, 47, 53, 61, 73, 83, 89, 103,
-                  109, 113, 131, 139, 151, 157, 167, 173, 181, 193, 199):
+        for n in (
+            5,
+            7,
+            13,
+            19,
+            23,
+            31,
+            43,
+            47,
+            53,
+            61,
+            73,
+            83,
+            89,
+            103,
+            109,
+            113,
+            131,
+            139,
+            151,
+            157,
+            167,
+            173,
+            181,
+            193,
+            199,
+        ):
             self.assertFalse(is_strong_prime(n), n)
 
     def test_non_primes(self):
-        for n in (1, 4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24,
-                  25, 26, 27, 28, 30, 100, 1000):
+        for n in (
+            1,
+            4,
+            6,
+            8,
+            9,
+            10,
+            12,
+            14,
+            15,
+            16,
+            18,
+            20,
+            21,
+            22,
+            24,
+            25,
+            26,
+            27,
+            28,
+            30,
+            100,
+            1000,
+        ):
             self.assertFalse(is_strong_prime(n), n)
 
     def test_boundary_primes(self):
@@ -85586,9 +85802,37 @@ if __name__ == "__main__":
 class TestIsBalancedPrime(unittest.TestCase):
     def test_known_balanced_primes(self):
         # OEIS A006562: balanced primes
-        for n in (5, 53, 157, 173, 211, 257, 263, 373, 563, 593, 607, 653,
-                  733, 947, 977, 1103, 1123, 1187, 1223, 1367, 1511,
-                  1753, 1907, 2287, 2417, 2677, 2903, 2963, 3307):
+        for n in (
+            5,
+            53,
+            157,
+            173,
+            211,
+            257,
+            263,
+            373,
+            563,
+            593,
+            607,
+            653,
+            733,
+            947,
+            977,
+            1103,
+            1123,
+            1187,
+            1223,
+            1367,
+            1511,
+            1753,
+            1907,
+            2287,
+            2417,
+            2677,
+            2903,
+            2963,
+            3307,
+        ):
             self.assertTrue(is_balanced_prime(n), n)
 
     def test_strong_and_weak_primes(self):
@@ -85619,9 +85863,29 @@ class TestIsBalancedPrime(unittest.TestCase):
 class TestIsWeakPrime(unittest.TestCase):
     def test_known_weak_primes(self):
         # OEIS A014224 weak primes (less than mean of neighbors)
-        for n in (7, 13, 19, 23, 31, 43, 47, 103, 109,
-                  131, 139, 151, 167, 181, 193, 199, 229, 241,
-                  271, 283, 293):
+        for n in (
+            7,
+            13,
+            19,
+            23,
+            31,
+            43,
+            47,
+            103,
+            109,
+            131,
+            139,
+            151,
+            167,
+            181,
+            193,
+            199,
+            229,
+            241,
+            271,
+            283,
+            293,
+        ):
             self.assertTrue(is_weak_prime(n), n)
 
     def test_strong_and_balanced_primes(self):
@@ -86121,9 +86385,7 @@ def spawn(
         raise ValueError("argv must not be empty")
     for index, argument in enumerate(argv):
         if not isinstance(argument, str):
-            raise TypeError(
-                f"argv[{index}] must be a str, got {type(argument).__name__}"
-            )
+            raise TypeError(f"argv[{index}] must be a str, got {type(argument).__name__}")
     for name, callback in (("master_read", master_read), ("stdin_read", stdin_read)):
         if callback is not None and not callable(callback):
             raise TypeError(f"{name} must be callable, got {type(callback).__name__}")
@@ -86604,9 +86866,7 @@ def parse_invalidation_mode(value: Union[str, PycInvalidationMode, None]) -> Pyc
         return py_compile.PycInvalidationMode[value.strip().upper()]
     except KeyError as exc:
         valid = ", ".join(m.name for m in PycInvalidationMode)
-        raise ValueError(
-            f"unknown invalidation_mode {value!r}; valid modes are: {valid}"
-        ) from exc
+        raise ValueError(f"unknown invalidation_mode {value!r}; valid modes are: {valid}") from exc
 
 
 def get_invalidation_mode(
@@ -86916,9 +87176,7 @@ def _require_path(path: Any) -> Optional[Sequence[str]]:
     try:
         entries = list(path)
     except TypeError as exc:
-        raise TypeError(
-            f"path must be a sequence of strings, got {type(path).__name__}"
-        ) from exc
+        raise TypeError(f"path must be a sequence of strings, got {type(path).__name__}") from exc
     for entry in entries:
         if not isinstance(entry, str):
             raise TypeError(f"path entries must be str, got {type(entry).__name__}")
@@ -86943,9 +87201,7 @@ def _require_module_dict(result: Any) -> Dict[str, Any]:
     return result
 
 
-def read_module(
-    module_name: str, path: Optional[Sequence[str]] = None
-) -> Dict[str, Class]:
+def read_module(module_name: str, path: Optional[Sequence[str]] = None) -> Dict[str, Class]:
     """Return the classes defined in *module_name*.
 
     The source of *module_name* is read statically — it is never imported or
@@ -86968,9 +87224,7 @@ def read_module(
     return pyclbr.readmodule(module_name, search_path)
 
 
-def read_module_ex(
-    module_name: str, path: Optional[Sequence[str]] = None
-) -> Dict[str, Any]:
+def read_module_ex(module_name: str, path: Optional[Sequence[str]] = None) -> Dict[str, Any]:
     """Return the classes and functions defined in *module_name*.
 
     Like :func:`read_module`, but the result also contains the top-level
@@ -87009,9 +87263,7 @@ def class_names(result: Dict[str, Any]) -> List[str]:
         TypeError: If *result* is not a mapping.
     """
     target = _require_module_dict(result)
-    return sorted(
-        name for name, value in target.items() if isinstance(value, Class)
-    )
+    return sorted(name for name, value in target.items() if isinstance(value, Class))
 
 
 def function_names(result: Dict[str, Any]) -> List[str]:
@@ -87028,9 +87280,7 @@ def function_names(result: Dict[str, Any]) -> List[str]:
         TypeError: If *result* is not a mapping.
     """
     target = _require_module_dict(result)
-    return sorted(
-        name for name, value in target.items() if isinstance(value, Function)
-    )
+    return sorted(name for name, value in target.items() if isinstance(value, Function))
 
 
 def find_class(result: Dict[str, Any], name: str) -> Optional[Class]:
@@ -87358,7 +87608,6 @@ __all__ = [
 ]
 
 
-
 class Queue:
     """A simple FIFO queue."""
 
@@ -87641,7 +87890,6 @@ __all__ = [
     "recursive_repr",
     "repr",
 ]
-
 
 
 def repr(obj):
@@ -88132,12 +88380,7 @@ def _check_limits(soft: int, hard: int, current: Limit) -> None:
     infinity = RLIM_INFINITY
     if soft != infinity and hard != infinity and soft > hard:
         raise ValueError(f"the soft limit ({soft}) must not exceed the hard limit ({hard})")
-    if (
-        soft != infinity
-        and hard != infinity
-        and current.hard != infinity
-        and soft > current.hard
-    ):
+    if soft != infinity and hard != infinity and current.hard != infinity and soft > current.hard:
         raise ValueError(
             f"the soft limit ({soft}) must not exceed the hard limit "
             f"the process may raise ({current.hard})"
@@ -88612,7 +88855,6 @@ __all__ = [
 ]
 
 
-
 def run_module(mod_name, init_globals=None, run_name=None, alter_sys=False):
     if not isinstance(mod_name, str):
         raise TypeError("mod_name must be a str")
@@ -88693,7 +88935,6 @@ __all__ = [
     "run",
     "scheduler",
 ]
-
 
 
 def scheduler(timefunc=time.monotonic, delayfunc=time.sleep) -> sched.scheduler:
@@ -89103,15 +89344,11 @@ def _require_list(value: object, name: str) -> List[int]:
         raise TypeError(f"{name} must be a list, got {type(value).__name__}")
     for index, item in enumerate(value):
         if isinstance(item, bool) or not isinstance(item, int):
-            raise TypeError(
-                f"{name}[{index}] must be an int, got {type(item).__name__}"
-            )
+            raise TypeError(f"{name}[{index}] must be an int, got {type(item).__name__}")
     return value
 
 
-def _require_optional_number(
-    value: object, name: str
-) -> Optional[float]:
+def _require_optional_number(value: object, name: str) -> Optional[float]:
     """Return *value* as a float when it is a number or None, otherwise raise."""
     if value is None:
         return None
@@ -89171,9 +89408,7 @@ def select(
     writes = _require_list(wlist, "wlist")
     exceptions = _require_list(xlist, "xlist")
     timeout_value = _require_optional_number(timeout, "timeout")
-    readable, writable, exceptional = _select.select(
-        reads, writes, exceptions, timeout_value
-    )
+    readable, writable, exceptional = _select.select(reads, writes, exceptions, timeout_value)
     return list(readable), list(writable), list(exceptional)
 
 
@@ -89204,17 +89439,13 @@ def poll_register(poller: _select.poll, fd: int, events: int) -> None:
         OSError: If *fd* is invalid.
     """
     if not hasattr(poller, "register"):
-        raise TypeError(
-            "poller must be a select.poll-like object with a register method"
-        )
+        raise TypeError("poller must be a select.poll-like object with a register method")
     file_descriptor = _require_int(fd, "fd")
     event_mask = _require_int(events, "events")
     poller.register(file_descriptor, event_mask)
 
 
-def poll_poll(
-    poller: _select.poll, timeout: Optional[float] = None
-) -> List[Tuple[int, int]]:
+def poll_poll(poller: _select.poll, timeout: Optional[float] = None) -> List[Tuple[int, int]]:
     """Poll a poll object for registered events.
 
     Args:
@@ -89229,9 +89460,7 @@ def poll_poll(
         ValueError: If *timeout* is negative.
     """
     if not hasattr(poller, "poll"):
-        raise TypeError(
-            "poller must be a select.poll-like object with a poll method"
-        )
+        raise TypeError("poller must be a select.poll-like object with a poll method")
     timeout_value = _require_optional_number(timeout, "timeout")
     return poller.poll(timeout_value)
 
@@ -89254,9 +89483,7 @@ class TestSelect(unittest.TestCase):
     def test_select_returns_lists(self):
         read_fd, write_fd = os.pipe()
         try:
-            readable, writable, exceptional = select_utils.select(
-                [read_fd], [write_fd], [], 0
-            )
+            readable, writable, exceptional = select_utils.select([read_fd], [write_fd], [], 0)
             self.assertIsInstance(readable, list)
             self.assertIsInstance(writable, list)
             self.assertIsInstance(exceptional, list)
@@ -89267,9 +89494,7 @@ class TestSelect(unittest.TestCase):
     def test_select_no_timeout(self):
         read_fd, write_fd = os.pipe()
         try:
-            readable, writable, exceptional = select_utils.select(
-                [read_fd], [write_fd], [], 0
-            )
+            readable, writable, exceptional = select_utils.select([read_fd], [write_fd], [], 0)
             self.assertTrue(all(isinstance(fd, int) for fd in readable + writable + exceptional))
             self.assertIn(write_fd, writable)
         finally:
@@ -89376,7 +89601,6 @@ __all__ = [
     "select",
     "unregister",
 ]
-
 
 
 def _validate_fileobj(value: Any, name: str) -> None:
@@ -90884,7 +91108,6 @@ __all__ = [
 ]
 
 
-
 def split(s, comments=False, posix=True):
     if not isinstance(s, str):
         raise TypeError("s must be a str")
@@ -91546,8 +91769,7 @@ def _require_source_address(
         return None
     if not isinstance(value, (tuple, list)) or len(value) != 2:
         raise TypeError(
-            "source_address must be a (host, port) pair or None, "
-            f"got {type(value).__name__}"
+            f"source_address must be a (host, port) pair or None, got {type(value).__name__}"
         )
     host = _require_str(value[0], "source_address[0]")
     port = _require_port(value[1], "source_address[1]")
@@ -91575,15 +91797,12 @@ def _require_addresses(value: Any, name: str) -> List[str]:
             collected = list(value)
         except TypeError as exc:
             raise TypeError(
-                f"{name} must be a str or an iterable of str, "
-                f"got {type(value).__name__}"
+                f"{name} must be a str or an iterable of str, got {type(value).__name__}"
             ) from exc
         candidates = []
         for index, item in enumerate(collected):
             if not isinstance(item, str):
-                raise TypeError(
-                    f"{name}[{index}] must be a str, got {type(item).__name__}"
-                )
+                raise TypeError(f"{name}[{index}] must be a str, got {type(item).__name__}")
             candidates.append(item)
     for index, candidate in enumerate(candidates):
         if not candidate.strip():
@@ -91605,9 +91824,7 @@ def _require_message(value: Any, name: str) -> email.message.Message:
         TypeError: If *value* is not an :class:`email.message.Message`.
     """
     if not isinstance(value, email.message.Message):
-        raise TypeError(
-            f"{name} must be an email.message.Message, got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be an email.message.Message, got {type(value).__name__}")
     return value
 
 
@@ -91625,9 +91842,7 @@ def _require_client(value: Any, name: str) -> _smtplib.SMTP:
         TypeError: If *value* is not an SMTP client.
     """
     if not isinstance(value, _smtplib.SMTP):
-        raise TypeError(
-            f"{name} must be an smtplib.SMTP instance, got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be an smtplib.SMTP instance, got {type(value).__name__}")
     return value
 
 
@@ -91648,9 +91863,7 @@ def _require_options(value: Any, name: str) -> List[str]:
     options: List[str] = []
     for index, item in enumerate(value):
         if not isinstance(item, str):
-            raise TypeError(
-                f"{name}[{index}] must be a str, got {type(item).__name__}"
-            )
+            raise TypeError(f"{name}[{index}] must be a str, got {type(item).__name__}")
         if not item:
             raise ValueError(f"{name}[{index}] must not be empty")
         if "\r" in item or "\n" in item:
@@ -92007,9 +92220,7 @@ def build_message(
         file_name = _require_str(attachment[0], f"attachments[{index}][0]")
         payload = attachment[1]
         if not isinstance(payload, bytes):
-            raise TypeError(
-                f"attachments[{index}][1] must be bytes, got {type(payload).__name__}"
-            )
+            raise TypeError(f"attachments[{index}][1] must be bytes, got {type(payload).__name__}")
         if not file_name:
             raise ValueError(f"attachments[{index}][0] must not be empty")
         maintype, subtype = _guess_media_type(file_name)
@@ -92407,25 +92618,15 @@ class TestExports(unittest.TestCase):
 
     def test_error_classes_exported(self):
         self.assertIs(smtplib_utils.SMTPException, smtplib.SMTPException)
-        self.assertIs(
-            smtplib_utils.SMTPNotSupportedError, smtplib.SMTPNotSupportedError
-        )
-        self.assertIs(
-            smtplib_utils.SMTPServerDisconnected, smtplib.SMTPServerDisconnected
-        )
-        self.assertIs(
-            smtplib_utils.SMTPResponseException, smtplib.SMTPResponseException
-        )
+        self.assertIs(smtplib_utils.SMTPNotSupportedError, smtplib.SMTPNotSupportedError)
+        self.assertIs(smtplib_utils.SMTPServerDisconnected, smtplib.SMTPServerDisconnected)
+        self.assertIs(smtplib_utils.SMTPResponseException, smtplib.SMTPResponseException)
         self.assertIs(smtplib_utils.SMTPSenderRefused, smtplib.SMTPSenderRefused)
-        self.assertIs(
-            smtplib_utils.SMTPRecipientsRefused, smtplib.SMTPRecipientsRefused
-        )
+        self.assertIs(smtplib_utils.SMTPRecipientsRefused, smtplib.SMTPRecipientsRefused)
         self.assertIs(smtplib_utils.SMTPDataError, smtplib.SMTPDataError)
         self.assertIs(smtplib_utils.SMTPConnectError, smtplib.SMTPConnectError)
         self.assertIs(smtplib_utils.SMTPHeloError, smtplib.SMTPHeloError)
-        self.assertIs(
-            smtplib_utils.SMTPAuthenticationError, smtplib.SMTPAuthenticationError
-        )
+        self.assertIs(smtplib_utils.SMTPAuthenticationError, smtplib.SMTPAuthenticationError)
 
 
 class TestAddressHelpers(unittest.TestCase):
@@ -92543,9 +92744,7 @@ class TestParseEhloFeatures(unittest.TestCase):
         features = smtplib_utils.parse_ehlo_features(
             "mail.example.com Hello\nSIZE 35882577\n8BITMIME\nHELP"
         )
-        self.assertEqual(
-            features, {"size": "35882577", "8bitmime": "", "help": ""}
-        )
+        self.assertEqual(features, {"size": "35882577", "8bitmime": "", "help": ""})
 
     def test_raw_reply_form(self):
         features = smtplib_utils.parse_ehlo_features(
@@ -92558,9 +92757,7 @@ class TestParseEhloFeatures(unittest.TestCase):
         self.assertEqual(features, {"size": "100"})
 
     def test_auth_mechanisms_are_merged(self):
-        features = smtplib_utils.parse_ehlo_features(
-            "AUTH LOGIN PLAIN", skip_greeting=False
-        )
+        features = smtplib_utils.parse_ehlo_features("AUTH LOGIN PLAIN", skip_greeting=False)
         self.assertEqual(features, {"auth": "LOGIN PLAIN"})
 
     def test_empty_response(self):
@@ -92627,9 +92824,7 @@ class TestBuildMessage(unittest.TestCase):
             html="<p>Body</p>",
         )
         self.assertEqual(message.get_content_type(), "multipart/alternative")
-        self.assertEqual(
-            message.get_body(preferencelist=("plain",)).get_content().strip(), "Body"
-        )
+        self.assertEqual(message.get_body(preferencelist=("plain",)).get_content().strip(), "Body")
         self.assertEqual(
             message.get_body(preferencelist=("html",)).get_content().strip(), "<p>Body</p>"
         )
@@ -92797,8 +92992,11 @@ class TestCreateSmtpSsl(unittest.TestCase):
 
     def test_client_wraps_the_socket(self):
         fake, patcher = connected_socket([GREETING])
-        with patcher, mock.patch.object(
-            ssl.SSLContext, "wrap_socket", side_effect=lambda sock, **kwargs: sock
+        with (
+            patcher,
+            mock.patch.object(
+                ssl.SSLContext, "wrap_socket", side_effect=lambda sock, **kwargs: sock
+            ),
         ):
             client = smtplib_utils.create_smtp_ssl(
                 "mail.example.com", 465, local_hostname="client.example.org"
@@ -92838,13 +93036,17 @@ class TestSend(unittest.TestCase):
         return fake, patcher
 
     def test_send_text_runs_a_full_transaction(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-            "221 Bye\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+                "221 Bye\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -92869,13 +93071,17 @@ class TestSend(unittest.TestCase):
         self.assertEqual(commands[5], "quit")
 
     def test_bcc_reaches_the_envelope_only(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -92894,13 +93100,17 @@ class TestSend(unittest.TestCase):
         self.assertNotIn("Bcc: hidden@example.com", commands[4])
 
     def test_refused_recipient_is_reported(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "550 No such user\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "550 No such user\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -92918,11 +93128,15 @@ class TestSend(unittest.TestCase):
         self.assertEqual(refused["bob@example.com"][1], b"No such user")
 
     def test_all_recipients_refused_raises(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "550 No such user\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "550 No such user\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -92940,12 +93154,16 @@ class TestSend(unittest.TestCase):
         self.assertIn("rset", fake.commands())
 
     def test_send_message_uses_the_message_headers(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         message = smtplib_utils.build_message(
             "alice@example.com", ["bob@example.com"], "Report", "The body"
@@ -92981,12 +93199,16 @@ class TestSend(unittest.TestCase):
             smtplib_utils.send_message(client, message, mail_options=(5,))  # type: ignore[arg-type]
 
     def test_mail_options_are_forwarded(self):
-        replies = [GREETING] + EHLO_REPLY + [
-            "250 OK\r\n",
-            "250 OK\r\n",
-            "354 Go ahead\r\n",
-            "250 OK\r\n",
-        ]
+        replies = (
+            [GREETING]
+            + EHLO_REPLY
+            + [
+                "250 OK\r\n",
+                "250 OK\r\n",
+                "354 Go ahead\r\n",
+                "250 OK\r\n",
+            ]
+        )
         fake, patcher = self._client(replies)
         with patcher:
             client = smtplib_utils.create_smtp(
@@ -93017,22 +93239,14 @@ class TestErrorPredicates(unittest.TestCase):
                 smtplib.SMTPRecipientsRefused({"a": (550, b"x")})
             )
         )
-        self.assertTrue(
-            smtplib_utils.is_smtp_data_error(smtplib.SMTPDataError(451, b"x"))
-        )
-        self.assertTrue(
-            smtplib_utils.is_smtp_helo_error(smtplib.SMTPHeloError(550, b"x"))
-        )
-        self.assertTrue(
-            smtplib_utils.is_smtp_not_supported(smtplib.SMTPNotSupportedError("x"))
-        )
+        self.assertTrue(smtplib_utils.is_smtp_data_error(smtplib.SMTPDataError(451, b"x")))
+        self.assertTrue(smtplib_utils.is_smtp_helo_error(smtplib.SMTPHeloError(550, b"x")))
+        self.assertTrue(smtplib_utils.is_smtp_not_supported(smtplib.SMTPNotSupportedError("x")))
         self.assertTrue(
             smtplib_utils.is_smtp_server_disconnected(smtplib.SMTPServerDisconnected("x"))
         )
         self.assertTrue(
-            smtplib_utils.is_smtp_authentication_error(
-                smtplib.SMTPAuthenticationError(535, b"x")
-            )
+            smtplib_utils.is_smtp_authentication_error(smtplib.SMTPAuthenticationError(535, b"x"))
         )
 
     def test_predicates_reject_other_errors(self):
@@ -93047,9 +93261,7 @@ class TestErrorPredicates(unittest.TestCase):
         self.assertFalse(smtplib_utils.is_smtp_authentication_error(ValueError("x")))
 
     def test_response_error_is_an_smtp_error(self):
-        self.assertTrue(
-            smtplib_utils.is_smtp_error(smtplib.SMTPResponseException(500, "x"))
-        )
+        self.assertTrue(smtplib_utils.is_smtp_error(smtplib.SMTPResponseException(500, "x")))
 
 
 if __name__ == "__main__":
@@ -94186,7 +94398,6 @@ __all__ = [
 ]
 
 
-
 def create_tcp_server(
     address: Any,
     handler_class: Type[socketserver.BaseRequestHandler],
@@ -94417,6 +94628,7 @@ TEST_SOCKETSERVER_UTILS
 # --- sort_utils.py ---
 cat > "$OUTPUT_DIR/sort_utils.py" <<'SORT_UTILS'
 """Sorting utility functions."""
+
 __all__ = [
     "bubble_sort",
     "is_sorted",
@@ -94424,7 +94636,6 @@ __all__ = [
     "nth_largest",
     "top_n",
 ]
-
 
 
 def is_sorted(items, *, key=None, reverse=False):
@@ -94584,7 +94795,6 @@ __all__ = [
     "query",
     "table_exists",
 ]
-
 
 
 def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Connection:
@@ -95043,7 +95253,8 @@ __all__: list[str] = [
 
 # Known protocol constants for validation
 _KNOWN_PROTOCOLS = {
-    v for v in [
+    v
+    for v in [
         PROTOCOL_TLS,
         PROTOCOL_TLS_CLIENT,
         PROTOCOL_TLS_SERVER,
@@ -95054,7 +95265,8 @@ _KNOWN_PROTOCOLS = {
         PROTOCOL_SSLv23,
         PROTOCOL_SSLv2,
         PROTOCOL_SSLv3,
-    ] if v is not None
+    ]
+    if v is not None
 }
 
 
@@ -95410,6 +95622,7 @@ def cert_is_valid_at_time(cert: Any, time: Any = None) -> bool:
 
     if time is None:
         import time as _time
+
         check_time = _time.time()
     else:
         if not isinstance(time, (int, float)) or isinstance(time, bool):
@@ -95596,7 +95809,6 @@ __all__ = [
     "is_symlink",
     "stat_info",
 ]
-
 
 
 def file_mode(path: str | os.PathLike[str]) -> int:
@@ -96296,9 +96508,7 @@ class TestStringprepUtils(unittest.TestCase):
 
     def test_all_is_sorted_and_unique(self):
         self.assertIsNotNone(stringprep_utils.__all__)
-        self.assertEqual(
-            len(stringprep_utils.__all__), len(set(stringprep_utils.__all__))
-        )
+        self.assertEqual(len(stringprep_utils.__all__), len(set(stringprep_utils.__all__)))
         self.assertEqual(stringprep_utils.__all__, sorted(stringprep_utils.__all__))
         for name in stringprep_utils.__all__:
             self.assertTrue(hasattr(stringprep_utils, name), name)
@@ -96377,18 +96587,14 @@ def _require_text(value: object, name: str) -> str:
 def _require_table(table: object) -> _symtable.SymbolTable:
     """Return *table* when it is a symbol table, otherwise raise ``TypeError``."""
     if not isinstance(table, _symtable.SymbolTable):
-        raise TypeError(
-            f"table must be a symtable.SymbolTable, got {type(table).__name__}"
-        )
+        raise TypeError(f"table must be a symtable.SymbolTable, got {type(table).__name__}")
     return table
 
 
 def _require_symbol(symbol: object) -> _symtable.Symbol:
     """Return *symbol* when it is a symbol, otherwise raise ``TypeError``."""
     if not isinstance(symbol, _symtable.Symbol):
-        raise TypeError(
-            f"symbol must be a symtable.Symbol, got {type(symbol).__name__}"
-        )
+        raise TypeError(f"symbol must be a symtable.Symbol, got {type(symbol).__name__}")
     return symbol
 
 
@@ -96431,9 +96637,7 @@ def build_symbol_table(
     source_name = _require_text(filename, "filename")
     mode = _require_text(compile_type, "compile_type")
     if mode not in COMPILE_TYPES:
-        raise ValueError(
-            f"compile_type must be one of {', '.join(COMPILE_TYPES)}, got {mode!r}"
-        )
+        raise ValueError(f"compile_type must be one of {', '.join(COMPILE_TYPES)}, got {mode!r}")
     return _symtable.symtable(source, source_name, mode)
 
 
@@ -96451,9 +96655,7 @@ def _module_source(name: str) -> str:
     return origin
 
 
-def lookup_symbol_table(
-    name: str, filename: Optional[str] = None
-) -> _symtable.SymbolTable:
+def lookup_symbol_table(name: str, filename: Optional[str] = None) -> _symtable.SymbolTable:
     """Look up the symbol table of an importable module.
 
     The module is located with :func:`importlib.util.find_spec` and its
@@ -96565,9 +96767,7 @@ def iter_scopes(
             stack.append((path + (child.get_name(),), child))
 
 
-def find_scope(
-    table: _symtable.SymbolTable, name: str
-) -> Optional[_symtable.SymbolTable]:
+def find_scope(table: _symtable.SymbolTable, name: str) -> Optional[_symtable.SymbolTable]:
     """Find a nested scope by name.
 
     Args:
@@ -96814,7 +97014,7 @@ import unittest
 
 import symtable_utils
 
-SAMPLE = '''
+SAMPLE = """
 import os
 from pathlib import Path
 
@@ -96835,7 +97035,7 @@ class Base:
 
     def method(self):
         return self.attribute
-'''
+"""
 
 
 class TestBuildSymbolTable(unittest.TestCase):
@@ -98708,9 +98908,7 @@ class TestTabnannyUtils(unittest.TestCase):
         import tabnanny_utils
 
         self.assertIsNotNone(tabnanny_utils.__all__)
-        self.assertEqual(
-            len(tabnanny_utils.__all__), len(set(tabnanny_utils.__all__))
-        )
+        self.assertEqual(len(tabnanny_utils.__all__), len(set(tabnanny_utils.__all__)))
         self.assertEqual(tabnanny_utils.__all__, sorted(tabnanny_utils.__all__))
         for name in tabnanny_utils.__all__:
             self.assertTrue(hasattr(tabnanny_utils, name), name)
@@ -100164,10 +100362,7 @@ def _mode_to_attributes(mode: Sequence[Any]) -> Attributes:
         lflag=int(mode[3]),
         ispeed=int(mode[4]),
         ospeed=int(mode[5]),
-        cc=[
-            value[0] if isinstance(value, (bytes, bytearray)) else int(value)
-            for value in mode[6]
-        ],
+        cc=[value[0] if isinstance(value, (bytes, bytearray)) else int(value) for value in mode[6]],
     )
 
 
@@ -100224,9 +100419,7 @@ def set_attributes(fd: int, attributes: Attributes, when: int = TCSANOW) -> None
     if isinstance(when, bool) or not isinstance(when, int):
         raise TypeError(f"when must be an int, got {type(when).__name__}")
     if when not in (TCSANOW, TCSADRAIN, TCSAFLUSH):
-        raise ValueError(
-            f"when must be TCSANOW, TCSADRAIN, or TCSAFLUSH, got {when}"
-        )
+        raise ValueError(f"when must be TCSANOW, TCSADRAIN, or TCSAFLUSH, got {when}")
     module = _termios_module()
     module.tcsetattr(fd, when, _attributes_to_mode(attributes))
 
@@ -100277,9 +100470,7 @@ def make_cbreak(attributes: Attributes) -> Attributes:
     module = _tty_module()
     maker = getattr(module, "cfmakecbreak", None)
     if maker is None:
-        raise RuntimeError(
-            "the standard library module 'tty' does not provide cfmakecbreak"
-        )
+        raise RuntimeError("the standard library module 'tty' does not provide cfmakecbreak")
     mode = _attributes_to_mode(attributes)
     maker(mode)
     return _mode_to_attributes(mode)
@@ -100392,9 +100583,7 @@ def set_window_size(
     module = _termios_module()
     request = getattr(module, "TIOCSWINSZ", None)
     if request is None:
-        raise RuntimeError(
-            "the standard library module 'termios' does not provide TIOCSWINSZ"
-        )
+        raise RuntimeError("the standard library module 'termios' does not provide TIOCSWINSZ")
     if _fcntl is None:
         raise RuntimeError("the standard library module 'fcntl' is not available")
     _fcntl.ioctl(fd, request, struct.pack("HHHH", rows, columns, x_pixels, y_pixels))
@@ -100808,7 +100997,6 @@ __all__ = [
 ]
 
 
-
 def wrap_text(text: str, width: int = 70) -> List[str]:
     """Wrap *text* into a list of lines no longer than *width*."""
     if not isinstance(text, str):
@@ -100929,7 +101117,6 @@ __all__ = [
 ]
 
 
-
 def this():
     """Return the ``this`` module's ``this`` callable.
 
@@ -101022,7 +101209,6 @@ __all__ = [
     "enumerate_threads",
     "synchronized",
 ]
-
 
 
 def _validate_callable(value: Any, name: str) -> None:
@@ -101715,7 +101901,6 @@ __all__ = [
 ]
 
 
-
 def _format_offset(offset: _dt.timedelta) -> str:
     """Format a :class:`datetime.timedelta` as an ISO-style ``[±]HH:MM`` string."""
     total_seconds = int(offset.total_seconds())
@@ -102090,7 +102275,6 @@ __all__ = [
     "nt_offset",
     "tok_name",
 ]
-
 
 
 def is_eof(tok):
@@ -102610,7 +102794,6 @@ __all__ = [
 ]
 
 
-
 def read_toml(path: str) -> Any:
     """Read TOML data from a file."""
     with open(path, "rb") as f:
@@ -102695,9 +102878,9 @@ __all__ = [
 ]
 
 
-
-def format_exception(etype_or_exc: Any, value: Any = None,
-                    tb: Any = None, *args, **kwargs) -> List[str]:
+def format_exception(
+    etype_or_exc: Any, value: Any = None, tb: Any = None, *args, **kwargs
+) -> List[str]:
     """Format a stack trace and the exception information."""
     if value is None and isinstance(etype_or_exc, BaseException):
         exc = etype_or_exc
@@ -102740,8 +102923,8 @@ def format_exc(limit: Optional[int] = None, chain: bool = True) -> str:
     if not isinstance(chain, bool):
         raise TypeError("chain must be a bool")
     result = traceback.format_exc(limit=limit, chain=chain)
-    if result == 'NoneType: None\n':
-        return ''
+    if result == "NoneType: None\n":
+        return ""
     return result
 
 
@@ -102761,13 +102944,20 @@ def extract_stack(f=None, limit: Optional[int] = None) -> List[Any]:
     return traceback.extract_stack(f, limit=limit)
 
 
-def print_exception(etype_or_exc: Any, value: Any = None, tb: Any = None,
-                    limit: Optional[int] = None, file=None, **kwargs) -> None:
+def print_exception(
+    etype_or_exc: Any,
+    value: Any = None,
+    tb: Any = None,
+    limit: Optional[int] = None,
+    file=None,
+    **kwargs,
+) -> None:
     """Print exception information and stack trace."""
     if value is None and isinstance(etype_or_exc, BaseException):
         exc = etype_or_exc
-        traceback.print_exception(type(exc), exc, exc.__traceback__,
-                                 limit=limit, file=file, **kwargs)
+        traceback.print_exception(
+            type(exc), exc, exc.__traceback__, limit=limit, file=file, **kwargs
+        )
         return
     etype = etype_or_exc
     if not isinstance(etype, type) or not issubclass(etype, BaseException):
@@ -102855,8 +103045,13 @@ class TestExtractTb(unittest.TestCase):
 
     def test_extract_tb_with_limit(self):
         try:
-            def f1(): raise IndexError()
-            def f2(): f1()
+
+            def f1():
+                raise IndexError()
+
+            def f2():
+                f1()
+
             f2()
         except IndexError:
             _, _, tb = sys.exc_info()
@@ -102910,7 +103105,6 @@ __all__ = [
     "start",
     "stop",
 ]
-
 
 
 def is_tracing():
@@ -102992,7 +103186,6 @@ __all__ = [
     "setcbreak",
     "setraw",
 ]
-
 
 
 def cfmakeraw(mode):
@@ -103211,7 +103404,6 @@ class TestTypesUtils(unittest.TestCase):
         async def c():
             return 1
 
-
         coro = c()
         self.assertTrue(is_coroutine(coro))
         coro.close()
@@ -103245,7 +103437,6 @@ __all__ = [
     "is_literal",
     "is_typeddict",
 ]
-
 
 
 def get_type_hints(obj, globalns=None, localns=None, include_extras=False):
@@ -103423,7 +103614,7 @@ def unicodedata_name(char: str, default: str | None = None) -> str:
     return unicodedata.name(char, default)
 
 
-def unicodedata_normalize(form: Literal["NFC","NFD","NFKC","NFKD"], unistr: str) -> str:
+def unicodedata_normalize(form: Literal["NFC", "NFD", "NFKC", "NFKD"], unistr: str) -> str:
     """Return the normal form of a Unicode string."""
     return unicodedata.normalize(form, unistr)
 
@@ -103736,7 +103927,7 @@ def parse_version(version: str) -> Tuple[int, ...]:
     if not version:
         raise TypeError("version must be a non-empty string")
     # Strip leading 'v' or 'V' if present
-    if version and version[0] in ('v', 'V'):
+    if version and version[0] in ("v", "V"):
         version = version[1:]
     if not version:
         raise ValueError("invalid version")
@@ -103766,7 +103957,6 @@ def version_to_tuple(version: str) -> Tuple[int, ...]:
 to_tuple = version_to_tuple
 
 
-
 def compare_versions(a: str, b: str) -> int:
     """Compare two version strings. Return -1/0/1 like strcmp."""
     va = parse_version(a)
@@ -103781,7 +103971,6 @@ def compare_versions(a: str, b: str) -> int:
 cmp_versions = compare_versions
 compare = compare_versions
 cmp = compare_versions
-
 
 
 def is_greater(a: str, b: str) -> bool:
@@ -103806,7 +103995,6 @@ is_newer = is_greater
 is_older = is_less
 
 
-
 def normalize_version(version: str, length: int = 3) -> str:
     """Pad a version string with zero components to the given length."""
     if not isinstance(version, str):
@@ -103816,7 +104004,7 @@ def normalize_version(version: str, length: int = 3) -> str:
     if length < 0:
         raise ValueError("length must be non-negative")
     # Handle v prefix
-    if version and version[0] in ('v', 'V'):
+    if version and version[0] in ("v", "V"):
         version = version[1:]
     parts = list(parse_version(version))
     while len(parts) < length:
@@ -103835,7 +104023,6 @@ def tuple_to_version(version_tuple: Tuple[int, ...]) -> str:
 
 
 from_tuple = tuple_to_version
-
 
 
 def bump_major(version: str) -> str:
@@ -103863,7 +104050,6 @@ def bump_major(version: str) -> str:
 
 
 increment_major = bump_major
-
 
 
 def bump_minor(version: str) -> str:
@@ -103894,7 +104080,6 @@ def bump_minor(version: str) -> str:
 
 
 increment_minor = bump_minor
-
 
 
 def bump_patch(version: str) -> str:
@@ -103955,10 +104140,7 @@ def bump_version(version: str, part: str = "patch") -> str:
         return bump_minor(version)
     if normalized == "patch":
         return bump_patch(version)
-    raise ValueError(
-        "part must be one of 'major', 'minor', or 'patch', "
-        f"got {part!r}"
-    )
+    raise ValueError(f"part must be one of 'major', 'minor', or 'patch', got {part!r}")
 
 
 bump = bump_version
@@ -104080,7 +104262,6 @@ def is_valid_version(version: object) -> bool:
 is_semver = is_valid_version
 
 
-
 def get_major_version(version: str) -> int:
     """Return the major version component.
 
@@ -104141,7 +104322,6 @@ def get_patch_version(version: str) -> int:
 major = get_major_version
 minor = get_minor_version
 patch = get_patch_version
-
 
 
 def is_stable(version: str) -> bool:
@@ -104319,6 +104499,7 @@ def has_build_metadata(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "+" in version
+
 
 def has_prerelease(version: str) -> bool:
     """Return True if *version* carries a pre-release suffix.
@@ -104593,10 +104774,7 @@ def decrement_version(version: str, part: str = "patch") -> str:
         return decrement_minor(version)
     if normalized == "patch":
         return decrement_patch(version)
-    raise ValueError(
-        "part must be one of 'major', 'minor', or 'patch', "
-        f"got {part!r}"
-    )
+    raise ValueError(f"part must be one of 'major', 'minor', or 'patch', got {part!r}")
 
 
 decrement = decrement_version
@@ -104660,9 +104838,7 @@ def is_version_at_most(version: str, maximum: str) -> bool:
     return compare_versions(version, maximum) <= 0
 
 
-def is_version_between(
-    version: str, lower: str, upper: str, inclusive: bool = True
-) -> bool:
+def is_version_between(version: str, lower: str, upper: str, inclusive: bool = True) -> bool:
     """Return True if *version* is between *lower* and *upper*.
 
     Args:
@@ -104697,9 +104873,7 @@ def is_version_between(
     if not isinstance(inclusive, bool):
         raise TypeError("inclusive must be a bool")
     if inclusive:
-        return compare_versions(version, lower) >= 0 and compare_versions(
-            version, upper
-        ) <= 0
+        return compare_versions(version, lower) >= 0 and compare_versions(version, upper) <= 0
     return compare_versions(version, lower) > 0 and compare_versions(version, upper) < 0
 
 
@@ -105025,8 +105199,6 @@ class TestMaxMinVersion(unittest.TestCase):
             min_version(["1.0.0", "bad"])
 
 
-
-
 class TestIsValidVersion(unittest.TestCase):
     def test_valid(self):
         for v in ("1", "1.0", "1.0.0", "0.0.0"):
@@ -105146,7 +105318,6 @@ class TestVersionSatisfiesMajor(unittest.TestCase):
     def test_bool_raises(self):
         with self.assertRaises(TypeError):
             version_satisfies_major("1.0.0", True)  # type: ignore[arg-type]
-
 
 
 class TestDecrementMajor(unittest.TestCase):
@@ -105480,7 +105651,6 @@ if __name__ == "__main__":
     unittest.main()
 
 
-
 class TestGetBuildMetadata(unittest.TestCase):
     def test_returns_metadata(self):
         self.assertEqual(get_build_metadata("1.2.3+20130313144700"), "20130313144700")
@@ -105711,7 +105881,6 @@ class TestIsVersionBetween(unittest.TestCase):
             is_version_between("1.0.0", "1.0.0", "bad")
 
 
-
 class TestVersionUtilsAliases(unittest.TestCase):
     def test_parse_version_alias(self):
         self.assertEqual(parse_version_alias("1.2.3"), parse_version("1.2.3"))
@@ -105854,9 +106023,9 @@ __all__ = [
 ]
 
 
-
 def warn(
-    message: Union[Warning, str], category: Type[Warning] = UserWarning,
+    message: Union[Warning, str],
+    category: Type[Warning] = UserWarning,
     stacklevel: int = 1,
 ) -> None:
     """Issue a warning."""
@@ -105870,8 +106039,10 @@ def warn(
 
 
 def simplefilter(
-    action: str, category: Type[Warning] = Warning,
-    lineno: int = 0, append: bool = False,
+    action: str,
+    category: Type[Warning] = Warning,
+    lineno: int = 0,
+    append: bool = False,
 ) -> None:
     """Insert a simple entry into the list of warnings filters."""
     if not isinstance(action, str):
@@ -105884,14 +106055,16 @@ def simplefilter(
         raise TypeError("lineno must be an integer")
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
-    warnings.simplefilter(
-        cast(Action, action), category=category, lineno=lineno, append=append
-    )
+    warnings.simplefilter(cast(Action, action), category=category, lineno=lineno, append=append)
 
 
 def filterwarnings(
-    action: str, message: str = "", category: Type[Warning] = Warning,
-    module: str = "", lineno: int = 0, append: bool = False,
+    action: str,
+    message: str = "",
+    category: Type[Warning] = Warning,
+    module: str = "",
+    lineno: int = 0,
+    append: bool = False,
 ) -> None:
     """Insert an entry into the list of warnings filters."""
     if not isinstance(action, str):
@@ -105909,8 +106082,12 @@ def filterwarnings(
     if not isinstance(append, bool):
         raise TypeError("append must be a bool")
     warnings.filterwarnings(
-        cast(Action, action), message=message, category=category,
-        module=module, lineno=lineno, append=append,
+        cast(Action, action),
+        message=message,
+        category=category,
+        module=module,
+        lineno=lineno,
+        append=append,
     )
 
 
@@ -105927,8 +106104,12 @@ def catch_warnings(record: bool = False, module=None):
 
 
 def showwarning(
-    message: Warning, category: Type[Warning], filename: str, lineno: int,
-    file=None, line: Optional[str] = None,
+    message: Warning,
+    category: Type[Warning],
+    filename: str,
+    lineno: int,
+    file=None,
+    line: Optional[str] = None,
 ) -> None:
     """Call showwarning with arguments."""
     if not isinstance(message, Warning):
@@ -105945,7 +106126,10 @@ def showwarning(
 
 
 def formatwarning(
-    message: Warning, category: Type[Warning], filename: str, lineno: int,
+    message: Warning,
+    category: Type[Warning],
+    filename: str,
+    lineno: int,
     line: Optional[str] = None,
 ) -> str:
     """Format a warning the standard way."""
@@ -106236,26 +106420,38 @@ class _Params(tuple):
             return tuple.__new__(cls, vals)
         except Exception:
             try:
-                vals = (getattr(p,'nchannels'), getattr(p,'sampwidth'), getattr(p,'framerate'),
-                        getattr(p,'nframes'), getattr(p,'comptype'), getattr(p,'compname'))
+                vals = (
+                    getattr(p, "nchannels"),
+                    getattr(p, "sampwidth"),
+                    getattr(p, "framerate"),
+                    getattr(p, "nframes"),
+                    getattr(p, "comptype"),
+                    getattr(p, "compname"),
+                )
                 return tuple.__new__(cls, vals)
             except Exception:
                 return tuple.__new__(cls, p)
+
     @property
     def nchannels(self):
         return self[0]
+
     @property
     def sampwidth(self):
         return self[1]
+
     @property
     def framerate(self):
         return self[2]
+
     @property
     def nframes(self):
         return self[3]
+
     @property
     def comptype(self):
         return self[4]
+
     @property
     def compname(self):
         return self[5]
@@ -106277,8 +106473,7 @@ def get_params(wave_obj: Any):
         except Exception:
             return res
     raise TypeError(
-        "wave_obj must be a wave.Wave_read or wave.Wave_write, "
-        f"got {type(wave_obj).__name__}"
+        f"wave_obj must be a wave.Wave_read or wave.Wave_write, got {type(wave_obj).__name__}"
     )
 
 
@@ -106317,9 +106512,7 @@ def set_nframes(writer: _wave.Wave_write, nframes: int) -> None:
     writer.setnframes(_require_int(nframes, "nframes"))
 
 
-def set_comptype(
-    writer: _wave.Wave_write, comptype: str, compname: str
-) -> None:
+def set_comptype(writer: _wave.Wave_write, comptype: str, compname: str) -> None:
     """Set the compression type and name on a :class:`wave.Wave_write`."""
     _require_wave_write(writer, "writer")
     writer.setcomptype(_require_str(comptype, "comptype"), _require_str(compname, "compname"))
@@ -106414,8 +106607,7 @@ def close_wave(wave_obj: Any) -> None:
         _mark_closed(_require_wave_write(wave_obj, "wave_obj"))
         return
     raise TypeError(
-        "wave_obj must be a wave.Wave_read or wave.Wave_write, "
-        f"got {type(wave_obj).__name__}"
+        f"wave_obj must be a wave.Wave_read or wave.Wave_write, got {type(wave_obj).__name__}"
     )
 WAVE_UTILS
 
@@ -106769,7 +106961,6 @@ __all__ = [
     "get_object",
     "is_alive",
 ]
-
 
 
 class BoundMethodProtocol(Protocol):
@@ -109892,9 +110083,7 @@ supports_unicode_filenames: bool = _ntpath.supports_unicode_filenames
 ALLOW_MISSING: Any = _ntpath.ALLOW_MISSING
 
 #: The splitter of a path into a drive, a root, and a tail.
-_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(
-    _ntpath, "splitroot", None
-)
+_SPLITROOT: Optional[Callable[[Any], Tuple[Any, Any, Any]]] = getattr(_ntpath, "splitroot", None)
 #: The predicate that reports whether a path is a junction.
 _ISJUNCTION: Optional[Callable[[Any], bool]] = getattr(_ntpath, "isjunction", None)
 #: The predicate that reports whether a path is on a development drive.
@@ -110684,7 +110873,7 @@ def splitdrive(p: Union[str, bytes, os.PathLike]) -> Tuple[Union[str, bytes], Un
 
 
 def splitroot(
-    p: Union[str, bytes, os.PathLike]
+    p: Union[str, bytes, os.PathLike],
 ) -> Tuple[Union[str, bytes], Union[str, bytes], Union[str, bytes]]:
     """Split a path into a drive, a root, and a tail.
 
@@ -111554,9 +111743,7 @@ def resolve(thing: Any, *, forceload: bool = False) -> Any:
     return _pydoc.resolve(thing, forceload=forceload)
 
 
-def safeimport(
-    path: str, *, forceload: bool = False, cache: Optional[dict] = None
-) -> Any:
+def safeimport(path: str, *, forceload: bool = False, cache: Optional[dict] = None) -> Any:
     """Import the object named by *path*, returning ``None`` on failure.
 
     Unlike :func:`locate` this never raises an import error.
@@ -111712,9 +111899,7 @@ def parentname(object: Any, modname: str) -> str:
     return cast(str, func(object, modname))
 
 
-def visiblename(
-    name: str, *, all_names: Optional[Sequence[str]] = None, obj: Any = None
-) -> bool:
+def visiblename(name: str, *, all_names: Optional[Sequence[str]] = None, obj: Any = None) -> bool:
     """Report whether *name* is a visible name.
 
     Args:
@@ -112350,7 +112535,6 @@ NTURL2PATH_UTILS
 # --- tests/test_nturl2path_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_nturl2path_utils.py" <<'TEST_NTURL2PATH_UTILS'
 """Tests for nturl2path_utils."""
-
 
 from nturl2path_utils import pathname2url, url2pathname
 
@@ -113632,9 +113816,7 @@ class TestModuleContract(unittest.TestCase):
     """Test the contract of the module."""
 
     def test_all_is_sorted_and_unique(self):
-        self.assertEqual(
-            curses_utils.__all__, sorted(set(curses_utils.__all__))
-        )
+        self.assertEqual(curses_utils.__all__, sorted(set(curses_utils.__all__)))
 
     def test_every_name_exists(self):
         for name in curses_utils.__all__:
@@ -113732,19 +113914,13 @@ class TestDelegation(unittest.TestCase):
             longname.assert_called_once_with()
 
     def test_termattrs_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "termattrs"
-        ) as termattrs:
+        with mock.patch.object(curses_utils._curses, "termattrs") as termattrs:
             termattrs.return_value = curses_utils.A_BOLD | curses_utils.A_REVERSE
-            self.assertEqual(
-                curses_utils.termattrs(), curses_utils.A_BOLD | curses_utils.A_REVERSE
-            )
+            self.assertEqual(curses_utils.termattrs(), curses_utils.A_BOLD | curses_utils.A_REVERSE)
             termattrs.assert_called_once_with()
 
     def test_use_default_colors_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "use_default_colors"
-        ) as use_default_colors:
+        with mock.patch.object(curses_utils._curses, "use_default_colors") as use_default_colors:
             use_default_colors.return_value = curses_utils.OK
             self.assertEqual(curses_utils.use_default_colors(), curses_utils.OK)
             use_default_colors.assert_called_once_with()
@@ -113757,16 +113933,12 @@ class TestDelegation(unittest.TestCase):
     def test_init_pair_delegates(self):
         with mock.patch.object(curses_utils._curses, "init_pair") as init_pair:
             curses_utils.init_pair(1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK)
-            init_pair.assert_called_once_with(
-                1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK
-            )
+            init_pair.assert_called_once_with(1, curses_utils.COLOR_RED, curses_utils.COLOR_BLACK)
 
     def test_color_pair_delegates(self):
         with mock.patch.object(curses_utils._curses, "color_pair") as color_pair:
             color_pair.return_value = curses_utils.A_COLOR | 1
-            self.assertEqual(
-                curses_utils.color_pair(1), curses_utils.A_COLOR | 1
-            )
+            self.assertEqual(curses_utils.color_pair(1), curses_utils.A_COLOR | 1)
             color_pair.assert_called_once_with(1)
 
     def test_napms_delegates(self):
@@ -113830,9 +114002,7 @@ class TestDelegation(unittest.TestCase):
             typeahead.assert_called_once_with(1)
 
     def test_mouseinterval_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "mouseinterval"
-        ) as mouseinterval:
+        with mock.patch.object(curses_utils._curses, "mouseinterval") as mouseinterval:
             mouseinterval.return_value = 0
             self.assertEqual(curses_utils.mouseinterval(0), 0)
             mouseinterval.assert_called_once_with(0)
@@ -113862,26 +114032,18 @@ class TestDelegation(unittest.TestCase):
             resetty.assert_called_once_with()
 
     def test_def_and_reset_prog_mode_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "def_prog_mode"
-        ) as def_prog_mode:
+        with mock.patch.object(curses_utils._curses, "def_prog_mode") as def_prog_mode:
             curses_utils.def_prog_mode()
             def_prog_mode.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "reset_prog_mode"
-        ) as reset_prog_mode:
+        with mock.patch.object(curses_utils._curses, "reset_prog_mode") as reset_prog_mode:
             curses_utils.reset_prog_mode()
             reset_prog_mode.assert_called_once_with()
 
     def test_def_and_reset_shell_mode_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "def_shell_mode"
-        ) as def_shell_mode:
+        with mock.patch.object(curses_utils._curses, "def_shell_mode") as def_shell_mode:
             curses_utils.def_shell_mode()
             def_shell_mode.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "reset_shell_mode"
-        ) as reset_shell_mode:
+        with mock.patch.object(curses_utils._curses, "reset_shell_mode") as reset_shell_mode:
             curses_utils.reset_shell_mode()
             reset_shell_mode.assert_called_once_with()
 
@@ -113941,9 +114103,7 @@ class TestDelegation(unittest.TestCase):
             halfdelay.assert_called_once_with(10)
 
     def test_delay_output_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "delay_output"
-        ) as delay_output:
+        with mock.patch.object(curses_utils._curses, "delay_output") as delay_output:
             curses_utils.delay_output(50)
             delay_output.assert_called_once_with(50)
 
@@ -113982,17 +114142,13 @@ class TestDelegation(unittest.TestCase):
             resizeterm.assert_called_once_with(20, 40)
 
     def test_is_term_resized_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "is_term_resized"
-        ) as is_term_resized:
+        with mock.patch.object(curses_utils._curses, "is_term_resized") as is_term_resized:
             is_term_resized.return_value = False
             self.assertFalse(curses_utils.is_term_resized(20, 40))
             is_term_resized.assert_called_once_with(20, 40)
 
     def test_update_lines_cols_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "update_lines_cols"
-        ) as update_lines_cols:
+        with mock.patch.object(curses_utils._curses, "update_lines_cols") as update_lines_cols:
             curses_utils.update_lines_cols()
             update_lines_cols.assert_called_once_with()
 
@@ -114002,35 +114158,25 @@ class TestDelegation(unittest.TestCase):
             setupterm.assert_called_once_with("xterm")
 
     def test_get_escdelay_and_set_escdelay_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "get_escdelay"
-        ) as get_escdelay:
+        with mock.patch.object(curses_utils._curses, "get_escdelay") as get_escdelay:
             get_escdelay.return_value = 250
             self.assertEqual(curses_utils.get_escdelay(), 250)
             get_escdelay.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "set_escdelay"
-        ) as set_escdelay:
+        with mock.patch.object(curses_utils._curses, "set_escdelay") as set_escdelay:
             curses_utils.set_escdelay(100)
             set_escdelay.assert_called_once_with(100)
 
     def test_get_tabsize_and_set_tabsize_delegate(self):
-        with mock.patch.object(
-            curses_utils._curses, "get_tabsize"
-        ) as get_tabsize:
+        with mock.patch.object(curses_utils._curses, "get_tabsize") as get_tabsize:
             get_tabsize.return_value = 8
             self.assertEqual(curses_utils.get_tabsize(), 8)
             get_tabsize.assert_called_once_with()
-        with mock.patch.object(
-            curses_utils._curses, "set_tabsize"
-        ) as set_tabsize:
+        with mock.patch.object(curses_utils._curses, "set_tabsize") as set_tabsize:
             curses_utils.set_tabsize(4)
             set_tabsize.assert_called_once_with(4)
 
     def test_can_change_color_delegates(self):
-        with mock.patch.object(
-            curses_utils._curses, "can_change_color"
-        ) as can_change_color:
+        with mock.patch.object(curses_utils._curses, "can_change_color") as can_change_color:
             can_change_color.return_value = True
             self.assertTrue(curses_utils.can_change_color())
             can_change_color.assert_called_once_with()
@@ -114081,15 +114227,11 @@ class TestTypeValidation(unittest.TestCase):
 
     def test_init_pair_rejects_non_ints(self):
         with self.assertRaises(TypeError):
-            curses_utils.init_pair(
-                "1", curses_utils.COLOR_RED, curses_utils.COLOR_BLACK
-            )  # type: ignore[arg-type]
+            curses_utils.init_pair("1", curses_utils.COLOR_RED, curses_utils.COLOR_BLACK)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             curses_utils.init_pair(1, "red", curses_utils.COLOR_BLACK)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            curses_utils.init_pair(
-                1, curses_utils.COLOR_RED, "black"
-            )  # type: ignore[arg-type]
+            curses_utils.init_pair(1, curses_utils.COLOR_RED, "black")  # type: ignore[arg-type]
 
     def test_color_pair_rejects_a_non_int(self):
         with self.assertRaises(TypeError):
@@ -116962,9 +117104,7 @@ def search_topics(query: str) -> List[str]:
     needle = query.lower()
     topics = _standard_topics()
     return [
-        name
-        for name in sorted(topics)
-        if needle in name.lower() or needle in topics[name].lower()
+        name for name in sorted(topics) if needle in name.lower() or needle in topics[name].lower()
     ]
 
 
@@ -117222,7 +117362,7 @@ class TestWrapTopic(unittest.TestCase):
 
     def test_wrap_topic_keeps_the_indented_parts(self):
         wrapped = wrap_topic("lambda", 40)
-        self.assertIn("   lambda_expr ::= \"lambda\" [parameter_list] \":\" expression", wrapped)
+        self.assertIn('   lambda_expr ::= "lambda" [parameter_list] ":" expression', wrapped)
 
     def test_wrap_topic_keeps_the_title(self):
         wrapped = wrap_topic("lambda", 40)
@@ -117955,7 +118095,10 @@ class TestParseUrl(unittest.TestCase):
     """Verify parsing a URL into its components."""
 
     def test_parse_url_matches_the_standard_library(self):
-        self.assertEqual(parse_url("https://example.com:8080/path;params?q=1#frag"), _urllib_parse.urlparse("https://example.com:8080/path;params?q=1#frag"))
+        self.assertEqual(
+            parse_url("https://example.com:8080/path;params?q=1#frag"),
+            _urllib_parse.urlparse("https://example.com:8080/path;params?q=1#frag"),
+        )
 
     def test_parse_url_reports_the_components(self):
         result = parse_url("https://user:pass@example.com:8080/path;params?key=value#fragment")
@@ -118005,7 +118148,10 @@ class TestUrlsplit(unittest.TestCase):
     """Verify splitting a URL without separating the parameters."""
 
     def test_urlsplit_matches_the_standard_library(self):
-        self.assertEqual(urlsplit("https://example.com/path;params?q=1#frag"), _urllib_parse.urlsplit("https://example.com/path;params?q=1#frag"))
+        self.assertEqual(
+            urlsplit("https://example.com/path;params?q=1#frag"),
+            _urllib_parse.urlsplit("https://example.com/path;params?q=1#frag"),
+        )
 
     def test_urlsplit_reports_the_components(self):
         result = urlsplit("https://example.com/path?q=1#frag")
@@ -118184,7 +118330,10 @@ class TestDefrag(unittest.TestCase):
     """Verify removing the fragment from a URL."""
 
     def test_defrag_matches_the_standard_library(self):
-        self.assertEqual(defrag("https://example.com/path#frag"), _urllib_parse.urldefrag("https://example.com/path#frag"))
+        self.assertEqual(
+            defrag("https://example.com/path#frag"),
+            _urllib_parse.urldefrag("https://example.com/path#frag"),
+        )
 
     def test_defrag_returns_the_url_and_the_fragment(self):
         self.assertEqual(
@@ -118485,9 +118634,7 @@ def runcall(func: Callable[..., _T], /, *args: Any, **kwargs: Any) -> _T:
     return result
 
 
-def profile_call(
-    func: Callable[..., _T], /, *args: Any, **kwargs: Any
-) -> Tuple[_T, Stats]:
+def profile_call(func: Callable[..., _T], /, *args: Any, **kwargs: Any) -> Tuple[_T, Stats]:
     """Profile a single call and return its result together with its statistics.
 
     Args:
@@ -121095,9 +121242,7 @@ def _require_function(name: str) -> Any:
     """
     function = getattr(_readline_module(), name, None)
     if function is None:  # pragma: no cover - a platform specific build
-        raise RuntimeError(
-            f"the standard library module 'readline' does not provide '{name}'"
-        )
+        raise RuntimeError(f"the standard library module 'readline' does not provide '{name}'")
     return function
 
 
@@ -122487,9 +122632,7 @@ def _require_count(value: Any, name: str = "count") -> int:
     return value
 
 
-def _require_handler(
-    value: Any, name: str
-) -> Optional[Callable[..., Any]]:
+def _require_handler(value: Any, name: str) -> Optional[Callable[..., Any]]:
     """Return *value* as a handler of the parser.
 
     Args:
@@ -122762,9 +122905,7 @@ def set_end_element_handler(parser: Any, handler: Any) -> None:
     parser.EndElementHandler = func
 
 
-def set_element_handlers(
-    parser: Any, start_handler: Any, end_handler: Any
-) -> None:
+def set_element_handlers(parser: Any, start_handler: Any, end_handler: Any) -> None:
     """Set the handlers that are called when an element starts and ends.
 
     Args:
@@ -122873,9 +123014,7 @@ def attribute_mapping(attributes: Any) -> ElementAttributes:
         TypeError: If *attributes* is not a mapping.
     """
     if not isinstance(attributes, Mapping):
-        raise TypeError(
-            f"attributes must be a mapping, got {type(attributes).__name__}"
-        )
+        raise TypeError(f"attributes must be a mapping, got {type(attributes).__name__}")
     return {str(key): str(value) for key, value in attributes.items()}
 PYEXPAT_UTILS
 
@@ -123140,7 +123279,7 @@ class TestHandlers(unittest.TestCase):
             instructions.append((target, data))
 
         pyexpat_utils.set_processing_instruction_handler(parser, instruction)
-        pyexpat_utils.parse_text(parser, '<?target data?><doc/>')
+        pyexpat_utils.parse_text(parser, "<?target data?><doc/>")
         self.assertEqual(instructions, [("target", "data")])
 
 
@@ -123537,6 +123676,7 @@ def iterator(object: Any, sentinel: Any = None) -> Iterator[Any]:
                 count = sentinel
                 for _ in range(count):
                     yield object()
+
             return _gen()
         return _builtins.iter(object, sentinel)
     try:
@@ -124825,9 +124965,7 @@ def read_exactly(fd: int, size: int) -> bytes:
     while received < count:
         chunk = bytes(module.read(descriptor, count - received))
         if not chunk:
-            raise EOFError(
-                f"expected {count} bytes but the file ended after {received} bytes"
-            )
+            raise EOFError(f"expected {count} bytes but the file ended after {received} bytes")
         chunks.append(chunk)
         received += len(chunk)
     return b"".join(chunks)
@@ -124912,8 +125050,7 @@ def seek_fd(fd: int, offset: int, whence: int = os.SEEK_SET) -> int:
         raise TypeError(f"whence must be an int, got {type(whence).__name__}")
     if whence not in (os.SEEK_SET, os.SEEK_CUR, os.SEEK_END):
         raise ValueError(
-            "whence must be one of os.SEEK_SET, os.SEEK_CUR, os.SEEK_END, "
-            f"got {whence}"
+            f"whence must be one of os.SEEK_SET, os.SEEK_CUR, os.SEEK_END, got {whence}"
         )
     return int(module.lseek(descriptor, offset, whence))
 
@@ -125227,9 +125364,7 @@ def file_info(path: PathLike, follow_symlinks: bool = True) -> FileInfo:
     module = _posix_module()
     location = _require_path(path, "path")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     result = module.stat(location) if follow_symlinks else module.lstat(location)
     mode = int(result.st_mode)
     return FileInfo(
@@ -125348,9 +125483,7 @@ def path_accessible(path: PathLike, mode: int = os.F_OK) -> bool:
     if isinstance(mode, bool) or not isinstance(mode, int):
         raise TypeError(f"mode must be an int, got {type(mode).__name__}")
     if mode not in (os.F_OK, os.R_OK, os.W_OK, os.X_OK):
-        raise ValueError(
-            "mode must be one of os.F_OK, os.R_OK, os.W_OK, os.X_OK, " f"got {mode}"
-        )
+        raise ValueError(f"mode must be one of os.F_OK, os.R_OK, os.W_OK, os.X_OK, got {mode}")
     return bool(module.access(location, mode))
 
 
@@ -125650,15 +125783,11 @@ def read_xattr(path: PathLike, name: str, follow_symlinks: bool = True) -> bytes
     location = _require_path(path, "path")
     _require_text(name, "name")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     return bytes(module.getxattr(location, name, follow_symlinks=follow_symlinks))
 
 
-def write_xattr(
-    path: PathLike, name: str, value: bytes, follow_symlinks: bool = True
-) -> None:
+def write_xattr(path: PathLike, name: str, value: bytes, follow_symlinks: bool = True) -> None:
     """Set the value of an extended attribute of a path.
 
     Args:
@@ -125677,9 +125806,7 @@ def write_xattr(
     _require_text(name, "name")
     payload = _require_bytes(value, "value")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     module.setxattr(location, name, payload, follow_symlinks=follow_symlinks)
 
 
@@ -125700,9 +125827,7 @@ def list_xattrs(path: PathLike, follow_symlinks: bool = True) -> List[str]:
     module = _posix_module()
     location = _require_path(path, "path")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     return [str(item) for item in module.listxattr(location, follow_symlinks=follow_symlinks)]
 
 
@@ -125723,9 +125848,7 @@ def remove_xattr(path: PathLike, name: str, follow_symlinks: bool = True) -> Non
     location = _require_path(path, "path")
     _require_text(name, "name")
     if not isinstance(follow_symlinks, bool):
-        raise TypeError(
-            f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}"
-        )
+        raise TypeError(f"follow_symlinks must be a bool, got {type(follow_symlinks).__name__}")
     module.removexattr(location, name, follow_symlinks=follow_symlinks)
 
 
@@ -126158,9 +126281,7 @@ class TestDescriptors(unittest.TestCase):
     def test_open_fd_creates_and_reads_a_file(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "file.txt")
-            descriptor = self.track(
-                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
-            )
+            descriptor = self.track(open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600))
             write_all(descriptor, b"hello")
             self.assertEqual(file_size(path), 5)
             self.assertEqual(read_at(descriptor, 5, 0), b"hello")
@@ -126246,9 +126367,7 @@ class TestDescriptors(unittest.TestCase):
     def test_write_at_does_not_move_the_position(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "file.txt")
-            descriptor = self.track(
-                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
-            )
+            descriptor = self.track(open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600))
             write_at(descriptor, b"world", 6)
             write_at(descriptor, b"hello ", 0)
             self.assertEqual(read_at(descriptor, 11, 0), b"hello world")
@@ -126321,9 +126440,7 @@ class TestDescriptors(unittest.TestCase):
     def test_sync_fd_and_sync_data_write_the_file(self):
         with tempfile.TemporaryDirectory() as directory:
             path = os.path.join(directory, "file.txt")
-            descriptor = self.track(
-                open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600)
-            )
+            descriptor = self.track(open_fd(path, os.O_CREAT | os.O_RDWR | os.O_TRUNC, 0o600))
             write_all(descriptor, b"data")
             sync_fd(descriptor)
             sync_data(descriptor)
@@ -128103,9 +128220,7 @@ def op_code(name: Any) -> int:
 def get_all() -> Dict[str, Any]:
     """Return all public constants from the module."""
     if _sre_constants is None:
-        raise RuntimeError(
-            "the standard library 'sre_constants' module is not available"
-        )
+        raise RuntimeError("the standard library 'sre_constants' module is not available")
     result = {}
     for k in dir(_sre_constants):
         if not k.startswith("_"):
@@ -128116,9 +128231,7 @@ def get_all() -> Dict[str, Any]:
 def error_codes() -> Dict[str, int]:
     """Return error codes if available."""
     if _sre_constants is None:
-        raise RuntimeError(
-            "the standard library 'sre_constants' module is not available"
-        )
+        raise RuntimeError("the standard library 'sre_constants' module is not available")
     codes = getattr(_sre_constants, "error_codes", None)
     if isinstance(codes, dict):
         return dict(codes)
@@ -128493,9 +128606,7 @@ except Exception:  # pragma: no cover
 def _sre_compile_module() -> Any:
     """Return the standard library ``sre_compile`` module."""
     if _sre_compile is None:  # pragma: no cover
-        raise RuntimeError(
-            "the standard library 'sre_compile' module is not available"
-        )
+        raise RuntimeError("the standard library 'sre_compile' module is not available")
     return _sre_compile
 
 
@@ -128963,9 +129074,7 @@ def test_exports() -> None:
         try:
             assert hasattr(sre_parse_utils, name), name
         except AssertionError:
-            if sre_parse_utils.is_available() and hasattr(
-                sre_parse_utils._sre_parse, name
-            ):
+            if sre_parse_utils.is_available() and hasattr(sre_parse_utils._sre_parse, name):
                 pass
             else:
                 raise
@@ -129208,9 +129317,7 @@ class Cooldown:
         with self._lock:
             now = time.monotonic()
             if self._last_call is not None and now - self._last_call < self._interval:
-                raise TimeoutError(
-                    f"cooldown not ready: {self.remaining():.3f}s remaining"
-                )
+                raise TimeoutError(f"cooldown not ready: {self.remaining():.3f}s remaining")
             self._last_call = now
         return func(*args, **kwargs)
 
@@ -129766,9 +129873,7 @@ class Either(Generic[L, R]):
         return Either.left(value)
 
     @staticmethod
-    def from_optional(
-        value: Optional[R], left_value: L
-    ) -> "Either[L, R]":
+    def from_optional(value: Optional[R], left_value: L) -> "Either[L, R]":
         """Create Either from optional value."""
         if value is None:
             return Either.left(left_value)
@@ -130228,12 +130333,14 @@ def test_truncate_slug_invalid_max_length():
 class TestSlugifyMany:
     def test_basic(self):
         from slugify_utils import slugify_many
+
         assert slugify_many(["Hello World", "Foo Bar"]) == ["hello-world", "foo-bar"]
 
     def test_type_error(self):
         import pytest
 
         from slugify_utils import slugify_many
+
         with pytest.raises(TypeError):
             slugify_many("nope")
 TEST_SLUGIFY_UTILS
@@ -130248,7 +130355,6 @@ __all__ = [
     "exponential_backoff",
     "jittered_backoff",
 ]
-
 
 
 def constant_backoff(delay: float) -> float:
@@ -130387,6 +130493,7 @@ class TestBackoffUtils(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
     def test_constant_backoff(self):
         self.assertEqual(constant_backoff(1.0), 1.0)
         self.assertEqual(constant_backoff(0.5), 0.5)
@@ -130493,21 +130600,13 @@ def extract_tags(
     class TagExtractor(HTMLParser):
         def handle_starttag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
-                results.append({
-                    "tag": tag_name,
-                    "attrs": dict(attrs),
-                    "type": "start",
-                    "data": ""
-                })
+                results.append({"tag": tag_name, "attrs": dict(attrs), "type": "start", "data": ""})
 
         def handle_startendtag(self, tag_name, attrs):
             if tag is None or tag_name == tag:
-                results.append({
-                    "tag": tag_name,
-                    "attrs": dict(attrs),
-                    "type": "self_closing",
-                    "data": ""
-                })
+                results.append(
+                    {"tag": tag_name, "attrs": dict(attrs), "type": "self_closing", "data": ""}
+                )
 
         def handle_endtag(self, tag_name):
             if tag is None or tag_name == tag:
@@ -131319,15 +131418,12 @@ _ROMAN_DIGITS = {
     "M": 1000,
 }
 
-_ROMAN_PATTERN = (
-    r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
-)
+_ROMAN_PATTERN = r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$"
 __all__ = [
     "from_roman",
     "is_valid_roman",
     "to_roman",
 ]
-
 
 
 def to_roman(number: int) -> str:
@@ -131374,7 +131470,7 @@ def from_roman(roman: str) -> int:
     total = 0
     index = 0
     for value, symbol in _ROMAN_NUMERALS:
-        while roman[index:index + len(symbol)] == symbol:
+        while roman[index : index + len(symbol)] == symbol:
             total += value
             index += len(symbol)
     if index != len(roman):
@@ -131921,6 +132017,7 @@ if ossaudiodev is not None:
     AFMT_S16_LE = getattr(ossaudiodev, "AFMT_S16_LE")
     SOUND_MIXER_PCM = getattr(ossaudiodev, "SOUND_MIXER_PCM")
 else:  # pragma: no cover
+
     def open(*args, **kwargs):  # type: ignore
         raise RuntimeError("ossaudiodev is not available")
 
@@ -132352,9 +132449,7 @@ def is_namedtuple(value: object) -> bool:
     """
     if isinstance(value, type):
         return issubclass(value, tuple) and isinstance(getattr(value, "_fields", None), tuple)
-    return isinstance(value, tuple) and isinstance(
-        getattr(type(value), "_fields", None), tuple
-    )
+    return isinstance(value, tuple) and isinstance(getattr(type(value), "_fields", None), tuple)
 
 
 def is_typeddict(value: object) -> bool:
@@ -132505,18 +132600,14 @@ def ensure_type(value: object, expected_type: object, name: str = "value") -> ob
     """
     if not isinstance(expected_type, (type, tuple)):
         raise TypeError(
-            f"expected_type must be a type or tuple of types, "
-            f"got {type(expected_type).__name__}"
+            f"expected_type must be a type or tuple of types, got {type(expected_type).__name__}"
         )
     if not isinstance(value, expected_type):
         if isinstance(expected_type, tuple):
             expected_name = " or ".join(t.__name__ for t in expected_type)
         else:
             expected_name = expected_type.__name__
-        raise TypeError(
-            f"{name} must be of type {expected_name}, "
-            f"got {type(value).__name__}"
-        )
+        raise TypeError(f"{name} must be of type {expected_name}, got {type(value).__name__}")
     return value
 
 
@@ -132569,9 +132660,7 @@ def coerce_to_int(value: object) -> int:
         return int(value)
     if isinstance(value, str):
         return int(value)
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to int"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to int")
 
 
 def coerce_to_float(value: object) -> float:
@@ -132605,9 +132694,7 @@ def coerce_to_float(value: object) -> float:
         return value
     if isinstance(value, str):
         return float(value)
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to float"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to float")
 
 
 def coerce_to_bool(value: object) -> bool:
@@ -132649,9 +132736,7 @@ def coerce_to_bool(value: object) -> bool:
         if lowered in ("false", "0", "no", "n", "off"):
             return False
         raise ValueError(f"cannot coerce {value!r} to bool")
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to bool"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to bool")
 
 
 def coerce_to_bytes(value: object) -> bytes:
@@ -132681,9 +132766,7 @@ def coerce_to_bytes(value: object) -> bytes:
         return value.encode("utf-8")
     if isinstance(value, (bytes, bytearray)):
         return bytes(value)
-    raise TypeError(
-        f"cannot coerce {type(value).__name__} to bytes"
-    )
+    raise TypeError(f"cannot coerce {type(value).__name__} to bytes")
 TYPE_CHECK_UTILS
 
 # --- tests/test_type_check_utils.py ---
@@ -133521,6 +133604,7 @@ CHUNK_UTILS
 # --- deque_utils.py ---
 cat > "$OUTPUT_DIR/deque_utils.py" <<'DEQUE_UTILS'
 """Deque utilities wrapping the standard library collections.deque."""
+
 from collections import deque
 from typing import Any, Iterable, List, Optional
 

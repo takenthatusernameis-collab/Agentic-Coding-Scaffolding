@@ -1,5 +1,23 @@
 # Project Status
 
+## Latest Session (2026-11-03) — restored scaffold-sync invariant (bootstrap session)
+
+The board held no task (bootstrap session). Verified repository health before starting: `make test` ran 7665 tests with 171 scaffold-sync failures (179 embedded copies in scaffold.sh out of sync with repository sources); `python tools/refresh_scaffold.py --check` reported 179 stale embedded copies.
+
+Completed in this session:
+
+- Ran `make refresh-scaffold` to restore byte-identical embedded copies of every wrapper module, test, and `.kilo/command/scaffold-project.md` in `scaffold.sh`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Verified: all 43 scaffold-sync + refresh-scaffold tests pass; `tests.test_public_api` `__all__` contract holds for every top-level module; full suite runs 7665 tests and passes; no new regressions introduced (change is scaffold sync only).
+- `__all__` public-API contract is complete for all top-level modules (calculator.py, config_schema.py, hello.py, stats.py, strings.py, shapes.py, utils.py verified in prior sessions) — no `__all__` gaps remain.
+
+Next Planned (durable handover for the following agent):
+
+- Harden a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`. Candidate modules: `number_utils.py`, `numbers_utils.py`, `hello.py`, `calculator.py`, `stats.py`.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green (7665 tests). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Update `README.md` prose and `CHANGELOG.md` only if `__all__` adds a previously-undocumented name. No changes to `.github/workflows/**`.
+- Acceptance: `make test` passes, `refresh_scaffold --check` in sync, no new lint/type regressions.
+
 ## Latest Session (2026-11-02) — extended __all__ contract to non-wrapper modules
 
 The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7351 tests and passed.
