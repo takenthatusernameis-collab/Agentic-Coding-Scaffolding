@@ -259,6 +259,12 @@ class TestClamp(unittest.TestCase):
             clamp(5, 0, "10")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             clamp(True, 0, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, True, 10)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(5, 0, False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(None, 0, 10)  # type: ignore[arg-type]
 
 
 class TestIsEven(unittest.TestCase):
@@ -279,6 +285,10 @@ class TestIsEven(unittest.TestCase):
             is_even("2")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_even(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(None)  # type: ignore[arg-type]
 
 
 class TestIsOdd(unittest.TestCase):
@@ -297,6 +307,12 @@ class TestIsOdd(unittest.TestCase):
             is_odd(1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_odd("2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_odd(True)  # type: ignore[arg-type]
 

@@ -44,6 +44,8 @@ class TestNormalizeInterval(unittest.TestCase):
             normalize_interval(1, None)
         with self.assertRaises(TypeError):
             normalize_interval(True, 5)
+        with self.assertRaises(TypeError):
+            normalize_interval(1, False)  # type: ignore[arg-type]
 
 
 class TestIsValidInterval(unittest.TestCase):
