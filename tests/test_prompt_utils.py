@@ -30,6 +30,7 @@ from prompt_utils import (
     ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
+    escape_placeholders,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -62,7 +63,22 @@ from prompt_utils import (
 )
 
 
-class TestTruncatePrompt(unittest.TestCase):
+class TestEscapePlaceholders(unittest.TestCase):
+    def test_escape_curly_braces(self):
+        self.assertEqual(escape_placeholders("Hello {name}"), "Hello {{name}}")
+
+    def test_escape_both_braces(self):
+        self.assertEqual(escape_placeholders("{a}{b}"), "{{a}}{{b}}")
+
+    def test_no_braces(self):
+        self.assertEqual(escape_placeholders("No braces"), "No braces")
+
+    def test_empty_string(self):
+        self.assertEqual(escape_placeholders(""), "")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            escape_placeholders(123)  # type: ignore[arg-type]
     def test_truncate_short_text(self):
         result = truncate_prompt("Hello", 10)
         self.assertEqual(result, "Hello")

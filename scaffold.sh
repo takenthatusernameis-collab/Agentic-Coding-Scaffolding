@@ -22366,6 +22366,7 @@ from prompt_utils import (
     ensure_suffix,
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
+    escape_placeholders,
     estimate_token_count,
     extract_keywords,
     extract_placeholders,
@@ -22398,7 +22399,22 @@ from prompt_utils import (
 )
 
 
-class TestTruncatePrompt(unittest.TestCase):
+class TestEscapePlaceholders(unittest.TestCase):
+    def test_escape_curly_braces(self):
+        self.assertEqual(escape_placeholders("Hello {name}"), "Hello {{name}}")
+
+    def test_escape_both_braces(self):
+        self.assertEqual(escape_placeholders("{a}{b}"), "{{a}}{{b}}")
+
+    def test_no_braces(self):
+        self.assertEqual(escape_placeholders("No braces"), "No braces")
+
+    def test_empty_string(self):
+        self.assertEqual(escape_placeholders(""), "")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            escape_placeholders(123)  # type: ignore[arg-type]
     def test_truncate_short_text(self):
         result = truncate_prompt("Hello", 10)
         self.assertEqual(result, "Hello")
@@ -34181,6 +34197,7 @@ __all__: List[str] = [
     "join_lines",
     "split_lines",
     "chomp",
+    "escape_placeholders",
 ]
 
 
@@ -36007,6 +36024,33 @@ def is_blank(text: str) -> bool:
     """
     _require_string(text, "text")
     return text.strip() == ""
+
+
+def escape_placeholders(template: str) -> str:
+    """Escape curly braces in *template* for use as literal text.
+
+    Doubles all ``{`` and ``}`` characters so that they are not
+    interpreted as placeholders by :func:`format_prompt_template`.
+
+    Args:
+        template: The template string to escape.
+
+    Returns:
+        The escaped template string.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> escape_placeholders("Hello {name}")
+        'Hello {{name}}'
+        >>> escape_placeholders("No braces")
+        'No braces'
+        >>> escape_placeholders("")
+        ''
+    """
+    _require_string(template, "template")
+    return template.replace("{", "{{").replace("}", "}}")
 PROMPTUTILS
 
 # --- type_utils.py ---
@@ -52797,6 +52841,14 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
+## Unreleased — added escape_placeholders to prompt_utils
+
+- Added `escape_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it doubles `{` and `}` for literal use with `format_prompt_template`.
+- Added `TestEscapePlaceholders` to `tests/test_prompt_utils.py` covering braces, mixed text, empty input, and the `TypeError` path.
+- Updated `prompt_utils` in `README.md` to list `escape_placeholders`.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m pytest tests/test_prompt_utils.py -v` passes (354 tests).
+
 - Added `combination(n, k)` and `permutation(n, k)` to `math_utils.py` with full validation consistent with module conventions (`TypeError` for non-ints/bools, `ValueError` for negative values and `k > n`), exported via `__all__`, Google-style docstrings, and examples. Implementations use efficient iterative formulas without relying on heavy helpers.
 - Added `TestCombination` and `TestPermutation` to `tests/test_math_utils.py` covering basic cases, edge values (k=0, k=n), large values, type errors, and value errors; updated imports to include the new functions.
 - Updated `README.md` to document `combination` and `permutation` in both the file listing and module description.
@@ -52895,7 +52947,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_digits, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)

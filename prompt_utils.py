@@ -69,6 +69,7 @@ __all__: List[str] = [
     "join_lines",
     "split_lines",
     "chomp",
+    "escape_placeholders",
 ]
 
 
@@ -1895,3 +1896,30 @@ def is_blank(text: str) -> bool:
     """
     _require_string(text, "text")
     return text.strip() == ""
+
+
+def escape_placeholders(template: str) -> str:
+    """Escape curly braces in *template* for use as literal text.
+
+    Doubles all ``{`` and ``}`` characters so that they are not
+    interpreted as placeholders by :func:`format_prompt_template`.
+
+    Args:
+        template: The template string to escape.
+
+    Returns:
+        The escaped template string.
+
+    Raises:
+        TypeError: If *template* is not a string.
+
+    Examples:
+        >>> escape_placeholders("Hello {name}")
+        'Hello {{name}}'
+        >>> escape_placeholders("No braces")
+        'No braces'
+        >>> escape_placeholders("")
+        ''
+    """
+    _require_string(template, "template")
+    return template.replace("{", "{{").replace("}", "}}")

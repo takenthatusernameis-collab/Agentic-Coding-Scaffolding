@@ -1813,6 +1813,14 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
+## Unreleased — added escape_placeholders to prompt_utils
+
+- Added `escape_placeholders(template)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it doubles `{` and `}` for literal use with `format_prompt_template`.
+- Added `TestEscapePlaceholders` to `tests/test_prompt_utils.py` covering braces, mixed text, empty input, and the `TypeError` path.
+- Updated `prompt_utils` in `README.md` to list `escape_placeholders`.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m pytest tests/test_prompt_utils.py -v` passes (354 tests).
+
 - Added `combination(n, k)` and `permutation(n, k)` to `math_utils.py` with full validation consistent with module conventions (`TypeError` for non-ints/bools, `ValueError` for negative values and `k > n`), exported via `__all__`, Google-style docstrings, and examples. Implementations use efficient iterative formulas without relying on heavy helpers.
 - Added `TestCombination` and `TestPermutation` to `tests/test_math_utils.py` covering basic cases, edge values (k=0, k=n), large values, type errors, and value errors; updated imports to include the new functions.
 - Updated `README.md` to document `combination` and `permutation` in both the file listing and module description.
