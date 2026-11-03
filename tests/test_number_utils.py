@@ -1004,8 +1004,6 @@ class TestIsAutomorphicNumber(unittest.TestCase):
             is_automorphic_number(5.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_automorphic_number(True)  # type: ignore[arg-type]
-with self.assertRaises(TypeError):
-            is_duck_number(None)  # type: ignore[arg-type]
 
 
 class TestIsOdiousNumber(unittest.TestCase):
