@@ -102440,6 +102440,7 @@ __all__ = [
     "is_newer",
     "is_older",
     "is_prerelease",
+    "is_release",
     "is_semver",
     "is_stable",
     "is_valid_version",
@@ -102922,6 +102923,31 @@ def is_prerelease(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "-" in version
+
+
+def is_release(version: str) -> bool:
+    """Return True if *version* is a release (has no pre-release suffix).
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if *version* contains no pre-release marker.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_release("1.2.3")
+        True
+        >>> is_release("1.2.3-rc1")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not version:
+        return False
+    return "-" not in version
 
 
 def is_dev_version(version: str) -> bool:
@@ -103469,6 +103495,7 @@ from version_utils import (
     has_build_metadata,
     has_metadata,
     has_prerelease,
+    is_release,
     increment,
     increment_major,
     increment_minor,
@@ -104251,6 +104278,23 @@ class TestHasPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_prerelease(123)  # type: ignore[arg-type]
+
+
+class TestIsRelease(unittest.TestCase):
+    def test_returns_true_when_no_prerelease(self):
+        self.assertTrue(is_release("1.2.3"))
+        self.assertTrue(is_release("2.0.0"))
+        self.assertTrue(is_release("1.2.3+build.123"))
+
+    def test_returns_false_when_prerelease_present(self):
+        self.assertFalse(is_release("1.2.3-rc1"))
+        self.assertFalse(is_release("1.0.0-alpha.1"))
+        self.assertFalse(is_release("1.2.3-rc1+build.123"))
+        self.assertFalse(is_release(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_release(123)  # type: ignore[arg-type]
 
 
 class TestHasMetadata(unittest.TestCase):

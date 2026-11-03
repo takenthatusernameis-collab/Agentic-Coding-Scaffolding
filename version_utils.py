@@ -49,6 +49,7 @@ __all__ = [
     "is_newer",
     "is_older",
     "is_prerelease",
+    "is_release",
     "is_semver",
     "is_stable",
     "is_valid_version",
@@ -531,6 +532,31 @@ def is_prerelease(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "-" in version
+
+
+def is_release(version: str) -> bool:
+    """Return True if *version* is a release (has no pre-release suffix).
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if *version* contains no pre-release marker.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_release("1.2.3")
+        True
+        >>> is_release("1.2.3-rc1")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not version:
+        return False
+    return "-" not in version
 
 
 def is_dev_version(version: str) -> bool:
