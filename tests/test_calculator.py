@@ -6,6 +6,7 @@ from calculator import (
     add,
     average_of_two,
     clamp,
+    distance,
     divide,
     factorial,
     gcd,
@@ -621,3 +622,24 @@ class TestHypotenuse(unittest.TestCase):
             hypotenuse(-3, 4)
         with self.assertRaises(ValueError):
             hypotenuse(3, -4)
+
+
+class TestDistance(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(distance(0, 0, 3, 4), 5)
+        self.assertEqual(distance(0, 0, 0, 0), 0)
+        self.assertAlmostEqual(distance(1, 1, 4, 5), 5)
+
+    def test_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            distance("0", 0, 3, 4)
+        with self.assertRaises(TypeError):
+            distance(0, None, 3, 4)
+        with self.assertRaises(TypeError):
+            distance(0, 0, [], 4)
+
+    def test_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            distance(True, 0, 3, 4)
+        with self.assertRaises(TypeError):
+            distance(0, False, 3, 4)

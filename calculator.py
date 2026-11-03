@@ -603,3 +603,24 @@ def hypotenuse(a: float, b: float) -> float:
     if a < 0 or b < 0:
         raise ValueError("a and b must be non-negative")
     return sqrt(a * a + b * b)
+
+
+def distance(x1: float, y1: float, x2: float, y2: float) -> float:
+    """Return the Euclidean distance between two points.
+
+    Args:
+        x1: x-coordinate of the first point.
+        y1: y-coordinate of the first point.
+        x2: x-coordinate of the second point.
+        y2: y-coordinate of the second point.
+
+    Returns:
+        sqrt((x2 - x1)^2 + (y2 - y1)^2).
+
+    Raises:
+        TypeError: If any argument is not a real number or is a bool.
+    """
+    for value in (x1, y1, x2, y2):
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise TypeError("coordinates must be real numbers")
+    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
