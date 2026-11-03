@@ -74127,6 +74127,7 @@ from number_utils import (
     is_coprime,
     is_deficient_number,
     is_disarium_number,
+    is_evil_number,
     is_fibonacci_number,
     is_finite,
     is_happy_number,
@@ -74139,10 +74140,9 @@ from number_utils import (
     is_nan,
     is_negative,
     is_neon_number,
-    is_odious_number,
-    is_evil_number,
     is_non_negative,
     is_non_positive,
+    is_odious_number,
     is_pentagonal_number,
     is_perfect_cube,
     is_perfect_number,
@@ -75116,25 +75116,21 @@ class TestIsAutomorphicNumber(unittest.TestCase):
 
 class TestIsOdiousNumber(unittest.TestCase):
     def test_odious_numbers(self) -> None:
-        from number_utils import is_odious_number
 
         for n in (1, 2, 4, 7, 8, 11, 13, 14, 19, 21, 22, 25, 26, 28, 31, 32):
             self.assertTrue(is_odious_number(n), n)
 
     def test_non_odious_numbers(self) -> None:
-        from number_utils import is_odious_number
 
         for n in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
             self.assertFalse(is_odious_number(n), n)
 
     def test_negative_returns_false(self) -> None:
-        from number_utils import is_odious_number
 
         self.assertFalse(is_odious_number(-1))
         self.assertFalse(is_odious_number(-7))
 
     def test_type_errors(self) -> None:
-        from number_utils import is_odious_number
 
         with self.assertRaises(TypeError):
             is_odious_number("7")  # type: ignore[arg-type]
@@ -75148,25 +75144,21 @@ class TestIsOdiousNumber(unittest.TestCase):
 
 class TestIsEvilNumber(unittest.TestCase):
     def test_evil_numbers(self) -> None:
-        from number_utils import is_evil_number
 
         for n in (0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24, 27, 29, 30):
             self.assertTrue(is_evil_number(n), n)
 
     def test_non_evil_numbers(self) -> None:
-        from number_utils import is_evil_number
 
         for n in (1, 2, 4, 7, 8, 11, 13, 14, 19, 21, 22, 25, 26, 28, 31, 32):
             self.assertFalse(is_evil_number(n), n)
 
     def test_negative_returns_false(self) -> None:
-        from number_utils import is_evil_number
 
         self.assertFalse(is_evil_number(-1))
         self.assertFalse(is_evil_number(-6))
 
     def test_type_errors(self) -> None:
-        from number_utils import is_evil_number
 
         with self.assertRaises(TypeError):
             is_evil_number("6")  # type: ignore[arg-type]
@@ -103577,7 +103569,6 @@ from version_utils import (
     has_build_metadata,
     has_metadata,
     has_prerelease,
-    is_release,
     increment,
     increment_major,
     increment_minor,
@@ -103593,6 +103584,7 @@ from version_utils import (
     is_newer,
     is_older,
     is_prerelease,
+    is_release,
     is_semver,
     is_stable,
     is_valid_version,
