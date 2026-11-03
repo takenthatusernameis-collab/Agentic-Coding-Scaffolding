@@ -51241,6 +51241,21 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
         self.assertEqual(interval_shift((0, float("inf")), 5), (5, float("inf")))
         self.assertEqual(interval_shift((float("-inf"), 0), -3), (float("-inf"), -3))
 
+    def test_interval_shift_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            interval_shift((0, 10), True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_shift((0, 10), False)  # type: ignore[arg-type]
+
+    def test_interval_shift_invalid_interval(self):
+        with self.assertRaises(ValueError):
+            interval_shift((10, 0), 1)
+        with self.assertRaises(ValueError):
+            interval_shift("bad", 1)  # type: ignore[arg-type]
+
+    def test_interval_shift_floats(self):
+        self.assertEqual(interval_shift((1.5, 2.5), 0.5), (2.0, 3.0))
+
     def test_interval_symmetric_difference_with_inf(self):
         result = interval_symmetric_difference((0, float("inf")), (5, 10))
         # Difference of (0,inf) and (5,10): parts outside intersection
