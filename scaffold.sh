@@ -24305,6 +24305,7 @@ TESTPATHUTILS
 cat > "$OUTPUT_DIR/tests/test_math_utils.py" <<'TESTMATH'
 """Tests for math_utils module."""
 
+import math
 import unittest
 
 from math_utils import (
@@ -24685,6 +24686,125 @@ class TestPermutation(unittest.TestCase):
             permutation(5, -1)
         with self.assertRaises(ValueError):
             permutation(2, 3)
+
+
+class TestMathUtilsBoundaries(unittest.TestCase):
+    """Additional boundary and type validation tests."""
+
+    def test_factorial_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            factorial(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            factorial(False)  # type: ignore[arg-type]
+
+    def test_factorial_float_rejected(self):
+        with self.assertRaises(TypeError):
+            factorial(3.5)  # type: ignore[arg-type]
+
+    def test_fibonacci_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            fibonacci(True)  # type: ignore[arg-type]
+
+    def test_fibonacci_float_rejected(self):
+        with self.assertRaises(TypeError):
+            fibonacci(1.0)  # type: ignore[arg-type]
+
+    def test_gcd_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            gcd(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd(2, False)  # type: ignore[arg-type]
+
+    def test_lcm_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            lcm(True, 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm(4, False)  # type: ignore[arg-type]
+
+    def test_is_prime_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
+
+    def test_is_prime_float_rejected(self):
+        with self.assertRaises(TypeError):
+            is_prime(2.0)  # type: ignore[arg-type]
+
+    def test_is_composite_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            is_composite(True)  # type: ignore[arg-type]
+
+    def test_is_square_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            is_square(False)  # type: ignore[arg-type]
+
+    def test_clamp_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            clamp(True, 0, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(0.5, False, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(0.5, 0, True)  # type: ignore[arg-type]
+
+    def test_clamp_inf_nan(self):
+        self.assertEqual(clamp(float("inf"), 0, 10), 10)
+        self.assertEqual(clamp(float("-inf"), 0, 10), 0)
+        # NaN behavior depends on comparison semantics
+        result = clamp(float("nan"), 0, 10)
+        # Just ensure it returns something reasonable
+        self.assertIn(type(result), (int, float))
+
+    def test_clamp_value_errors(self):
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+
+    def test_is_even_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            is_even(True)  # type: ignore[arg-type]
+
+    def test_is_odd_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            is_odd(False)  # type: ignore[arg-type]
+
+    def test_is_even_odd_values(self):
+        self.assertTrue(is_even(0))
+        self.assertFalse(is_odd(0))
+        self.assertTrue(is_even(-2))
+        self.assertTrue(is_odd(-3))
+        self.assertFalse(is_even(1))
+        self.assertFalse(is_odd(2))
+
+    def test_combination_permutation_boundaries(self):
+        self.assertEqual(combination(0, 0), 1)
+        self.assertEqual(permutation(0, 0), 1)
+        self.assertEqual(combination(5, 0), 1)
+        self.assertEqual(combination(5, 5), 1)
+        self.assertEqual(permutation(5, 0), 1)
+        self.assertEqual(permutation(5, 1), 5)
+        self.assertEqual(permutation(5, 5), 120)
+        with self.assertRaises(ValueError):
+            combination(3, 4)
+        with self.assertRaises(ValueError):
+            permutation(3, 4)
+        with self.assertRaises(ValueError):
+            combination(-1, 0)
+        with self.assertRaises(ValueError):
+            permutation(-1, 0)
+        with self.assertRaises(TypeError):
+            combination(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            permutation(2, False)  # type: ignore[arg-type]
+
+    def test_is_square_boundaries(self):
+        self.assertTrue(is_square(0))
+        self.assertTrue(is_square(1))
+        self.assertTrue(is_square(144))
+        self.assertFalse(is_square(2))
+        with self.assertRaises(ValueError):
+            is_square(-1)  # negative numbers are not perfect squares
+        with self.assertRaises(TypeError):
+            is_square(4.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_square(True)  # type: ignore[arg-type]
 TESTMATH
 
 # --- tests/test_data_utils.py ---
@@ -50712,6 +50832,64 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIntervalUtilsBoundaries(unittest.TestCase):
+    """Additional boundary tests for interval utilities."""
+
+    def test_normalize_interval_inf(self):
+        self.assertEqual(normalize_interval(float("inf"), 5), (5, float("inf")))
+        self.assertEqual(normalize_interval(float("-inf"), float("inf")), (float("-inf"), float("inf")))
+
+    def test_normalize_interval_nan(self):
+        # NaN comparisons are tricky; just ensure it doesn't crash unexpectedly
+        result = normalize_interval(float("nan"), 5)
+        self.assertEqual(len(result), 2)
+
+    def test_is_valid_interval_edge_cases(self):
+        self.assertTrue(is_valid_interval((0, 0)))
+        self.assertFalse(is_valid_interval((5, 3)))
+        self.assertFalse(is_valid_interval([1, 2, 3]))
+        self.assertFalse(is_valid_interval((1,)))
+        self.assertFalse(is_valid_interval("1,2"))
+        self.assertFalse(is_valid_interval((1, "2")))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_interval(("1", 2)))  # type: ignore[arg-type]
+        self.assertTrue(is_valid_interval([1.5, 2.5]))
+
+    def test_interval_contains_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), False)  # type: ignore[arg-type]
+
+    def test_interval_contains_boundaries(self):
+        self.assertTrue(interval_contains((0, 10), 0))
+        self.assertTrue(interval_contains((0, 10), 10))
+        self.assertFalse(interval_contains((0, 10), -0.0001))
+        self.assertFalse(interval_contains((0, 10), 10.0001))
+
+    def test_interval_overlaps_touching(self):
+        self.assertTrue(interval_overlaps((0, 1), (1, 2)))
+        self.assertTrue(interval_overlaps((1, 2), (0, 1)))
+
+    def test_merge_intervals_overlapping_chain(self):
+        result = merge_intervals([(0, 1), (2, 3), (0.5, 2.5)])
+        self.assertEqual(result, [(0, 3)])
+
+    def test_merge_intervals_disjoint(self):
+        result = merge_intervals([(0, 1), (3, 4)])
+        self.assertEqual(result, [(0, 1), (3, 4)])
+
+    def test_merge_intervals_unsorted(self):
+        result = merge_intervals([(5, 6), (0, 1), (2, 3)])
+        self.assertEqual(result, [(0, 1), (2, 3), (5, 6)])
+
+    def test_interval_symmetric_difference_disjoint(self):
+        result = interval_symmetric_difference((0, 1), (2, 3))
+        self.assertEqual(sorted(result), [(0, 1), (2, 3)])
+
+    def test_interval_distance_identical(self):
+        self.assertEqual(interval_distance((0, 5), (0, 5)), 0.0)
 TEST_INTERVAL_UTILS
 
 

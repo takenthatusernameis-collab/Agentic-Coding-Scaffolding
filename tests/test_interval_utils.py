@@ -431,3 +431,61 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIntervalUtilsBoundaries(unittest.TestCase):
+    """Additional boundary tests for interval utilities."""
+
+    def test_normalize_interval_inf(self):
+        self.assertEqual(normalize_interval(float("inf"), 5), (5, float("inf")))
+        self.assertEqual(normalize_interval(float("-inf"), float("inf")), (float("-inf"), float("inf")))
+
+    def test_normalize_interval_nan(self):
+        # NaN comparisons are tricky; just ensure it doesn't crash unexpectedly
+        result = normalize_interval(float("nan"), 5)
+        self.assertEqual(len(result), 2)
+
+    def test_is_valid_interval_edge_cases(self):
+        self.assertTrue(is_valid_interval((0, 0)))
+        self.assertFalse(is_valid_interval((5, 3)))
+        self.assertFalse(is_valid_interval([1, 2, 3]))
+        self.assertFalse(is_valid_interval((1,)))
+        self.assertFalse(is_valid_interval("1,2"))
+        self.assertFalse(is_valid_interval((1, "2")))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_interval(("1", 2)))  # type: ignore[arg-type]
+        self.assertTrue(is_valid_interval([1.5, 2.5]))
+
+    def test_interval_contains_bool_rejected(self):
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            interval_contains((0, 10), False)  # type: ignore[arg-type]
+
+    def test_interval_contains_boundaries(self):
+        self.assertTrue(interval_contains((0, 10), 0))
+        self.assertTrue(interval_contains((0, 10), 10))
+        self.assertFalse(interval_contains((0, 10), -0.0001))
+        self.assertFalse(interval_contains((0, 10), 10.0001))
+
+    def test_interval_overlaps_touching(self):
+        self.assertTrue(interval_overlaps((0, 1), (1, 2)))
+        self.assertTrue(interval_overlaps((1, 2), (0, 1)))
+
+    def test_merge_intervals_overlapping_chain(self):
+        result = merge_intervals([(0, 1), (2, 3), (0.5, 2.5)])
+        self.assertEqual(result, [(0, 3)])
+
+    def test_merge_intervals_disjoint(self):
+        result = merge_intervals([(0, 1), (3, 4)])
+        self.assertEqual(result, [(0, 1), (3, 4)])
+
+    def test_merge_intervals_unsorted(self):
+        result = merge_intervals([(5, 6), (0, 1), (2, 3)])
+        self.assertEqual(result, [(0, 1), (2, 3), (5, 6)])
+
+    def test_interval_symmetric_difference_disjoint(self):
+        result = interval_symmetric_difference((0, 1), (2, 3))
+        self.assertEqual(sorted(result), [(0, 1), (2, 3)])
+
+    def test_interval_distance_identical(self):
+        self.assertEqual(interval_distance((0, 5), (0, 5)), 0.0)
