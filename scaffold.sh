@@ -9040,6 +9040,9 @@ __all__ = [
     "negate",
     "absolute",
     "clamp",
+    "reciprocal",
+    "percentage",
+    "average_of_two",
 ]
 
 
@@ -9186,6 +9189,31 @@ def clamp(value: float, low: float, high: float) -> float:
     if low > high:
         raise ValueError("low must not exceed high.")
     return max(low, min(high, value))
+
+
+def reciprocal(x: float) -> float:
+    """Return 1/x."""
+    if isinstance(x, bool) or not isinstance(x, (int, float)):
+        raise TypeError("x must be a real number")
+    if x == 0:
+        raise ValueError("Cannot divide by zero")
+    return float(1.0 / x)
+
+
+def percentage(value: float, percent: float) -> float:
+    """Return (value * percent) / 100."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("value must be a real number")
+    if isinstance(percent, bool) or not isinstance(percent, (int, float)):
+        raise TypeError("percent must be a real number")
+    return float((value * percent) / 100.0)
+
+
+def average_of_two(a: float, b: float) -> float:
+    """Return the average of a and b."""
+    if isinstance(a, bool) or isinstance(b, bool) or not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+        raise TypeError("a and b must be real numbers")
+    return float((a + b) / 2.0)
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -9194,6 +9222,7 @@ import unittest
 
 from calculator import (
     absolute,
+    average_of_two,
     clamp,
     abs_difference,
     add,
@@ -9202,7 +9231,9 @@ from calculator import (
     modulo,
     multiply,
     negate,
+    percentage,
     power,
+    reciprocal,
     sqrt,
     subtract,
 )
@@ -9440,6 +9471,23 @@ class TestClamp(unittest.TestCase):
     def test_clamp_invalid_range(self):
         with self.assertRaises(ValueError):
             clamp(5, 10, 0)
+
+    def test_reciprocal(self):
+        self.assertEqual(reciprocal(2), 0.5)
+        with self.assertRaises(ValueError):
+            reciprocal(0)
+        with self.assertRaises(TypeError):
+            reciprocal(True)
+
+    def test_percentage(self):
+        self.assertEqual(percentage(200, 10), 20.0)
+        with self.assertRaises(TypeError):
+            percentage(True, 10)
+
+    def test_average_of_two(self):
+        self.assertEqual(average_of_two(2, 4), 3.0)
+        with self.assertRaises(TypeError):
+            average_of_two(True, 4)
 
 
 if __name__ == "__main__":
@@ -10546,6 +10594,9 @@ __all__: List[str] = [
     "cylinder_volume",
     "cone_surface_area",
     "cone_volume",
+    "point_distance",
+    "midpoint",
+    "point_in_circle",
 ]
 
 
@@ -11164,6 +11215,56 @@ def cone_volume(radius: float, height: float) -> float:
     if height < 0:
         raise ValueError("Height cannot be negative.")
     return float((1 / 3) * math.pi * radius ** 2 * height)
+
+
+def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
+    """Return the Euclidean distance between two points."""
+    if not isinstance(p1, (tuple, list)) or len(p1) != 2:
+        raise TypeError("p1 must be a point (x, y)")
+    if not isinstance(p2, (tuple, list)) or len(p2) != 2:
+        raise TypeError("p2 must be a point (x, y)")
+    x1, y1 = p1
+    x2, y2 = p2
+    if not isinstance(x1, (int, float)) or isinstance(x1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y1, (int, float)) or isinstance(y1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(x2, (int, float)) or isinstance(x2, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y2, (int, float)) or isinstance(y2, bool):
+        raise TypeError("coordinates must be numbers")
+    return float(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
+
+
+def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
+    """Return the midpoint between two points."""
+    if not isinstance(p1, (tuple, list)) or len(p1) != 2:
+        raise TypeError("p1 must be a point (x, y)")
+    if not isinstance(p2, (tuple, list)) or len(p2) != 2:
+        raise TypeError("p2 must be a point (x, y)")
+    x1, y1 = p1
+    x2, y2 = p2
+    if not isinstance(x1, (int, float)) or isinstance(x1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y1, (int, float)) or isinstance(y1, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(x2, (int, float)) or isinstance(x2, bool):
+        raise TypeError("coordinates must be numbers")
+    if not isinstance(y2, (int, float)) or isinstance(y2, bool):
+        raise TypeError("coordinates must be numbers")
+    return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+
+
+def point_in_circle(
+    point: tuple[float, float], center: tuple[float, float], radius: float
+) -> bool:
+    """Return True if point is inside or on the circle."""
+    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
+        raise TypeError("radius must be a number")
+    if radius < 0:
+        raise ValueError("Radius cannot be negative.")
+    dist = point_distance(point, center)
+    return dist <= radius + 1e-9
 SHAPES
 
 # --- tests/test_shapes.py ---
@@ -11768,6 +11869,36 @@ class TestCone(unittest.TestCase):
             cone_surface_area(True, 5)
         with self.assertRaises(TypeError):
             cone_volume(3, False)
+
+
+class TestPoints(unittest.TestCase):
+    def test_point_distance(self):
+        from shapes import point_distance
+
+        self.assertAlmostEqual(point_distance((0, 0), (3, 4)), 5.0)
+
+    def test_midpoint(self):
+        from shapes import midpoint
+
+        self.assertEqual(midpoint((0, 0), (2, 2)), (1.0, 1.0))
+
+    def test_point_in_circle(self):
+        from shapes import point_in_circle
+
+        self.assertTrue(point_in_circle((1, 1), (0, 0), 2))
+        self.assertFalse(point_in_circle((5, 5), (0, 0), 2))
+
+    def test_rejects_bad_point(self):
+        from shapes import point_distance
+
+        with self.assertRaises(TypeError):
+            point_distance("bad", (0, 0))  # type: ignore[arg-type]
+
+    def test_rejects_bool_radius(self):
+        from shapes import point_in_circle
+
+        with self.assertRaises(TypeError):
+            point_in_circle((1, 1), (0, 0), True)
 TESTSHAPES
 
 # --- strings.py ---
