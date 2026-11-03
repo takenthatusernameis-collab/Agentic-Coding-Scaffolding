@@ -26,6 +26,7 @@ from calculator import (
     sqrt,
     subtract,
     hypotenuse,
+    is_power_of_two,
 )
 
 
@@ -428,6 +429,72 @@ class TestIsOdd(unittest.TestCase):
             is_odd(True)
         with self.assertRaises(TypeError):
             is_odd(False)
+
+
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_is_perfect_square_basic(self):
+        self.assertTrue(is_perfect_square(0))
+        self.assertTrue(is_perfect_square(1))
+        self.assertTrue(is_perfect_square(4))
+        self.assertTrue(is_perfect_square(9))
+        self.assertTrue(is_perfect_square(16))
+        self.assertTrue(is_perfect_square(25))
+        self.assertTrue(is_perfect_square(144))
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(3))
+        self.assertFalse(is_perfect_square(8))
+        self.assertFalse(is_perfect_square(10))
+        self.assertFalse(is_perfect_square(2))
+        self.assertFalse(is_perfect_square(50))
+
+    def test_is_perfect_square_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(4.0)
+        with self.assertRaises(TypeError):
+            is_perfect_square("4")
+
+    def test_is_perfect_square_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_perfect_square(True)
+        with self.assertRaises(TypeError):
+            is_perfect_square(False)
+
+    def test_is_perfect_square_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            is_perfect_square(-1)
+        with self.assertRaises(ValueError):
+            is_perfect_square(-4)
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_is_power_of_two_basic(self):
+        self.assertTrue(is_power_of_two(1))
+        self.assertTrue(is_power_of_two(2))
+        self.assertTrue(is_power_of_two(4))
+        self.assertTrue(is_power_of_two(8))
+        self.assertTrue(is_power_of_two(16))
+        self.assertTrue(is_power_of_two(1024))
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(3))
+        self.assertFalse(is_power_of_two(5))
+        self.assertFalse(is_power_of_two(6))
+        self.assertFalse(is_power_of_two(12))
+
+    def test_is_power_of_two_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(2.0)
+        with self.assertRaises(TypeError):
+            is_power_of_two("2")
+
+    def test_is_power_of_two_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(True)
+        with self.assertRaises(TypeError):
+            is_power_of_two(False)
+
+    def test_is_power_of_two_rejects_less_than_one(self):
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(-2))
 
 
 if __name__ == "__main__":

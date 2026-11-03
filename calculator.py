@@ -26,6 +26,7 @@ __all__ = [
     "mod_pow",
     "sign",
     "is_perfect_square",
+    "is_power_of_two",
     "hypotenuse",
 ]
 
@@ -521,6 +522,22 @@ def sign(x: float) -> int:
     if x < 0:
         return -1
     return 0
+
+
+def is_power_of_two(n: int) -> bool:
+    """Return True if n is a power of two.
+
+    Args:
+        n: The integer to check.
+
+    Raises:
+        TypeError: If n is not an int or is a bool.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 1:
+        return False
+    return (n & (n - 1)) == 0
 
 
 def is_perfect_square(n: int) -> bool:
