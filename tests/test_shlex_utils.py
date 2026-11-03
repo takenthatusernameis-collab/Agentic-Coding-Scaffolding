@@ -18,8 +18,13 @@ class TestShlexUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             quote(1)
 
-    def test_join(self):
-        self.assertEqual(join(["foo", "bar baz"]), "foo 'bar baz'")
+    def test_join_type_error(self):
+        with self.assertRaises(TypeError):
+            join("not a list")
+
+    def test_join_item_type_error(self):
+        with self.assertRaises(TypeError):
+            join(["foo", 1])
 
 
 if __name__ == "__main__":

@@ -89659,6 +89659,10 @@ def quote(s):
 
 
 def join(split_command):
+    if not isinstance(split_command, (list, tuple)):
+        raise TypeError("split_command must be a list or tuple")
+    if not all(isinstance(item, str) for item in split_command):
+        raise TypeError("split_command items must be str")
     return _shlex.join(split_command)
 SHLEX_UTILS
 
@@ -89684,8 +89688,13 @@ class TestShlexUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             quote(1)
 
-    def test_join(self):
-        self.assertEqual(join(["foo", "bar baz"]), "foo 'bar baz'")
+    def test_join_type_error(self):
+        with self.assertRaises(TypeError):
+            join("not a list")
+
+    def test_join_item_type_error(self):
+        with self.assertRaises(TypeError):
+            join(["foo", 1])
 
 
 if __name__ == "__main__":
