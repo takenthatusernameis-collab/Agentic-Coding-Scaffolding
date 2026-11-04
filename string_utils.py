@@ -25,6 +25,7 @@ __all__: List[str] = [
     "split_paragraphs",
     "count_words",
     "levenshtein_distance",
+    "hamming_distance",
 ]
 
 _SMALL_WORDS = {
@@ -782,3 +783,36 @@ def levenshtein_distance(text1: str, text2: str) -> int:
             )
         previous = current
     return previous[-1]
+
+
+def hamming_distance(text1: str, text2: str) -> int:
+    """Compute the Hamming distance between two strings of equal length.
+
+    Args:
+        text1: The first string.
+        text2: The second string.
+
+    Returns:
+        The number of positions at which the corresponding characters differ.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If the strings have different lengths.
+
+    Examples:
+        >>> hamming_distance("karolin", "kathrin")
+        3
+        >>> hamming_distance("1011101", "1001001")
+        2
+        >>> hamming_distance("abc", "abc")
+        0
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    if len(text1) != len(text2):
+        raise ValueError("strings must have equal length")
+    distance = 0
+    for c1, c2 in zip(text1, text2):
+        if c1 != c2:
+            distance += 1
+    return distance

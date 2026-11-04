@@ -6,7 +6,7 @@ from string_utils import (
     camel_to_snake,
     count_words,
     dedent_text,
-    indent_text,
+    hamming_distance,
     is_anagram,
     is_isogram,
     is_palindrome,
@@ -942,8 +942,46 @@ class TestLevenshteinDistance(unittest.TestCase):
     def test_non_string_second_arg(self):
         for value in (None, 123, 3.14, ["a"], {"a": 1}):
             with self.subTest(value=value):
+        with self.assertRaises(TypeError):
+            levenshtein_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestHammingDistance(unittest.TestCase):
+    def test_classic_example(self):
+        self.assertEqual(hamming_distance("karolin", "kathrin"), 3)
+
+    def test_binary_strings(self):
+        self.assertEqual(hamming_distance("1011101", "1001001"), 2)
+
+    def test_identical(self):
+        self.assertEqual(hamming_distance("abc", "abc"), 0)
+
+    def test_single_difference(self):
+        self.assertEqual(hamming_distance("abc", "adc"), 1)
+
+    def test_case_sensitive(self):
+        self.assertEqual(hamming_distance("Abc", "abc"), 1)
+
+    def test_empty_strings(self):
+        self.assertEqual(hamming_distance("", ""), 0)
+
+    def test_different_lengths(self):
+        with self.assertRaises(ValueError):
+            hamming_distance("abc", "ab")
+        with self.assertRaises(ValueError):
+            hamming_distance("ab", "abc")
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
                 with self.assertRaises(TypeError):
-                    levenshtein_distance("a", value)  # type: ignore[arg-type]
+                    hamming_distance(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    hamming_distance("a", value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
