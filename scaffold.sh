@@ -136949,7 +136949,7 @@ from __future__ import annotations
 
 import dbm.dumb as _dumbdbm
 import os
-from typing import Any
+from typing import Any, Iterator
 
 __all__ = [
     "dumbdbm",
@@ -136957,6 +136957,15 @@ __all__ = [
     "open",
     "open_dbm",
     "create_dbm",
+    "close",
+    "get",
+    "set",
+    "delete",
+    "keys",
+    "items",
+    "values",
+    "clear",
+    "update",
     "is_available",
 ]
 
@@ -136998,6 +137007,110 @@ def create_dbm(
     return _dumbdbm.open(file, flag, mode)
 
 
+def close(db) -> None:
+    """Close a dumbdbm database if it has a close method."""
+    if db is None:
+        return
+    close_fn = getattr(db, "close", None)
+    if callable(close_fn):
+        close_fn()
+
+
+def get(db, key: bytes | str, default: Any = None) -> Any:
+    """Get a value from a dumbdbm database with an optional default."""
+    if db is None:
+        raise TypeError("db must not be None")
+    try:
+        return db[key]
+    except KeyError:
+        return default
+
+
+def set(db, key: bytes | str, value: bytes | str) -> None:
+    """Set a value in a dumbdbm database."""
+    if db is None:
+        raise TypeError("db must not be None")
+    db[key] = value
+
+
+def delete(db, key: bytes | str) -> None:
+    """Delete a key from a dumbdbm database if present."""
+    if db is None:
+        raise TypeError("db must not be None")
+    try:
+        del db[key]
+    except KeyError:
+        pass
+
+
+def keys(db) -> list[bytes]:
+    """Return all keys in a dumbdbm database."""
+    if db is None:
+        raise TypeError("db must not be None")
+    try:
+        return list(db.keys())
+    except Exception:
+        return []
+
+
+def items(db) -> list[tuple[bytes, bytes]]:
+    """Return all items in a dumbdbm database."""
+    if db is None:
+        raise TypeError("db must not be None")
+    try:
+        return list(db.items())
+    except Exception:
+        result = []
+        for k in keys(db):
+            try:
+                result.append((k, db[k]))
+            except Exception:
+                continue
+        return result
+
+
+def values(db) -> list[bytes]:
+    """Return all values in a dumbdbm database."""
+    if db is None:
+        raise TypeError("db must not be None")
+    try:
+        return list(db.values())
+    except Exception:
+        result = []
+        for k in keys(db):
+            try:
+                result.append(db[k])
+            except Exception:
+                continue
+        return result
+
+
+def clear(db) -> None:
+    """Remove all items from a dumbdbm database."""
+    if db is None:
+        raise TypeError("db must not be None")
+    for k in list(keys(db)):
+        try:
+            del db[k]
+        except Exception:
+            pass
+
+
+def update(db, other: Any = None, **kwargs) -> None:
+    """Update a dumbdbm database from another mapping or kwargs."""
+    if db is None:
+        raise TypeError("db must not be None")
+    if other is not None:
+        if hasattr(other, "items"):
+            for k, v in other.items():
+                db[k] = v
+        else:
+            for k, v in other:
+                db[k] = v
+    for k, v in kwargs.items():
+        db[k] = v
+
+
 def is_available() -> bool:
     """Return True if :mod:`dbm.dumb` is available."""
     return True
@@ -137017,6 +137130,8 @@ class TestDumbdbmUtils(unittest.TestCase):
         self.assertTrue(hasattr(dumbdbm_utils, "open"))
         self.assertTrue(hasattr(dumbdbm_utils, "create_dbm"))
         self.assertTrue(callable(dumbdbm_utils.is_available))
+        for name in ["get", "set", "delete", "keys", "items", "values", "clear", "update", "close"]:
+            self.assertTrue(hasattr(dumbdbm_utils, name), name)
 
     def test_is_available(self):
         self.assertTrue(dumbdbm_utils.is_available())
@@ -137029,6 +137144,32 @@ class TestDumbdbmUtils(unittest.TestCase):
             db[b"key"] = b"value"
             self.assertEqual(db[b"key"], b"value")
             db.close()
+        finally:
+            for ext in ["", ".dat", ".dir", ".bak"]:
+                try:
+                    os.unlink(path + ext)
+                except FileNotFoundError:
+                    pass
+
+    def test_helpers(self):
+        fd, path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        try:
+            db = dumbdbm_utils.create_dbm(path)
+            dumbdbm_utils.set(db, b"a", b"1")
+            self.assertEqual(dumbdbm_utils.get(db, b"a"), b"1")
+            self.assertEqual(dumbdbm_utils.get(db, b"missing", b"default"), b"default")
+            self.assertIn(b"a", dumbdbm_utils.keys(db))
+            dumbdbm_utils.update(db, {b"b": b"2"}, c=b"3")
+            self.assertEqual(dumbdbm_utils.get(db, b"b"), b"2")
+            self.assertEqual(dumbdbm_utils.get(db, b"c"), b"3")
+            self.assertTrue(len(dumbdbm_utils.items(db)) >= 2)
+            self.assertTrue(len(dumbdbm_utils.values(db)) >= 2)
+            dumbdbm_utils.delete(db, b"a")
+            self.assertNotIn(b"a", dumbdbm_utils.keys(db))
+            dumbdbm_utils.clear(db)
+            self.assertEqual(dumbdbm_utils.keys(db), [])
+            dumbdbm_utils.close(db)
         finally:
             for ext in ["", ".dat", ".dir", ".bak"]:
                 try:
