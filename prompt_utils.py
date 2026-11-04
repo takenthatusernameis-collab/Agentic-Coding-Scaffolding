@@ -74,6 +74,7 @@ __all__: List[str] = [
     "split_lines",
     "chomp",
     "escape_placeholders",
+    "normalize_whitespace",
     "is_blank",
     "ensure_surrounded_by_newlines",
 ]
