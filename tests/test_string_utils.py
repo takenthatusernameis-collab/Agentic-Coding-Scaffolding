@@ -10,6 +10,8 @@ from string_utils import (
     damerau_levenshtein_distance,
     dedent_text,
     hamming_distance,
+    jaccard_distance,
+    jaccard_similarity,
     indent_text,
     is_anagram,
     is_isogram,
@@ -1198,3 +1200,51 @@ class TestCosineDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     cosine_similarity("a", value)  # type: ignore[arg-type]
+
+
+class TestJaccardSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(jaccard_similarity("hello", "hello"), 1.0)
+
+    def test_both_empty(self):
+        self.assertAlmostEqual(jaccard_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(jaccard_similarity("abc", ""), 0.0)
+        self.assertAlmostEqual(jaccard_similarity("", "xyz"), 0.0)
+
+    def test_completely_different(self):
+        self.assertAlmostEqual(jaccard_similarity("ab", "cd"), 0.0)
+
+    def test_type_errors(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaccard_similarity(value, "b")  # type: ignore[arg-type]
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaccard_similarity("a", value)  # type: ignore[arg-type]
+
+
+class TestJaccardDistance(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(jaccard_distance("hello", "hello"), 0.0)
+
+    def test_both_empty(self):
+        self.assertAlmostEqual(jaccard_distance("", ""), 0.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(jaccard_distance("abc", ""), 1.0)
+        self.assertAlmostEqual(jaccard_distance("", "xyz"), 1.0)
+
+    def test_completely_different(self):
+        self.assertAlmostEqual(jaccard_distance("ab", "cd"), 1.0)
+
+    def test_type_errors(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaccard_distance(value, "b")  # type: ignore[arg-type]
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaccard_distance("a", value)  # type: ignore[arg-type]
