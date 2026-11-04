@@ -70,6 +70,7 @@ __all__: List[str] = [
     "split_lines",
     "chomp",
     "escape_placeholders",
+    "normalize_whitespace",
 ]
 
 
@@ -1925,3 +1926,25 @@ def escape_placeholders(template: str) -> str:
     """
     _require_string(template, "template")
     return template.replace("{", "{{").replace("}", "}}")
+
+
+def normalize_whitespace(text: str) -> str:
+    """Collapse runs of whitespace to a single space and strip ends.
+
+    Args:
+        text: The text to normalize.
+
+    Returns:
+        The text with consecutive whitespace collapsed to one space.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> normalize_whitespace("  a   b  \\n  c  ")
+        'a b c'
+        >>> normalize_whitespace("")
+        ''
+    """
+    _require_string(text, "text")
+    return " ".join(text.split())
