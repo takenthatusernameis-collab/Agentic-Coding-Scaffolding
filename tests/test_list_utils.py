@@ -2,7 +2,18 @@
 
 import unittest
 
-from list_utils import chunks, drop, find, flatten, group_by, intersperse, partition, safe_get, take
+from list_utils import (
+    chunks,
+    drop,
+    find,
+    flatten,
+    group_by,
+    intersperse,
+    partition,
+    safe_get,
+    take,
+    unique_preserve_order,
+)
 
 
 class TestPartition(unittest.TestCase):
@@ -250,3 +261,24 @@ class TestFlatten(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestUniquePreserveOrder(unittest.TestCase):
+    def test_unique_preserve_order_basic(self) -> None:
+        self.assertEqual(unique_preserve_order([1, 2, 2, 3, 1]), [1, 2, 3])
+
+    def test_unique_preserve_order_strings(self) -> None:
+        self.assertEqual(unique_preserve_order(["a", "b", "a"]), ["a", "b"])
+
+    def test_unique_preserve_order_empty(self) -> None:
+        self.assertEqual(unique_preserve_order([]), [])
+
+    def test_unique_preserve_order_all_unique(self) -> None:
+        self.assertEqual(unique_preserve_order([1, 2, 3]), [1, 2, 3])
+
+    def test_unique_preserve_order_mixed_types(self) -> None:
+        self.assertEqual(unique_preserve_order([1, "1", 1]), [1, "1"])
+
+    def test_unique_preserve_order_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            unique_preserve_order("not a list")  # type: ignore[arg-type]

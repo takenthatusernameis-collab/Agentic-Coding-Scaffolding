@@ -30801,6 +30801,7 @@ __all__ = [
     "partition",
     "safe_get",
     "take",
+    "unique_preserve_order",
 ]
 
 
@@ -31081,6 +31082,38 @@ def flatten(lst: List[List[T]]) -> List[T]:
             raise TypeError("all elements of lst must be lists")
         result.extend(item)
     return result
+
+
+def unique_preserve_order(lst: List[T]) -> List[T]:
+    """Return a new list with duplicates removed while preserving order.
+
+    Args:
+        lst: The list to deduplicate.
+
+    Returns:
+        A new list containing unique elements in their first occurrence order.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> unique_preserve_order([1, 2, 2, 3, 1])
+        [1, 2, 3]
+        >>> unique_preserve_order(["a", "b", "a"])
+        ["a", "b"]
+        >>> unique_preserve_order([])
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen = set()
+    result: List[T] = []
+    for item in lst:
+        if item in seen:
+            continue
+        seen.add(item)
+        result.append(item)
+    return result
 LISTUTILS
 # --- tests/test_list_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
@@ -31088,7 +31121,18 @@ cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
 
 import unittest
 
-from list_utils import chunks, drop, find, flatten, group_by, intersperse, partition, safe_get, take
+from list_utils import (
+    chunks,
+    drop,
+    find,
+    flatten,
+    group_by,
+    intersperse,
+    partition,
+    safe_get,
+    take,
+    unique_preserve_order,
+)
 
 
 class TestPartition(unittest.TestCase):
@@ -31336,6 +31380,27 @@ class TestFlatten(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestUniquePreserveOrder(unittest.TestCase):
+    def test_unique_preserve_order_basic(self) -> None:
+        self.assertEqual(unique_preserve_order([1, 2, 2, 3, 1]), [1, 2, 3])
+
+    def test_unique_preserve_order_strings(self) -> None:
+        self.assertEqual(unique_preserve_order(["a", "b", "a"]), ["a", "b"])
+
+    def test_unique_preserve_order_empty(self) -> None:
+        self.assertEqual(unique_preserve_order([]), [])
+
+    def test_unique_preserve_order_all_unique(self) -> None:
+        self.assertEqual(unique_preserve_order([1, 2, 3]), [1, 2, 3])
+
+    def test_unique_preserve_order_mixed_types(self) -> None:
+        self.assertEqual(unique_preserve_order([1, "1", 1]), [1, "1"])
+
+    def test_unique_preserve_order_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            unique_preserve_order("not a list")  # type: ignore[arg-type]
 TESTLISTUTILS
 
 # --- locale_utils.py ---
@@ -56057,6 +56122,8 @@ Completed in this session:
 
 - Added `xml_utils.py` and `tests/test_xml_utils.py` with XML parsing/generation helpers, added to `pyproject.toml`, `README.md`, and embedded in `scaffold.sh`.
 
+- Added `unique_preserve_order(lst)` to `list_utils.py` with `__all__` export, Google-style docstring with examples, `TypeError` validation for non-list arguments, and tests in `tests/test_list_utils.py`. Updated `list_utils` description in `README.md`. Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 Next Planned (posted for the following agent):
 
 - Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.
@@ -56165,7 +56232,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, drop, take, intersperse, chunks, flatten, unique_preserve_order)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities

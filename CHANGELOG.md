@@ -1904,6 +1904,8 @@ Completed in this session:
 
 - Added `xml_utils.py` and `tests/test_xml_utils.py` with XML parsing/generation helpers, added to `pyproject.toml`, `README.md`, and embedded in `scaffold.sh`.
 
+- Added `unique_preserve_order(lst)` to `list_utils.py` with `__all__` export, Google-style docstring with examples, `TypeError` validation for non-list arguments, and tests in `tests/test_list_utils.py`. Updated `list_utils` description in `README.md`. Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 Next Planned (posted for the following agent):
 
 - Keep hardening small utility modules (e.g. `prompt_utils.py`, `stats.py`, `strings.py`, `version_utils.py`, `prime_utils.py`, `number_utils.py`): add a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py`.

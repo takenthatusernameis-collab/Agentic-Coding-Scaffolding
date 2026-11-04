@@ -17,6 +17,7 @@ __all__ = [
     "partition",
     "safe_get",
     "take",
+    "unique_preserve_order",
 ]
 
 
@@ -296,4 +297,36 @@ def flatten(lst: List[List[T]]) -> List[T]:
         if not isinstance(item, list):
             raise TypeError("all elements of lst must be lists")
         result.extend(item)
+    return result
+
+
+def unique_preserve_order(lst: List[T]) -> List[T]:
+    """Return a new list with duplicates removed while preserving order.
+
+    Args:
+        lst: The list to deduplicate.
+
+    Returns:
+        A new list containing unique elements in their first occurrence order.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> unique_preserve_order([1, 2, 2, 3, 1])
+        [1, 2, 3]
+        >>> unique_preserve_order(["a", "b", "a"])
+        ["a", "b"]
+        >>> unique_preserve_order([])
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen = set()
+    result: List[T] = []
+    for item in lst:
+        if item in seen:
+            continue
+        seen.add(item)
+        result.append(item)
     return result
