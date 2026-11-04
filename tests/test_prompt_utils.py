@@ -18,6 +18,7 @@ from prompt_utils import (
     count_non_whitespace_characters,
     count_paragraphs,
     count_placeholders,
+    count_punctuation,
     count_sentences,
     count_trailing_newlines,
     count_unique_words,
@@ -1275,6 +1276,40 @@ class TestCountUppercase(unittest.TestCase):
             count_uppercase(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestCountPunctuation(unittest.TestCase):
+    """Tests for count_punctuation function."""
+
+    def test_basic_count(self):
+        self.assertEqual(count_punctuation("Hello, world!"), 2)
+        self.assertEqual(count_punctuation("no punctuation"), 0)
+        self.assertEqual(count_punctuation("a,b.c"), 2)
+
+    def test_empty_string(self):
+        self.assertEqual(count_punctuation(""), 0)
+
+    def test_only_punctuation(self):
+        self.assertEqual(count_punctuation("..."), 3)
+        self.assertEqual(count_punctuation(".,;:!?" * 2), 12)
+
+    def test_punctuation_with_digits_and_letters(self):
+        self.assertEqual(count_punctuation("Price: $19.99!"), 4)
+        self.assertEqual(count_punctuation("Wow!!! Really???"), 6)
+
+    def test_mixed_punctuation(self):
+        self.assertEqual(count_punctuation("a.b,c!d?e;f:g"), 6)
+
+    def test_unicode_not_counted(self):
+        self.assertEqual(count_punctuation("héllo"), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_punctuation(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_punctuation(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_punctuation([])  # type: ignore[arg-type]
 
 
 class TestSplitLines(unittest.TestCase):
