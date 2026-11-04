@@ -21805,6 +21805,7 @@ from typing import Union
 DateTimeLike = Union[str, datetime]
 __all__ = [
     "add_days",
+    "add_hours",
     "add_weeks",
     "days_between",
     "format_datetime",
@@ -21894,6 +21895,38 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
     """
     dt_val = _coerce_datetime(dt, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S")
     return dt_val + timedelta(days=days)
+
+
+def add_hours(dt: DateTimeLike, hours: int) -> datetime:
+    """Add (or subtract, if negative) a number of hours to a datetime.
+
+    A companion to :func:`add_days` that shifts *dt* forward by *hours*
+    hours (or backward when *hours* is negative).
+
+    Args:
+        dt: A datetime or a string parseable with ``%Y-%m-%d`` or
+            ``%Y-%m-%d %H:%M:%S``.
+        hours: The number of hours to add. May be negative.
+
+    Returns:
+        A new datetime shifted by the given number of hours.
+
+    Raises:
+        TypeError: If *hours* is not an int.
+        ValueError: If a string argument cannot be parsed.
+
+    Examples:
+        >>> add_hours("2024-01-01", 1)
+        datetime.datetime(2024, 1, 1, 1, 0)
+        >>> add_hours("2024-01-01", 0)
+        datetime.datetime(2024, 1, 1, 0, 0)
+        >>> add_hours("2024-01-01", -1)
+        datetime.datetime(2023, 12, 31, 23, 0)
+    """
+    if isinstance(hours, bool) or not isinstance(hours, int):
+        raise TypeError("hours must be an int")
+    dt_val = _coerce_datetime(dt, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S")
+    return dt_val + timedelta(hours=hours)
 
 
 def add_weeks(dt: DateTimeLike, weeks: int) -> datetime:
@@ -26440,6 +26473,7 @@ from datetime import datetime
 
 from datetime_utils import (
     add_days,
+    add_hours,
     add_weeks,
     days_between,
     format_datetime,
@@ -26592,6 +26626,41 @@ class TestAddWeeks(unittest.TestCase):
             add_weeks("2024-01-01", True)
         with self.assertRaises(TypeError):
             add_weeks("2024-01-01", "1")
+
+
+class TestAddHours(unittest.TestCase):
+    def test_add_positive_hours(self) -> None:
+        result = add_hours("2024-01-01", 1)
+        self.assertEqual(result, datetime(2024, 1, 1, 1))
+
+    def test_add_negative_hours(self) -> None:
+        result = add_hours("2024-01-01", -1)
+        self.assertEqual(result, datetime(2023, 12, 31, 23))
+
+    def test_add_zero_hours(self) -> None:
+        result = add_hours("2024-01-01", 0)
+        self.assertEqual(result, datetime(2024, 1, 1))
+
+    def test_add_with_datetime_object(self) -> None:
+        dt = datetime(2024, 1, 1, 12, 0, 0)
+        result = add_hours(dt, 3)
+        self.assertEqual(result, datetime(2024, 1, 1, 15, 0, 0))
+
+    def test_add_crosses_day_boundary(self) -> None:
+        result = add_hours("2024-01-01", 25)
+        self.assertEqual(result, datetime(2024, 1, 2, 1))
+
+    def test_add_invalid_string_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            add_hours("not-a-date", 1)
+
+    def test_add_rejects_non_int_hours(self) -> None:
+        with self.assertRaises(TypeError):
+            add_hours("2024-01-01", 1.5)
+        with self.assertRaises(TypeError):
+            add_hours("2024-01-01", True)
+        with self.assertRaises(TypeError):
+            add_hours("2024-01-01", "1")
 
 
 class TestGetWeekdayName(unittest.TestCase):

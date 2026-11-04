@@ -5,6 +5,7 @@ from datetime import datetime
 
 from datetime_utils import (
     add_days,
+    add_hours,
     add_weeks,
     days_between,
     format_datetime,
@@ -157,6 +158,41 @@ class TestAddWeeks(unittest.TestCase):
             add_weeks("2024-01-01", True)
         with self.assertRaises(TypeError):
             add_weeks("2024-01-01", "1")
+
+
+class TestAddHours(unittest.TestCase):
+    def test_add_positive_hours(self) -> None:
+        result = add_hours("2024-01-01", 1)
+        self.assertEqual(result, datetime(2024, 1, 1, 1))
+
+    def test_add_negative_hours(self) -> None:
+        result = add_hours("2024-01-01", -1)
+        self.assertEqual(result, datetime(2023, 12, 31, 23))
+
+    def test_add_zero_hours(self) -> None:
+        result = add_hours("2024-01-01", 0)
+        self.assertEqual(result, datetime(2024, 1, 1))
+
+    def test_add_with_datetime_object(self) -> None:
+        dt = datetime(2024, 1, 1, 12, 0, 0)
+        result = add_hours(dt, 3)
+        self.assertEqual(result, datetime(2024, 1, 1, 15, 0, 0))
+
+    def test_add_crosses_day_boundary(self) -> None:
+        result = add_hours("2024-01-01", 25)
+        self.assertEqual(result, datetime(2024, 1, 2, 1))
+
+    def test_add_invalid_string_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            add_hours("not-a-date", 1)
+
+    def test_add_rejects_non_int_hours(self) -> None:
+        with self.assertRaises(TypeError):
+            add_hours("2024-01-01", 1.5)
+        with self.assertRaises(TypeError):
+            add_hours("2024-01-01", True)
+        with self.assertRaises(TypeError):
+            add_hours("2024-01-01", "1")
 
 
 class TestGetWeekdayName(unittest.TestCase):
