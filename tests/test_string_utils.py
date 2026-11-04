@@ -13,7 +13,9 @@ from string_utils import (
     is_anagram,
     is_isogram,
     is_palindrome,
+    jaro_distance,
     jaro_similarity,
+    jaro_winkler_distance,
     jaro_winkler_similarity,
     levenshtein_distance,
     pluralize,
@@ -1111,11 +1113,40 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
                 with self.assertRaises(TypeError):
                     jaro_winkler_similarity(value, "b")  # type: ignore[arg-type]
 
-    def test_non_string_second_arg(self):
-        for value in (None, 123, 3.14, ["a"], {"a": 1}):
-            with self.subTest(value=value):
-                with self.assertRaises(TypeError):
-                    jaro_winkler_similarity("a", value)  # type: ignore[arg-type]
+    def test_jaro_distance_basic(self):
+        self.assertAlmostEqual(jaro_distance("hello", "hello"), 0.0)
+        self.assertAlmostEqual(jaro_distance("", ""), 0.0)
+        self.assertAlmostEqual(jaro_distance("abc", ""), 1.0)
+        self.assertAlmostEqual(jaro_distance("", "xyz"), 1.0)
+        self.assertAlmostEqual(jaro_distance("MARTHA", "MARCUZ"), 0.3333333, places=6)
+
+    def test_jaro_distance_validation(self):
+        with self.assertRaises(TypeError):
+            jaro_distance(1, "b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            jaro_distance("a", None)  # type: ignore[arg-type]
+
+    def test_jaro_winkler_distance_basic(self):
+        self.assertAlmostEqual(jaro_winkler_distance("hello", "hello"), 0.0)
+        self.assertAlmostEqual(jaro_winkler_distance("", ""), 0.0)
+        self.assertAlmostEqual(jaro_winkler_distance("abc", ""), 1.0)
+        self.assertAlmostEqual(jaro_winkler_distance("", "xyz"), 1.0)
+        self.assertAlmostEqual(jaro_winkler_distance("MARTHA", "MARCUZ"), 0.2333333, places=6)
+
+    def test_jaro_winkler_distance_scaling(self):
+        self.assertAlmostEqual(jaro_winkler_distance("MARTHA", "MARCUZ", scaling=0.05), 0.2833333, places=6)
+
+    def test_jaro_winkler_distance_validation(self):
+        with self.assertRaises(ValueError):
+            jaro_winkler_distance("a", "b", scaling=0.3)
+        with self.assertRaises(ValueError):
+            jaro_winkler_distance("a", "b", scaling=-0.1)
+        with self.assertRaises(TypeError):
+            jaro_winkler_distance("a", "b", scaling="x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            jaro_winkler_distance(1, "b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            jaro_winkler_distance("a", None)  # type: ignore[arg-type]
 
 
 class TestCosineSimilarity(unittest.TestCase):

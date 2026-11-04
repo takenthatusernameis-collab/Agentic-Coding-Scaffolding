@@ -994,6 +994,51 @@ def jaro_winkler_similarity(text1: str, text2: str, scaling: float = 0.1) -> flo
     return jaro_sim + prefix * scaling * (1 - jaro_sim)
 
 
+def jaro_distance(text1: str, text2: str) -> float:
+    """Return the Jaro distance between two strings.
+
+    Jaro distance is defined as ``1 - jaro_similarity(text1, text2)``.
+    The result is in [0, 1] where 0 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The Jaro distance as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    return 1.0 - jaro_similarity(text1, text2)
+
+
+def jaro_winkler_distance(text1: str, text2: str, scaling: float = 0.1) -> float:
+    """Return the Jaro-Winkler distance between two strings.
+
+    Jaro-Winkler distance is defined as ``1 - jaro_winkler_similarity(...)``.
+    The result is in [0, 1] where 0 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+        scaling: The scaling factor for the common prefix (default: 0.1).
+            Must be between 0 and 0.25.
+
+    Returns:
+        The Jaro-Winkler distance as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+        ValueError: If *scaling* is not between 0 and 0.25.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    return 1.0 - jaro_winkler_similarity(text1, text2, scaling=scaling)
+
+
 def cosine_similarity(text1: str, text2: str) -> float:
     """Return the cosine similarity of two strings using character bigrams.
 
