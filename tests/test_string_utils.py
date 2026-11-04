@@ -10,17 +10,18 @@ from string_utils import (
     damerau_levenshtein_distance,
     dedent_text,
     hamming_distance,
-    jaccard_distance,
-    jaccard_similarity,
     indent_text,
     is_anagram,
     is_isogram,
     is_palindrome,
+    jaccard_distance,
+    jaccard_similarity,
     jaro_distance,
     jaro_similarity,
     jaro_winkler_distance,
     jaro_winkler_similarity,
     levenshtein_distance,
+    levenshtein_similarity,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
@@ -954,6 +955,26 @@ class TestLevenshteinDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     levenshtein_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestLevenshteinSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(levenshtein_similarity("abc", "abc"), 1.0)
+
+    def test_empty_strings(self):
+        self.assertAlmostEqual(levenshtein_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(levenshtein_similarity("abc", ""), 0.0)
+
+    def test_known(self):
+        self.assertAlmostEqual(levenshtein_similarity("kitten", "sitting"), 1 - 3 / 7, places=6)
+
+    def test_validation(self):
+        with self.assertRaises(TypeError):
+            levenshtein_similarity(1, "b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            levenshtein_similarity("a", None)  # type: ignore[arg-type]
 
 
 class TestHammingDistance(unittest.TestCase):

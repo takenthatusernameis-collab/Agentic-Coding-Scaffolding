@@ -793,6 +793,29 @@ def levenshtein_distance(text1: str, text2: str) -> int:
     return previous[-1]
 
 
+def levenshtein_similarity(text1: str, text2: str) -> float:
+    """Return the normalized Levenshtein similarity of two strings.
+
+    The result is in [0, 1] where 1 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The normalized similarity as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    max_len = max(len(text1), len(text2))
+    if max_len == 0:
+        return 1.0
+    return 1.0 - levenshtein_distance(text1, text2) / max_len
+
+
 def hamming_distance(text1: str, text2: str) -> int:
     """Compute the Hamming distance between two strings of equal length.
 

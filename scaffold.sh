@@ -22615,6 +22615,7 @@ from string_utils import (
     jaro_winkler_distance,
     jaro_winkler_similarity,
     levenshtein_distance,
+    levenshtein_similarity,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
@@ -23548,6 +23549,26 @@ class TestLevenshteinDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     levenshtein_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestLevenshteinSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(levenshtein_similarity("abc", "abc"), 1.0)
+
+    def test_empty_strings(self):
+        self.assertAlmostEqual(levenshtein_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(levenshtein_similarity("abc", ""), 0.0)
+
+    def test_known(self):
+        self.assertAlmostEqual(levenshtein_similarity("kitten", "sitting"), 1 - 3 / 7, places=6)
+
+    def test_validation(self):
+        with self.assertRaises(TypeError):
+            levenshtein_similarity(1, "b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            levenshtein_similarity("a", None)  # type: ignore[arg-type]
 
 
 class TestHammingDistance(unittest.TestCase):
@@ -34798,6 +34819,29 @@ def levenshtein_distance(text1: str, text2: str) -> int:
             )
         previous = current
     return previous[-1]
+
+
+def levenshtein_similarity(text1: str, text2: str) -> float:
+    """Return the normalized Levenshtein similarity of two strings.
+
+    The result is in [0, 1] where 1 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The normalized similarity as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    max_len = max(len(text1), len(text2))
+    if max_len == 0:
+        return 1.0
+    return 1.0 - levenshtein_distance(text1, text2) / max_len
 
 
 def hamming_distance(text1: str, text2: str) -> int:
