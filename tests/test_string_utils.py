@@ -5,6 +5,7 @@ import unittest
 from string_utils import (
     camel_to_snake,
     count_words,
+    damerau_levenshtein_distance,
     dedent_text,
     hamming_distance,
     indent_text,
@@ -983,6 +984,57 @@ class TestHammingDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     hamming_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestDamerauLevenshteinDistance(unittest.TestCase):
+    def test_transposition(self):
+        self.assertEqual(damerau_levenshtein_distance("ab", "ba"), 1)
+
+    def test_classic_example(self):
+        self.assertEqual(damerau_levenshtein_distance("ca", "ac"), 1)
+
+    def test_identical(self):
+        self.assertEqual(damerau_levenshtein_distance("abc", "abc"), 0)
+
+    def test_empty_strings(self):
+        self.assertEqual(damerau_levenshtein_distance("", ""), 0)
+
+    def test_one_empty(self):
+        self.assertEqual(damerau_levenshtein_distance("abc", ""), 3)
+        self.assertEqual(damerau_levenshtein_distance("", "xyz"), 3)
+
+    def test_substitution_only(self):
+        self.assertEqual(damerau_levenshtein_distance("cat", "car"), 1)
+
+    def test_insertion_and_deletion(self):
+        self.assertEqual(damerau_levenshtein_distance("flaw", "lawn"), 2)
+
+    def test_case_sensitive(self):
+        self.assertEqual(damerau_levenshtein_distance("Abc", "abc"), 1)
+
+    def test_whitespace_preserved(self):
+        self.assertEqual(damerau_levenshtein_distance("a b", "ab"), 1)
+
+    def test_unicode(self):
+        self.assertEqual(damerau_levenshtein_distance("café", "cafe"), 1)
+
+    def test_symmetric(self):
+        self.assertEqual(
+            damerau_levenshtein_distance("intention", "execution"),
+            damerau_levenshtein_distance("execution", "intention"),
+        )
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    damerau_levenshtein_distance(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    damerau_levenshtein_distance("a", value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

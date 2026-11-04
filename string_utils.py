@@ -26,6 +26,7 @@ __all__: List[str] = [
     "count_words",
     "levenshtein_distance",
     "hamming_distance",
+    "damerau_levenshtein_distance",
 ]
 
 _SMALL_WORDS = {
@@ -816,3 +817,74 @@ def hamming_distance(text1: str, text2: str) -> int:
         if c1 != c2:
             distance += 1
     return distance
+
+
+def damerau_levenshtein_distance(text1: str, text2: str) -> int:
+    """Return the Damerau-Levenshtein distance between two strings.
+
+    The distance is the minimum number of single-character edits
+    (insertions, deletions, substitutions, or transpositions of two
+    adjacent characters) required to transform *text1* into *text2*.
+    A transposition counts as a single edit, unlike the plain Levenshtein
+    distance where it counts as two. This implementation uses the
+    optimal-string-alignment (restricted edit-distance) algorithm, where
+    no substring is edited more than once, and runs in O(len(text1) *
+    len(text2)) time with O(min(len(text1), len(text2))) space. The
+    computation is case-sensitive.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The integer edit distance between *text1* and *text2*. Zero means
+        the strings are identical.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+
+    Examples:
+        >>> damerau_levenshtein_distance("ca", "ac")
+        1
+        >>> damerau_levenshtein_distance("abc", "abc")
+        0
+        >>> damerau_levenshtein_distance("", "")
+        0
+        >>> damerau_levenshtein_distance("kitten", "sitting")
+        3
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+
+    # Keep the longer string as the rows to minimize the column width.
+    if len(text1) < len(text2):
+        text1, text2 = text2, text1
+
+    n = len(text1)
+    m = len(text2)
+
+    # row_minus1 holds the previous row (i - 1); row_minus2 holds the row
+    # before that (i - 2), needed for the transposition term.
+    row_minus2 = list(range(m + 1))
+    row_minus1 = list(range(m + 1))
+    for i in range(1, n + 1):
+        row = [i]
+        char1 = text1[i - 1]
+        for j in range(1, m + 1):
+            cost = 0 if char1 == text2[j - 1] else 1
+            best = min(
+                row[j - 1] + 1,  # insertion
+                row_minus1[j] + 1,  # deletion
+                row_minus1[j - 1] + cost,  # substitution
+            )
+            if (
+                i > 1
+                and j > 1
+                and char1 == text2[j - 2]
+                and text1[i - 2] == text2[j - 1]
+            ):
+                best = min(best, row_minus2[j - 2] + cost)  # transposition
+            row.append(best)
+        row_minus2 = row_minus1
+        row_minus1 = row
+    return row_minus1[-1]
