@@ -24,29 +24,27 @@ __all__: List[str] = [
     "estimate_token_count",
     "count_words",
     "collapse_blank_lines",
+    "count_blank_lines",
     "count_placeholders",
     "count_sentences",
     "truncate_words",
     "truncate_lines",
     "indent_lines",
-    "is_blank",
     "dedent_lines",
     "remove_blank_lines",
     "rstrip_lines",
     "lstrip_lines",
     "strip_lines",
     "ensure_prefix",
-    "ensure_suffix",
-    "ensure_leading_newline",
-    "ensure_surrounded_by_newlines",
     "remove_prefix",
+    "ensure_suffix",
     "remove_suffix",
+    "ensure_leading_newline",
     "ensure_trailing_newline",
     "normalize_line_endings",
     "first_line",
     "last_line",
     "count_lines",
-    "count_blank_lines",
     "count_non_blank_lines",
     "count_trailing_newlines",
     "count_leading_newlines",
@@ -56,16 +54,17 @@ __all__: List[str] = [
     "count_characters",
     "count_non_whitespace_characters",
     "count_whitespace_characters",
+    "count_spaces",
+    "count_tabs",
     "count_digits",
     "has_digits",
+    "has_uppercase",
     "count_letters",
     "count_vowels",
     "count_consonants",
     "count_lowercase",
     "count_uppercase",
     "count_punctuation",
-    "count_spaces",
-    "count_tabs",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -75,7 +74,8 @@ __all__: List[str] = [
     "split_lines",
     "chomp",
     "escape_placeholders",
-    "normalize_whitespace",
+    "is_blank",
+    "ensure_surrounded_by_newlines",
 ]
 
 
@@ -1869,6 +1869,35 @@ def has_digits(text: str) -> bool:
     """
     _require_string(text, "text")
     return any("0" <= ch <= "9" for ch in text)
+
+
+def has_uppercase(text: str) -> bool:
+    """Return True if *text* contains any uppercase ASCII letter (A-Z).
+
+    A boolean companion to :func:`count_uppercase` that reports whether
+    *text* contains at least one uppercase ASCII letter. Empty text returns
+    False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one uppercase ASCII letter,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_uppercase("Hello")
+        True
+        >>> has_uppercase("hello")
+        False
+        >>> has_uppercase("")
+        False
+    """
+    _require_string(text, "text")
+    return any("A" <= ch <= "Z" for ch in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:

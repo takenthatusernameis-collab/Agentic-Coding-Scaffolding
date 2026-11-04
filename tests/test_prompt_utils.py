@@ -35,23 +35,22 @@ from prompt_utils import (
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
     escape_placeholders,
-    estimate_token_count,
     extract_keywords,
     extract_placeholders,
     extract_sentences,
     first_line,
     format_prompt_template,
+    has_digits,
     has_leading_newline,
     has_placeholders,
     has_trailing_newline,
-    has_digits,
+    has_uppercase,
     indent_lines,
     is_blank,
     join_lines,
     last_line,
     lstrip_lines,
     normalize_line_endings,
-    normalize_whitespace,
     remove_blank_lines,
     remove_prefix,
     remove_suffix,
@@ -66,6 +65,8 @@ from prompt_utils import (
     truncate_prompt,
     truncate_words,
     wrap_prompt,
+    estimate_token_count,
+    normalize_whitespace,
 )
 
 
@@ -106,6 +107,27 @@ class TestHasDigits(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             has_digits(123)  # type: ignore[arg-type]
+
+
+class TestHasUppercase(unittest.TestCase):
+    def test_contains_uppercase(self):
+        self.assertTrue(has_uppercase("Hello"))
+
+    def test_contains_single_uppercase(self):
+        self.assertTrue(has_uppercase("aBc"))
+
+    def test_no_uppercase(self):
+        self.assertFalse(has_uppercase("hello world"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_uppercase(""))
+
+    def test_only_uppercase(self):
+        self.assertTrue(has_uppercase("ABC"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_uppercase(123)  # type: ignore[arg-type]
 
     def test_truncate_short_text(self):
         result = truncate_prompt("Hello", 10)
