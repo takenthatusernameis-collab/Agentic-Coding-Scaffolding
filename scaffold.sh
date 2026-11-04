@@ -22601,6 +22601,7 @@ from string_utils import (
     indent_text,
     is_anagram,
     is_isogram,
+    is_palindrome,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
@@ -22964,6 +22965,35 @@ class TestIsAnagram(unittest.TestCase):
     def test_type_error_both(self):
         with self.assertRaises(TypeError):
             is_anagram(None, None)  # type: ignore[arg-type]
+
+
+class TestIsPalindrome(unittest.TestCase):
+    def test_basic_palindrome(self):
+        self.assertTrue(is_palindrome("madam"))
+
+    def test_case_insensitive(self):
+        self.assertTrue(is_palindrome("Madam"))
+        self.assertTrue(is_palindrome("Aba"))
+
+    def test_phrase_with_punctuation_and_spaces(self):
+        self.assertTrue(is_palindrome("A man a plan a canal Panama"))
+
+    def test_not_palindrome(self):
+        self.assertFalse(is_palindrome("hello"))
+        self.assertFalse(is_palindrome("world"))
+
+    def test_empty_string(self):
+        self.assertTrue(is_palindrome(""))
+
+    def test_single_character(self):
+        self.assertTrue(is_palindrome("a"))
+
+    def test_with_numbers(self):
+        self.assertTrue(is_palindrome("12321"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_palindrome(123)  # type: ignore[arg-type]
 
 
 class TestSlugifyBoundary(unittest.TestCase):
@@ -33535,6 +33565,7 @@ __all__: List[str] = [
     "snake_to_camel",
     "is_isogram",
     "is_anagram",
+    "is_palindrome",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -34132,6 +34163,40 @@ def is_anagram(text1: str, text2: str) -> bool:
     normalized1 = sorted(text1.lower().replace(" ", ""))
     normalized2 = sorted(text2.lower().replace(" ", ""))
     return normalized1 == normalized2
+
+
+def is_palindrome(text: str) -> bool:
+    """Return True if *text* is a palindrome.
+
+    A palindrome reads the same forward and backward. The check is
+    case-insensitive and ignores whitespace and non-letter characters.
+
+    Args:
+        text: The string to check.
+
+    Returns:
+        True if *text* is a palindrome, False otherwise. The empty string
+        is considered a palindrome.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> is_palindrome("madam")
+        True
+        >>> is_palindrome("A man a plan a canal Panama")
+        True
+        >>> is_palindrome("hello")
+        False
+        >>> is_palindrome("")
+        True
+    """
+    _require_string(text, "text")
+    normalized = ""
+    for ch in text.lower():
+        if ch.isalnum():
+            normalized += ch
+    return normalized == normalized[::-1]
 
 
 def reverse_words(text: str) -> str:

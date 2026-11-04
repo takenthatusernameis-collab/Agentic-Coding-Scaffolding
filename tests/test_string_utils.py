@@ -8,6 +8,7 @@ from string_utils import (
     indent_text,
     is_anagram,
     is_isogram,
+    is_palindrome,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
@@ -371,6 +372,35 @@ class TestIsAnagram(unittest.TestCase):
     def test_type_error_both(self):
         with self.assertRaises(TypeError):
             is_anagram(None, None)  # type: ignore[arg-type]
+
+
+class TestIsPalindrome(unittest.TestCase):
+    def test_basic_palindrome(self):
+        self.assertTrue(is_palindrome("madam"))
+
+    def test_case_insensitive(self):
+        self.assertTrue(is_palindrome("Madam"))
+        self.assertTrue(is_palindrome("Aba"))
+
+    def test_phrase_with_punctuation_and_spaces(self):
+        self.assertTrue(is_palindrome("A man a plan a canal Panama"))
+
+    def test_not_palindrome(self):
+        self.assertFalse(is_palindrome("hello"))
+        self.assertFalse(is_palindrome("world"))
+
+    def test_empty_string(self):
+        self.assertTrue(is_palindrome(""))
+
+    def test_single_character(self):
+        self.assertTrue(is_palindrome("a"))
+
+    def test_with_numbers(self):
+        self.assertTrue(is_palindrome("12321"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_palindrome(123)  # type: ignore[arg-type]
 
 
 class TestSlugifyBoundary(unittest.TestCase):

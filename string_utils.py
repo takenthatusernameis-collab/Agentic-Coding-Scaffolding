@@ -10,6 +10,7 @@ __all__: List[str] = [
     "snake_to_camel",
     "is_isogram",
     "is_anagram",
+    "is_palindrome",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -607,6 +608,40 @@ def is_anagram(text1: str, text2: str) -> bool:
     normalized1 = sorted(text1.lower().replace(" ", ""))
     normalized2 = sorted(text2.lower().replace(" ", ""))
     return normalized1 == normalized2
+
+
+def is_palindrome(text: str) -> bool:
+    """Return True if *text* is a palindrome.
+
+    A palindrome reads the same forward and backward. The check is
+    case-insensitive and ignores whitespace and non-letter characters.
+
+    Args:
+        text: The string to check.
+
+    Returns:
+        True if *text* is a palindrome, False otherwise. The empty string
+        is considered a palindrome.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> is_palindrome("madam")
+        True
+        >>> is_palindrome("A man a plan a canal Panama")
+        True
+        >>> is_palindrome("hello")
+        False
+        >>> is_palindrome("")
+        True
+    """
+    _require_string(text, "text")
+    normalized = ""
+    for ch in text.lower():
+        if ch.isalnum():
+            normalized += ch
+    return normalized == normalized[::-1]
 
 
 def reverse_words(text: str) -> str:
