@@ -47,6 +47,8 @@ __all__ = [
     "is_oblong_number",
     "is_odd",
     "is_evil_number",
+    "additive_persistence",
+    "multiplicative_persistence",
     "is_odious_number",
     "is_palindromic_number",
     "is_pentagonal_number",
@@ -1949,3 +1951,94 @@ def is_evil_number(value: int) -> bool:
     if value < 0:
         return False
     return bin(value).count("1") % 2 == 0
+
+
+def additive_persistence(value: int) -> int:
+    """Return the additive persistence of *value*.
+
+    The additive persistence is the number of times one must sum the decimal
+    digits of a number until a single-digit number is reached.
+
+    The sign of *value* is ignored, so ``additive_persistence(-123)`` returns ``2``.
+    ``additive_persistence(0)`` returns ``0``.
+
+    Args:
+        value: The integer to compute the additive persistence for.
+
+    Returns:
+        The number of digit-sum iterations until a single-digit number is reached.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> additive_persistence(123)
+        2
+        >>> additive_persistence(-123)
+        2
+        >>> additive_persistence(0)
+        0
+        >>> additive_persistence(9)
+        0
+        >>> additive_persistence(99)
+        2
+        >>> additive_persistence(199)
+        3
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value == 0:
+        return 0
+    n = abs(value)
+    count = 0
+    while n >= 10:
+        n = sum(int(digit) for digit in str(n))
+        count += 1
+    return count
+
+
+def multiplicative_persistence(value: int) -> int:
+    """Return the multiplicative persistence of *value*.
+
+    The multiplicative persistence is the number of times one must multiply the
+    decimal digits of a number until a single-digit number is reached.
+
+    The sign of *value* is ignored, so ``multiplicative_persistence(-39)`` returns ``3``.
+    ``multiplicative_persistence(0)`` returns ``0``.
+
+    Args:
+        value: The integer to compute the multiplicative persistence for.
+
+    Returns:
+        The number of digit-product iterations until a single-digit number is reached.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> multiplicative_persistence(39)
+        3
+        >>> multiplicative_persistence(-39)
+        3
+        >>> multiplicative_persistence(0)
+        0
+        >>> multiplicative_persistence(4)
+        0
+        >>> multiplicative_persistence(77)
+        4
+        >>> multiplicative_persistence(679)
+        5
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value == 0:
+        return 0
+    n = abs(value)
+    count = 0
+    while n >= 10:
+        product = 1
+        for digit in str(n):
+            product *= int(digit)
+        n = product
+        count += 1
+    return count

@@ -3,6 +3,7 @@
 import unittest
 
 from number_utils import (
+    additive_persistence,
     ceil_div,
     clamp,
     digit_count,
@@ -52,6 +53,7 @@ from number_utils import (
     lcm,
     lerp,
     map_range,
+    multiplicative_persistence,
     percentage,
     remap,
     round_half_up,
@@ -1054,6 +1056,54 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number("6")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_triangular_number(True)  # type: ignore[arg-type]
+
+
+class TestAdditivePersistence(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(additive_persistence(0), 0)
+        self.assertEqual(additive_persistence(9), 0)
+        self.assertEqual(additive_persistence(123), 1)
+        self.assertEqual(additive_persistence(99), 2)
+        self.assertEqual(additive_persistence(199), 3)
+        self.assertEqual(additive_persistence(999), 2)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(additive_persistence(-123), 1)
+        self.assertEqual(additive_persistence(-5), 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            additive_persistence("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            additive_persistence(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            additive_persistence(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            additive_persistence(None)  # type: ignore[arg-type]
+
+
+class TestMultiplicativePersistence(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(multiplicative_persistence(0), 0)
+        self.assertEqual(multiplicative_persistence(4), 0)
+        self.assertEqual(multiplicative_persistence(39), 3)
+        self.assertEqual(multiplicative_persistence(77), 4)
+        self.assertEqual(multiplicative_persistence(679), 5)
+        self.assertEqual(multiplicative_persistence(999), 4)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(multiplicative_persistence(-39), 3)
+        self.assertEqual(multiplicative_persistence(-4), 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            multiplicative_persistence("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiplicative_persistence(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiplicative_persistence(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiplicative_persistence(None)  # type: ignore[arg-type]
 
 
 class TestIsArmstrongNumber(unittest.TestCase):
