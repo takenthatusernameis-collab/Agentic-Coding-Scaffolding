@@ -53229,6 +53229,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added format_duration to time_utils
+
+- Added `format_duration(seconds)` to `time_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it formats a non-negative number of seconds as a human-readable `Hh Mm Ss` string, omitting zero-valued components (except a bare `0s`). Added tests in `tests/test_time_utils.py` covering zero, seconds-only, minutes, hours, `TypeError`, and `ValueError` paths. Updated the `time_utils` module tree entry and prose section of `README.md`. Synchronized `time_utils.py`, `tests/test_time_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_ugly_number to prime_utils
 
 - Added `is_ugly_number(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *n* is an ugly (5-smooth/Hamming) number — a positive integer whose prime factors are limited to 2, 3, and 5, with 1 considered ugly — and False otherwise. Added `TestIsUglyNumber` to `tests/test_prime_utils.py` covering known ugly numbers matching OEIS A051037, non-ugly numbers, boundary values, and the `TypeError` paths (13 new tests). Imported `is_ugly_number` at the top of the test file to match the module's `__all__` contract. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -55360,7 +55365,7 @@ difflib_utils.py           # Difflib utility functions for sequence comparison a
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
 markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
-time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch)
+time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch, format_duration)
 timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
 hash_utils.py              # Hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
@@ -56261,7 +56266,7 @@ The project includes Markdown utility functions in `markdown_utils.py` for worki
 
 ## Time Utilities Module
 
-The project includes time utility functions in `time_utils.py` for working with timestamps and durations: `now_epoch` returns the current Unix timestamp in seconds, `now_iso` returns the current UTC time as an ISO 8601 string, `epoch_to_iso` converts a Unix timestamp to an ISO 8601 UTC string, and `iso_to_epoch` parses an ISO 8601 string into a Unix timestamp (returning `None` for invalid input). The module is tested in `tests/test_time_utils.py`.
+The project includes time utility functions in `time_utils.py` for working with timestamps and durations: `now_epoch` returns the current Unix timestamp in seconds, `now_iso` returns the current UTC time as an ISO 8601 string, `epoch_to_iso` converts a Unix timestamp to an ISO 8601 UTC string, and `iso_to_epoch` parses an ISO 8601 string into a Unix timestamp (returning `None` for invalid input); `format_duration` formats a non-negative number of seconds as a human-readable `Hh Mm Ss` string. The module is tested in `tests/test_time_utils.py`.
 
 ## Timezone Utilities Module
 
@@ -103487,6 +103492,7 @@ __all__ = [
     "now_iso",
     "epoch_to_iso",
     "iso_to_epoch",
+    "format_duration",
 ]
 
 
@@ -103514,6 +103520,32 @@ def iso_to_epoch(value: str) -> Optional[int]:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return int(dt.timestamp())
+
+
+def format_duration(seconds: int) -> str:
+    """Format a non-negative number of seconds as ``Hh Mm Ss``.
+
+    >>> format_duration(0)
+    '0s'
+    >>> format_duration(65)
+    '1m 5s'
+    >>> format_duration(3661)
+    '1h 1m 1s'
+    """
+    if isinstance(seconds, bool) or not isinstance(seconds, int):
+        raise TypeError("seconds must be an int")
+    if seconds < 0:
+        raise ValueError("seconds must be non-negative")
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    parts = []
+    if hours:
+        parts.append(f"{hours}h")
+    if minutes:
+        parts.append(f"{minutes}m")
+    if secs or not parts:
+        parts.append(f"{secs}s")
+    return " ".join(parts)
 TIME_UTILS
 
 # --- tests/test_time_utils.py ---
@@ -103543,6 +103575,38 @@ def test_epoch_roundtrip():
 
 def test_iso_to_epoch_invalid():
     assert time_utils.iso_to_epoch("not-a-date") is None
+
+
+def test_format_duration_zero():
+    assert time_utils.format_duration(0) == "0s"
+
+
+def test_format_duration_seconds():
+    assert time_utils.format_duration(45) == "45s"
+
+
+def test_format_duration_minutes():
+    assert time_utils.format_duration(65) == "1m 5s"
+
+
+def test_format_duration_hours():
+    assert time_utils.format_duration(3661) == "1h 1m 1s"
+
+
+def test_format_duration_type_error():
+    try:
+        time_utils.format_duration("x")
+    except TypeError:
+        return
+    raise AssertionError("expected TypeError")
+
+
+def test_format_duration_value_error():
+    try:
+        time_utils.format_duration(-1)
+    except ValueError:
+        return
+    raise AssertionError("expected ValueError")
 TEST_TIME_UTILS
 
 # --- timeit_utils.py ---

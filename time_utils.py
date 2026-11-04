@@ -11,6 +11,7 @@ __all__ = [
     "now_iso",
     "epoch_to_iso",
     "iso_to_epoch",
+    "format_duration",
 ]
 
 
@@ -38,3 +39,29 @@ def iso_to_epoch(value: str) -> Optional[int]:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return int(dt.timestamp())
+
+
+def format_duration(seconds: int) -> str:
+    """Format a non-negative number of seconds as ``Hh Mm Ss``.
+
+    >>> format_duration(0)
+    '0s'
+    >>> format_duration(65)
+    '1m 5s'
+    >>> format_duration(3661)
+    '1h 1m 1s'
+    """
+    if isinstance(seconds, bool) or not isinstance(seconds, int):
+        raise TypeError("seconds must be an int")
+    if seconds < 0:
+        raise ValueError("seconds must be non-negative")
+    hours, remainder = divmod(seconds, 3600)
+    minutes, secs = divmod(remainder, 60)
+    parts = []
+    if hours:
+        parts.append(f"{hours}h")
+    if minutes:
+        parts.append(f"{minutes}m")
+    if secs or not parts:
+        parts.append(f"{secs}s")
+    return " ".join(parts)
