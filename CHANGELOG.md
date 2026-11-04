@@ -1,3 +1,8 @@
+## Unreleased — added mode_frequency to stats
+
+- Added `mode_frequency(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the number of times the most frequently occurring value appears in a list of numbers (1 when every value is distinct). Added `TestModeFrequency` to `tests/test_stats.py` covering basic frequency, all-distinct, single-value, single-element, negative and float inputs, ties, and the empty/non-list/non-numeric/bool rejection paths (11 new tests). Imported `mode_frequency` at the top of the test file to match the module's `__all__` contract. Updated the `stats` prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_stats` passes; `python -m doctest stats.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — document dumbdbm_utils cross-references
 
 - Registered the `dumbdbm_utils` module (added in a prior session) in the project cross-references: added `dumbdbm_utils.py` to the `README.md` module tree, test tree, and prose section; added `dumbdbm_utils.py` and `tests/test_dumbdbm_utils.py` to `CHANGELOG.md`; listed both in the `scaffold.sh` header comment and `tests/test_scaffold.py`; synchronized the embedded README and CHANGELOG templates in `scaffold.sh` with `make refresh-scaffold`. This closes the scaffold-sync gap that left six `test_scaffold_sync` failures for `dumbdbm_utils`.

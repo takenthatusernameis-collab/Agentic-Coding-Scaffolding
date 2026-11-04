@@ -24,6 +24,7 @@ from stats import (
     midrange,
     min_value,
     mode,
+    mode_frequency,
     moving_average,
     multimode,
     percentile,
@@ -1546,3 +1547,42 @@ class TestWinsorizedStddev(unittest.TestCase):
             winsorized_stddev([1, 2, 3], 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             winsorized_stddev([1, 2, 3], True)  # type: ignore[arg-type]
+
+
+class TestModeFrequency(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(mode_frequency([1, 2, 2, 3, 3, 3]), 3)
+
+    def test_all_distinct(self) -> None:
+        self.assertEqual(mode_frequency([1, 2, 3]), 1)
+
+    def test_single_value(self) -> None:
+        self.assertEqual(mode_frequency([5, 5, 5]), 3)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(mode_frequency([7]), 1)
+
+    def test_negative_numbers(self) -> None:
+        self.assertEqual(mode_frequency([-1, -1, -2, -2, -2]), 3)
+
+    def test_float_values(self) -> None:
+        self.assertEqual(mode_frequency([1.5, 1.5, 2.5]), 2)
+
+    def test_tie_returns_count(self) -> None:
+        self.assertEqual(mode_frequency([1, 1, 2, 2]), 2)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            mode_frequency([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            mode_frequency((1, 2, 2))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            mode_frequency([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            mode_frequency([True, 1, 2])  # type: ignore[type-var]

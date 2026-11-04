@@ -15449,6 +15449,7 @@ __all__: List[str] = [
     "median_high",
     "median_grouped",
     "mode",
+    "mode_frequency",
     "multimode",
     "variance",
     "pvariance",
@@ -15756,6 +15757,37 @@ def multimode(numbers: List[T | float]) -> List[float]:
             seen.add(num)
             result.append(float(num))
     return result
+
+
+def mode_frequency(numbers: List[T | float]) -> int:
+    """Return the frequency of the most common value in a list of numbers.
+
+    The frequency is the number of times the most frequently occurring value
+    appears in *numbers*. When every value is distinct the result is 1.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The count of the most frequent value in *numbers*.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> mode_frequency([1, 2, 2, 3, 3, 3])
+        3
+        >>> mode_frequency([1, 2, 3])
+        1
+        >>> mode_frequency([5, 5, 5])
+        3
+    """
+    _require_numbers(numbers, "numbers")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    return max(frequency.values())
 
 
 def variance(numbers: List[T | float], population: bool = True) -> float:
@@ -19642,6 +19674,7 @@ from stats import (
     midrange,
     min_value,
     mode,
+    mode_frequency,
     moving_average,
     multimode,
     percentile,
@@ -21164,6 +21197,45 @@ class TestWinsorizedStddev(unittest.TestCase):
             winsorized_stddev([1, 2, 3], 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             winsorized_stddev([1, 2, 3], True)  # type: ignore[arg-type]
+
+
+class TestModeFrequency(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(mode_frequency([1, 2, 2, 3, 3, 3]), 3)
+
+    def test_all_distinct(self) -> None:
+        self.assertEqual(mode_frequency([1, 2, 3]), 1)
+
+    def test_single_value(self) -> None:
+        self.assertEqual(mode_frequency([5, 5, 5]), 3)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(mode_frequency([7]), 1)
+
+    def test_negative_numbers(self) -> None:
+        self.assertEqual(mode_frequency([-1, -1, -2, -2, -2]), 3)
+
+    def test_float_values(self) -> None:
+        self.assertEqual(mode_frequency([1.5, 1.5, 2.5]), 2)
+
+    def test_tie_returns_count(self) -> None:
+        self.assertEqual(mode_frequency([1, 1, 2, 2]), 2)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            mode_frequency([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            mode_frequency((1, 2, 2))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            mode_frequency([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            mode_frequency([True, 1, 2])  # type: ignore[type-var]
 TESTSTATS
 
 # --- math_utils.py ---
@@ -54344,6 +54416,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added mode_frequency to stats
+
+- Added `mode_frequency(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the number of times the most frequently occurring value appears in a list of numbers (1 when every value is distinct). Added `TestModeFrequency` to `tests/test_stats.py` covering basic frequency, all-distinct, single-value, single-element, negative and float inputs, ties, and the empty/non-list/non-numeric/bool rejection paths (11 new tests). Imported `mode_frequency` at the top of the test file to match the module's `__all__` contract. Updated the `stats` prose section of `README.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_stats` passes; `python -m doctest stats.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — document dumbdbm_utils cross-references
 
 - Registered the `dumbdbm_utils` module (added in a prior session) in the project cross-references: added `dumbdbm_utils.py` to the `README.md` module tree, test tree, and prose section; added `dumbdbm_utils.py` and `tests/test_dumbdbm_utils.py` to `CHANGELOG.md`; listed both in the `scaffold.sh` header comment and `tests/test_scaffold.py`; synchronized the embedded README and CHANGELOG templates in `scaffold.sh` with `make refresh-scaffold`. This closes the scaffold-sync gap that left six `test_scaffold_sync` failures for `dumbdbm_utils`.
@@ -56982,7 +57059,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` (aliased from `range_stat`) returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `mode_frequency`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` (aliased from `range_stat`) returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

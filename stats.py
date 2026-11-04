@@ -13,6 +13,7 @@ __all__: List[str] = [
     "median_high",
     "median_grouped",
     "mode",
+    "mode_frequency",
     "multimode",
     "variance",
     "pvariance",
@@ -320,6 +321,37 @@ def multimode(numbers: List[T | float]) -> List[float]:
             seen.add(num)
             result.append(float(num))
     return result
+
+
+def mode_frequency(numbers: List[T | float]) -> int:
+    """Return the frequency of the most common value in a list of numbers.
+
+    The frequency is the number of times the most frequently occurring value
+    appears in *numbers*. When every value is distinct the result is 1.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The count of the most frequent value in *numbers*.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If numbers is not a list or contains non-numeric values.
+
+    Examples:
+        >>> mode_frequency([1, 2, 2, 3, 3, 3])
+        3
+        >>> mode_frequency([1, 2, 3])
+        1
+        >>> mode_frequency([5, 5, 5])
+        3
+    """
+    _require_numbers(numbers, "numbers")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    return max(frequency.values())
 
 
 def variance(numbers: List[T | float], population: bool = True) -> float:
