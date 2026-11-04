@@ -48,6 +48,7 @@ from prompt_utils import (
     last_line,
     lstrip_lines,
     normalize_line_endings,
+    normalize_whitespace,
     remove_blank_lines,
     remove_prefix,
     remove_suffix,
@@ -1520,3 +1521,30 @@ class TestChomp(unittest.TestCase):
             chomp(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             chomp(None)  # type: ignore[arg-type]
+
+
+class TestNormalizeWhitespace(unittest.TestCase):
+    """Tests for normalize_whitespace function."""
+
+    def test_basic(self):
+        self.assertEqual(normalize_whitespace("  a   b  \n  c  "), "a b c")
+
+    def test_empty_string(self):
+        self.assertEqual(normalize_whitespace(""), "")
+
+    def test_single_word(self):
+        self.assertEqual(normalize_whitespace("   hello   "), "hello")
+
+    def test_no_extra_whitespace(self):
+        self.assertEqual(normalize_whitespace("a b c"), "a b c")
+
+    def test_tabs_and_newlines(self):
+        self.assertEqual(normalize_whitespace("a\t\tb\nc"), "a b c")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            normalize_whitespace(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            normalize_whitespace(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            normalize_whitespace([])  # type: ignore[arg-type]
