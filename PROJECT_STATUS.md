@@ -1,5 +1,25 @@
 # Project Status
 
+## Latest Session (2026-11-04) — added shannon_entropy to stats
+
+The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7953 tests and passed.
+
+Completed in this session:
+
+- Found that `stats.py` wrapped a broad set of descriptive statistics (mean, median, mode, variance, skewness, kurtosis, trimmed/winsorized means, quantiles, covariances, MAD, ...) but had no entropy or information-theoretic measure, leaving a gap in the module's coverage of distribution shape.
+- Added `shannon_entropy(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the Shannon entropy of the discrete values in bits (`-sum(p * log2(p))` over the probability of each distinct value), which is 0 for a list of identical values and `log2(n)` for *n* distinct values, computed with a single frequency-count pass in O(n) time.
+- Added `TestShannonEntropy` to `tests/test_stats.py` covering identical/all-distinct/mixed distributions, single element, two-distinct equal, order invariance, float and negative inputs, and the empty-list/non-list/non-numeric/bool rejection paths (12 new tests). Imported `shannon_entropy` at the top of the test file to match the module's `__all__` contract.
+- Updated the `stats` prose section of `README.md` to document `shannon_entropy` alongside the winsorized helpers.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_stats` passes (384 tests); full suite runs 7965 tests and passes; `python -m unittest tests.test_public_api` passes; `python -m doctest stats.py` shows only the 6 pre-existing float-formatting failures (geometric_mean, kurtosis, median, mode, winsorized_stddev — unchanged before and after this change); `shannon_entropy`'s 3 doctests pass. `ruff`/`mypy` are not installed in this environment (`make lint`/`make typecheck` fail with "not installed"), so they could not be re-run, but the change is a single new function plus tests and cannot introduce lint/type regressions in other files.
+- Committed the work as `feat(stats): add shannon_entropy helper with tests and refresh scaffold`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `number_utils.py`, `numbers_utils.py`, `prompt_utils.py`, `version_utils.py`, `prime_utils.py`, `itertools_utils.py`, `bytes_utils.py`).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-04) — fixed list_utils doctest quote style
 
 The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7769 tests and passed.
