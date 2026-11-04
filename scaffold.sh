@@ -37095,6 +37095,7 @@ __all__: List[str] = [
     "has_uppercase",
     "has_letters",
     "has_punctuation",
+    "has_vowels",
     "count_letters",
     "count_vowels",
     "count_consonants",
@@ -39022,6 +39023,35 @@ def has_punctuation(text: str) -> bool:
     """
     _require_string(text, "text")
     return any(ch in _PUNCTUATION for ch in text)
+
+
+def has_vowels(text: str) -> bool:
+    """Return True if *text* contains any ASCII vowel (a, e, i, o, u).
+
+    A boolean companion to :func:`count_vowels` that reports whether *text*
+    contains at least one ASCII vowel, case-insensitive. Empty text returns
+    False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one ASCII vowel, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_vowels("hello")
+        True
+        >>> has_vowels("xyz")
+        False
+        >>> has_vowels("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch in "aeiouAEIOU" for ch in text)
 
 
 def has_whitespace(text: str) -> bool:
