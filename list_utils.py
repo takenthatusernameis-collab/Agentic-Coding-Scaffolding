@@ -316,7 +316,7 @@ def unique_preserve_order(lst: List[T]) -> List[T]:
         >>> unique_preserve_order([1, 2, 2, 3, 1])
         [1, 2, 3]
         >>> unique_preserve_order(["a", "b", "a"])
-        ["a", "b"]
+        ['a', 'b']
         >>> unique_preserve_order([])
         []
     """

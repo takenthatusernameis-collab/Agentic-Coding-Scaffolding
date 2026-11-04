@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-04) — fixed list_utils doctest quote style
+
+The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7769 tests and passed.
+
+Completed in this session:
+
+- Found a real defect introduced by the previous session's `unique_preserve_order` addition: the doctest in `list_utils.py` expected the double-quoted repr `["a", "b"]`, but Python's `repr` for lists uses single quotes, so `python -m doctest list_utils.py` reported 1 failure. Corrected the expected output to `['a', 'b']` in `list_utils.py` and the byte-identical embedded copy in `scaffold.sh`. The function, its `__all__` export, `TypeError` validation, and `tests/test_list_utils.py` coverage were unchanged.
+- Verified: `python -m unittest tests.test_list_utils` passes (65 tests); `python -m doctest list_utils.py` passes; `make test` passes (7769 tests); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `string_utils.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-04) — added levenshtein_distance to string_utils
 
 The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7756 tests and passed.
