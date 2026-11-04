@@ -42,6 +42,7 @@ from prompt_utils import (
     format_prompt_template,
     has_digits,
     has_leading_newline,
+    has_lowercase,
     has_placeholders,
     has_trailing_newline,
     has_uppercase,
@@ -160,6 +161,27 @@ class TestHasUppercase(unittest.TestCase):
     def test_truncate_rejects_negative_max_length(self):
         with self.assertRaises(ValueError):
             truncate_prompt("Hello", -1)
+
+
+class TestHasLowercase(unittest.TestCase):
+    def test_contains_lowercase(self):
+        self.assertTrue(has_lowercase("Hello"))
+
+    def test_contains_single_lowercase(self):
+        self.assertTrue(has_lowercase("ABc"))
+
+    def test_no_lowercase(self):
+        self.assertFalse(has_lowercase("HELLO WORLD"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_lowercase(""))
+
+    def test_only_lowercase(self):
+        self.assertTrue(has_lowercase("abc"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_lowercase(123)  # type: ignore[arg-type]
 
 
 class TestFormatPromptTemplate(unittest.TestCase):

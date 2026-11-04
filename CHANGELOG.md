@@ -1,3 +1,8 @@
+## Unreleased — added has_lowercase to prompt_utils
+
+- Added `has_lowercase(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one ASCII lowercase letter (a-z) and `False` otherwise, serving as a boolean companion to :func:`count_lowercase`. Added `TestHasLowercase` to `tests/test_prompt_utils.py` covering strings with lowercase, a single lowercase letter, strings without lowercase, empty input, and the `TypeError` path (6 new tests). Imported `has_lowercase` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` passes; `python -m doctest prompt_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added sum_of_primes_up_to to prime_utils
 
 - Added `sum_of_primes_up_to(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns the sum of all prime numbers up to and including *n*. Added `TestSumOfPrimesUpTo` to `tests/test_prime_utils.py` (2 tests). Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

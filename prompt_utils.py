@@ -58,6 +58,7 @@ __all__: List[str] = [
     "count_tabs",
     "count_digits",
     "has_digits",
+    "has_lowercase",
     "has_uppercase",
     "count_letters",
     "count_vowels",
@@ -1899,6 +1900,35 @@ def has_uppercase(text: str) -> bool:
     """
     _require_string(text, "text")
     return any("A" <= ch <= "Z" for ch in text)
+
+
+def has_lowercase(text: str) -> bool:
+    """Return True if *text* contains any lowercase ASCII letter (a-z).
+
+    A boolean companion to :func:`count_lowercase` that reports whether
+    *text* contains at least one lowercase ASCII letter. Empty text returns
+    False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one lowercase ASCII letter,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_lowercase("Hello")
+        True
+        >>> has_lowercase("HELLO WORLD")
+        False
+        >>> has_lowercase("")
+        False
+    """
+    _require_string(text, "text")
+    return any("a" <= ch <= "z" for ch in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
