@@ -408,6 +408,7 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
 
 class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
+    def test_interval_is_subset_with_inf_extra(self):
         self.assertTrue(interval_is_subset((0, 5), (float("-inf"), float("inf"))))
         self.assertTrue(interval_is_subset((float("-inf"), float("inf")), (float("-inf"), float("inf"))))
         self.assertFalse(interval_is_subset((float("-inf"), 0), (-5, 5)))
