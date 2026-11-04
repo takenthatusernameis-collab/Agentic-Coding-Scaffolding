@@ -9,6 +9,7 @@ on invalid arguments.
 from __future__ import annotations
 
 import re
+import string
 from typing import Any, List
 
 __all__: List[str] = [
@@ -61,6 +62,7 @@ __all__: List[str] = [
     "count_consonants",
     "count_lowercase",
     "count_uppercase",
+    "count_punctuation",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -86,6 +88,9 @@ def _require_int(value: object, name: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError(f"{name} must be an int, got {type(value).__name__}")
     return value
+
+
+_PUNCTUATION = frozenset(string.punctuation)
 
 
 def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
@@ -1741,6 +1746,36 @@ def count_uppercase(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if "A" <= ch <= "Z")
+
+
+def count_punctuation(text: str) -> int:
+    """Return the number of ASCII punctuation characters in *text_.
+
+    Counts every character in *text_ that is in
+    :data:`string.punctuation` (``!"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~``).
+    Empty text returns zero.
+
+    Args:
+        text: The text to count punctuation characters in.
+
+    Returns:
+        The number of ASCII punctuation characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_punctuation("Hello, world!")
+        2
+        >>> count_punctuation("no punctuation")
+        0
+        >>> count_punctuation("a,b.c")
+        2
+        >>> count_punctuation("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch in _PUNCTUATION)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
