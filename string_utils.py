@@ -9,6 +9,7 @@ __all__: List[str] = [
     "camel_to_snake",
     "snake_to_camel",
     "is_isogram",
+    "is_anagram",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -570,6 +571,42 @@ def is_isogram(text: str) -> bool:
                 return False
             seen.add(ch)
     return True
+
+
+def is_anagram(text1: str, text2: str) -> bool:
+    """Return True if *text1* and *text2* are anagrams of each other.
+
+    Two strings are anagrams when they contain the same characters in the
+    same quantities, ignoring case and whitespace. The empty string is an
+    anagram of itself.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        True if *text1* and *text2* are anagrams, False otherwise.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+
+    Examples:
+        >>> is_anagram("listen", "silent")
+        True
+        >>> is_anagram("Hello", "hello")
+        True
+        >>> is_anagram("dormitory", "dirty room")
+        True
+        >>> is_anagram("hello", "world")
+        False
+        >>> is_anagram("", "")
+        True
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    normalized1 = sorted(text1.lower().replace(" ", ""))
+    normalized2 = sorted(text2.lower().replace(" ", ""))
+    return normalized1 == normalized2
 
 
 def reverse_words(text: str) -> str:

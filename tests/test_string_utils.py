@@ -6,6 +6,7 @@ from string_utils import (
     camel_to_snake,
     dedent_text,
     indent_text,
+    is_anagram,
     is_isogram,
     pluralize,
     remove_blank_lines,
@@ -329,6 +330,47 @@ class TestWrapWords(unittest.TestCase):
     def test_type_error_break_flag(self):
         with self.assertRaises(TypeError):
             wrap_words("hello", 5, "yes")  # type: ignore[arg-type]
+
+
+class TestIsAnagram(unittest.TestCase):
+    def test_anagrams(self):
+        self.assertTrue(is_anagram("listen", "silent"))
+        self.assertTrue(is_anagram("dormitory", "dirty room"))
+        self.assertTrue(is_anagram("astronomer", "moon starer"))
+
+    def test_case_insensitive(self):
+        self.assertTrue(is_anagram("Hello", "hello"))
+        self.assertTrue(is_anagram("Listen", "Silent"))
+
+    def test_ignores_whitespace(self):
+        self.assertTrue(is_anagram("a b", "ab"))
+        self.assertTrue(is_anagram("  hello world  ", "worldhello"))
+
+    def test_not_anagrams(self):
+        self.assertFalse(is_anagram("hello", "world"))
+        self.assertFalse(is_anagram("listen", "silentt"))
+        self.assertFalse(is_anagram("a", "ab"))
+
+    def test_empty_strings(self):
+        self.assertTrue(is_anagram("", ""))
+        self.assertFalse(is_anagram("", "a"))
+        self.assertFalse(is_anagram("a", ""))
+
+    def test_single_character(self):
+        self.assertTrue(is_anagram("a", "a"))
+        self.assertFalse(is_anagram("a", "b"))
+
+    def test_type_error_text1(self):
+        with self.assertRaises(TypeError):
+            is_anagram(123, "abc")  # type: ignore[arg-type]
+
+    def test_type_error_text2(self):
+        with self.assertRaises(TypeError):
+            is_anagram("abc", 123)  # type: ignore[arg-type]
+
+    def test_type_error_both(self):
+        with self.assertRaises(TypeError):
+            is_anagram(None, None)  # type: ignore[arg-type]
 
 
 class TestSlugifyBoundary(unittest.TestCase):

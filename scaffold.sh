@@ -22501,6 +22501,7 @@ from string_utils import (
     camel_to_snake,
     dedent_text,
     indent_text,
+    is_anagram,
     is_isogram,
     pluralize,
     remove_blank_lines,
@@ -22824,6 +22825,47 @@ class TestWrapWords(unittest.TestCase):
     def test_type_error_break_flag(self):
         with self.assertRaises(TypeError):
             wrap_words("hello", 5, "yes")  # type: ignore[arg-type]
+
+
+class TestIsAnagram(unittest.TestCase):
+    def test_anagrams(self):
+        self.assertTrue(is_anagram("listen", "silent"))
+        self.assertTrue(is_anagram("dormitory", "dirty room"))
+        self.assertTrue(is_anagram("astronomer", "moon starer"))
+
+    def test_case_insensitive(self):
+        self.assertTrue(is_anagram("Hello", "hello"))
+        self.assertTrue(is_anagram("Listen", "Silent"))
+
+    def test_ignores_whitespace(self):
+        self.assertTrue(is_anagram("a b", "ab"))
+        self.assertTrue(is_anagram("  hello world  ", "worldhello"))
+
+    def test_not_anagrams(self):
+        self.assertFalse(is_anagram("hello", "world"))
+        self.assertFalse(is_anagram("listen", "silentt"))
+        self.assertFalse(is_anagram("a", "ab"))
+
+    def test_empty_strings(self):
+        self.assertTrue(is_anagram("", ""))
+        self.assertFalse(is_anagram("", "a"))
+        self.assertFalse(is_anagram("a", ""))
+
+    def test_single_character(self):
+        self.assertTrue(is_anagram("a", "a"))
+        self.assertFalse(is_anagram("a", "b"))
+
+    def test_type_error_text1(self):
+        with self.assertRaises(TypeError):
+            is_anagram(123, "abc")  # type: ignore[arg-type]
+
+    def test_type_error_text2(self):
+        with self.assertRaises(TypeError):
+            is_anagram("abc", 123)  # type: ignore[arg-type]
+
+    def test_type_error_both(self):
+        with self.assertRaises(TypeError):
+            is_anagram(None, None)  # type: ignore[arg-type]
 
 
 class TestSlugifyBoundary(unittest.TestCase):
@@ -33282,6 +33324,7 @@ __all__: List[str] = [
     "camel_to_snake",
     "snake_to_camel",
     "is_isogram",
+    "is_anagram",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -33843,6 +33886,42 @@ def is_isogram(text: str) -> bool:
                 return False
             seen.add(ch)
     return True
+
+
+def is_anagram(text1: str, text2: str) -> bool:
+    """Return True if *text1* and *text2* are anagrams of each other.
+
+    Two strings are anagrams when they contain the same characters in the
+    same quantities, ignoring case and whitespace. The empty string is an
+    anagram of itself.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        True if *text1* and *text2* are anagrams, False otherwise.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+
+    Examples:
+        >>> is_anagram("listen", "silent")
+        True
+        >>> is_anagram("Hello", "hello")
+        True
+        >>> is_anagram("dormitory", "dirty room")
+        True
+        >>> is_anagram("hello", "world")
+        False
+        >>> is_anagram("", "")
+        True
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    normalized1 = sorted(text1.lower().replace(" ", ""))
+    normalized2 = sorted(text2.lower().replace(" ", ""))
+    return normalized1 == normalized2
 
 
 def reverse_words(text: str) -> str:
@@ -52539,6 +52618,16 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_anagram to string_utils
+
+- Added `is_anagram(text1, text2)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when two strings contain the same characters in the same quantities (ignoring case and whitespace) and `False` otherwise, treating the empty string as an anagram of itself. Added `TestIsAnagram` to `tests/test_string_utils.py` covering anagrams, case-insensitivity, whitespace handling, non-anagrams, empty/single-character inputs, and the `TypeError` paths (9 new tests). Imported `is_anagram` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_string_utils` passes; `python -m doctest string_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
+## Unreleased — added distance to calculator.__all__
+
+- Fixed a public-API contract gap in `calculator.py`: `distance(x1, y1, x2, y2)` was a fully-implemented public function (typed signature, Google-style docstring, `TypeError` validation for non-real-number coordinates) but was missing from `calculator.__all__`, violating the convention that every public attribute must be exported. The gap was surfaced by `tests/test_public_api.py` as the only failure in `make test` (7717 tests). Added `distance` to `calculator.__all__` next to `hypotenuse` (32 exports total). No new tests required — `TestDistance` already covered the function. Synchronized `calculator.py`, `scaffold.sh`, `README.md`, `CHANGELOG.md`, and `PROJECT_STATUS.md`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `make test` passes (7717 tests); `make lint` passes (ruff, all checks passed); `make typecheck` shows only pre-existing errors (62 errors in 9 files, unchanged before and after this change — unrelated to calculator.py).
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added gcd to calculator
 
 - Added `gcd(a, b)` to `calculator.py` with typed signature, `__all__` export, Google-style docstring, and validation; it returns the greatest common divisor of two non-negative integers using Euclid's algorithm with `gcd(0,0)=0`, raises `TypeError` if inputs are not ints (bools rejected), and `ValueError` if either is negative. Added `TestGCD` to `tests/test_calculator.py` covering basic cases and validation paths. Updated `README.md` to document `gcd`. Synchronized `calculator.py`, `tests/test_calculator.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_calculator.py -v` passes.
@@ -54528,7 +54617,7 @@ csv_utils.py             # CSV utility functions (read/write/append as dicts or 
 set_utils.py             # Set operation utilities (subset, superset, disjoint, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, reverse_words, split_paragraphs)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var, is_class_var, is_callable, is_tuple, is_list_type, is_dict_type, is_none_type, is_any, unwrap_optional, get_origin_name)
 type_check_utils.py        # Type checking utilities (is_str, is_int, is_float, is_bool, is_list, is_dict, is_tuple, is_set, is_frozenset, is_none, is_numeric, is_iterable, is_callable, ensure_type, coerce_to_str) with input validation
@@ -55229,7 +55318,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, and `split_paragraphs`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `is_anagram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, and `split_paragraphs`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `is_anagram` checks whether two strings contain the same characters in the same quantities, ignoring case and whitespace. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 

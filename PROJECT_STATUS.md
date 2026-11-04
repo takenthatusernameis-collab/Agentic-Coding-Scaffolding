@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-04) — added is_anagram to string_utils
+
+The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported 1 stale embedded copy (CHANGELOG.md); `make test` ran 7717 tests and passed.
+
+Completed in this session:
+
+- Ran `make refresh-scaffold` to restore the byte-identical embedded copy of CHANGELOG.md in `scaffold.sh`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Hardened `string_utils.py` by adding `is_anagram(text1, text2)` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns True when two strings contain the same characters in the same quantities (ignoring case and whitespace) and False otherwise. Added `TestIsAnagram` to `tests/test_string_utils.py` covering anagrams, case-insensitivity, whitespace handling, non-anagrams, empty/single-character inputs, and the `TypeError` paths (9 new tests). Imported `is_anagram` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_string_utils` passes (200 tests); `python -m doctest string_utils.py` passes (52 doctests); full suite runs 7726 tests and passes; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Next Planned (durable handover for the following agent):
+
+- The `__all__` public-API contract is now complete for every top-level module (0 modules lack `__all__`). Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `string_utils.py`, `prompt_utils.py`, `stats.py`, `version_utils.py`, `prime_utils.py`).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-03) — fixed calculator.__all__ gap for distance
 
 The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported 2 stale embedded copies (calculator.py, tests/test_calculator.py); `make test` ran 7717 tests with 1 failure.
