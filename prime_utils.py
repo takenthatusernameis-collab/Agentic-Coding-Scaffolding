@@ -57,6 +57,7 @@ __all__: List[str] = [
     "is_strong_prime",
     "is_super_prime",
     "is_balanced_prime",
+    "is_ugly_number",
     "is_weak_prime",
 ]
 
@@ -1734,3 +1735,45 @@ def is_super_prime(n: int) -> bool:
     if not is_prime(n):
         return False
     return is_prime(prime_count(n))
+
+
+def is_ugly_number(n: int) -> bool:
+    """Return True if *n* is an ugly number.
+
+    An ugly number (also called a 5-smooth or Hamming number) is a positive
+    integer whose prime factors are limited to 2, 3, and 5. By convention, 1
+    is considered an ugly number. Zero and negative integers are not ugly.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is an ugly number, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_ugly_number(1)
+        True
+        >>> is_ugly_number(6)
+        True
+        >>> is_ugly_number(8)
+        True
+        >>> is_ugly_number(14)
+        False
+        >>> is_ugly_number(0)
+        False
+        >>> is_ugly_number(-6)
+        False
+    """
+    _require_int(n, "n")
+    if n <= 0:
+        return False
+    if n == 1:
+        return True
+    remaining = n
+    for p in (2, 3, 5):
+        while remaining % p == 0:
+            remaining //= p
+    return remaining == 1

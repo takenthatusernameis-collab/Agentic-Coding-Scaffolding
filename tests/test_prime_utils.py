@@ -40,6 +40,7 @@ from prime_utils import (
     is_super_prime,
     is_truncatable_prime,
     is_twin_prime,
+    is_ugly_number,
     is_weak_prime,
     is_wilson_prime,
     largest_prime_factor,
@@ -1761,3 +1762,45 @@ class TestIsSuperPrime(unittest.TestCase):
             is_super_prime("3")
         with self.assertRaises(TypeError):
             is_super_prime(True)
+
+
+class TestIsUglyNumber(unittest.TestCase):
+    def test_known_ugly_numbers(self):
+        # OEIS A051037: 5-smooth / Hamming numbers
+        for n in (
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            15,
+            16,
+            18,
+            20,
+            24,
+            25,
+            27,
+            30,
+        ):
+            self.assertTrue(is_ugly_number(n), n)
+
+    def test_non_ugly_numbers(self):
+        for n in (7, 11, 13, 14, 17, 19, 21, 22, 49, 77):
+            self.assertFalse(is_ugly_number(n), n)
+
+    def test_boundary(self):
+        for n in (0, -1, -6, -30):
+            self.assertFalse(is_ugly_number(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_ugly_number(6.0)
+        with self.assertRaises(TypeError):
+            is_ugly_number("6")
+        with self.assertRaises(TypeError):
+            is_ugly_number(True)
