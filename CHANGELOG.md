@@ -1,3 +1,12 @@
+## Unreleased — fixed prompt_utils __all__ gap for has_punctuation
+
+- Found a real contract gap: `prompt_utils.has_punctuation` was a fully-implemented public function (typed signature, Google-style docstring with doctests, `TypeError` validation) but missing from `prompt_utils.__all__`, violating the public-API export contract that every public attribute must be listed in `__all__`. The gap was caught by `tests/test_public_api.py` as the only test failure in the suite.
+- Added `has_punctuation` to `prompt_utils.__all__` next to `has_letters` (66 exports total).
+- Updated the `prompt_utils` module tree entry and prose section of `README.md` to document `has_punctuation` alongside its boolean companions. The function, its implementation, doctests, and `tests/test_prompt_utils.py` coverage were unchanged.
+- Synchronized `prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `make test` passes (7813 tests); `python -m unittest tests.test_prompt_utils` passes; `python -m doctest prompt_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_letters to prompt_utils
 
 - Added `has_letters(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one ASCII letter (a-z or A-Z) and `False` otherwise, serving as a boolean companion to :func:`count_letters`. Non-letter characters (digits, punctuation, whitespace) do not qualify and empty text returns `False`. Added `TestHasLetters` to `tests/test_prompt_utils.py` covering strings with letters, a single letter, digit-only and punctuation-only negatives, uppercase-only, mixed case, empty input, and the `TypeError` paths (8 new tests). Imported `has_letters` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` passes; `python -m doctest prompt_utils.py` passes.
