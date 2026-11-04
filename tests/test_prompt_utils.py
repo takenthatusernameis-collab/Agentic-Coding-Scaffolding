@@ -42,6 +42,7 @@ from prompt_utils import (
     format_prompt_template,
     has_digits,
     has_leading_newline,
+    has_letters,
     has_lowercase,
     has_whitespace,
     has_placeholders,
@@ -185,6 +186,35 @@ class TestHasLowercase(unittest.TestCase):
             has_lowercase(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_lowercase(None)  # type: ignore[arg-type]
+
+
+class TestHasLetters(unittest.TestCase):
+    def test_contains_letters(self):
+        self.assertTrue(has_letters("abc123"))
+
+    def test_contains_single_letter(self):
+        self.assertTrue(has_letters("a1"))
+
+    def test_no_letters(self):
+        self.assertFalse(has_letters("123"))
+
+    def test_only_uppercase_letters(self):
+        self.assertTrue(has_letters("ABC"))
+
+    def test_mixed_case(self):
+        self.assertTrue(has_letters("aBc"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_letters(""))
+
+    def test_punctuation_only(self):
+        self.assertFalse(has_letters("!@#"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_letters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_letters(None)  # type: ignore[arg-type]
 
 
 class TestHasWhitespace(unittest.TestCase):

@@ -61,6 +61,7 @@ __all__: List[str] = [
     "has_lowercase",
     "has_whitespace",
     "has_uppercase",
+    "has_letters",
     "count_letters",
     "count_vowels",
     "count_consonants",
@@ -1930,6 +1931,35 @@ def has_lowercase(text: str) -> bool:
     """
     _require_string(text, "text")
     return any("a" <= ch <= "z" for ch in text)
+
+
+def has_letters(text: str) -> bool:
+    """Return True if *text* contains any ASCII letter (a-z or A-Z).
+
+    A boolean companion to :func:`count_letters` that reports whether *text*
+    contains at least one ASCII letter. Non-letter characters (digits,
+    punctuation, whitespace) do not qualify. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one ASCII letter, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_letters("abc123")
+        True
+        >>> has_letters("123")
+        False
+        >>> has_letters("")
+        False
+    """
+    _require_string(text, "text")
+    return any(("a" <= ch <= "z") or ("A" <= ch <= "Z") for ch in text)
 
 
 def has_whitespace(text: str) -> bool:
