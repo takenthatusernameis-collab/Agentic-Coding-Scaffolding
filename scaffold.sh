@@ -22598,6 +22598,7 @@ import unittest
 
 from string_utils import (
     camel_to_snake,
+    cosine_distance,
     cosine_similarity,
     count_words,
     damerau_levenshtein_distance,
@@ -23748,7 +23749,28 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
             jaro_winkler_distance("a", None)  # type: ignore[arg-type]
 
 
-class TestCosineSimilarity(unittest.TestCase):
+class TestCosineDistance(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(cosine_distance("hello", "hello"), 0.0)
+
+    def test_both_empty(self):
+        self.assertAlmostEqual(cosine_distance("", ""), 0.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(cosine_distance("abc", ""), 1.0)
+        self.assertAlmostEqual(cosine_distance("", "xyz"), 1.0)
+
+    def test_completely_different(self):
+        self.assertAlmostEqual(cosine_distance("ab", "cd"), 1.0)
+
+    def test_type_errors(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    cosine_distance(value, "b")  # type: ignore[arg-type]
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    cosine_distance("a", value)  # type: ignore[arg-type]
     def test_identical(self):
         self.assertAlmostEqual(cosine_similarity("hello", "hello"), 1.0)
 
@@ -35008,6 +35030,26 @@ def cosine_similarity(text1: str, text2: str) -> float:
     if n1 == 0 or n2 == 0:
         return 0.0
     return dot / (n1 * n2)
+
+
+def cosine_distance(text1: str, text2: str) -> float:
+    """Return the cosine distance of two strings using character bigrams.
+
+    The result is in [0, 1] where 0 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The cosine distance as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    return 1.0 - cosine_similarity(text1, text2)
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
