@@ -132427,6 +132427,7 @@ __all__ = [
     "P",
     "T",
     "cooldown",
+    "format_remaining",
     "is_available",
 ]
 
@@ -132527,6 +132528,31 @@ def cooldown(interval: float) -> Callable[[Callable[P, T]], Callable[P, T]]:
         ValueError: If interval is not positive.
     """
     return Cooldown(interval)
+
+
+def format_remaining(seconds: float) -> str:
+    """Format a remaining-seconds value as a compact human-readable string.
+
+    Args:
+        seconds: A non-negative number of seconds.
+
+    Returns:
+        A string such as ``"0.000s"`` or ``"12.345s"``.
+
+    Raises:
+        TypeError: If *seconds* is not a real number.
+        ValueError: If *seconds* is negative.
+
+    >>> format_remaining(0)
+    '0.000s'
+    >>> format_remaining(1.2345)
+    '1.234s'
+    """
+    if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
+        raise TypeError("seconds must be a real number")
+    if seconds < 0:
+        raise ValueError("seconds must be non-negative")
+    return f"{float(seconds):.3f}s"
 COOLDOWN_UTILS
 
 # --- tests/test_cooldown_utils.py ---
@@ -132537,7 +132563,7 @@ import threading
 import time
 import unittest
 
-from cooldown_utils import Cooldown, cooldown, is_available
+from cooldown_utils import Cooldown, cooldown, format_remaining, is_available
 
 
 class TestIsAvailable(unittest.TestCase):
@@ -132716,6 +132742,29 @@ class TestCooldownThreadSafety(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFormatRemaining(unittest.TestCase):
+    def test_zero(self) -> None:
+        self.assertEqual(format_remaining(0), "0.000s")
+
+    def test_rounding(self) -> None:
+        self.assertEqual(format_remaining(1.2345), "1.234s")
+
+    def test_int(self) -> None:
+        self.assertEqual(format_remaining(5), "5.000s")
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            format_remaining("1")  # type: ignore[arg-type]
+
+    def test_bool_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            format_remaining(True)  # type: ignore[arg-type]
+
+    def test_negative_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(-1.0)
 TEST_COOLDOWN_UTILS
 
 # --- maybe_utils.py ---
