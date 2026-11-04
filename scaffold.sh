@@ -54216,6 +54216,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added sum_of_primes_up_to to prime_utils
+
+- Added `sum_of_primes_up_to(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns the sum of all prime numbers up to and including *n*. Added `TestSumOfPrimesUpTo` to `tests/test_prime_utils.py` (2 tests). Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed list_utils doctest quote style
 
 - Corrected a doctest in `list_utils.py` for `unique_preserve_order` that expected the double-quoted repr `["a", "b"]`; Python's `repr` for lists uses single quotes, so the example now reads `['a', 'b']` to match actual output. The function, its `__all__` export, `TypeError` validation, and `tests/test_list_utils.py` coverage were unchanged. Synchronized `list_utils.py` and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` passes (65 tests); `python -m doctest list_utils.py` passes.
@@ -85185,6 +85190,7 @@ __all__: List[str] = [
     "is_sophie_germain_prime",
     "is_safe_prime",
     "sum_of_proper_divisors",
+    "sum_of_primes_up_to",
     "aliquot_sum",
     "is_perfect_number",
     "is_abundant_number",
@@ -86982,6 +86988,30 @@ def is_happy_prime(n: int) -> bool:
         seen.add(current)
         current = sum(int(d) * int(d) for d in str(current))
     return current == 1
+
+
+def sum_of_primes_up_to(n: int) -> int:
+    """Return the sum of all prime numbers up to and including *n*.
+
+    Args:
+        n: The upper bound (inclusive) of the prime search.
+
+    Returns:
+        The sum of all prime numbers less than or equal to *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> sum_of_primes_up_to(10)
+        17
+        >>> sum_of_primes_up_to(2)
+        2
+        >>> sum_of_primes_up_to(1)
+        0
+    """
+    _require_int(n, "n")
+    return sum(primes_up_to(n))
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -87043,6 +87073,7 @@ from prime_utils import (
     primorial,
     radical,
     sum_of_proper_divisors,
+    sum_of_primes_up_to,
     total_prime_factors,
 )
 
@@ -88819,6 +88850,22 @@ class TestIsHappyPrime(unittest.TestCase):
             is_happy_prime("7")
         with self.assertRaises(TypeError):
             is_happy_prime(True)
+
+
+class TestSumOfPrimesUpTo(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(sum_of_primes_up_to(10), 17)
+        self.assertEqual(sum_of_primes_up_to(2), 2)
+        self.assertEqual(sum_of_primes_up_to(1), 0)
+        self.assertEqual(sum_of_primes_up_to(0), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            sum_of_primes_up_to(10.0)
+        with self.assertRaises(TypeError):
+            sum_of_primes_up_to("10")
+        with self.assertRaises(TypeError):
+            sum_of_primes_up_to(True)
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---

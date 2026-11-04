@@ -55,6 +55,7 @@ from prime_utils import (
     primorial,
     radical,
     sum_of_proper_divisors,
+    sum_of_primes_up_to,
     total_prime_factors,
 )
 
@@ -1831,3 +1832,19 @@ class TestIsHappyPrime(unittest.TestCase):
             is_happy_prime("7")
         with self.assertRaises(TypeError):
             is_happy_prime(True)
+
+
+class TestSumOfPrimesUpTo(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(sum_of_primes_up_to(10), 17)
+        self.assertEqual(sum_of_primes_up_to(2), 2)
+        self.assertEqual(sum_of_primes_up_to(1), 0)
+        self.assertEqual(sum_of_primes_up_to(0), 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            sum_of_primes_up_to(10.0)
+        with self.assertRaises(TypeError):
+            sum_of_primes_up_to("10")
+        with self.assertRaises(TypeError):
+            sum_of_primes_up_to(True)

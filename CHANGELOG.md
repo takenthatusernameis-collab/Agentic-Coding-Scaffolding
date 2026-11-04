@@ -1,3 +1,8 @@
+## Unreleased — added sum_of_primes_up_to to prime_utils
+
+- Added `sum_of_primes_up_to(n)` to `prime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns the sum of all prime numbers up to and including *n*. Added `TestSumOfPrimesUpTo` to `tests/test_prime_utils.py` (2 tests). Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed list_utils doctest quote style
 
 - Corrected a doctest in `list_utils.py` for `unique_preserve_order` that expected the double-quoted repr `["a", "b"]`; Python's `repr` for lists uses single quotes, so the example now reads `['a', 'b']` to match actual output. The function, its `__all__` export, `TypeError` validation, and `tests/test_list_utils.py` coverage were unchanged. Synchronized `list_utils.py` and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` passes (65 tests); `python -m doctest list_utils.py` passes.

@@ -28,6 +28,7 @@ __all__: List[str] = [
     "is_sophie_germain_prime",
     "is_safe_prime",
     "sum_of_proper_divisors",
+    "sum_of_primes_up_to",
     "aliquot_sum",
     "is_perfect_number",
     "is_abundant_number",
@@ -1825,3 +1826,27 @@ def is_happy_prime(n: int) -> bool:
         seen.add(current)
         current = sum(int(d) * int(d) for d in str(current))
     return current == 1
+
+
+def sum_of_primes_up_to(n: int) -> int:
+    """Return the sum of all prime numbers up to and including *n*.
+
+    Args:
+        n: The upper bound (inclusive) of the prime search.
+
+    Returns:
+        The sum of all prime numbers less than or equal to *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> sum_of_primes_up_to(10)
+        17
+        >>> sum_of_primes_up_to(2)
+        2
+        >>> sum_of_primes_up_to(1)
+        0
+    """
+    _require_int(n, "n")
+    return sum(primes_up_to(n))
