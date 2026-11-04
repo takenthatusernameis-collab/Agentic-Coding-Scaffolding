@@ -22608,6 +22608,7 @@ from string_utils import (
     is_anagram,
     is_isogram,
     is_palindrome,
+    is_pangram,
     jaccard_distance,
     jaccard_similarity,
     jaro_distance,
@@ -23866,6 +23867,35 @@ class TestJaccardDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     jaccard_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestIsPangram(unittest.TestCase):
+    def test_pangram(self):
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog"))
+
+    def test_pangram_another(self):
+        self.assertTrue(is_pangram("Pack my box with five dozen liquor jugs"))
+
+    def test_pangram_case_insensitive(self):
+        self.assertTrue(is_pangram("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"))
+        self.assertTrue(is_pangram("the quick brown fox jumps over the lazy dog"))
+
+    def test_not_pangram_missing_letters(self):
+        self.assertFalse(is_pangram("Hello world"))
+        self.assertFalse(is_pangram("abcdefghijklmnopqrstuvwxy"))
+
+    def test_empty_not_pangram(self):
+        self.assertFalse(is_pangram(""))
+
+    def test_pangram_ignores_non_alphabetic(self):
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog!"))
+        self.assertTrue(is_pangram("The1quick2brown3fox4jumps5over6the7lazy8dog9"))
+
+    def test_non_string_raises(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    is_pangram(value)  # type: ignore[arg-type]
 TESTSTRINGUTILS
 # --- tests/test_uuid_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_uuid_utils.py" <<'TESTUUIDUTILS'
@@ -34098,6 +34128,7 @@ cat > "$OUTPUT_DIR/string_utils.py" <<'STRINGUTILS'
 """Advanced string manipulation utilities."""
 
 import re
+import string
 import textwrap
 from typing import List, Optional
 
@@ -34108,6 +34139,7 @@ __all__: List[str] = [
     "is_isogram",
     "is_anagram",
     "is_palindrome",
+    "is_pangram",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -35273,6 +35305,39 @@ def jaccard_distance(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
     return 1.0 - jaccard_similarity(text1, text2)
+
+
+def is_pangram(text: str) -> bool:
+    """Return True if *text* is a pangram (contains every English letter).
+
+    A pangram uses every letter of the English alphabet at least once.
+    The check is case-insensitive and ignores non-alphabetic characters.
+    The empty string is not a pangram.
+
+    Args:
+        text: The string to check.
+
+    Returns:
+        True if *text* contains every letter of the English alphabet at
+        least once, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> is_pangram("The quick brown fox jumps over the lazy dog")
+        True
+        >>> is_pangram("Pack my box with five dozen liquor jugs")
+        True
+        >>> is_pangram("Hello world")
+        False
+        >>> is_pangram("")
+        False
+    """
+    _require_string(text, "text")
+    alphabet = set(string.ascii_lowercase)
+    letters = {ch.lower() for ch in text if ch.isalpha()}
+    return alphabet.issubset(letters)
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
@@ -54034,6 +54099,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_pangram to string_utils
+
+- Added `is_pangram(text)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains every letter of the English alphabet at least once (case-insensitive, ignoring non-alphabetic characters) and `False` otherwise, including for the empty string. Added `TestIsPangram` to `tests/test_string_utils.py` covering classic pangrams, case-insensitivity, missing-letter and empty-string negatives, non-alphabetic characters being ignored, and the `TypeError` paths (8 new tests). Imported `is_pangram` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_string_utils` passes; `python -m doctest string_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_digits to prompt_utils
 
 - Added `has_digits(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one ASCII digit (0-9) and `False` otherwise, serving as a boolean companion to :func:`count_digits`. Added `TestHasDigits` to `tests/test_prompt_utils.py` covering strings with digits, a single digit, digit-only strings, strings without digits, empty input, and the `TypeError` path (6 new tests). Imported `has_digits` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` passes; `python -m doctest prompt_utils.py` passes.
@@ -56078,7 +56148,7 @@ csv_utils.py             # CSV utility functions (read/write/append as dicts or 
 set_utils.py             # Set operation utilities (subset, superset, disjoint, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs, count_words, levenshtein_distance, hamming_distance, damerau_levenshtein_distance)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs, count_words, levenshtein_distance, hamming_distance, damerau_levenshtein_distance, is_pangram)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var, is_class_var, is_callable, is_tuple, is_list_type, is_dict_type, is_none_type, is_any, unwrap_optional, get_origin_name)
 type_check_utils.py        # Type checking utilities (is_str, is_int, is_float, is_bool, is_list, is_dict, is_tuple, is_set, is_frozenset, is_none, is_numeric, is_iterable, is_callable, ensure_type, coerce_to_str) with input validation
@@ -56779,7 +56849,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `is_anagram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, `split_paragraphs`, and `count_words`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `is_anagram` checks whether two strings contain the same characters in the same quantities, ignoring case and whitespace. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. `count_words` counts whitespace-delimited words. `levenshtein_distance` computes the minimum number of single-character edits (insertions, deletions, or substitutions) needed to transform one string into another, using a dynamic-programming algorithm. `hamming_distance` counts the positions at which two equal-length strings differ, and `damerau_levenshtein_distance` extends Levenshtein with adjacent-character transpositions counted as a single edit. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `is_anagram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, `split_paragraphs`, and `count_words`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `is_anagram` checks whether two strings contain the same characters in the same quantities, ignoring case and whitespace. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. `count_words` counts whitespace-delimited words. `levenshtein_distance` computes the minimum number of single-character edits (insertions, deletions, or substitutions) needed to transform one string into another, using a dynamic-programming algorithm. `hamming_distance` counts the positions at which two equal-length strings differ, and `damerau_levenshtein_distance` extends Levenshtein with adjacent-character transpositions counted as a single edit. `is_pangram` reports whether a string contains every letter of the English alphabet at least once, case-insensitively and ignoring non-alphabetic characters. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 

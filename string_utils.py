@@ -1,6 +1,7 @@
 """Advanced string manipulation utilities."""
 
 import re
+import string
 import textwrap
 from typing import List, Optional
 
@@ -11,6 +12,7 @@ __all__: List[str] = [
     "is_isogram",
     "is_anagram",
     "is_palindrome",
+    "is_pangram",
     "pluralize",
     "truncate",
     "wrap_text",
@@ -1176,3 +1178,36 @@ def jaccard_distance(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
     return 1.0 - jaccard_similarity(text1, text2)
+
+
+def is_pangram(text: str) -> bool:
+    """Return True if *text* is a pangram (contains every English letter).
+
+    A pangram uses every letter of the English alphabet at least once.
+    The check is case-insensitive and ignores non-alphabetic characters.
+    The empty string is not a pangram.
+
+    Args:
+        text: The string to check.
+
+    Returns:
+        True if *text* contains every letter of the English alphabet at
+        least once, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> is_pangram("The quick brown fox jumps over the lazy dog")
+        True
+        >>> is_pangram("Pack my box with five dozen liquor jugs")
+        True
+        >>> is_pangram("Hello world")
+        False
+        >>> is_pangram("")
+        False
+    """
+    _require_string(text, "text")
+    alphabet = set(string.ascii_lowercase)
+    letters = {ch.lower() for ch in text if ch.isalpha()}
+    return alphabet.issubset(letters)

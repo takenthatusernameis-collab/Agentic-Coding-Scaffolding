@@ -14,6 +14,7 @@ from string_utils import (
     is_anagram,
     is_isogram,
     is_palindrome,
+    is_pangram,
     jaccard_distance,
     jaccard_similarity,
     jaro_distance,
@@ -1272,3 +1273,32 @@ class TestJaccardDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     jaccard_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestIsPangram(unittest.TestCase):
+    def test_pangram(self):
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog"))
+
+    def test_pangram_another(self):
+        self.assertTrue(is_pangram("Pack my box with five dozen liquor jugs"))
+
+    def test_pangram_case_insensitive(self):
+        self.assertTrue(is_pangram("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"))
+        self.assertTrue(is_pangram("the quick brown fox jumps over the lazy dog"))
+
+    def test_not_pangram_missing_letters(self):
+        self.assertFalse(is_pangram("Hello world"))
+        self.assertFalse(is_pangram("abcdefghijklmnopqrstuvwxy"))
+
+    def test_empty_not_pangram(self):
+        self.assertFalse(is_pangram(""))
+
+    def test_pangram_ignores_non_alphabetic(self):
+        self.assertTrue(is_pangram("The quick brown fox jumps over the lazy dog!"))
+        self.assertTrue(is_pangram("The1quick2brown3fox4jumps5over6the7lazy8dog9"))
+
+    def test_non_string_raises(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    is_pangram(value)  # type: ignore[arg-type]
