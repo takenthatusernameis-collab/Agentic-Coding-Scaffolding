@@ -59,6 +59,7 @@ __all__: List[str] = [
     "count_digits",
     "has_digits",
     "has_lowercase",
+    "has_whitespace",
     "has_uppercase",
     "count_letters",
     "count_vowels",
@@ -1929,6 +1930,32 @@ def has_lowercase(text: str) -> bool:
     """
     _require_string(text, "text")
     return any("a" <= ch <= "z" for ch in text)
+
+
+def has_whitespace(text: str) -> bool:
+    """Return True if *text* contains at least one whitespace character.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        True if any whitespace character is present, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_whitespace("hello world")
+        True
+        >>> has_whitespace("hello")
+        False
+        >>> has_whitespace(" ")
+        True
+        >>> has_whitespace("")
+        False
+    """
+    _require_string(text, "text")
+    return any(c.isspace() for c in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:

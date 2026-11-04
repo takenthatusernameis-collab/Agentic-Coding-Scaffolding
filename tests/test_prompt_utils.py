@@ -43,6 +43,7 @@ from prompt_utils import (
     has_digits,
     has_leading_newline,
     has_lowercase,
+    has_whitespace,
     has_placeholders,
     has_trailing_newline,
     has_uppercase,
@@ -182,6 +183,28 @@ class TestHasLowercase(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             has_lowercase(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_lowercase(None)  # type: ignore[arg-type]
+
+
+class TestHasWhitespace(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_whitespace("hello world"))
+        self.assertTrue(has_whitespace("hello\nworld"))
+        self.assertTrue(has_whitespace("\t"))
+        self.assertTrue(has_whitespace(" "))
+
+    def test_no_whitespace(self) -> None:
+        self.assertFalse(has_whitespace("hello"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_whitespace(""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_whitespace(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_whitespace(None)  # type: ignore[arg-type]
 
 
 class TestFormatPromptTemplate(unittest.TestCase):
