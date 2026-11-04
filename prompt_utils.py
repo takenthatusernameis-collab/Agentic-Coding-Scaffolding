@@ -63,6 +63,7 @@ __all__: List[str] = [
     "count_lowercase",
     "count_uppercase",
     "count_punctuation",
+    "count_spaces",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -1577,6 +1578,37 @@ def count_whitespace_characters(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch.isspace())
+
+
+def count_spaces(text: str) -> int:
+    """Return the number of space characters (' ') in *text_.
+
+    Counts every space character (``' '``, U+0020) in *text_. Tabs, newlines,
+    and other Unicode whitespace are not counted; use
+    :func:`count_whitespace_characters` to count all whitespace. Empty text
+    returns zero.
+
+    Args:
+        text: The text to count space characters in.
+
+    Returns:
+        The number of space characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_spaces("Hello world")
+        1
+        >>> count_spaces("a  b   c")
+        5
+        >>> count_spaces("no spaces")
+        0
+        >>> count_spaces("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch == " ")
 
 
 def count_digits(text: str) -> int:
