@@ -1200,6 +1200,9 @@ class TestCosineDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     cosine_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestCosineSimilarity(unittest.TestCase):
     def test_identical(self):
         self.assertAlmostEqual(cosine_similarity("hello", "hello"), 1.0)
 

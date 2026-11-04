@@ -23794,6 +23794,9 @@ class TestCosineDistance(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     cosine_distance("a", value)  # type: ignore[arg-type]
+
+
+class TestCosineSimilarity(unittest.TestCase):
     def test_identical(self):
         self.assertAlmostEqual(cosine_similarity("hello", "hello"), 1.0)
 
@@ -23975,6 +23978,8 @@ from prompt_utils import (
     count_placeholders,
     count_punctuation,
     count_sentences,
+    count_spaces,
+    count_tabs,
     count_trailing_newlines,
     count_unique_words,
     count_uppercase,
@@ -25503,6 +25508,48 @@ class TestNormalizeWhitespace(unittest.TestCase):
             normalize_whitespace(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             normalize_whitespace([])  # type: ignore[arg-type]
+
+
+class TestCountSpaces(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_spaces("Hello world"), 1)
+        self.assertEqual(count_spaces("a  b   c"), 5)
+
+    def test_no_spaces(self):
+        self.assertEqual(count_spaces("nospace"), 0)
+
+    def test_tabs_newlines_ignored(self):
+        self.assertEqual(count_spaces("a\tb\nc"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_spaces(""), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_spaces(123)
+        with self.assertRaises(TypeError):
+            count_spaces(None)
+
+
+class TestCountTabs(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_tabs("a\tb"), 1)
+        self.assertEqual(count_tabs("\t\t\t"), 3)
+
+    def test_no_tabs(self):
+        self.assertEqual(count_tabs("no tabs"), 0)
+
+    def test_spaces_newlines_ignored(self):
+        self.assertEqual(count_tabs("a b\nc"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_tabs(""), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_tabs(123)
+        with self.assertRaises(TypeError):
+            count_tabs([])
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -35108,8 +35155,8 @@ def cosine_similarity(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
 
-    def bigrams(text: str) -> dict:
-        counts = {}
+    def bigrams(text: str) -> dict[str, int]:
+        counts: dict[str, int] = {}
         for i in range(len(text) - 1):
             bg = text[i : i + 2]
             counts[bg] = counts.get(bg, 0) + 1
@@ -35124,8 +35171,8 @@ def cosine_similarity(text1: str, text2: str) -> float:
     v2 = bigrams(text2)
 
     dot = sum(v1.get(k, 0) * v2.get(k, 0) for k in set(v1) | set(v2))
-    n1 = sum(v * v for v in v1.values()) ** 0.5
-    n2 = sum(v * v for v in v2.values()) ** 0.5
+    n1: float = sum(v * v for v in v1.values()) ** 0.5
+    n2: float = sum(v * v for v in v2.values()) ** 0.5
     if n1 == 0 or n2 == 0:
         return 0.0
     return dot / (n1 * n2)
@@ -36700,6 +36747,7 @@ __all__: List[str] = [
     "count_uppercase",
     "count_punctuation",
     "count_spaces",
+    "count_tabs",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -38245,6 +38293,37 @@ def count_spaces(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch == " ")
+
+
+def count_tabs(text: str) -> int:
+    """Return the number of tab characters ('\\t') in *text_.
+
+    Counts every horizontal tab character (``'\\t'``, U+0009) in *text_.
+    Spaces, newlines, and other Unicode whitespace are not counted; use
+    :func:`count_whitespace_characters` to count all whitespace. Empty text
+    returns zero.
+
+    Args:
+        text: The text to count tab characters in.
+
+    Returns:
+        The number of tab characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_tabs("a\\tb")
+        1
+        >>> count_tabs("\\t\\t\\t")
+        3
+        >>> count_tabs("no tabs")
+        0
+        >>> count_tabs("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch == "\t")
 
 
 def count_digits(text: str) -> int:
@@ -55891,7 +55970,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_digits, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders)
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -56754,7 +56833,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_digits`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

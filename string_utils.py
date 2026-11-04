@@ -1080,8 +1080,8 @@ def cosine_similarity(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
 
-    def bigrams(text: str) -> dict:
-        counts = {}
+    def bigrams(text: str) -> dict[str, int]:
+        counts: dict[str, int] = {}
         for i in range(len(text) - 1):
             bg = text[i : i + 2]
             counts[bg] = counts.get(bg, 0) + 1
@@ -1096,8 +1096,8 @@ def cosine_similarity(text1: str, text2: str) -> float:
     v2 = bigrams(text2)
 
     dot = sum(v1.get(k, 0) * v2.get(k, 0) for k in set(v1) | set(v2))
-    n1 = sum(v * v for v in v1.values()) ** 0.5
-    n2 = sum(v * v for v in v2.values()) ** 0.5
+    n1: float = sum(v * v for v in v1.values()) ** 0.5
+    n2: float = sum(v * v for v in v2.values()) ** 0.5
     if n1 == 0 or n2 == 0:
         return 0.0
     return dot / (n1 * n2)
