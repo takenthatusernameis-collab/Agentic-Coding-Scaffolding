@@ -137,12 +137,28 @@ class TestRoundHalfUp(unittest.TestCase):
 class TestIsInteger(unittest.TestCase):
     def test_int(self) -> None:
         self.assertTrue(is_integer(5))
+        self.assertTrue(is_integer(-5))
+        self.assertTrue(is_integer(0))
 
     def test_float_integral(self) -> None:
         self.assertTrue(is_integer(5.0))
+        self.assertTrue(is_integer(-3.0))
+        self.assertTrue(is_integer(0.0))
 
     def test_float_non_integral(self) -> None:
         self.assertFalse(is_integer(5.5))
+        self.assertFalse(is_integer(-2.7))
+        self.assertFalse(is_integer(0.1))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_integer("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_integer(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_integer(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_integer(None)  # type: ignore[arg-type]
 
 
 class TestFormatNumber(unittest.TestCase):
@@ -200,83 +216,128 @@ class TestIsNegative(unittest.TestCase):
     def test_negative(self) -> None:
         self.assertTrue(is_negative(-5))
         self.assertTrue(is_negative(-0.5))
+        self.assertTrue(is_negative(-float("inf")))
 
     def test_zero(self) -> None:
         self.assertFalse(is_negative(0))
         self.assertFalse(is_negative(0.0))
+        self.assertFalse(is_negative(-0.0))
 
     def test_positive(self) -> None:
         self.assertFalse(is_negative(5))
         self.assertFalse(is_negative(0.5))
+        self.assertFalse(is_negative(float("inf")))
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_negative("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_negative(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_negative(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_negative(None)  # type: ignore[arg-type]
 
 
 class TestIsPositive(unittest.TestCase):
     def test_positive(self) -> None:
         self.assertTrue(is_positive(5))
         self.assertTrue(is_positive(0.5))
+        self.assertTrue(is_positive(float("inf")))
 
     def test_zero(self) -> None:
         self.assertFalse(is_positive(0))
         self.assertFalse(is_positive(0.0))
+        self.assertFalse(is_positive(-0.0))
 
     def test_negative(self) -> None:
         self.assertFalse(is_positive(-5))
         self.assertFalse(is_positive(-0.5))
+        self.assertFalse(is_positive(-float("inf")))
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_positive("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_positive(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_positive(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_positive(None)  # type: ignore[arg-type]
 
 
 class TestIsZero(unittest.TestCase):
     def test_zero(self) -> None:
         self.assertTrue(is_zero(0))
         self.assertTrue(is_zero(0.0))
+        self.assertTrue(is_zero(-0.0))
 
     def test_non_zero(self) -> None:
         self.assertFalse(is_zero(5))
         self.assertFalse(is_zero(-5))
         self.assertFalse(is_zero(0.5))
+        self.assertFalse(is_zero(float("inf")))
+        self.assertFalse(is_zero(float("nan")))
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_zero("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_zero(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_zero(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_zero(None)  # type: ignore[arg-type]
 
 
 class TestIsNonNegative(unittest.TestCase):
     def test_non_negative(self) -> None:
         self.assertTrue(is_non_negative(0))
         self.assertTrue(is_non_negative(0.0))
+        self.assertTrue(is_non_negative(-0.0))
         self.assertTrue(is_non_negative(5))
         self.assertTrue(is_non_negative(0.5))
+        self.assertTrue(is_non_negative(float("inf")))
 
     def test_negative(self) -> None:
         self.assertFalse(is_non_negative(-5))
         self.assertFalse(is_non_negative(-0.5))
+        self.assertFalse(is_non_negative(-float("inf")))
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_non_negative("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_non_negative(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_non_negative(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_non_negative(None)  # type: ignore[arg-type]
 
 
 class TestIsNonPositive(unittest.TestCase):
     def test_non_positive(self) -> None:
         self.assertTrue(is_non_positive(0))
         self.assertTrue(is_non_positive(0.0))
+        self.assertTrue(is_non_positive(-0.0))
         self.assertTrue(is_non_positive(-5))
         self.assertTrue(is_non_positive(-0.5))
+        self.assertTrue(is_non_positive(-float("inf")))
 
     def test_positive(self) -> None:
         self.assertFalse(is_non_positive(5))
         self.assertFalse(is_non_positive(0.5))
+        self.assertFalse(is_non_positive(float("inf")))
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_non_positive("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_non_positive(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_non_positive(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_non_positive(None)  # type: ignore[arg-type]
 
 
 class TestIsBetween(unittest.TestCase):
@@ -426,7 +487,10 @@ class TestIsFinite(unittest.TestCase):
     def test_finite_values(self) -> None:
         self.assertTrue(is_finite(0))
         self.assertTrue(is_finite(42))
+        self.assertTrue(is_finite(-42))
         self.assertTrue(is_finite(3.14))
+        self.assertTrue(is_finite(0.0))
+        self.assertTrue(is_finite(-0.0))
 
     def test_infinity(self) -> None:
         self.assertFalse(is_finite(float("inf")))
@@ -438,6 +502,12 @@ class TestIsFinite(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_finite("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_finite(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_finite(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_finite(None)  # type: ignore[arg-type]
 
 
 class TestIsInfinite(unittest.TestCase):
@@ -448,6 +518,8 @@ class TestIsInfinite(unittest.TestCase):
     def test_finite(self) -> None:
         self.assertFalse(is_infinite(0))
         self.assertFalse(is_infinite(3.14))
+        self.assertFalse(is_infinite(-42))
+        self.assertFalse(is_infinite(0.0))
 
     def test_nan(self) -> None:
         self.assertFalse(is_infinite(float("nan")))
@@ -455,6 +527,12 @@ class TestIsInfinite(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_infinite(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_infinite("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_infinite(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_infinite(False)  # type: ignore[arg-type]
 
 
 class TestIsNan(unittest.TestCase):
@@ -463,23 +541,43 @@ class TestIsNan(unittest.TestCase):
 
     def test_finite(self) -> None:
         self.assertFalse(is_nan(0))
+        self.assertFalse(is_nan(-0.0))
+        self.assertFalse(is_nan(3.14))
         self.assertFalse(is_nan(float("inf")))
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_nan("nan")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_nan(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_nan(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_nan(None)  # type: ignore[arg-type]
 
 
 class TestSafeDivide(unittest.TestCase):
     def test_normal(self) -> None:
         self.assertEqual(safe_divide(10, 2), 5.0)
+        self.assertEqual(safe_divide(7, 2), 3.5)
+        self.assertEqual(safe_divide(-10, 2), -5.0)
 
     def test_zero_denominator(self) -> None:
         self.assertEqual(safe_divide(10, 0), 0.0)
+        self.assertEqual(safe_divide(0, 0), 0.0)
+        self.assertEqual(safe_divide(-5, 0), 0.0)
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             safe_divide("a", 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_divide(2, "b")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_divide(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_divide(2, False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_divide(None, 2)  # type: ignore[arg-type]
 
 
 class TestIsPerfectCube(unittest.TestCase):
@@ -733,12 +831,15 @@ class TestIsEven(unittest.TestCase):
         self.assertTrue(is_even(0))
         self.assertTrue(is_even(2))
         self.assertTrue(is_even(-4))
+        self.assertTrue(is_even(2.0))
+        self.assertTrue(is_even(0.0))
 
     def test_odd(self) -> None:
         from number_utils import is_even
 
         self.assertFalse(is_even(1))
         self.assertFalse(is_even(-3))
+        self.assertFalse(is_even(3.5))
 
     def test_type_errors(self) -> None:
         from number_utils import is_even
@@ -747,6 +848,10 @@ class TestIsEven(unittest.TestCase):
             is_even("x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_even(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_even(None)  # type: ignore[arg-type]
 
 
 class TestIsOdd(unittest.TestCase):
@@ -755,12 +860,15 @@ class TestIsOdd(unittest.TestCase):
 
         self.assertTrue(is_odd(1))
         self.assertTrue(is_odd(-3))
+        self.assertTrue(is_odd(3.0))
 
     def test_even(self) -> None:
         from number_utils import is_odd
 
         self.assertFalse(is_odd(0))
         self.assertFalse(is_odd(2))
+        self.assertFalse(is_odd(2.0))
+        self.assertFalse(is_odd(2.5))
 
     def test_type_errors(self) -> None:
         from number_utils import is_odd
@@ -769,6 +877,10 @@ class TestIsOdd(unittest.TestCase):
             is_odd("x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_odd(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_odd(None)  # type: ignore[arg-type]
 
 
 class TestDigitSum(unittest.TestCase):
