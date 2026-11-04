@@ -6,6 +6,7 @@ from typing import Union
 DateTimeLike = Union[str, datetime]
 __all__ = [
     "add_days",
+    "add_weeks",
     "days_between",
     "format_datetime",
     "get_weekday_name",
@@ -94,6 +95,37 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
     """
     dt_val = _coerce_datetime(dt, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S")
     return dt_val + timedelta(days=days)
+
+
+def add_weeks(dt: DateTimeLike, weeks: int) -> datetime:
+    """Add (or subtract, if negative) a number of weeks to a datetime.
+
+    A companion to :func:`add_days` that shifts *dt* forward by *weeks*
+    weeks (or backward when *weeks* is negative).
+
+    Args:
+        dt: A datetime or a string parseable with ``%Y-%m-%d`` or
+            ``%Y-%m-%d %H:%M:%S``.
+        weeks: The number of weeks to add. May be negative.
+
+    Returns:
+        A new datetime shifted by the given number of weeks.
+
+    Raises:
+        TypeError: If *weeks* is not an int.
+        ValueError: If a string argument cannot be parsed.
+
+    Examples:
+        >>> add_weeks("2024-01-01", 1)
+        datetime.datetime(2024, 1, 8, 0, 0)
+        >>> add_weeks("2024-01-01", 0)
+        datetime.datetime(2024, 1, 1, 0, 0)
+        >>> add_weeks("2024-01-01", -1)
+        datetime.datetime(2023, 12, 25, 0, 0)
+    """
+    if isinstance(weeks, bool) or not isinstance(weeks, int):
+        raise TypeError("weeks must be an int")
+    return add_days(dt, weeks * 7)
 
 
 def get_weekday_name(dt: DateTimeLike) -> str:

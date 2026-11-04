@@ -711,7 +711,7 @@ The project includes dataclass utilities in `dataclasses_utils.py` wrapping the 
 
 ## Datetime Utilities Module
 
-The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
+The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, `add_weeks`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
 
 ## Database Utilities Module
 

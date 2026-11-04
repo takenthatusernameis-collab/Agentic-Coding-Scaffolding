@@ -21805,6 +21805,7 @@ from typing import Union
 DateTimeLike = Union[str, datetime]
 __all__ = [
     "add_days",
+    "add_weeks",
     "days_between",
     "format_datetime",
     "get_weekday_name",
@@ -21893,6 +21894,37 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
     """
     dt_val = _coerce_datetime(dt, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S")
     return dt_val + timedelta(days=days)
+
+
+def add_weeks(dt: DateTimeLike, weeks: int) -> datetime:
+    """Add (or subtract, if negative) a number of weeks to a datetime.
+
+    A companion to :func:`add_days` that shifts *dt* forward by *weeks*
+    weeks (or backward when *weeks* is negative).
+
+    Args:
+        dt: A datetime or a string parseable with ``%Y-%m-%d`` or
+            ``%Y-%m-%d %H:%M:%S``.
+        weeks: The number of weeks to add. May be negative.
+
+    Returns:
+        A new datetime shifted by the given number of weeks.
+
+    Raises:
+        TypeError: If *weeks* is not an int.
+        ValueError: If a string argument cannot be parsed.
+
+    Examples:
+        >>> add_weeks("2024-01-01", 1)
+        datetime.datetime(2024, 1, 8, 0, 0)
+        >>> add_weeks("2024-01-01", 0)
+        datetime.datetime(2024, 1, 1, 0, 0)
+        >>> add_weeks("2024-01-01", -1)
+        datetime.datetime(2023, 12, 25, 0, 0)
+    """
+    if isinstance(weeks, bool) or not isinstance(weeks, int):
+        raise TypeError("weeks must be an int")
+    return add_days(dt, weeks * 7)
 
 
 def get_weekday_name(dt: DateTimeLike) -> str:
@@ -26408,6 +26440,7 @@ from datetime import datetime
 
 from datetime_utils import (
     add_days,
+    add_weeks,
     days_between,
     format_datetime,
     get_weekday_name,
@@ -26520,6 +26553,45 @@ class TestAddDays(unittest.TestCase):
     def test_add_invalid_string_raises(self) -> None:
         with self.assertRaises(ValueError):
             add_days("not-a-date", 5)
+
+
+class TestAddWeeks(unittest.TestCase):
+    def test_add_positive_weeks(self) -> None:
+        result = add_weeks("2024-01-01", 1)
+        self.assertEqual(result, datetime(2024, 1, 8))
+
+    def test_add_negative_weeks(self) -> None:
+        result = add_weeks("2024-01-08", -1)
+        self.assertEqual(result, datetime(2024, 1, 1))
+
+    def test_add_zero_weeks(self) -> None:
+        result = add_weeks("2024-01-01", 0)
+        self.assertEqual(result, datetime(2024, 1, 1))
+
+    def test_add_with_datetime_object(self) -> None:
+        dt = datetime(2024, 1, 1, 12, 0, 0)
+        result = add_weeks(dt, 2)
+        self.assertEqual(result, datetime(2024, 1, 15, 12, 0, 0))
+
+    def test_add_crosses_month_boundary(self) -> None:
+        result = add_weeks("2024-01-25", 1)
+        self.assertEqual(result, datetime(2024, 2, 1))
+
+    def test_add_crosses_year_boundary(self) -> None:
+        result = add_weeks("2024-12-25", 2)
+        self.assertEqual(result, datetime(2025, 1, 8))
+
+    def test_add_invalid_string_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            add_weeks("not-a-date", 1)
+
+    def test_add_rejects_non_int_weeks(self) -> None:
+        with self.assertRaises(TypeError):
+            add_weeks("2024-01-01", 1.5)
+        with self.assertRaises(TypeError):
+            add_weeks("2024-01-01", True)
+        with self.assertRaises(TypeError):
+            add_weeks("2024-01-01", "1")
 
 
 class TestGetWeekdayName(unittest.TestCase):
@@ -52618,6 +52690,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added add_weeks to datetime_utils
+
+- Added `add_weeks(dt, weeks)` to `datetime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int week counts; it is a companion to `add_days` that shifts a datetime forward or backward by a whole number of weeks (delegating to `add_days(dt, weeks * 7)`). Added `TestAddWeeks` to `tests/test_datetime_utils.py` covering positive/negative/zero weeks, datetime-object input, month/year boundary crossing, invalid-string `ValueError`, and non-int `TypeError` paths (8 new tests). Updated the `datetime_utils` module prose section of `README.md`. Synchronized `datetime_utils.py`, `tests/test_datetime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_anagram to string_utils
 
 - Added `is_anagram(text1, text2)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when two strings contain the same characters in the same quantities (ignoring case and whitespace) and `False` otherwise, treating the empty string as an anagram of itself. Added `TestIsAnagram` to `tests/test_string_utils.py` covering anagrams, case-insensitivity, whitespace handling, non-anagrams, empty/single-character inputs, and the `TypeError` paths (9 new tests). Imported `is_anagram` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_string_utils` passes; `python -m doctest string_utils.py` passes.
@@ -55204,7 +55281,7 @@ The project includes dataclass utilities in `dataclasses_utils.py` wrapping the 
 
 ## Datetime Utilities Module
 
-The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
+The project includes a date and time utilities module in `datetime_utils.py` with functions for date/time parsing, formatting, and arithmetic: `parse_datetime`, `format_datetime`, `days_between`, `is_leap_year`, `add_days`, `add_weeks`, and `get_weekday_name`. The module is tested in `tests/test_datetime_utils.py`.
 
 ## Database Utilities Module
 
