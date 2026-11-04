@@ -7,6 +7,7 @@ from string_utils import (
     count_words,
     dedent_text,
     hamming_distance,
+    indent_text,
     is_anagram,
     is_isogram,
     is_palindrome,
@@ -942,8 +943,8 @@ class TestLevenshteinDistance(unittest.TestCase):
     def test_non_string_second_arg(self):
         for value in (None, 123, 3.14, ["a"], {"a": 1}):
             with self.subTest(value=value):
-        with self.assertRaises(TypeError):
-            levenshtein_distance("a", value)  # type: ignore[arg-type]
+                with self.assertRaises(TypeError):
+                    levenshtein_distance("a", value)  # type: ignore[arg-type]
 
 
 class TestHammingDistance(unittest.TestCase):

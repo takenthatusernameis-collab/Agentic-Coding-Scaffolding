@@ -22599,6 +22599,7 @@ from string_utils import (
     camel_to_snake,
     count_words,
     dedent_text,
+    hamming_distance,
     indent_text,
     is_anagram,
     is_isogram,
@@ -23539,6 +23540,44 @@ class TestLevenshteinDistance(unittest.TestCase):
                     levenshtein_distance("a", value)  # type: ignore[arg-type]
 
 
+class TestHammingDistance(unittest.TestCase):
+    def test_classic_example(self):
+        self.assertEqual(hamming_distance("karolin", "kathrin"), 3)
+
+    def test_binary_strings(self):
+        self.assertEqual(hamming_distance("1011101", "1001001"), 2)
+
+    def test_identical(self):
+        self.assertEqual(hamming_distance("abc", "abc"), 0)
+
+    def test_single_difference(self):
+        self.assertEqual(hamming_distance("abc", "adc"), 1)
+
+    def test_case_sensitive(self):
+        self.assertEqual(hamming_distance("Abc", "abc"), 1)
+
+    def test_empty_strings(self):
+        self.assertEqual(hamming_distance("", ""), 0)
+
+    def test_different_lengths(self):
+        with self.assertRaises(ValueError):
+            hamming_distance("abc", "ab")
+        with self.assertRaises(ValueError):
+            hamming_distance("ab", "abc")
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    hamming_distance(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    hamming_distance("a", value)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTSTRINGUTILS
@@ -23636,6 +23675,7 @@ cat > "$OUTPUT_DIR/tests/test_prompt_utils.py" <<'TESTPROMPTUTILS'
 import unittest
 
 from prompt_utils import (
+    chomp,
     clean_prompt,
     collapse_blank_lines,
     count_blank_lines,
@@ -25082,6 +25122,41 @@ class TestRemoveSuffix(unittest.TestCase):
             remove_suffix("x", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             remove_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestChomp(unittest.TestCase):
+    def test_removes_trailing_newline(self):
+        self.assertEqual(chomp("hello\n"), "hello")
+
+    def test_removes_crlf(self):
+        self.assertEqual(chomp("hello\r\n"), "hello")
+
+    def test_removes_lone_cr(self):
+        self.assertEqual(chomp("hello\r"), "hello")
+
+    def test_no_trailing_newline(self):
+        self.assertEqual(chomp("hello"), "hello")
+
+    def test_empty_string(self):
+        self.assertEqual(chomp(""), "")
+
+    def test_only_newline(self):
+        self.assertEqual(chomp("\n"), "")
+
+    def test_only_crlf(self):
+        self.assertEqual(chomp("\r\n"), "")
+
+    def test_preserves_internal_newlines(self):
+        self.assertEqual(chomp("a\nb\n"), "a\nb")
+
+    def test_preserves_internal_crlf(self):
+        self.assertEqual(chomp("a\r\nb\r\n"), "a\r\nb")
+
+    def test_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            chomp(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chomp(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
@@ -33632,6 +33707,7 @@ __all__: List[str] = [
     "split_paragraphs",
     "count_words",
     "levenshtein_distance",
+    "hamming_distance",
 ]
 
 _SMALL_WORDS = {
@@ -34389,6 +34465,39 @@ def levenshtein_distance(text1: str, text2: str) -> int:
             )
         previous = current
     return previous[-1]
+
+
+def hamming_distance(text1: str, text2: str) -> int:
+    """Compute the Hamming distance between two strings of equal length.
+
+    Args:
+        text1: The first string.
+        text2: The second string.
+
+    Returns:
+        The number of positions at which the corresponding characters differ.
+
+    Raises:
+        TypeError: If either argument is not a string.
+        ValueError: If the strings have different lengths.
+
+    Examples:
+        >>> hamming_distance("karolin", "kathrin")
+        3
+        >>> hamming_distance("1011101", "1001001")
+        2
+        >>> hamming_distance("abc", "abc")
+        0
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    if len(text1) != len(text2):
+        raise ValueError("strings must have equal length")
+    distance = 0
+    for c1, c2 in zip(text1, text2):
+        if c1 != c2:
+            distance += 1
+    return distance
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
@@ -52999,6 +53108,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added tests for prompt_utils chomp helper
+
+- Added `TestChomp` to `tests/test_prompt_utils.py` covering the `chomp(text)` public helper, which was already exported in `prompt_utils.__all__` and fully implemented (typed signature, Google-style docstring with doctests, `TypeError` validation for non-string arguments) but had no corresponding test coverage. New tests cover trailing `\n`, lone `\r`, `\r\n`, no-newline, empty string, only-newline, only-CRLF, preservation of internal newlines, and the `TypeError` paths (10 new tests). Imported `chomp` at the top of the test file to match the module's `__all__` contract. `chomp` is already listed in the `prompt_utils` prose section of `README.md`, so no README change was required. Synchronized `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` passes (359 tests); `make test` passes; `make lint` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added levenshtein_distance to string_utils
 
 - Added `levenshtein_distance(text1, text2)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the minimum number of single-character edits (insertions, deletions, or substitutions) required to transform *text1* into *text2*, computed with a dynamic-programming algorithm using O(min(len(text1), len(text2))) space. Added `TestLevenshteinDistance` to `tests/test_string_utils.py` covering the classic kitten/sitting example, identical strings, empty strings, one-empty-string, substitution-only, insertion/deletion, case sensitivity, whitespace preservation, unicode, symmetry, a known sunday/saturday distance, and the `TypeError` paths for both arguments (12 new tests). Imported `levenshtein_distance` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_string_utils` passes; `python -m doctest string_utils.py` passes.

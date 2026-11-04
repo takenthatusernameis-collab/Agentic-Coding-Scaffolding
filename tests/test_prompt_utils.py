@@ -3,6 +3,7 @@
 import unittest
 
 from prompt_utils import (
+    chomp,
     clean_prompt,
     collapse_blank_lines,
     count_blank_lines,
@@ -1449,3 +1450,38 @@ class TestRemoveSuffix(unittest.TestCase):
             remove_suffix("x", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             remove_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestChomp(unittest.TestCase):
+    def test_removes_trailing_newline(self):
+        self.assertEqual(chomp("hello\n"), "hello")
+
+    def test_removes_crlf(self):
+        self.assertEqual(chomp("hello\r\n"), "hello")
+
+    def test_removes_lone_cr(self):
+        self.assertEqual(chomp("hello\r"), "hello")
+
+    def test_no_trailing_newline(self):
+        self.assertEqual(chomp("hello"), "hello")
+
+    def test_empty_string(self):
+        self.assertEqual(chomp(""), "")
+
+    def test_only_newline(self):
+        self.assertEqual(chomp("\n"), "")
+
+    def test_only_crlf(self):
+        self.assertEqual(chomp("\r\n"), "")
+
+    def test_preserves_internal_newlines(self):
+        self.assertEqual(chomp("a\nb\n"), "a\nb")
+
+    def test_preserves_internal_crlf(self):
+        self.assertEqual(chomp("a\r\nb\r\n"), "a\r\nb")
+
+    def test_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            chomp(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chomp(None)  # type: ignore[arg-type]
