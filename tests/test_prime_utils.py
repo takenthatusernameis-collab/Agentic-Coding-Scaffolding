@@ -41,6 +41,7 @@ from prime_utils import (
     is_truncatable_prime,
     is_twin_prime,
     is_ugly_number,
+    is_happy_prime,
     is_weak_prime,
     is_wilson_prime,
     largest_prime_factor,
@@ -1804,3 +1805,29 @@ class TestIsUglyNumber(unittest.TestCase):
             is_ugly_number("6")
         with self.assertRaises(TypeError):
             is_ugly_number(True)
+
+
+class TestIsHappyPrime(unittest.TestCase):
+    def test_happy_primes(self):
+        for n in (7, 13, 19, 23, 31, 79, 97, 103, 139):
+            self.assertTrue(is_happy_prime(n), n)
+
+    def test_primes_that_are_unhappy(self):
+        for n in (2, 3, 5, 11, 17, 29, 41, 43, 47, 53):
+            self.assertFalse(is_happy_prime(n), n)
+
+    def test_composites(self):
+        for n in (1, 4, 6, 8, 9, 10, 14, 22):
+            self.assertFalse(is_happy_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, -7, -13):
+            self.assertFalse(is_happy_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_happy_prime(7.0)
+        with self.assertRaises(TypeError):
+            is_happy_prime("7")
+        with self.assertRaises(TypeError):
+            is_happy_prime(True)

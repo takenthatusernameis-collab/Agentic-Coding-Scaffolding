@@ -58,6 +58,7 @@ __all__: List[str] = [
     "is_super_prime",
     "is_balanced_prime",
     "is_ugly_number",
+    "is_happy_prime",
     "is_weak_prime",
 ]
 
@@ -1777,3 +1778,50 @@ def is_ugly_number(n: int) -> bool:
         while remaining % p == 0:
             remaining //= p
     return remaining == 1
+
+
+def is_happy_prime(n: int) -> bool:
+    """Return True if *n* is a happy prime.
+
+    A happy prime is a number that is both happy and prime. A happy number is
+    defined by the process of replacing the number by the sum of the squares
+    of its digits, and repeating the process until the number equals 1 or it
+    loops endlessly in a cycle that does not include 1. Such numbers are happy
+    if the process ends in 1.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a happy prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_happy_prime(7)
+        True
+        >>> is_happy_prime(13)
+        True
+        >>> is_happy_prime(19)
+        True
+        >>> is_happy_prime(11)
+        False
+        >>> is_happy_prime(2)
+        True
+        >>> is_happy_prime(3)
+        True
+        >>> is_happy_prime(5)
+        True
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    if n < 0:
+        return False
+    seen: set[int] = set()
+    current = n
+    while current != 1 and current not in seen:
+        seen.add(current)
+        current = sum(int(d) * int(d) for d in str(current))
+    return current == 1
