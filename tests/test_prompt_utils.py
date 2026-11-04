@@ -35,19 +35,21 @@ from prompt_utils import (
     ensure_surrounded_by_newlines,
     ensure_trailing_newline,
     escape_placeholders,
+    estimate_token_count,
     extract_keywords,
     extract_placeholders,
     extract_sentences,
     first_line,
     format_prompt_template,
     has_digits,
-    has_leading_newline,
     has_letters,
+    has_leading_newline,
     has_lowercase,
-    has_whitespace,
     has_placeholders,
+    has_punctuation,
     has_trailing_newline,
     has_uppercase,
+    has_whitespace,
     indent_lines,
     is_blank,
     join_lines,
@@ -215,6 +217,29 @@ class TestHasLetters(unittest.TestCase):
             has_letters(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_letters(None)  # type: ignore[arg-type]
+
+
+class TestHasPunctuation(unittest.TestCase):
+    def test_contains_punctuation(self):
+        self.assertTrue(has_punctuation("Hello, world!"))
+        self.assertTrue(has_punctuation("."))
+        self.assertTrue(has_punctuation("?"))
+
+    def test_no_punctuation(self):
+        self.assertFalse(has_punctuation("hello"))
+        self.assertFalse(has_punctuation("abc123"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_punctuation(""))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_punctuation(" "))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_punctuation(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_punctuation(None)  # type: ignore[arg-type]
 
 
 class TestHasWhitespace(unittest.TestCase):

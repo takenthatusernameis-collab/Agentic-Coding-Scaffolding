@@ -1962,6 +1962,35 @@ def has_letters(text: str) -> bool:
     return any(("a" <= ch <= "z") or ("A" <= ch <= "Z") for ch in text)
 
 
+def has_punctuation(text: str) -> bool:
+    """Return True if *text* contains any ASCII punctuation character.
+
+    A boolean companion to :func:`count_punctuation` that reports whether
+    *text* contains at least one punctuation character from
+    :data:`string.punctuation`. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one punctuation character,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_punctuation("Hello, world!")
+        True
+        >>> has_punctuation("hello")
+        False
+        >>> has_punctuation("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch in _PUNCTUATION for ch in text)
+
+
 def has_whitespace(text: str) -> bool:
     """Return True if *text* contains at least one whitespace character.
 
