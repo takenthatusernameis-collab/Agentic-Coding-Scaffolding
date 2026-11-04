@@ -24,6 +24,7 @@ __all__: List[str] = [
     "reverse_words",
     "split_paragraphs",
     "count_words",
+    "levenshtein_distance",
 ]
 
 _SMALL_WORDS = {
@@ -728,3 +729,56 @@ def count_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text.split())
+
+
+def levenshtein_distance(text1: str, text2: str) -> int:
+    """Return the Levenshtein edit distance between two strings.
+
+    The edit distance is the minimum number of single-character edits
+    (insertions, deletions, or substitutions) required to transform
+    *text1* into *text2*. The computation is case-sensitive and uses the
+    classic dynamic-programming algorithm with O(len(text1) * len(text2))
+    time and O(min(len(text1), len(text2))) space.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The integer edit distance between *text1* and *text2*. Zero means
+        the strings are identical.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+
+    Examples:
+        >>> levenshtein_distance("kitten", "sitting")
+        3
+        >>> levenshtein_distance("", "")
+        0
+        >>> levenshtein_distance("abc", "abc")
+        0
+        >>> levenshtein_distance("flaw", "lawn")
+        2
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+
+    # Keep the shorter string as the inner loop dimension to minimize memory.
+    if len(text1) < len(text2):
+        text1, text2 = text2, text1
+
+    previous = list(range(len(text2) + 1))
+    for i, char1 in enumerate(text1, start=1):
+        current = [i]
+        for j, char2 in enumerate(text2, start=1):
+            cost = 0 if char1 == char2 else 1
+            current.append(
+                min(
+                    current[j - 1] + 1,  # insertion
+                    previous[j] + 1,  # deletion
+                    previous[j - 1] + cost,  # substitution
+                )
+            )
+        previous = current
+    return previous[-1]

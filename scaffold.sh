@@ -22597,17 +22597,20 @@ import unittest
 
 from string_utils import (
     camel_to_snake,
+    count_words,
     dedent_text,
     indent_text,
     is_anagram,
     is_isogram,
     is_palindrome,
+    levenshtein_distance,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
     reverse_words,
     slugify,
     snake_to_camel,
+    split_paragraphs,
     title_case,
     truncate,
     truncate_words,
@@ -23432,9 +23435,6 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
-from string_utils import count_words, split_paragraphs  # noqa: E402
-
-
 class TestSplitParagraphs(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(split_paragraphs("Hello\n\nWorld"), ["Hello", "World"])
@@ -23485,6 +23485,58 @@ class TestCountWords(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     count_words(value)  # type: ignore[arg-type]
+
+
+class TestLevenshteinDistance(unittest.TestCase):
+    def test_classic_example(self):
+        self.assertEqual(levenshtein_distance("kitten", "sitting"), 3)
+
+    def test_identical(self):
+        self.assertEqual(levenshtein_distance("abc", "abc"), 0)
+
+    def test_empty_strings(self):
+        self.assertEqual(levenshtein_distance("", ""), 0)
+
+    def test_one_empty(self):
+        self.assertEqual(levenshtein_distance("abc", ""), 3)
+        self.assertEqual(levenshtein_distance("", "xyz"), 3)
+
+    def test_substitution_only(self):
+        self.assertEqual(levenshtein_distance("cat", "car"), 1)
+
+    def test_insertion_and_deletion(self):
+        self.assertEqual(levenshtein_distance("flaw", "lawn"), 2)
+
+    def test_case_sensitive(self):
+        self.assertEqual(levenshtein_distance("Abc", "abc"), 1)
+
+    def test_whitespace_preserved(self):
+        self.assertEqual(levenshtein_distance("a b", "ab"), 1)
+
+    def test_unicode(self):
+        self.assertEqual(levenshtein_distance("café", "cafe"), 1)
+
+    def test_symmetric(self):
+        self.assertEqual(
+            levenshtein_distance("intention", "execution"),
+            levenshtein_distance("execution", "intention"),
+        )
+
+    def test_known_distance(self):
+        # "sunday" -> "saturday" requires 3 edits.
+        self.assertEqual(levenshtein_distance("sunday", "saturday"), 3)
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    levenshtein_distance(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    levenshtein_distance("a", value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -33579,6 +33631,7 @@ __all__: List[str] = [
     "reverse_words",
     "split_paragraphs",
     "count_words",
+    "levenshtein_distance",
 ]
 
 _SMALL_WORDS = {
@@ -34283,6 +34336,59 @@ def count_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text.split())
+
+
+def levenshtein_distance(text1: str, text2: str) -> int:
+    """Return the Levenshtein edit distance between two strings.
+
+    The edit distance is the minimum number of single-character edits
+    (insertions, deletions, or substitutions) required to transform
+    *text1* into *text2*. The computation is case-sensitive and uses the
+    classic dynamic-programming algorithm with O(len(text1) * len(text2))
+    time and O(min(len(text1), len(text2))) space.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The integer edit distance between *text1* and *text2*. Zero means
+        the strings are identical.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+
+    Examples:
+        >>> levenshtein_distance("kitten", "sitting")
+        3
+        >>> levenshtein_distance("", "")
+        0
+        >>> levenshtein_distance("abc", "abc")
+        0
+        >>> levenshtein_distance("flaw", "lawn")
+        2
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+
+    # Keep the shorter string as the inner loop dimension to minimize memory.
+    if len(text1) < len(text2):
+        text1, text2 = text2, text1
+
+    previous = list(range(len(text2) + 1))
+    for i, char1 in enumerate(text1, start=1):
+        current = [i]
+        for j, char2 in enumerate(text2, start=1):
+            cost = 0 if char1 == char2 else 1
+            current.append(
+                min(
+                    current[j - 1] + 1,  # insertion
+                    previous[j] + 1,  # deletion
+                    previous[j - 1] + cost,  # substitution
+                )
+            )
+        previous = current
+    return previous[-1]
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'
@@ -52893,6 +52999,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added levenshtein_distance to string_utils
+
+- Added `levenshtein_distance(text1, text2)` to `string_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns the minimum number of single-character edits (insertions, deletions, or substitutions) required to transform *text1* into *text2*, computed with a dynamic-programming algorithm using O(min(len(text1), len(text2))) space. Added `TestLevenshteinDistance` to `tests/test_string_utils.py` covering the classic kitten/sitting example, identical strings, empty strings, one-empty-string, substitution-only, insertion/deletion, case sensitivity, whitespace preservation, unicode, symmetry, a known sunday/saturday distance, and the `TypeError` paths for both arguments (12 new tests). Imported `levenshtein_distance` at the top of the test file to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_string_utils` passes; `python -m doctest string_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added add_weeks to datetime_utils
 
 - Added `add_weeks(dt, weeks)` to `datetime_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int week counts; it is a companion to `add_days` that shifts a datetime forward or backward by a whole number of weeks (delegating to `add_days(dt, weeks * 7)`). Added `TestAddWeeks` to `tests/test_datetime_utils.py` covering positive/negative/zero weeks, datetime-object input, month/year boundary crossing, invalid-string `ValueError`, and non-int `TypeError` paths (8 new tests). Updated the `datetime_utils` module prose section of `README.md`. Synchronized `datetime_utils.py`, `tests/test_datetime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -54897,7 +55008,7 @@ csv_utils.py             # CSV utility functions (read/write/append as dicts or 
 set_utils.py             # Set operation utilities (subset, superset, disjoint, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs, count_words, levenshtein_distance)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var, is_class_var, is_callable, is_tuple, is_list_type, is_dict_type, is_none_type, is_any, unwrap_optional, get_origin_name)
 type_check_utils.py        # Type checking utilities (is_str, is_int, is_float, is_bool, is_list, is_dict, is_tuple, is_set, is_frozenset, is_none, is_numeric, is_iterable, is_callable, ensure_type, coerce_to_str) with input validation
@@ -55598,7 +55709,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `is_anagram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, and `split_paragraphs`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `is_anagram` checks whether two strings contain the same characters in the same quantities, ignoring case and whitespace. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `is_anagram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, `split_paragraphs`, and `count_words`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `is_anagram` checks whether two strings contain the same characters in the same quantities, ignoring case and whitespace. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. `count_words` counts whitespace-delimited words. `levenshtein_distance` computes the minimum number of single-character edits (insertions, deletions, or substitutions) needed to transform one string into another, using a dynamic-programming algorithm. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 

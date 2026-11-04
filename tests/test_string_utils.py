@@ -4,17 +4,20 @@ import unittest
 
 from string_utils import (
     camel_to_snake,
+    count_words,
     dedent_text,
     indent_text,
     is_anagram,
     is_isogram,
     is_palindrome,
+    levenshtein_distance,
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
     reverse_words,
     slugify,
     snake_to_camel,
+    split_paragraphs,
     title_case,
     truncate,
     truncate_words,
@@ -839,9 +842,6 @@ class TestReverseWords(unittest.TestCase):
                     reverse_words(value)  # type: ignore[arg-type]
 
 
-from string_utils import count_words, split_paragraphs  # noqa: E402
-
-
 class TestSplitParagraphs(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(split_paragraphs("Hello\n\nWorld"), ["Hello", "World"])
@@ -892,6 +892,58 @@ class TestCountWords(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     count_words(value)  # type: ignore[arg-type]
+
+
+class TestLevenshteinDistance(unittest.TestCase):
+    def test_classic_example(self):
+        self.assertEqual(levenshtein_distance("kitten", "sitting"), 3)
+
+    def test_identical(self):
+        self.assertEqual(levenshtein_distance("abc", "abc"), 0)
+
+    def test_empty_strings(self):
+        self.assertEqual(levenshtein_distance("", ""), 0)
+
+    def test_one_empty(self):
+        self.assertEqual(levenshtein_distance("abc", ""), 3)
+        self.assertEqual(levenshtein_distance("", "xyz"), 3)
+
+    def test_substitution_only(self):
+        self.assertEqual(levenshtein_distance("cat", "car"), 1)
+
+    def test_insertion_and_deletion(self):
+        self.assertEqual(levenshtein_distance("flaw", "lawn"), 2)
+
+    def test_case_sensitive(self):
+        self.assertEqual(levenshtein_distance("Abc", "abc"), 1)
+
+    def test_whitespace_preserved(self):
+        self.assertEqual(levenshtein_distance("a b", "ab"), 1)
+
+    def test_unicode(self):
+        self.assertEqual(levenshtein_distance("café", "cafe"), 1)
+
+    def test_symmetric(self):
+        self.assertEqual(
+            levenshtein_distance("intention", "execution"),
+            levenshtein_distance("execution", "intention"),
+        )
+
+    def test_known_distance(self):
+        # "sunday" -> "saturday" requires 3 edits.
+        self.assertEqual(levenshtein_distance("sunday", "saturday"), 3)
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    levenshtein_distance(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    levenshtein_distance("a", value)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
