@@ -1045,6 +1045,7 @@ class TestDamerauLevenshteinDistance(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
+
 class TestJaroSimilarity(unittest.TestCase):
     def test_identical(self):
         self.assertAlmostEqual(jaro_similarity("hello", "hello"), 1.0)
@@ -1097,7 +1098,9 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
         self.assertAlmostEqual(jaro_winkler_similarity("DIXON", "DICKSONX"), 0.8133333, places=6)
 
     def test_custom_scaling(self):
-        self.assertAlmostEqual(jaro_winkler_similarity("MARTHA", "MARCUZ", scaling=0.05), 0.7166667, places=6)
+        self.assertAlmostEqual(
+            jaro_winkler_similarity("MARTHA", "MARCUZ", scaling=0.05), 0.7166667, places=6
+        )
 
     def test_scaling_validation(self):
         with self.assertRaises(ValueError):
@@ -1134,7 +1137,9 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
         self.assertAlmostEqual(jaro_winkler_distance("MARTHA", "MARCUZ"), 0.2333333, places=6)
 
     def test_jaro_winkler_distance_scaling(self):
-        self.assertAlmostEqual(jaro_winkler_distance("MARTHA", "MARCUZ", scaling=0.05), 0.2833333, places=6)
+        self.assertAlmostEqual(
+            jaro_winkler_distance("MARTHA", "MARCUZ", scaling=0.05), 0.2833333, places=6
+        )
 
     def test_jaro_winkler_distance_validation(self):
         with self.assertRaises(ValueError):

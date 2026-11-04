@@ -199,6 +199,7 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             clamp(5, 0, False)
 
+
 class TestAbsDifference(unittest.TestCase):
     def test_abs_difference_positive(self):
         self.assertEqual(abs_difference(5, 3), 2)

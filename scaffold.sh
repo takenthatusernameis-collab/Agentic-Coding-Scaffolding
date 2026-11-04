@@ -9580,7 +9580,7 @@ def is_perfect_square(n: int) -> bool:
         raise TypeError("n must be an int")
     if n < 0:
         raise ValueError("n must be non-negative")
-    root = int(n ** 0.5)
+    root = int(n**0.5)
     return root * root == n or (root + 1) * (root + 1) == n
 
 
@@ -9853,6 +9853,7 @@ class TestCalculator(unittest.TestCase):
             clamp(5, False, 10)
         with self.assertRaises(TypeError):
             clamp(5, 0, False)
+
 
 class TestAbsDifference(unittest.TestCase):
     def test_abs_difference_positive(self):
@@ -23638,6 +23639,7 @@ class TestDamerauLevenshteinDistance(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 
+
 class TestJaroSimilarity(unittest.TestCase):
     def test_identical(self):
         self.assertAlmostEqual(jaro_similarity("hello", "hello"), 1.0)
@@ -23690,7 +23692,9 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
         self.assertAlmostEqual(jaro_winkler_similarity("DIXON", "DICKSONX"), 0.8133333, places=6)
 
     def test_custom_scaling(self):
-        self.assertAlmostEqual(jaro_winkler_similarity("MARTHA", "MARCUZ", scaling=0.05), 0.7166667, places=6)
+        self.assertAlmostEqual(
+            jaro_winkler_similarity("MARTHA", "MARCUZ", scaling=0.05), 0.7166667, places=6
+        )
 
     def test_scaling_validation(self):
         with self.assertRaises(ValueError):
@@ -23727,7 +23731,9 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
         self.assertAlmostEqual(jaro_winkler_distance("MARTHA", "MARCUZ"), 0.2333333, places=6)
 
     def test_jaro_winkler_distance_scaling(self):
-        self.assertAlmostEqual(jaro_winkler_distance("MARTHA", "MARCUZ", scaling=0.05), 0.2833333, places=6)
+        self.assertAlmostEqual(
+            jaro_winkler_distance("MARTHA", "MARCUZ", scaling=0.05), 0.2833333, places=6
+        )
 
     def test_jaro_winkler_distance_validation(self):
         with self.assertRaises(ValueError):
@@ -34811,12 +34817,7 @@ def damerau_levenshtein_distance(text1: str, text2: str) -> int:
                 row_minus1[j] + 1,  # deletion
                 row_minus1[j - 1] + cost,  # substitution
             )
-            if (
-                i > 1
-                and j > 1
-                and char1 == text2[j - 2]
-                and text1[i - 2] == text2[j - 1]
-            ):
+            if i > 1 and j > 1 and char1 == text2[j - 2] and text1[i - 2] == text2[j - 1]:
                 best = min(best, row_minus2[j - 2] + cost)  # transposition
             row.append(best)
         row_minus2 = row_minus1
@@ -86482,6 +86483,7 @@ from prime_utils import (
     is_fermat_number,
     is_fermat_pseudoprime,
     is_giuga_number,
+    is_happy_prime,
     is_korselt_number,
     is_mersenne_prime,
     is_palindromic_prime,
@@ -86503,7 +86505,6 @@ from prime_utils import (
     is_truncatable_prime,
     is_twin_prime,
     is_ugly_number,
-    is_happy_prime,
     is_weak_prime,
     is_wilson_prime,
     largest_prime_factor,

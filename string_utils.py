@@ -882,12 +882,7 @@ def damerau_levenshtein_distance(text1: str, text2: str) -> int:
                 row_minus1[j] + 1,  # deletion
                 row_minus1[j - 1] + cost,  # substitution
             )
-            if (
-                i > 1
-                and j > 1
-                and char1 == text2[j - 2]
-                and text1[i - 2] == text2[j - 1]
-            ):
+            if i > 1 and j > 1 and char1 == text2[j - 2] and text1[i - 2] == text2[j - 1]:
                 best = min(best, row_minus2[j - 2] + cost)  # transposition
             row.append(best)
         row_minus2 = row_minus1

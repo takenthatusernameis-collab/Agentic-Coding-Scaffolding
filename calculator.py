@@ -556,7 +556,7 @@ def is_perfect_square(n: int) -> bool:
         raise TypeError("n must be an int")
     if n < 0:
         raise ValueError("n must be non-negative")
-    root = int(n ** 0.5)
+    root = int(n**0.5)
     return root * root == n or (root + 1) * (root + 1) == n
 
 
