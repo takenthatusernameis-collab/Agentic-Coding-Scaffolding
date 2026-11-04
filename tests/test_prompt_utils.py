@@ -44,6 +44,7 @@ from prompt_utils import (
     has_leading_newline,
     has_placeholders,
     has_trailing_newline,
+    has_digits,
     indent_lines,
     is_blank,
     join_lines,
@@ -84,6 +85,27 @@ class TestEscapePlaceholders(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             escape_placeholders(123)  # type: ignore[arg-type]
+
+
+class TestHasDigits(unittest.TestCase):
+    def test_contains_digits(self):
+        self.assertTrue(has_digits("abc123"))
+
+    def test_contains_single_digit(self):
+        self.assertTrue(has_digits("a1b"))
+
+    def test_no_digits(self):
+        self.assertFalse(has_digits("hello world"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_digits(""))
+
+    def test_only_digits(self):
+        self.assertTrue(has_digits("007"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_digits(123)  # type: ignore[arg-type]
 
     def test_truncate_short_text(self):
         result = truncate_prompt("Hello", 10)

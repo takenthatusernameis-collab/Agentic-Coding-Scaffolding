@@ -57,6 +57,7 @@ __all__: List[str] = [
     "count_non_whitespace_characters",
     "count_whitespace_characters",
     "count_digits",
+    "has_digits",
     "count_letters",
     "count_vowels",
     "count_consonants",
@@ -1840,6 +1841,34 @@ def count_punctuation(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch in _PUNCTUATION)
+
+
+def has_digits(text: str) -> bool:
+    """Return True if *text* contains any ASCII digit (0-9).
+
+    A boolean companion to :func:`count_digits` that reports whether *text*
+    contains at least one ASCII decimal digit. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one ASCII digit, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_digits("abc123")
+        True
+        >>> has_digits("no digits here")
+        False
+        >>> has_digits("")
+        False
+    """
+    _require_string(text, "text")
+    return any("0" <= ch <= "9" for ch in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
