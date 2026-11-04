@@ -32,6 +32,8 @@ __all__: List[str] = [
     "jaro_winkler_similarity",
     "jaro_distance",
     "jaro_winkler_distance",
+    "cosine_similarity",
+    "cosine_distance",
 ]
 
 _SMALL_WORDS = {
