@@ -368,6 +368,66 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
         )  # skip complex case
 
     def test_interval_intersection_with_inf(self):
+        self.assertEqual(interval_intersection((0, float("inf")), (5, 10)), (5, 10))
+        self.assertEqual(interval_intersection((float("-inf"), 5), (-10, 0)), (-10, 0))
+        self.assertEqual(interval_intersection((float("-inf"), float("inf")), (1, 2)), (1, 2))
+        self.assertIsNone(interval_intersection((0, 1), (2, float("inf"))))
+
+    def test_interval_union_with_inf(self):
+        self.assertEqual(interval_union((0, float("inf")), (5, 10)), (0, float("inf")))
+        self.assertIsNone(interval_union((0, 1), (2, float("inf"))))
+        self.assertIsNone(interval_union((float("-inf"), 0), (1, float("inf"))))
+
+    def test_interval_length_with_inf(self):
+        self.assertEqual(interval_length((0, float("inf"))), float("inf"))
+        self.assertEqual(interval_length((float("-inf"), 5)), float("inf"))
+        self.assertEqual(interval_length((float("-inf"), float("inf"))), float("inf"))
+
+    def test_interval_midpoint_with_inf(self):
+        self.assertEqual(interval_midpoint((0, float("inf"))), float("inf"))
+        self.assertEqual(interval_midpoint((float("-inf"), 0)), float("-inf"))
+        self.assertTrue(math.isnan(interval_midpoint((float("-inf"), float("inf")))))
+
+    def test_interval_distance_with_inf(self):
+        self.assertEqual(interval_distance((0, float("inf")), (5, 10)), 0)
+        self.assertEqual(interval_distance((float("-inf"), 0), (1, float("inf"))), float("inf"))
+        self.assertEqual(interval_distance((0, 1), (float("inf"), float("inf"))), float("inf"))
+
+    def test_interval_shift_with_inf(self):
+        self.assertEqual(interval_shift((0, float("inf")), 5), (5, float("inf")))
+        self.assertEqual(interval_shift((float("-inf"), 0), -3), (float("-inf"), -3))
+        self.assertEqual(interval_shift((float("-inf"), float("inf")), 100), (float("-inf"), float("inf")))
+
+    def test_interval_shift_with_nan_delta(self):
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), float("nan"))
+
+    def test_interval_shift_with_inf_delta(self):
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), float("inf"))
+
+
+class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
+        self.assertTrue(interval_is_subset((0, 5), (float("-inf"), float("inf"))))
+        self.assertTrue(interval_is_subset((float("-inf"), float("inf")), (float("-inf"), float("inf"))))
+        self.assertFalse(interval_is_subset((float("-inf"), 0), (-5, 5)))
+        self.assertTrue(interval_is_subset((-5, 0), (float("-inf"), 0)))
+
+    def test_merge_intervals_with_inf(self):
+        self.assertEqual(merge_intervals([(0, float("inf")), (5, 10)]), [(0, float("inf"))])
+        self.assertEqual(merge_intervals([(float("-inf"), 0), (-5, float("inf"))]), [(float("-inf"), float("inf"))])
+
+    def test_normalize_interval_both_inf_nan(self):
+        self.assertEqual(normalize_interval(float("inf"), float("-inf")), (float("-inf"), float("inf")))
+        result = normalize_interval(float("nan"), float("inf"))
+        self.assertTrue(math.isnan(result[0]))
+        self.assertTrue(math.isnan(result[1]))
+
+    def test_interval_symmetric_difference_with_inf(self):
+        self.assertEqual(interval_symmetric_difference((0, float("inf")), (5, 10)), [])
+        diff = interval_symmetric_difference((0, 5), (3, float("inf")))
+        self.assertEqual(diff, [(0, 3), (5, float("inf"))])
+        self.assertEqual(interval_symmetric_difference((0, 1), (2, float("inf"))), [(0, 1), (2, float("inf"))])
         self.assertEqual(interval_intersection((0, float("inf")), (5, 100)), (5, 100))
         self.assertEqual(interval_intersection((float("-inf"), 10), (0, float("inf"))), (0, 10))
 
