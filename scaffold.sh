@@ -15496,6 +15496,7 @@ __all__: List[str] = [
     "winsorized_mean",
     "winsorized_variance",
     "winsorized_stddev",
+    "shannon_entropy",
 ]
 
 
@@ -16996,6 +16997,48 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
         1.4142135623730951
     """
     return math.sqrt(winsorized_variance(numbers, k=k, population=population))
+
+
+def shannon_entropy(numbers: List[int | float]) -> float:
+    """Return the Shannon entropy of the discrete values in *numbers*.
+
+    Entropy measures the uncertainty or information content of a
+    distribution. This function treats each value in *numbers* as a symbol
+    in a discrete distribution, counts the occurrences of each distinct
+    value, and returns ``-sum(p * log2(p))`` over the probability *p* of
+    each distinct value. The result is measured in bits; a list of all
+    identical values has entropy 0, and a list of *n* distinct values has
+    entropy ``log2(n)``.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The Shannon entropy of the values as a float.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If *numbers* is not a list or contains non-numeric
+            values.
+
+    Examples:
+        >>> shannon_entropy([1, 1, 1, 1])
+        0.0
+        >>> shannon_entropy([1, 2, 3, 4])
+        2.0
+        >>> shannon_entropy([1, 2, 2, 3, 3, 3])
+        1.4591479170272448
+    """
+    _require_numbers(numbers, "numbers")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    n = len(numbers)
+    entropy = 0.0
+    for count in frequency.values():
+        p = count / n
+        entropy -= p * math.log2(p)
+    return float(entropy) if entropy != 0 else 0.0
 STATS
 
 # --- tests/test_strings.py ---
@@ -19688,6 +19731,7 @@ from stats import (
     range,
     range_stat,
     root_mean_square,
+    shannon_entropy,
     skewness,
     standard_error,
     stddev,
@@ -21236,6 +21280,53 @@ class TestModeFrequency(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             mode_frequency([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestShannonEntropy(unittest.TestCase):
+    def test_identical_values_zero(self) -> None:
+        self.assertEqual(shannon_entropy([1, 1, 1, 1]), 0.0)
+
+    def test_all_distinct_max(self) -> None:
+        self.assertEqual(shannon_entropy([1, 2, 3, 4]), 2.0)
+
+    def test_mixed_distribution(self) -> None:
+        self.assertAlmostEqual(
+            shannon_entropy([1, 2, 2, 3, 3, 3]), 1.4591479170272448
+        )
+
+    def test_single_element_zero(self) -> None:
+        self.assertEqual(shannon_entropy([42]), 0.0)
+
+    def test_two_distinct_equal(self) -> None:
+        self.assertAlmostEqual(shannon_entropy([1, 2]), 1.0)
+
+    def test_order_invariant(self) -> None:
+        self.assertAlmostEqual(
+            shannon_entropy([1, 2, 2, 3, 3, 3]),
+            shannon_entropy([3, 3, 3, 2, 2, 1]),
+        )
+
+    def test_float_values(self) -> None:
+        self.assertAlmostEqual(shannon_entropy([1.5, 2.5, 2.5]), 0.9182958340544896)
+
+    def test_negative_numbers(self) -> None:
+        self.assertAlmostEqual(shannon_entropy([-1, -1, 2]), 0.9182958340544896)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            shannon_entropy([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            shannon_entropy((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            shannon_entropy([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            shannon_entropy([True, 1, 2])  # type: ignore[type-var]
 TESTSTATS
 
 # --- math_utils.py ---
@@ -54641,6 +54732,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added shannon_entropy to stats
+
+- Added `shannon_entropy(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the Shannon entropy of the discrete values in bits (``-sum(p * log2(p))`` over the probability of each distinct value), which is 0 for a list of identical values and ``log2(n)`` for *n* distinct values. Added `TestShannonEntropy` to `tests/test_stats.py` covering identical/all-distinct/mixed distributions, single element, two-distinct equal, order invariance, float and negative inputs, and the empty-list/non-list/non-numeric/bool rejection paths (12 new tests). Imported `shannon_entropy` at the top of the test file to match the module's `__all__` contract. Updated the `stats` prose section of `README.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_stats` passes (384 tests); `python -m doctest stats.py` shows only the 6 pre-existing float-formatting failures (geometric_mean, kurtosis, median, mode, winsorized_stddev — unchanged before and after this change); `shannon_entropy`'s 3 doctests pass.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed prompt_utils __all__ gap for has_punctuation
 
 - Found a real contract gap: `prompt_utils.has_punctuation` was a fully-implemented public function (typed signature, Google-style docstring with doctests, `TypeError` validation) but missing from `prompt_utils.__all__`, violating the public-API export contract that every public attribute must be listed in `__all__`. The gap was caught by `tests/test_public_api.py` as the only test failure in the suite.
@@ -57294,7 +57392,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 ## Statistics Module
 
-The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `mode_frequency`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` (aliased from `range_stat`) returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
+The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `mode_frequency`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` (aliased from `range_stat`) returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data, and `winsorized_stddev`/`winsorized_variance` compute the corresponding dispersion of the winsorized values. `shannon_entropy` returns the Shannon entropy of the discrete values in bits (0 for a list of identical values, `log2(n)` for n distinct values), measuring the uncertainty or information content of the distribution. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
 The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 

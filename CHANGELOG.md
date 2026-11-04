@@ -1,3 +1,10 @@
+## Unreleased — added shannon_entropy to stats
+
+- Added `shannon_entropy(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the Shannon entropy of the discrete values in bits (``-sum(p * log2(p))`` over the probability of each distinct value), which is 0 for a list of identical values and ``log2(n)`` for *n* distinct values. Added `TestShannonEntropy` to `tests/test_stats.py` covering identical/all-distinct/mixed distributions, single element, two-distinct equal, order invariance, float and negative inputs, and the empty-list/non-list/non-numeric/bool rejection paths (12 new tests). Imported `shannon_entropy` at the top of the test file to match the module's `__all__` contract. Updated the `stats` prose section of `README.md`.
+- Synchronized `stats.py`, `tests/test_stats.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_stats` passes (384 tests); `python -m doctest stats.py` shows only the 6 pre-existing float-formatting failures (geometric_mean, kurtosis, median, mode, winsorized_stddev — unchanged before and after this change); `shannon_entropy`'s 3 doctests pass.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed prompt_utils __all__ gap for has_punctuation
 
 - Found a real contract gap: `prompt_utils.has_punctuation` was a fully-implemented public function (typed signature, Google-style docstring with doctests, `TypeError` validation) but missing from `prompt_utils.__all__`, violating the public-API export contract that every public attribute must be listed in `__all__`. The gap was caught by `tests/test_public_api.py` as the only test failure in the suite.

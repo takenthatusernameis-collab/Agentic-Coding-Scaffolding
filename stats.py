@@ -60,6 +60,7 @@ __all__: List[str] = [
     "winsorized_mean",
     "winsorized_variance",
     "winsorized_stddev",
+    "shannon_entropy",
 ]
 
 
@@ -1560,3 +1561,45 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
         1.4142135623730951
     """
     return math.sqrt(winsorized_variance(numbers, k=k, population=population))
+
+
+def shannon_entropy(numbers: List[int | float]) -> float:
+    """Return the Shannon entropy of the discrete values in *numbers*.
+
+    Entropy measures the uncertainty or information content of a
+    distribution. This function treats each value in *numbers* as a symbol
+    in a discrete distribution, counts the occurrences of each distinct
+    value, and returns ``-sum(p * log2(p))`` over the probability *p* of
+    each distinct value. The result is measured in bits; a list of all
+    identical values has entropy 0, and a list of *n* distinct values has
+    entropy ``log2(n)``.
+
+    Args:
+        numbers: A list of numeric values.
+
+    Returns:
+        The Shannon entropy of the values as a float.
+
+    Raises:
+        ValueError: If the list is empty.
+        TypeError: If *numbers* is not a list or contains non-numeric
+            values.
+
+    Examples:
+        >>> shannon_entropy([1, 1, 1, 1])
+        0.0
+        >>> shannon_entropy([1, 2, 3, 4])
+        2.0
+        >>> shannon_entropy([1, 2, 2, 3, 3, 3])
+        1.4591479170272448
+    """
+    _require_numbers(numbers, "numbers")
+    frequency: dict = {}
+    for num in numbers:
+        frequency[num] = frequency.get(num, 0) + 1
+    n = len(numbers)
+    entropy = 0.0
+    for count in frequency.values():
+        p = count / n
+        entropy -= p * math.log2(p)
+    return float(entropy) if entropy != 0 else 0.0

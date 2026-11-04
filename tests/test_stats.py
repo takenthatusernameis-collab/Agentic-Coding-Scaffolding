@@ -38,6 +38,7 @@ from stats import (
     range,
     range_stat,
     root_mean_square,
+    shannon_entropy,
     skewness,
     standard_error,
     stddev,
@@ -1586,3 +1587,50 @@ class TestModeFrequency(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             mode_frequency([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestShannonEntropy(unittest.TestCase):
+    def test_identical_values_zero(self) -> None:
+        self.assertEqual(shannon_entropy([1, 1, 1, 1]), 0.0)
+
+    def test_all_distinct_max(self) -> None:
+        self.assertEqual(shannon_entropy([1, 2, 3, 4]), 2.0)
+
+    def test_mixed_distribution(self) -> None:
+        self.assertAlmostEqual(
+            shannon_entropy([1, 2, 2, 3, 3, 3]), 1.4591479170272448
+        )
+
+    def test_single_element_zero(self) -> None:
+        self.assertEqual(shannon_entropy([42]), 0.0)
+
+    def test_two_distinct_equal(self) -> None:
+        self.assertAlmostEqual(shannon_entropy([1, 2]), 1.0)
+
+    def test_order_invariant(self) -> None:
+        self.assertAlmostEqual(
+            shannon_entropy([1, 2, 2, 3, 3, 3]),
+            shannon_entropy([3, 3, 3, 2, 2, 1]),
+        )
+
+    def test_float_values(self) -> None:
+        self.assertAlmostEqual(shannon_entropy([1.5, 2.5, 2.5]), 0.9182958340544896)
+
+    def test_negative_numbers(self) -> None:
+        self.assertAlmostEqual(shannon_entropy([-1, -1, 2]), 0.9182958340544896)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            shannon_entropy([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            shannon_entropy((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            shannon_entropy([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            shannon_entropy([True, 1, 2])  # type: ignore[type-var]
