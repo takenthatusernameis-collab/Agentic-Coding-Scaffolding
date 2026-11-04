@@ -22605,6 +22605,8 @@ from string_utils import (
     is_anagram,
     is_isogram,
     is_palindrome,
+    jaro_similarity,
+    jaro_winkler_similarity,
     levenshtein_distance,
     pluralize,
     remove_blank_lines,
@@ -23632,6 +23634,80 @@ class TestDamerauLevenshteinDistance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestJaroSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(jaro_similarity("hello", "hello"), 1.0)
+
+    def test_empty_strings(self):
+        self.assertAlmostEqual(jaro_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(jaro_similarity("abc", ""), 0.0)
+        self.assertAlmostEqual(jaro_similarity("", "xyz"), 0.0)
+
+    def test_single_char(self):
+        self.assertAlmostEqual(jaro_similarity("a", "a"), 1.0)
+        self.assertAlmostEqual(jaro_similarity("a", "b"), 0.0)
+
+    def test_martha_marcus(self):
+        self.assertAlmostEqual(jaro_similarity("MARTHA", "MARCUZ"), 0.6666667, places=6)
+
+    def test_dixon_dicksonx(self):
+        self.assertAlmostEqual(jaro_similarity("DIXON", "DICKSONX"), 0.7666667, places=6)
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_similarity(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_similarity("a", value)  # type: ignore[arg-type]
+
+
+class TestJaroWinklerSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("hello", "hello"), 1.0)
+
+    def test_empty_strings(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("abc", ""), 0.0)
+        self.assertAlmostEqual(jaro_winkler_similarity("", "xyz"), 0.0)
+
+    def test_martha_marcus(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("MARTHA", "MARCUZ"), 0.7666667, places=6)
+
+    def test_dixon_dicksonx(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("DIXON", "DICKSONX"), 0.8133333, places=6)
+
+    def test_custom_scaling(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("MARTHA", "MARCUZ", scaling=0.05), 0.7166667, places=6)
+
+    def test_scaling_validation(self):
+        with self.assertRaises(ValueError):
+            jaro_winkler_similarity("a", "b", scaling=0.3)
+        with self.assertRaises(ValueError):
+            jaro_winkler_similarity("a", "b", scaling=-0.1)
+        with self.assertRaises(TypeError):
+            jaro_winkler_similarity("a", "b", scaling="x")  # type: ignore[arg-type]
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_winkler_similarity(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_winkler_similarity("a", value)  # type: ignore[arg-type]
 TESTSTRINGUTILS
 # --- tests/test_uuid_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_uuid_utils.py" <<'TESTUUIDUTILS'
@@ -33824,6 +33900,10 @@ __all__: List[str] = [
     "levenshtein_distance",
     "hamming_distance",
     "damerau_levenshtein_distance",
+    "jaro_similarity",
+    "jaro_winkler_similarity",
+    "jaro_distance",
+    "jaro_winkler_distance",
 ]
 
 _SMALL_WORDS = {
@@ -34685,6 +34765,204 @@ def damerau_levenshtein_distance(text1: str, text2: str) -> int:
         row_minus2 = row_minus1
         row_minus1 = row
     return row_minus1[-1]
+
+
+def jaro_similarity(text1: str, text2: str) -> float:
+    """Return the Jaro similarity between two strings.
+
+    The Jaro similarity is a measure of similarity between two strings,
+    returning a value in [0, 1] where 1 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The Jaro similarity as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+
+    if text1 == text2:
+        return 1.0
+    if not text1 or not text2:
+        return 0.0
+
+    len1 = len(text1)
+    len2 = len(text2)
+    match_distance = max(len1, len2) // 2 - 1
+    if match_distance < 0:
+        match_distance = 0
+
+    text1_matches = [False] * len1
+    text2_matches = [False] * len2
+
+    matches = 0
+    for i in range(len1):
+        start = max(0, i - match_distance)
+        end = min(i + match_distance + 1, len2)
+        for j in range(start, end):
+            if text2_matches[j] or text1[i] != text2[j]:
+                continue
+            text1_matches[i] = True
+            text2_matches[j] = True
+            matches += 1
+            break
+
+    if matches == 0:
+        return 0.0
+
+    k = 0
+    transpositions = 0
+    for i in range(len1):
+        if not text1_matches[i]:
+            continue
+        while not text2_matches[k]:
+            k += 1
+        if text1[i] != text2[k]:
+            transpositions += 1
+        k += 1
+
+    jaro = (matches / len1 + matches / len2 + (matches - transpositions / 2) / matches) / 3.0
+    return jaro
+
+
+def jaro_winkler_similarity(text1: str, text2: str, scaling: float = 0.1) -> float:
+    """Return the Jaro-Winkler similarity between two strings.
+
+    This is the Jaro similarity with a prefix bonus. The result is in [0, 1]
+    where 1 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+        scaling: Scaling factor for the common prefix bonus (default: 0.1).
+
+    Returns:
+        The Jaro-Winkler similarity as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+        ValueError: If *scaling* is not between 0 and 0.25.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    if not isinstance(scaling, (int, float)) or isinstance(scaling, bool):
+        raise TypeError("scaling must be a number")
+    if scaling < 0 or scaling > 0.25:
+        raise ValueError("scaling must be between 0 and 0.25")
+
+    jaro_sim = jaro_similarity(text1, text2)
+    prefix = 0
+    max_prefix = min(len(text1), len(text2), 4)
+    for i in range(max_prefix):
+        if text1[i] == text2[i]:
+            prefix += 1
+        else:
+            break
+    return jaro_sim + prefix * scaling * (1 - jaro_sim)
+
+
+def jaro_similarity(text1: str, text2: str) -> float:
+    """Return the Jaro similarity between two strings.
+
+    The Jaro similarity is a measure of similarity between two strings,
+    returning a value in [0, 1] where 1 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The Jaro similarity as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+
+    if text1 == text2:
+        return 1.0
+    if not text1 or not text2:
+        return 0.0
+
+    len1 = len(text1)
+    len2 = len(text2)
+    match_distance = max(len1, len2) // 2 - 1
+    if match_distance < 0:
+        match_distance = 0
+
+    text1_matches = [False] * len1
+    text2_matches = [False] * len2
+
+    matches = 0
+    for i in range(len1):
+        start = max(0, i - match_distance)
+        end = min(i + match_distance + 1, len2)
+        for j in range(start, end):
+            if text2_matches[j] or text1[i] != text2[j]:
+                continue
+            text1_matches[i] = True
+            text2_matches[j] = True
+            matches += 1
+            break
+
+    if matches == 0:
+        return 0.0
+
+    k = 0
+    transpositions = 0
+    for i in range(len1):
+        if not text1_matches[i]:
+            continue
+        while not text2_matches[k]:
+            k += 1
+        if text1[i] != text2[k]:
+            transpositions += 1
+        k += 1
+
+    jaro = (matches / len1 + matches / len2 + (matches - transpositions / 2) / matches) / 3.0
+    return jaro
+
+
+def jaro_winkler_similarity(text1: str, text2: str, scaling: float = 0.1) -> float:
+    """Return the Jaro-Winkler similarity between two strings.
+
+    This is the Jaro similarity with a prefix bonus. The result is in [0, 1]
+    where 1 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+        scaling: Scaling factor for the common prefix bonus (default: 0.1).
+
+    Returns:
+        The Jaro-Winkler similarity as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+        ValueError: If *scaling* is not between 0 and 0.25.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+    if not isinstance(scaling, (int, float)) or isinstance(scaling, bool):
+        raise TypeError("scaling must be a number")
+    if scaling < 0 or scaling > 0.25:
+        raise ValueError("scaling must be between 0 and 0.25")
+
+    jaro_sim = jaro_similarity(text1, text2)
+    prefix = 0
+    max_prefix = min(len(text1), len(text2), 4)
+    for i in range(max_prefix):
+        if text1[i] == text2[i]:
+            prefix += 1
+        else:
+            break
+    return jaro_sim + prefix * scaling * (1 - jaro_sim)
 STRINGUTILS
 # --- tree_utils.py ---
 cat > "$OUTPUT_DIR/tree_utils.py" <<'TREEUTILS'

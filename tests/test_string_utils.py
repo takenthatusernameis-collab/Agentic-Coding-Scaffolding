@@ -12,6 +12,8 @@ from string_utils import (
     is_anagram,
     is_isogram,
     is_palindrome,
+    jaro_similarity,
+    jaro_winkler_similarity,
     levenshtein_distance,
     pluralize,
     remove_blank_lines,
@@ -1039,3 +1041,77 @@ class TestDamerauLevenshteinDistance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestJaroSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(jaro_similarity("hello", "hello"), 1.0)
+
+    def test_empty_strings(self):
+        self.assertAlmostEqual(jaro_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(jaro_similarity("abc", ""), 0.0)
+        self.assertAlmostEqual(jaro_similarity("", "xyz"), 0.0)
+
+    def test_single_char(self):
+        self.assertAlmostEqual(jaro_similarity("a", "a"), 1.0)
+        self.assertAlmostEqual(jaro_similarity("a", "b"), 0.0)
+
+    def test_martha_marcus(self):
+        self.assertAlmostEqual(jaro_similarity("MARTHA", "MARCUZ"), 0.6666667, places=6)
+
+    def test_dixon_dicksonx(self):
+        self.assertAlmostEqual(jaro_similarity("DIXON", "DICKSONX"), 0.7666667, places=6)
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_similarity(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_similarity("a", value)  # type: ignore[arg-type]
+
+
+class TestJaroWinklerSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("hello", "hello"), 1.0)
+
+    def test_empty_strings(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("abc", ""), 0.0)
+        self.assertAlmostEqual(jaro_winkler_similarity("", "xyz"), 0.0)
+
+    def test_martha_marcus(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("MARTHA", "MARCUZ"), 0.7666667, places=6)
+
+    def test_dixon_dicksonx(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("DIXON", "DICKSONX"), 0.8133333, places=6)
+
+    def test_custom_scaling(self):
+        self.assertAlmostEqual(jaro_winkler_similarity("MARTHA", "MARCUZ", scaling=0.05), 0.7166667, places=6)
+
+    def test_scaling_validation(self):
+        with self.assertRaises(ValueError):
+            jaro_winkler_similarity("a", "b", scaling=0.3)
+        with self.assertRaises(ValueError):
+            jaro_winkler_similarity("a", "b", scaling=-0.1)
+        with self.assertRaises(TypeError):
+            jaro_winkler_similarity("a", "b", scaling="x")  # type: ignore[arg-type]
+
+    def test_non_string_first_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_winkler_similarity(value, "b")  # type: ignore[arg-type]
+
+    def test_non_string_second_arg(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    jaro_winkler_similarity("a", value)  # type: ignore[arg-type]
