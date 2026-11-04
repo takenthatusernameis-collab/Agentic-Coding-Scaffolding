@@ -16,9 +16,18 @@ class TestCodeUtils(unittest.TestCase):
     def test_interpreter_class(self):
         self.assertTrue(callable(code_utils.interpreter_class()))
 
-    def test_type_error(self):
+    def test_is_complete(self):
+        self.assertTrue(code_utils.is_complete("x = 1"))
+
+    def test_is_complete_incomplete(self):
+        self.assertFalse(code_utils.is_complete("def foo("))
+
+    def test_is_complete_invalid(self):
+        self.assertFalse(code_utils.is_complete("def foo(:"))
+
+    def test_is_complete_type_error(self):
         with self.assertRaises(TypeError):
-            code_utils.compile_command(123)
+            code_utils.is_complete(123)
 
 
 if __name__ == "__main__":

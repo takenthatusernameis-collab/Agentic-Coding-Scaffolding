@@ -59981,6 +59981,7 @@ __all__ = [
     "console_class",
     "interact",
     "interpreter_class",
+    "is_complete",
 ]
 
 
@@ -60004,6 +60005,16 @@ def console_class():
 def interpreter_class():
     """Return the ``InteractiveInterpreter`` class."""
     return _code.InteractiveInterpreter
+
+
+def is_complete(source):
+    """Return ``True`` if *source* is a complete Python command."""
+    if not isinstance(source, str):
+        raise TypeError("source must be a str")
+    try:
+        return _code.compile_command(source) is not None
+    except (SyntaxError, OverflowError):
+        return False
 CODE_UTILS
 
 # --- tests/test_code_utils.py ---
@@ -60026,9 +60037,18 @@ class TestCodeUtils(unittest.TestCase):
     def test_interpreter_class(self):
         self.assertTrue(callable(code_utils.interpreter_class()))
 
-    def test_type_error(self):
+    def test_is_complete(self):
+        self.assertTrue(code_utils.is_complete("x = 1"))
+
+    def test_is_complete_incomplete(self):
+        self.assertFalse(code_utils.is_complete("def foo("))
+
+    def test_is_complete_invalid(self):
+        self.assertFalse(code_utils.is_complete("def foo(:"))
+
+    def test_is_complete_type_error(self):
         with self.assertRaises(TypeError):
-            code_utils.compile_command(123)
+            code_utils.is_complete(123)
 
 
 if __name__ == "__main__":
