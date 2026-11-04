@@ -23,6 +23,7 @@ __all__: List[str] = [
     "dedent_text",
     "reverse_words",
     "split_paragraphs",
+    "cosine_similarity",
     "count_words",
     "levenshtein_distance",
     "hamming_distance",
@@ -991,3 +992,44 @@ def jaro_winkler_similarity(text1: str, text2: str, scaling: float = 0.1) -> flo
         else:
             break
     return jaro_sim + prefix * scaling * (1 - jaro_sim)
+
+
+def cosine_similarity(text1: str, text2: str) -> float:
+    """Return the cosine similarity of two strings using character bigrams.
+
+    The result is in [0, 1] where 1 means the strings are identical.
+
+    Args:
+        text1: The first string to compare.
+        text2: The second string to compare.
+
+    Returns:
+        The cosine similarity as a float between 0 and 1.
+
+    Raises:
+        TypeError: If either *text1* or *text2* is not a string.
+    """
+    _require_string(text1, "text1")
+    _require_string(text2, "text2")
+
+    def bigrams(text: str) -> dict:
+        counts = {}
+        for i in range(len(text) - 1):
+            bg = text[i : i + 2]
+            counts[bg] = counts.get(bg, 0) + 1
+        return counts
+
+    if not text1 and not text2:
+        return 1.0
+    if not text1 or not text2:
+        return 0.0
+
+    v1 = bigrams(text1)
+    v2 = bigrams(text2)
+
+    dot = sum(v1.get(k, 0) * v2.get(k, 0) for k in set(v1) | set(v2))
+    n1 = sum(v * v for v in v1.values()) ** 0.5
+    n2 = sum(v * v for v in v2.values()) ** 0.5
+    if n1 == 0 or n2 == 0:
+        return 0.0
+    return dot / (n1 * n2)

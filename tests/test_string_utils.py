@@ -4,6 +4,7 @@ import unittest
 
 from string_utils import (
     camel_to_snake,
+    cosine_similarity,
     count_words,
     damerau_levenshtein_distance,
     dedent_text,
@@ -1115,3 +1116,27 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     jaro_winkler_similarity("a", value)  # type: ignore[arg-type]
+
+
+class TestCosineSimilarity(unittest.TestCase):
+    def test_identical(self):
+        self.assertAlmostEqual(cosine_similarity("hello", "hello"), 1.0)
+
+    def test_both_empty(self):
+        self.assertAlmostEqual(cosine_similarity("", ""), 1.0)
+
+    def test_one_empty(self):
+        self.assertAlmostEqual(cosine_similarity("abc", ""), 0.0)
+        self.assertAlmostEqual(cosine_similarity("", "xyz"), 0.0)
+
+    def test_completely_different(self):
+        self.assertAlmostEqual(cosine_similarity("ab", "cd"), 0.0)
+
+    def test_type_errors(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    cosine_similarity(value, "b")  # type: ignore[arg-type]
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    cosine_similarity("a", value)  # type: ignore[arg-type]
