@@ -37,6 +37,7 @@ from prime_utils import (
     is_sophie_germain_prime,
     is_squarefree,
     is_strong_prime,
+    is_super_prime,
     is_truncatable_prime,
     is_twin_prime,
     is_weak_prime,
@@ -1712,3 +1713,51 @@ class TestIsWeakPrime(unittest.TestCase):
             is_weak_prime("7")
         with self.assertRaises(TypeError):
             is_weak_prime(True)
+
+
+class TestIsSuperPrime(unittest.TestCase):
+    def test_known_super_primes(self):
+        # OEIS A006450 super-primes (prime-indexed primes)
+        for n in (
+            3,
+            5,
+            11,
+            17,
+            31,
+            41,
+            59,
+            67,
+            83,
+            109,
+            127,
+            157,
+            179,
+            191,
+            211,
+            241,
+            277,
+            331,
+            367,
+            401,
+        ):
+            self.assertTrue(is_super_prime(n), n)
+
+    def test_primes_that_are_not_super(self):
+        for n in (2, 7, 13, 19, 23, 29, 37, 43, 47, 53):
+            self.assertFalse(is_super_prime(n), n)
+
+    def test_non_primes(self):
+        for n in (1, 4, 6, 8, 9, 10, 14, 15, 100):
+            self.assertFalse(is_super_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, -1, -7, -13):
+            self.assertFalse(is_super_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_super_prime(3.0)
+        with self.assertRaises(TypeError):
+            is_super_prime("3")
+        with self.assertRaises(TypeError):
+            is_super_prime(True)

@@ -55,6 +55,7 @@ __all__: List[str] = [
     "is_powerful_number",
     "is_fermat_number",
     "is_strong_prime",
+    "is_super_prime",
     "is_balanced_prime",
     "is_weak_prime",
 ]
@@ -1681,3 +1682,55 @@ def is_weak_prime(n: int) -> bool:
     if not is_prime(n) or n < 7:
         return False
     return n < (prev_prime(n - 1) + next_prime(n + 1)) / 2
+
+
+def is_super_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a super-prime.
+
+    A super-prime (also called a prime-indexed prime) is a prime number whose
+    position in the sequence of prime numbers is itself prime. For example, 3
+    is the 2nd prime and 2 is prime, so 3 is a super-prime; 7 is the 4th prime
+    and 4 is not prime, so 7 is not a super-prime. The first few super-primes
+    are 3, 5, 11, 17, 31, 41, ... (OEIS A006450).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a super-prime, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_super_prime(3)
+        True
+        >>> is_super_prime(5)
+        True
+        >>> is_super_prime(11)
+        True
+        >>> is_super_prime(17)
+        True
+        >>> is_super_prime(31)
+        True
+        >>> is_super_prime(41)
+        True
+        >>> is_super_prime(2)
+        False
+        >>> is_super_prime(7)
+        False
+        >>> is_super_prime(13)
+        False
+        >>> is_super_prime(4)
+        False
+        >>> is_super_prime(1)
+        False
+        >>> is_super_prime(0)
+        False
+        >>> is_super_prime(-7)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n):
+        return False
+    return is_prime(prime_count(n))
