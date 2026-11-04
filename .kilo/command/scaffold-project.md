@@ -127,6 +127,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `data_utils.py` — data utility functions
 - `datetime_utils.py` — date and time utility functions
 - `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
+- `dumbdbm_utils.py` — database utilities wrapping stdlib dbm.dumb (open/close, read/write/delete records, key listing)
 - `file_utils.py` — file and path utility functions
 - `url_utils.py` — URL and web utility functions
 - `urllib_utils.py` — URL parsing utilities wrapping the standard library `urllib.parse` module
@@ -243,6 +244,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_data_utils.py` — unit tests for `data_utils.py`
 - `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
 - `tests/test_dbm_utils.py` — unit tests for `dbm_utils.py`
+- `tests/test_dumbdbm_utils.py` — unit tests for `dumbdbm_utils.py`
 - `tests/test_file_utils.py` — unit tests for `file_utils.py`
 - `tests/test_url_utils.py` — unit tests for `url_utils.py`
 - `tests/test_urllib_utils.py` — unit tests for `urllib_utils.py`
