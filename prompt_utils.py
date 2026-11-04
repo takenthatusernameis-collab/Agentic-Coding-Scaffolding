@@ -64,6 +64,7 @@ __all__: List[str] = [
     "count_uppercase",
     "count_punctuation",
     "count_spaces",
+    "count_tabs",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -1609,6 +1610,37 @@ def count_spaces(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for ch in text if ch == " ")
+
+
+def count_tabs(text: str) -> int:
+    """Return the number of tab characters ('\\t') in *text_.
+
+    Counts every horizontal tab character (``'\\t'``, U+0009) in *text_.
+    Spaces, newlines, and other Unicode whitespace are not counted; use
+    :func:`count_whitespace_characters` to count all whitespace. Empty text
+    returns zero.
+
+    Args:
+        text: The text to count tab characters in.
+
+    Returns:
+        The number of tab characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_tabs("a\\tb")
+        1
+        >>> count_tabs("\\t\\t\\t")
+        3
+        >>> count_tabs("no tabs")
+        0
+        >>> count_tabs("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch == "\t")
 
 
 def count_digits(text: str) -> int:

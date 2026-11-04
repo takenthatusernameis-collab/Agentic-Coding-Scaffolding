@@ -20,6 +20,8 @@ from prompt_utils import (
     count_placeholders,
     count_punctuation,
     count_sentences,
+    count_spaces,
+    count_tabs,
     count_trailing_newlines,
     count_unique_words,
     count_uppercase,
@@ -1548,3 +1550,45 @@ class TestNormalizeWhitespace(unittest.TestCase):
             normalize_whitespace(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             normalize_whitespace([])  # type: ignore[arg-type]
+
+
+class TestCountSpaces(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_spaces("Hello world"), 1)
+        self.assertEqual(count_spaces("a  b   c"), 5)
+
+    def test_no_spaces(self):
+        self.assertEqual(count_spaces("nospace"), 0)
+
+    def test_tabs_newlines_ignored(self):
+        self.assertEqual(count_spaces("a\tb\nc"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_spaces(""), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_spaces(123)
+        with self.assertRaises(TypeError):
+            count_spaces(None)
+
+
+class TestCountTabs(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_tabs("a\tb"), 1)
+        self.assertEqual(count_tabs("\t\t\t"), 3)
+
+    def test_no_tabs(self):
+        self.assertEqual(count_tabs("no tabs"), 0)
+
+    def test_spaces_newlines_ignored(self):
+        self.assertEqual(count_tabs("a b\nc"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_tabs(""), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_tabs(123)
+        with self.assertRaises(TypeError):
+            count_tabs([])
