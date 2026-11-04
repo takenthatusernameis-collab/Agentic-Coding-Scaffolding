@@ -66,6 +66,11 @@ class Cooldown:
                 return 0.0
             return max(0.0, self._interval - (now - self._last_call))
 
+    def reset(self) -> None:
+        """Clear the recorded last-call time so the next call is allowed."""
+        with self._lock:
+            self._last_call = None
+
     def call(self, func: Callable[P, T], /, *args: P.args, **kwargs: P.kwargs) -> T:
         """Call *func* if the cooldown interval has elapsed.
 
