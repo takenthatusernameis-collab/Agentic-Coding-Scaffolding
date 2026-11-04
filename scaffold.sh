@@ -112,6 +112,7 @@
 
 #   - datetime_utils.py — # Date and time utility functions
 #   - dbm_utils.py — # Database utilities wrapping the standard library ``dbm`` module (``open_database``, ``close``, ``which_database``, ``available_backends``, ``read_record``, ``write_record``, ``delete_record``, ``has_key``, ``list_keys``, ``sync_database``, ``is_valid_flag``, ``dbm_error``) with input validation
+#   - dumbdbm_utils.py — # Database utilities wrapping stdlib dbm.dumb (open/close, read/write/delete records, key listing)
 
 #   - template_utils.py — # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 
@@ -465,6 +466,7 @@
 
 #   - test_datetime_utils.py — # Tests for datetime_utils.py
 #   - tests/test_dbm_utils.py — # Tests for dbm_utils.py
+#   - tests/test_dumbdbm_utils.py — # Tests for dumbdbm_utils.py
 
 #   - test_decimal_utils.py — # Tests for decimal_utils.py
 
@@ -4413,6 +4415,7 @@ py_modules = [
     "deque_utils",
     "datetime_utils",
     "dbm_utils",
+    "dumbdbm_utils",
     "deprecation_utils",
     "file_utils",
     "filecmp_utils",
@@ -54341,6 +54344,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — document dumbdbm_utils cross-references
+
+- Registered the `dumbdbm_utils` module (added in a prior session) in the project cross-references: added `dumbdbm_utils.py` to the `README.md` module tree, test tree, and prose section; added `dumbdbm_utils.py` and `tests/test_dumbdbm_utils.py` to `CHANGELOG.md`; listed both in the `scaffold.sh` header comment and `tests/test_scaffold.py`; synchronized the embedded README and CHANGELOG templates in `scaffold.sh` with `make refresh-scaffold`. This closes the scaffold-sync gap that left six `test_scaffold_sync` failures for `dumbdbm_utils`.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_lowercase to prompt_utils
 
 - Added `has_lowercase(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one ASCII lowercase letter (a-z) and `False` otherwise, serving as a boolean companion to :func:`count_lowercase`. Added `TestHasLowercase` to `tests/test_prompt_utils.py` covering strings with lowercase, a single lowercase letter, strings without lowercase, empty input, and the `TypeError` path (6 new tests). Imported `has_lowercase` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` passes; `python -m doctest prompt_utils.py` passes.
@@ -56350,6 +56358,7 @@ data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
 datetime_utils.py           # Date and time utility functions
 dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
+dumbdbm_utils.py             # Database utilities wrapping stdlib dbm.dumb (open/close, read/write/delete records, key listing)
 template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions (read_text, write_text, read_json, write_json, ensure_dir, list_files, copy_file, delete_file)
 url_utils.py                # URL and web utility functions
@@ -56649,6 +56658,7 @@ test_concurrent_futures_utils.py # Tests for concurrent_futures_utils.py
   test_dataclasses_utils.py      # Tests for dataclasses_utils.py
   test_datetime_utils.py      # Tests for datetime_utils.py
   test_dbm_utils.py        # Tests for dbm_utils.py
+  test_dumbdbm_utils.py    # Tests for dumbdbm_utils.py
   test_decimal_utils.py       # Tests for decimal_utils.py
   test_dict_utils.py          # Tests for dict_utils.py
   test_duration_utils.py      # Tests for duration_utils.py
@@ -56999,6 +57009,10 @@ The project includes a date and time utilities module in `datetime_utils.py` wit
 ## Database Utilities Module
 
 The project includes database utilities in `dbm_utils.py` wrapping the standard library `dbm` module: `open_database` opens a database file, `close` and `sync_database` manage the connection, `write_record`/`read_record`/`delete_record`/`has_key`/`list_keys` manipulate byte keys and values, `which_database` detects the backend, `available_backends` lists usable backends, `is_valid_flag` validates open modes, and `dbm_error` exposes the dbm exception class. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_dbm_utils.py`.
+
+## Dumbdbm Utilities Module
+
+The project includes dumbdbm utilities in `dumbdbm_utils.py` wrapping the standard library `dbm.dumb` module: `open`/`open_dbm`/`create_dbm` open a database, `close` closes it, `get`/`set`/`delete`/`keys`/`items`/`values`/`clear`/`update` manipulate records, and `is_available` reports backend availability. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_dumbdbm_utils.py`.
 
 ## File Utilities Module
 

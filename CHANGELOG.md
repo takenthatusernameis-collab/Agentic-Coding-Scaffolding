@@ -1,3 +1,8 @@
+## Unreleased — document dumbdbm_utils cross-references
+
+- Registered the `dumbdbm_utils` module (added in a prior session) in the project cross-references: added `dumbdbm_utils.py` to the `README.md` module tree, test tree, and prose section; added `dumbdbm_utils.py` and `tests/test_dumbdbm_utils.py` to `CHANGELOG.md`; listed both in the `scaffold.sh` header comment and `tests/test_scaffold.py`; synchronized the embedded README and CHANGELOG templates in `scaffold.sh` with `make refresh-scaffold`. This closes the scaffold-sync gap that left six `test_scaffold_sync` failures for `dumbdbm_utils`.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_lowercase to prompt_utils
 
 - Added `has_lowercase(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one ASCII lowercase letter (a-z) and `False` otherwise, serving as a boolean companion to :func:`count_lowercase`. Added `TestHasLowercase` to `tests/test_prompt_utils.py` covering strings with lowercase, a single lowercase letter, strings without lowercase, empty input, and the `TypeError` path (6 new tests). Imported `has_lowercase` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` passes; `python -m doctest prompt_utils.py` passes.

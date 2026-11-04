@@ -131,6 +131,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_datetime_utils.py",
             "dbm_utils.py",
             "tests/test_dbm_utils.py",
+            "dumbdbm_utils.py",
+            "tests/test_dumbdbm_utils.py",
             "url_utils.py",
             "tests/test_url_utils.py",
             "urllib_utils.py",
