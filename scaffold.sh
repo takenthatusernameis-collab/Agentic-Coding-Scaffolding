@@ -46151,7 +46151,37 @@ def unique_justseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = 
 
 
 def grouper(iterable: Iterable[Any], n: int, fillvalue: Any = None) -> List[Tuple[Any, ...]]:
-    """Collect data into fixed-length chunks or blocks."""
+    """Collect data into fixed-length chunks or blocks.
+
+    Each chunk contains at most *n* items drawn from *iterable*. When the
+    iterable's length is not a multiple of *n*, the final chunk is padded
+    with *fillvalue* (which defaults to ``None``) so every returned tuple
+    has exactly *n* elements. This matches the classic ``itertools`` recipe
+    ``zip_longest(*[iter(iterable)] * n, fillvalue=fillvalue)``.
+
+    Args:
+        iterable: The iterable to chunk.
+        n: Positive chunk size.
+        fillvalue: Value used to pad the final, short chunk.
+
+    Returns:
+        A list of tuples, each of length *n* (the last one padded when
+        needed).
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *n* is not an int.
+        ValueError: If *n* is less than one.
+
+    Examples:
+        >>> grouper([1, 2, 3, 4, 5], 2)
+        [(1, 2), (3, 4), (5, None)]
+        >>> grouper([1, 2, 3, 4, 5], 2, fillvalue=-1)
+        [(1, 2), (3, 4), (5, -1)]
+        >>> grouper([1, 2, 3, 4], 2)
+        [(1, 2), (3, 4)]
+        >>> grouper([], 3)
+        []
+    """
     _ensure_iterable(iterable, "iterable")
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError("n must be an int")
@@ -46159,17 +46189,8 @@ def grouper(iterable: Iterable[Any], n: int, fillvalue: Any = None) -> List[Tupl
         raise ValueError("n must be at least one")
     args = [iter(iterable)] * n
     result: List[Tuple[Any, ...]] = []
-    while True:
-        try:
-            result.append(tuple([next(it) for it in args]))
-        except StopIteration:
-            break
-    # If the last tuple has fewer elements and fillvalue handling needed,
-    # standard grouper behavior varies; follow common recipe - pad if needed
-    if fillvalue is not None and result:
-        # Check if last is shorter - in our simple version above we broke on StopIteration
-        # Better implementation
-        pass
+    for chunk in zip_longest(*args, fillvalue=fillvalue):
+        result.append(tuple(chunk))
     return result
 
 
@@ -46260,6 +46281,7 @@ from itertools_utils import (
     cycle_take,
     drop_while_pred,
     flatten_once,
+    grouper,
     group_by_key,
     pairwise_iterable,
     partition,
@@ -46662,6 +46684,62 @@ class TestSlidingWindow(unittest.TestCase):
 
     def test_window_alias(self):
         self.assertEqual(window("abc", 2), [("a", "b"), ("b", "c")])
+
+
+class TestGrouper(unittest.TestCase):
+    def test_grouper_exact_multiple(self):
+        self.assertEqual(grouper([1, 2, 3, 4], 2), [(1, 2), (3, 4)])
+
+    def test_grouper_pads_with_none_default(self):
+        self.assertEqual(grouper([1, 2, 3, 4, 5], 2), [(1, 2), (3, 4), (5, None)])
+
+    def test_grouper_pads_with_custom_fillvalue(self):
+        self.assertEqual(
+            grouper([1, 2, 3, 4, 5], 2, fillvalue=-1),
+            [(1, 2), (3, 4), (5, -1)],
+        )
+
+    def test_grouper_pads_short_chunk_to_full_size(self):
+        self.assertEqual(grouper([1], 3, fillvalue=0), [(1, 0, 0)])
+
+    def test_grouper_size_one(self):
+        self.assertEqual(grouper([1, 2, 3], 1), [(1,), (2,), (3,)])
+
+    def test_grouper_empty_iterable(self):
+        self.assertEqual(grouper([], 3), [])
+        self.assertEqual(grouper([], 3, fillvalue=0), [])
+
+    def test_grouper_strings(self):
+        self.assertEqual(grouper("abcde", 2), [("a", "b"), ("c", "d"), ("e", None)])
+
+    def test_grouper_each_chunk_has_n_elements(self):
+        for n in (1, 2, 3, 5, 7):
+            for data in ([], [1], [1, 2], list(range(11))):
+                chunks = grouper(data, n)
+                for chunk in chunks:
+                    self.assertEqual(len(chunk), n)
+
+    def test_grouper_preserves_order_and_concatenation(self):
+        data = list(range(7))
+        chunks = grouper(data, 3)
+        flat = [item for chunk in chunks for item in chunk if item is not None]
+        self.assertEqual(flat, data)
+
+    def test_grouper_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            grouper(123, 2)
+
+    def test_grouper_rejects_bad_n_type(self):
+        with self.assertRaises(TypeError):
+            grouper([1, 2, 3], 2.5)
+        with self.assertRaises(TypeError):
+            grouper([1, 2, 3], True)
+
+    def test_grouper_rejects_non_positive_n(self):
+        with self.assertRaises(ValueError):
+            grouper([1, 2, 3], 0)
+        with self.assertRaises(ValueError):
+            grouper([1, 2, 3], -1)
 
 
 if __name__ == "__main__":
@@ -54974,6 +55052,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed itertools_utils grouper fillvalue handling
+
+- Found a real defect in `itertools_utils.grouper`: the `fillvalue` parameter was accepted but never used, so the trailing partial chunk was silently dropped instead of being padded to the full chunk size. For example, `grouper([1, 2, 3, 4, 5], 2)` returned `[(1, 2), (3, 4)]` rather than `[(1, 2), (3, 4), (5, None)]`, diverging from the classic `itertools` recipe it documented. Rewrote the implementation to drive `zip_longest(*[iter(iterable)] * n, fillvalue=fillvalue)` so every emitted tuple has exactly *n* elements, with the last one padded when needed; empty input yields `[]` and exact multiples are unaffected. Added a `TestGrouper` suite to `tests/test_itertools_utils.py` covering exact-multiple, default-None padding, custom `fillvalue`, short-chunk padding to full size, size-one, empty input, strings, the per-chunk length invariant, order preservation, and the `TypeError`/`ValueError` paths (13 new tests). Imported `grouper` at the top of the test file to match the module's `__all__` contract. Updated the `itertools_utils` module tree entry and prose section of `README.md` to document `grouper`, `roundrobin`, `padnone`, and `ncycles`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_itertools_utils` passes (107 tests); `python -m doctest itertools_utils.py` passes; `make test` stays green; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed prime_utils doctests for is_happy_prime and largest_prime_factor
 
 - Found two real doctest defects in `prime_utils.py` that caused `python -m doctest prime_utils.py` to report 4 failures. The `is_happy_prime` doctest incorrectly listed 2, 3, and 5 as happy primes (they are prime but unhappy — they fall into the 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 loop); the doctest examples were corrected to use genuinely happy primes (23, 31, 79) and the docstring prose was updated to name the unhappy primes explicitly. The `largest_prime_factor` doctest for input `1` expected `ValueError: n must be >= 1` but the function raises `ValueError: n must be >= 2`; the expected message was corrected. The function implementations and their `tests/test_prime_utils.py` coverage were unchanged (the test suite already asserted the correct behavior).
@@ -57063,7 +57147,7 @@ maybe_utils.py             # Maybe/Option type utilities for functional programm
 either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_left, unwrap_or, unwrap_or_else, is_right, is_left, is_ok, is_err)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
-itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, etc.)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, grouper, roundrobin, padnone, ncycles, etc.)
 
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
@@ -57984,7 +58068,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. The `grouper` helper collects data into fixed-length chunks, padding the final short chunk with a configurable `fillvalue` (defaulting to `None`) so every emitted tuple has exactly *n* elements; `roundrobin` visits input iterables in a round-robin fashion until each is exhausted; `padnone` yields the sequence elements followed by `None` indefinitely; and `ncycles` repeats a sequence *n* times. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 

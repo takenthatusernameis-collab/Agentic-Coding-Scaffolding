@@ -9,6 +9,7 @@ from itertools_utils import (
     cycle_take,
     drop_while_pred,
     flatten_once,
+    grouper,
     group_by_key,
     pairwise_iterable,
     partition,
@@ -411,6 +412,62 @@ class TestSlidingWindow(unittest.TestCase):
 
     def test_window_alias(self):
         self.assertEqual(window("abc", 2), [("a", "b"), ("b", "c")])
+
+
+class TestGrouper(unittest.TestCase):
+    def test_grouper_exact_multiple(self):
+        self.assertEqual(grouper([1, 2, 3, 4], 2), [(1, 2), (3, 4)])
+
+    def test_grouper_pads_with_none_default(self):
+        self.assertEqual(grouper([1, 2, 3, 4, 5], 2), [(1, 2), (3, 4), (5, None)])
+
+    def test_grouper_pads_with_custom_fillvalue(self):
+        self.assertEqual(
+            grouper([1, 2, 3, 4, 5], 2, fillvalue=-1),
+            [(1, 2), (3, 4), (5, -1)],
+        )
+
+    def test_grouper_pads_short_chunk_to_full_size(self):
+        self.assertEqual(grouper([1], 3, fillvalue=0), [(1, 0, 0)])
+
+    def test_grouper_size_one(self):
+        self.assertEqual(grouper([1, 2, 3], 1), [(1,), (2,), (3,)])
+
+    def test_grouper_empty_iterable(self):
+        self.assertEqual(grouper([], 3), [])
+        self.assertEqual(grouper([], 3, fillvalue=0), [])
+
+    def test_grouper_strings(self):
+        self.assertEqual(grouper("abcde", 2), [("a", "b"), ("c", "d"), ("e", None)])
+
+    def test_grouper_each_chunk_has_n_elements(self):
+        for n in (1, 2, 3, 5, 7):
+            for data in ([], [1], [1, 2], list(range(11))):
+                chunks = grouper(data, n)
+                for chunk in chunks:
+                    self.assertEqual(len(chunk), n)
+
+    def test_grouper_preserves_order_and_concatenation(self):
+        data = list(range(7))
+        chunks = grouper(data, 3)
+        flat = [item for chunk in chunks for item in chunk if item is not None]
+        self.assertEqual(flat, data)
+
+    def test_grouper_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            grouper(123, 2)
+
+    def test_grouper_rejects_bad_n_type(self):
+        with self.assertRaises(TypeError):
+            grouper([1, 2, 3], 2.5)
+        with self.assertRaises(TypeError):
+            grouper([1, 2, 3], True)
+
+    def test_grouper_rejects_non_positive_n(self):
+        with self.assertRaises(ValueError):
+            grouper([1, 2, 3], 0)
+        with self.assertRaises(ValueError):
+            grouper([1, 2, 3], -1)
 
 
 if __name__ == "__main__":

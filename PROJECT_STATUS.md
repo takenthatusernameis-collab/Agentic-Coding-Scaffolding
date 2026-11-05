@@ -1,5 +1,24 @@
 # Project Status
 
+## Latest Session (2026-11-05) — fixed itertools_utils grouper fillvalue handling
+
+The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 8004 tests (8 pre-existing pytest-import errors, unchanged).
+
+Completed in this session:
+
+- Found a real defect in `itertools_utils.grouper`: the `fillvalue` parameter was accepted but never used, so the trailing partial chunk was silently dropped instead of being padded to the full chunk size. For example, `grouper([1, 2, 3, 4, 5], 2)` returned `[(1, 2), (3, 4)]` rather than `[(1, 2), (3, 4), (5, None)]`, diverging from the classic `itertools` recipe the docstring documented. Rewrote the implementation to drive `zip_longest(*[iter(iterable)] * n, fillvalue=fillvalue)` so every emitted tuple has exactly *n* elements, with the last one padded when needed; empty input yields `[]` and exact multiples are unaffected. The function, its `__all__` export, and its `TypeError`/`ValueError` validation were unchanged in contract; only the body and the docstring examples were corrected.
+- Added a `TestGrouper` suite to `tests/test_itertools_utils.py` covering exact-multiple, default-None padding, custom `fillvalue`, short-chunk padding to full size, size-one, empty input, strings, the per-chunk length invariant, order preservation, and the `TypeError`/`ValueError` paths (12 new tests). Imported `grouper` at the top of the test file to match the module's `__all__` contract.
+- Updated the `itertools_utils` module tree entry and prose section of `README.md` to document `grouper`, `roundrobin`, `padnone`, and `ncycles`.
+- Recorded the change in the Unreleased section of `CHANGELOG.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, `PROJECT_STATUS.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_itertools_utils` passes (106 tests); `python -m doctest itertools_utils.py` passes; `make test` runs 8016 tests with the same 8 pre-existing pytest-import errors; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Committed the work as `fix(itertools_utils): correct grouper fillvalue handling and add TestGrouper`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `bytes_utils.py`, `version_utils.py`, `prompt_utils.py`, `number_utils.py`, `numbers_utils.py`, `prime_utils.py`).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-05) — fixed prime_utils doctests for is_happy_prime and largest_prime_factor
 
 The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7996 tests and passed.

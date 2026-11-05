@@ -466,7 +466,37 @@ def unique_justseen(iterable: Iterable[Any], key: Callable[[Any], Any] | None = 
 
 
 def grouper(iterable: Iterable[Any], n: int, fillvalue: Any = None) -> List[Tuple[Any, ...]]:
-    """Collect data into fixed-length chunks or blocks."""
+    """Collect data into fixed-length chunks or blocks.
+
+    Each chunk contains at most *n* items drawn from *iterable*. When the
+    iterable's length is not a multiple of *n*, the final chunk is padded
+    with *fillvalue* (which defaults to ``None``) so every returned tuple
+    has exactly *n* elements. This matches the classic ``itertools`` recipe
+    ``zip_longest(*[iter(iterable)] * n, fillvalue=fillvalue)``.
+
+    Args:
+        iterable: The iterable to chunk.
+        n: Positive chunk size.
+        fillvalue: Value used to pad the final, short chunk.
+
+    Returns:
+        A list of tuples, each of length *n* (the last one padded when
+        needed).
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *n* is not an int.
+        ValueError: If *n* is less than one.
+
+    Examples:
+        >>> grouper([1, 2, 3, 4, 5], 2)
+        [(1, 2), (3, 4), (5, None)]
+        >>> grouper([1, 2, 3, 4, 5], 2, fillvalue=-1)
+        [(1, 2), (3, 4), (5, -1)]
+        >>> grouper([1, 2, 3, 4], 2)
+        [(1, 2), (3, 4)]
+        >>> grouper([], 3)
+        []
+    """
     _ensure_iterable(iterable, "iterable")
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError("n must be an int")
@@ -474,17 +504,8 @@ def grouper(iterable: Iterable[Any], n: int, fillvalue: Any = None) -> List[Tupl
         raise ValueError("n must be at least one")
     args = [iter(iterable)] * n
     result: List[Tuple[Any, ...]] = []
-    while True:
-        try:
-            result.append(tuple([next(it) for it in args]))
-        except StopIteration:
-            break
-    # If the last tuple has fewer elements and fillvalue handling needed,
-    # standard grouper behavior varies; follow common recipe - pad if needed
-    if fillvalue is not None and result:
-        # Check if last is shorter - in our simple version above we broke on StopIteration
-        # Better implementation
-        pass
+    for chunk in zip_longest(*args, fillvalue=fillvalue):
+        result.append(tuple(chunk))
     return result
 
 
