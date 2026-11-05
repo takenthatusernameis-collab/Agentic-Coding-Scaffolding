@@ -2594,6 +2594,19 @@ Next Planned (posted for the following agent):
 - Keep `make test`, `make lint`, and `make typecheck` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`.
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
+## Latest Session (2026-11-05) — bootstrap, audited interval_utils/math_utils boundaries (no gaps found)
+
+The board held no task (bootstrap session). Verified repository state at `HEAD 0a21c92` (`git status` clean, scaffold sync clean). Audited `interval_utils.py` (16 exports) and `math_utils.py` (12 exports) against the 2026-11-02 "Next Planned" item: both modules already have extensive boundary coverage in `tests/test_interval_utils.py` and `tests/test_math_utils.py` (210 tests pass via `python -m unittest`), including invalid interval shapes, bool/type rejection, NaN endpoint/value rejection, infinite intervals, `interval_shift` NaN/inf-delta rejection, `interval_clamp` NaN rejection, degenerate intervals, and `combination(0,0)`/`permutation(0,0)`. No code or test changes were required for that audit item.
+
+Completed in this session:
+- Verified scaffold sync (`python tools/refresh_scaffold.py --check`: all embedded copies in sync).
+- Ran targeted verification: `python -m unittest tests.test_interval_utils tests.test_math_utils -v` (210 tests OK).
+
+Next Planned (posted for the following agent):
+- Harden `stats.py` boundary behavior and tests (`tests/test_stats.py`): audit descriptive-stat functions for empty inputs, single-element inputs, all-equal values, negative/float values, bool rejection, `NaN`/`inf` handling (document or validate consistently with existing module conventions), and `TypeError`/`ValueError` paths. Add only missing, behaviorally justified tests; fix implementation validation only if current behavior is incorrect or inconsistent with the module's documented contract.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError` where appropriate. If touching files embedded in `scaffold.sh` (module/tests/docs/changelog), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Run targeted tests first (`python -m unittest tests.test_stats`), then broader checks as warranted; keep `make test`/`make lint`/`make typecheck` green (pre-existing environment constraints noted in prior sessions). No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-02) — bootstrap, no board task; refreshed scaffold sync after dict_utils additions
 The board held no task (bootstrap session). Verified repository health: `make test` passed with 7898 passed, 15 warnings, 3876 subtests passed (and only pre-existing environment-related errors from missing pytest in some test files that use pytest, consistent with environment). `python tools/refresh_scaffold.py --check` initially reported dict_utils.py/tests/test_dict_utils.py out of sync after recent additions; ran `make refresh-scaffold` which synchronized them; scaffold sync verified clean.
 
