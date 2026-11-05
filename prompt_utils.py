@@ -64,6 +64,7 @@ __all__: List[str] = [
     "has_letters",
     "has_punctuation",
     "has_alphanumeric",
+    "has_spaces",
     "has_consonants",
     "has_vowels",
     "count_letters",
@@ -2112,6 +2113,37 @@ def has_whitespace(text: str) -> bool:
     """
     _require_string(text, "text")
     return any(c.isspace() for c in text)
+
+
+def has_spaces(text: str) -> bool:
+    """Return True if *text* contains at least one space character (' ').
+
+    A boolean companion to :func:`count_spaces` that reports whether *text*
+    contains at least one ASCII space (U+0020). Tabs, newlines, and other
+    Unicode whitespace are not considered. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one space character, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_spaces("Hello world")
+        True
+        >>> has_spaces("Hello")
+        False
+        >>> has_spaces(" ")
+        True
+        >>> has_spaces("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch == " " for ch in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:

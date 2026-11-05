@@ -41,13 +41,14 @@ from prompt_utils import (
     extract_sentences,
     first_line,
     format_prompt_template,
+    has_alphanumeric,
     has_digits,
     has_leading_newline,
     has_letters,
     has_lowercase,
     has_placeholders,
     has_punctuation,
-    has_alphanumeric,
+    has_spaces,
     has_trailing_newline,
     has_uppercase,
     has_whitespace,
@@ -281,6 +282,26 @@ class TestHasWhitespace(unittest.TestCase):
             has_whitespace(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_whitespace(None)  # type: ignore[arg-type]
+
+class TestHasSpaces(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_spaces("hello world"))
+        self.assertTrue(has_spaces(" "))
+        self.assertTrue(has_spaces("a  b"))
+
+    def test_no_spaces(self) -> None:
+        self.assertFalse(has_spaces("hello"))
+        self.assertFalse(has_spaces("\t"))
+        self.assertFalse(has_spaces("\n"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_spaces(""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_spaces(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_spaces(None)  # type: ignore[arg-type]
 
 
 class TestFormatPromptTemplate(unittest.TestCase):
