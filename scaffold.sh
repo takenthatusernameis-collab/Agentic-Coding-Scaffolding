@@ -37399,6 +37399,8 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_blank",
     "ensure_surrounded_by_newlines",
+    "count_newlines",
+    "has_newline",
 ]
 
 
@@ -39599,6 +39601,54 @@ def normalize_whitespace(text: str) -> str:
     """
     _require_string(text, "text")
     return " ".join(text.split())
+
+
+def count_newlines(text: str) -> int:
+    """Count the number of newline characters in *text*.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of ``\\n`` characters found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_newlines("a\\nb\\nc")
+        2
+        >>> count_newlines("hello")
+        0
+        >>> count_newlines("")
+        0
+    """
+    _require_string(text, "text")
+    return text.count("\n")
+
+
+def has_newline(text: str) -> bool:
+    """Return True if *text* contains at least one newline character.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        True if *text* contains ``\\n``, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_newline("hello\\nworld")
+        True
+        >>> has_newline("hello")
+        False
+        >>> has_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return "\n" in text
 PROMPTUTILS
 
 # --- type_utils.py ---
