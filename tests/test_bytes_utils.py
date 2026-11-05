@@ -1,6 +1,7 @@
 import unittest
 
 from bytes_utils import (
+    bit_count,
     capitalize,
     casefold,
     chunk,
@@ -13,6 +14,7 @@ from bytes_utils import (
     from_hex,
     index,
     index_of,
+    is_zero,
     isalnum,
     isalpha,
     isascii,
@@ -39,10 +41,6 @@ from bytes_utils import (
     translate,
     upper,
     xor,
-    to_int,
-    from_int,
-    bit_count,
-    is_zero,
 )
 
 

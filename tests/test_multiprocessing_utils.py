@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import unittest
-
 import time
-
+import unittest
 
 import multiprocessing_utils
 

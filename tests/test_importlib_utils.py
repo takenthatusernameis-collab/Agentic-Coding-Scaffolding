@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import unittest
-
 import os
+import unittest
 from types import ModuleType
-
 
 import importlib_utils
 

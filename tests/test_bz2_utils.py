@@ -1,10 +1,9 @@
-import unittest
 """Tests for bz2_utils."""
 
 import os
 import tempfile
+import unittest
 from pathlib import Path
-
 
 from bz2_utils import (
     bz2_compress,

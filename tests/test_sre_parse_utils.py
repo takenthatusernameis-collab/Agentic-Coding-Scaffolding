@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import unittest
-
 import re
-
+import unittest
 
 import sre_parse_utils
 

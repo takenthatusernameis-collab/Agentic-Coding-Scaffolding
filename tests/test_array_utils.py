@@ -1,8 +1,7 @@
 """Tests for array_utils."""
 
-from array import array
-
 import unittest
+from array import array
 
 from array_utils import (
     array_append,

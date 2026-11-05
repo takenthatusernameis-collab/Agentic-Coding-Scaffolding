@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import unittest
 
-
 import sre_constants_utils
 
 
@@ -80,7 +79,12 @@ class TestSreConstantsUtils(unittest.TestCase):
     def test_exports(self)-> None:
         """The module exports its public names."""
         for name in sre_constants_utils.__all__:
-            if name in ("error_codes", "DIGITS", "CH_CODES", "TYPE_FLAGS"):  # might be empty or missing
+            if name in (
+                "error_codes",
+                "DIGITS",
+                "CH_CODES",
+                "TYPE_FLAGS",
+            ):  # might be empty or missing
                 continue
             try:
                 assert hasattr(sre_constants_utils, name), name
