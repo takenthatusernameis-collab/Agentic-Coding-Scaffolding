@@ -24314,13 +24314,14 @@ from prompt_utils import (
     extract_sentences,
     first_line,
     format_prompt_template,
+    has_alphanumeric,
     has_digits,
     has_leading_newline,
     has_letters,
     has_lowercase,
     has_placeholders,
     has_punctuation,
-    has_alphanumeric,
+    has_spaces,
     has_trailing_newline,
     has_uppercase,
     has_whitespace,
@@ -24554,6 +24555,26 @@ class TestHasWhitespace(unittest.TestCase):
             has_whitespace(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_whitespace(None)  # type: ignore[arg-type]
+
+class TestHasSpaces(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_spaces("hello world"))
+        self.assertTrue(has_spaces(" "))
+        self.assertTrue(has_spaces("a  b"))
+
+    def test_no_spaces(self) -> None:
+        self.assertFalse(has_spaces("hello"))
+        self.assertFalse(has_spaces("\t"))
+        self.assertFalse(has_spaces("\n"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_spaces(""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_spaces(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_spaces(None)  # type: ignore[arg-type]
 
 
 class TestFormatPromptTemplate(unittest.TestCase):
@@ -37352,6 +37373,7 @@ __all__: List[str] = [
     "has_letters",
     "has_punctuation",
     "has_alphanumeric",
+    "has_spaces",
     "has_consonants",
     "has_vowels",
     "count_letters",
@@ -39400,6 +39422,37 @@ def has_whitespace(text: str) -> bool:
     """
     _require_string(text, "text")
     return any(c.isspace() for c in text)
+
+
+def has_spaces(text: str) -> bool:
+    """Return True if *text* contains at least one space character (' ').
+
+    A boolean companion to :func:`count_spaces` that reports whether *text*
+    contains at least one ASCII space (U+0020). Tabs, newlines, and other
+    Unicode whitespace are not considered. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one space character, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_spaces("Hello world")
+        True
+        >>> has_spaces("Hello")
+        False
+        >>> has_spaces(" ")
+        True
+        >>> has_spaces("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch == " " for ch in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
@@ -48058,6 +48111,8 @@ __all__: list[str] = [
     "encode_ascii",
     "maketrans",
     "translate",
+    "to_int",
+    "from_int",
 ]
 
 
@@ -49170,6 +49225,98 @@ def translate(data: bytes, table: bytes) -> bytes:
     if len(table) != 256:
         raise ValueError("table must be exactly 256 bytes long")
     return bytes(data).translate(table)
+
+
+def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
+    """Interpret *data* as an integer using the given byte order.
+
+    The conversion mirrors :func:`int.from_bytes`: *data* is treated as the
+    byte representation of a non-negative integer in the chosen *byteorder*
+    ("big" or "little"), and *signed* controls whether the value is interpreted
+    in two's-complement form (so the most significant bit is the sign bit).
+    Empty input yields ``0``.
+
+    Args:
+        data: Bytes or bytearray to interpret.
+        byteorder: "big" (most significant byte first) or "little" (least
+            significant byte first).
+        signed: If True, interpret the bytes as a two's-complement signed
+            integer.
+
+    Returns:
+        The integer value of *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray, or *byteorder* is not
+            a str.
+        ValueError: If *byteorder* is not "big" or "little".
+
+    Examples:
+        >>> to_int(b"\x01\x00")
+        256
+        >>> to_int(b"\x00\x01", byteorder="little")
+        256
+        >>> to_int(b"\xff", signed=True)
+        -1
+        >>> to_int(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(byteorder, str):
+        raise TypeError("byteorder must be a str")
+    if byteorder not in ("big", "little"):
+        raise ValueError("byteorder must be 'big' or 'little'")
+    return int.from_bytes(bytes(data), byteorder=byteorder, signed=signed)
+
+
+def from_int(value: int, length: int, byteorder: str = "big", signed: bool = False) -> bytes:
+    """Encode the integer *value* into a fixed-length bytes object.
+
+    The result is exactly *length* bytes long. If *value* fits in the requested
+    representation it is encoded directly; otherwise a :class:`OverflowError`
+    is raised (matching :meth:`int.to_bytes`).
+
+    Args:
+        value: The integer to encode.
+        length: The number of bytes in the result (must be positive).
+        byteorder: "big" (most significant byte first) or "little" (least
+            significant byte first).
+        signed: If True, encode the value in two's-complement form so that
+            negative values are representable.
+
+    Returns:
+        The *length*-byte representation of *value*.
+
+    Raises:
+        TypeError: If *value* is not an int (a bool is rejected), or
+            *byteorder* is not a str.
+        ValueError: If *length* is not positive, or *byteorder* is not "big"
+            or "little".
+        OverflowError: If *value* does not fit in *length* bytes with the
+            requested signedness.
+
+    Examples:
+        >>> from_int(256, 2)
+        b'\x01\x00'
+        >>> from_int(256, 2, byteorder="little")
+        b'\x00\x01'
+        >>> from_int(-1, 1, signed=True)
+        b'\xff'
+        >>> len(from_int(0, 4))
+        4
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("value must be an int")
+    if not isinstance(length, int) or isinstance(length, bool):
+        raise TypeError("length must be an int")
+    if length <= 0:
+        raise ValueError("length must be positive")
+    if not isinstance(byteorder, str):
+        raise TypeError("byteorder must be a str")
+    if byteorder not in ("big", "little"):
+        raise ValueError("byteorder must be 'big' or 'little'")
+    return value.to_bytes(length, byteorder=byteorder, signed=signed)
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -57080,7 +57227,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_mersenne_number, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_powerful_number, is_mersenne_number, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -58014,7 +58161,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_mersenne_number` tests whether a positive integer is a Mersenne number (of the form 2^p - 1 for some non-negative integer p); `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15); `is_squarefree_number` tests whether a positive integer is squarefree (not divisible by any perfect square greater than 1). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_powerful_number` tests whether every prime factor's square divides the number (powerful numbers include 1, 4, 8, 9, 16, 25, 27, 32, 36, ...); `is_mersenne_number` tests whether a positive integer is a Mersenne number (of the form 2^p - 1 for some non-negative integer p); `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15); `is_squarefree_number` tests whether a positive integer is squarefree (not divisible by any perfect square greater than 1). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -76659,6 +76806,7 @@ __all__ = [
     "is_perfect_square",
     "is_positive",
     "is_power_of_two",
+    "is_powerful_number",
     "is_pronic_number",
     "is_mersenne_number",
     "is_spy_number",
@@ -78752,6 +78900,65 @@ def is_mersenne_number(value: Number) -> bool:
     if m & (m - 1) != 0:
         return False
     return True
+
+
+def is_powerful_number(value: int) -> bool:
+    """Return True if *value* is a powerful number.
+
+    A powerful number is a positive integer m such that for every prime
+    number p dividing m, p^2 also divides m. Equivalently, m can be
+    expressed as a^2 * b^3 for some positive integers a and b. By
+    convention, 1 is a powerful number.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a powerful number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_powerful_number(1)
+        True
+        >>> is_powerful_number(4)
+        True
+        >>> is_powerful_number(8)
+        True
+        >>> is_powerful_number(9)
+        True
+        >>> is_powerful_number(16)
+        True
+        >>> is_powerful_number(25)
+        True
+        >>> is_powerful_number(27)
+        True
+        >>> is_powerful_number(32)
+        True
+        >>> is_powerful_number(36)
+        True
+        >>> is_powerful_number(2)
+        False
+        >>> is_powerful_number(6)
+        False
+        >>> is_powerful_number(0)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 1:
+        return False
+    n = value
+    factor = 2
+    while factor * factor <= n:
+        if n % factor == 0:
+            if value % (factor * factor) != 0:
+                return False
+            while n % factor == 0:
+                n //= factor
+        factor += 1
+    return n == 1
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -78802,6 +79009,7 @@ from number_utils import (
     is_perfect_square,
     is_positive,
     is_power_of_two,
+    is_powerful_number,
     is_pronic_number,
     is_spy_number,
     is_squarefree_number,
@@ -80482,16 +80690,41 @@ class TestIsOblongNumber(unittest.TestCase):
         self.assertFalse(is_oblong_number(-1))
 
     def test_type_errors(self) -> None:
-        from number_utils import is_oblong_number
+        from number_utils import is_duck_number
 
         with self.assertRaises(TypeError):
-            is_oblong_number("6")  # type: ignore[arg-type]
+            is_duck_number("10")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_oblong_number(6.0)  # type: ignore[arg-type]
+            is_duck_number(10.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_oblong_number(True)  # type: ignore[arg-type]
+            is_duck_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_oblong_number(None)  # type: ignore[arg-type]
+            is_duck_number(None)  # type: ignore[arg-type]
+
+
+class TestIsPowerfulNumber(unittest.TestCase):
+    def test_powerful_numbers(self) -> None:
+        for n in (1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 81, 100, 108, 121, 125, 128, 144, 169, 196, 200):
+            self.assertTrue(is_powerful_number(n), n)
+
+    def test_non_powerful_numbers(self) -> None:
+        for n in (0, 2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26, 28, 30, 44, 45, 50, 52, 54, 56, 60, 66, 68, 70, 75, 78, 90, 98, 99):
+            self.assertFalse(is_powerful_number(n), n)
+
+    def test_negatives(self) -> None:
+        self.assertFalse(is_powerful_number(-1))
+        self.assertFalse(is_powerful_number(-4))
+        self.assertFalse(is_powerful_number(-72))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_powerful_number("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_powerful_number(4.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_powerful_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_powerful_number(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -86899,43 +87132,6 @@ def is_palindromic_prime(n: int) -> bool:
         return False
     s = str(abs(n))
     return s == s[::-1]
-
-
-def is_mersenne_prime(n: int) -> bool:
-    """Return True if *n* is a Mersenne prime.
-
-    A Mersenne prime is a prime number of the form M_p = 2^p - 1
-    for some prime number *p*. Known examples include 3 (2^2-1),
-    7 (2^3-1), 31 (2^5-1), 127 (2^7-1), etc.
-
-    Args:
-        n: The integer to test.
-
-    Returns:
-        True if *n* is a Mersenne prime, False otherwise.
-
-    Raises:
-        TypeError: If *n* is not an int.
-    """
-    _require_int(n, "n")
-    if not is_prime(n):
-        return False
-    if n == 3:
-        return True  # 2^2 - 1, p=2 (prime)
-    if n < 7:
-        return False
-    # n = 2^p - 1 implies p = log2(n+1)
-    m = n + 1
-    if m <= 0 or (m & (m - 1)) != 0:
-        return False
-    # Find exponent p
-    p = m.bit_length() - 1
-    # Verify m == 2^p
-    if (1 << p) != m:
-        return False
-    if p < 2:
-        return False
-    return is_prime(p)
 
 
 def is_sophie_germain_prime(n: int) -> bool:
@@ -131053,7 +131249,10 @@ import pipes_utils
 
 
 def test_exports():
-    for name in ["Template", "quote", "quote_command", "create_template", "is_available", "make_pipeline", "step_kinds"]:
+    for name in [
+        "Template", "quote", "quote_command", "create_template",
+        "is_available", "make_pipeline", "step_kinds",
+    ]:
         assert hasattr(pipes_utils, name)
     assert pipes_utils.is_available() is True
     assert isinstance(pipes_utils.quote("foo"), str)
@@ -137012,7 +137211,6 @@ import cgi as _cgi
 from html import escape as _html_escape
 from urllib.parse import parse_qs as _parse_qs
 from urllib.parse import parse_qsl as _parse_qsl
-from typing import Any
 
 __all__: list[str] = [
     "FieldStorage",
@@ -137058,7 +137256,6 @@ cat > "$OUTPUT_DIR/cgitb_utils.py" <<'CGITB_UTILS'
 from __future__ import annotations
 
 import cgitb as _cgitb
-from typing import Any
 
 __all__: list[str] = [
     "enable",
@@ -137269,12 +137466,22 @@ if _IMGHDR_AVAILABLE:
                 except Exception:
                     pass
         return what(file, h)
-    is_image = lambda file, h=None: detect(file, h) is not None  # type: ignore[no-untyped-def]
-    matching_formats = lambda file, h=None: [detect(file, h)] if detect(file, h) is not None else []  # type: ignore[no-untyped-def]
-    read_header = lambda file, h=None: h  # type: ignore[no-untyped-def]
-    register_test = getattr(_imghdr, "tests", []).append if False else (lambda *args, **kwargs: None)  # type: ignore[no-untyped-def]
-    unregister_test = lambda *args, **kwargs: None  # type: ignore[no-untyped-def]
-    supported_formats = lambda: ["jpeg", "png", "gif", "tiff", "rgb", "pbm", "pgm", "ppm", "rast", "xbm", "bmp", "webp", "exr"]  # type: ignore[no-untyped-def]
+    def is_image(file, h=None):
+        return detect(file, h) is not None  # type: ignore[no-untyped-def]
+    def matching_formats(file, h=None):
+        return [detect(file, h)] if detect(file, h) is not None else []  # type: ignore[no-untyped-def]
+    def read_header(file, h=None):
+        return h  # type: ignore[no-untyped-def]
+    register_test = (
+        getattr(_imghdr, "tests", []).append if False else (lambda *args, **kwargs: None)  # type: ignore[no-untyped-def]
+    )
+    def unregister_test(*args, **kwargs):
+        return None  # type: ignore[no-untyped-def]
+    def supported_formats():
+        return [
+            "jpeg", "png", "gif", "tiff", "rgb", "pbm", "pgm", "ppm",
+            "rast", "xbm", "bmp", "webp", "exr",
+        ]  # type: ignore[no-untyped-def]
 else:
     def what(*args, **kwargs):  # type: ignore[no-untyped-def]
         raise RuntimeError("imghdr module is not available")
@@ -137433,7 +137640,6 @@ cat > "$OUTPUT_DIR/pipes_utils.py" <<'PIPES_UTILS'
 from __future__ import annotations
 
 import pipes as _pipes
-from typing import Any
 
 __all__: list[str] = [
     "Template",
@@ -137645,7 +137851,9 @@ else:
     class Telnet:  # type: ignore[no-redef]
         def __init__(self, *args, **kwargs):
             raise RuntimeError("telnetlib module is not available")
-    IAC = DONT = DO = WONT = WILL = SE = NOP = DM = BRK = IP = AO = AYT = EC = EL = GA = SB = theNULL = 255
+    (IAC, DONT, DO, WONT, WILL, SE, NOP, DM, BRK, IP, AO, AYT, EC, EL, GA, SB, theNULL) = (
+        (255,) * 17
+    )
 
 
 def create_telnet(host: str | None = None, port: int = 23, timeout: float | None = None) -> Telnet:
@@ -137672,7 +137880,12 @@ def read_until(tn: Telnet, expected: bytes, timeout: float | None = None) -> byt
     return tn.read_until(bytes(expected), timeout)
 
 
-def read_until_text(tn: Telnet, expected: str, timeout: float | None = None, encoding: str = "utf-8") -> str:
+def read_until_text(
+    tn: Telnet,
+    expected: str,
+    timeout: float | None = None,
+    encoding: str = "utf-8",
+) -> str:
     if not isinstance(expected, str):
         raise TypeError("expected must be a str")
     data = read_until(tn, expected.encode(encoding), timeout)
@@ -137729,7 +137942,12 @@ def expect(tn: Telnet, list_patterns, timeout: float | None = None):
     return tn.expect(list_patterns, timeout)
 
 
-def expect_text(tn: Telnet, patterns: list[str], timeout: float | None = None, encoding: str = "utf-8"):
+def expect_text(
+    tn: Telnet,
+    patterns: list[str],
+    timeout: float | None = None,
+    encoding: str = "utf-8",
+):
     pat = [p.encode(encoding) if isinstance(p, str) else p for p in patterns]
     return tn.expect(pat, timeout)
 
