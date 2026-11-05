@@ -54925,6 +54925,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_weird_number to numbers_utils
+
+- Added `is_weird_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` when *n* is abundant but not semiperfect (a weird number such as 70 or 836), reusing `is_abundant_number` and `is_semiperfect_number`; numbers below 1 return `False`. Added `TestIsWeirdNumber` to `tests/test_numbers_utils.py` covering known weird numbers, abundant-but-semiperfect non-weird numbers, non-abundant numbers, negatives/zero, and `TypeError` paths (6 new tests). Imported `is_weird_number` at the top of the test file to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` passes; `python -m doctest numbers_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_mersenne_number to number_utils
 
 - Added `is_mersenne_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` if *value* is of the form `2^p - 1` for some non-negative integer *p* (e.g. 1, 3, 7, 15, 31). Accepts integer-valued floats. Added `TestIsMersenneNumber` to `tests/test_number_utils.py` covering Mersenne numbers, non-Mersenne numbers, integer-valued floats, and `TypeError` paths for non-numbers/bools. Updated the `number_utils` module tree entry and prose section of `README.md`.
@@ -57074,7 +57081,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -58192,7 +58199,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, and `is_pronic_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_semiperfect_number` tests whether the number can be expressed as the sum of some subset of its proper divisors (every perfect number is semiperfect, and every multiple of a semiperfect number is semiperfect); `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); `is_duck_number` tests whether the decimal representation contains at least one zero that is not a leading zero (e.g. 101, 203); `is_odious_number` tests whether a non-negative integer has an odd number of 1-bits in its binary representation; `is_evil_number` tests whether a non-negative integer has an even number of 1-bits in its binary representation; and `proper_divisors` returns the sorted proper divisors of a positive integer. The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, `is_pronic_number`, and `is_weird_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_semiperfect_number` tests whether the number can be expressed as the sum of some subset of its proper divisors (every perfect number is semiperfect, and every multiple of a semiperfect number is semiperfect); `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); `is_duck_number` tests whether the decimal representation contains at least one zero that is not a leading zero (e.g. 101, 203); `is_odious_number` tests whether a non-negative integer has an odd number of 1-bits in its binary representation; `is_evil_number` tests whether a non-negative integer has an even number of 1-bits in its binary representation; and `proper_divisors` returns the sorted proper divisors of a positive integer; `is_weird_number` tests whether an abundant number is not semiperfect (e.g. 70 and 836 are weird). The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -80519,6 +80526,7 @@ __all__: list[str] = [
     "is_ugly_number",
     "is_narcissistic_number",
     "is_narcissistic",
+    "is_weird_number",
     "proper_divisors",
 ]
 
@@ -81771,6 +81779,43 @@ def is_narcissistic_number(n: int) -> bool:
 
 # Alias
 is_narcissistic = is_narcissistic_number
+
+
+def is_weird_number(n: int) -> bool:
+    """Return ``True`` when *n* is a weird number.
+
+    A weird number is a positive integer that is abundant (the sum of its
+    proper divisors exceeds the number) but not semiperfect (no subset of
+    its proper divisors sums to the number itself). The first weird number
+    is 70: its proper divisors sum to 74, yet no subset of them sums to 70.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a weird number, ``False`` otherwise. Numbers below
+        1 are never weird.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_weird_number(70)
+        True
+        >>> is_weird_number(836)
+        True
+        >>> is_weird_number(12)
+        False
+        >>> is_weird_number(0)
+        False
+        >>> is_weird_number(-70)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    return is_abundant_number(n) and not is_semiperfect_number(n)
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -81810,6 +81855,7 @@ from numbers_utils import (
     is_semiperfect_number,
     is_spy_number,
     is_strong_number,
+    is_weird_number,
     proper_divisors,
 )
 
@@ -82609,6 +82655,34 @@ class TestIsSemiperfectNumber(unittest.TestCase):
         for value in (1.5, "12", None, True, [12]):
             with self.assertRaises(TypeError):
                 is_semiperfect_number(value)
+
+
+class TestIsWeirdNumber(unittest.TestCase):
+    def test_known_weird_numbers(self):
+        # Weird numbers are abundant but not semiperfect (no subset of proper
+        # divisors sums to the number). These are known weird numbers.
+        for value in (70, 836, 4030, 5830, 7192, 7912, 9272):
+            self.assertTrue(is_weird_number(value), value)
+
+    def test_abundant_but_semiperfect_not_weird(self):
+        # 12 is abundant (1+2+3+4+6=16>12) and semiperfect (1+2+3+6=12),
+        # so it is not weird. Same for 18 and 20.
+        self.assertFalse(is_weird_number(12))
+        self.assertFalse(is_weird_number(18))
+        self.assertFalse(is_weird_number(20))
+
+    def test_non_abundant_not_weird(self):
+        for value in (1, 2, 3, 4, 5, 6, 28, 496):
+            self.assertFalse(is_weird_number(value))
+
+    def test_negative_and_zero(self):
+        for value in (0, -1, -12, -70):
+            self.assertFalse(is_weird_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "70", None, True, [70]):
+            with self.assertRaises(TypeError):
+                is_weird_number(value)
 
 
 if __name__ == "__main__":

@@ -58,6 +58,7 @@ __all__: list[str] = [
     "is_ugly_number",
     "is_narcissistic_number",
     "is_narcissistic",
+    "is_weird_number",
     "proper_divisors",
 ]
 
@@ -1310,3 +1311,40 @@ def is_narcissistic_number(n: int) -> bool:
 
 # Alias
 is_narcissistic = is_narcissistic_number
+
+
+def is_weird_number(n: int) -> bool:
+    """Return ``True`` when *n* is a weird number.
+
+    A weird number is a positive integer that is abundant (the sum of its
+    proper divisors exceeds the number) but not semiperfect (no subset of
+    its proper divisors sums to the number itself). The first weird number
+    is 70: its proper divisors sum to 74, yet no subset of them sums to 70.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a weird number, ``False`` otherwise. Numbers below
+        1 are never weird.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_weird_number(70)
+        True
+        >>> is_weird_number(836)
+        True
+        >>> is_weird_number(12)
+        False
+        >>> is_weird_number(0)
+        False
+        >>> is_weird_number(-70)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    return is_abundant_number(n) and not is_semiperfect_number(n)

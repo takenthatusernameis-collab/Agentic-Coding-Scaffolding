@@ -1,3 +1,10 @@
+## Unreleased — added is_weird_number to numbers_utils
+
+- Added `is_weird_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` when *n* is abundant but not semiperfect (a weird number such as 70 or 836), reusing `is_abundant_number` and `is_semiperfect_number`; numbers below 1 return `False`. Added `TestIsWeirdNumber` to `tests/test_numbers_utils.py` covering known weird numbers, abundant-but-semiperfect non-weird numbers, non-abundant numbers, negatives/zero, and `TypeError` paths (6 new tests). Imported `is_weird_number` at the top of the test file to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` passes; `python -m doctest numbers_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_mersenne_number to number_utils
 
 - Added `is_mersenne_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` if *value* is of the form `2^p - 1` for some non-negative integer *p* (e.g. 1, 3, 7, 15, 31). Accepts integer-valued floats. Added `TestIsMersenneNumber` to `tests/test_number_utils.py` covering Mersenne numbers, non-Mersenne numbers, integer-valued floats, and `TypeError` paths for non-numbers/bools. Updated the `number_utils` module tree entry and prose section of `README.md`.

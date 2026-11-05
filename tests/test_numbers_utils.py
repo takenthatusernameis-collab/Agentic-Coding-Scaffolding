@@ -33,6 +33,7 @@ from numbers_utils import (
     is_semiperfect_number,
     is_spy_number,
     is_strong_number,
+    is_weird_number,
     proper_divisors,
 )
 
@@ -832,6 +833,34 @@ class TestIsSemiperfectNumber(unittest.TestCase):
         for value in (1.5, "12", None, True, [12]):
             with self.assertRaises(TypeError):
                 is_semiperfect_number(value)
+
+
+class TestIsWeirdNumber(unittest.TestCase):
+    def test_known_weird_numbers(self):
+        # Weird numbers are abundant but not semiperfect (no subset of proper
+        # divisors sums to the number). These are known weird numbers.
+        for value in (70, 836, 4030, 5830, 7192, 7912, 9272):
+            self.assertTrue(is_weird_number(value), value)
+
+    def test_abundant_but_semiperfect_not_weird(self):
+        # 12 is abundant (1+2+3+4+6=16>12) and semiperfect (1+2+3+6=12),
+        # so it is not weird. Same for 18 and 20.
+        self.assertFalse(is_weird_number(12))
+        self.assertFalse(is_weird_number(18))
+        self.assertFalse(is_weird_number(20))
+
+    def test_non_abundant_not_weird(self):
+        for value in (1, 2, 3, 4, 5, 6, 28, 496):
+            self.assertFalse(is_weird_number(value))
+
+    def test_negative_and_zero(self):
+        for value in (0, -1, -12, -70):
+            self.assertFalse(is_weird_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "70", None, True, [70]):
+            with self.assertRaises(TypeError):
+                is_weird_number(value)
 
 
 if __name__ == "__main__":
