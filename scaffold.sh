@@ -6961,207 +6961,214 @@ cat > "$OUTPUT_DIR/tests/test_importlib_utils.py" <<'TEST_IMPORTLIB_UTILS'
 
 from __future__ import annotations
 
+import unittest
+
 import os
 from types import ModuleType
 
-import pytest
 
 import importlib_utils
 
 
-def test_import_module_success() -> None:
-    math_mod = importlib_utils.import_module("math")
-    assert isinstance(math_mod, ModuleType)
-    assert hasattr(math_mod, "pi")
+class TestImportlibUtils(unittest.TestCase):
+
+    def test_import_module_success(self)-> None:
+        math_mod = importlib_utils.import_module("math")
+        assert isinstance(math_mod, ModuleType)
+        assert hasattr(math_mod, "pi")
 
 
-def test_import_module_with_package() -> None:
-    # Import a submodule with package context
-    os_path = importlib_utils.import_module("os.path")
-    assert isinstance(os_path, ModuleType)
+    def test_import_module_with_package(self)-> None:
+        # Import a submodule with package context
+        os_path = importlib_utils.import_module("os.path")
+        assert isinstance(os_path, ModuleType)
 
 
-def test_import_module_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.import_module(123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        importlib_utils.import_module("math", package=123)  # type: ignore[arg-type]
+    def test_import_module_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.import_module(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            importlib_utils.import_module("math", package=123)  # type: ignore[arg-type]
 
 
-def test_reload_module() -> None:
-    # Reload math module
-    math_mod = importlib_utils.import_module("math")
-    reloaded = importlib_utils.reload_module(math_mod)
-    assert isinstance(reloaded, ModuleType)
+    def test_reload_module(self)-> None:
+        # Reload math module
+        math_mod = importlib_utils.import_module("math")
+        reloaded = importlib_utils.reload_module(math_mod)
+        assert isinstance(reloaded, ModuleType)
 
 
-def test_reload_module_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.reload_module("math")  # type: ignore[arg-type]
+    def test_reload_module_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.reload_module("math")  # type: ignore[arg-type]
 
 
-def test_find_spec() -> None:
-    spec = importlib_utils.find_spec("sys")
-    assert spec is not None
+    def test_find_spec(self)-> None:
+        spec = importlib_utils.find_spec("sys")
+        assert spec is not None
 
-    # Non-existent module
-    spec_none = importlib_utils.find_spec("nonexistent_module_xyz_12345")
-    assert spec_none is None
-
-
-def test_find_spec_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.find_spec(123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        importlib_utils.find_spec("sys", package=123)  # type: ignore[arg-type]
+        # Non-existent module
+        spec_none = importlib_utils.find_spec("nonexistent_module_xyz_12345")
+        assert spec_none is None
 
 
-def test_get_module_name_from_path() -> None:
-    # Use this test file's path
-    path = os.path.abspath(__file__)
-    name = importlib_utils.get_module_name_from_path(path)
-    assert name is not None  # spec will give a name even if temp
+    def test_find_spec_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.find_spec(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            importlib_utils.find_spec("sys", package=123)  # type: ignore[arg-type]
 
 
-def test_get_module_name_from_path_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_module_name_from_path(123)  # type: ignore[arg-type]
+    def test_get_module_name_from_path(self)-> None:
+        # Use this test file's path
+        path = os.path.abspath(__file__)
+        name = importlib_utils.get_module_name_from_path(path)
+        assert name is not None  # spec will give a name even if temp
 
 
-def test_is_module_available() -> None:
-    assert importlib_utils.is_module_available("os") is True
-    assert importlib_utils.is_module_available("json") is True
-    assert importlib_utils.is_module_available("nonexistent_xyz_12345") is False
+    def test_get_module_name_from_path_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_module_name_from_path(123)  # type: ignore[arg-type]
 
 
-def test_is_module_available_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.is_module_available(123)  # type: ignore[arg-type]
+    def test_is_module_available(self)-> None:
+        assert importlib_utils.is_module_available("os") is True
+        assert importlib_utils.is_module_available("json") is True
+        assert importlib_utils.is_module_available("nonexistent_xyz_12345") is False
 
 
-def test_get_source_file() -> None:
-    math_mod = importlib_utils.import_module("math")
-    src = importlib_utils.get_source_file(math_mod)
-    # math is built-in, may be None
-    # but function should work
-    assert src is None or isinstance(src, str)
+    def test_is_module_available_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.is_module_available(123)  # type: ignore[arg-type]
 
 
-def test_get_source_file_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_source_file("math")  # type: ignore[arg-type]
+    def test_get_source_file(self)-> None:
+        math_mod = importlib_utils.import_module("math")
+        src = importlib_utils.get_source_file(math_mod)
+        # math is built-in, may be None
+        # but function should work
+        assert src is None or isinstance(src, str)
 
 
-def test_get_loader() -> None:
-    math_mod = importlib_utils.import_module("math")
-    loader = importlib_utils.get_loader(math_mod)
-    assert loader is None or loader is not None  # just check it returns
+    def test_get_source_file_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_source_file("math")  # type: ignore[arg-type]
 
 
-def test_get_loader_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_loader("math")  # type: ignore[arg-type]
+    def test_get_loader(self)-> None:
+        math_mod = importlib_utils.import_module("math")
+        loader = importlib_utils.get_loader(math_mod)
+        assert loader is None or loader is not None  # just check it returns
 
 
-def test_get_spec() -> None:
-    sys_mod = importlib_utils.import_module("sys")
-    spec = importlib_utils.get_spec(sys_mod)
-    assert spec is not None
+    def test_get_loader_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_loader("math")  # type: ignore[arg-type]
 
 
-def test_get_spec_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_spec("sys")  # type: ignore[arg-type]
+    def test_get_spec(self)-> None:
+        sys_mod = importlib_utils.import_module("sys")
+        spec = importlib_utils.get_spec(sys_mod)
+        assert spec is not None
 
 
-def test_get_distribution() -> None:
-    # Try to get a distribution that should exist (pytest or pip)
-    dist = importlib_utils.get_distribution("pytest")
-    # Might not be installed in minimal env, but function should not crash
-    # Also try pip
-    if dist is None:
-        dist = importlib_utils.get_distribution("pip")
-    # Result can be None or Distribution; just verify no exception path errors beyond expected
-    assert dist is None or hasattr(dist, "version")
+    def test_get_spec_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_spec("sys")  # type: ignore[arg-type]
 
 
-def test_get_distribution_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_distribution(123)  # type: ignore[arg-type]
+    def test_get_distribution(self)-> None:
+        # Try to get a distribution that should exist (pytest or pip)
+        dist = importlib_utils.get_distribution("pytest")
+        # Might not be installed in minimal env, but function should not crash
+        # Also try pip
+        if dist is None:
+            dist = importlib_utils.get_distribution("pip")
+        # Result can be None or Distribution; just verify no exception path errors beyond expected
+        assert dist is None or hasattr(dist, "version")
 
 
-def test_get_distribution_version() -> None:
-    ver = importlib_utils.get_distribution_version("pytest")
-    if ver is None:
-        ver = importlib_utils.get_distribution_version("pip")
-    assert ver is None or isinstance(ver, str)
+    def test_get_distribution_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_distribution(123)  # type: ignore[arg-type]
 
 
-def test_get_distribution_version_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_distribution_version(123)  # type: ignore[arg-type]
+    def test_get_distribution_version(self)-> None:
+        ver = importlib_utils.get_distribution_version("pytest")
+        if ver is None:
+            ver = importlib_utils.get_distribution_version("pip")
+        assert ver is None or isinstance(ver, str)
 
 
-def test_get_entry_points() -> None:
-    eps = importlib_utils.get_entry_points()
-    # Should return some iterable/structure
-    assert eps is not None
+    def test_get_distribution_version_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_distribution_version(123)  # type: ignore[arg-type]
 
 
-def test_get_entry_points_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_entry_points(group=123)  # type: ignore[arg-type]
+    def test_get_entry_points(self)-> None:
+        eps = importlib_utils.get_entry_points()
+        # Should return some iterable/structure
+        assert eps is not None
 
 
-def test_get_attr_from_module() -> None:
-    math_mod = importlib_utils.import_module("math")
-    pi = importlib_utils.get_attr_from_module(math_mod, "pi")
-    assert isinstance(pi, float)
+    def test_get_entry_points_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_entry_points(group=123)  # type: ignore[arg-type]
 
 
-def test_get_attr_from_module_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.get_attr_from_module("math", "pi")  # type: ignore[arg-type]
-    math_mod = importlib_utils.import_module("math")
-    with pytest.raises(TypeError):
-        importlib_utils.get_attr_from_module(math_mod, 123)  # type: ignore[arg-type]
+    def test_get_attr_from_module(self)-> None:
+        math_mod = importlib_utils.import_module("math")
+        pi = importlib_utils.get_attr_from_module(math_mod, "pi")
+        assert isinstance(pi, float)
 
 
-def test_call_func_from_module() -> None:
-    math_mod = importlib_utils.import_module("math")
-    result = importlib_utils.call_func_from_module(math_mod, "sqrt", 16)
-    assert result == 4.0
+    def test_get_attr_from_module_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.get_attr_from_module("math", "pi")  # type: ignore[arg-type]
+        math_mod = importlib_utils.import_module("math")
+        with self.assertRaises(TypeError):
+            importlib_utils.get_attr_from_module(math_mod, 123)  # type: ignore[arg-type]
 
 
-def test_call_func_from_module_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.call_func_from_module("math", "sqrt", 16)  # type: ignore[arg-type]
-    math_mod = importlib_utils.import_module("math")
-    with pytest.raises(TypeError):
-        importlib_utils.call_func_from_module(math_mod, 123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        importlib_utils.call_func_from_module(math_mod, "pi")  # pi is not callable
+    def test_call_func_from_module(self)-> None:
+        math_mod = importlib_utils.import_module("math")
+        result = importlib_utils.call_func_from_module(math_mod, "sqrt", 16)
+        assert result == 4.0
 
 
-# Resource helpers are a bit environment-dependent; test basic type validation
-def test_read_text_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.read_text("os", 123)  # type: ignore[arg-type]
+    def test_call_func_from_module_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.call_func_from_module("math", "sqrt", 16)  # type: ignore[arg-type]
+        math_mod = importlib_utils.import_module("math")
+        with self.assertRaises(TypeError):
+            importlib_utils.call_func_from_module(math_mod, 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            importlib_utils.call_func_from_module(math_mod, "pi")  # pi is not callable
 
 
-def test_read_binary_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.read_binary("os", 123)  # type: ignore[arg-type]
+    # Resource helpers are a bit environment-dependent; test basic type validation
+    def test_read_text_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.read_text("os", 123)  # type: ignore[arg-type]
 
 
-def test_is_resource_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.is_resource("os", 123)  # type: ignore[arg-type]
+    def test_read_binary_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.read_binary("os", 123)  # type: ignore[arg-type]
 
 
-def test_path_type_errors() -> None:
-    with pytest.raises(TypeError):
-        importlib_utils.path("os", 123)  # type: ignore[arg-type]
+    def test_is_resource_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.is_resource("os", 123)  # type: ignore[arg-type]
+
+
+    def test_path_type_errors(self)-> None:
+        with self.assertRaises(TypeError):
+            importlib_utils.path("os", 123)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_IMPORTLIB_UTILS
 
 # --- atexit_utils.py ---
@@ -7295,9 +7302,10 @@ cat > "$OUTPUT_DIR/tests/test_multiprocessing_utils.py" <<'TEST_MP'
 
 from __future__ import annotations
 
+import unittest
+
 import time
 
-import pytest
 
 import multiprocessing_utils
 
@@ -7314,209 +7322,215 @@ def _mp_add(a, b):
     return a + b
 
 
-def test_cpu_count():
-    count = multiprocessing_utils.cpu_count()
-    assert isinstance(count, int)
-    assert count > 0
+class TestMultiprocessingUtils(unittest.TestCase):
+
+    def test_cpu_count(self):
+        count = multiprocessing_utils.cpu_count()
+        assert isinstance(count, int)
+        assert count > 0
 
 
-def test_current_process():
-    proc = multiprocessing_utils.current_process()
-    assert proc is not None
-    assert hasattr(proc, "name")
+    def test_current_process(self):
+        proc = multiprocessing_utils.current_process()
+        assert proc is not None
+        assert hasattr(proc, "name")
 
 
-def test_active_children():
-    children = multiprocessing_utils.active_children()
-    assert isinstance(children, list)
+    def test_active_children(self):
+        children = multiprocessing_utils.active_children()
+        assert isinstance(children, list)
 
 
-def test_get_context():
-    ctx = multiprocessing_utils.get_context()
-    assert ctx is not None
-    ctx_spawn = multiprocessing_utils.get_context("spawn")
-    assert ctx_spawn is not None
+    def test_get_context(self):
+        ctx = multiprocessing_utils.get_context()
+        assert ctx is not None
+        ctx_spawn = multiprocessing_utils.get_context("spawn")
+        assert ctx_spawn is not None
 
 
-def test_get_context_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.get_context(123)  # type: ignore[arg-type]
+    def test_get_context_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.get_context(123)  # type: ignore[arg-type]
 
 
-def test_create_queue():
-    q = multiprocessing_utils.create_queue()
-    assert q is not None
-    q.put(1)
-    assert q.get() == 1
-    q.close()
-    q.join_thread()
+    def test_create_queue(self):
+        q = multiprocessing_utils.create_queue()
+        assert q is not None
+        q.put(1)
+        assert q.get() == 1
+        q.close()
+        q.join_thread()
 
 
-def test_create_queue_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.create_queue(maxsize="5")  # type: ignore[arg-type]
+    def test_create_queue_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_queue(maxsize="5")  # type: ignore[arg-type]
 
 
-def test_create_simple_queue():
-    q = multiprocessing_utils.create_simple_queue()
-    assert q is not None
-    q.put(42)
-    assert q.get() == 42
+    def test_create_simple_queue(self):
+        q = multiprocessing_utils.create_simple_queue()
+        assert q is not None
+        q.put(42)
+        assert q.get() == 42
 
 
-def test_create_lock():
-    lock = multiprocessing_utils.create_lock()
-    assert lock is not None
-    with lock:
-        pass
+    def test_create_lock(self):
+        lock = multiprocessing_utils.create_lock()
+        assert lock is not None
+        with lock:
+            pass
 
 
-def test_create_rlock():
-    rlock = multiprocessing_utils.create_rlock()
-    assert rlock is not None
-    with rlock:
-        pass
+    def test_create_rlock(self):
+        rlock = multiprocessing_utils.create_rlock()
+        assert rlock is not None
+        with rlock:
+            pass
 
 
-def test_create_semaphore():
-    sem = multiprocessing_utils.create_semaphore(2)
-    assert sem is not None
-    sem.acquire()
-    sem.release()
+    def test_create_semaphore(self):
+        sem = multiprocessing_utils.create_semaphore(2)
+        assert sem is not None
+        sem.acquire()
+        sem.release()
 
 
-def test_create_semaphore_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.create_semaphore(value="1")  # type: ignore[arg-type]
+    def test_create_semaphore_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_semaphore(value="1")  # type: ignore[arg-type]
 
 
-def test_create_event():
-    ev = multiprocessing_utils.create_event()
-    assert ev is not None
-    assert not ev.is_set()
+    def test_create_event(self):
+        ev = multiprocessing_utils.create_event()
+        assert ev is not None
+        assert not ev.is_set()
 
 
-def test_create_condition():
-    cond = multiprocessing_utils.create_condition()
-    assert cond is not None
-    cond.acquire()
-    cond.release()
+    def test_create_condition(self):
+        cond = multiprocessing_utils.create_condition()
+        assert cond is not None
+        cond.acquire()
+        cond.release()
 
 
-def test_create_condition_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.create_condition(lock="bad")  # type: ignore[arg-type]
+    def test_create_condition_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_condition(lock="bad")  # type: ignore[arg-type]
 
 
-def test_create_value():
-    val = multiprocessing_utils.create_value("i", 10)
-    assert val.value == 10
-    val.value = 20
-    assert val.value == 20
+    def test_create_value(self):
+        val = multiprocessing_utils.create_value("i", 10)
+        assert val.value == 10
+        val.value = 20
+        assert val.value == 20
 
 
-def test_create_array():
-    arr = multiprocessing_utils.create_array("i", [1, 2, 3])
-    assert list(arr) == [1, 2, 3]
+    def test_create_array(self):
+        arr = multiprocessing_utils.create_array("i", [1, 2, 3])
+        assert list(arr) == [1, 2, 3]
 
 
-def test_create_process():
-    def nop():
-        pass
+    def test_create_process(self):
+        def nop():
+            pass
 
-    p = multiprocessing_utils.create_process(target=nop)
-    assert p is not None
-
-
-def test_create_process_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.create_process(target="bad")  # type: ignore[arg-type]
+        p = multiprocessing_utils.create_process(target=nop)
+        assert p is not None
 
 
-def test_run_in_process():
-    def square(x):
-        return x * x
-
-    result = multiprocessing_utils.run_in_process(square, 5)
-    assert result == 25
+    def test_create_process_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_process(target="bad")  # type: ignore[arg-type]
 
 
-def test_run_in_process_timeout():
-    def slow():
-        time.sleep(2)
-        return "done"
+    def test_run_in_process(self):
+        def square(x):
+            return x * x
 
-    with pytest.raises(multiprocessing_utils.mp.TimeoutError if False else Exception):  # type: ignore[attr-defined]
-        multiprocessing_utils.run_in_process(slow, timeout=0.1)
-
-
-def test_run_in_process_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.run_in_process("not_callable")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        multiprocessing_utils.run_in_process(lambda: None, timeout="bad")  # type: ignore[arg-type]
+        result = multiprocessing_utils.run_in_process(square, 5)
+        assert result == 25
 
 
-def test_pool_map():
-    def inc(x):
-        return x + 1
+    def test_run_in_process_timeout(self):
+        def slow():
+            time.sleep(2)
+            return "done"
 
-    result = multiprocessing_utils.pool_map(_mp_inc, [1, 2, 3])
-    assert result == [2, 3, 4]
-
-
-def test_pool_map_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.pool_map("bad", [1, 2])  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-
-        def iden(x):
-            return x
-
-        multiprocessing_utils.pool_map(_mp_iden, [1, 2], chunksize="1")  # type: ignore[arg-type]
+        with self.assertRaises(multiprocessing_utils.mp.TimeoutError if False else Exception):  # type: ignore[attr-defined]
+            multiprocessing_utils.run_in_process(slow, timeout=0.1)
 
 
-def test_pool_starmap():
-    def add2(a, b):
-        return a + b
+    def test_run_in_process_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.run_in_process("not_callable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.run_in_process(lambda: None, timeout="bad")  # type: ignore[arg-type]
 
-    result = multiprocessing_utils.pool_starmap(_mp_add, [(1, 2), (3, 4)])
-    assert result == [3, 7]
+
+    def test_pool_map(self):
+        def inc(x):
+            return x + 1
+
+        result = multiprocessing_utils.pool_map(_mp_inc, [1, 2, 3])
+        assert result == [2, 3, 4]
 
 
-def test_pool_starmap_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.pool_starmap("bad", [(1, 2)])  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
+    def test_pool_map_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.pool_map("bad", [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
 
-        def add2b(a, b):
+            def iden(x):
+                return x
+
+            multiprocessing_utils.pool_map(_mp_iden, [1, 2], chunksize="1")  # type: ignore[arg-type]
+
+
+    def test_pool_starmap(self):
+        def add2(a, b):
             return a + b
 
-        multiprocessing_utils.pool_starmap(_mp_add, [(1, 2)], chunksize="1")  # type: ignore[arg-type]
+        result = multiprocessing_utils.pool_starmap(_mp_add, [(1, 2), (3, 4)])
+        assert result == [3, 7]
 
 
-def test_create_pool():
-    pool = multiprocessing_utils.create_pool(processes=2)
-    assert pool is not None
-    pool.close()
-    pool.join()
+    def test_pool_starmap_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.pool_starmap("bad", [(1, 2)])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+
+            def add2b(a, b):
+                return a + b
+
+            multiprocessing_utils.pool_starmap(_mp_add, [(1, 2)], chunksize="1")  # type: ignore[arg-type]
 
 
-def test_create_pool_type_errors():
-    with pytest.raises(TypeError):
-        multiprocessing_utils.create_pool(processes="2")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        multiprocessing_utils.create_pool(context=123)  # type: ignore[arg-type]
+    def test_create_pool(self):
+        pool = multiprocessing_utils.create_pool(processes=2)
+        assert pool is not None
+        pool.close()
+        pool.join()
 
 
-def test_is_forking_spawn_forkserver():
-    assert isinstance(multiprocessing_utils.is_forking(), bool)
-    assert isinstance(multiprocessing_utils.is_spawn(), bool)
-    assert isinstance(multiprocessing_utils.is_forkserver(), bool)
+    def test_create_pool_type_errors(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_pool(processes="2")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_pool(context=123)  # type: ignore[arg-type]
 
 
-def test_freeze_support():
-    multiprocessing_utils.freeze_support()
+    def test_is_forking_spawn_forkserver(self):
+        assert isinstance(multiprocessing_utils.is_forking(), bool)
+        assert isinstance(multiprocessing_utils.is_spawn(), bool)
+        assert isinstance(multiprocessing_utils.is_forkserver(), bool)
+
+
+    def test_freeze_support(self):
+        multiprocessing_utils.freeze_support()
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_MP
 
 
@@ -7525,76 +7539,83 @@ cat > "$OUTPUT_DIR/tests/test_atexit_utils.py" <<'TEST_ATEXIT_UTILS'
 
 from __future__ import annotations
 
-import pytest
+import unittest
+
 
 import atexit_utils
 
 
-def test_register_and_unregister():
-    """Test registering and unregistering an exit handler."""
-    calls = []
+class TestAtexitUtils(unittest.TestCase):
 
-    def handler():
-        calls.append("called")
+    def test_register_and_unregister(self):
+        """Test registering and unregistering an exit handler."""
+        calls = []
 
-    # Register the handler
-    result = atexit_utils.register(handler)
-    assert result is handler
+        def handler():
+            calls.append("called")
 
-    # Unregister it
-    unreg_result = atexit_utils.unregister(handler)
-    assert unreg_result is True
+        # Register the handler
+        result = atexit_utils.register(handler)
+        assert result is handler
 
-    # Unregistering again might return False or True depending on impl
-    # but it should not raise
-    atexit_utils.unregister(handler)
+        # Unregister it
+        unreg_result = atexit_utils.unregister(handler)
+        assert unreg_result is True
 
-
-def test_register_with_args():
-    """Test registering a handler with arguments."""
-    calls = []
-
-    def handler(x, y=10):
-        calls.append((x, y))
-
-    atexit_utils.register(handler, 5, y=20)
-    atexit_utils.unregister(handler)
+        # Unregistering again might return False or True depending on impl
+        # but it should not raise
+        atexit_utils.unregister(handler)
 
 
-def test_register_non_callable_raises():
-    """Test that registering non-callable raises TypeError."""
-    with pytest.raises(TypeError):
-        atexit_utils.register(123)  # type: ignore[arg-type]
+    def test_register_with_args(self):
+        """Test registering a handler with arguments."""
+        calls = []
+
+        def handler(x, y=10):
+            calls.append((x, y))
+
+        atexit_utils.register(handler, 5, y=20)
+        atexit_utils.unregister(handler)
 
 
-def test_unregister_non_callable_raises():
-    """Test that unregistering non-callable raises TypeError."""
-    with pytest.raises(TypeError):
-        atexit_utils.unregister(123)  # type: ignore[arg-type]
+    def test_register_non_callable_raises(self):
+        """Test that registering non-callable raises TypeError."""
+        with self.assertRaises(TypeError):
+            atexit_utils.register(123)  # type: ignore[arg-type]
 
 
-def test_add_and_remove_aliases():
-    """Test add and remove as aliases."""
-    calls = []
-
-    def handler():
-        calls.append(1)
-
-    atexit_utils.add(handler)
-    assert atexit_utils.remove(handler) is True
+    def test_unregister_non_callable_raises(self):
+        """Test that unregistering non-callable raises TypeError."""
+        with self.assertRaises(TypeError):
+            atexit_utils.unregister(123)  # type: ignore[arg-type]
 
 
-def test_get_registered():
-    """Test getting registered handlers."""
-    handlers = atexit_utils.get_registered()
-    assert isinstance(handlers, list)
+    def test_add_and_remove_aliases(self):
+        """Test add and remove as aliases."""
+        calls = []
+
+        def handler():
+            calls.append(1)
+
+        atexit_utils.add(handler)
+        assert atexit_utils.remove(handler) is True
 
 
-def test_clear_and_run_handlers():
-    """Test clear and run_exit_handlers functions."""
-    # These are safe to call
-    atexit_utils.clear()
-    atexit_utils.run_exit_handlers()
+    def test_get_registered(self):
+        """Test getting registered handlers."""
+        handlers = atexit_utils.get_registered()
+        assert isinstance(handlers, list)
+
+
+    def test_clear_and_run_handlers(self):
+        """Test clear and run_exit_handlers functions."""
+        # These are safe to call
+        atexit_utils.clear()
+        atexit_utils.run_exit_handlers()
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_ATEXIT_UTILS
 
 # --- multiprocessing_utils.py ---
@@ -8353,13 +8374,13 @@ LZMA_UTILS
 
 # --- tests/test_bz2_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_bz2_utils.py" <<'TEST_BZ2_UTILS'
+import unittest
 """Tests for bz2_utils."""
 
 import os
 import tempfile
 from pathlib import Path
 
-import pytest
 
 from bz2_utils import (
     bz2_compress,
@@ -8370,157 +8391,163 @@ from bz2_utils import (
 )
 
 
-def test_bz2_compress_decompress_roundtrip():
-    data = b"hello world" * 10
-    compressed = bz2_compress(data)
-    assert bz2_decompress(compressed) == data
+class TestBz2Utils(unittest.TestCase):
 
-
-def test_bz2_compress_empty_data():
-    compressed = bz2_compress(b"")
-    assert bz2_decompress(compressed) == b""
-
-
-def test_bz2_compress_single_byte():
-    data = b"x"
-    compressed = bz2_compress(data)
-    assert bz2_decompress(compressed) == data
-
-
-def test_bz2_compress_compresslevel_roundtrip():
-    data = b"abcde" * 1000
-    for level in (1, 5, 9):
-        compressed = bz2_compress(data, compresslevel=level)
+    def test_bz2_compress_decompress_roundtrip(self):
+        data = b"hello world" * 10
+        compressed = bz2_compress(data)
         assert bz2_decompress(compressed) == data
 
 
-def test_bz2_decompress_invalid_data_raises():
-    with pytest.raises(Exception):
-        bz2_decompress(b"not valid bz2 data")
+    def test_bz2_compress_empty_data(self):
+        compressed = bz2_compress(b"")
+        assert bz2_decompress(compressed) == b""
 
 
-def test_bz2_decompress_non_bytes_raises():
-    with pytest.raises(TypeError):
-        bz2_decompress("not bytes")  # type: ignore[arg-type]
+    def test_bz2_compress_single_byte(self):
+        data = b"x"
+        compressed = bz2_compress(data)
+        assert bz2_decompress(compressed) == data
 
 
-def test_bz2_compress_non_bytes_raises():
-    with pytest.raises(TypeError):
-        bz2_compress("not bytes")  # type: ignore[arg-type]
+    def test_bz2_compress_compresslevel_roundtrip(self):
+        data = b"abcde" * 1000
+        for level in (1, 5, 9):
+            compressed = bz2_compress(data, compresslevel=level)
+            assert bz2_decompress(compressed) == data
 
 
-def test_bz2_compress_negative_level_raises():
-    with pytest.raises(ValueError):
-        bz2_compress(b"data", compresslevel=-1)
+    def test_bz2_decompress_invalid_data_raises(self):
+        with self.assertRaises(Exception):
+            bz2_decompress(b"not valid bz2 data")
 
 
-def test_bz2_compress_level_too_high_raises():
-    with pytest.raises(ValueError):
-        bz2_compress(b"data", compresslevel=10)
+    def test_bz2_decompress_non_bytes_raises(self):
+        with self.assertRaises(TypeError):
+            bz2_decompress("not bytes")  # type: ignore[arg-type]
 
 
-def test_bz2_write_read_roundtrip():
-    data = b"hello world" * 10
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "test.bz2")
-        bz2_write(path, data)
-        assert bz2_read(path) == data
+    def test_bz2_compress_non_bytes_raises(self):
+        with self.assertRaises(TypeError):
+            bz2_compress("not bytes")  # type: ignore[arg-type]
 
 
-def test_bz2_write_empty_data():
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "empty.bz2")
-        bz2_write(path, b"")
-        assert bz2_read(path) == b""
+    def test_bz2_compress_negative_level_raises(self):
+        with self.assertRaises(ValueError):
+            bz2_compress(b"data", compresslevel=-1)
 
 
-def test_bz2_write_overwrites_existing():
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "over.bz2")
-        bz2_write(path, b"first")
-        bz2_write(path, b"second")
-        assert bz2_read(path) == b"second"
+    def test_bz2_compress_level_too_high_raises(self):
+        with self.assertRaises(ValueError):
+            bz2_compress(b"data", compresslevel=10)
 
 
-def test_bz2_write_with_compresslevel():
-    data = b"compress me" * 50
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "level.bz2")
-        bz2_write(path, data, compresslevel=1)
-        assert bz2_read(path) == data
+    def test_bz2_write_read_roundtrip(self):
+        data = b"hello world" * 10
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.bz2")
+            bz2_write(path, data)
+            assert bz2_read(path) == data
 
 
-def test_bz2_read_missing_file_raises():
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "missing.bz2")
-        with pytest.raises(FileNotFoundError):
-            bz2_read(path)
+    def test_bz2_write_empty_data(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "empty.bz2")
+            bz2_write(path, b"")
+            assert bz2_read(path) == b""
 
 
-def test_bz2_read_directory_raises():
-    with tempfile.TemporaryDirectory() as d:
-        with pytest.raises(IsADirectoryError):
-            bz2_read(d)
+    def test_bz2_write_overwrites_existing(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "over.bz2")
+            bz2_write(path, b"first")
+            bz2_write(path, b"second")
+            assert bz2_read(path) == b"second"
 
 
-def test_bz2_open_write_read():
-    data = b"hello world"
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "test.bz2")
-        with bz2_open(path, "wb") as f:
-            f.write(data)
-        with bz2_open(path, "rb") as f:
-            assert f.read() == data
+    def test_bz2_write_with_compresslevel(self):
+        data = b"compress me" * 50
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "level.bz2")
+            bz2_write(path, data, compresslevel=1)
+            assert bz2_read(path) == data
 
 
-def test_bz2_open_text_mode():
-    data = "hello world\n" * 5
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "text.bz2")
-        with bz2_open(path, "wt") as f:
-            f.write(data)
-        with bz2_open(path, "rt") as f:
-            assert f.read() == data
+    def test_bz2_read_missing_file_raises(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "missing.bz2")
+            with self.assertRaises(FileNotFoundError):
+                bz2_read(path)
 
 
-def test_bz2_open_with_compresslevel():
-    data = b"compress me" * 50
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "level.bz2")
-        with bz2_open(path, "wb", compresslevel=1) as f:
-            f.write(data)
-        with bz2_open(path, "rb") as f:
-            assert f.read() == data
+    def test_bz2_read_directory_raises(self):
+        with tempfile.TemporaryDirectory() as d:
+            with self.assertRaises(IsADirectoryError):
+                bz2_read(d)
 
 
-def test_bz2_open_pathlib_path():
-    data = b"pathlib path"
-    with tempfile.TemporaryDirectory() as d:
-        path = Path(d) / "pl.bz2"
-        with bz2_open(str(path), "wb") as f:
-            f.write(data)
-        with bz2_open(str(path), "rb") as f:
-            assert f.read() == data
+    def test_bz2_open_write_read(self):
+        data = b"hello world"
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.bz2")
+            with bz2_open(path, "wb") as f:
+                f.write(data)
+            with bz2_open(path, "rb") as f:
+                assert f.read() == data
 
 
-def test_bz2_roundtrip_large():
-    data = bytes(range(256)) * 100
-    compressed = bz2_compress(data)
-    assert bz2_decompress(compressed) == data
+    def test_bz2_open_text_mode(self):
+        data = "hello world\n" * 5
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "text.bz2")
+            with bz2_open(path, "wt") as f:
+                f.write(data)
+            with bz2_open(path, "rt") as f:
+                assert f.read() == data
 
 
-def test_bz2_open_default_mode_is_binary_read():
-    data = b"default mode"
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "default.bz2")
-        bz2_write(path, data)
-        with bz2_open(path) as f:
-            assert f.read() == data
+    def test_bz2_open_with_compresslevel(self):
+        data = b"compress me" * 50
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "level.bz2")
+            with bz2_open(path, "wb", compresslevel=1) as f:
+                f.write(data)
+            with bz2_open(path, "rb") as f:
+                assert f.read() == data
 
 
-def test_bz2_compress_idempotent():
-    data = b"same data" * 5
-    assert bz2_compress(data) == bz2_compress(data)
+    def test_bz2_open_pathlib_path(self):
+        data = b"pathlib path"
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "pl.bz2"
+            with bz2_open(str(path), "wb") as f:
+                f.write(data)
+            with bz2_open(str(path), "rb") as f:
+                assert f.read() == data
+
+
+    def test_bz2_roundtrip_large(self):
+        data = bytes(range(256)) * 100
+        compressed = bz2_compress(data)
+        assert bz2_decompress(compressed) == data
+
+
+    def test_bz2_open_default_mode_is_binary_read(self):
+        data = b"default mode"
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "default.bz2")
+            bz2_write(path, data)
+            with bz2_open(path) as f:
+                assert f.read() == data
+
+
+    def test_bz2_compress_idempotent(self):
+        data = b"same data" * 5
+        assert bz2_compress(data) == bz2_compress(data)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_BZ2_UTILS
 
 # --- tests/test_lzma_utils.py ---
@@ -51413,7 +51440,7 @@ cat > "$OUTPUT_DIR/tests/test_array_utils.py" <<'TEST_ARRAY_UTILS'
 
 from array import array
 
-import pytest
+import unittest
 
 from array_utils import (
     array_append,
@@ -51440,274 +51467,279 @@ from array_utils import (
 )
 
 
-def test_array_create():
-    a = array_create("i", [1, 2, 3])
-    assert isinstance(a, array)
-    assert list(a) == [1, 2, 3]
+class TestArrayUtils(unittest.TestCase):
 
+    def test_array_create(self):
+        a = array_create("i", [1, 2, 3])
+        assert isinstance(a, array)
+        assert list(a) == [1, 2, 3]
 
-def test_array_create_empty():
-    a = array_create("i")
-    assert isinstance(a, array)
-    assert len(a) == 0
 
+    def test_array_create_empty(self):
+        a = array_create("i")
+        assert isinstance(a, array)
+        assert len(a) == 0
 
-def test_array_fromlist():
-    a = array_fromlist("i", [1, 2, 3])
-    assert list(a) == [1, 2, 3]
 
+    def test_array_fromlist(self):
+        a = array_fromlist("i", [1, 2, 3])
+        assert list(a) == [1, 2, 3]
 
-def test_array_tolist():
-    a = array("i", [1, 2, 3])
-    assert array_tolist(a) == [1, 2, 3]
 
+    def test_array_tolist(self):
+        a = array("i", [1, 2, 3])
+        assert array_tolist(a) == [1, 2, 3]
 
-def test_array_append():
-    a = array("i", [1, 2])
-    array_append(a, 3)
-    assert list(a) == [1, 2, 3]
 
+    def test_array_append(self):
+        a = array("i", [1, 2])
+        array_append(a, 3)
+        assert list(a) == [1, 2, 3]
 
-def test_array_extend():
-    a = array("i", [1, 2])
-    array_extend(a, [3, 4])
-    assert list(a) == [1, 2, 3, 4]
 
+    def test_array_extend(self):
+        a = array("i", [1, 2])
+        array_extend(a, [3, 4])
+        assert list(a) == [1, 2, 3, 4]
 
-def test_array_insert():
-    a = array("i", [1, 3])
-    array_insert(a, 1, 2)
-    assert list(a) == [1, 2, 3]
 
+    def test_array_insert(self):
+        a = array("i", [1, 3])
+        array_insert(a, 1, 2)
+        assert list(a) == [1, 2, 3]
 
-def test_array_pop():
-    a = array("i", [1, 2, 3])
-    assert array_pop(a) == 3
-    assert array_pop(a, 0) == 1
 
+    def test_array_pop(self):
+        a = array("i", [1, 2, 3])
+        assert array_pop(a) == 3
+        assert array_pop(a, 0) == 1
 
-def test_array_remove():
-    a = array("i", [1, 2, 3])
-    array_remove(a, 2)
-    assert list(a) == [1, 3]
 
+    def test_array_remove(self):
+        a = array("i", [1, 2, 3])
+        array_remove(a, 2)
+        assert list(a) == [1, 3]
 
-def test_array_reverse():
-    a = array("i", [1, 2, 3])
-    array_reverse(a)
-    assert list(a) == [3, 2, 1]
 
+    def test_array_reverse(self):
+        a = array("i", [1, 2, 3])
+        array_reverse(a)
+        assert list(a) == [3, 2, 1]
 
-def test_array_buffer_info():
-    a = array("i", [1, 2, 3])
-    info = array_buffer_info(a)
-    assert isinstance(info, tuple)
-    assert len(info) == 2
 
+    def test_array_buffer_info(self):
+        a = array("i", [1, 2, 3])
+        info = array_buffer_info(a)
+        assert isinstance(info, tuple)
+        assert len(info) == 2
 
-def test_array_byteswap():
-    a = array("H", [1, 2])
-    array_byteswap(a)
 
+    def test_array_byteswap(self):
+        a = array("H", [1, 2])
+        array_byteswap(a)
 
-def test_array_count():
-    a = array("i", [1, 2, 2, 3])
-    assert array_count(a, 2) == 2
 
+    def test_array_count(self):
+        a = array("i", [1, 2, 2, 3])
+        assert array_count(a, 2) == 2
 
-def test_array_index():
-    a = array("i", [1, 2, 2, 3])
-    assert array_index(a, 2) == 1
-    assert array_index(a, 2, 2) == 2
-    assert array_index(a, 2, 0, 3) == 1
 
+    def test_array_index(self):
+        a = array("i", [1, 2, 2, 3])
+        assert array_index(a, 2) == 1
+        assert array_index(a, 2, 2) == 2
+        assert array_index(a, 2, 0, 3) == 1
 
-def test_array_create_rejects_non_string_typecode():
-    with pytest.raises(TypeError):
-        array_create(123)
 
+    def test_array_create_rejects_non_string_typecode(self):
+        with self.assertRaises(TypeError):
+            array_create(123)
 
-def test_array_create_rejects_string_initial():
-    with pytest.raises(TypeError):
-        array_create("i", "abc")
 
+    def test_array_create_rejects_string_initial(self):
+        with self.assertRaises(TypeError):
+            array_create("i", "abc")
 
-def test_array_fromlist_rejects_invalid():
-    with pytest.raises(TypeError):
-        array_fromlist(123, [1, 2])
-    with pytest.raises(TypeError):
-        array_fromlist("i", (1, 2))
 
+    def test_array_fromlist_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            array_fromlist(123, [1, 2])
+        with self.assertRaises(TypeError):
+            array_fromlist("i", (1, 2))
 
-def test_array_tolist_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_tolist([1, 2, 3])
 
+    def test_array_tolist_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_tolist([1, 2, 3])
 
-def test_array_append_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_append([], 1)
 
+    def test_array_append_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_append([], 1)
 
-def test_array_extend_rejects_string():
-    a = array("i", [1])
-    with pytest.raises(TypeError):
-        array_extend(a, "23")
 
+    def test_array_extend_rejects_string(self):
+        a = array("i", [1])
+        with self.assertRaises(TypeError):
+            array_extend(a, "23")
 
-def test_array_insert_rejects_bad_index():
-    a = array("i", [1, 2])
-    with pytest.raises(TypeError):
-        array_insert(a, 1.5, 3)
 
+    def test_array_insert_rejects_bad_index(self):
+        a = array("i", [1, 2])
+        with self.assertRaises(TypeError):
+            array_insert(a, 1.5, 3)
 
-def test_array_pop_rejects_bad_index():
-    a = array("i", [1, 2])
-    with pytest.raises(TypeError):
-        array_pop(a, 1.0)
 
+    def test_array_pop_rejects_bad_index(self):
+        a = array("i", [1, 2])
+        with self.assertRaises(TypeError):
+            array_pop(a, 1.0)
 
-def test_array_index_rejects_bad_args():
-    a = array("i", [1, 2, 3])
-    with pytest.raises(TypeError):
-        array_index(a, 1, 0.0)
-    with pytest.raises(TypeError):
-        array_index(a, 1, 0, 2.0)
 
+    def test_array_index_rejects_bad_args(self):
+        a = array("i", [1, 2, 3])
+        with self.assertRaises(TypeError):
+            array_index(a, 1, 0.0)
+        with self.assertRaises(TypeError):
+            array_index(a, 1, 0, 2.0)
 
-def test_array_to_list():
-    a = array("i", [1, 2, 3])
-    assert array_to_list(a) == [1, 2, 3]
 
+    def test_array_to_list(self):
+        a = array("i", [1, 2, 3])
+        assert array_to_list(a) == [1, 2, 3]
 
-def test_array_to_list_empty():
-    assert array_to_list(array("i")) == []
 
+    def test_array_to_list_empty(self):
+        assert array_to_list(array("i")) == []
 
-def test_array_to_list_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_to_list([1, 2, 3])
-    with pytest.raises(TypeError):
-        array_to_list("abc")
 
+    def test_array_to_list_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_to_list([1, 2, 3])
+        with self.assertRaises(TypeError):
+            array_to_list("abc")
 
-def test_array_from_list():
-    a = array_from_list("i", [1, 2])
-    assert isinstance(a, array)
-    assert a.tolist() == [1, 2]
 
+    def test_array_from_list(self):
+        a = array_from_list("i", [1, 2])
+        assert isinstance(a, array)
+        assert a.tolist() == [1, 2]
 
-def test_array_from_list_floats():
-    a = array_from_list("f", [1.0, 2.5])
-    assert a.tolist() == [1.0, 2.5]
 
+    def test_array_from_list_floats(self):
+        a = array_from_list("f", [1.0, 2.5])
+        assert a.tolist() == [1.0, 2.5]
 
-def test_array_from_list_errors():
-    with pytest.raises(TypeError):
-        array_from_list(1, [1])
-    with pytest.raises(TypeError):
-        array_from_list("i", (1, 2))
-    with pytest.raises(TypeError):
-        array_from_list("i", "ab")
 
+    def test_array_from_list_errors(self):
+        with self.assertRaises(TypeError):
+            array_from_list(1, [1])
+        with self.assertRaises(TypeError):
+            array_from_list("i", (1, 2))
+        with self.assertRaises(TypeError):
+            array_from_list("i", "ab")
 
-def test_array_extend_from_list():
-    a = array("i", [1])
-    array_extend_from_list(a, [2, 3])
-    assert a.tolist() == [1, 2, 3]
 
+    def test_array_extend_from_list(self):
+        a = array("i", [1])
+        array_extend_from_list(a, [2, 3])
+        assert a.tolist() == [1, 2, 3]
 
-def test_array_extend_from_list_empty():
-    a = array("i", [1, 2])
-    array_extend_from_list(a, [])
-    assert a.tolist() == [1, 2]
 
+    def test_array_extend_from_list_empty(self):
+        a = array("i", [1, 2])
+        array_extend_from_list(a, [])
+        assert a.tolist() == [1, 2]
 
-def test_array_extend_from_list_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_extend_from_list([1, 2], [3])
 
+    def test_array_extend_from_list_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_extend_from_list([1, 2], [3])
 
-def test_array_extend_from_list_rejects_non_list():
-    with pytest.raises(TypeError):
-        array_extend_from_list(array("i", [1]), (2, 3))
 
+    def test_array_extend_from_list_rejects_non_list(self):
+        with self.assertRaises(TypeError):
+            array_extend_from_list(array("i", [1]), (2, 3))
 
-def test_array_remove_first():
-    a = array("i", [1, 2, 1])
-    array_remove_first(a, 1)
-    assert a.tolist() == [2, 1]
 
+    def test_array_remove_first(self):
+        a = array("i", [1, 2, 1])
+        array_remove_first(a, 1)
+        assert a.tolist() == [2, 1]
 
-def test_array_remove_first_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_remove_first([1, 2], 1)
 
+    def test_array_remove_first_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_remove_first([1, 2], 1)
 
-def test_array_remove_first_missing_raises():
-    a = array("i", [1, 2])
-    with pytest.raises(ValueError):
-        array_remove_first(a, 99)
 
+    def test_array_remove_first_missing_raises(self):
+        a = array("i", [1, 2])
+        with self.assertRaises(ValueError):
+            array_remove_first(a, 99)
 
-def test_array_clear():
-    a = array("i", [1, 2, 3])
-    array_clear(a)
-    assert a.tolist() == []
-    assert len(a) == 0
 
+    def test_array_clear(self):
+        a = array("i", [1, 2, 3])
+        array_clear(a)
+        assert a.tolist() == []
+        assert len(a) == 0
 
-def test_array_clear_empty():
-    a = array("i")
-    array_clear(a)
-    assert a.tolist() == []
 
+    def test_array_clear_empty(self):
+        a = array("i")
+        array_clear(a)
+        assert a.tolist() == []
 
-def test_array_clear_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_clear([1, 2, 3])
 
+    def test_array_clear_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_clear([1, 2, 3])
 
-def test_array_typecode():
-    a = array("d", [1.0])
-    assert array_typecode(a) == "d"
 
+    def test_array_typecode(self):
+        a = array("d", [1.0])
+        assert array_typecode(a) == "d"
 
-def test_array_concat():
-    a = array("i", [1, 2])
-    b = array("i", [3, 4])
-    assert array_concat(a, b).tolist() == [1, 2, 3, 4]
 
+    def test_array_concat(self):
+        a = array("i", [1, 2])
+        b = array("i", [3, 4])
+        assert array_concat(a, b).tolist() == [1, 2, 3, 4]
 
-def test_array_concat_empty():
-    assert array_concat(array("i"), array("i", [1])).tolist() == [1]
-    assert array_concat(array("i", [1]), array("i")).tolist() == [1]
-    assert array_concat(array("i"), array("i")).tolist() == []
 
+    def test_array_concat_empty(self):
+        assert array_concat(array("i"), array("i", [1])).tolist() == [1]
+        assert array_concat(array("i", [1]), array("i")).tolist() == [1]
+        assert array_concat(array("i"), array("i")).tolist() == []
 
-def test_array_concat_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_concat([1, 2], array("i"))
-    with pytest.raises(TypeError):
-        array_concat(array("i"), [1, 2])
 
+    def test_array_concat_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_concat([1, 2], array("i"))
+        with self.assertRaises(TypeError):
+            array_concat(array("i"), [1, 2])
 
-def test_array_repeat():
-    assert array_repeat(array("i", [1, 2]), 3).tolist() == [1, 2, 1, 2, 1, 2]
-    assert array_repeat(array("i", [1, 2]), 1).tolist() == [1, 2]
-    assert array_repeat(array("i", [1, 2]), 0).tolist() == []
 
+    def test_array_repeat(self):
+        assert array_repeat(array("i", [1, 2]), 3).tolist() == [1, 2, 1, 2, 1, 2]
+        assert array_repeat(array("i", [1, 2]), 1).tolist() == [1, 2]
+        assert array_repeat(array("i", [1, 2]), 0).tolist() == []
 
-def test_array_repeat_rejects_non_array():
-    with pytest.raises(TypeError):
-        array_repeat([1, 2], 3)
 
+    def test_array_repeat_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_repeat([1, 2], 3)
 
-def test_array_repeat_rejects_bad_n():
-    with pytest.raises(TypeError):
-        array_repeat(array("i", [1]), 1.5)
-    with pytest.raises(TypeError):
-        array_repeat(array("i", [1]), True)
+
+    def test_array_repeat_rejects_bad_n(self):
+        with self.assertRaises(TypeError):
+            array_repeat(array("i", [1]), 1.5)
+        with self.assertRaises(TypeError):
+            array_repeat(array("i", [1]), True)
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_ARRAY_UTILS
 # --- bisect_utils.py ---
 cat > "$OUTPUT_DIR/bisect_utils.py" <<'BISECT_UTILS'
@@ -132455,92 +132487,99 @@ cat > "$OUTPUT_DIR/tests/test_sre_constants_utils.py" <<'TEST_SRE_CONSTANTS_UTIL
 
 from __future__ import annotations
 
-import pytest
+import unittest
+
 
 import sre_constants_utils
 
 
-def test_is_available() -> None:
-    """``is_available`` reports whether the module ships."""
-    result = sre_constants_utils.is_available()
-    assert isinstance(result, bool)
+class TestSreConstantsUtils(unittest.TestCase):
+
+    def test_is_available(self)-> None:
+        """``is_available`` reports whether the module ships."""
+        result = sre_constants_utils.is_available()
+        assert isinstance(result, bool)
 
 
-@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
-def test_constants_exist() -> None:
-    """Basic constants are accessible."""
-    assert hasattr(sre_constants_utils, "LITERAL")
-    assert hasattr(sre_constants_utils, "BRANCH")
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_constants_exist(self)-> None:
+        """Basic constants are accessible."""
+        assert hasattr(sre_constants_utils, "LITERAL")
+        assert hasattr(sre_constants_utils, "BRANCH")
 
 
-@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
-def test_get_opcodes() -> None:
-    """``get_opcodes`` returns a list."""
-    opcodes = sre_constants_utils.get_opcodes()
-    assert isinstance(opcodes, list)
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_get_opcodes(self)-> None:
+        """``get_opcodes`` returns a list."""
+        opcodes = sre_constants_utils.get_opcodes()
+        assert isinstance(opcodes, list)
 
 
-@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
-def test_opcodenames() -> None:
-    """``opcodenames`` returns a mapping."""
-    names = sre_constants_utils.opcodenames()
-    assert isinstance(names, dict)
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_opcodenames(self)-> None:
+        """``opcodenames`` returns a mapping."""
+        names = sre_constants_utils.opcodenames()
+        assert isinstance(names, dict)
 
 
-@pytest.mark.skipif(not sre_constants_utils.is_available(), reason="sre_constants not available")
-def test_lookup_and_op_code() -> None:
-    """Lookup works roundtrip where possible."""
-    names = sre_constants_utils.opcodenames()
-    if names:
-        code = next(iter(names.keys()))
-        name = sre_constants_utils.lookup_opcode(code)
-        assert isinstance(name, str)
-        # roundtrip
-        code2 = sre_constants_utils.op_code(name)
-        assert code2 == code
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_lookup_and_op_code(self)-> None:
+        """Lookup works roundtrip where possible."""
+        names = sre_constants_utils.opcodenames()
+        if names:
+            code = next(iter(names.keys()))
+            name = sre_constants_utils.lookup_opcode(code)
+            assert isinstance(name, str)
+            # roundtrip
+            code2 = sre_constants_utils.op_code(name)
+            assert code2 == code
 
 
-def test_lookup_opcode_validates() -> None:
-    """``lookup_opcode`` validates input."""
-    with pytest.raises(TypeError):
-        sre_constants_utils.lookup_opcode("bad")  # type: ignore[arg-type]
+    def test_lookup_opcode_validates(self)-> None:
+        """``lookup_opcode`` validates input."""
+        with self.assertRaises(TypeError):
+            sre_constants_utils.lookup_opcode("bad")  # type: ignore[arg-type]
 
 
-def test_op_code_validates() -> None:
-    """``op_code`` validates input."""
-    with pytest.raises(TypeError):
-        sre_constants_utils.op_code(123)  # type: ignore[arg-type]
+    def test_op_code_validates(self)-> None:
+        """``op_code`` validates input."""
+        with self.assertRaises(TypeError):
+            sre_constants_utils.op_code(123)  # type: ignore[arg-type]
 
 
-def test_degradation_without_module() -> None:
-    """Helpers raise RuntimeError when module missing."""
-    original = sre_constants_utils._sre_constants
-    try:
-        sre_constants_utils._sre_constants = None  # type: ignore[assignment]
-        with pytest.raises(RuntimeError, match="sre_constants"):
-            sre_constants_utils.get_opcodes()
-        with pytest.raises(RuntimeError, match="sre_constants"):
-            sre_constants_utils.opcodenames()
-        with pytest.raises(RuntimeError, match="sre_constants"):
-            sre_constants_utils.get_all()
-    finally:
-        sre_constants_utils._sre_constants = original
-
-
-def test_exports() -> None:
-    """The module exports its public names."""
-    for name in sre_constants_utils.__all__:
-        if name in ("error_codes", "DIGITS", "CH_CODES", "TYPE_FLAGS"):  # might be empty or missing
-            continue
+    def test_degradation_without_module(self)-> None:
+        """Helpers raise RuntimeError when module missing."""
+        original = sre_constants_utils._sre_constants
         try:
-            assert hasattr(sre_constants_utils, name), name
-        except AssertionError:
-            if sre_constants_utils.is_available() and hasattr(
-                sre_constants_utils._sre_constants, name
-            ):
-                pass  # skip if missing in our export mapping
-            else:
-                raise
+            sre_constants_utils._sre_constants = None  # type: ignore[assignment]
+            with self.assertRaisesRegex(RuntimeError, "sre_constants"):
+                sre_constants_utils.get_opcodes()
+            with self.assertRaisesRegex(RuntimeError, "sre_constants"):
+                sre_constants_utils.opcodenames()
+            with self.assertRaisesRegex(RuntimeError, "sre_constants"):
+                sre_constants_utils.get_all()
+        finally:
+            sre_constants_utils._sre_constants = original
+
+
+    def test_exports(self)-> None:
+        """The module exports its public names."""
+        for name in sre_constants_utils.__all__:
+            if name in ("error_codes", "DIGITS", "CH_CODES", "TYPE_FLAGS"):  # might be empty or missing
+                continue
+            try:
+                assert hasattr(sre_constants_utils, name), name
+            except AssertionError:
+                if sre_constants_utils.is_available() and hasattr(
+                    sre_constants_utils._sre_constants, name
+                ):
+                    pass  # skip if missing in our export mapping
+                else:
+                    raise
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_SRE_CONSTANTS_UTILS
 
 # --- cgi_utils.py ---
@@ -132668,35 +132707,42 @@ cat > "$OUTPUT_DIR/tests/test_sre_compile_utils.py" <<'TEST_SRE_COMPILE_UTILS'
 
 from __future__ import annotations
 
-import pytest
+import unittest
+
 
 import sre_compile_utils
 
 
-def test_is_available() -> None:
-    result = sre_compile_utils.is_available()
-    assert isinstance(result, bool)
+class TestSreCompileUtils(unittest.TestCase):
+
+    def test_is_available(self)-> None:
+        result = sre_compile_utils.is_available()
+        assert isinstance(result, bool)
 
 
-@pytest.mark.skipif(not sre_compile_utils.is_available(), reason="sre_compile not available")
-def test_compile_pattern() -> None:
-    code = sre_compile_utils.compile_pattern("abc")
-    assert code is not None
+    @unittest.skipIf(not sre_compile_utils.is_available(), "sre_compile not available")
+    def test_compile_pattern(self)-> None:
+        code = sre_compile_utils.compile_pattern("abc")
+        assert code is not None
 
 
-def test_compile_pattern_validates_flags() -> None:
-    with pytest.raises(TypeError):
-        sre_compile_utils.compile_pattern("abc", "bad")  # type: ignore[arg-type]
+    def test_compile_pattern_validates_flags(self)-> None:
+        with self.assertRaises(TypeError):
+            sre_compile_utils.compile_pattern("abc", "bad")  # type: ignore[arg-type]
 
 
-def test_degradation_without_module() -> None:
-    original = sre_compile_utils._sre_compile
-    try:
-        sre_compile_utils._sre_compile = None  # type: ignore[assignment]
-        with pytest.raises(RuntimeError, match="sre_compile"):
-            sre_compile_utils.compile_pattern("abc")
-    finally:
-        sre_compile_utils._sre_compile = original
+    def test_degradation_without_module(self)-> None:
+        original = sre_compile_utils._sre_compile
+        try:
+            sre_compile_utils._sre_compile = None  # type: ignore[assignment]
+            with self.assertRaisesRegex(RuntimeError, "sre_compile"):
+                sre_compile_utils.compile_pattern("abc")
+        finally:
+            sre_compile_utils._sre_compile = original
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_SRE_COMPILE_UTILS
 
 # --- sre_parse_utils.py ---
@@ -132971,178 +133017,179 @@ cat > "$OUTPUT_DIR/tests/test_sre_parse_utils.py" <<'TEST_SRE_PARSE_UTILS'
 
 from __future__ import annotations
 
+import unittest
+
 import re
 
-import pytest
 
 import sre_parse_utils
 
 
-def test_is_available() -> None:
-    """``is_available`` reports whether the module ships."""
-    result = sre_parse_utils.is_available()
-    assert isinstance(result, bool)
+class TestSreParseUtils(unittest.TestCase):
+
+    def test_is_available(self)-> None:
+        """``is_available`` reports whether the module ships."""
+        result = sre_parse_utils.is_available()
+        assert isinstance(result, bool)
 
 
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_parse_pattern_basic() -> None:
-    """``parse_pattern`` parses a literal pattern."""
-    parsed = sre_parse_utils.parse_pattern("abc")
-    assert hasattr(parsed, "data")
-    assert hasattr(parsed, "getwidth")
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_parse_pattern_basic(self)-> None:
+        """``parse_pattern`` parses a literal pattern."""
+        parsed = sre_parse_utils.parse_pattern("abc")
+        assert hasattr(parsed, "data")
+        assert hasattr(parsed, "getwidth")
 
 
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_parse_pattern_with_flags() -> None:
-    """``parse_pattern`` accepts flags."""
-    flag = getattr(sre_parse_utils, "SRE_FLAG_IGNORECASE", 0)  # type: ignore[attr-defined]
-    parsed = sre_parse_utils.parse_pattern("abc", flags=flag)
-    assert hasattr(parsed, "data")
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_parse_pattern_with_flags(self)-> None:
+        """``parse_pattern`` accepts flags."""
+        flag = getattr(sre_parse_utils, "SRE_FLAG_IGNORECASE", 0)  # type: ignore[attr-defined]
+        parsed = sre_parse_utils.parse_pattern("abc", flags=flag)
+        assert hasattr(parsed, "data")
 
 
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_parse_pattern_named_group() -> None:
-    """``parse_pattern`` parses a named group."""
-    parsed = sre_parse_utils.parse_pattern(r"(?P<name>abc)")
-    assert parsed is not None
-    data = parsed.data
-    assert isinstance(data, list)
-    assert len(data) == 1
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_parse_pattern_named_group(self)-> None:
+        """``parse_pattern`` parses a named group."""
+        parsed = sre_parse_utils.parse_pattern(r"(?P<name>abc)")
+        assert parsed is not None
+        data = parsed.data
+        assert isinstance(data, list)
+        assert len(data) == 1
 
 
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_parse_template() -> None:
-    """``parse_template`` parses a replacement template."""
-    import re
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_parse_template(self)-> None:
+        """``parse_template`` parses a replacement template."""
+        import re
 
-    pattern = re.compile(r"(?P<name>abc)")
-    parsed = sre_parse_utils.parse_template(r"\g<name>", pattern=pattern)
-    assert isinstance(parsed, list)
-
-
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_parse_template_with_pattern() -> None:
-    """``parse_template`` resolves numeric and named group references."""
-    import re
-
-    pattern = re.compile(r"(?P<name>abc)")
-    parsed = sre_parse_utils.parse_template(r"\g<name> and \1", pattern=pattern)
-    assert isinstance(parsed, list)
-    assert " and " in parsed
+        pattern = re.compile(r"(?P<name>abc)")
+        parsed = sre_parse_utils.parse_template(r"\g<name>", pattern=pattern)
+        assert isinstance(parsed, list)
 
 
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_pattern_width() -> None:
-    """``pattern_width`` returns the width of a pattern."""
-    width = sre_parse_utils.pattern_width("abc")
-    assert width is not None
-    assert isinstance(width, tuple)
-    assert len(width) == 2
-    assert width == (3, 3)
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_parse_template_with_pattern(self)-> None:
+        """``parse_template`` resolves numeric and named group references."""
+        import re
+
+        pattern = re.compile(r"(?P<name>abc)")
+        parsed = sre_parse_utils.parse_template(r"\g<name> and \1", pattern=pattern)
+        assert isinstance(parsed, list)
+        assert " and " in parsed
 
 
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_pattern_width_variable() -> None:
-    """``pattern_width`` reports a variable width for repetition."""
-    width = sre_parse_utils.pattern_width(r"a*")
-    assert width is not None
-    assert isinstance(width, tuple)
-    assert len(width) == 2
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_pattern_width(self)-> None:
+        """``pattern_width`` returns the width of a pattern."""
+        width = sre_parse_utils.pattern_width("abc")
+        assert width is not None
+        assert isinstance(width, tuple)
+        assert len(width) == 2
+        assert width == (3, 3)
 
 
-@pytest.mark.skipif(not sre_parse_utils.is_available(), reason="sre_parse not available")
-def test_pattern_dump() -> None:
-    """``pattern_dump`` returns a text dump of the parsed tree."""
-    dump = sre_parse_utils.pattern_dump("abc")
-    assert isinstance(dump, str)
-    assert "LITERAL" in dump
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_pattern_width_variable(self)-> None:
+        """``pattern_width`` reports a variable width for repetition."""
+        width = sre_parse_utils.pattern_width(r"a*")
+        assert width is not None
+        assert isinstance(width, tuple)
+        assert len(width) == 2
 
 
-def test_parse_pattern_validates() -> None:
-    """``parse_pattern`` validates its arguments."""
-    with pytest.raises(TypeError):
-        sre_parse_utils.parse_pattern(123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        sre_parse_utils.parse_pattern("abc", flags="x")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        sre_parse_utils.parse_pattern("abc", flags=True)  # type: ignore[arg-type]
+    @unittest.skipIf(not sre_parse_utils.is_available(), "sre_parse not available")
+    def test_pattern_dump(self)-> None:
+        """``pattern_dump`` returns a text dump of the parsed tree."""
+        dump = sre_parse_utils.pattern_dump("abc")
+        assert isinstance(dump, str)
+        assert "LITERAL" in dump
 
 
-def test_parse_template_validates() -> None:
-    """``parse_template`` validates its arguments."""
-    import re
-
-    with pytest.raises(TypeError):
-        sre_parse_utils.parse_template(123, re.compile(r"a"))  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        sre_parse_utils.parse_template(r"\g<1>", "not a pattern")  # type: ignore[arg-type]
-
-
-def test_pattern_width_validates() -> None:
-    """``pattern_width`` validates its arguments."""
-    with pytest.raises(TypeError):
-        sre_parse_utils.pattern_width(123)  # type: ignore[arg-type]
+    def test_parse_pattern_validates(self)-> None:
+        """``parse_pattern`` validates its arguments."""
+        with self.assertRaises(TypeError):
+            sre_parse_utils.parse_pattern(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sre_parse_utils.parse_pattern("abc", flags="x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sre_parse_utils.parse_pattern("abc", flags=True)  # type: ignore[arg-type]
 
 
-def test_pattern_dump_validates() -> None:
-    """``pattern_dump`` validates its arguments."""
-    with pytest.raises(TypeError):
-        sre_parse_utils.pattern_dump(123)  # type: ignore[arg-type]
+    def test_parse_template_validates(self)-> None:
+        """``parse_template`` validates its arguments."""
+        import re
+
+        with self.assertRaises(TypeError):
+            sre_parse_utils.parse_template(123, re.compile(r"a"))  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sre_parse_utils.parse_template(r"\g<1>", "not a pattern")  # type: ignore[arg-type]
 
 
-def test_degradation_without_module() -> None:
-    """Helpers raise RuntimeError when module missing."""
-    original = sre_parse_utils._sre_parse
-    try:
-        sre_parse_utils._sre_parse = None  # type: ignore[assignment]
-        with pytest.raises(RuntimeError, match="sre_parse"):
-            sre_parse_utils.parse_pattern("abc")
-        with pytest.raises(RuntimeError, match="sre_parse"):
-            sre_parse_utils.parse_template(r"\g<1>", re.compile(r"a"))
-        with pytest.raises(RuntimeError, match="sre_parse"):
-            sre_parse_utils.pattern_width("abc")
-        with pytest.raises(RuntimeError, match="sre_parse"):
-            sre_parse_utils.pattern_dump("abc")
-    finally:
-        sre_parse_utils._sre_parse = original  # type: ignore[assignment]
+    def test_pattern_width_validates(self)-> None:
+        """``pattern_width`` validates its arguments."""
+        with self.assertRaises(TypeError):
+            sre_parse_utils.pattern_width(123)  # type: ignore[arg-type]
 
 
-def test_exports() -> None:
-    """The module exports its public names."""
-    for name in sre_parse_utils.__all__:
+    def test_pattern_dump_validates(self)-> None:
+        """``pattern_dump`` validates its arguments."""
+        with self.assertRaises(TypeError):
+            sre_parse_utils.pattern_dump(123)  # type: ignore[arg-type]
+
+
+    def test_degradation_without_module(self)-> None:
+        """Helpers raise RuntimeError when module missing."""
+        original = sre_parse_utils._sre_parse
         try:
-            assert hasattr(sre_parse_utils, name), name
-        except AssertionError:
-            if sre_parse_utils.is_available() and hasattr(sre_parse_utils._sre_parse, name):
-                pass
-            else:
-                raise
+            sre_parse_utils._sre_parse = None  # type: ignore[assignment]
+            with self.assertRaisesRegex(RuntimeError, "sre_parse"):
+                sre_parse_utils.parse_pattern("abc")
+            with self.assertRaisesRegex(RuntimeError, "sre_parse"):
+                sre_parse_utils.parse_template(r"\g<1>", re.compile(r"a"))
+            with self.assertRaisesRegex(RuntimeError, "sre_parse"):
+                sre_parse_utils.pattern_width("abc")
+            with self.assertRaisesRegex(RuntimeError, "sre_parse"):
+                sre_parse_utils.pattern_dump("abc")
+        finally:
+            sre_parse_utils._sre_parse = original  # type: ignore[assignment]
 
 
-def test_subpattern_and_state_exported() -> None:
-    """``SubPattern`` and ``State`` are exported when the module is available."""
-    if sre_parse_utils.is_available():
-        assert sre_parse_utils.SubPattern is not None
-        assert sre_parse_utils.State is not None
+    def test_exports(self)-> None:
+        """The module exports its public names."""
+        for name in sre_parse_utils.__all__:
+            try:
+                assert hasattr(sre_parse_utils, name), name
+            except AssertionError:
+                if sre_parse_utils.is_available() and hasattr(sre_parse_utils._sre_parse, name):
+                    pass
+                else:
+                    raise
 
 
-def test_error_exported() -> None:
-    """``error`` is exported when the module is available."""
-    if sre_parse_utils.is_available():
-        assert sre_parse_utils.error is not None
+    def test_subpattern_and_state_exported(self)-> None:
+        """``SubPattern`` and ``State`` are exported when the module is available."""
+        if sre_parse_utils.is_available():
+            assert sre_parse_utils.SubPattern is not None
+            assert sre_parse_utils.State is not None
 
 
-def test_constants_exported() -> None:
-    """Common constants are exported when the module is available."""
-    if sre_parse_utils.is_available():
-        assert getattr(sre_parse_utils, "LITERAL", None) is not None  # type: ignore[attr-defined]
-        assert getattr(sre_parse_utils, "BRANCH", None) is not None  # type: ignore[attr-defined]
-        assert getattr(sre_parse_utils, "SUBPATTERN", None) is not None  # type: ignore[attr-defined]
+    def test_error_exported(self)-> None:
+        """``error`` is exported when the module is available."""
+        if sre_parse_utils.is_available():
+            assert sre_parse_utils.error is not None
+
+
+    def test_constants_exported(self)-> None:
+        """Common constants are exported when the module is available."""
+        if sre_parse_utils.is_available():
+            assert getattr(sre_parse_utils, "LITERAL", None) is not None  # type: ignore[attr-defined]
+            assert getattr(sre_parse_utils, "BRANCH", None) is not None  # type: ignore[attr-defined]
+            assert getattr(sre_parse_utils, "SUBPATTERN", None) is not None  # type: ignore[attr-defined]
 
 
 if __name__ == "__main__":
-    import unittest
-
     unittest.main()
 TEST_SRE_PARSE_UTILS
 
