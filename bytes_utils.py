@@ -60,6 +60,8 @@ __all__: list[str] = [
     "encode_ascii",
     "maketrans",
     "translate",
+    "to_int",
+    "from_int",
 ]
 
 
@@ -1172,3 +1174,95 @@ def translate(data: bytes, table: bytes) -> bytes:
     if len(table) != 256:
         raise ValueError("table must be exactly 256 bytes long")
     return bytes(data).translate(table)
+
+
+def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
+    """Interpret *data* as an integer using the given byte order.
+
+    The conversion mirrors :func:`int.from_bytes`: *data* is treated as the
+    byte representation of a non-negative integer in the chosen *byteorder*
+    ("big" or "little"), and *signed* controls whether the value is interpreted
+    in two's-complement form (so the most significant bit is the sign bit).
+    Empty input yields ``0``.
+
+    Args:
+        data: Bytes or bytearray to interpret.
+        byteorder: "big" (most significant byte first) or "little" (least
+            significant byte first).
+        signed: If True, interpret the bytes as a two's-complement signed
+            integer.
+
+    Returns:
+        The integer value of *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray, or *byteorder* is not
+            a str.
+        ValueError: If *byteorder* is not "big" or "little".
+
+    Examples:
+        >>> to_int(b"\x01\x00")
+        256
+        >>> to_int(b"\x00\x01", byteorder="little")
+        256
+        >>> to_int(b"\xff", signed=True)
+        -1
+        >>> to_int(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    if not isinstance(byteorder, str):
+        raise TypeError("byteorder must be a str")
+    if byteorder not in ("big", "little"):
+        raise ValueError("byteorder must be 'big' or 'little'")
+    return int.from_bytes(bytes(data), byteorder=byteorder, signed=signed)
+
+
+def from_int(value: int, length: int, byteorder: str = "big", signed: bool = False) -> bytes:
+    """Encode the integer *value* into a fixed-length bytes object.
+
+    The result is exactly *length* bytes long. If *value* fits in the requested
+    representation it is encoded directly; otherwise a :class:`OverflowError`
+    is raised (matching :meth:`int.to_bytes`).
+
+    Args:
+        value: The integer to encode.
+        length: The number of bytes in the result (must be positive).
+        byteorder: "big" (most significant byte first) or "little" (least
+            significant byte first).
+        signed: If True, encode the value in two's-complement form so that
+            negative values are representable.
+
+    Returns:
+        The *length*-byte representation of *value*.
+
+    Raises:
+        TypeError: If *value* is not an int (a bool is rejected), or
+            *byteorder* is not a str.
+        ValueError: If *length* is not positive, or *byteorder* is not "big"
+            or "little".
+        OverflowError: If *value* does not fit in *length* bytes with the
+            requested signedness.
+
+    Examples:
+        >>> from_int(256, 2)
+        b'\x01\x00'
+        >>> from_int(256, 2, byteorder="little")
+        b'\x00\x01'
+        >>> from_int(-1, 1, signed=True)
+        b'\xff'
+        >>> len(from_int(0, 4))
+        4
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError("value must be an int")
+    if not isinstance(length, int) or isinstance(length, bool):
+        raise TypeError("length must be an int")
+    if length <= 0:
+        raise ValueError("length must be positive")
+    if not isinstance(byteorder, str):
+        raise TypeError("byteorder must be a str")
+    if byteorder not in ("big", "little"):
+        raise ValueError("byteorder must be 'big' or 'little'")
+    return value.to_bytes(length, byteorder=byteorder, signed=signed)
