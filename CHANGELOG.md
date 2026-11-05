@@ -1,3 +1,9 @@
+## Unreleased — fixed prime_utils doctests for is_happy_prime and largest_prime_factor
+
+- Found two real doctest defects in `prime_utils.py` that caused `python -m doctest prime_utils.py` to report 4 failures. The `is_happy_prime` doctest incorrectly listed 2, 3, and 5 as happy primes (they are prime but unhappy — they fall into the 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 loop); the doctest examples were corrected to use genuinely happy primes (23, 31, 79) and the docstring prose was updated to name the unhappy primes explicitly. The `largest_prime_factor` doctest for input `1` expected `ValueError: n must be >= 1` but the function raises `ValueError: n must be >= 2`; the expected message was corrected. The function implementations and their `tests/test_prime_utils.py` coverage were unchanged (the test suite already asserted the correct behavior).
+- Verified: `python -m doctest prime_utils.py` passes (0 failures); `python -m unittest tests.test_prime_utils` passes (278 tests); `make test` passes; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_weird_number to numbers_utils
 
 - Added `is_weird_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` when *n* is abundant but not semiperfect (a weird number such as 70 or 836), reusing `is_abundant_number` and `is_semiperfect_number`; numbers below 1 return `False`. Added `TestIsWeirdNumber` to `tests/test_numbers_utils.py` covering known weird numbers, abundant-but-semiperfect non-weird numbers, non-abundant numbers, negatives/zero, and `TypeError` paths (6 new tests). Imported `is_weird_number` at the top of the test file to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`.

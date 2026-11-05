@@ -1052,7 +1052,7 @@ def largest_prime_factor(n: int) -> int:
         >>> largest_prime_factor(1)
         Traceback (most recent call last):
         ...
-        ValueError: n must be >= 1
+        ValueError: n must be >= 2
     """
     _require_int(n, "n")
     if n < 1:
@@ -1788,7 +1788,10 @@ def is_happy_prime(n: int) -> bool:
     defined by the process of replacing the number by the sum of the squares
     of its digits, and repeating the process until the number equals 1 or it
     loops endlessly in a cycle that does not include 1. Such numbers are happy
-    if the process ends in 1.
+    if the process ends in 1. The primes 2, 3, and 5 are not happy primes
+    (they fall into the 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4
+    loop); examples of happy primes include 7, 13, 19, 23, 31, 37, 79, 97,
+    103, 139.
 
     Args:
         n: The integer to test.
@@ -1808,11 +1811,11 @@ def is_happy_prime(n: int) -> bool:
         True
         >>> is_happy_prime(11)
         False
-        >>> is_happy_prime(2)
+        >>> is_happy_prime(23)
         True
-        >>> is_happy_prime(3)
+        >>> is_happy_prime(31)
         True
-        >>> is_happy_prime(5)
+        >>> is_happy_prime(79)
         True
     """
     _require_int(n, "n")
