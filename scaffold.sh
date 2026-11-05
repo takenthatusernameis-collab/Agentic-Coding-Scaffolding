@@ -51713,23 +51713,109 @@ __all__: list[str] = [
 ]
 
 
+def _require_sequence(a: object, name: str = "a") -> Sequence[Any]:
+    if not isinstance(a, Sequence):
+        raise TypeError(f"{name} must be a sequence")
+    return a
+
+
+def _require_list(a: object, name: str = "a") -> list[Any]:
+    if not isinstance(a, list):
+        raise TypeError(f"{name} must be a list")
+    return a
+
+
+def _normalize_hi(a: Sequence[Any], hi: int | None) -> int:
+    if hi is None:
+        return len(a)
+    if isinstance(hi, bool) or not isinstance(hi, int):
+        raise TypeError("hi must be an int or None")
+    return hi
+
+
+def _normalize_lo(lo: int) -> int:
+    if isinstance(lo, bool) or not isinstance(lo, int):
+        raise TypeError("lo must be an int")
+    return lo
+
+
 def bisect_left(a: Sequence[Any], x: Any, lo: int = 0, hi: int | None = None) -> int:
-    return bisect.bisect_left(a, x, lo, len(a) if hi is None else hi)
+    """Return the leftmost insertion point for *x* in sorted sequence *a*.
+
+    Args:
+        a: A sorted sequence.
+        x: The value to locate.
+        lo: Lower bound of the slice to search (default 0).
+        hi: Upper bound of the slice to search (default ``len(a)``).
+
+    Returns:
+        int: Insertion index.
+    """
+    _require_sequence(a)
+    lo = _normalize_lo(lo)
+    hi = _normalize_hi(a, hi)
+    return bisect.bisect_left(a, x, lo, hi)
 
 
 def bisect_right(a: Sequence[Any], x: Any, lo: int = 0, hi: int | None = None) -> int:
-    return bisect.bisect_right(a, x, lo, len(a) if hi is None else hi)
+    """Return the rightmost insertion point for *x* in sorted sequence *a*.
+
+    Args:
+        a: A sorted sequence.
+        x: The value to locate.
+        lo: Lower bound of the slice to search (default 0).
+        hi: Upper bound of the slice to search (default ``len(a)``).
+
+    Returns:
+        int: Insertion index.
+    """
+    _require_sequence(a)
+    lo = _normalize_lo(lo)
+    hi = _normalize_hi(a, hi)
+    return bisect.bisect_right(a, x, lo, hi)
 
 
 def insort_left(a: list[Any], x: Any, lo: int = 0, hi: int | None = None) -> None:
-    bisect.insort_left(a, x, lo, len(a) if hi is None else hi)
+    """Insert *x* into sorted list *a* in place, keeping existing entries left.
+
+    Args:
+        a: A sorted list to mutate.
+        x: The value to insert.
+        lo: Lower bound of the slice (default 0).
+        hi: Upper bound of the slice (default ``len(a)``).
+    """
+    _require_list(a)
+    lo = _normalize_lo(lo)
+    hi = _normalize_hi(a, hi)
+    bisect.insort_left(a, x, lo, hi)
 
 
 def insort_right(a: list[Any], x: Any, lo: int = 0, hi: int | None = None) -> None:
-    bisect.insort_right(a, x, lo, len(a) if hi is None else hi)
+    """Insert *x* into sorted list *a* in place, keeping existing entries right.
+
+    Args:
+        a: A sorted list to mutate.
+        x: The value to insert.
+        lo: Lower bound of the slice (default 0).
+        hi: Upper bound of the slice (default ``len(a)``).
+    """
+    _require_list(a)
+    lo = _normalize_lo(lo)
+    hi = _normalize_hi(a, hi)
+    bisect.insort_right(a, x, lo, hi)
 
 
 def find_leftmost(a: Sequence[Any], x: Any) -> int | None:
+    """Return the index of the first occurrence of *x* in sorted *a*, or None.
+
+    Args:
+        a: A sorted sequence.
+        x: The value to find.
+
+    Returns:
+        int | None: Index of the leftmost match, or ``None`` if absent.
+    """
+    _require_sequence(a)
     i = bisect.bisect_left(a, x)
     if i < len(a) and a[i] == x:
         return i
@@ -51737,6 +51823,16 @@ def find_leftmost(a: Sequence[Any], x: Any) -> int | None:
 
 
 def find_rightmost(a: Sequence[Any], x: Any) -> int | None:
+    """Return the index of the last occurrence of *x* in sorted *a*, or None.
+
+    Args:
+        a: A sorted sequence.
+        x: The value to find.
+
+    Returns:
+        int | None: Index of the rightmost match, or ``None`` if absent.
+    """
+    _require_sequence(a)
     i = bisect.bisect_right(a, x) - 1
     if i >= 0 and a[i] == x:
         return i
@@ -51753,8 +51849,7 @@ def is_sorted(a: Sequence[Any], *, reverse: bool = False) -> bool:
     Returns:
         bool: True when *a* is sorted.
     """
-    if not isinstance(a, Sequence):
-        raise TypeError("a must be a sequence")
+    _require_sequence(a)
     if reverse:
         return all(a[i] >= a[i + 1] for i in range(len(a) - 1))
     return all(a[i] <= a[i + 1] for i in range(len(a) - 1))
@@ -51763,6 +51858,8 @@ BISECT_UTILS
 # --- tests/test_bisect_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_bisect_utils.py" <<'TEST_BISECT_UTILS'
 """Tests for bisect_utils."""
+
+import unittest
 
 from bisect_utils import (
     bisect_left,
@@ -51775,48 +51872,112 @@ from bisect_utils import (
 )
 
 
-def test_bisect_left():
-    a = [1, 2, 2, 3]
-    assert bisect_left(a, 2) == 1
-    assert bisect_left(a, 0) == 0
-    assert bisect_left(a, 5) == 4
+class TestBisectLeftRight(unittest.TestCase):
+    def test_bisect_left(self) -> None:
+        a = [1, 2, 2, 3]
+        self.assertEqual(bisect_left(a, 2), 1)
+        self.assertEqual(bisect_left(a, 0), 0)
+        self.assertEqual(bisect_left(a, 5), 4)
+
+    def test_bisect_right(self) -> None:
+        a = [1, 2, 2, 3]
+        self.assertEqual(bisect_right(a, 2), 3)
+        self.assertEqual(bisect_right(a, 0), 0)
+        self.assertEqual(bisect_right(a, 5), 4)
+
+    def test_empty(self) -> None:
+        self.assertEqual(bisect_left([], 1), 0)
+        self.assertEqual(bisect_right([], 1), 0)
+
+    def test_lo_hi(self) -> None:
+        a = [1, 2, 3, 4, 5]
+        self.assertEqual(bisect_left(a, 3, 2, 5), 2)
+        self.assertEqual(bisect_right(a, 3, 0, 2), 2)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            bisect_left(42, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bisect_right(None, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bisect_left([1, 2], 1, lo=True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bisect_left([1, 2], 1, hi=1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bisect_right([1, 2], 1, lo=False)  # type: ignore[arg-type]
 
 
-def test_bisect_right():
-    a = [1, 2, 2, 3]
-    assert bisect_right(a, 2) == 3
+class TestInsort(unittest.TestCase):
+    def test_insort_left(self) -> None:
+        a = [1, 3, 5]
+        insort_left(a, 2)
+        self.assertEqual(a, [1, 2, 3, 5])
+
+    def test_insort_right(self) -> None:
+        a = [1, 2, 3, 5]
+        insort_right(a, 3)
+        self.assertEqual(a, [1, 2, 3, 3, 5])
+
+    def test_insort_empty(self) -> None:
+        a: list[int] = []
+        insort_left(a, 1)
+        self.assertEqual(a, [1])
+        insort_right(a, 1)
+        self.assertEqual(a, [1, 1])
+
+    def test_insort_lo_hi(self) -> None:
+        a = [1, 2, 3, 4]
+        insort_left(a, 2, 1, 4)
+        self.assertEqual(a, [1, 2, 2, 3, 4])
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            insort_left((1, 2), 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            insort_right("ab", "c")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            insort_left([1, 2], 1, lo=True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            insort_right([1, 2], 1, hi=2.0)  # type: ignore[arg-type]
 
 
-def test_insort():
-    a = [1, 3, 5]
-    insort_left(a, 2)
-    assert a == [1, 2, 3, 5]
-    insort_right(a, 3)
-    assert a == [1, 2, 3, 3, 5]
+class TestFind(unittest.TestCase):
+    def test_find_leftmost(self) -> None:
+        a = [1, 2, 2, 3]
+        self.assertEqual(find_leftmost(a, 2), 1)
+        self.assertIsNone(find_leftmost(a, 9))
+
+    def test_find_rightmost(self) -> None:
+        a = [1, 2, 2, 3]
+        self.assertEqual(find_rightmost(a, 2), 2)
+        self.assertIsNone(find_rightmost(a, 9))
+
+    def test_empty(self) -> None:
+        self.assertIsNone(find_leftmost([], 1))
+        self.assertIsNone(find_rightmost([], 1))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            find_leftmost(42, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find_rightmost(None, 1)  # type: ignore[arg-type]
 
 
-def test_find():
-    a = [1, 2, 2, 3]
-    assert find_leftmost(a, 2) == 1
-    assert find_rightmost(a, 2) == 2
-    assert find_leftmost(a, 9) is None
-    assert find_rightmost(a, 9) is None
+class TestIsSorted(unittest.TestCase):
+    def test_sorted(self) -> None:
+        self.assertTrue(is_sorted([1, 2, 3]))
+        self.assertTrue(is_sorted([1, 2, 2, 3]))
+        self.assertTrue(is_sorted([]))
+        self.assertTrue(is_sorted([5]))
+        self.assertFalse(is_sorted([3, 2, 1]))
 
+    def test_reverse(self) -> None:
+        self.assertTrue(is_sorted([3, 2, 1], reverse=True))
+        self.assertFalse(is_sorted([1, 2, 3], reverse=True))
 
-def test_is_sorted():
-    assert is_sorted([1, 2, 3]) is True
-    assert is_sorted([3, 2, 1]) is False
-    assert is_sorted([1, 2, 2, 3]) is True
-    assert is_sorted([]) is True
-    assert is_sorted([5]) is True
-    assert is_sorted([3, 2, 1], reverse=True) is True
-    assert is_sorted([1, 2, 3], reverse=True) is False
-    try:
-        is_sorted(42)
-    except TypeError:
-        pass
-    else:
-        raise AssertionError("expected TypeError")
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_sorted(42)  # type: ignore[arg-type]
 TEST_BISECT_UTILS
 
 # --- contextlib_utils.py ---
