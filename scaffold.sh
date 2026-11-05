@@ -5701,7 +5701,23 @@ TEST_ABC_UTILS
 
 # --- ast_utils.py ---
 cat > "$OUTPUT_DIR/ast_utils.py" <<'AST_UTILS'
-"""Utilities for working with Python abstract syntax trees (wrapping :mod:`ast`)."""
+"""Utilities for working with Python abstract syntax trees (wrapping :mod:`ast`).
+
+>>> from ast_utils import parse, unparse, dump, literal_eval, find_all, walk
+>>> import ast
+>>> node = parse("x = 1 + 2")
+>>> unparse(node).strip()
+'x = 1 + 2'
+>>> "Assign" in dump(node)
+True
+>>> literal_eval("[1, 2, 3]")
+[1, 2, 3]
+>>> names = [n.id for n in find_all(parse("x = y"), ast.Name)]
+>>> sorted(names)
+['x', 'y']
+>>> any(isinstance(n, ast.BinOp) for n in walk(parse("a + b")))
+True
+"""
 
 import ast as _ast
 
