@@ -12,6 +12,7 @@ __all__: list[str] = [
     "insort_right",
     "find_leftmost",
     "find_rightmost",
+    "is_sorted",
 ]
 
 
@@ -43,3 +44,20 @@ def find_rightmost(a: Sequence[Any], x: Any) -> int | None:
     if i >= 0 and a[i] == x:
         return i
     return None
+
+
+def is_sorted(a: Sequence[Any], *, reverse: bool = False) -> bool:
+    """Return True if *a* is sorted in non-decreasing (or non-increasing) order.
+
+    Args:
+        a: A sequence to inspect.
+        reverse: If True, check non-increasing order.
+
+    Returns:
+        bool: True when *a* is sorted.
+    """
+    if not isinstance(a, Sequence):
+        raise TypeError("a must be a sequence")
+    if reverse:
+        return all(a[i] >= a[i + 1] for i in range(len(a) - 1))
+    return all(a[i] <= a[i + 1] for i in range(len(a) - 1))

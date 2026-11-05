@@ -51709,6 +51709,7 @@ __all__: list[str] = [
     "insort_right",
     "find_leftmost",
     "find_rightmost",
+    "is_sorted",
 ]
 
 
@@ -51740,6 +51741,23 @@ def find_rightmost(a: Sequence[Any], x: Any) -> int | None:
     if i >= 0 and a[i] == x:
         return i
     return None
+
+
+def is_sorted(a: Sequence[Any], *, reverse: bool = False) -> bool:
+    """Return True if *a* is sorted in non-decreasing (or non-increasing) order.
+
+    Args:
+        a: A sequence to inspect.
+        reverse: If True, check non-increasing order.
+
+    Returns:
+        bool: True when *a* is sorted.
+    """
+    if not isinstance(a, Sequence):
+        raise TypeError("a must be a sequence")
+    if reverse:
+        return all(a[i] >= a[i + 1] for i in range(len(a) - 1))
+    return all(a[i] <= a[i + 1] for i in range(len(a) - 1))
 BISECT_UTILS
 
 # --- tests/test_bisect_utils.py ---
@@ -51753,6 +51771,7 @@ from bisect_utils import (
     find_rightmost,
     insort_left,
     insort_right,
+    is_sorted,
 )
 
 
@@ -51782,6 +51801,22 @@ def test_find():
     assert find_rightmost(a, 2) == 2
     assert find_leftmost(a, 9) is None
     assert find_rightmost(a, 9) is None
+
+
+def test_is_sorted():
+    assert is_sorted([1, 2, 3]) is True
+    assert is_sorted([3, 2, 1]) is False
+    assert is_sorted([1, 2, 2, 3]) is True
+    assert is_sorted([]) is True
+    assert is_sorted([5]) is True
+    assert is_sorted([3, 2, 1], reverse=True) is True
+    assert is_sorted([1, 2, 3], reverse=True) is False
+    try:
+        is_sorted(42)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
 TEST_BISECT_UTILS
 
 # --- contextlib_utils.py ---

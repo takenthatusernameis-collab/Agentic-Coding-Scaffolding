@@ -7,6 +7,7 @@ from bisect_utils import (
     find_rightmost,
     insort_left,
     insort_right,
+    is_sorted,
 )
 
 
@@ -36,3 +37,19 @@ def test_find():
     assert find_rightmost(a, 2) == 2
     assert find_leftmost(a, 9) is None
     assert find_rightmost(a, 9) is None
+
+
+def test_is_sorted():
+    assert is_sorted([1, 2, 3]) is True
+    assert is_sorted([3, 2, 1]) is False
+    assert is_sorted([1, 2, 2, 3]) is True
+    assert is_sorted([]) is True
+    assert is_sorted([5]) is True
+    assert is_sorted([3, 2, 1], reverse=True) is True
+    assert is_sorted([1, 2, 3], reverse=True) is False
+    try:
+        is_sorted(42)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
