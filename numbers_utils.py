@@ -59,6 +59,7 @@ __all__: list[str] = [
     "is_narcissistic_number",
     "is_narcissistic",
     "is_weird_number",
+    "is_sphenic_number",
     "aliquot_sum",
     "sum_of_divisors",
     "proper_divisors",
@@ -1374,7 +1375,7 @@ def is_narcissistic_number(n: int) -> bool:
     s = str(n)
     power = len(s)
     total = sum(int(d) ** power for d in s)
-    return total == n
+    return bool(total == n)
 
 
 # Alias
@@ -1416,6 +1417,57 @@ def is_weird_number(n: int) -> bool:
     if n < 1:
         return False
     return is_abundant_number(n) and not is_semiperfect_number(n)
+
+
+def is_sphenic_number(n: int) -> bool:
+    """Return ``True`` when *n* is a sphenic number.
+
+    A sphenic number is a positive integer that is the product of exactly
+    three distinct prime numbers. The first sphenic number is 30
+    (``2 * 3 * 5``). All sphenic numbers are squarefree and have exactly
+    eight divisors.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is sphenic, ``False`` otherwise. Numbers below 30
+        are never sphenic.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_sphenic_number(30)
+        True
+        >>> is_sphenic_number(42)
+        True
+        >>> is_sphenic_number(66)
+        True
+        >>> is_sphenic_number(60)
+        False
+        >>> is_sphenic_number(12)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 30:
+        return False
+    m = n
+    count = 0
+    d = 2
+    while d * d <= m:
+        if m % d == 0:
+            count += 1
+            if count > 3:
+                return False
+            m //= d
+            if m % d == 0:
+                return False
+        d += 1 if d == 2 else 2
+    if m > 1:
+        count += 1
+    return count == 3
 
 
 def is_untouchable_number(n: int) -> bool:

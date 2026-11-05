@@ -52683,7 +52683,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `token_utils.py` — python token constant utilities wrapping the standard library `token` module (`is_eof`, `is_nonterminal`, `is_terminal`, `tok_name`, `exact_token_types`, `n_tokens`, `nt_offset`) with input validation
 - `sched_utils.py` — scheduler utilities wrapping the standard library `sched` module (`scheduler`, `enter`, `enterabs`, `cancel`, `empty`, `run`, `queue`) with input validation
 - `quopri_utils.py` — quoted-printable encoding and decoding utilities wrapping the standard library `quopri` module (`encode`, `decode`, `encode_file`, `decode_file`, `isqp`) with input validation
-- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`) with input validation
+- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`, `is_sphenic_number`) with input validation
 - `netrc_utils.py` — netrc utilities wrapping the standard library `netrc` module (`netrc`, `NetrcParseError`) with input validation
 - `getopt_utils.py` — command line option parsing utilities wrapping the standard library `getopt` module (`getopt`, `gnu_getopt`, `GetoptError`) with input validation
 - `filecmp_utils.py` — file comparison utilities wrapping the standard library `filecmp` module (`cmp_files`, `cmp_directories`, `same_file`) with input validation
@@ -55091,6 +55091,7 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased — added aliquot_sum to number_utils
 
+- Added `is_sphenic_number(n)` to `numbers_utils.py` with `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int/bool arguments (rejecting `bool`); a sphenic number is a positive integer that is the product of exactly three distinct primes (e.g. 30, 42, 66). Added `TestIsSphenicNumber` to `tests/test_numbers_utils.py` covering known sphenic numbers, non-sphenic values (including prime powers and non-squarefree composites), negatives, and the `TypeError` path. Updated `README.md` (`numbers_utils` tree entry and prose) and `.kilo/command/scaffold-project.md`; synchronized embedded copies with `make refresh-scaffold` and verified `python tools/refresh_scaffold.py --check`.
 - Added `aliquot_sum(n)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the sum of the proper divisors of *n* (the aliquot sum), reusing `proper_divisors`. Added `TestAliquotSum` to `tests/test_numbers_utils.py` covering known values, perfect/abundant/deficient classification, and the `TypeError`/`ValueError` paths. Imported `aliquot_sum` at the top of the test file to match the module's `__all__` contract. Updated the `number_utils` module tree entry and prose section of `README.md`. Synchronized `number_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Verified: `python -m unittest tests.test_numbers_utils` passes; `python -m doctest numbers_utils.py` passes; `make test` stays green.
 - No changes to `.github/workflows/**`.
@@ -80950,6 +80951,7 @@ __all__: list[str] = [
     "is_narcissistic_number",
     "is_narcissistic",
     "is_weird_number",
+    "is_sphenic_number",
     "aliquot_sum",
     "sum_of_divisors",
     "proper_divisors",
@@ -82265,7 +82267,7 @@ def is_narcissistic_number(n: int) -> bool:
     s = str(n)
     power = len(s)
     total = sum(int(d) ** power for d in s)
-    return total == n
+    return bool(total == n)
 
 
 # Alias
@@ -82307,6 +82309,57 @@ def is_weird_number(n: int) -> bool:
     if n < 1:
         return False
     return is_abundant_number(n) and not is_semiperfect_number(n)
+
+
+def is_sphenic_number(n: int) -> bool:
+    """Return ``True`` when *n* is a sphenic number.
+
+    A sphenic number is a positive integer that is the product of exactly
+    three distinct prime numbers. The first sphenic number is 30
+    (``2 * 3 * 5``). All sphenic numbers are squarefree and have exactly
+    eight divisors.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is sphenic, ``False`` otherwise. Numbers below 30
+        are never sphenic.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_sphenic_number(30)
+        True
+        >>> is_sphenic_number(42)
+        True
+        >>> is_sphenic_number(66)
+        True
+        >>> is_sphenic_number(60)
+        False
+        >>> is_sphenic_number(12)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 30:
+        return False
+    m = n
+    count = 0
+    d = 2
+    while d * d <= m:
+        if m % d == 0:
+            count += 1
+            if count > 3:
+                return False
+            m //= d
+            if m % d == 0:
+                return False
+        d += 1 if d == 2 else 2
+    if m > 1:
+        count += 1
+    return count == 3
 
 
 def is_untouchable_number(n: int) -> bool:
@@ -82357,6 +82410,7 @@ from numbers_utils import (
     Number,
     Rational,
     Real,
+    aliquot_sum,
     is_abundant_number,
     is_almost_perfect_number,
     is_armstrong_number,
@@ -82382,12 +82436,12 @@ from numbers_utils import (
     is_real,
     is_repdigit_number,
     is_semiperfect_number,
+    is_sphenic_number,
     is_spy_number,
     is_strong_number,
     is_weird_number,
-    aliquot_sum,
-    sum_of_divisors,
     proper_divisors,
+    sum_of_divisors,
 )
 
 
@@ -83266,6 +83320,36 @@ class TestIsWeirdNumber(unittest.TestCase):
         for value in (1.5, "70", None, True, [70]):
             with self.assertRaises(TypeError):
                 is_weird_number(value)
+
+
+class TestIsSphenicNumber(unittest.TestCase):
+    def test_known_sphenic_numbers(self):
+        for value in (
+            30, 42, 66, 70, 78, 102, 105, 110, 114, 130, 138, 154, 165, 170, 174,
+            182, 186, 190, 195, 222, 230, 231, 238, 246, 255, 258, 266, 273, 282,
+            285, 286, 290,
+        ):
+            self.assertTrue(is_sphenic_number(value), value)
+
+    def test_non_sphenic_numbers(self):
+        # prime powers, products of !=3 distinct primes, non-squarefree
+        for value in (0, 1, 2, 4, 6, 8, 12, 18, 20, 24, 27, 28, 29, 60, 64, 90, 120, 210):
+            self.assertFalse(is_sphenic_number(value), value)
+
+    def test_squareful_with_three_prime_factors_total_count(self):
+        # 12 = 2^2*3 has 2 distinct prime factors
+        self.assertFalse(is_sphenic_number(12))
+        # 60 = 2^2*3*5 not squarefree
+        self.assertFalse(is_sphenic_number(60))
+
+    def test_negative_numbers(self):
+        for value in (-1, -30, -42):
+            self.assertFalse(is_sphenic_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "30", None, True, [30]):
+            with self.assertRaises(TypeError):
+                is_sphenic_number(value)
 
 
 if __name__ == "__main__":

@@ -6,6 +6,7 @@ from numbers_utils import (
     Number,
     Rational,
     Real,
+    aliquot_sum,
     is_abundant_number,
     is_almost_perfect_number,
     is_armstrong_number,
@@ -31,12 +32,12 @@ from numbers_utils import (
     is_real,
     is_repdigit_number,
     is_semiperfect_number,
+    is_sphenic_number,
     is_spy_number,
     is_strong_number,
     is_weird_number,
-    aliquot_sum,
-    sum_of_divisors,
     proper_divisors,
+    sum_of_divisors,
 )
 
 
@@ -915,6 +916,36 @@ class TestIsWeirdNumber(unittest.TestCase):
         for value in (1.5, "70", None, True, [70]):
             with self.assertRaises(TypeError):
                 is_weird_number(value)
+
+
+class TestIsSphenicNumber(unittest.TestCase):
+    def test_known_sphenic_numbers(self):
+        for value in (
+            30, 42, 66, 70, 78, 102, 105, 110, 114, 130, 138, 154, 165, 170, 174,
+            182, 186, 190, 195, 222, 230, 231, 238, 246, 255, 258, 266, 273, 282,
+            285, 286, 290,
+        ):
+            self.assertTrue(is_sphenic_number(value), value)
+
+    def test_non_sphenic_numbers(self):
+        # prime powers, products of !=3 distinct primes, non-squarefree
+        for value in (0, 1, 2, 4, 6, 8, 12, 18, 20, 24, 27, 28, 29, 60, 64, 90, 120, 210):
+            self.assertFalse(is_sphenic_number(value), value)
+
+    def test_squareful_with_three_prime_factors_total_count(self):
+        # 12 = 2^2*3 has 2 distinct prime factors
+        self.assertFalse(is_sphenic_number(12))
+        # 60 = 2^2*3*5 not squarefree
+        self.assertFalse(is_sphenic_number(60))
+
+    def test_negative_numbers(self):
+        for value in (-1, -30, -42):
+            self.assertFalse(is_sphenic_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "30", None, True, [30]):
+            with self.assertRaises(TypeError):
+                is_sphenic_number(value)
 
 
 if __name__ == "__main__":
