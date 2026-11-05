@@ -19818,14 +19818,17 @@ import math
 import unittest
 
 from stats import (
+    coefficient_of_range,
     coefficient_of_variation,
     correlation,
     covariance,
     cumulative_product,
     cumulative_sum,
+    first_quartile,
     geometric_mean,
     gini_coefficient,
     harmonic_mean,
+    iqr,
     kurtosis,
     max_value,
     mean,
@@ -20985,10 +20988,6 @@ class TestProduct(unittest.TestCase):
             product([True, 1, 2])  # type: ignore[type-var]
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestZScores(unittest.TestCase):
     def test_basic(self) -> None:
         result = z_scores([1, 2, 3, 4, 5])
@@ -21292,10 +21291,6 @@ class TestCumulativeSum(unittest.TestCase):
             cumulative_sum([True, 1, 2])  # type: ignore[type-var]
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestCumulativeProduct(unittest.TestCase):
     def test_basic(self) -> None:
         self.assertEqual(cumulative_product([1, 2, 3, 4]), [1.0, 2.0, 6.0, 24.0])
@@ -21575,6 +21570,150 @@ class TestShannonEntropy(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             shannon_entropy([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestCoefficientOfRange(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(coefficient_of_range([1, 2, 3, 4, 5]), 2.0 / 3.0)
+
+    def test_single(self) -> None:
+        self.assertEqual(coefficient_of_range([5]), 0.0)
+
+    def test_negative_values(self) -> None:
+        self.assertAlmostEqual(coefficient_of_range([-2, 4]), 3.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(coefficient_of_range([1.5, 2.5, 4.0]), 2.5 / 5.5)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            coefficient_of_range([])
+
+    def test_zero_sum_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            coefficient_of_range([-2, 2])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            coefficient_of_range((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        numbers: list[object] = [1, "a", 3]
+        with self.assertRaises(TypeError):
+            coefficient_of_range(numbers)  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            coefficient_of_range([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestIqr(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(iqr([1, 2, 3, 4, 5]), 2.0)
+
+    def test_even_length(self) -> None:
+        self.assertAlmostEqual(iqr([1, 2, 3, 4, 5, 6]), 2.5)
+
+    def test_single(self) -> None:
+        self.assertEqual(iqr([5]), 0.0)
+
+    def test_negatives_and_floats(self) -> None:
+        self.assertAlmostEqual(iqr([-5, -1, 0, 1, 5]), 2.0)
+
+    def test_unsorted(self) -> None:
+        self.assertAlmostEqual(iqr([9, 1, 5, 2, 8]), 6.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            iqr([])
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            iqr((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            iqr([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            iqr([True, 1, 2])  # type: ignore[type-var]
+
+    def test_interquartile_range_alias_matches(self) -> None:
+        from stats import interquartile_range
+
+        data = [1, 2, 3, 4, 5, 6]
+        self.assertAlmostEqual(interquartile_range(data), iqr(data))  # type: ignore[arg-type]
+
+
+class TestFirstQuartile(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(first_quartile([1, 2, 3, 4, 5]), 2.0)
+
+    def test_even_length(self) -> None:
+        self.assertAlmostEqual(first_quartile([1, 2, 3, 4, 5, 6]), 2.25)
+
+    def test_single(self) -> None:
+        self.assertEqual(first_quartile([7]), 7.0)
+
+    def test_negatives(self) -> None:
+        self.assertAlmostEqual(first_quartile([-5, -1, 0, 1, 5]), -1.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            first_quartile([])
+
+    def test_q1_alias_matches(self) -> None:
+        self.assertIs(first_quartile, q1)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            first_quartile((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            first_quartile([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            first_quartile([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestThirdQuartile(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(third_quartile([1, 2, 3, 4, 5]), 4.0)
+
+    def test_even_length(self) -> None:
+        self.assertAlmostEqual(third_quartile([1, 2, 3, 4, 5, 6]), 4.75)
+
+    def test_single(self) -> None:
+        self.assertEqual(third_quartile([7]), 7.0)
+
+    def test_negatives(self) -> None:
+        self.assertAlmostEqual(third_quartile([-5, -1, 0, 1, 5]), 1.0)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            third_quartile([])
+
+    def test_q3_alias_matches(self) -> None:
+        self.assertIs(third_quartile, q3)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            third_quartile((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            third_quartile([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            third_quartile([True, 1, 2])  # type: ignore[type-var]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTSTATS
 
 # --- math_utils.py ---
@@ -29512,6 +29651,11 @@ def _coerce_path_or_none(value: object) -> Optional[str]:
     return str(value)
 
 
+def _normalize_path_arg(value: object, name: str) -> Optional[Union[str, Path]]:
+    """Validate *value* as a path arg and return it unchanged for narrowing."""
+    return _require_path_or_none(value, name)
+
+
 def get_tempdir() -> str:
     """Return the name of the directory used for temporary files.
 
@@ -29548,13 +29692,13 @@ def mkstemp(
     Raises:
         TypeError: If suffix, prefix, or dir is not a str or Path (or None).
     """
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _normalize_path_arg(suffix, "suffix")
+    prefix_arg = _normalize_path_arg(prefix, "prefix")
+    dir_arg = _normalize_path_arg(dir, "dir")
     return tempfile.mkstemp(
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
     )  # noqa: E501
 
 
@@ -29576,13 +29720,13 @@ def mkdtemp(
     Raises:
         TypeError: If suffix, prefix, or dir is not a str or Path (or None).
     """
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _normalize_path_arg(suffix, "suffix")
+    prefix_arg = _normalize_path_arg(prefix, "prefix")
+    dir_arg = _normalize_path_arg(dir, "dir")
     return tempfile.mkdtemp(
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
     )  # noqa: E501
 
 
