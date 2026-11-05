@@ -1,6 +1,20 @@
 # Project Status
 
-## Latest Session (2026-11-04) — added shannon_entropy to stats
+## Latest Session (2026-11-05) — fixed prime_utils doctests for is_happy_prime and largest_prime_factor
+
+The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7996 tests and passed.
+
+Completed in this session:
+
+- Found two real doctest defects in `prime_utils.py` that caused `python -m doctest prime_utils.py` to report 4 failures. The `is_happy_prime` doctest incorrectly listed 2, 3, and 5 as happy primes (they are prime but unhappy — they fall into the 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 loop); the doctest examples were corrected to use genuinely happy primes (23, 31, 79) and the docstring prose was updated to name the unhappy primes explicitly. The `largest_prime_factor` doctest for input `1` expected `ValueError: n must be >= 1` but the function raises `ValueError: n must be >= 2`; the expected message was corrected. The function implementations and their `tests/test_prime_utils.py` coverage were unchanged (the test suite already asserted the correct behavior).
+- Verified: `python -m doctest prime_utils.py` passes (0 failures); `python -m unittest tests.test_prime_utils` passes (278 tests); `make test` passes (7996 tests); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- Committed the work as `fix(prime_utils): correct is_happy_prime and largest_prime_factor doctests`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `version_utils.py`, `number_utils.py`, `numbers_utils.py`, `prompt_utils.py`, `itertools_utils.py`, `bytes_utils.py`).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
 
 The board held no task (continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 7953 tests and passed.
 
