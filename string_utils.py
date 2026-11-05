@@ -24,6 +24,7 @@ __all__: List[str] = [
     "title_case",
     "dedent_text",
     "reverse_words",
+    "remove_vowels",
     "split_paragraphs",
     "cosine_similarity",
     "count_words",
@@ -679,6 +680,30 @@ def reverse_words(text: str) -> str:
     """
     _require_string(text, "text")
     return " ".join(text.split()[::-1])
+
+
+def remove_vowels(text: str) -> str:
+    """Remove all vowels from *text*.
+
+    Args:
+        text: The string to process.
+
+    Returns:
+        A copy of *text* with all vowels removed. Case-insensitive.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> remove_vowels("hello")
+        'hll'
+        >>> remove_vowels("AEIOU")
+        ''
+        >>> remove_vowels("Python")
+        'Pythn'
+    """
+    _require_string(text, "text")
+    return "".join(ch for ch in text if ch.lower() not in "aeiou")
 
 
 def split_paragraphs(text: str) -> List[str]:

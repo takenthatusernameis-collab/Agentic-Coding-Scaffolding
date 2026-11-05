@@ -26,6 +26,7 @@ from string_utils import (
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
+    remove_vowels,
     reverse_words,
     slugify,
     snake_to_camel,
@@ -1302,3 +1303,21 @@ class TestIsPangram(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     is_pangram(value)  # type: ignore[arg-type]
+
+
+class TestRemoveVowels(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(remove_vowels("hello"), "hll")
+        self.assertEqual(remove_vowels("Python"), "Pythn")
+
+    def test_all_vowels(self):
+        self.assertEqual(remove_vowels("AEIOU"), "")
+
+    def test_no_vowels(self):
+        self.assertEqual(remove_vowels("rhythm"), "rhythm")
+
+    def test_non_string_raises(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    remove_vowels(value)  # type: ignore[arg-type]

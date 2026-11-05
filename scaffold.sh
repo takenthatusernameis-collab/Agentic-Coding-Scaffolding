@@ -15496,8 +15496,9 @@ __all__: List[str] = [
     "winsorized_mean",
     "winsorized_variance",
     "winsorized_stddev",
-    "shannon_entropy",
+    "gini_coefficient",
 ]
+
 
 
 def _require_numbers(numbers: List[T | float], name: str = "numbers") -> None:
@@ -16999,6 +17000,61 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
     return math.sqrt(winsorized_variance(numbers, k=k, population=population))
 
 
+def gini_coefficient(numbers: List[T | float]) -> float:
+    """Return the Gini coefficient of inequality for *numbers*.
+
+    The Gini coefficient is a measure of statistical dispersion representing
+    income/wealth inequality, ranging from 0 (perfect equality) to 1 (perfect
+    inequality). Values are sorted and computed as:
+
+        G = (sum_{i,j} |x_i - x_j|) / (2 * n^2 * mean)
+
+    which is equivalent to the more efficient formula based on Lorenz curve.
+
+    Args:
+        numbers: A non-empty list of non-negative ints or floats.
+
+    Returns:
+        The Gini coefficient (float between 0 and 1).
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+        ValueError: If *numbers* is empty or contains negative values.
+
+    Examples:
+        >>> gini_coefficient([1, 1, 1, 1])
+        0.0
+        >>> gini_coefficient([0, 1])
+        0.5
+        >>> gini_coefficient([0, 0, 1])
+        0.444...
+        >>> round(gini_coefficient([1, 2, 3, 4, 5]), 6)
+        0.266667
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if len(numbers) == 0:
+        raise ValueError("numbers cannot be empty")
+    n = len(numbers)
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only ints or floats")
+        if x < 0:
+            raise ValueError("numbers cannot contain negative values")
+        total += x
+    if total == 0:
+        return 0.0
+    sorted_nums = sorted(numbers)
+    cumulative = 0.0
+    weighted_sum = 0.0
+    for i, x in enumerate(sorted_nums, 1):
+        cumulative += x
+        weighted_sum += cumulative
+    gini = (2 * weighted_sum) / (n * total) - (n + 1) / n
+    return gini
+
+
 def shannon_entropy(numbers: List[int | float]) -> float:
     """Return the Shannon entropy of the discrete values in *numbers*.
 
@@ -17039,6 +17095,53 @@ def shannon_entropy(numbers: List[int | float]) -> float:
         p = count / n
         entropy -= p * math.log2(p)
     return float(entropy) if entropy != 0 else 0.0
+
+
+def gini_coefficient(numbers: List[T | float]) -> float:
+    """Return the Gini coefficient of inequality for *numbers*.
+
+    The Gini coefficient is a measure of statistical dispersion representing
+    income/wealth inequality, ranging from 0 (perfect equality) to 1 (perfect
+    inequality).
+
+    Args:
+        numbers: A non-empty list of non-negative ints or floats.
+
+    Returns:
+        The Gini coefficient (float between 0 and 1).
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+        ValueError: If *numbers* is empty or contains negative values.
+
+    Examples:
+        >>> gini_coefficient([1, 1, 1, 1])
+        0.0
+        >>> gini_coefficient([0, 1])
+        0.5
+        >>> round(gini_coefficient([1, 2, 3, 4, 5]), 6)
+        0.266667
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if len(numbers) == 0:
+        raise ValueError("numbers cannot be empty")
+    n = len(numbers)
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only ints or floats")
+        if x < 0:
+            raise ValueError("numbers cannot contain negative values")
+        total += x
+    if total == 0:
+        return 0.0
+    sorted_nums = sorted(numbers)
+    weighted_sum = 0.0
+    for i, x in enumerate(sorted_nums, 1):
+        weighted_sum += i * x
+    gini = (2 * weighted_sum) / (n * total) - (n + 1) / n
+    return float(gini) if gini != 0 else 0.0
 STATS
 
 # --- tests/test_strings.py ---
@@ -19703,6 +19806,7 @@ from stats import (
     cumulative_product,
     cumulative_sum,
     geometric_mean,
+    gini_coefficient,
     harmonic_mean,
     kurtosis,
     max_value,
@@ -20731,6 +20835,50 @@ class TestWinsorizedMean(unittest.TestCase):
             winsorized_mean([1, 2, 3], 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             winsorized_mean([1, 2, 3], True)  # type: ignore[arg-type]
+
+
+class TestGiniCoefficient(unittest.TestCase):
+    def test_perfect_equality(self) -> None:
+        self.assertEqual(gini_coefficient([1, 1, 1, 1]), 0.0)
+        self.assertEqual(gini_coefficient([5, 5, 5]), 0.0)
+
+    def test_perfect_inequality_two(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([0, 1]), 0.5)
+
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([1, 2, 3, 4, 5]), 0.26666666666666666)
+
+    def test_with_zeros(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([0, 0, 1]), 2.0 / 3.0)
+
+    def test_all_zeros(self) -> None:
+        self.assertEqual(gini_coefficient([0, 0, 0]), 0.0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(gini_coefficient([5]), 0.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([1.0, 2.0, 3.0]), 0.2222222222222222)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            gini_coefficient((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_empty(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([])
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            gini_coefficient([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            gini_coefficient([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([-1, 0, 1])
 
 
 class TestRootMeanSquare(unittest.TestCase):
@@ -22786,6 +22934,7 @@ from string_utils import (
     pluralize,
     remove_blank_lines,
     remove_extra_whitespace,
+    remove_vowels,
     reverse_words,
     slugify,
     snake_to_camel,
@@ -24062,6 +24211,24 @@ class TestIsPangram(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     is_pangram(value)  # type: ignore[arg-type]
+
+
+class TestRemoveVowels(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(remove_vowels("hello"), "hll")
+        self.assertEqual(remove_vowels("Python"), "Pythn")
+
+    def test_all_vowels(self):
+        self.assertEqual(remove_vowels("AEIOU"), "")
+
+    def test_no_vowels(self):
+        self.assertEqual(remove_vowels("rhythm"), "rhythm")
+
+    def test_non_string_raises(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    remove_vowels(value)  # type: ignore[arg-type]
 TESTSTRINGUTILS
 # --- tests/test_uuid_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_uuid_utils.py" <<'TESTUUIDUTILS'
@@ -34504,6 +34671,7 @@ __all__: List[str] = [
     "title_case",
     "dedent_text",
     "reverse_words",
+    "remove_vowels",
     "split_paragraphs",
     "cosine_similarity",
     "count_words",
@@ -35159,6 +35327,30 @@ def reverse_words(text: str) -> str:
     """
     _require_string(text, "text")
     return " ".join(text.split()[::-1])
+
+
+def remove_vowels(text: str) -> str:
+    """Remove all vowels from *text*.
+
+    Args:
+        text: The string to process.
+
+    Returns:
+        A copy of *text* with all vowels removed. Case-insensitive.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> remove_vowels("hello")
+        'hll'
+        >>> remove_vowels("AEIOU")
+        ''
+        >>> remove_vowels("Python")
+        'Pythn'
+    """
+    _require_string(text, "text")
+    return "".join(ch for ch in text if ch.lower() not in "aeiou")
 
 
 def split_paragraphs(text: str) -> List[str]:
