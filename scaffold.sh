@@ -49238,25 +49238,25 @@ def isupper(data: bytes) -> bool:
 def isdecimal(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isdecimal()
+    return bytes(data).isdecimal()  # type: ignore[attr-defined,no-any-return]
 
 
 def isnumeric(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isnumeric()
+    return bytes(data).isnumeric()  # type: ignore[attr-defined,no-any-return]
 
 
 def isprintable(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isprintable()
+    return bytes(data).isprintable()  # type: ignore[attr-defined,no-any-return]
 
 
 def isidentifier(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isidentifier()
+    return bytes(data).isidentifier()  # type: ignore[attr-defined,no-any-return]
 
 
 def join(iterable: object, sep: bytes = b"") -> bytes:
