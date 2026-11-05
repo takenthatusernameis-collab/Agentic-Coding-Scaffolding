@@ -426,13 +426,19 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
             [(float("-inf"), float("inf"))],
         )
 
-    def test_normalize_interval_both_inf_nan(self):
+    def test_normalize_interval_nan_endpoints_raise(self):
+        """NaN endpoints are invalid and must raise ValueError."""
+        with self.assertRaises(ValueError):
+            normalize_interval(float("nan"), 5)
+        with self.assertRaises(ValueError):
+            normalize_interval(0, float("nan"))
+        with self.assertRaises(ValueError):
+            normalize_interval(float("nan"), float("nan"))
+        with self.assertRaises(ValueError):
+            normalize_interval(float("nan"), float("inf"))
         self.assertEqual(
             normalize_interval(float("inf"), float("-inf")), (float("-inf"), float("inf"))
         )
-        result = normalize_interval(float("nan"), float("inf"))
-        self.assertTrue(math.isnan(result[0]))
-        self.assertTrue(math.isnan(result[1]))
 
     def test_interval_symmetric_difference_with_inf(self):
         self.assertEqual(

@@ -442,10 +442,12 @@ class TestMathUtilsBoundaries(unittest.TestCase):
     def test_clamp_inf_nan(self):
         self.assertEqual(clamp(float("inf"), 0, 10), 10)
         self.assertEqual(clamp(float("-inf"), 0, 10), 0)
-        # NaN behavior depends on comparison semantics
-        result = clamp(float("nan"), 0, 10)
-        # Just ensure it returns something reasonable
-        self.assertIn(type(result), (int, float))
+        with self.assertRaises(ValueError):
+            clamp(float("nan"), 0, 10)
+        with self.assertRaises(ValueError):
+            clamp(5, float("nan"), 10)
+        with self.assertRaises(ValueError):
+            clamp(5, 0, float("nan"))
 
     def test_clamp_value_errors(self):
         with self.assertRaises(ValueError):

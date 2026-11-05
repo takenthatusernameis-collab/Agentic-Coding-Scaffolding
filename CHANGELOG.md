@@ -1,3 +1,12 @@
+## Unreleased — hardened NaN/inf validation in interval_utils and math_utils
+
+- `math_utils.clamp` now rejects `NaN` for `value`, `min_val`, or `max_val` with `ValueError` (previous `NaN` behavior was inconsistent due to Python min/max semantics). Infinite values remain supported where bounds allow.
+- `interval_utils.normalize_interval` now rejects `NaN` endpoints with `ValueError`.
+- `interval_utils.interval_clamp` now rejects `NaN` values with `ValueError`; `NaN` endpoints remain rejected by interval validation.
+- Updated `tests/test_math_utils.py` and `tests/test_interval_utils.py` to cover `NaN`/`inf` boundary cases and the new validation.
+- Synchronized embedded copies in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added abundance and amicable helpers to numbers_utils
 
 - Added `abundance(n)` to `numbers_utils.py`: returns `aliquot_sum(n) - n` (positive for abundant, zero for perfect, negative for deficient) with `TypeError`/`ValueError` validation.

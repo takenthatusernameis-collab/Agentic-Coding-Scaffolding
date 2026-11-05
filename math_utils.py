@@ -255,7 +255,7 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If min_val > max_val.
+        ValueError: If min_val > max_val, or if any argument is NaN.
 
     Examples:
         >>> clamp(5, 0, 10)
@@ -271,6 +271,8 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         raise TypeError(f"min_val must be a number, got {type(min_val).__name__}")
     if isinstance(max_val, bool) or not isinstance(max_val, (int, float)):
         raise TypeError(f"max_val must be a number, got {type(max_val).__name__}")
+    if math.isnan(value) or math.isnan(min_val) or math.isnan(max_val):
+        raise ValueError("value, min_val, and max_val must not be NaN")
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))

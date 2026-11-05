@@ -21688,7 +21688,7 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If min_val > max_val.
+        ValueError: If min_val > max_val, or if any argument is NaN.
 
     Examples:
         >>> clamp(5, 0, 10)
@@ -21704,6 +21704,8 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         raise TypeError(f"min_val must be a number, got {type(min_val).__name__}")
     if isinstance(max_val, bool) or not isinstance(max_val, (int, float)):
         raise TypeError(f"max_val must be a number, got {type(max_val).__name__}")
+    if math.isnan(value) or math.isnan(min_val) or math.isnan(max_val):
+        raise ValueError("value, min_val, and max_val must not be NaN")
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))
@@ -27119,10 +27121,12 @@ class TestMathUtilsBoundaries(unittest.TestCase):
     def test_clamp_inf_nan(self):
         self.assertEqual(clamp(float("inf"), 0, 10), 10)
         self.assertEqual(clamp(float("-inf"), 0, 10), 0)
-        # NaN behavior depends on comparison semantics
-        result = clamp(float("nan"), 0, 10)
-        # Just ensure it returns something reasonable
-        self.assertIn(type(result), (int, float))
+        with self.assertRaises(ValueError):
+            clamp(float("nan"), 0, 10)
+        with self.assertRaises(ValueError):
+            clamp(5, float("nan"), 10)
+        with self.assertRaises(ValueError):
+            clamp(5, 0, float("nan"))
 
     def test_clamp_value_errors(self):
         with self.assertRaises(ValueError):
@@ -54237,11 +54241,14 @@ def normalize_interval(low: float, high: float) -> Interval:
 
     Raises:
         TypeError: If either endpoint is not a real number.
+        ValueError: If either endpoint is NaN.
     """
     if not _is_number(low):
         raise TypeError(f"low must be a real number, got {type(low).__name__}")
     if not _is_number(high):
         raise TypeError(f"high must be a real number, got {type(high).__name__}")
+    if math.isnan(low) or math.isnan(high):
+        raise ValueError("interval endpoints must not be NaN")
     return (min(low, high), max(low, high))
 
 
@@ -54522,10 +54529,12 @@ def interval_clamp(value: float, interval: Interval) -> float:
 
     Raises:
         TypeError: If *value* is not a real number.
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if *value* is NaN.
     """
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
+    if math.isnan(value):
+        raise ValueError("value must not be NaN")
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     low, high = interval
@@ -54966,13 +54975,19 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
             [(float("-inf"), float("inf"))],
         )
 
-    def test_normalize_interval_both_inf_nan(self):
+    def test_normalize_interval_nan_endpoints_raise(self):
+        """NaN endpoints are invalid and must raise ValueError."""
+        with self.assertRaises(ValueError):
+            normalize_interval(float("nan"), 5)
+        with self.assertRaises(ValueError):
+            normalize_interval(0, float("nan"))
+        with self.assertRaises(ValueError):
+            normalize_interval(float("nan"), float("nan"))
+        with self.assertRaises(ValueError):
+            normalize_interval(float("nan"), float("inf"))
         self.assertEqual(
             normalize_interval(float("inf"), float("-inf")), (float("-inf"), float("inf"))
         )
-        result = normalize_interval(float("nan"), float("inf"))
-        self.assertTrue(math.isnan(result[0]))
-        self.assertTrue(math.isnan(result[1]))
 
     def test_interval_symmetric_difference_with_inf(self):
         self.assertEqual(
@@ -55089,6 +55104,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — hardened NaN/inf validation in interval_utils and math_utils
+
+- `math_utils.clamp` now rejects `NaN` for `value`, `min_val`, or `max_val` with `ValueError` (previous `NaN` behavior was inconsistent due to Python min/max semantics). Infinite values remain supported where bounds allow.
+- `interval_utils.normalize_interval` now rejects `NaN` endpoints with `ValueError`.
+- `interval_utils.interval_clamp` now rejects `NaN` values with `ValueError`; `NaN` endpoints remain rejected by interval validation.
+- Updated `tests/test_math_utils.py` and `tests/test_interval_utils.py` to cover `NaN`/`inf` boundary cases and the new validation.
+- Synchronized embedded copies in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added abundance and amicable helpers to numbers_utils
 
 - Added `abundance(n)` to `numbers_utils.py`: returns `aliquot_sum(n) - n` (positive for abundant, zero for perfect, negative for deficient) with `TypeError`/`ValueError` validation.

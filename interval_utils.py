@@ -52,11 +52,14 @@ def normalize_interval(low: float, high: float) -> Interval:
 
     Raises:
         TypeError: If either endpoint is not a real number.
+        ValueError: If either endpoint is NaN.
     """
     if not _is_number(low):
         raise TypeError(f"low must be a real number, got {type(low).__name__}")
     if not _is_number(high):
         raise TypeError(f"high must be a real number, got {type(high).__name__}")
+    if math.isnan(low) or math.isnan(high):
+        raise ValueError("interval endpoints must not be NaN")
     return (min(low, high), max(low, high))
 
 
@@ -337,10 +340,12 @@ def interval_clamp(value: float, interval: Interval) -> float:
 
     Raises:
         TypeError: If *value* is not a real number.
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if *value* is NaN.
     """
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
+    if math.isnan(value):
+        raise ValueError("value must not be NaN")
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     low, high = interval
