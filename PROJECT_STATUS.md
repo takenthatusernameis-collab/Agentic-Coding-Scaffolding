@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-05) — removed duplicate __all__ entries from prime_utils and itertools_utils
+
+The board held no task (bootstrap/continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; recent commits were checkpoint-only; full suite (`python -m unittest discover tests/`) passed (8282 tests).
+
+Completed in this session:
+
+- Ran a systematic scan of every wrapper module's `__all__` for duplicate or undefined export entries (the same class of defect fixed in the immediately preceding commit `84fe6fb fix(kilo): remove dangling __all__/import entries`). Found two real defects: `prime_utils.__all__` listed `is_mersenne_prime` twice (56 entries, 55 unique) and `itertools_utils.__all__` listed `take_while_pred` twice (25 entries, 24 unique). Removed the duplicate entries so each module's `__all__` is a clean, deduplicated export list matching its defined names.
+- Synchronized `prime_utils.py`, `itertools_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_prime_utils` passes; `python -m unittest tests.test_itertools_utils` passes; `python -m unittest tests.test_public_api` passes; `python -m doctest prime_utils.py` and `python -m doctest itertools_utils.py` pass; full suite (`python -m unittest discover tests/`) passes (8282 tests).
+- No changes to `.github/workflows/**`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `number_utils.py`, `numbers_utils.py`, `prompt_utils.py`, `version_utils.py`, `prime_utils.py`, `itertools_utils.py`, `bytes_utils.py`).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings with doctests where practical (keep doctest literals ASCII-safe), validation raising `TypeError`/`ValueError`.
+- Keep `make test` green (pytest may be unavailable; use `python -m unittest` and targeted module/doctest checks as needed). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-05) — added bit_count and is_zero to bytes_utils; verified stats doctests
 
 The board held no task (bootstrap/continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; recent commits were checkpoint-only. Checked the previous handover: `python -m doctest stats.py` now passes with 0 failures in this environment (the 6 float-formatting failures noted in the prior status are no longer present), and `python -m unittest tests.test_stats` passes (384 tests); no `stats.py` edits were made.

@@ -332,7 +332,6 @@ __all__ = [
     "zip_longest_iterables",
     "zip_strict_iterables",
     "batched_iterable",
-    "take_while_pred",
     "drop_while_pred",
     "tee_iterables",
     "starmap_iterable",

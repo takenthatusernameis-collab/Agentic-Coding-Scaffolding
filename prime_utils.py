@@ -29,7 +29,6 @@ __all__: List[str] = [
     "is_safe_prime",
     "sum_of_proper_divisors",
     "sum_of_primes_up_to",
-    "is_mersenne_prime",
     "aliquot_sum",
     "is_perfect_number",
     "is_abundant_number",

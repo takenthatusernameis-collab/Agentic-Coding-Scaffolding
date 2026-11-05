@@ -1,3 +1,10 @@
+## Unreleased — removed duplicate __all__ entries from prime_utils and itertools_utils
+
+- Found two real `__all__` defects by scanning every wrapper module for duplicate or undefined export entries: `prime_utils.__all__` listed `is_mersenne_prime` twice (56 entries, 55 unique) and `itertools_utils.__all__` listed `take_while_pred` twice (25 entries, 24 unique). Removed the duplicate entries so each module's `__all__` is a clean, deduplicated export list matching its defined names.
+- Synchronized `prime_utils.py`, `itertools_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_prime_utils` passes; `python -m unittest tests.test_itertools_utils` passes; `python -m unittest tests.test_public_api` passes; `python -m doctest prime_utils.py` and `python -m doctest itertools_utils.py` pass; full suite (`python -m unittest discover tests/`) passes (8282 tests).
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_coprime to math_utils
 
 - Added `is_coprime(a, b)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *a* and *b* are coprime (their greatest common divisor is 1), reusing the existing `gcd` helper and `math.gcd`.
