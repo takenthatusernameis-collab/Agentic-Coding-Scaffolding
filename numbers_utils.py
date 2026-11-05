@@ -59,6 +59,7 @@ __all__: list[str] = [
     "is_narcissistic_number",
     "is_narcissistic",
     "is_weird_number",
+    "aliquot_sum",
     "proper_divisors",
 ]
 
@@ -540,6 +541,41 @@ def proper_divisors(n: int) -> list[int]:
     if n in result:
         result.remove(n)
     return result
+
+
+def aliquot_sum(n: int) -> int:
+    """Return the sum of the proper divisors of *n*.
+
+    The aliquot sum of *n* is the sum of all positive divisors of *n*
+    excluding *n* itself. It is the basis for classifying numbers as
+    perfect (aliquot sum == n), abundant (aliquot sum > n), or deficient
+    (aliquot sum < n).
+
+    Args:
+        n: The positive integer whose aliquot sum is computed.
+
+    Returns:
+        The sum of the proper divisors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> aliquot_sum(6)
+        6
+        >>> aliquot_sum(28)
+        28
+        >>> aliquot_sum(12)
+        16
+        >>> aliquot_sum(1)
+        0
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError(f"n must be a positive integer, got {n}")
+    return sum(proper_divisors(n))
 
 
 def is_strong_number(n: int) -> bool:

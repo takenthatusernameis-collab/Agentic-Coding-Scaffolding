@@ -1,3 +1,9 @@
+## Unreleased — added aliquot_sum to number_utils
+
+- Added `aliquot_sum(n)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the sum of the proper divisors of *n* (the aliquot sum), reusing `proper_divisors`. Added `TestAliquotSum` to `tests/test_numbers_utils.py` covering known values, perfect/abundant/deficient classification, and the `TypeError`/`ValueError` paths. Imported `aliquot_sum` at the top of the test file to match the module's `__all__` contract. Updated the `number_utils` module tree entry and prose section of `README.md`. Synchronized `number_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` passes; `python -m doctest numbers_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_mersenne_prime to number_utils
 
 - Added `is_mersenne_prime(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` if *value* is a prime of the form `2^p - 1` for some prime *p* (e.g. 3, 7, 31, 127, 8191). It rejects non-primes and Mersenne composites such as 15/63/255. Added `TestIsMersennePrime` to `tests/test_number_utils.py`. Updated the `number_utils` tree entry and prose in `README.md`. Regenerated `scaffold.sh` via `tools/refresh_scaffold.py`.

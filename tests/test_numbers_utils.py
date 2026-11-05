@@ -34,6 +34,7 @@ from numbers_utils import (
     is_spy_number,
     is_strong_number,
     is_weird_number,
+    aliquot_sum,
     proper_divisors,
 )
 
@@ -267,6 +268,36 @@ class TestProperDivisors(unittest.TestCase):
         for value in (0, -1, -6):
             with self.assertRaises(ValueError):
                 proper_divisors(value)
+
+
+class TestAliquotSum(unittest.TestCase):
+    def test_known_values(self):
+        self.assertEqual(aliquot_sum(1), 0)
+        self.assertEqual(aliquot_sum(6), 6)
+        self.assertEqual(aliquot_sum(28), 28)
+        self.assertEqual(aliquot_sum(12), 16)
+        self.assertEqual(aliquot_sum(1), sum(proper_divisors(1)))
+        self.assertEqual(aliquot_sum(6), sum(proper_divisors(6)))
+        self.assertEqual(aliquot_sum(28), sum(proper_divisors(28)))
+
+    def test_perfect_abundant_deficient(self):
+        # Perfect numbers have aliquot sum equal to the number itself.
+        self.assertEqual(aliquot_sum(6), 6)
+        self.assertEqual(aliquot_sum(28), 28)
+        # Abundant numbers have aliquot sum greater than the number.
+        self.assertGreater(aliquot_sum(12), 12)
+        # Deficient numbers have aliquot sum less than the number.
+        self.assertLess(aliquot_sum(8), 8)
+
+    def test_type_error(self):
+        for value in (1.5, "6", None, True, [6]):
+            with self.assertRaises(TypeError):
+                aliquot_sum(value)
+
+    def test_value_error(self):
+        for value in (0, -1, -6):
+            with self.assertRaises(ValueError):
+                aliquot_sum(value)
 
 
 class TestIsStrongNumber(unittest.TestCase):
