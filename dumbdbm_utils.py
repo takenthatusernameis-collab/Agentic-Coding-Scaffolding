@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 import dbm.dumb as _dumbdbm
-import os
-from typing import Any, Iterator
+from typing import Any
 
 __all__ = [
     "dumbdbm",

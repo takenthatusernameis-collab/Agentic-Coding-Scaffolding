@@ -54,8 +54,8 @@ from prime_utils import (
     primes_up_to,
     primorial,
     radical,
-    sum_of_proper_divisors,
     sum_of_primes_up_to,
+    sum_of_proper_divisors,
     total_prime_factors,
 )
 

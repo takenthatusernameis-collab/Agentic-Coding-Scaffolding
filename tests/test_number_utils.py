@@ -30,6 +30,7 @@ from number_utils import (
     is_integer,
     is_kaprekar_number,
     is_lucas_number,
+    is_mersenne_number,
     is_nan,
     is_negative,
     is_neon_number,
@@ -44,7 +45,6 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_pronic_number,
-    is_mersenne_number,
     is_spy_number,
     is_squarefree_number,
     is_strong_number,
@@ -192,24 +192,20 @@ class TestLerp(unittest.TestCase):
 
 class TestSign:
     def test_negative(self):
-        from number_utils import sign
 
         assert sign(-5) == -1
 
     def test_zero(self):
-        from number_utils import sign
 
         assert sign(0) == 0
 
     def test_positive(self):
-        from number_utils import sign
 
         assert sign(3.5) == 1
 
     def test_non_number_raises(self):
         import pytest
 
-        from number_utils import sign
 
         with pytest.raises(TypeError):
             sign("x")

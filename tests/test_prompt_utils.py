@@ -42,8 +42,8 @@ from prompt_utils import (
     first_line,
     format_prompt_template,
     has_digits,
-    has_letters,
     has_leading_newline,
+    has_letters,
     has_lowercase,
     has_placeholders,
     has_punctuation,
@@ -56,6 +56,7 @@ from prompt_utils import (
     last_line,
     lstrip_lines,
     normalize_line_endings,
+    normalize_whitespace,
     remove_blank_lines,
     remove_prefix,
     remove_suffix,
@@ -70,8 +71,6 @@ from prompt_utils import (
     truncate_prompt,
     truncate_words,
     wrap_prompt,
-    estimate_token_count,
-    normalize_whitespace,
 )
 
 
