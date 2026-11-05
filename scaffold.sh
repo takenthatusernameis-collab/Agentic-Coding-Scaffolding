@@ -77268,6 +77268,7 @@ __all__ = [
     "divides",
     "format_number",
     "gcd",
+    "gcd_list",
     "in_range",
     "is_abundant_number",
     "is_armstrong_number",
@@ -77320,6 +77321,7 @@ __all__ = [
     "is_ugly_number",
     "is_zero",
     "lcm",
+    "lcm_list",
     "lerp",
     "map_range",
     "percentage",
@@ -78135,6 +78137,60 @@ def lcm(a: int, b: int) -> int:
     if a == 0 and b == 0:
         raise ValueError("lcm() is not defined for both arguments being zero")
     return abs((a * b) // gcd(a, b))
+
+
+def gcd_list(numbers):
+    """Return the GCD of all integers in *numbers*.
+
+    Args:
+        numbers: Iterable of integers.
+
+    Returns:
+        GCD of all values (0 if empty).
+
+    Raises:
+        TypeError: If *numbers* is not iterable or contains non-ints.
+        ValueError: If *numbers* is empty.
+    """
+    if not hasattr(numbers, "__iter__"):
+        raise TypeError(f"numbers must be iterable, got {type(numbers).__name__}")
+    vals = list(numbers)
+    if not vals:
+        raise ValueError("numbers must not be empty")
+    for v in vals:
+        if not isinstance(v, int) or isinstance(v, bool):
+            raise TypeError(f"values must be ints, got {type(v).__name__}")
+    result = 0
+    for v in vals:
+        result = gcd(result, v)
+    return result
+
+
+def lcm_list(numbers):
+    """Return the LCM of all integers in *numbers*.
+
+    Args:
+        numbers: Iterable of integers.
+
+    Returns:
+        LCM of all values.
+
+    Raises:
+        TypeError: If *numbers* is not iterable or contains non-ints.
+        ValueError: If *numbers* is empty or all zero.
+    """
+    if not hasattr(numbers, "__iter__"):
+        raise TypeError(f"numbers must be iterable, got {type(numbers).__name__}")
+    vals = list(numbers)
+    if not vals:
+        raise ValueError("numbers must not be empty")
+    for v in vals:
+        if not isinstance(v, int) or isinstance(v, bool):
+            raise TypeError(f"values must be ints, got {type(v).__name__}")
+    result = 1
+    for v in vals:
+        result = lcm(result, v)
+    return result
 
 
 def ceil_div(a: int, b: int) -> int:
@@ -79554,6 +79610,7 @@ from number_utils import (
     digital_root,
     format_number,
     gcd,
+    gcd_list,
     is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
@@ -79595,6 +79652,7 @@ from number_utils import (
     is_ugly_number,
     is_zero,
     lcm,
+    lcm_list,
     lerp,
     map_range,
     percentage,
@@ -81384,6 +81442,44 @@ class TestIsMersennePrime(unittest.TestCase):
             is_mersenne_prime("7")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_mersenne_prime(None)  # type: ignore[arg-type]
+
+
+class TestGcdList(unittest.TestCase):
+    def test_known(self) -> None:
+        self.assertEqual(gcd_list([48, 18, 30]), 6)
+        self.assertEqual(gcd_list([17, 19]), 1)
+
+    def test_single(self) -> None:
+        self.assertEqual(gcd_list([5]), 5)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            gcd_list([])
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            gcd_list("abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd_list([1, 2.0])  # type: ignore[list-item]
+
+
+class TestLcmList(unittest.TestCase):
+    def test_known(self) -> None:
+        self.assertEqual(lcm_list([4, 6, 8]), 24)
+        self.assertEqual(lcm_list([7, 13]), 91)
+
+    def test_single(self) -> None:
+        self.assertEqual(lcm_list([5]), 5)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            lcm_list([])
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            lcm_list("abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm_list([1, 2.0])  # type: ignore[list-item]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

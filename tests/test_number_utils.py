@@ -12,6 +12,7 @@ from number_utils import (
     digital_root,
     format_number,
     gcd,
+    gcd_list,
     is_abundant_number,
     is_armstrong_number,
     is_automorphic_number,
@@ -53,6 +54,7 @@ from number_utils import (
     is_ugly_number,
     is_zero,
     lcm,
+    lcm_list,
     lerp,
     map_range,
     percentage,
@@ -1842,3 +1844,41 @@ class TestIsMersennePrime(unittest.TestCase):
             is_mersenne_prime("7")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_mersenne_prime(None)  # type: ignore[arg-type]
+
+
+class TestGcdList(unittest.TestCase):
+    def test_known(self) -> None:
+        self.assertEqual(gcd_list([48, 18, 30]), 6)
+        self.assertEqual(gcd_list([17, 19]), 1)
+
+    def test_single(self) -> None:
+        self.assertEqual(gcd_list([5]), 5)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            gcd_list([])
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            gcd_list("abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            gcd_list([1, 2.0])  # type: ignore[list-item]
+
+
+class TestLcmList(unittest.TestCase):
+    def test_known(self) -> None:
+        self.assertEqual(lcm_list([4, 6, 8]), 24)
+        self.assertEqual(lcm_list([7, 13]), 91)
+
+    def test_single(self) -> None:
+        self.assertEqual(lcm_list([5]), 5)
+
+    def test_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            lcm_list([])
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            lcm_list("abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lcm_list([1, 2.0])  # type: ignore[list-item]

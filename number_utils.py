@@ -18,6 +18,7 @@ __all__ = [
     "divides",
     "format_number",
     "gcd",
+    "gcd_list",
     "in_range",
     "is_abundant_number",
     "is_armstrong_number",
@@ -70,6 +71,7 @@ __all__ = [
     "is_ugly_number",
     "is_zero",
     "lcm",
+    "lcm_list",
     "lerp",
     "map_range",
     "percentage",
@@ -885,6 +887,60 @@ def lcm(a: int, b: int) -> int:
     if a == 0 and b == 0:
         raise ValueError("lcm() is not defined for both arguments being zero")
     return abs((a * b) // gcd(a, b))
+
+
+def gcd_list(numbers):
+    """Return the GCD of all integers in *numbers*.
+
+    Args:
+        numbers: Iterable of integers.
+
+    Returns:
+        GCD of all values (0 if empty).
+
+    Raises:
+        TypeError: If *numbers* is not iterable or contains non-ints.
+        ValueError: If *numbers* is empty.
+    """
+    if not hasattr(numbers, "__iter__"):
+        raise TypeError(f"numbers must be iterable, got {type(numbers).__name__}")
+    vals = list(numbers)
+    if not vals:
+        raise ValueError("numbers must not be empty")
+    for v in vals:
+        if not isinstance(v, int) or isinstance(v, bool):
+            raise TypeError(f"values must be ints, got {type(v).__name__}")
+    result = 0
+    for v in vals:
+        result = gcd(result, v)
+    return result
+
+
+def lcm_list(numbers):
+    """Return the LCM of all integers in *numbers*.
+
+    Args:
+        numbers: Iterable of integers.
+
+    Returns:
+        LCM of all values.
+
+    Raises:
+        TypeError: If *numbers* is not iterable or contains non-ints.
+        ValueError: If *numbers* is empty or all zero.
+    """
+    if not hasattr(numbers, "__iter__"):
+        raise TypeError(f"numbers must be iterable, got {type(numbers).__name__}")
+    vals = list(numbers)
+    if not vals:
+        raise ValueError("numbers must not be empty")
+    for v in vals:
+        if not isinstance(v, int) or isinstance(v, bool):
+            raise TypeError(f"values must be ints, got {type(v).__name__}")
+    result = 1
+    for v in vals:
+        result = lcm(result, v)
+    return result
 
 
 def ceil_div(a: int, b: int) -> int:
