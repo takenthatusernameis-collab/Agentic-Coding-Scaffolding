@@ -1,3 +1,5 @@
+import math
+
 __all__ = [
     "add",
     "abs_difference",
@@ -210,6 +212,8 @@ def clamp(value: float, low: float, high: float) -> float:
         or not isinstance(high, (int, float))
     ):
         raise TypeError("value, low, and high must be real numbers")
+    if math.isnan(value) or math.isnan(low) or math.isnan(high):
+        raise ValueError("value, low, and high must not be NaN")
     if low > high:
         raise ValueError("low must not exceed high.")
     return max(low, min(high, value))

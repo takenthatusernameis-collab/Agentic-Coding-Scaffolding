@@ -9025,6 +9025,8 @@ TEST_GC_UTILS
 # --- calculator.py ---
 
 cat > "$OUTPUT_DIR/calculator.py" <<'CALCULATOR'
+import math
+
 __all__ = [
     "add",
     "abs_difference",
@@ -9237,6 +9239,8 @@ def clamp(value: float, low: float, high: float) -> float:
         or not isinstance(high, (int, float))
     ):
         raise TypeError("value, low, and high must be real numbers")
+    if math.isnan(value) or math.isnan(low) or math.isnan(high):
+        raise ValueError("value, low, and high must not be NaN")
     if low > high:
         raise ValueError("low must not exceed high.")
     return max(low, min(high, value))
@@ -34634,6 +34638,8 @@ def normalize(numbers: List[T | float]) -> List[float]:
     """
     if not numbers:
         raise ValueError("Cannot normalize empty list")
+    if any(isinstance(x, float) and math.isnan(x) for x in numbers):
+        raise ValueError("numbers must not contain NaN")
     min_val = min(numbers)
     max_val = max(numbers)
     if min_val == max_val:
@@ -76896,6 +76902,8 @@ def clamp(value: Number, minimum: Number, maximum: Number) -> Number:
     _require_number(value, "value")
     _require_number(minimum, "minimum")
     _require_number(maximum, "maximum")
+    if any(isinstance(x, float) and math.isnan(x) for x in (value, minimum, maximum)):
+        raise ValueError("value, minimum, and maximum must not be NaN")
     if minimum > maximum:
         raise ValueError("minimum must not exceed maximum")
     return max(minimum, min(maximum, value))
@@ -76914,6 +76922,8 @@ def clamp01(value: Number) -> Number:
         TypeError: If *value* is not a number.
     """
     _require_number(value, "value")
+    if isinstance(value, float) and math.isnan(value):
+        raise ValueError("value must not be NaN")
     return max(0, min(1, value))
 
 

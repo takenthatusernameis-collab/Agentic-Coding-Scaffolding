@@ -278,6 +278,8 @@ def normalize(numbers: List[T | float]) -> List[float]:
     """
     if not numbers:
         raise ValueError("Cannot normalize empty list")
+    if any(isinstance(x, float) and math.isnan(x) for x in numbers):
+        raise ValueError("numbers must not contain NaN")
     min_val = min(numbers)
     max_val = max(numbers)
     if min_val == max_val:
