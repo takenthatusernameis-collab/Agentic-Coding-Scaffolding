@@ -844,6 +844,13 @@ class TestIsEven(unittest.TestCase):
         self.assertFalse(is_even(-3))
         self.assertFalse(is_even(3.5))
 
+    def test_non_finite(self) -> None:
+        from number_utils import is_even
+
+        self.assertFalse(is_even(float("inf")))
+        self.assertFalse(is_even(float("-inf")))
+        self.assertFalse(is_even(float("nan")))
+
     def test_type_errors(self) -> None:
         from number_utils import is_even
 
@@ -872,6 +879,13 @@ class TestIsOdd(unittest.TestCase):
         self.assertFalse(is_odd(2))
         self.assertFalse(is_odd(2.0))
         self.assertFalse(is_odd(2.5))
+
+    def test_non_finite(self) -> None:
+        from number_utils import is_odd
+
+        self.assertFalse(is_odd(float("inf")))
+        self.assertFalse(is_odd(float("-inf")))
+        self.assertFalse(is_odd(float("nan")))
 
     def test_type_errors(self) -> None:
         from number_utils import is_odd

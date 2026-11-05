@@ -341,7 +341,26 @@ def is_even(value: Number) -> bool:
         TypeError: If *value* is not a number.
     """
     _require_number(value, "value")
-    return int(value) == value and int(value) % 2 == 0
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return False
+        if not value.is_integer():
+            return False
+        value_int = int(value)
+    elif isinstance(value, int):
+        value_int = value
+    else:
+        # Should not happen as _require_number enforces, but be defensive
+        if isinstance(value, float) and not math.isfinite(value):
+            return False
+        try:
+            f = float(value)
+        except Exception:
+            return False
+        if not f.is_integer():
+            return False
+        value_int = int(f)
+    return value_int % 2 == 0
 
 
 def is_odd(value: Number) -> bool:
@@ -357,7 +376,25 @@ def is_odd(value: Number) -> bool:
         TypeError: If *value* is not a number.
     """
     _require_number(value, "value")
-    return int(value) == value and int(value) % 2 != 0
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return False
+        if not value.is_integer():
+            return False
+        value_int = int(value)
+    elif isinstance(value, int):
+        value_int = value
+    else:
+        if isinstance(value, float) and not math.isfinite(value):
+            return False
+        try:
+            f = float(value)
+        except Exception:
+            return False
+        if not f.is_integer():
+            return False
+        value_int = int(f)
+    return value_int % 2 != 0
 
 
 def is_pronic_number(value: Number) -> bool:
