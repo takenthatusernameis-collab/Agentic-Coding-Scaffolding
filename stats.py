@@ -61,6 +61,7 @@ __all__: List[str] = [
     "winsorized_variance",
     "winsorized_stddev",
     "gini_coefficient",
+    "shannon_entropy",
 ]
 
 
