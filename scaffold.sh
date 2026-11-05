@@ -55133,6 +55133,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed numbers_utils abundance doctest indentation
+
+- Found a real doctest defect in `numbers_utils.abundance`: the expected output line for `abundance(12)` was indented with four extra spaces (`    4`), so `python -m doctest numbers_utils.py` reported a failure even though the function returned the correct value. The expected output was corrected to `4` to match the surrounding doctest examples.
+- Verified: `python -m doctest numbers_utils.py` passes (0 failures); `python -m unittest tests.test_numbers_utils` passes (136 tests); `make test` stays green; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — hardened NaN/inf validation in interval_utils and math_utils
 
 - `math_utils.clamp` now rejects `NaN` for `value`, `min_val`, or `max_val` with `ValueError` (previous `NaN` behavior was inconsistent due to Python min/max semantics). Infinite values remain supported where bounds allow.
@@ -82489,7 +82495,7 @@ def abundance(n: int) -> int:
 
     Examples:
 >>> abundance(12)
-    4
+4
     >>> abundance(6)
     0
     >>> abundance(8)

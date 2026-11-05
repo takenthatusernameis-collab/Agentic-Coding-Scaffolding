@@ -1531,7 +1531,7 @@ def abundance(n: int) -> int:
 
     Examples:
 >>> abundance(12)
-    4
+4
     >>> abundance(6)
     0
     >>> abundance(8)
