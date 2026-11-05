@@ -21570,7 +21570,7 @@ class TestShannonEntropy(unittest.TestCase):
 
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
-            shannon_entropy([1, 2, "a"])  # type: ignore[type-var]
+            shannon_entropy([1, 2, "a"])  # type: ignore[list-item,type-var]
 
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
