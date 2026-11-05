@@ -80951,6 +80951,7 @@ __all__: list[str] = [
     "is_narcissistic",
     "is_weird_number",
     "aliquot_sum",
+    "sum_of_divisors",
     "proper_divisors",
     "is_untouchable_number",
 ]
@@ -81468,6 +81469,36 @@ def aliquot_sum(n: int) -> int:
     if n < 1:
         raise ValueError(f"n must be a positive integer, got {n}")
     return sum(proper_divisors(n))
+
+
+def sum_of_divisors(n: int) -> int:
+    """Return the sum of all positive divisors of *n* (including *n*).
+
+    This is the divisor-sum function (sigma). It equals ``aliquot_sum(n) + n``.
+
+    Args:
+        n: The positive integer whose divisor sum is computed.
+
+    Returns:
+        The sum of all positive divisors of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> sum_of_divisors(1)
+        1
+        >>> sum_of_divisors(6)
+        12
+        >>> sum_of_divisors(28)
+        56
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError(f"n must be a positive integer, got {n}")
+    return aliquot_sum(n) + n
 
 
 def is_strong_number(n: int) -> bool:
@@ -82355,6 +82386,7 @@ from numbers_utils import (
     is_strong_number,
     is_weird_number,
     aliquot_sum,
+    sum_of_divisors,
     proper_divisors,
 )
 
@@ -82618,6 +82650,28 @@ class TestAliquotSum(unittest.TestCase):
         for value in (0, -1, -6):
             with self.assertRaises(ValueError):
                 aliquot_sum(value)
+
+
+class TestSumOfDivisors(unittest.TestCase):
+    def test_known_values(self):
+        self.assertEqual(sum_of_divisors(1), 1)
+        self.assertEqual(sum_of_divisors(6), 12)
+        self.assertEqual(sum_of_divisors(28), 56)
+        self.assertEqual(sum_of_divisors(12), 28)
+
+    def test_relation_to_aliquot_sum(self):
+        for n in (1, 2, 6, 12, 28, 100):
+            self.assertEqual(sum_of_divisors(n), aliquot_sum(n) + n)
+
+    def test_type_error(self):
+        for value in (1.5, "6", None, True, [6]):
+            with self.assertRaises(TypeError):
+                sum_of_divisors(value)
+
+    def test_value_error(self):
+        for value in (0, -1, -6):
+            with self.assertRaises(ValueError):
+                sum_of_divisors(value)
 
 
 class TestIsStrongNumber(unittest.TestCase):
