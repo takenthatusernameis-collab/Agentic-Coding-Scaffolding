@@ -40,12 +40,22 @@ if _IMGHDR_AVAILABLE:
                 except Exception:
                     pass
         return what(file, h)
-    is_image = lambda file, h=None: detect(file, h) is not None  # type: ignore[no-untyped-def]
-    matching_formats = lambda file, h=None: [detect(file, h)] if detect(file, h) is not None else []  # type: ignore[no-untyped-def]
-    read_header = lambda file, h=None: h  # type: ignore[no-untyped-def]
-    register_test = getattr(_imghdr, "tests", []).append if False else (lambda *args, **kwargs: None)  # type: ignore[no-untyped-def]
-    unregister_test = lambda *args, **kwargs: None  # type: ignore[no-untyped-def]
-    supported_formats = lambda: ["jpeg", "png", "gif", "tiff", "rgb", "pbm", "pgm", "ppm", "rast", "xbm", "bmp", "webp", "exr"]  # type: ignore[no-untyped-def]
+    def is_image(file, h=None):
+        return detect(file, h) is not None  # type: ignore[no-untyped-def]
+    def matching_formats(file, h=None):
+        return [detect(file, h)] if detect(file, h) is not None else []  # type: ignore[no-untyped-def]
+    def read_header(file, h=None):
+        return h  # type: ignore[no-untyped-def]
+    register_test = (
+        getattr(_imghdr, "tests", []).append if False else (lambda *args, **kwargs: None)  # type: ignore[no-untyped-def]
+    )
+    def unregister_test(*args, **kwargs):
+        return None  # type: ignore[no-untyped-def]
+    def supported_formats():
+        return [
+            "jpeg", "png", "gif", "tiff", "rgb", "pbm", "pgm", "ppm",
+            "rast", "xbm", "bmp", "webp", "exr",
+        ]  # type: ignore[no-untyped-def]
 else:
     def what(*args, **kwargs):  # type: ignore[no-untyped-def]
         raise RuntimeError("imghdr module is not available")

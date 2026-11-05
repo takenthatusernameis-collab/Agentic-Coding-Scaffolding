@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pipes as _pipes
-from typing import Any
 
 __all__: list[str] = [
     "Template",

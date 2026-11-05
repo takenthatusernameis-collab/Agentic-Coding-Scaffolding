@@ -80,7 +80,9 @@ else:
     class Telnet:  # type: ignore[no-redef]
         def __init__(self, *args, **kwargs):
             raise RuntimeError("telnetlib module is not available")
-    IAC = DONT = DO = WONT = WILL = SE = NOP = DM = BRK = IP = AO = AYT = EC = EL = GA = SB = theNULL = 255
+    (IAC, DONT, DO, WONT, WILL, SE, NOP, DM, BRK, IP, AO, AYT, EC, EL, GA, SB, theNULL) = (
+        (255,) * 17
+    )
 
 
 def create_telnet(host: str | None = None, port: int = 23, timeout: float | None = None) -> Telnet:
@@ -107,7 +109,12 @@ def read_until(tn: Telnet, expected: bytes, timeout: float | None = None) -> byt
     return tn.read_until(bytes(expected), timeout)
 
 
-def read_until_text(tn: Telnet, expected: str, timeout: float | None = None, encoding: str = "utf-8") -> str:
+def read_until_text(
+    tn: Telnet,
+    expected: str,
+    timeout: float | None = None,
+    encoding: str = "utf-8",
+) -> str:
     if not isinstance(expected, str):
         raise TypeError("expected must be a str")
     data = read_until(tn, expected.encode(encoding), timeout)
@@ -164,7 +171,12 @@ def expect(tn: Telnet, list_patterns, timeout: float | None = None):
     return tn.expect(list_patterns, timeout)
 
 
-def expect_text(tn: Telnet, patterns: list[str], timeout: float | None = None, encoding: str = "utf-8"):
+def expect_text(
+    tn: Telnet,
+    patterns: list[str],
+    timeout: float | None = None,
+    encoding: str = "utf-8",
+):
     pat = [p.encode(encoding) if isinstance(p, str) else p for p in patterns]
     return tn.expect(pat, timeout)
 

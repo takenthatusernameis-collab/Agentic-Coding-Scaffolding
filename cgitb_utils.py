@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import cgitb as _cgitb
-from typing import Any
 
 __all__: list[str] = [
     "enable",

@@ -6,7 +6,6 @@ import cgi as _cgi
 from html import escape as _html_escape
 from urllib.parse import parse_qs as _parse_qs
 from urllib.parse import parse_qsl as _parse_qsl
-from typing import Any
 
 __all__: list[str] = [
     "FieldStorage",
