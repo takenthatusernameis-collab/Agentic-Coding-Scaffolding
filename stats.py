@@ -1591,8 +1591,8 @@ def gini_coefficient(numbers: List[T | float]) -> float:
         0.0
         >>> gini_coefficient([0, 1])
         0.5
-        >>> gini_coefficient([0, 0, 1])
-        0.444...
+        >>> round(gini_coefficient([0, 0, 1]), 6)
+        0.666667
         >>> round(gini_coefficient([1, 2, 3, 4, 5]), 6)
         0.266667
     """
@@ -1611,11 +1611,9 @@ def gini_coefficient(numbers: List[T | float]) -> float:
     if total == 0:
         return 0.0
     sorted_nums = sorted(numbers)
-    cumulative = 0.0
     weighted_sum = 0.0
     for i, x in enumerate(sorted_nums, 1):
-        cumulative += x
-        weighted_sum += cumulative
+        weighted_sum += i * x
     gini = (2 * weighted_sum) / (n * total) - (n + 1) / n
     return gini
 
