@@ -67,6 +67,7 @@ __all__: list[str] = [
     "abundance",
     "are_amicable",
     "is_amicable_number",
+    "is_fibonacci_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -1529,12 +1530,12 @@ def abundance(n: int) -> int:
         ValueError: If *n* is less than 1.
 
     Examples:
-        >>> abundance(12)
-        4
-        >>> abundance(6)
-        0
-        >>> abundance(8)
-        -4
+>>> abundance(12)
+    4
+    >>> abundance(6)
+    0
+    >>> abundance(8)
+    -1
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
