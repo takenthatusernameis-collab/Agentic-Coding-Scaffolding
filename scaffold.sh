@@ -24364,8 +24364,8 @@ from prompt_utils import (
     first_line,
     format_prompt_template,
     has_digits,
-    has_letters,
     has_leading_newline,
+    has_letters,
     has_lowercase,
     has_placeholders,
     has_punctuation,
@@ -24378,6 +24378,7 @@ from prompt_utils import (
     last_line,
     lstrip_lines,
     normalize_line_endings,
+    normalize_whitespace,
     remove_blank_lines,
     remove_prefix,
     remove_suffix,
@@ -24392,8 +24393,6 @@ from prompt_utils import (
     truncate_prompt,
     truncate_words,
     wrap_prompt,
-    estimate_token_count,
-    normalize_whitespace,
 )
 
 
@@ -46281,8 +46280,8 @@ from itertools_utils import (
     cycle_take,
     drop_while_pred,
     flatten_once,
-    grouper,
     group_by_key,
+    grouper,
     pairwise_iterable,
     partition,
     product_of,
@@ -78891,6 +78890,7 @@ from number_utils import (
     is_integer,
     is_kaprekar_number,
     is_lucas_number,
+    is_mersenne_number,
     is_nan,
     is_negative,
     is_neon_number,
@@ -78905,7 +78905,6 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_pronic_number,
-    is_mersenne_number,
     is_spy_number,
     is_squarefree_number,
     is_strong_number,
@@ -79053,24 +79052,20 @@ class TestLerp(unittest.TestCase):
 
 class TestSign:
     def test_negative(self):
-        from number_utils import sign
 
         assert sign(-5) == -1
 
     def test_zero(self):
-        from number_utils import sign
 
         assert sign(0) == 0
 
     def test_positive(self):
-        from number_utils import sign
 
         assert sign(3.5) == 1
 
     def test_non_number_raises(self):
         import pytest
 
-        from number_utils import sign
 
         with pytest.raises(TypeError):
             sign("x")
@@ -88359,8 +88354,8 @@ from prime_utils import (
     primes_up_to,
     primorial,
     radical,
-    sum_of_proper_divisors,
     sum_of_primes_up_to,
+    sum_of_proper_divisors,
     total_prime_factors,
 )
 
@@ -138211,8 +138206,7 @@ cat > "$OUTPUT_DIR/dumbdbm_utils.py" <<'DUMBDBM_UTILS'
 from __future__ import annotations
 
 import dbm.dumb as _dumbdbm
-import os
-from typing import Any, Iterator
+from typing import Any
 
 __all__ = [
     "dumbdbm",
