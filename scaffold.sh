@@ -80952,6 +80952,7 @@ __all__: list[str] = [
     "is_weird_number",
     "aliquot_sum",
     "proper_divisors",
+    "is_untouchable_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -82275,6 +82276,44 @@ def is_weird_number(n: int) -> bool:
     if n < 1:
         return False
     return is_abundant_number(n) and not is_semiperfect_number(n)
+
+
+def is_untouchable_number(n: int) -> bool:
+    """Return ``True`` when *n* is an untouchable number.
+
+    An untouchable number is a positive integer that cannot be expressed as
+    the sum of the proper divisors of any positive integer. The smallest
+    untouchable number is 2.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is an untouchable number, ``False`` otherwise.
+        Numbers below 1 are never untouchable.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_untouchable_number(2)
+        True
+        >>> is_untouchable_number(5)
+        True
+        >>> is_untouchable_number(6)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        return False
+    # A number n is touchable iff some m has aliquot_sum(m) == n.
+    # Searching m up to 2*n (with a small floor) is sufficient for small n.
+    limit = max(2 * n, 10)
+    for m in range(1, limit + 1):
+        if aliquot_sum(m) == n:
+            return False
+    return True
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
