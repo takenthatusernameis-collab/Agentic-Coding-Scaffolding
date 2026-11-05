@@ -80704,11 +80704,13 @@ class TestIsOblongNumber(unittest.TestCase):
 
 class TestIsPowerfulNumber(unittest.TestCase):
     def test_powerful_numbers(self) -> None:
-        for n in (1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 81, 100, 108, 121, 125, 128, 144, 169, 196, 200):
+        for n in (1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 81, 100, 108, 121, 125, 128,
+                  144, 169, 196, 200):
             self.assertTrue(is_powerful_number(n), n)
 
     def test_non_powerful_numbers(self) -> None:
-        for n in (0, 2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26, 28, 30, 44, 45, 50, 52, 54, 56, 60, 66, 68, 70, 75, 78, 90, 98, 99):
+        for n in (0, 2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26,
+                  28, 30, 44, 45, 50, 52, 54, 56, 60, 66, 68, 70, 75, 78, 90, 98, 99):
             self.assertFalse(is_powerful_number(n), n)
 
     def test_negatives(self) -> None:
