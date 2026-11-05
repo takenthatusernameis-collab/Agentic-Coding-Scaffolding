@@ -54541,7 +54541,8 @@ def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
         if b[1] > high:
             difference.append((high, b[1]))
     # Drop degenerate intervals (a shared endpoint produces zero-length slivers).
-    return [interval for interval in difference if interval[0] < interval[1]]
+    result = [interval for interval in difference if interval[0] < interval[1]]
+    return sorted(result, key=lambda item: (item[0], item[1]))
 
 
 def interval_clamp(value: float, interval: Interval) -> float:
