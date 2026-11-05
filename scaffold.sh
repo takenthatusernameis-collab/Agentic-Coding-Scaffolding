@@ -54008,6 +54008,7 @@ __all__ = [
     "interval_midpoint",
     "interval_distance",
     "interval_is_subset",
+    "interval_clamp",
     "interval_shift",
     "interval_symmetric_difference",
 ]
@@ -54304,6 +54305,32 @@ def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
             difference.append((high, b[1]))
     # Drop degenerate intervals (a shared endpoint produces zero-length slivers).
     return [interval for interval in difference if interval[0] < interval[1]]
+
+
+def interval_clamp(value: float, interval: Interval) -> float:
+    """Clamp *value* to lie within the closed *interval*.
+
+    Args:
+        value: The value to clamp.
+        interval: A ``(low, high)`` interval.
+
+    Returns:
+        ``low`` if *value* < low, ``high`` if *value* > high, otherwise *value*.
+
+    Raises:
+        TypeError: If *value* is not a real number.
+        ValueError: If *interval* is not valid.
+    """
+    if not _is_number(value):
+        raise TypeError(f"value must be a real number, got {type(value).__name__}")
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    low, high = interval
+    if value < low:
+        return low
+    if value > high:
+        return high
+    return value
 INTERVALUTILS
 
 # --- tests/test_interval_utils.py ---
@@ -54312,6 +54339,7 @@ import math
 import unittest
 
 from interval_utils import (
+    interval_clamp,
     interval_contains,
     interval_distance,
     interval_intersection,
@@ -54822,6 +54850,36 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIntervalClamp(unittest.TestCase):
+    def test_within(self):
+        self.assertEqual(interval_clamp(3, (1, 5)), 3)
+
+    def test_below(self):
+        self.assertEqual(interval_clamp(0, (1, 5)), 1)
+
+    def test_above(self):
+        self.assertEqual(interval_clamp(10, (1, 5)), 5)
+
+    def test_endpoints(self):
+        self.assertEqual(interval_clamp(1, (1, 5)), 1)
+        self.assertEqual(interval_clamp(5, (1, 5)), 5)
+
+    def test_floats(self):
+        self.assertAlmostEqual(interval_clamp(2.5, (1.5, 3.5)), 2.5)
+
+    def test_invalid_interval(self):
+        with self.assertRaises(ValueError):
+            interval_clamp(3, (5, 1))
+
+    def test_non_number_value(self):
+        with self.assertRaises(TypeError):
+            interval_clamp("3", (1, 5))
+
+    def test_bool_value(self):
+        with self.assertRaises(TypeError):
+            interval_clamp(True, (1, 5))
 TEST_INTERVAL_UTILS
 
 

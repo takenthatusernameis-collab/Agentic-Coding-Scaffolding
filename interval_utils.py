@@ -26,6 +26,7 @@ __all__ = [
     "interval_midpoint",
     "interval_distance",
     "interval_is_subset",
+    "interval_clamp",
     "interval_shift",
     "interval_symmetric_difference",
 ]
@@ -322,3 +323,29 @@ def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
             difference.append((high, b[1]))
     # Drop degenerate intervals (a shared endpoint produces zero-length slivers).
     return [interval for interval in difference if interval[0] < interval[1]]
+
+
+def interval_clamp(value: float, interval: Interval) -> float:
+    """Clamp *value* to lie within the closed *interval*.
+
+    Args:
+        value: The value to clamp.
+        interval: A ``(low, high)`` interval.
+
+    Returns:
+        ``low`` if *value* < low, ``high`` if *value* > high, otherwise *value*.
+
+    Raises:
+        TypeError: If *value* is not a real number.
+        ValueError: If *interval* is not valid.
+    """
+    if not _is_number(value):
+        raise TypeError(f"value must be a real number, got {type(value).__name__}")
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    low, high = interval
+    if value < low:
+        return low
+    if value > high:
+        return high
+    return value

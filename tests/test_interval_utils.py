@@ -2,6 +2,7 @@ import math
 import unittest
 
 from interval_utils import (
+    interval_clamp,
     interval_contains,
     interval_distance,
     interval_intersection,
@@ -512,3 +513,33 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIntervalClamp(unittest.TestCase):
+    def test_within(self):
+        self.assertEqual(interval_clamp(3, (1, 5)), 3)
+
+    def test_below(self):
+        self.assertEqual(interval_clamp(0, (1, 5)), 1)
+
+    def test_above(self):
+        self.assertEqual(interval_clamp(10, (1, 5)), 5)
+
+    def test_endpoints(self):
+        self.assertEqual(interval_clamp(1, (1, 5)), 1)
+        self.assertEqual(interval_clamp(5, (1, 5)), 5)
+
+    def test_floats(self):
+        self.assertAlmostEqual(interval_clamp(2.5, (1.5, 3.5)), 2.5)
+
+    def test_invalid_interval(self):
+        with self.assertRaises(ValueError):
+            interval_clamp(3, (5, 1))
+
+    def test_non_number_value(self):
+        with self.assertRaises(TypeError):
+            interval_clamp("3", (1, 5))
+
+    def test_bool_value(self):
+        with self.assertRaises(TypeError):
+            interval_clamp(True, (1, 5))
