@@ -54453,6 +54453,7 @@ __all__ = [
     "interval_clamp",
     "interval_shift",
     "interval_symmetric_difference",
+    "interval_is_degenerate",
 ]
 
 
@@ -54783,6 +54784,24 @@ def interval_clamp(value: float, interval: Interval) -> float:
     if value > high:
         return high
     return value
+
+
+def interval_is_degenerate(interval: Interval) -> bool:
+    """Return True if *interval* is a degenerate (zero-length) interval.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+
+    Returns:
+        True if ``low == high``.
+
+    Raises:
+        ValueError: If *interval* is not valid.
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    low, high = interval
+    return low == high
 INTERVALUTILS
 
 # --- tests/test_interval_utils.py ---
@@ -54795,6 +54814,7 @@ from interval_utils import (
     interval_contains,
     interval_distance,
     interval_intersection,
+    interval_is_degenerate,
     interval_is_subset,
     interval_length,
     interval_midpoint,
@@ -55356,6 +55376,18 @@ class TestIntervalClamp(unittest.TestCase):
     def test_bool_value(self):
         with self.assertRaises(TypeError):
             interval_clamp(True, (1, 5))
+
+
+class TestIntervalIsDegenerate(unittest.TestCase):
+    def test_degenerate(self):
+        self.assertTrue(interval_is_degenerate((3, 3)))
+
+    def test_non_degenerate(self):
+        self.assertFalse(interval_is_degenerate((1, 5)))
+
+    def test_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_is_degenerate((5, 1))
 TEST_INTERVAL_UTILS
 
 

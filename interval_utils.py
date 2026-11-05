@@ -29,6 +29,7 @@ __all__ = [
     "interval_clamp",
     "interval_shift",
     "interval_symmetric_difference",
+    "interval_is_degenerate",
 ]
 
 
@@ -359,3 +360,21 @@ def interval_clamp(value: float, interval: Interval) -> float:
     if value > high:
         return high
     return value
+
+
+def interval_is_degenerate(interval: Interval) -> bool:
+    """Return True if *interval* is a degenerate (zero-length) interval.
+
+    Args:
+        interval: A ``(low, high)`` interval.
+
+    Returns:
+        True if ``low == high``.
+
+    Raises:
+        ValueError: If *interval* is not valid.
+    """
+    if not is_valid_interval(interval):
+        raise ValueError(f"invalid interval: {interval!r}")
+    low, high = interval
+    return low == high

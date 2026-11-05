@@ -6,6 +6,7 @@ from interval_utils import (
     interval_contains,
     interval_distance,
     interval_intersection,
+    interval_is_degenerate,
     interval_is_subset,
     interval_length,
     interval_midpoint,
@@ -567,3 +568,15 @@ class TestIntervalClamp(unittest.TestCase):
     def test_bool_value(self):
         with self.assertRaises(TypeError):
             interval_clamp(True, (1, 5))
+
+
+class TestIntervalIsDegenerate(unittest.TestCase):
+    def test_degenerate(self):
+        self.assertTrue(interval_is_degenerate((3, 3)))
+
+    def test_non_degenerate(self):
+        self.assertFalse(interval_is_degenerate((1, 5)))
+
+    def test_invalid(self):
+        with self.assertRaises(ValueError):
+            interval_is_degenerate((5, 1))
