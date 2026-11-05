@@ -184,6 +184,8 @@ def round_half_up(value: Number, places: int = 0) -> float:
         raise TypeError(f"places must be an int, got {type(places).__name__}")
     if places < 0:
         raise ValueError("places must be non-negative")
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("value must be finite")
     factor = 10**places
     scaled = value * factor
     if scaled >= 0:
@@ -418,7 +420,7 @@ def is_pronic_number(value: Number) -> bool:
         TypeError: If *value* is not a number.
     """
     _require_number(value, "value")
-    if int(value) != value or value < 0:
+    if not is_integer(value) or value < 0:
         return False
     n = int(value)
     root = int(n**0.5)
