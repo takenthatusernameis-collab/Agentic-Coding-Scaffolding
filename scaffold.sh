@@ -24320,6 +24320,7 @@ from prompt_utils import (
     has_lowercase,
     has_placeholders,
     has_punctuation,
+    has_alphanumeric,
     has_trailing_newline,
     has_uppercase,
     has_whitespace,
@@ -24512,6 +24513,27 @@ class TestHasPunctuation(unittest.TestCase):
             has_punctuation(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_punctuation(None)  # type: ignore[arg-type]
+
+
+class TestHasAlphanumeric(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_alphanumeric("Hello123"))
+        self.assertTrue(has_alphanumeric("hello"))
+        self.assertTrue(has_alphanumeric("123"))
+
+    def test_no_alphanumeric(self):
+        self.assertFalse(has_alphanumeric("!!!"))
+        self.assertFalse(has_alphanumeric(" "))
+        self.assertFalse(has_alphanumeric("..."))
+
+    def test_empty_string(self):
+        self.assertFalse(has_alphanumeric(""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_alphanumeric(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_alphanumeric(None)  # type: ignore[arg-type]
 
 
 class TestHasWhitespace(unittest.TestCase):
@@ -37329,6 +37351,7 @@ __all__: List[str] = [
     "has_uppercase",
     "has_letters",
     "has_punctuation",
+    "has_alphanumeric",
     "has_consonants",
     "has_vowels",
     "count_letters",
@@ -39260,6 +39283,39 @@ def has_punctuation(text: str) -> bool:
     """
     _require_string(text, "text")
     return any(ch in _PUNCTUATION for ch in text)
+
+
+def has_alphanumeric(text: str) -> bool:
+    """Return True if *text* contains any alphanumeric character.
+
+    A boolean companion to :func:`count_letters` and :func:`count_digits`
+    that reports whether *text* contains at least one ASCII letter or digit.
+    Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one alphanumeric character,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_alphanumeric("Hello123")
+        True
+        >>> has_alphanumeric("hello")
+        True
+        >>> has_alphanumeric("123")
+        True
+        >>> has_alphanumeric("!!!")
+        False
+        >>> has_alphanumeric("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch.isalnum() for ch in text)
 
 
 def has_vowels(text: str) -> bool:
@@ -54886,6 +54942,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_alphanumeric to prompt_utils
+
+- Added `has_alphanumeric(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one ASCII letter or digit and `False` otherwise, serving as a boolean companion to :func:`count_letters` and :func:`count_digits`. Added `TestHasAlphanumeric` to `tests/test_prompt_utils.py` covering strings with letters/digits/mixed, negatives, empty input, and the `TypeError` paths (6 new tests). Imported `has_alphanumeric` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md`.
+- Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_prompt_utils` passes (427 tests); `python -m doctest prompt_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed itertools_utils grouper fillvalue handling
 
 - Found a real defect in `itertools_utils.grouper`: the `fillvalue` parameter was accepted but never used, so the trailing partial chunk was silently dropped instead of being padded to the full chunk size. For example, `grouper([1, 2, 3, 4, 5], 2)` returned `[(1, 2), (3, 4)]` rather than `[(1, 2), (3, 4), (5, None)]`, diverging from the classic `itertools` recipe it documented. Rewrote the implementation to drive `zip_longest(*[iter(iterable)] * n, fillvalue=fillvalue)` so every emitted tuple has exactly *n* elements, with the last one padded when needed; empty input yields `[]` and exact multiples are unaffected. Added a `TestGrouper` suite to `tests/test_itertools_utils.py` covering exact-multiple, default-None padding, custom `fillvalue`, short-chunk padding to full size, size-one, empty input, strings, the per-chunk length invariant, order preservation, and the `TypeError`/`ValueError` paths (13 new tests). Imported `grouper` at the top of the test file to match the module's `__all__` contract. Updated the `itertools_utils` module tree entry and prose section of `README.md` to document `grouper`, `roundrobin`, `padnone`, and `ncycles`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -56954,7 +57017,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -57822,7 +57885,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

@@ -47,6 +47,7 @@ from prompt_utils import (
     has_lowercase,
     has_placeholders,
     has_punctuation,
+    has_alphanumeric,
     has_trailing_newline,
     has_uppercase,
     has_whitespace,
@@ -239,6 +240,27 @@ class TestHasPunctuation(unittest.TestCase):
             has_punctuation(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_punctuation(None)  # type: ignore[arg-type]
+
+
+class TestHasAlphanumeric(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_alphanumeric("Hello123"))
+        self.assertTrue(has_alphanumeric("hello"))
+        self.assertTrue(has_alphanumeric("123"))
+
+    def test_no_alphanumeric(self):
+        self.assertFalse(has_alphanumeric("!!!"))
+        self.assertFalse(has_alphanumeric(" "))
+        self.assertFalse(has_alphanumeric("..."))
+
+    def test_empty_string(self):
+        self.assertFalse(has_alphanumeric(""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_alphanumeric(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_alphanumeric(None)  # type: ignore[arg-type]
 
 
 class TestHasWhitespace(unittest.TestCase):

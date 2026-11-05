@@ -63,6 +63,7 @@ __all__: List[str] = [
     "has_uppercase",
     "has_letters",
     "has_punctuation",
+    "has_alphanumeric",
     "has_consonants",
     "has_vowels",
     "count_letters",
@@ -1994,6 +1995,39 @@ def has_punctuation(text: str) -> bool:
     """
     _require_string(text, "text")
     return any(ch in _PUNCTUATION for ch in text)
+
+
+def has_alphanumeric(text: str) -> bool:
+    """Return True if *text* contains any alphanumeric character.
+
+    A boolean companion to :func:`count_letters` and :func:`count_digits`
+    that reports whether *text* contains at least one ASCII letter or digit.
+    Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one alphanumeric character,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_alphanumeric("Hello123")
+        True
+        >>> has_alphanumeric("hello")
+        True
+        >>> has_alphanumeric("123")
+        True
+        >>> has_alphanumeric("!!!")
+        False
+        >>> has_alphanumeric("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch.isalnum() for ch in text)
 
 
 def has_vowels(text: str) -> bool:
