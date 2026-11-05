@@ -77301,7 +77301,7 @@ def is_close(
         ValueError: If *rel_tol* or *abs_tol* is negative.
 
     Examples:
-        >>> is_close(1.0, 1.000000001)
+        >>> is_close(1.0, 1.0000000001)
         True
         >>> is_close(1.0, 2.0)
         False
@@ -78776,9 +78776,9 @@ def additive_persistence(value: int) -> int:
 
     Examples:
         >>> additive_persistence(123)
-        2
+        1
         >>> additive_persistence(-123)
-        2
+        1
         >>> additive_persistence(0)
         0
         >>> additive_persistence(9)
