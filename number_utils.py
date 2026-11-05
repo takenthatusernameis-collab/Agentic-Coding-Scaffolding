@@ -59,6 +59,7 @@ __all__ = [
     "is_perfect_square",
     "is_positive",
     "is_power_of_two",
+    "is_powerful_number",
     "is_pronic_number",
     "is_mersenne_number",
     "is_spy_number",
@@ -2152,3 +2153,62 @@ def is_mersenne_number(value: Number) -> bool:
     if m & (m - 1) != 0:
         return False
     return True
+
+
+def is_powerful_number(value: int) -> bool:
+    """Return True if *value* is a powerful number.
+
+    A powerful number is a positive integer m such that for every prime
+    number p dividing m, p^2 also divides m. Equivalently, m can be
+    expressed as a^2 * b^3 for some positive integers a and b. By
+    convention, 1 is a powerful number.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a powerful number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_powerful_number(1)
+        True
+        >>> is_powerful_number(4)
+        True
+        >>> is_powerful_number(8)
+        True
+        >>> is_powerful_number(9)
+        True
+        >>> is_powerful_number(16)
+        True
+        >>> is_powerful_number(25)
+        True
+        >>> is_powerful_number(27)
+        True
+        >>> is_powerful_number(32)
+        True
+        >>> is_powerful_number(36)
+        True
+        >>> is_powerful_number(2)
+        False
+        >>> is_powerful_number(6)
+        False
+        >>> is_powerful_number(0)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 1:
+        return False
+    n = value
+    factor = 2
+    while factor * factor <= n:
+        if n % factor == 0:
+            if value % (factor * factor) != 0:
+                return False
+            while n % factor == 0:
+                n //= factor
+        factor += 1
+    return n == 1

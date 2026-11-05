@@ -44,6 +44,7 @@ from number_utils import (
     is_perfect_square,
     is_positive,
     is_power_of_two,
+    is_powerful_number,
     is_pronic_number,
     is_spy_number,
     is_squarefree_number,
@@ -1724,16 +1725,41 @@ class TestIsOblongNumber(unittest.TestCase):
         self.assertFalse(is_oblong_number(-1))
 
     def test_type_errors(self) -> None:
-        from number_utils import is_oblong_number
+        from number_utils import is_duck_number
 
         with self.assertRaises(TypeError):
-            is_oblong_number("6")  # type: ignore[arg-type]
+            is_duck_number("10")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_oblong_number(6.0)  # type: ignore[arg-type]
+            is_duck_number(10.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_oblong_number(True)  # type: ignore[arg-type]
+            is_duck_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_oblong_number(None)  # type: ignore[arg-type]
+            is_duck_number(None)  # type: ignore[arg-type]
+
+
+class TestIsPowerfulNumber(unittest.TestCase):
+    def test_powerful_numbers(self) -> None:
+        for n in (1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 81, 100, 108, 121, 125, 128, 144, 169, 196, 200):
+            self.assertTrue(is_powerful_number(n), n)
+
+    def test_non_powerful_numbers(self) -> None:
+        for n in (0, 2, 3, 5, 6, 7, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 22, 23, 24, 26, 28, 30, 44, 45, 50, 52, 54, 56, 60, 66, 68, 70, 75, 78, 90, 98, 99):
+            self.assertFalse(is_powerful_number(n), n)
+
+    def test_negatives(self) -> None:
+        self.assertFalse(is_powerful_number(-1))
+        self.assertFalse(is_powerful_number(-4))
+        self.assertFalse(is_powerful_number(-72))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_powerful_number("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_powerful_number(4.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_powerful_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_powerful_number(None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
