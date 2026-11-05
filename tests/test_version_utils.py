@@ -15,6 +15,7 @@ from version_utils import (
     cmp_versions,
     compare,
     compare_versions,
+    count_components,
     dec,
     decrement,
     decrement_major,
@@ -1018,6 +1019,37 @@ class TestVersionUtilsAliases(unittest.TestCase):
 
     def test_increment_patch(self):
         self.assertEqual(increment_patch("1.2.3"), "1.2.4")
+
+
+class TestCountComponents(unittest.TestCase):
+    """Tests for the ``count_components`` helper."""
+
+    def test_three_components(self):
+        self.assertEqual(count_components("1.2.3"), 3)
+
+    def test_single_component(self):
+        self.assertEqual(count_components("5"), 1)
+
+    def test_two_components(self):
+        self.assertEqual(count_components("2.0"), 2)
+
+    def test_four_components(self):
+        self.assertEqual(count_components("1.2.3.4"), 4)
+
+    def test_empty_string(self):
+        self.assertEqual(count_components(""), 0)
+
+    def test_prerelease_suffix_part_of_last_component(self):
+        self.assertEqual(count_components("1.2.3-rc1"), 3)
+
+    def test_build_metadata_counts_as_component(self):
+        self.assertEqual(count_components("1.2.3+build.123"), 4)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_components(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_components(None)  # type: ignore[arg-type]
 
 
 class TestRemainingVersionAliases(unittest.TestCase):

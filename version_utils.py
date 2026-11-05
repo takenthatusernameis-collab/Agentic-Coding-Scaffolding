@@ -15,6 +15,7 @@ __all__ = [
     "cmp_versions",
     "compare",
     "compare_versions",
+    "count_components",
     "dec",
     "decrement",
     "decrement_major",
@@ -113,6 +114,36 @@ def parse(version: str) -> Tuple[int, ...]:
 
 # aliases
 parse_version_alias = parse_version
+
+
+def count_components(version: str) -> int:
+    """Return the number of dot-separated components in *version*.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The number of dot-separated components. ``"1.2.3"`` yields ``3``,
+        ``"1"`` yields ``1``, and the empty string yields ``0``.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> count_components("1.2.3")
+        3
+        >>> count_components("1")
+        1
+        >>> count_components("2.0")
+        2
+        >>> count_components("")
+        0
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not version:
+        return 0
+    return len(version.split("."))
 
 
 def version_to_tuple(version: str) -> Tuple[int, ...]:

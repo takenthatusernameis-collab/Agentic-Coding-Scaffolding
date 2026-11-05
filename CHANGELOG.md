@@ -1,3 +1,9 @@
+## Unreleased — added count_components to version_utils
+
+- Added `count_components(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns the number of dot-separated components in a dotted version string (``"1.2.3"`` yields ``3``, ``"1"`` yields ``1``, and the empty string yields ``0``). Added `TestCountComponents` to `tests/test_version_utils.py` covering happy paths, empty input, prerelease/build metadata, and the `TypeError` path. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_version_utils` passes; `python -m doctest version_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed numbers_utils abundance doctest indentation
 
 - Found a real doctest defect in `numbers_utils.abundance`: the expected output line for `abundance(12)` was indented with four extra spaces (`    4`), so `python -m doctest numbers_utils.py` reported a failure even though the function returned the correct value. The expected output was corrected to `4` to match the surrounding doctest examples.

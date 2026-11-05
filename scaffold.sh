@@ -55426,6 +55426,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_components to version_utils
+
+- Added `count_components(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns the number of dot-separated components in a dotted version string (``"1.2.3"`` yields ``3``, ``"1"`` yields ``1``, and the empty string yields ``0``). Added `TestCountComponents` to `tests/test_version_utils.py` covering happy paths, empty input, prerelease/build metadata, and the `TypeError` path. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_version_utils` passes; `python -m doctest version_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed numbers_utils abundance doctest indentation
 
 - Found a real doctest defect in `numbers_utils.abundance`: the expected output line for `abundance(12)` was indented with four extra spaces (`    4`), so `python -m doctest numbers_utils.py` reported a failure even though the function returned the correct value. The expected output was corrected to `4` to match the surrounding doctest examples.
@@ -57623,7 +57629,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, has_prerelease, has_build_metadata, has_metadata)
+version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, has_prerelease, has_build_metadata, has_metadata)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -58549,7 +58555,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, and `has_metadata` is a convenience boolean that reports whether a version string carries prerelease or build metadata, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `count_components` returns the number of dot-separated components in a version string, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, and `has_metadata` is a convenience boolean that reports whether a version string carries prerelease or build metadata, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -109209,6 +109215,7 @@ __all__ = [
     "cmp_versions",
     "compare",
     "compare_versions",
+    "count_components",
     "dec",
     "decrement",
     "decrement_major",
@@ -109307,6 +109314,36 @@ def parse(version: str) -> Tuple[int, ...]:
 
 # aliases
 parse_version_alias = parse_version
+
+
+def count_components(version: str) -> int:
+    """Return the number of dot-separated components in *version*.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The number of dot-separated components. ``"1.2.3"`` yields ``3``,
+        ``"1"`` yields ``1``, and the empty string yields ``0``.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> count_components("1.2.3")
+        3
+        >>> count_components("1")
+        1
+        >>> count_components("2.0")
+        2
+        >>> count_components("")
+        0
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    if not version:
+        return 0
+    return len(version.split("."))
 
 
 def version_to_tuple(version: str) -> Tuple[int, ...]:
@@ -110262,6 +110299,7 @@ from version_utils import (
     cmp_versions,
     compare,
     compare_versions,
+    count_components,
     dec,
     decrement,
     decrement_major,
@@ -111265,6 +111303,37 @@ class TestVersionUtilsAliases(unittest.TestCase):
 
     def test_increment_patch(self):
         self.assertEqual(increment_patch("1.2.3"), "1.2.4")
+
+
+class TestCountComponents(unittest.TestCase):
+    """Tests for the ``count_components`` helper."""
+
+    def test_three_components(self):
+        self.assertEqual(count_components("1.2.3"), 3)
+
+    def test_single_component(self):
+        self.assertEqual(count_components("5"), 1)
+
+    def test_two_components(self):
+        self.assertEqual(count_components("2.0"), 2)
+
+    def test_four_components(self):
+        self.assertEqual(count_components("1.2.3.4"), 4)
+
+    def test_empty_string(self):
+        self.assertEqual(count_components(""), 0)
+
+    def test_prerelease_suffix_part_of_last_component(self):
+        self.assertEqual(count_components("1.2.3-rc1"), 3)
+
+    def test_build_metadata_counts_as_component(self):
+        self.assertEqual(count_components("1.2.3+build.123"), 4)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_components(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_components(None)  # type: ignore[arg-type]
 
 
 class TestRemainingVersionAliases(unittest.TestCase):
