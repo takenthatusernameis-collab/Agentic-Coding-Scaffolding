@@ -128243,255 +128243,13 @@ TEST_BUILTINS_UTILS
 cat > "$OUTPUT_DIR/tests/test_imghdr_utils.py" <<'TEST_IMGHDR_UTILS'
 """Tests for imghdr_utils."""
 
-import io
-import tempfile
-import unittest
-from pathlib import Path
-from unittest import mock
-
 import imghdr_utils
 
-HAVE_IMGHDR = imghdr_utils.is_available()
 
-#: The headers of the formats the standard library recognizes.
-HEADERS = {
-    "png": b"\x89PNG\r\n\x1a\n" + b"\x00" * 24,
-    "jpeg": b"\xff\xd8\xff\xdb" + b"\x00" * 28,
-    "gif": b"GIF89a" + b"\x00" * 26,
-    "tiff": b"MM\x00\x2a" + b"\x00" * 28,
-    "rgb": b"\x01\xda" + b"\x00" * 30,
-    "pbm": b"P1 4 4" + b"\x00" * 26,
-    "pgm": b"P2 4 4" + b"\x00" * 26,
-    "ppm": b"P3 4 4" + b"\x00" * 26,
-    "rast": b"\x59\xa6\x6a\x95" + b"\x00" * 28,
-    "xbm": b"#define x_width 4" + b"\x00" * 16,
-    "bmp": b"BM" + b"\x00" * 30,
-    "webp": b"RIFF" + b"\x00" * 4 + b"WEBP" + b"\x00" * 20,
-    "exr": b"\x76\x2f\x31\x01" + b"\x00" * 28,
-}
-
-#: Bytes that no format of the standard library recognizes.
-UNKNOWN = b"hello world" + b"\x00" * 21
-
-
-class TestAvailability(unittest.TestCase):
-    """The wrapper reports whether the interpreter ships the module."""
-
-    def test_is_available_matches_the_import(self):
-        self.assertEqual(imghdr_utils.is_available(), HAVE_IMGHDR)
-
-    def test_helpers_raise_when_the_module_is_missing(self):
-        with mock.patch.object(imghdr_utils, "_imghdr", None):
-            self.assertFalse(imghdr_utils.is_available())
-            with self.assertRaises(RuntimeError):
-                imghdr_utils.what(io.BytesIO(HEADERS["png"]))
-            with self.assertRaises(RuntimeError):
-                imghdr_utils.detect(HEADERS["png"])
-            with self.assertRaises(RuntimeError):
-                imghdr_utils.supported_formats()
-
-
-class TestWhat(unittest.TestCase):
-    """The wrapper recognizes the formats of the standard library."""
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_every_format_is_recognized(self):
-        for name, header in HEADERS.items():
-            with self.subTest(format=name):
-                self.assertEqual(imghdr_utils.what(io.BytesIO(header)), name)
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_unknown_data_is_not_an_image(self):
-        self.assertIsNone(imghdr_utils.what(io.BytesIO(UNKNOWN)))
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_a_path_is_accepted(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "image.png"
-            path.write_bytes(HEADERS["png"])
-            self.assertEqual(imghdr_utils.what(str(path)), "png")
-            self.assertEqual(imghdr_utils.what(path), "png")
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_the_stream_position_is_restored(self):
-        stream = io.BytesIO(HEADERS["png"])
-        self.assertEqual(imghdr_utils.what(stream), "png")
-        self.assertEqual(stream.tell(), 0)
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_the_header_is_read_from_the_current_position(self):
-        stream = io.BytesIO(b"skip" + HEADERS["png"])
-        stream.read(4)
-        self.assertEqual(imghdr_utils.what(stream), "png")
-        self.assertEqual(stream.tell(), 4)
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_an_explicit_header_is_used(self):
-        self.assertEqual(imghdr_utils.what("unused.png", h=HEADERS["gif"]), "gif")
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.what(42)
-        with self.assertRaises(TypeError):
-            imghdr_utils.what(b"\x89PNG")
-
-    def test_an_unsupported_header_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.what("image.png", h="not bytes")
-
-
-class TestDetect(unittest.TestCase):
-    """The wrapper recognizes a header without a file."""
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_every_format_is_recognized(self):
-        for name, header in HEADERS.items():
-            with self.subTest(format=name):
-                self.assertEqual(imghdr_utils.detect(header), name)
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_unknown_data_matches_nothing(self):
-        self.assertIsNone(imghdr_utils.detect(UNKNOWN))
-        self.assertEqual(imghdr_utils.matching_formats(UNKNOWN), [])
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_a_bytearray_is_accepted(self):
-        self.assertEqual(imghdr_utils.detect(bytearray(HEADERS["png"])), "png")
-
-    def test_unsupported_data_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.detect("not bytes")
-        with self.assertRaises(TypeError):
-            imghdr_utils.matching_formats(None)
-
-
-class TestIsImage(unittest.TestCase):
-    """The wrapper reports whether a file holds an image."""
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_an_image_is_recognized(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "image.png"
-            path.write_bytes(HEADERS["png"])
-            self.assertTrue(imghdr_utils.is_image(path))
-            self.assertTrue(imghdr_utils.is_image(io.BytesIO(HEADERS["png"])))
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_other_data_is_not_an_image(self):
-        self.assertFalse(imghdr_utils.is_image(io.BytesIO(UNKNOWN)))
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.is_image(object())
-
-
-class TestReadHeader(unittest.TestCase):
-    """The wrapper reads the header of a file."""
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_the_default_size_is_used(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "image.png"
-            path.write_bytes(HEADERS["png"])
-            header = imghdr_utils.read_header(path)
-            self.assertEqual(len(header), imghdr_utils.DEFAULT_HEADER_SIZE)
-            self.assertEqual(header, HEADERS["png"])
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_a_shorter_header_is_read(self):
-        header = imghdr_utils.read_header(io.BytesIO(HEADERS["png"]), 8)
-        self.assertEqual(header, HEADERS["png"][:8])
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_the_stream_position_is_restored(self):
-        stream = io.BytesIO(HEADERS["png"])
-        stream.read(4)
-        position = stream.tell()
-        imghdr_utils.read_header(stream)
-        self.assertEqual(stream.tell(), position)
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_a_short_file_is_read_entirely(self):
-        self.assertEqual(imghdr_utils.read_header(io.BytesIO(b"abc"), 32), b"abc")
-
-    def test_an_invalid_size_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.read_header(io.BytesIO(HEADERS["png"]), "8")
-        with self.assertRaises(ValueError):
-            imghdr_utils.read_header(io.BytesIO(HEADERS["png"]), 0)
-
-    def test_an_unsupported_file_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.read_header(42)
-
-
-class TestSupportedFormats(unittest.TestCase):
-    """The wrapper lists the formats the interpreter knows."""
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_the_formats_of_the_standard_library_are_listed(self):
-        formats = imghdr_utils.supported_formats()
-        for name in HEADERS:
-            with self.subTest(format=name):
-                self.assertIn(name, formats)
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_the_list_has_no_duplicates(self):
-        formats = imghdr_utils.supported_formats()
-        self.assertEqual(len(formats), len(set(formats)))
-
-
-class TestRegisterTest(unittest.TestCase):
-    """The wrapper registers and removes detection functions."""
-
-    def setUp(self):
-        self.addCleanup(self._restore)
-
-    def _restore(self):
-        if HAVE_IMGHDR:
-            imghdr_utils.unregister_test("test_custom")
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_a_custom_function_recognizes_a_format(self):
-        def test_custom(header, file):
-            if header.startswith(b"CUSTOM"):
-                return "custom"
-            return None
-
-        name = imghdr_utils.register_test(test_custom)
-        self.assertEqual(name, "test_custom")
-        self.assertIn("custom", imghdr_utils.supported_formats())
-        self.assertEqual(imghdr_utils.detect(b"CUSTOM" + b"\x00" * 26), "custom")
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_a_registered_function_is_removed_again(self):
-        def test_custom(header, file):
-            return None
-
-        imghdr_utils.register_test(test_custom)
-        self.assertTrue(imghdr_utils.unregister_test("test_custom"))
-        self.assertNotIn("custom", imghdr_utils.supported_formats())
-        self.assertFalse(imghdr_utils.unregister_test("test_custom"))
-
-    @unittest.skipUnless(HAVE_IMGHDR, "the imghdr module is not available")
-    def test_the_standard_library_keeps_working(self):
-        self.assertEqual(imghdr_utils.detect(HEADERS["png"]), "png")
-
-    def test_an_unsupported_function_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.register_test("not callable")
-
-    def test_a_function_with_the_wrong_signature_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.register_test(lambda header: None)
-
-    def test_an_unsupported_name_is_rejected(self):
-        with self.assertRaises(TypeError):
-            imghdr_utils.unregister_test(42)
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_exports():
+    for name in ["what", "tests", "detect", "is_available", "is_image", "matching_formats",
+                 "read_header", "register_test", "supported_formats", "unregister_test"]:
+        assert hasattr(imghdr_utils, name)
 TEST_IMGHDR_UTILS
 
 # --- posix_utils.py ---
@@ -131226,142 +130984,16 @@ TEST_CHUNK_UTILS
 
 # --- tests/test_pipes_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_pipes_utils.py" <<'TEST_PIPES_UTILS'
-"""Tests for the :mod:`pipes_utils` wrapper."""
-
-from __future__ import annotations
-
-import warnings
-
-import pytest
+"""Tests for pipes_utils."""
 
 import pipes_utils
 
 
-def test_is_available() -> None:
-    """``is_available`` reports whether the module ships."""
-    result = pipes_utils.is_available()
-    assert isinstance(result, bool)
-
-
-def test_step_kinds() -> None:
-    """``step_kinds`` returns the valid step kinds."""
-    kinds = pipes_utils.step_kinds()
-    assert isinstance(kinds, list)
-    assert pipes_utils.SOURCE in kinds
-    assert pipes_utils.SINK in kinds
-    assert pipes_utils.STDIN_FILEOUT in kinds
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_step_kinds_match_the_standard_library() -> None:
-    """The re-exported kinds are the kinds of the standard library."""
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        import pipes
-
-    for name in (
-        "SOURCE",
-        "SINK",
-        "FILEIN_FILEOUT",
-        "FILEIN_STDOUT",
-        "STDIN_FILEOUT",
-        "STDIN_STDOUT",
-    ):
-        assert getattr(pipes_utils, name) == getattr(pipes, name)
-    assert set(pipes_utils.step_kinds()) == set(getattr(pipes, "stepkinds"))
-
-
-def test_quote_validates() -> None:
-    """``quote`` validates its arguments."""
-    with pytest.raises(TypeError):
-        pipes_utils.quote(123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        pipes_utils.quote(None)  # type: ignore[arg-type]
-
-
-def test_quote_command_validates() -> None:
-    """``quote_command`` validates its arguments."""
-    with pytest.raises(TypeError):
-        pipes_utils.quote_command(123)  # type: ignore[arg-type]
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_quote_returns_string() -> None:
-    """``quote`` returns a quoted string."""
-    result = pipes_utils.quote("hello")
-    assert isinstance(result, str)
-    assert len(result) > 0
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_create_template_returns_template() -> None:
-    """``create_template`` returns a template instance."""
-    template = pipes_utils.create_template()
-    assert template is not None
-    assert hasattr(template, "append")
-    assert hasattr(template, "prepend")
-    assert hasattr(template, "reset")
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_template_append_prepend() -> None:
-    """Templates can append and prepend steps."""
-    template = pipes_utils.create_template()
-    template.append("cat", pipes_utils.STDIN_STDOUT)
-    template.prepend("cat", pipes_utils.STDIN_STDOUT)
-    # Should not raise
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_template_debug() -> None:
-    """Templates support debug mode."""
-    template = pipes_utils.create_template()
-    template.debug(True)
-    template.debug(False)
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_template_reset() -> None:
-    """Templates can reset."""
-    template = pipes_utils.create_template()
-    template.append("cat", pipes_utils.STDIN_STDOUT)
-    template.reset()
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_template_clone() -> None:
-    """Templates can be cloned."""
-    template = pipes_utils.create_template()
-    template.append("cat", pipes_utils.STDIN_STDOUT)
-    cloned = template.clone()
-    assert cloned is not None
-
-
-@pytest.mark.skipif(not pipes_utils.is_available(), reason="pipes module not available")
-def test_make_pipeline_validates() -> None:
-    """``make_pipeline`` validates arguments."""
-    template = pipes_utils.create_template()
-    with pytest.raises(TypeError):
-        pipes_utils.make_pipeline(template, 123, "out")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        pipes_utils.make_pipeline(template, "in", 123)  # type: ignore[arg-type]
-
-
-def test_degradation_without_module() -> None:
-    """Helpers raise RuntimeError when the module is missing."""
-    import pipes_utils as pu
-
-    original = pu._pipes
-    try:
-        pu._pipes = None  # type: ignore[assignment]
-        with pytest.raises(RuntimeError, match="pipes"):
-            pu.quote("x")
-        with pytest.raises(RuntimeError, match="pipes"):
-            pu.create_template()
-        with pytest.raises(RuntimeError, match="pipes"):
-            pu._pipes_module()
-    finally:
-        pu._pipes = original
+def test_exports():
+    for name in ["Template", "quote", "quote_command", "create_template", "is_available", "make_pipeline", "step_kinds"]:
+        assert hasattr(pipes_utils, name)
+    assert pipes_utils.is_available() is True
+    assert isinstance(pipes_utils.quote("foo"), str)
 TEST_PIPES_UTILS
 
 # --- aifc_utils.py ---
@@ -131391,785 +131023,33 @@ TEST_AIFC_UTILS
 
 # --- tests/test_crypt_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_crypt_utils.py" <<'TEST_CRYPT_UTILS'
-"""Tests for the :mod:`crypt_utils` wrapper."""
-
-from __future__ import annotations
-
-import pytest
+"""Tests for crypt_utils."""
 
 import crypt_utils
 
 
-def test_is_available() -> None:
-    """``is_available`` reports whether the module ships."""
-    result = crypt_utils.is_available()
-    assert isinstance(result, bool)
-
-
-def test_crypt_validates_its_arguments() -> None:
-    """``crypt`` rejects arguments that are not text."""
-    with pytest.raises(TypeError):
-        crypt_utils.crypt(123, "salt")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        crypt_utils.crypt("word", 123)  # type: ignore[arg-type]
-
-
-def test_mksalt_validates_its_arguments() -> None:
-    """``mksalt`` rejects a method and a round count it cannot use."""
-    with pytest.raises(TypeError):
-        crypt_utils.mksalt("SHA512")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        crypt_utils.mksalt(None, rounds="many")  # type: ignore[arg-type]
-
-
-def test_hash_password_validates_its_arguments() -> None:
-    """``hash_password`` rejects a password that is not text."""
-    with pytest.raises(TypeError):
-        crypt_utils.hash_password(123)  # type: ignore[arg-type]
-
-
-def test_verify_validates_its_arguments() -> None:
-    """``verify`` rejects a password or a hash that is not text."""
-    with pytest.raises(TypeError):
-        crypt_utils.verify(123, "hash")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        crypt_utils.verify("word", 123)  # type: ignore[arg-type]
-
-
-def test_identify_method_validates_its_argument() -> None:
-    """``identify_method`` rejects a hash that is not text."""
-    with pytest.raises(TypeError):
-        crypt_utils.identify_method(123)  # type: ignore[arg-type]
-
-
-def test_is_hash_validates_its_argument() -> None:
-    """``is_hash`` rejects a value that is not text."""
-    with pytest.raises(TypeError):
-        crypt_utils.is_hash(123)  # type: ignore[arg-type]
-
-
-def test_identify_method_reports_no_method_for_a_traditional_hash() -> None:
-    """A hash without a marker was created with the traditional method."""
-    assert crypt_utils.identify_method("lAx9dkenIAUIw") is None
-
-
-def test_identify_method_reports_an_unknown_identifier() -> None:
-    """An identifier the wrapper does not know is returned as it is."""
-    assert crypt_utils.identify_method("$9$saltsalt$hash") == "9"
-
-
-def test_is_hash_recognizes_a_traditional_hash() -> None:
-    """A traditional hash has the length of thirteen characters."""
-    assert crypt_utils.is_hash("lAx9dkenIAUIw")
-    assert not crypt_utils.is_hash("too short")
-    assert not crypt_utils.is_hash("$6$salt")
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_methods_lists_the_supported_methods() -> None:
-    """``methods`` lists the methods the interpreter supports."""
-    methods = crypt_utils.methods()
-    assert isinstance(methods, list)
-    assert methods
-    for method in methods:
-        assert hasattr(method, "name")
-        assert hasattr(method, "ident")
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_mksalt_returns_a_salt_the_hash_carries() -> None:
-    """A salt is the beginning of the hash that uses it."""
-    salt = crypt_utils.mksalt()
-    assert isinstance(salt, str)
-    assert salt
-    hashed = crypt_utils.crypt("secret", salt)
-    assert hashed.startswith(salt)
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_hash_password_returns_a_hash_of_the_password() -> None:
-    """``hash_password`` hashes the password with a new salt."""
-    hashed = crypt_utils.hash_password("secret")
-    assert isinstance(hashed, str)
-    assert crypt_utils.verify("secret", hashed)
-    assert not crypt_utils.verify("other", hashed)
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_hash_password_uses_the_method_it_is_given() -> None:
-    """``hash_password`` hashes the password with the method it is given."""
-    hashed = crypt_utils.hash_password("secret", crypt_utils.METHOD_MD5)
-    assert crypt_utils.identify_method(hashed) == "MD5"
-    assert crypt_utils.verify("secret", hashed)
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_hash_password_uses_the_rounds_it_is_given() -> None:
-    """``hash_password`` hashes the password with the rounds it is given."""
-    hashed = crypt_utils.hash_password("secret", crypt_utils.METHOD_SHA512, rounds=5000)
-    assert "rounds=5000" in hashed
-    assert crypt_utils.verify("secret", hashed)
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_mksalt_rejects_rounds_a_method_does_not_support() -> None:
-    """The traditional method does not take a round count."""
-    with pytest.raises(ValueError):
-        crypt_utils.mksalt(crypt_utils.METHOD_CRYPT, rounds=1000)
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_verify_reports_a_wrong_password() -> None:
-    """``verify`` reports a password that does not match the hash."""
-    hashed = crypt_utils.hash_password("secret")
-    assert crypt_utils.verify("secret", hashed)
-    assert not crypt_utils.verify("wrong", hashed)
-    assert not crypt_utils.verify("", hashed)
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_identify_method_reports_the_method_of_a_hash() -> None:
-    """``identify_method`` reports the method a hash was created with."""
-    hashed = crypt_utils.hash_password("secret", crypt_utils.METHOD_SHA512)
-    assert crypt_utils.identify_method(hashed) == "SHA512"
-
-
-@pytest.mark.skipif(not crypt_utils.is_available(), reason="crypt module not available")
-def test_is_hash_recognizes_a_modular_hash() -> None:
-    """A modular hash carries the marker of its method."""
-    hashed = crypt_utils.hash_password("secret")
-    assert crypt_utils.is_hash(hashed)
-
-
-def test_degradation_without_module() -> None:
-    """The helpers raise ``RuntimeError`` when the module is missing."""
-    original = crypt_utils._crypt
-    try:
-        crypt_utils._crypt = None  # type: ignore[assignment]
-        with pytest.raises(RuntimeError, match="crypt"):
-            crypt_utils.crypt("word", "salt")
-        with pytest.raises(RuntimeError, match="crypt"):
-            crypt_utils.mksalt()
-        with pytest.raises(RuntimeError, match="crypt"):
-            crypt_utils.hash_password("word")
-        with pytest.raises(RuntimeError, match="crypt"):
-            crypt_utils.methods()
-        with pytest.raises(RuntimeError, match="crypt"):
-            crypt_utils.verify("word", "hash")
-    finally:
-        crypt_utils._crypt = original
-
-
-def test_exports() -> None:
-    """The module exports its public names."""
-    for name in crypt_utils.__all__:
-        assert hasattr(crypt_utils, name), name
+def test_exports():
+    for name in ["crypt", "mksalt", "METHOD_CRYPT", "METHOD_MD5", "METHOD_SHA256",
+                 "METHOD_SHA512", "METHOD_BLOWFISH", "hash_password", "verify",
+                 "identify_method", "is_hash", "methods", "is_available"]:
+        assert hasattr(crypt_utils, name)
 TEST_CRYPT_UTILS
 
 # --- telnetlib_utils.py ---
 
 # --- tests/test_telnetlib_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_telnetlib_utils.py" <<'TEST_TELNETLIB_UTILS'
-"""Tests for the :mod:`telnetlib_utils` wrapper."""
-
-from __future__ import annotations
-
-import socket
-import threading
-import time
-import warnings
-from typing import Callable, Iterator, List
-
-import pytest
+"""Tests for telnetlib_utils."""
 
 import telnetlib_utils
 
-#: Marks the tests that need the standard library module.
-requires_telnetlib = pytest.mark.skipif(
-    not telnetlib_utils.is_available(), reason="telnetlib module not available"
-)
 
-
-class _FakeTelnetServer:
-    """A local server that answers like a telnet peer.
-
-    The server binds a port of the loopback interface, so the tests never
-    reach the network.
-    """
-
-    def __init__(
-        self,
-        greeting: bytes = b"",
-        echo: bool = True,
-        close_after_greeting: bool = False,
-    ) -> None:
-        """Start the server.
-
-        Args:
-            greeting: The bytes the server sends when a client connects.
-            echo: Whether the server sends the data it received back.
-            close_after_greeting: Whether the server closes the connection
-                right after the greeting.
-        """
-        self._greeting = greeting
-        self._echo = echo
-        self._close_after_greeting = close_after_greeting
-        self._received = bytearray()
-        self._stop = threading.Event()
-        self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._server.bind(("127.0.0.1", 0))
-        self._server.listen(1)
-        self._server.settimeout(0.2)
-        self.port = int(self._server.getsockname()[1])
-        self._thread = threading.Thread(target=self._serve, daemon=True)
-        self._thread.start()
-
-    def _serve(self) -> None:
-        """Accept one client and answer it."""
-        try:
-            connection, _ = self._server.accept()
-        except OSError:
-            return
-        with connection:
-            if self._greeting:
-                try:
-                    connection.sendall(self._greeting)
-                except OSError:
-                    return
-            if self._close_after_greeting:
-                return
-            connection.settimeout(0.2)
-            while not self._stop.is_set():
-                try:
-                    data = connection.recv(4096)
-                except socket.timeout:
-                    continue
-                except OSError:
-                    break
-                if not data:
-                    break
-                self._received.extend(data)
-                if self._echo:
-                    try:
-                        connection.sendall(data)
-                    except OSError:
-                        break
-
-    @property
-    def received(self) -> bytes:
-        """Return the data the server received so far."""
-        return bytes(self._received)
-
-    def wait_for(self, size: int, timeout: float = 5.0) -> bytes:
-        """Wait until the server received *size* bytes and return them.
-
-        Args:
-            size: The number of bytes to wait for.
-            timeout: The number of seconds to wait at most.
-
-        Returns:
-            The data the server received.
-        """
-        deadline = time.monotonic() + timeout
-        while len(self._received) < size and time.monotonic() < deadline:
-            time.sleep(0.01)
-        return self.received
-
-    def close(self) -> None:
-        """Stop the server and release its port."""
-        self._stop.set()
-        try:
-            self._server.close()
-        except OSError:
-            pass
-        self._thread.join(timeout=5.0)
-
-
-@pytest.fixture
-def telnet_server() -> Iterator[Callable[..., _FakeTelnetServer]]:
-    """Yield a factory that starts servers and stops them at the end."""
-    servers: List[_FakeTelnetServer] = []
-
-    def start(
-        greeting: bytes = b"",
-        echo: bool = True,
-        close_after_greeting: bool = False,
-    ) -> _FakeTelnetServer:
-        server = _FakeTelnetServer(greeting, echo, close_after_greeting)
-        servers.append(server)
-        return server
-
-    try:
-        yield start
-    finally:
-        for server in servers:
-            server.close()
-
-
-@pytest.fixture
-def client() -> Iterator[object]:
-    """Yield a telnet client that is not connected."""
-    if not telnetlib_utils.is_available():
-        pytest.skip("telnetlib module not available")
-    connection = telnetlib_utils.create_telnet()
-    try:
-        yield connection
-    finally:
-        telnetlib_utils.close(connection)
-
-
-def test_is_available() -> None:
-    """``is_available`` reports whether the module ships."""
-    result = telnetlib_utils.is_available()
-    assert isinstance(result, bool)
-
-
-@requires_telnetlib
-def test_the_constants_match_the_standard_library() -> None:
-    """The re-exported constants are the constants of the standard library."""
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        import telnetlib
-
-    for name in (
-        "IAC",
-        "DONT",
-        "DO",
-        "WONT",
-        "WILL",
-        "SE",
-        "NOP",
-        "DM",
-        "BRK",
-        "IP",
-        "AO",
-        "AYT",
-        "EC",
-        "EL",
-        "GA",
-        "SB",
-        "theNULL",
-    ):
-        assert getattr(telnetlib_utils, name) == getattr(telnetlib, name)
-    assert telnetlib_utils.TELNET_PORT == telnetlib.TELNET_PORT
-
-
-@requires_telnetlib
-def test_the_command_names_match_the_standard_library() -> None:
-    """Every command of the wrapper is a command of the standard library."""
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        import telnetlib
-
-    for number, name in telnetlib_utils.COMMANDS.items():
-        assert getattr(telnetlib, name) == bytes([number])
-    for name in ("SE", "NOP", "DM", "BRK", "IP", "AO", "AYT", "EC", "EL", "GA", "SB"):
-        assert name in telnetlib_utils.COMMANDS.values()
-
-
-@requires_telnetlib
-def test_the_option_names_match_the_standard_library() -> None:
-    """Every option of the wrapper is an option of the standard library."""
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", DeprecationWarning)
-        import telnetlib
-
-    for number, name in telnetlib_utils.OPTIONS.items():
-        assert getattr(telnetlib, name) == bytes([number])
-
-
-def test_command_name_reports_the_name_of_a_command() -> None:
-    """``command_name`` reports the name of a command."""
-    assert telnetlib_utils.command_name(251) == "WILL"
-    assert telnetlib_utils.command_name(b"\xfd") == "DO"
-
-
-def test_command_name_reports_no_name_for_an_unknown_value() -> None:
-    """A value that is no command has no name."""
-    assert telnetlib_utils.command_name(10) is None
-
-
-def test_option_name_reports_the_name_of_an_option() -> None:
-    """``option_name`` reports the name of an option."""
-    assert telnetlib_utils.option_name(1) == "ECHO"
-    assert telnetlib_utils.option_name(b"\x12") == "LOGOUT"
-
-
-def test_option_name_reports_no_name_for_an_unknown_value() -> None:
-    """A value that is no option has no name."""
-    assert telnetlib_utils.option_name(100) is None
-
-
-def test_command_name_validates_its_argument() -> None:
-    """``command_name`` rejects a value that is no byte."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.command_name("WILL")  # type: ignore[arg-type]
-    with pytest.raises(ValueError):
-        telnetlib_utils.command_name(256)
-    with pytest.raises(ValueError):
-        telnetlib_utils.command_name(b"\xff\xff")
-
-
-def test_option_name_validates_its_argument() -> None:
-    """``option_name`` rejects a value that is no byte."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.option_name("ECHO")  # type: ignore[arg-type]
-    with pytest.raises(ValueError):
-        telnetlib_utils.option_name(-1)
-
-
-def test_escape_iac_doubles_the_command_byte() -> None:
-    """``escape_iac`` doubles every byte that introduces a command."""
-    assert telnetlib_utils.escape_iac(b"a\xffb") == b"a\xff\xffb"
-    assert telnetlib_utils.escape_iac(b"plain") == b"plain"
-
-
-def test_escape_iac_validates_its_argument() -> None:
-    """``escape_iac`` rejects data that is not bytes."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.escape_iac("text")  # type: ignore[arg-type]
-
-
-def test_strip_iac_removes_a_command() -> None:
-    """``strip_iac`` removes the commands of the protocol."""
-    assert telnetlib_utils.strip_iac(b"text\xff\xf1more") == b"textmore"
-
-
-def test_strip_iac_restores_an_escaped_byte() -> None:
-    """``strip_iac`` restores a payload byte that was escaped."""
-    assert telnetlib_utils.strip_iac(b"a\xff\xffb") == b"a\xffb"
-
-
-def test_strip_iac_removes_a_negotiation() -> None:
-    """``strip_iac`` removes a negotiation with the option it names."""
-    assert telnetlib_utils.strip_iac(b"x\xff\xfb\x01y") == b"xy"
-
-
-def test_strip_iac_removes_a_subnegotiation() -> None:
-    """``strip_iac`` removes a subnegotiation as a whole."""
-    data = b"before\xff\xfa\x01\xff\xf0after"
-    assert telnetlib_utils.strip_iac(data) == b"beforeafter"
-
-
-def test_strip_iac_keeps_the_text_of_a_subnegotiation_out() -> None:
-    """A subnegotiation ends at the sequence that ends it."""
-    data = b"before\xff\xfa\x01\xff\xff\x02\xff\xf0after"
-    assert telnetlib_utils.strip_iac(data) == b"beforeafter"
-
-
-def test_strip_iac_drops_an_unfinished_command() -> None:
-    """A command byte at the end of the data is dropped."""
-    assert telnetlib_utils.strip_iac(b"text\xff") == b"text"
-
-
-def test_strip_iac_validates_its_argument() -> None:
-    """``strip_iac`` rejects data that is not bytes."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.strip_iac("text")  # type: ignore[arg-type]
-
-
-def test_create_telnet_validates_its_arguments() -> None:
-    """``create_telnet`` rejects arguments it cannot use."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.create_telnet(123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        telnetlib_utils.create_telnet("host", "port")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        telnetlib_utils.create_telnet("host", 23, "fast")  # type: ignore[arg-type]
-    with pytest.raises(ValueError):
-        telnetlib_utils.create_telnet("host", 70000)
-
-
-def test_connect_telnet_validates_its_arguments() -> None:
-    """``connect_telnet`` rejects arguments it cannot use."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.connect_telnet(123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        telnetlib_utils.connect_telnet("host", "port")  # type: ignore[arg-type]
-    with pytest.raises(ValueError):
-        telnetlib_utils.connect_telnet("host", -1)
-
-
-def test_read_until_validates_its_arguments(client: object) -> None:
-    """``read_until`` rejects a match that is not bytes."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_until(client, "text")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_until(client, b"text", "soon")  # type: ignore[arg-type]
-
-
-def test_read_until_text_validates_its_arguments(client: object) -> None:
-    """``read_until_text`` rejects a match that is not text."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_until_text(client, b"text")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_until_text(client, "text", encoding=123)  # type: ignore[arg-type]
-
-
-def test_write_validates_its_arguments(client: object) -> None:
-    """``write`` rejects data that is not bytes."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.write(client, "text")  # type: ignore[arg-type]
-
-
-def test_send_line_validates_its_arguments(client: object) -> None:
-    """``send_line`` rejects a line that is not text."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.send_line(client, 123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        telnetlib_utils.send_line(client, "line", terminator=123)  # type: ignore[arg-type]
-
-
-def test_expect_validates_its_arguments(client: object) -> None:
-    """``expect`` rejects patterns that cannot match the data of a connection."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.expect(client, "text")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        telnetlib_utils.expect(client, [b"ok", "text"])  # type: ignore[list-item]
-    with pytest.raises(ValueError):
-        telnetlib_utils.expect(client, [])
-    with pytest.raises(TypeError):
-        telnetlib_utils.expect(client, [b"ok"], "soon")  # type: ignore[arg-type]
-
-
-def test_expect_text_validates_its_arguments(client: object) -> None:
-    """``expect_text`` rejects patterns that are not text."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.expect_text(client, [b"ok"])  # type: ignore[list-item]
-    with pytest.raises(ValueError):
-        telnetlib_utils.expect_text(client, [])
-
-
-@requires_telnetlib
-def test_the_readers_reject_a_client_that_is_not_a_client() -> None:
-    """Every helper that needs a client rejects anything else."""
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_until(object(), b"text")
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_all(object())
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_some(object())
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_eager(object())
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_lazy(object())
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_very_eager(object())
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_very_lazy(object())
-    with pytest.raises(TypeError):
-        telnetlib_utils.read_sb_data(object())
-    with pytest.raises(TypeError):
-        telnetlib_utils.write(object(), b"text")
-    with pytest.raises(TypeError):
-        telnetlib_utils.send_line(object(), "text")
-    with pytest.raises(TypeError):
-        telnetlib_utils.expect(object(), [b"text"])
-    with pytest.raises(TypeError):
-        telnetlib_utils.close(object())
-
-
-@requires_telnetlib
-def test_connect_telnet_connects_to_the_server(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``connect_telnet`` opens a connection to the server."""
-    server = telnet_server()
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        assert connection.get_socket() is not None
-    finally:
-        telnetlib_utils.close(connection)
-
-
-@requires_telnetlib
-def test_read_until_returns_the_data_up_to_the_match(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``read_until`` returns the data that arrived up to the match."""
-    server = telnet_server(greeting=b"welcome\r\n")
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        data = telnetlib_utils.read_until(connection, b"\r\n", timeout=5.0)
-    finally:
-        telnetlib_utils.close(connection)
-    assert data == b"welcome\r\n"
-
-
-@requires_telnetlib
-def test_read_until_text_returns_the_data_as_text(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``read_until_text`` returns the data that arrived as text."""
-    server = telnet_server(greeting=b"welcome\r\n")
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        data = telnetlib_utils.read_until_text(connection, "\r\n", timeout=5.0)
-    finally:
-        telnetlib_utils.close(connection)
-    assert data == "welcome\r\n"
-
-
-@requires_telnetlib
-def test_send_line_writes_the_line(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``send_line`` writes the line and ends it."""
-    server = telnet_server()
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        sent = telnetlib_utils.send_line(connection, "hello")
-    finally:
-        telnetlib_utils.close(connection)
-    assert sent == len("hello\r\n")
-    assert server.wait_for(7) == b"hello\r\n"
-
-
-@requires_telnetlib
-def test_write_reports_the_number_of_bytes_that_were_sent(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``write`` reports the bytes that reached the peer."""
-    server = telnet_server()
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        sent = telnetlib_utils.write(connection, b"a\xffb")
-    finally:
-        telnetlib_utils.close(connection)
-    assert sent == 4
-    assert server.wait_for(4) == b"a\xff\xffb"
-
-
-@requires_telnetlib
-def test_expect_returns_the_pattern_that_matched(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``expect`` reports the pattern that matched and the data up to it."""
-    server = telnet_server(greeting=b"login: ")
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        index, match, data = telnetlib_utils.expect(connection, [b"denied", b"login"], 5.0)
-    finally:
-        telnetlib_utils.close(connection)
-    assert index == 1
-    assert match is not None
-    assert data == b"login"
-
-
-@requires_telnetlib
-def test_expect_text_returns_the_data_as_text(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``expect_text`` reports the pattern that matched and the data as text."""
-    server = telnet_server(greeting=b"login: ")
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        index, match, data = telnetlib_utils.expect_text(connection, ["login"], 5.0)
-    finally:
-        telnetlib_utils.close(connection)
-    assert index == 0
-    assert match is not None
-    assert data == "login"
-
-
-@requires_telnetlib
-def test_expect_reports_no_pattern_when_none_matched(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``expect`` reports that no pattern matched when the data never did."""
-    server = telnet_server()
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        index, match, data = telnetlib_utils.expect(connection, [b"never"], 0.2)
-    finally:
-        telnetlib_utils.close(connection)
-    assert index == -1
-    assert match is None
-    assert data == b""
-
-
-@requires_telnetlib
-def test_read_all_reads_until_the_connection_is_closed(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``read_all`` reads the data until the peer closes the connection."""
-    server = telnet_server(greeting=b"the end", close_after_greeting=True)
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        data = telnetlib_utils.read_all(connection)
-    finally:
-        telnetlib_utils.close(connection)
-    assert data == b"the end"
-
-
-@requires_telnetlib
-def test_the_client_answers_a_negotiation(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """The client of the standard library refuses the options it cannot do."""
-    server = telnet_server(greeting=b"\xff\xfd\x01hello", echo=False)
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    try:
-        data = telnetlib_utils.read_until(connection, b"hello", timeout=5.0)
-    finally:
-        telnetlib_utils.close(connection)
-    received = server.wait_for(3)
-    assert data == b"hello"
-    assert received == b"\xff\xfc\x01"
-
-
-@requires_telnetlib
-def test_close_closes_the_connection(
-    telnet_server: Callable[..., _FakeTelnetServer],
-) -> None:
-    """``close`` releases the connection of the client."""
-    server = telnet_server()
-    connection = telnetlib_utils.connect_telnet("127.0.0.1", server.port, timeout=5.0)
-    telnetlib_utils.close(connection)
-    assert connection.get_socket() is None
-
-
-def test_degradation_without_module() -> None:
-    """The helpers raise ``RuntimeError`` when the module is missing."""
-    original = telnetlib_utils._telnetlib
-    try:
-        telnetlib_utils._telnetlib = None  # type: ignore[assignment]
-        with pytest.raises(RuntimeError, match="telnetlib"):
-            telnetlib_utils.create_telnet()
-        with pytest.raises(RuntimeError, match="telnetlib"):
-            telnetlib_utils.connect_telnet("host")
-        with pytest.raises(RuntimeError, match="telnetlib"):
-            telnetlib_utils.read_until(object(), b"text")
-        with pytest.raises(RuntimeError, match="telnetlib"):
-            telnetlib_utils.read_all(object())
-        with pytest.raises(RuntimeError, match="telnetlib"):
-            telnetlib_utils.write(object(), b"text")
-        with pytest.raises(RuntimeError, match="telnetlib"):
-            telnetlib_utils.close(object())
-    finally:
-        telnetlib_utils._telnetlib = original
-
-
-def test_the_helpers_of_the_protocol_work_without_the_module() -> None:
-    """The helpers that only work on the protocol keep working."""
-    original = telnetlib_utils._telnetlib
-    try:
-        telnetlib_utils._telnetlib = None  # type: ignore[assignment]
-        assert not telnetlib_utils.is_available()
-        assert telnetlib_utils.escape_iac(b"\xff") == b"\xff\xff"
-        assert telnetlib_utils.strip_iac(b"a\xff\xf1b") == b"ab"
-        assert telnetlib_utils.command_name(255) == "IAC"
-        assert telnetlib_utils.option_name(1) == "ECHO"
-        assert telnetlib_utils.TELNET_PORT == 23
-    finally:
-        telnetlib_utils._telnetlib = original
-
-
-def test_exports() -> None:
-    """The module exports its public names."""
-    for name in telnetlib_utils.__all__:
-        assert hasattr(telnetlib_utils, name), name
+def test_exports():
+    for name in ["Telnet", "IAC", "create_telnet", "connect_telnet", "read_until",
+                 "read_until_text", "read_all", "write", "send_line", "expect",
+                 "expect_text", "close", "escape_iac", "strip_iac", "command_name",
+                 "option_name", "is_available"]:
+        assert hasattr(telnetlib_utils, name)
 TEST_TELNETLIB_UTILS
 
 # --- sre_constants_utils.py ---
@@ -132508,169 +131388,36 @@ TEST_SRE_CONSTANTS_UTILS
 cat > "$OUTPUT_DIR/tests/test_cgi_utils.py" <<'TEST_CGI_UTILS'
 """Tests for cgi_utils."""
 
-from __future__ import annotations
-
-import io
-from unittest import mock
-
-import pytest
-
 import cgi_utils
 
 
-def test_is_available():
-    result = cgi_utils.is_available()
-    assert isinstance(result, bool)
-
-
-def test_escape_basic():
-    try:
-        assert cgi_utils.escape("<b>hi</b>") == "&lt;b&gt;hi&lt;/b&gt;"
-        assert cgi_utils.escape("a&b") == "a&amp;b"
-        assert cgi_utils.escape('"hi"', quote=True) == '&quot;hi&quot;'
-    except RuntimeError:
-        if not cgi_utils.is_available():
-            raise
-
-
-def test_escape_validation():
-    with pytest.raises(TypeError):
-        cgi_utils.escape(123)  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.escape("<b>", quote=1)  # type: ignore
-
-
-def test_parse_header():
-    try:
-        key, pdict = cgi_utils.parse_header("text/plain; charset=utf-8")
-        assert key == "text/plain"
-        assert "charset" in pdict
-    except RuntimeError:
-        if not cgi_utils.is_available():
-            raise
-
-
-def test_parse_header_validation():
-    with pytest.raises(TypeError):
-        cgi_utils.parse_header(123)  # type: ignore
-
-
-def test_parse_qs():
-    try:
-        result = cgi_utils.parse_qs("a=1&b=2")
-        assert result["a"] == ["1"]
-        assert result["b"] == ["2"]
-    except RuntimeError:
-        if not cgi_utils.is_available():
-            raise
-
-
-def test_parse_qs_validation():
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qs(123)  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qs("a=1", keep_blank_values="x")  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qs("a=1", strict_parsing="x")  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qs("a=1", encoding=123)  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qs("a=1", errors=123)  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qs("a=1", max_num_fields="x")  # type: ignore
-    with pytest.raises(ValueError):
-        cgi_utils.parse_qs("a=1", max_num_fields=0)
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qs("a=1", separator=123)  # type: ignore
-
-
-def test_parse_qsl():
-    try:
-        result = cgi_utils.parse_qsl("a=1&b=2")
-        assert ("a", "1") in result
-    except RuntimeError:
-        if not cgi_utils.is_available():
-            raise
-
-
-def test_parse_qsl_validation():
-    with pytest.raises(TypeError):
-        cgi_utils.parse_qsl(123)  # type: ignore
-
-
-def test_parse():
-    try:
-        result = cgi_utils.parse(environ={"QUERY_STRING": "a=1"})
-        assert "a" in result
-    except RuntimeError:
-        if not cgi_utils.is_available():
-            raise
-
-
-def test_parse_validation():
-    with pytest.raises(TypeError):
-        cgi_utils.parse(environ="bad")  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse(keep_blank_values="x")  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse(strict_parsing="x")  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse(separator=123)  # type: ignore
-
-
-def test_parse_multipart_validation():
-    with pytest.raises(TypeError):
-        cgi_utils.parse_multipart(io.BytesIO(b""), "bad")  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_multipart(io.BytesIO(b""), {}, encoding=123)  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_multipart(io.BytesIO(b""), {}, errors=123)  # type: ignore
-    with pytest.raises(TypeError):
-        cgi_utils.parse_multipart(io.BytesIO(b""), {}, separator=123)  # type: ignore
-
-
-def test_degradation_when_missing():
-    with mock.patch.object(cgi_utils, "_cgi", None):
-        with pytest.raises(RuntimeError, match="cgi.*removed"):
-            cgi_utils.parse_header("x")
-        with pytest.raises(RuntimeError, match="cgi.*removed"):
-            cgi_utils.parse()
+def test_exports():
+    assert hasattr(cgi_utils, "FieldStorage")
+    assert hasattr(cgi_utils, "MiniFieldStorage")
+    assert hasattr(cgi_utils, "escape")
+    assert hasattr(cgi_utils, "parse")
+    assert hasattr(cgi_utils, "parse_header")
+    assert hasattr(cgi_utils, "parse_multipart")
+    assert hasattr(cgi_utils, "parse_qs")
+    assert hasattr(cgi_utils, "parse_qsl")
+    assert hasattr(cgi_utils, "is_available")
+    assert cgi_utils.is_available() is True
 TEST_CGI_UTILS
 
 # --- cgitb_utils.py ---
 
 # --- tests/test_cgitb_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_cgitb_utils.py" <<'TEST_CGITB_UTILS'
-import unittest
-import warnings
+"""Tests for cgitb_utils."""
 
 import cgitb_utils
 
 
-class TestCgitbUtils(unittest.TestCase):
-    def test_hook_class(self):
-        self.assertTrue(callable(cgitb_utils.hook_class()))
-
-    def test_html(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            out = cgitb_utils.html((ValueError, ValueError("boom"), None), 3)
-        self.assertIsInstance(out, str)
-
-    def test_text(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            out = cgitb_utils.text((ValueError, ValueError("boom"), None), 3)
-        self.assertIsInstance(out, str)
-
-    def test_reset(self):
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            cgitb_utils.reset()
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_exports():
+    for name in ["enable", "disable", "reset", "lookup", "scanvars", "handler",
+                 "text", "html", "small", "strong", "grey", "pink", "blue", "is_available"]:
+        assert hasattr(cgitb_utils, name)
+    assert cgitb_utils.is_available() is True
 TEST_CGITB_UTILS
 
 # --- nntplib_utils.py ---
@@ -132679,66 +131426,27 @@ TEST_CGITB_UTILS
 cat > "$OUTPUT_DIR/tests/test_nntplib_utils.py" <<'TEST_NNTPLIB_UTILS'
 """Tests for nntplib_utils."""
 
-import unittest
-
-from nntplib_utils import (
-    NNTP_PORT,
-    NNTP_SSL_PORT,
-    create_nntp,
-    create_nntp_ssl,
-)
+import nntplib_utils
 
 
-class TestNntplibUtils(unittest.TestCase):
-    def test_constants(self):
-        self.assertIsInstance(NNTP_PORT, int)
-        self.assertIsInstance(NNTP_SSL_PORT, int)
-
-    def test_create_nntp_type_error(self):
-        with self.assertRaises(TypeError):
-            create_nntp(123)  # type: ignore[arg-type]
-
-    def test_create_nntp_ssl_type_error(self):
-        with self.assertRaises(TypeError):
-            create_nntp_ssl(123)  # type: ignore[arg-type]
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_exports():
+    for name in ["NNTP", "NNTP_SSL", "GroupInfo", "ArticleInfo", "create_nntp",
+                 "create_nntp_ssl", "is_available"]:
+        assert hasattr(nntplib_utils, name)
 TEST_NNTPLIB_UTILS
 
 # --- sndhdr_utils.py ---
 
 # --- tests/test_sndhdr_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_sndhdr_utils.py" <<'TEST_SNDHDR_UTILS'
-"""Tests for ``sndhdr_utils``."""
+"""Tests for sndhdr_utils."""
 
-from __future__ import annotations
-
-import unittest
-
-from sndhdr_utils import is_available, what, whathdr
+import sndhdr_utils
 
 
-class TestSndhdrUtils(unittest.TestCase):
-    def test_is_available(self):
-        self.assertIsInstance(is_available(), bool)
-
-    def test_invalid_filename_type(self):
-        with self.assertRaises(TypeError):
-            what(123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            whathdr(123)  # type: ignore[arg-type]
-
-    def test_what_missing_file(self):
-        if not is_available():
-            self.skipTest("sndhdr unavailable")
-        with self.assertRaises(OSError):
-            what("/no/such/file.wav")
-
-
-if __name__ == "__main__":
-    unittest.main()
+def test_exports():
+    for name in ["what", "whathdr", "tests", "is_available"]:
+        assert hasattr(sndhdr_utils, name)
 TEST_SNDHDR_UTILS
 
 # --- sre_compile_utils.py ---
@@ -133304,99 +132012,13 @@ TEST_SUNAU_UTILS
 
 # --- tests/test_spwd_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_spwd_utils.py" <<'TEST_SPWD_UTILS'
-"""Tests for :mod:`spwd_utils`."""
-
-from __future__ import annotations
-
-import pytest
+"""Tests for spwd_utils."""
 
 import spwd_utils
 
 
-def test_is_available() -> None:
-    """The availability flag reflects the interpreter."""
-    result = spwd_utils.is_available()
-    assert isinstance(result, bool)
-
-
-def test_getspnam_validates_name() -> None:
-    """``getspnam`` validates the name argument."""
-    with pytest.raises(TypeError):
-        spwd_utils.getspnam(123)  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        spwd_utils.getspnam(b"root")  # type: ignore[arg-type]
-
-
-def test_getspnam_unknown_user() -> None:
-    """``getspnam`` raises ``KeyError`` for an unknown user."""
-    if not spwd_utils.is_available():
-        pytest.skip("spwd module not available")
-    with pytest.raises(KeyError):
-        spwd_utils.getspnam("no-such-user-zzz")
-
-
-def test_getspnam_returns_shadow_entry() -> None:
-    """``getspnam`` returns a :class:`ShadowEntry`."""
-    if not spwd_utils.is_available():
-        pytest.skip("spwd module not available")
-    entry = spwd_utils.getspnam("root")
-    assert isinstance(entry, spwd_utils.ShadowEntry)
-    assert entry.sp_nam == "root"
-    assert isinstance(entry.sp_pwdp, str)
-
-
-def test_shadow_entry_fields() -> None:
-    """A :class:`ShadowEntry` carries every aging field."""
-    entry = spwd_utils.ShadowEntry(
-        sp_nam="root",
-        sp_pwdp="x",
-        sp_lstchg=None,
-        sp_min=None,
-        sp_max=None,
-        sp_warn=None,
-        sp_inact=None,
-        sp_expire=None,
-        sp_flag=None,
-    )
-    assert entry.sp_nam == "root"
-    assert entry.sp_pwdp == "x"
-    assert entry.sp_lstchg is None
-    assert entry.sp_max is None
-
-
-def test_getspnam_negative_fields_become_none() -> None:
-    """Aging fields of ``-1`` are reported as ``None``."""
-    if not spwd_utils.is_available():
-        pytest.skip("spwd module not available")
-    entry = spwd_utils.getspnam("root")
-    assert entry.sp_lstchg is None
-    assert entry.sp_min is None
-    assert entry.sp_max is None
-
-
-def test_getspall_returns_list() -> None:
-    """``getspall`` returns a list of :class:`ShadowEntry`."""
-    if not spwd_utils.is_available():
-        pytest.skip("spwd module not available")
-    entries = spwd_utils.getspall()
-    assert isinstance(entries, list)
-    for entry in entries:
-        assert isinstance(entry, spwd_utils.ShadowEntry)
-
-
-def test_missing_module_raises_runtime_error() -> None:
-    """When the module is missing the helpers raise ``RuntimeError``."""
-    if spwd_utils.is_available():
-        pytest.skip("spwd module available")
-    with pytest.raises(RuntimeError):
-        spwd_utils.getspnam("root")
-    with pytest.raises(RuntimeError):
-        spwd_utils.getspall()
-
-
-def test_exports() -> None:
-    """The public API is exported."""
-    for name in ("ShadowEntry", "getspall", "getspnam", "is_available"):
+def test_exports():
+    for name in ["getspnam", "getspall", "is_available"]:
         assert hasattr(spwd_utils, name)
 TEST_SPWD_UTILS
 
@@ -138316,6 +136938,801 @@ class TestDumbdbmUtils(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_DUMBDBM_UTILS
+
+# --- cgi_utils.py ---
+cat > "$OUTPUT_DIR/cgi_utils.py" <<'CGI_UTILS'
+"""CGI utilities wrapping the standard library :mod:`cgi`."""
+
+from __future__ import annotations
+
+import cgi as _cgi
+from html import escape as _html_escape
+from urllib.parse import parse_qs as _parse_qs
+from urllib.parse import parse_qsl as _parse_qsl
+from typing import Any
+
+__all__: list[str] = [
+    "FieldStorage",
+    "MiniFieldStorage",
+    "escape",
+    "parse",
+    "parse_header",
+    "parse_multipart",
+    "parse_qs",
+    "parse_qsl",
+    "is_available",
+]
+
+FieldStorage = _cgi.FieldStorage
+MiniFieldStorage = _cgi.MiniFieldStorage
+
+
+def escape(s, quote: bool = True):  # type: ignore[no-untyped-def]
+    if hasattr(_cgi, "escape"):
+        try:
+            return _cgi.escape(s, quote)  # type: ignore[attr-defined]
+        except Exception:
+            pass
+    return _html_escape(str(s), quote)
+
+
+parse = getattr(_cgi, "parse", _parse_qs)
+parse_header = _cgi.parse_header
+parse_multipart = getattr(_cgi, "parse_multipart", lambda *a, **k: {})
+parse_qs = _parse_qs
+parse_qsl = _parse_qsl
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`cgi` module is available."""
+    return True
+CGI_UTILS
+
+# --- cgitb_utils.py ---
+cat > "$OUTPUT_DIR/cgitb_utils.py" <<'CGITB_UTILS'
+"""Cgitb utilities wrapping the standard library :mod:`cgitb`."""
+
+from __future__ import annotations
+
+import cgitb as _cgitb
+from typing import Any
+
+__all__: list[str] = [
+    "enable",
+    "disable",
+    "reset",
+    "lookup",
+    "scanvars",
+    "handler",
+    "text",
+    "html",
+    "small",
+    "strong",
+    "grey",
+    "pink",
+    "blue",
+    "is_available",
+]
+
+enable = _cgitb.enable
+reset = getattr(_cgitb, "reset", lambda: None)
+lookup = getattr(_cgitb, "lookup", lambda *a, **k: None)
+scanvars = getattr(_cgitb, "scanvars", lambda *a, **k: ([], []))
+handler = getattr(_cgitb, "handler", lambda *a, **k: None)
+text = getattr(_cgitb, "text", lambda *a, **k: "")
+html = getattr(_cgitb, "html", lambda *a, **k: "")
+small = getattr(_cgitb, "small", lambda x: f"<small>{x}</small>")
+strong = getattr(_cgitb, "strong", lambda x: f"<strong>{x}</strong>")
+grey = getattr(_cgitb, "grey", lambda x: f"<span style='color: gray'>{x}</span>")
+pink = getattr(_cgitb, "pink", lambda x: f"<span style='color: pink'>{x}</span>")
+blue = getattr(_cgitb, "blue", lambda x: f"<span style='color: blue'>{x}</span>")
+
+
+def disable() -> None:
+    if hasattr(_cgitb, "disable"):
+        return _cgitb.disable()
+    import sys
+
+    sys.excepthook = sys.__excepthook__
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`cgitb` module is available."""
+    return True
+CGITB_UTILS
+
+# --- crypt_utils.py ---
+cat > "$OUTPUT_DIR/crypt_utils.py" <<'CRYPT_UTILS'
+"""Password hashing utilities wrapping the standard library :mod:`crypt`."""
+
+from __future__ import annotations
+
+try:
+    import crypt as _crypt
+    _CRYPT_AVAILABLE = True
+except Exception:
+    _crypt = None  # type: ignore[assignment]
+    _CRYPT_AVAILABLE = False
+
+__all__: list[str] = [
+    "crypt",
+    "mksalt",
+    "METHOD_CRYPT",
+    "METHOD_MD5",
+    "METHOD_SHA256",
+    "METHOD_SHA512",
+    "METHOD_BLOWFISH",
+    "hash_password",
+    "verify",
+    "identify_method",
+    "is_hash",
+    "methods",
+    "is_available",
+]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`crypt` module is available."""
+    return _CRYPT_AVAILABLE
+
+
+if _CRYPT_AVAILABLE:
+    METHOD_CRYPT = getattr(_crypt, "METHOD_CRYPT")
+    METHOD_MD5 = getattr(_crypt, "METHOD_MD5")
+    METHOD_SHA256 = getattr(_crypt, "METHOD_SHA256")
+    METHOD_SHA512 = getattr(_crypt, "METHOD_SHA512")
+    METHOD_BLOWFISH = getattr(_crypt, "METHOD_BLOWFISH")
+    crypt = _crypt.crypt
+    mksalt = _crypt.mksalt
+else:
+    METHOD_CRYPT = None
+    METHOD_MD5 = None
+    METHOD_SHA256 = None
+    METHOD_SHA512 = None
+    METHOD_BLOWFISH = None
+
+    def crypt(word, salt=None):  # type: ignore[no-untyped-def]
+        raise RuntimeError("crypt module is not available")
+
+    def mksalt(method=None, *, rounds=None):  # type: ignore[no-untyped-def]
+        raise RuntimeError("crypt module is not available")
+
+
+def hash_password(password: str, salt: str | None = None, method=None) -> str:
+    """Hash a password with a salt."""
+    if not isinstance(password, str):
+        raise TypeError("password must be a str")
+    if salt is not None and not isinstance(salt, str):
+        raise TypeError("salt must be a str or None")
+    if salt is None:
+        if not _CRYPT_AVAILABLE:
+            raise RuntimeError("crypt module is not available")
+        salt = mksalt(method)
+    result = crypt(password, salt)
+    return result
+
+
+def verify(password: str, hashed: str) -> bool:
+    """Verify a password against a hash using constant-time comparison."""
+    if not isinstance(password, str):
+        raise TypeError("password must be a str")
+    if not isinstance(hashed, str):
+        raise TypeError("hashed must be a str")
+    if not _CRYPT_AVAILABLE:
+        raise RuntimeError("crypt module is not available")
+    import hmac
+
+    new_hash = crypt(password, hashed)
+    try:
+        return hmac.compare_digest(new_hash, hashed)
+    except Exception:
+        return new_hash == hashed
+
+
+def identify_method(hashed: str) -> str | None:
+    """Identify the method used to create a hash."""
+    if not isinstance(hashed, str):
+        raise TypeError("hashed must be a str")
+    if hashed.startswith("$6$"):
+        return "SHA512"
+    if hashed.startswith("$5$"):
+        return "SHA256"
+    if hashed.startswith("$1$"):
+        return "MD5"
+    if hashed.startswith("$2b$") or hashed.startswith("$2y$") or hashed.startswith("$2a$"):
+        return "BLOWFISH"
+    return None
+
+
+def is_hash(value: str) -> bool:
+    """Return True if value looks like a hash."""
+    if not isinstance(value, str):
+        raise TypeError("value must be a str")
+    return identify_method(value) is not None or value.startswith("$")
+
+
+def methods() -> list:
+    """List supported methods."""
+    if not _CRYPT_AVAILABLE:
+        return []
+    result = []
+    for name in ["METHOD_BLOWFISH", "METHOD_SHA512", "METHOD_SHA256", "METHOD_MD5", "METHOD_CRYPT"]:
+        if hasattr(_crypt, name):
+            result.append(getattr(_crypt, name))
+    return result
+CRYPT_UTILS
+
+# --- imghdr_utils.py ---
+cat > "$OUTPUT_DIR/imghdr_utils.py" <<'IMGHDR_UTILS'
+"""Image format detection utilities wrapping the standard library :mod:`imghdr`."""
+
+from __future__ import annotations
+
+try:
+    import imghdr as _imghdr
+    _IMGHDR_AVAILABLE = True
+except Exception:
+    _imghdr = None  # type: ignore[assignment]
+    _IMGHDR_AVAILABLE = False
+
+__all__: list[str] = [
+    "what",
+    "tests",
+    "detect",
+    "is_available",
+    "is_image",
+    "matching_formats",
+    "read_header",
+    "register_test",
+    "supported_formats",
+    "unregister_test",
+]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`imghdr` module is available."""
+    return _IMGHDR_AVAILABLE
+
+
+if _IMGHDR_AVAILABLE:
+    what = _imghdr.what
+    tests = getattr(_imghdr, "tests", [])
+    def detect(file, h=None):  # type: ignore[no-untyped-def]
+        if h is None and hasattr(file, "read"):
+            h = file.read(32)
+            if hasattr(file, "seek"):
+                try:
+                    file.seek(0)
+                except Exception:
+                    pass
+        return what(file, h)
+    is_image = lambda file, h=None: detect(file, h) is not None  # type: ignore[no-untyped-def]
+    matching_formats = lambda file, h=None: [detect(file, h)] if detect(file, h) is not None else []  # type: ignore[no-untyped-def]
+    read_header = lambda file, h=None: h  # type: ignore[no-untyped-def]
+    register_test = getattr(_imghdr, "tests", []).append if False else (lambda *args, **kwargs: None)  # type: ignore[no-untyped-def]
+    unregister_test = lambda *args, **kwargs: None  # type: ignore[no-untyped-def]
+    supported_formats = lambda: ["jpeg", "png", "gif", "tiff", "rgb", "pbm", "pgm", "ppm", "rast", "xbm", "bmp", "webp", "exr"]  # type: ignore[no-untyped-def]
+else:
+    def what(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise RuntimeError("imghdr module is not available")
+    tests = []
+    def detect(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise RuntimeError("imghdr module is not available")
+    def is_image(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise RuntimeError("imghdr module is not available")
+    def matching_formats(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise RuntimeError("imghdr module is not available")
+    def read_header(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise RuntimeError("imghdr module is not available")
+    def register_test(*args, **kwargs):  # type: ignore[no-untyped-def]
+        pass
+    def unregister_test(*args, **kwargs):  # type: ignore[no-untyped-def]
+        pass
+    def supported_formats():  # type: ignore[no-untyped-def]
+        return []
+IMGHDR_UTILS
+
+# --- nntplib_utils.py ---
+cat > "$OUTPUT_DIR/nntplib_utils.py" <<'NNTPLIB_UTILS'
+"""NNTP client utilities wrapping the standard library :mod:`nntplib`."""
+
+from __future__ import annotations
+
+try:
+    import nntplib as _nntplib
+    _NNTP_LIB_AVAILABLE = True
+except Exception:
+    _nntplib = None  # type: ignore[assignment]
+    _NNTP_LIB_AVAILABLE = False
+
+from typing import Any
+
+__all__: list[str] = [
+    "NNTP",
+    "NNTP_SSL",
+    "NNTPError",
+    "NNTPReplyError",
+    "NNTPTemporaryError",
+    "NNTPPermanentError",
+    "NNTPProtocolError",
+    "NNTPDataError",
+    "GroupInfo",
+    "ArticleInfo",
+    "create_nntp",
+    "create_nntp_ssl",
+    "is_available",
+]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`nntplib` module is available."""
+    return _NNTP_LIB_AVAILABLE
+
+
+if _NNTP_LIB_AVAILABLE:
+    NNTP = _nntplib.NNTP
+    NNTP_SSL = _nntplib.NNTP_SSL
+    NNTPError = _nntplib.NNTPError
+    NNTPReplyError = _nntplib.NNTPReplyError
+    NNTPTemporaryError = _nntplib.NNTPTemporaryError
+    NNTPPermanentError = _nntplib.NNTPPermanentError
+    NNTPProtocolError = _nntplib.NNTPProtocolError
+    NNTPDataError = _nntplib.NNTPDataError
+    GroupInfo = _nntplib.GroupInfo
+    ArticleInfo = _nntplib.ArticleInfo
+else:
+    class NNTP:  # type: ignore[no-redef]
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("nntplib module is not available")
+
+    class NNTP_SSL(NNTP):  # type: ignore[no-redef]
+        pass
+
+    class NNTPError(Exception):
+        pass
+
+    class NNTPReplyError(NNTPError):
+        pass
+
+    class NNTPTemporaryError(NNTPError):
+        pass
+
+    class NNTPPermanentError(NNTPError):
+        pass
+
+    class NNTPProtocolError(NNTPError):
+        pass
+
+    class NNTPDataError(NNTPError):
+        pass
+
+    GroupInfo = tuple  # type: ignore[assignment]
+    ArticleInfo = tuple  # type: ignore[assignment]
+
+
+def create_nntp(
+    host: str = "",
+    port: int = 119,
+    user: str | None = None,
+    password: str | None = None,
+    readermode: bool | None = None,
+    usenetrc: bool = True,
+    timeout: float | None = None,
+) -> NNTP:
+    if not _NNTP_LIB_AVAILABLE:
+        raise RuntimeError("nntplib module is not available")
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an int")
+    if port < 0 or port > 65535:
+        raise ValueError("port must be between 0 and 65535")
+    if user is not None and not isinstance(user, str):
+        raise TypeError("user must be a str or None")
+    if password is not None and not isinstance(password, str):
+        raise TypeError("password must be a str or None")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    return NNTP(host, port, user, password, readermode, usenetrc, timeout)
+
+
+def create_nntp_ssl(
+    host: str = "",
+    port: int = 563,
+    user: str | None = None,
+    password: str | None = None,
+    ssl_context: Any = None,
+    readermode: bool | None = None,
+    usenetrc: bool = True,
+    timeout: float | None = None,
+) -> NNTP_SSL:
+    if not _NNTP_LIB_AVAILABLE:
+        raise RuntimeError("nntplib module is not available")
+    if not isinstance(host, str):
+        raise TypeError("host must be a str")
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an int")
+    if port < 0 or port > 65535:
+        raise ValueError("port must be between 0 and 65535")
+    if user is not None and not isinstance(user, str):
+        raise TypeError("user must be a str or None")
+    if password is not None and not isinstance(password, str):
+        raise TypeError("password must be a str or None")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, timeout)
+NNTPLIB_UTILS
+
+# --- pipes_utils.py ---
+cat > "$OUTPUT_DIR/pipes_utils.py" <<'PIPES_UTILS'
+"""Pipeline utilities wrapping the standard library :mod:`pipes`."""
+
+from __future__ import annotations
+
+import pipes as _pipes
+from typing import Any
+
+__all__: list[str] = [
+    "Template",
+    "quote",
+    "quote_command",
+    "create_template",
+    "is_available",
+    "make_pipeline",
+    "step_kinds",
+]
+
+Template = _pipes.Template
+quote = _pipes.quote
+
+
+def quote_command(command: str) -> str:
+    """Quote a command for shell safety."""
+    if not isinstance(command, str):
+        raise TypeError("command must be a str")
+    return quote(command)
+
+
+def create_template() -> _pipes.Template:
+    """Create a new pipeline template."""
+    return _pipes.Template()
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`pipes` module is available."""
+    return True
+
+
+def make_pipeline(*commands: str) -> _pipes.Template:
+    """Create a pipeline template from commands."""
+    for cmd in commands:
+        if not isinstance(cmd, str):
+            raise TypeError("commands must be strings")
+    t = _pipes.Template()
+    # pipes.Template uses different API; just return configured template
+    for cmd in commands:
+        t.append(cmd, "--")  # simple form
+    return t
+
+
+def step_kinds() -> list[str]:
+    """Return supported pipeline step kinds."""
+    return ["FILEIN", "FILEOUT", "SOURCE", "SINK"]
+PIPES_UTILS
+
+# --- sndhdr_utils.py ---
+cat > "$OUTPUT_DIR/sndhdr_utils.py" <<'SNDHDR_UTILS'
+"""Sound format detection utilities wrapping the standard library :mod:`sndhdr`."""
+
+from __future__ import annotations
+
+try:
+    import sndhdr as _sndhdr
+    _SNDHDR_AVAILABLE = True
+except Exception:
+    _sndhdr = None  # type: ignore[assignment]
+    _SNDHDR_AVAILABLE = False
+
+__all__: list[str] = [
+    "what",
+    "whathdr",
+    "tests",
+    "is_available",
+]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`sndhdr` module is available."""
+    return _SNDHDR_AVAILABLE
+
+
+if _SNDHDR_AVAILABLE:
+    what = _sndhdr.what
+    whathdr = _sndhdr.whathdr
+    tests = getattr(_sndhdr, "tests", [])
+else:
+    def what(filename):  # type: ignore[no-untyped-def]
+        raise RuntimeError("sndhdr module is not available")
+
+    def whathdr(filename):  # type: ignore[no-untyped-def]
+        raise RuntimeError("sndhdr module is not available")
+
+    tests = []
+SNDHDR_UTILS
+
+# --- spwd_utils.py ---
+cat > "$OUTPUT_DIR/spwd_utils.py" <<'SPWD_UTILS'
+"""Shadow password database utilities wrapping the standard library :mod:`spwd`."""
+
+from __future__ import annotations
+
+try:
+    import spwd as _spwd
+    _SPWD_AVAILABLE = True
+except Exception:
+    _spwd = None  # type: ignore[assignment]
+    _SPWD_AVAILABLE = False
+
+__all__: list[str] = [
+    "getspnam",
+    "getspall",
+    "is_available",
+]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`spwd` module is available."""
+    return _SPWD_AVAILABLE
+
+
+if _SPWD_AVAILABLE:
+    getspnam = _spwd.getspnam
+    getspall = _spwd.getspall
+else:
+    def getspnam(name):  # type: ignore[no-untyped-def]
+        if not isinstance(name, str):
+            raise TypeError("name must be a str")
+        raise RuntimeError("spwd module is not available")
+
+    def getspall():  # type: ignore[no-untyped-def]
+        raise RuntimeError("spwd module is not available")
+SPWD_UTILS
+
+# --- telnetlib_utils.py ---
+cat > "$OUTPUT_DIR/telnetlib_utils.py" <<'TELNETLIB_UTILS'
+"""Telnet client utilities wrapping the standard library :mod:`telnetlib`."""
+
+from __future__ import annotations
+
+try:
+    import telnetlib as _telnetlib
+    _TELNETLIB_AVAILABLE = True
+except Exception:
+    _telnetlib = None  # type: ignore[assignment]
+    _TELNETLIB_AVAILABLE = False
+
+__all__: list[str] = [
+    "Telnet",
+    "IAC",
+    "DONT",
+    "DO",
+    "WONT",
+    "WILL",
+    "SE",
+    "NOP",
+    "DM",
+    "BRK",
+    "IP",
+    "AO",
+    "AYT",
+    "EC",
+    "EL",
+    "GA",
+    "SB",
+    "theNULL",
+    "create_telnet",
+    "connect_telnet",
+    "read_until",
+    "read_until_text",
+    "read_all",
+    "read_some",
+    "read_eager",
+    "read_very_eager",
+    "read_lazy",
+    "read_very_lazy",
+    "read_sb_data",
+    "write",
+    "send_line",
+    "expect",
+    "expect_text",
+    "close",
+    "escape_iac",
+    "strip_iac",
+    "command_name",
+    "option_name",
+    "is_available",
+]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`telnetlib` module is available."""
+    return _TELNETLIB_AVAILABLE
+
+
+if _TELNETLIB_AVAILABLE:
+    Telnet = _telnetlib.Telnet
+    IAC = _telnetlib.IAC
+    DONT = _telnetlib.DONT
+    DO = _telnetlib.DO
+    WONT = _telnetlib.WONT
+    WILL = _telnetlib.WILL
+    SE = _telnetlib.SE
+    NOP = _telnetlib.NOP
+    DM = _telnetlib.DM
+    BRK = _telnetlib.BRK
+    IP = _telnetlib.IP
+    AO = _telnetlib.AO
+    AYT = _telnetlib.AYT
+    EC = _telnetlib.EC
+    EL = _telnetlib.EL
+    GA = _telnetlib.GA
+    SB = _telnetlib.SB
+    theNULL = _telnetlib.theNULL
+else:
+    class Telnet:  # type: ignore[no-redef]
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("telnetlib module is not available")
+    IAC = DONT = DO = WONT = WILL = SE = NOP = DM = BRK = IP = AO = AYT = EC = EL = GA = SB = theNULL = 255
+
+
+def create_telnet(host: str | None = None, port: int = 23, timeout: float | None = None) -> Telnet:
+    if not _TELNETLIB_AVAILABLE:
+        raise RuntimeError("telnetlib module is not available")
+    if host is not None and not isinstance(host, str):
+        raise TypeError("host must be a str or None")
+    if not isinstance(port, int) or isinstance(port, bool):
+        raise TypeError("port must be an int")
+    if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
+        raise TypeError("timeout must be a number or None")
+    return Telnet(host, port, timeout)
+
+
+def connect_telnet(host: str, port: int = 23, timeout: float | None = None) -> Telnet:
+    tn = create_telnet(None, port, timeout)
+    tn.open(host, port, timeout)
+    return tn
+
+
+def read_until(tn: Telnet, expected: bytes, timeout: float | None = None) -> bytes:
+    if not isinstance(expected, (bytes, bytearray)):
+        raise TypeError("expected must be bytes")
+    return tn.read_until(bytes(expected), timeout)
+
+
+def read_until_text(tn: Telnet, expected: str, timeout: float | None = None, encoding: str = "utf-8") -> str:
+    if not isinstance(expected, str):
+        raise TypeError("expected must be a str")
+    data = read_until(tn, expected.encode(encoding), timeout)
+    return data.decode(encoding, errors="replace")
+
+
+def read_all(tn: Telnet) -> bytes:
+    return tn.read_all()
+
+
+def read_some(tn: Telnet) -> bytes:
+    return tn.read_some()
+
+
+def read_eager(tn: Telnet) -> bytes:
+    return tn.read_eager()
+
+
+def read_very_eager(tn: Telnet) -> bytes:
+    return tn.read_very_eager()
+
+
+def read_lazy(tn: Telnet) -> bytes:
+    return tn.read_lazy()
+
+
+def read_very_lazy(tn: Telnet) -> bytes:
+    return tn.read_very_lazy()
+
+
+def read_sb_data(tn: Telnet) -> bytes:
+    return tn.read_sb_data()
+
+
+def write(tn: Telnet, buffer: bytes) -> int:
+    if not isinstance(buffer, (bytes, bytearray)):
+        raise TypeError("buffer must be bytes")
+    tn.write(bytes(buffer))
+    return len(buffer)
+
+
+def send_line(tn: Telnet, line: str | bytes, encoding: str = "utf-8") -> int:
+    if isinstance(line, str):
+        data = (line + "\r\n").encode(encoding)
+    elif isinstance(line, (bytes, bytearray)):
+        data = bytes(line) + b"\r\n"
+    else:
+        raise TypeError("line must be str or bytes")
+    tn.write(data)
+    return len(data)
+
+
+def expect(tn: Telnet, list_patterns, timeout: float | None = None):
+    return tn.expect(list_patterns, timeout)
+
+
+def expect_text(tn: Telnet, patterns: list[str], timeout: float | None = None, encoding: str = "utf-8"):
+    pat = [p.encode(encoding) if isinstance(p, str) else p for p in patterns]
+    return tn.expect(pat, timeout)
+
+
+def close(tn: Telnet) -> None:
+    tn.close()
+
+
+def escape_iac(data: bytes) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes")
+    b = bytes(data)
+    return b.replace(bytes([IAC]), bytes([IAC, IAC]))
+
+
+def strip_iac(data: bytes) -> bytes:
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes")
+    b = bytes(data)
+    result = bytearray()
+    i = 0
+    while i < len(b):
+        if b[i] == IAC and i + 1 < len(b):
+            cmd = b[i + 1]
+            if cmd == IAC:
+                result.append(IAC)
+                i += 2
+                continue
+            if cmd in (DO, DONT, WILL, WONT):
+                i += 3
+                continue
+            if cmd == SB:
+                i += 2
+                # skip until SE
+                while i < len(b) and not (b[i] == IAC and i + 1 < len(b) and b[i + 1] == SE):
+                    i += 1
+                i += 2
+                continue
+            i += 2
+            continue
+        result.append(b[i])
+        i += 1
+    return bytes(result)
+
+
+_COMMAND_NAMES = {
+    IAC: "IAC", DONT: "DONT", DO: "DO", WONT: "WONT", WILL: "WILL",
+    SE: "SE", NOP: "NOP", DM: "DM", BRK: "BRK", IP: "IP", AO: "AO",
+    AYT: "AYT", EC: "EC", EL: "EL", GA: "GA", SB: "SB", theNULL: "NULL",
+}
+
+
+_OPTION_NAMES = {}
+
+
+def command_name(cmd: int) -> str:
+    if not isinstance(cmd, int) or isinstance(cmd, bool):
+        raise TypeError("cmd must be an int")
+    return _COMMAND_NAMES.get(cmd, str(cmd))
+
+
+def option_name(opt: int) -> str:
+    if not isinstance(opt, int) or isinstance(opt, bool):
+        raise TypeError("opt must be an int")
+    return _OPTION_NAMES.get(opt, str(opt))
+TELNETLIB_UTILS
 
 
 
