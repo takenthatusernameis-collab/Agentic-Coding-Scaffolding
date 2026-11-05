@@ -10,6 +10,7 @@ Number = Union[int, float]
 __all__ = [
     "ceil_div",
     "clamp",
+    "clamp01",
     "digit_count",
     "digit_product",
     "digit_sum",
@@ -105,6 +106,22 @@ def clamp(value: Number, minimum: Number, maximum: Number) -> Number:
     if minimum > maximum:
         raise ValueError("minimum must not exceed maximum")
     return max(minimum, min(maximum, value))
+
+
+def clamp01(value: Number) -> Number:
+    """Clamp a value to the closed interval [0, 1].
+
+    Args:
+        value: The value to clamp.
+
+    Returns:
+        *value* constrained to [0, 1].
+
+    Raises:
+        TypeError: If *value* is not a number.
+    """
+    _require_number(value, "value")
+    return max(0, min(1, value))
 
 
 def round_to(value: float, places: int = 0) -> float:
