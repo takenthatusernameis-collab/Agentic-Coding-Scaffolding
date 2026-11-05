@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-05) — fixed numbers_utils abundance doctest indentation
+
+The board held no task (bootstrap/continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 8004 tests and passed.
+
+Completed in this session:
+
+- Found a real doctest defect in `numbers_utils.abundance`: the expected output line for `abundance(12)` was indented with four extra spaces (`    4`), so `python -m doctest numbers_utils.py` reported a failure even though the function returned the correct value. The expected output was corrected to `4` to match the surrounding doctest examples. The function implementation and its `tests/test_numbers_utils.py` coverage were unchanged (the test suite already asserted the correct behavior).
+- Verified: `python -m doctest numbers_utils.py` passes (0 failures); `python -m unittest tests.test_numbers_utils` passes (136 tests); `python -m unittest tests.test_public_api` passes; `make test` passes (8004 tests); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
+- Committed the work as `fix(numbers_utils): correct abundance doctest indentation`.
+
+Next Planned (durable handover for the following agent):
+
+- Fix the 6 pre-existing doctest failures in `stats.py` so `python -m doctest stats.py` passes cleanly. The failures are float-formatting mismatches at geometric_mean (line 966), kurtosis (1120), median (123), mode (276, 278), and winsorized_stddev (1560). Edit only the expected-output lines in stats.py to match the actual printed float values; do not change function implementations or the test suite. Verify with `python -m doctest stats.py` (0 failures), `python -m unittest tests.test_stats` (384 tests), and `make test`. If stats.py is embedded in scaffold.sh, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. Record the fix in the Unreleased section of CHANGELOG.md. No changes to `.github/workflows/**`.
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `bytes_utils.py`, `version_utils.py`, `prompt_utils.py`, `number_utils.py`, `numbers_utils.py`, `prime_utils.py`).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
+- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-05) — fixed itertools_utils grouper fillvalue handling
 
 The board held no task (bootstrap session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 8004 tests (8 pre-existing pytest-import errors, unchanged).
