@@ -46,6 +46,7 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_powerful_number,
+    is_prime,
     is_pronic_number,
     is_spy_number,
     is_squarefree_number,
@@ -1882,3 +1883,31 @@ class TestLcmList(unittest.TestCase):
             lcm_list("abc")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             lcm_list([1, 2.0])  # type: ignore[list-item]
+
+
+class TestIsPrime(unittest.TestCase):
+    def test_primes(self) -> None:
+        from number_utils import is_prime
+
+        for n in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 97, 7919):
+            self.assertTrue(is_prime(n), n)
+
+    def test_non_primes(self) -> None:
+        from number_utils import is_prime
+
+        for n in (0, 1, -7, 4, 6, 8, 9, 15, 21, 25, 27, 100, 7921):
+            self.assertFalse(is_prime(n), n)
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_prime
+
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(2.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(None)  # type: ignore[arg-type]

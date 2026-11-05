@@ -61,6 +61,7 @@ __all__ = [
     "is_positive",
     "is_power_of_two",
     "is_powerful_number",
+    "is_prime",
     "is_pronic_number",
     "is_mersenne_number",
     "is_mersenne_prime",
@@ -2275,6 +2276,50 @@ def is_powerful_number(value: int) -> bool:
                 n //= factor
         factor += 1
     return n == 1
+
+
+def is_prime(value: int) -> bool:
+    """Return True if *value* is a prime number.
+
+    A prime number is a positive integer greater than 1 that has no positive
+    divisors other than 1 and itself. By this definition, 0, 1, and negative
+    integers are not prime.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is prime, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_prime(2)
+        True
+        >>> is_prime(17)
+        True
+        >>> is_prime(1)
+        False
+        >>> is_prime(15)
+        False
+        >>> is_prime(-7)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 2:
+        return False
+    if value % 2 == 0:
+        return value == 2
+    factor = 3
+    while factor * factor <= value:
+        if value % factor == 0:
+            return False
+        factor += 2
+    return True
+
+
 def is_mersenne_prime(value: Number) -> bool:
     """Return True if *value* is a Mersenne prime.
 

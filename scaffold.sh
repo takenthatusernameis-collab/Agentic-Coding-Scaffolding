@@ -6961,11 +6961,9 @@ cat > "$OUTPUT_DIR/tests/test_importlib_utils.py" <<'TEST_IMPORTLIB_UTILS'
 
 from __future__ import annotations
 
-import unittest
-
 import os
+import unittest
 from types import ModuleType
-
 
 import importlib_utils
 
@@ -7302,10 +7300,8 @@ cat > "$OUTPUT_DIR/tests/test_multiprocessing_utils.py" <<'TEST_MP'
 
 from __future__ import annotations
 
-import unittest
-
 import time
-
+import unittest
 
 import multiprocessing_utils
 
@@ -7540,7 +7536,6 @@ cat > "$OUTPUT_DIR/tests/test_atexit_utils.py" <<'TEST_ATEXIT_UTILS'
 from __future__ import annotations
 
 import unittest
-
 
 import atexit_utils
 
@@ -8374,13 +8369,12 @@ LZMA_UTILS
 
 # --- tests/test_bz2_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_bz2_utils.py" <<'TEST_BZ2_UTILS'
-import unittest
 """Tests for bz2_utils."""
 
 import os
 import tempfile
+import unittest
 from pathlib import Path
-
 
 from bz2_utils import (
     bz2_compress,
@@ -49453,6 +49447,7 @@ cat > "$OUTPUT_DIR/tests/test_bytes_utils.py" <<'TESTBYTESUTILS'
 import unittest
 
 from bytes_utils import (
+    bit_count,
     capitalize,
     casefold,
     chunk,
@@ -49465,6 +49460,7 @@ from bytes_utils import (
     from_hex,
     index,
     index_of,
+    is_zero,
     isalnum,
     isalpha,
     isascii,
@@ -49491,10 +49487,6 @@ from bytes_utils import (
     translate,
     upper,
     xor,
-    to_int,
-    from_int,
-    bit_count,
-    is_zero,
 )
 
 
@@ -51554,9 +51546,8 @@ ARRAY_UTILS
 cat > "$OUTPUT_DIR/tests/test_array_utils.py" <<'TEST_ARRAY_UTILS'
 """Tests for array_utils."""
 
-from array import array
-
 import unittest
+from array import array
 
 from array_utils import (
     array_append,
@@ -55542,6 +55533,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_prime to number_utils
+
+- Added `is_prime(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *value* is a prime number greater than 1 (0, 1, and negatives are not prime), using trial division up to the square root.
+- Added `TestIsPrime` to `tests/test_number_utils.py` covering known primes, non-primes, boundary values, and the `TypeError` paths. Imported `is_prime` at the top of the test file to match the module's `__all__` contract.
+- Updated the `number_utils` module tree entry and prose section of `README.md`.
+- Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_number_utils` passes; `python -m doctest number_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added bit_count and is_zero to bytes_utils
 
 - Added `bit_count(data)` and `is_zero(data)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes arguments. `bit_count` returns the total number of set (1) bits across all bytes (empty input yields `0`); `is_zero` returns `True` when every byte is zero or *data* is empty.
@@ -57730,7 +57730,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_powerful_number, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -58664,7 +58664,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `aliquot_sum` returns the sum of the proper divisors of a positive integer; `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_powerful_number` tests whether every prime factor's square divides the number (powerful numbers include 1, 4, 8, 9, 16, 25, 27, 32, 36, ...); `is_mersenne_number` tests whether a positive integer is a Mersenne number (of the form 2^p - 1 for some non-negative integer p); `is_mersenne_prime` tests whether a number is a Mersenne prime (a prime of the form 2^p - 1 with prime *p*, e.g. 3, 7, 31, 127); `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15); `is_squarefree_number` tests whether a positive integer is squarefree (not divisible by any perfect square greater than 1). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `aliquot_sum` returns the sum of the proper divisors of a positive integer; `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_powerful_number` tests whether every prime factor's square divides the number (powerful numbers include 1, 4, 8, 9, 16, 25, 27, 32, 36, ...); `is_prime` tests whether an integer greater than 1 is prime (0, 1, and negatives are not prime); `is_mersenne_number` tests whether a positive integer is a Mersenne number (of the form 2^p - 1 for some non-negative integer p); `is_mersenne_prime` tests whether a number is a Mersenne prime (a prime of the form 2^p - 1 with prime *p*, e.g. 3, 7, 31, 127); `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15); `is_squarefree_number` tests whether a positive integer is squarefree (not divisible by any perfect square greater than 1). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -77311,6 +77311,7 @@ __all__ = [
     "is_positive",
     "is_power_of_two",
     "is_powerful_number",
+    "is_prime",
     "is_pronic_number",
     "is_mersenne_number",
     "is_mersenne_prime",
@@ -79525,6 +79526,50 @@ def is_powerful_number(value: int) -> bool:
                 n //= factor
         factor += 1
     return n == 1
+
+
+def is_prime(value: int) -> bool:
+    """Return True if *value* is a prime number.
+
+    A prime number is a positive integer greater than 1 that has no positive
+    divisors other than 1 and itself. By this definition, 0, 1, and negative
+    integers are not prime.
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is prime, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_prime(2)
+        True
+        >>> is_prime(17)
+        True
+        >>> is_prime(1)
+        False
+        >>> is_prime(15)
+        False
+        >>> is_prime(-7)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 2:
+        return False
+    if value % 2 == 0:
+        return value == 2
+    factor = 3
+    while factor * factor <= value:
+        if value % factor == 0:
+            return False
+        factor += 2
+    return True
+
+
 def is_mersenne_prime(value: Number) -> bool:
     """Return True if *value* is a Mersenne prime.
 
@@ -79644,6 +79689,7 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_powerful_number,
+    is_prime,
     is_pronic_number,
     is_spy_number,
     is_squarefree_number,
@@ -81480,6 +81526,34 @@ class TestLcmList(unittest.TestCase):
             lcm_list("abc")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             lcm_list([1, 2.0])  # type: ignore[list-item]
+
+
+class TestIsPrime(unittest.TestCase):
+    def test_primes(self) -> None:
+        from number_utils import is_prime
+
+        for n in (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 97, 7919):
+            self.assertTrue(is_prime(n), n)
+
+    def test_non_primes(self) -> None:
+        from number_utils import is_prime
+
+        for n in (0, 1, -7, 4, 6, 8, 9, 15, 21, 25, 27, 100, 7921):
+            self.assertFalse(is_prime(n), n)
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_prime
+
+        with self.assertRaises(TypeError):
+            is_prime(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(2.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prime(None)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
@@ -132781,7 +132855,6 @@ from __future__ import annotations
 
 import unittest
 
-
 import sre_constants_utils
 
 
@@ -132857,7 +132930,12 @@ class TestSreConstantsUtils(unittest.TestCase):
     def test_exports(self)-> None:
         """The module exports its public names."""
         for name in sre_constants_utils.__all__:
-            if name in ("error_codes", "DIGITS", "CH_CODES", "TYPE_FLAGS"):  # might be empty or missing
+            if name in (
+                "error_codes",
+                "DIGITS",
+                "CH_CODES",
+                "TYPE_FLAGS",
+            ):  # might be empty or missing
                 continue
             try:
                 assert hasattr(sre_constants_utils, name), name
@@ -133000,7 +133078,6 @@ cat > "$OUTPUT_DIR/tests/test_sre_compile_utils.py" <<'TEST_SRE_COMPILE_UTILS'
 from __future__ import annotations
 
 import unittest
-
 
 import sre_compile_utils
 
@@ -133309,10 +133386,8 @@ cat > "$OUTPUT_DIR/tests/test_sre_parse_utils.py" <<'TEST_SRE_PARSE_UTILS'
 
 from __future__ import annotations
 
-import unittest
-
 import re
-
+import unittest
 
 import sre_parse_utils
 
