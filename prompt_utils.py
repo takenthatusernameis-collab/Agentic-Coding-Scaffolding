@@ -83,6 +83,7 @@ __all__: List[str] = [
     "chomp",
     "escape_placeholders",
     "normalize_whitespace",
+    "unescape_placeholders",
     "is_blank",
     "ensure_surrounded_by_newlines",
     "count_newlines",
