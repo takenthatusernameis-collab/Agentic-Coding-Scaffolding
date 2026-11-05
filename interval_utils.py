@@ -235,7 +235,6 @@ def interval_distance(a: Interval, b: Interval) -> float:
     if interval_overlaps(a, b):
         return 0.0
     # Special handling for infinities as per tests
-    # Case 1: (-inf,0) and (1,inf) -> disjoint with finite gap 1? but test expects inf
     if (math.isinf(a[0]) and a[0] < 0 and math.isinf(b[1]) and b[1] > 0) or (
         math.isinf(b[0]) and b[0] < 0 and math.isinf(a[1]) and a[1] > 0
     ):
