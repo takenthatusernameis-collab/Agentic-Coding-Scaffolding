@@ -1,3 +1,10 @@
+## Unreleased — added is_mersenne_number to number_utils
+
+- Added `is_mersenne_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` if *value* is of the form `2^p - 1` for some non-negative integer *p* (e.g. 1, 3, 7, 15, 31). Accepts integer-valued floats. Added `TestIsMersenneNumber` to `tests/test_number_utils.py` covering Mersenne numbers, non-Mersenne numbers, integer-valued floats, and `TypeError` paths for non-numbers/bools. Updated the `number_utils` module tree entry and prose section of `README.md`.
+- Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_number_utils` passes (258 tests); `python -m doctest number_utils.py` shows only pre-existing failures (additive_persistence, is_close) unchanged by this change.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added shannon_entropy to stats
 
 - Added `shannon_entropy(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the Shannon entropy of the discrete values in bits (``-sum(p * log2(p))`` over the probability of each distinct value), which is 0 for a list of identical values and ``log2(n)`` for *n* distinct values. Added `TestShannonEntropy` to `tests/test_stats.py` covering identical/all-distinct/mixed distributions, single element, two-distinct equal, order invariance, float and negative inputs, and the empty-list/non-list/non-numeric/bool rejection paths (12 new tests). Imported `shannon_entropy` at the top of the test file to match the module's `__all__` contract. Updated the `stats` prose section of `README.md`.

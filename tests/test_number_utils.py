@@ -44,6 +44,7 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_pronic_number,
+    is_mersenne_number,
     is_spy_number,
     is_squarefree_number,
     is_strong_number,
@@ -53,12 +54,12 @@ from number_utils import (
     lcm,
     lerp,
     map_range,
-    multiplicative_persistence,
     percentage,
     remap,
     round_half_up,
     round_to,
     safe_divide,
+    sign,
 )
 
 
@@ -1084,6 +1085,8 @@ class TestAdditivePersistence(unittest.TestCase):
 
 class TestMultiplicativePersistence(unittest.TestCase):
     def test_basic(self) -> None:
+        from number_utils import multiplicative_persistence
+
         self.assertEqual(multiplicative_persistence(0), 0)
         self.assertEqual(multiplicative_persistence(4), 0)
         self.assertEqual(multiplicative_persistence(39), 3)
@@ -1092,10 +1095,14 @@ class TestMultiplicativePersistence(unittest.TestCase):
         self.assertEqual(multiplicative_persistence(999), 4)
 
     def test_sign_ignored(self) -> None:
+        from number_utils import multiplicative_persistence
+
         self.assertEqual(multiplicative_persistence(-39), 3)
         self.assertEqual(multiplicative_persistence(-4), 0)
 
     def test_type_errors(self) -> None:
+        from number_utils import multiplicative_persistence
+
         with self.assertRaises(TypeError):
             multiplicative_persistence("123")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
@@ -1721,6 +1728,29 @@ class TestIsOblongNumber(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsMersenneNumber(unittest.TestCase):
+    def test_mersenne_numbers(self) -> None:
+        for n in (1, 3, 7, 15, 31, 63, 127, 255, 511, 1023):
+            self.assertTrue(is_mersenne_number(n), n)
+
+    def test_non_mersenne_numbers(self) -> None:
+        for n in (0, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 23):
+            self.assertFalse(is_mersenne_number(n), n)
+
+    def test_float_values(self) -> None:
+        self.assertTrue(is_mersenne_number(7.0))
+        self.assertFalse(is_mersenne_number(5.0))
+        self.assertFalse(is_mersenne_number(7.5))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_mersenne_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_mersenne_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_mersenne_number(None)  # type: ignore[arg-type]
 
 
 class TestIsDuckNumber(unittest.TestCase):

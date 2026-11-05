@@ -59,6 +59,7 @@ __all__ = [
     "is_positive",
     "is_power_of_two",
     "is_pronic_number",
+    "is_mersenne_number",
     "is_spy_number",
     "is_squarefree_number",
     "is_strong_number",
@@ -2042,3 +2043,58 @@ def multiplicative_persistence(value: int) -> int:
         n = product
         count += 1
     return count
+
+
+def is_mersenne_number(value: Number) -> bool:
+    """Return True if *value* is a Mersenne number.
+
+    A Mersenne number is a number of the form M_p = 2^p - 1 for some
+    non-negative integer *p*. By this definition, 1 (p=0), 3 (p=2),
+    7 (p=3), 15 (p=4), 31 (p=5), etc. are Mersenne numbers.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is of the form 2^p - 1 for some non-negative integer *p*,
+        False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a number.
+
+    Examples:
+        >>> is_mersenne_number(1)
+        True
+        >>> is_mersenne_number(3)
+        True
+        >>> is_mersenne_number(7)
+        True
+        >>> is_mersenne_number(15)
+        True
+        >>> is_mersenne_number(31)
+        True
+        >>> is_mersenne_number(5)
+        False
+        >>> is_mersenne_number(9)
+        False
+        >>> is_mersenne_number(0)
+        False
+    """
+    _require_number(value, "value")
+    if isinstance(value, bool):
+        raise TypeError("value must be a number, got bool")
+    if isinstance(value, float) and not value.is_integer():
+        return False
+    if isinstance(value, float):
+        value = int(value)
+    if not isinstance(value, int):
+        raise TypeError(f"value must be a number, got {type(value).__name__}")
+    if value < 1:
+        return False
+    m = value + 1
+    if m <= 0:
+        return False
+    # Check if m is a power of two
+    if m & (m - 1) != 0:
+        return False
+    return True

@@ -54732,6 +54732,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_mersenne_number to number_utils
+
+- Added `is_mersenne_number(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` if *value* is of the form `2^p - 1` for some non-negative integer *p* (e.g. 1, 3, 7, 15, 31). Accepts integer-valued floats. Added `TestIsMersenneNumber` to `tests/test_number_utils.py` covering Mersenne numbers, non-Mersenne numbers, integer-valued floats, and `TypeError` paths for non-numbers/bools. Updated the `number_utils` module tree entry and prose section of `README.md`.
+- Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_number_utils` passes (258 tests); `python -m doctest number_utils.py` shows only pre-existing failures (additive_persistence, is_close) unchanged by this change.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added shannon_entropy to stats
 
 - Added `shannon_entropy(numbers)` to `stats.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError`/`ValueError` validation; it returns the Shannon entropy of the discrete values in bits (``-sum(p * log2(p))`` over the probability of each distinct value), which is 0 for a list of identical values and ``log2(n)`` for *n* distinct values. Added `TestShannonEntropy` to `tests/test_stats.py` covering identical/all-distinct/mixed distributions, single element, two-distinct equal, order invariance, float and negative inputs, and the empty-list/non-list/non-numeric/bool rejection paths (12 new tests). Imported `shannon_entropy` at the top of the test file to match the module's `__all__` contract. Updated the `stats` prose section of `README.md`.
@@ -56837,7 +56844,7 @@ duration_utils.py          # Time duration utilities (parse, format, convert bet
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
-number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
+number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of_two, is_mersenne_number, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides, is_coprime, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
@@ -57771,7 +57778,7 @@ The project includes sequence utilities in `seq_utils.py` for common sequence op
 
 ## Number Utilities Module
 
-The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15); `is_squarefree_number` tests whether a positive integer is squarefree (not divisible by any perfect square greater than 1). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
+The project includes number utility functions in `number_utils.py` for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_mersenne_number` tests whether a positive integer is a Mersenne number (of the form 2^p - 1 for some non-negative integer p); `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15); `is_squarefree_number` tests whether a positive integer is squarefree (not divisible by any perfect square greater than 1). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
 
 ## Operating System Utilities Module
 
@@ -76404,6 +76411,8 @@ __all__ = [
     "is_oblong_number",
     "is_odd",
     "is_evil_number",
+    "additive_persistence",
+    "multiplicative_persistence",
     "is_odious_number",
     "is_palindromic_number",
     "is_pentagonal_number",
@@ -76414,6 +76423,7 @@ __all__ = [
     "is_positive",
     "is_power_of_two",
     "is_pronic_number",
+    "is_mersenne_number",
     "is_spy_number",
     "is_squarefree_number",
     "is_strong_number",
@@ -78306,6 +78316,152 @@ def is_evil_number(value: int) -> bool:
     if value < 0:
         return False
     return bin(value).count("1") % 2 == 0
+
+
+def additive_persistence(value: int) -> int:
+    """Return the additive persistence of *value*.
+
+    The additive persistence is the number of times one must sum the decimal
+    digits of a number until a single-digit number is reached.
+
+    The sign of *value* is ignored, so ``additive_persistence(-123)`` returns ``2``.
+    ``additive_persistence(0)`` returns ``0``.
+
+    Args:
+        value: The integer to compute the additive persistence for.
+
+    Returns:
+        The number of digit-sum iterations until a single-digit number is reached.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> additive_persistence(123)
+        2
+        >>> additive_persistence(-123)
+        2
+        >>> additive_persistence(0)
+        0
+        >>> additive_persistence(9)
+        0
+        >>> additive_persistence(99)
+        2
+        >>> additive_persistence(199)
+        3
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value == 0:
+        return 0
+    n = abs(value)
+    count = 0
+    while n >= 10:
+        n = sum(int(digit) for digit in str(n))
+        count += 1
+    return count
+
+
+def multiplicative_persistence(value: int) -> int:
+    """Return the multiplicative persistence of *value*.
+
+    The multiplicative persistence is the number of times one must multiply the
+    decimal digits of a number until a single-digit number is reached.
+
+    The sign of *value* is ignored, so ``multiplicative_persistence(-39)`` returns ``3``.
+    ``multiplicative_persistence(0)`` returns ``0``.
+
+    Args:
+        value: The integer to compute the multiplicative persistence for.
+
+    Returns:
+        The number of digit-product iterations until a single-digit number is reached.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> multiplicative_persistence(39)
+        3
+        >>> multiplicative_persistence(-39)
+        3
+        >>> multiplicative_persistence(0)
+        0
+        >>> multiplicative_persistence(4)
+        0
+        >>> multiplicative_persistence(77)
+        4
+        >>> multiplicative_persistence(679)
+        5
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value == 0:
+        return 0
+    n = abs(value)
+    count = 0
+    while n >= 10:
+        product = 1
+        for digit in str(n):
+            product *= int(digit)
+        n = product
+        count += 1
+    return count
+
+
+def is_mersenne_number(value: Number) -> bool:
+    """Return True if *value* is a Mersenne number.
+
+    A Mersenne number is a number of the form M_p = 2^p - 1 for some
+    non-negative integer *p*. By this definition, 1 (p=0), 3 (p=2),
+    7 (p=3), 15 (p=4), 31 (p=5), etc. are Mersenne numbers.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is of the form 2^p - 1 for some non-negative integer *p*,
+        False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a number.
+
+    Examples:
+        >>> is_mersenne_number(1)
+        True
+        >>> is_mersenne_number(3)
+        True
+        >>> is_mersenne_number(7)
+        True
+        >>> is_mersenne_number(15)
+        True
+        >>> is_mersenne_number(31)
+        True
+        >>> is_mersenne_number(5)
+        False
+        >>> is_mersenne_number(9)
+        False
+        >>> is_mersenne_number(0)
+        False
+    """
+    _require_number(value, "value")
+    if isinstance(value, bool):
+        raise TypeError("value must be a number, got bool")
+    if isinstance(value, float) and not value.is_integer():
+        return False
+    if isinstance(value, float):
+        value = int(value)
+    if not isinstance(value, int):
+        raise TypeError(f"value must be a number, got {type(value).__name__}")
+    if value < 1:
+        return False
+    m = value + 1
+    if m <= 0:
+        return False
+    # Check if m is a power of two
+    if m & (m - 1) != 0:
+        return False
+    return True
 NUMBER_UTILS
 
 # --- tests/test_number_utils.py ---
@@ -78315,6 +78471,7 @@ cat > "$OUTPUT_DIR/tests/test_number_utils.py" <<'TEST_NUMBER_UTILS'
 import unittest
 
 from number_utils import (
+    additive_persistence,
     ceil_div,
     clamp,
     digit_count,
@@ -78355,6 +78512,7 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_pronic_number,
+    is_mersenne_number,
     is_spy_number,
     is_squarefree_number,
     is_strong_number,
@@ -78369,6 +78527,7 @@ from number_utils import (
     round_half_up,
     round_to,
     safe_divide,
+    sign,
 )
 
 
@@ -79368,6 +79527,60 @@ class TestIsTriangularNumber(unittest.TestCase):
             is_triangular_number(True)  # type: ignore[arg-type]
 
 
+class TestAdditivePersistence(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(additive_persistence(0), 0)
+        self.assertEqual(additive_persistence(9), 0)
+        self.assertEqual(additive_persistence(123), 1)
+        self.assertEqual(additive_persistence(99), 2)
+        self.assertEqual(additive_persistence(199), 3)
+        self.assertEqual(additive_persistence(999), 2)
+
+    def test_sign_ignored(self) -> None:
+        self.assertEqual(additive_persistence(-123), 1)
+        self.assertEqual(additive_persistence(-5), 0)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            additive_persistence("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            additive_persistence(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            additive_persistence(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            additive_persistence(None)  # type: ignore[arg-type]
+
+
+class TestMultiplicativePersistence(unittest.TestCase):
+    def test_basic(self) -> None:
+        from number_utils import multiplicative_persistence
+
+        self.assertEqual(multiplicative_persistence(0), 0)
+        self.assertEqual(multiplicative_persistence(4), 0)
+        self.assertEqual(multiplicative_persistence(39), 3)
+        self.assertEqual(multiplicative_persistence(77), 4)
+        self.assertEqual(multiplicative_persistence(679), 5)
+        self.assertEqual(multiplicative_persistence(999), 4)
+
+    def test_sign_ignored(self) -> None:
+        from number_utils import multiplicative_persistence
+
+        self.assertEqual(multiplicative_persistence(-39), 3)
+        self.assertEqual(multiplicative_persistence(-4), 0)
+
+    def test_type_errors(self) -> None:
+        from number_utils import multiplicative_persistence
+
+        with self.assertRaises(TypeError):
+            multiplicative_persistence("123")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiplicative_persistence(12.3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiplicative_persistence(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            multiplicative_persistence(None)  # type: ignore[arg-type]
+
+
 class TestIsArmstrongNumber(unittest.TestCase):
     def test_armstrong_numbers(self) -> None:
         self.assertTrue(is_armstrong_number(0))
@@ -79983,6 +80196,29 @@ class TestIsOblongNumber(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestIsMersenneNumber(unittest.TestCase):
+    def test_mersenne_numbers(self) -> None:
+        for n in (1, 3, 7, 15, 31, 63, 127, 255, 511, 1023):
+            self.assertTrue(is_mersenne_number(n), n)
+
+    def test_non_mersenne_numbers(self) -> None:
+        for n in (0, 2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 16, 17, 23):
+            self.assertFalse(is_mersenne_number(n), n)
+
+    def test_float_values(self) -> None:
+        self.assertTrue(is_mersenne_number(7.0))
+        self.assertFalse(is_mersenne_number(5.0))
+        self.assertFalse(is_mersenne_number(7.5))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_mersenne_number("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_mersenne_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_mersenne_number(None)  # type: ignore[arg-type]
 
 
 class TestIsDuckNumber(unittest.TestCase):
