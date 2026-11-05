@@ -33,7 +33,7 @@ except ImportError:
 try:
     from itertools import pairwise as _pairwise  # type: ignore[attr-defined]
 except ImportError:
-    _pairwise = None  # type: ignore[assignment]
+    _pairwise = None  # type: ignore[assignment,misc]
 from typing import Any, Callable, Iterable, List, Optional, Tuple
 
 
