@@ -32,6 +32,11 @@ def _coerce_path_or_none(value: object) -> Optional[str]:
     return str(value)
 
 
+def _normalize_path_arg(value: object, name: str) -> Optional[Union[str, Path]]:
+    """Validate *value* as a path arg and return it unchanged for narrowing."""
+    return _require_path_or_none(value, name)
+
+
 def get_tempdir() -> str:
     """Return the name of the directory used for temporary files.
 
@@ -68,13 +73,13 @@ def mkstemp(
     Raises:
         TypeError: If suffix, prefix, or dir is not a str or Path (or None).
     """
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _normalize_path_arg(suffix, "suffix")
+    prefix_arg = _normalize_path_arg(prefix, "prefix")
+    dir_arg = _normalize_path_arg(dir, "dir")
     return tempfile.mkstemp(
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
     )  # noqa: E501
 
 
@@ -96,13 +101,13 @@ def mkdtemp(
     Raises:
         TypeError: If suffix, prefix, or dir is not a str or Path (or None).
     """
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _normalize_path_arg(suffix, "suffix")
+    prefix_arg = _normalize_path_arg(prefix, "prefix")
+    dir_arg = _normalize_path_arg(dir, "dir")
     return tempfile.mkdtemp(
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
     )  # noqa: E501
 
 
