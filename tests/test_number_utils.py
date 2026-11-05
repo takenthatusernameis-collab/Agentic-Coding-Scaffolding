@@ -46,7 +46,6 @@ from number_utils import (
     is_positive,
     is_power_of_two,
     is_powerful_number,
-    is_prime,
     is_pronic_number,
     is_spy_number,
     is_squarefree_number,
