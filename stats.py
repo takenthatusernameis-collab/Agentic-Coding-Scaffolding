@@ -1509,7 +1509,7 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
-            or if *k* is not an int.
+            or if *k* is not an int, or if *population* is not a bool.
         ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
             half the list length.
 
@@ -1520,6 +1520,8 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     """
     _require_numbers(numbers, "numbers")
     _require_int(k, "k")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
     if k < 0:
         raise ValueError("k must be non-negative")
     n = len(numbers)
@@ -1558,7 +1560,7 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
-            or if *k* is not an int.
+            or if *k* is not an int, or if *population* is not a bool.
         ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
             half the list length.
 

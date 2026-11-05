@@ -17003,7 +17003,7 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
-            or if *k* is not an int.
+            or if *k* is not an int, or if *population* is not a bool.
         ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
             half the list length.
 
@@ -17014,6 +17014,8 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     """
     _require_numbers(numbers, "numbers")
     _require_int(k, "k")
+    if not isinstance(population, bool):
+        raise TypeError("population must be a bool")
     if k < 0:
         raise ValueError("k must be non-negative")
     n = len(numbers)
@@ -17052,7 +17054,7 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
-            or if *k* is not an int.
+            or if *k* is not an int, or if *population* is not a bool.
         ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
             half the list length.
 
@@ -21865,6 +21867,10 @@ class TestWinsorizedValidation(unittest.TestCase):
     def test_winsorized_variance_population_flag_type(self) -> None:
         with self.assertRaises(TypeError):
             winsorized_variance([1, 2, 3, 4, 5], k=1, population=1)  # type: ignore[arg-type]
+
+    def test_winsorized_stddev_population_flag_type(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, 3, 4, 5], k=1, population=1)  # type: ignore[arg-type]
 
     def test_winsorized_variance_sample(self) -> None:
         # small sample; value should be finite and non-negative

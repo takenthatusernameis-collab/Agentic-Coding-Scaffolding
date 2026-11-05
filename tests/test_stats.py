@@ -2052,6 +2052,10 @@ class TestWinsorizedValidation(unittest.TestCase):
         with self.assertRaises(TypeError):
             winsorized_variance([1, 2, 3, 4, 5], k=1, population=1)  # type: ignore[arg-type]
 
+    def test_winsorized_stddev_population_flag_type(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, 3, 4, 5], k=1, population=1)  # type: ignore[arg-type]
+
     def test_winsorized_variance_sample(self) -> None:
         # small sample; value should be finite and non-negative
         v = winsorized_variance([1, 2, 3, 4, 100], k=1, population=False)
