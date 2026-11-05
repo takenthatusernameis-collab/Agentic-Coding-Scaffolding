@@ -234,15 +234,6 @@ def interval_distance(a: Interval, b: Interval) -> float:
         raise ValueError(f"invalid interval: {a!r} or {b!r}")
     if interval_overlaps(a, b):
         return 0.0
-    # Special handling for infinities as per tests
-    if (math.isinf(a[0]) and a[0] < 0 and math.isinf(b[1]) and b[1] > 0) or (
-        math.isinf(b[0]) and b[0] < 0 and math.isinf(a[1]) and a[1] > 0
-    ):
-        return float("inf")
-    if math.isinf(a[1]) and a[1] > 0 and math.isinf(b[1]) and b[1] > 0:
-        return float("inf")
-    if math.isinf(a[0]) and a[0] < 0 and math.isinf(b[0]) and b[0] < 0:
-        return float("inf")
     if a[1] < b[0]:
         gap = b[0] - a[1]
         return float(gap)

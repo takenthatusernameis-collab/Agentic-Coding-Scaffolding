@@ -390,7 +390,7 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
     def test_interval_distance_with_inf(self):
         self.assertEqual(interval_distance((0, float("inf")), (5, 10)), 0)
-        self.assertEqual(interval_distance((float("-inf"), 0), (1, float("inf"))), float("inf"))
+        self.assertEqual(interval_distance((float("-inf"), 0), (1, float("inf"))), 1.0)
         self.assertEqual(interval_distance((0, 1), (float("inf"), float("inf"))), float("inf"))
 
     def test_interval_shift_with_inf(self):
@@ -434,7 +434,10 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
         self.assertTrue(math.isnan(result[1]))
 
     def test_interval_symmetric_difference_with_inf(self):
-        self.assertEqual(interval_symmetric_difference((0, float("inf")), (5, 10)), [])
+        self.assertEqual(
+            interval_symmetric_difference((0, float("inf")), (5, 10)),
+            [(0, 5), (10, float("inf"))],
+        )
         diff = interval_symmetric_difference((0, 5), (3, float("inf")))
         self.assertEqual(diff, [(0, 3), (5, float("inf"))])
         self.assertEqual(

@@ -54216,15 +54216,6 @@ def interval_distance(a: Interval, b: Interval) -> float:
         raise ValueError(f"invalid interval: {a!r} or {b!r}")
     if interval_overlaps(a, b):
         return 0.0
-    # Special handling for infinities as per tests
-    if (math.isinf(a[0]) and a[0] < 0 and math.isinf(b[1]) and b[1] > 0) or (
-        math.isinf(b[0]) and b[0] < 0 and math.isinf(a[1]) and a[1] > 0
-    ):
-        return float("inf")
-    if math.isinf(a[1]) and a[1] > 0 and math.isinf(b[1]) and b[1] > 0:
-        return float("inf")
-    if math.isinf(a[0]) and a[0] < 0 and math.isinf(b[0]) and b[0] < 0:
-        return float("inf")
     if a[1] < b[0]:
         gap = b[0] - a[1]
         return float(gap)
@@ -54709,7 +54700,7 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
 
     def test_interval_distance_with_inf(self):
         self.assertEqual(interval_distance((0, float("inf")), (5, 10)), 0)
-        self.assertEqual(interval_distance((float("-inf"), 0), (1, float("inf"))), float("inf"))
+        self.assertEqual(interval_distance((float("-inf"), 0), (1, float("inf"))), 1.0)
         self.assertEqual(interval_distance((0, 1), (float("inf"), float("inf"))), float("inf"))
 
     def test_interval_shift_with_inf(self):
@@ -54753,7 +54744,10 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
         self.assertTrue(math.isnan(result[1]))
 
     def test_interval_symmetric_difference_with_inf(self):
-        self.assertEqual(interval_symmetric_difference((0, float("inf")), (5, 10)), [])
+        self.assertEqual(
+            interval_symmetric_difference((0, float("inf")), (5, 10)),
+            [(0, 5), (10, float("inf"))],
+        )
         diff = interval_symmetric_difference((0, 5), (3, float("inf")))
         self.assertEqual(diff, [(0, 3), (5, float("inf"))])
         self.assertEqual(
