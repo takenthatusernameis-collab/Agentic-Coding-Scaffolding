@@ -34,7 +34,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `token_utils.py` — python token constant utilities wrapping the standard library `token` module (`is_eof`, `is_nonterminal`, `is_terminal`, `tok_name`, `exact_token_types`, `n_tokens`, `nt_offset`) with input validation
 - `sched_utils.py` — scheduler utilities wrapping the standard library `sched` module (`scheduler`, `enter`, `enterabs`, `cancel`, `empty`, `run`, `queue`) with input validation
 - `quopri_utils.py` — quoted-printable encoding and decoding utilities wrapping the standard library `quopri` module (`encode`, `decode`, `encode_file`, `decode_file`, `isqp`) with input validation
-- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`, `is_sphenic_number`) with input validation
+- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`, `is_sphenic_number`, `abundance`, `are_amicable`, `is_amicable_number`) with input validation
 - `netrc_utils.py` — netrc utilities wrapping the standard library `netrc` module (`netrc`, `NetrcParseError`) with input validation
 - `getopt_utils.py` — command line option parsing utilities wrapping the standard library `getopt` module (`getopt`, `gnu_getopt`, `GetoptError`) with input validation
 - `filecmp_utils.py` — file comparison utilities wrapping the standard library `filecmp` module (`cmp_files`, `cmp_directories`, `same_file`) with input validation

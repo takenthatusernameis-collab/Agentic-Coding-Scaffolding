@@ -948,5 +948,85 @@ class TestIsSphenicNumber(unittest.TestCase):
                 is_sphenic_number(value)
 
 
+class TestAbundance(unittest.TestCase):
+    def test_known_values(self):
+        from numbers_utils import abundance
+
+        self.assertEqual(abundance(1), -1)
+        self.assertEqual(abundance(6), 0)
+        self.assertEqual(abundance(28), 0)
+        self.assertEqual(abundance(12), 4)
+        self.assertEqual(abundance(8), -1)
+        self.assertEqual(abundance(7), -6)
+
+    def test_validation(self):
+        from numbers_utils import abundance
+
+        with self.assertRaises(TypeError):
+            abundance(1.5)
+        with self.assertRaises(TypeError):
+            abundance(True)
+        with self.assertRaises(ValueError):
+            abundance(0)
+        with self.assertRaises(ValueError):
+            abundance(-1)
+
+
+class TestAreAmicable(unittest.TestCase):
+    def test_known_pairs(self):
+        from numbers_utils import are_amicable
+
+        self.assertTrue(are_amicable(220, 284))
+        self.assertTrue(are_amicable(284, 220))
+        self.assertTrue(are_amicable(1184, 1210))
+
+    def test_non_pairs(self):
+        from numbers_utils import are_amicable
+
+        self.assertFalse(are_amicable(6, 6))
+        self.assertFalse(are_amicable(12, 16))
+        self.assertFalse(are_amicable(220, 220))
+        self.assertFalse(are_amicable(0, 1))
+        self.assertFalse(are_amicable(-220, 284))
+
+    def test_type_error(self):
+        from numbers_utils import are_amicable
+
+        with self.assertRaises(TypeError):
+            are_amicable(220.0, 284)
+        with self.assertRaises(TypeError):
+            are_amicable(220, True)
+        with self.assertRaises(TypeError):
+            are_amicable("220", 284)
+
+
+class TestIsAmicableNumber(unittest.TestCase):
+    def test_known_amicable_numbers(self):
+        from numbers_utils import is_amicable_number
+
+        for value in (220, 284, 1184, 1210, 2620, 2924):
+            self.assertTrue(is_amicable_number(value), value)
+
+    def test_non_amicable(self):
+        from numbers_utils import is_amicable_number
+
+        for value in (1, 2, 6, 28, 496, 12, 100):
+            self.assertFalse(is_amicable_number(value), value)
+
+    def test_edge_cases(self):
+        from numbers_utils import is_amicable_number
+
+        self.assertFalse(is_amicable_number(0))
+        self.assertFalse(is_amicable_number(-220))
+
+    def test_type_error(self):
+        from numbers_utils import is_amicable_number
+
+        for value in (1.5, "220", None, True, [220]):
+            with self.assertRaises(TypeError):
+                is_amicable_number(value)
+
+
 if __name__ == "__main__":
     unittest.main()
+

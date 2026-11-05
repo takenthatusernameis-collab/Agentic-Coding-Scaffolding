@@ -1,3 +1,12 @@
+## Unreleased — added abundance and amicable helpers to numbers_utils
+
+- Added `abundance(n)` to `numbers_utils.py`: returns `aliquot_sum(n) - n` (positive for abundant, zero for perfect, negative for deficient) with `TypeError`/`ValueError` validation.
+- Added `are_amicable(a, b)` and `is_amicable_number(n)` to `numbers_utils.py` (aliquot-sum-based amicable-pair helpers; `is_amicable_number` is distinct from `prime_utils.is_amicable`).
+- Exported `abundance`, `are_amicable`, and `is_amicable_number` from `numbers_utils.__all__`.
+- Added `TestAbundance`, `TestAreAmicable`, and `TestIsAmicableNumber` to `tests/test_numbers_utils.py` covering known values, edge cases, and `TypeError`/`ValueError` paths.
+- Updated `README.md` (tree + prose) and `.kilo/command/scaffold-project.md`; synchronized embedded copies with `make refresh-scaffold` and verified `python tools/refresh_scaffold.py --check`.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added aliquot_sum to number_utils
 
 - Added `is_sphenic_number(n)` to `numbers_utils.py` with `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int/bool arguments (rejecting `bool`); a sphenic number is a positive integer that is the product of exactly three distinct primes (e.g. 30, 42, 66). Added `TestIsSphenicNumber` to `tests/test_numbers_utils.py` covering known sphenic numbers, non-sphenic values (including prime powers and non-squarefree composites), negatives, and the `TypeError` path. Updated `README.md` (`numbers_utils` tree entry and prose) and `.kilo/command/scaffold-project.md`; synchronized embedded copies with `make refresh-scaffold` and verified `python tools/refresh_scaffold.py --check`.

@@ -60,10 +60,13 @@ __all__: list[str] = [
     "is_narcissistic",
     "is_weird_number",
     "is_sphenic_number",
+    "is_untouchable_number",
+    "proper_divisors",
     "aliquot_sum",
     "sum_of_divisors",
-    "proper_divisors",
-    "is_untouchable_number",
+    "abundance",
+    "are_amicable",
+    "is_amicable_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -1506,3 +1509,111 @@ def is_untouchable_number(n: int) -> bool:
         if aliquot_sum(m) == n:
             return False
     return True
+
+
+def abundance(n: int) -> int:
+    """Return the abundance of *n*.
+
+    The abundance of a positive integer is ``aliquot_sum(n) - n``: positive
+    for abundant numbers, zero for perfect numbers, and negative for
+    deficient numbers.
+
+    Args:
+        n: The positive integer whose abundance is computed.
+
+    Returns:
+        The signed abundance of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> abundance(12)
+        4
+        >>> abundance(6)
+        0
+        >>> abundance(8)
+        -4
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError(f"n must be a positive integer, got {n}")
+    return aliquot_sum(n) - n
+
+
+def are_amicable(a: int, b: int) -> bool:
+    """Return ``True`` when *a* and *b* form an amicable pair.
+
+    Two distinct positive integers are amicable when each equals the sum of
+    the proper divisors of the other. The smallest amicable pair is
+    (220, 284).
+
+    Args:
+        a: The first positive integer.
+        b: The second positive integer.
+
+    Returns:
+        ``True`` if *a* and *b* are distinct and amicable, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
+    Examples:
+        >>> are_amicable(220, 284)
+        True
+        >>> are_amicable(284, 220)
+        True
+        >>> are_amicable(6, 6)
+        False
+        >>> are_amicable(12, 16)
+        False
+    """
+    if isinstance(a, bool) or not isinstance(a, int):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if isinstance(b, bool) or not isinstance(b, int):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if a < 1 or b < 1 or a == b:
+        return False
+    return aliquot_sum(a) == b and aliquot_sum(b) == a
+
+
+def is_amicable_number(n: int) -> bool:
+    """Return ``True`` when *n* belongs to an amicable pair.
+
+    A number is amicable when there exists a distinct positive integer whose
+    proper-divisor sum equals *n* and whose own proper-divisor sum equals
+    *n*. Perfect numbers (where the partner would be *n* itself) are not
+    amicable.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is part of an amicable pair, ``False`` otherwise.
+        Numbers below 2 are never amicable.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_amicable_number(220)
+        True
+        >>> is_amicable_number(284)
+        True
+        >>> is_amicable_number(6)
+        False
+        >>> is_amicable_number(1)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 2:
+        return False
+    partner = aliquot_sum(n)
+    if partner == n or partner < 2:
+        return False
+    return aliquot_sum(partner) == n
+

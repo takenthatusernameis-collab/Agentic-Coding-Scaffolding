@@ -52683,7 +52683,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `token_utils.py` — python token constant utilities wrapping the standard library `token` module (`is_eof`, `is_nonterminal`, `is_terminal`, `tok_name`, `exact_token_types`, `n_tokens`, `nt_offset`) with input validation
 - `sched_utils.py` — scheduler utilities wrapping the standard library `sched` module (`scheduler`, `enter`, `enterabs`, `cancel`, `empty`, `run`, `queue`) with input validation
 - `quopri_utils.py` — quoted-printable encoding and decoding utilities wrapping the standard library `quopri` module (`encode`, `decode`, `encode_file`, `decode_file`, `isqp`) with input validation
-- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`, `is_sphenic_number`) with input validation
+- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`, `is_sphenic_number`, `abundance`, `are_amicable`, `is_amicable_number`) with input validation
 - `netrc_utils.py` — netrc utilities wrapping the standard library `netrc` module (`netrc`, `NetrcParseError`) with input validation
 - `getopt_utils.py` — command line option parsing utilities wrapping the standard library `getopt` module (`getopt`, `gnu_getopt`, `GetoptError`) with input validation
 - `filecmp_utils.py` — file comparison utilities wrapping the standard library `filecmp` module (`cmp_files`, `cmp_directories`, `same_file`) with input validation
@@ -55089,6 +55089,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added abundance and amicable helpers to numbers_utils
+
+- Added `abundance(n)` to `numbers_utils.py`: returns `aliquot_sum(n) - n` (positive for abundant, zero for perfect, negative for deficient) with `TypeError`/`ValueError` validation.
+- Added `are_amicable(a, b)` and `is_amicable_number(n)` to `numbers_utils.py` (aliquot-sum-based amicable-pair helpers; `is_amicable_number` is distinct from `prime_utils.is_amicable`).
+- Exported `abundance`, `are_amicable`, and `is_amicable_number` from `numbers_utils.__all__`.
+- Added `TestAbundance`, `TestAreAmicable`, and `TestIsAmicableNumber` to `tests/test_numbers_utils.py` covering known values, edge cases, and `TypeError`/`ValueError` paths.
+- Updated `README.md` (tree + prose) and `.kilo/command/scaffold-project.md`; synchronized embedded copies with `make refresh-scaffold` and verified `python tools/refresh_scaffold.py --check`.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added aliquot_sum to number_utils
 
 - Added `is_sphenic_number(n)` to `numbers_utils.py` with `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int/bool arguments (rejecting `bool`); a sphenic number is a positive integer that is the product of exactly three distinct primes (e.g. 30, 42, 66). Added `TestIsSphenicNumber` to `tests/test_numbers_utils.py` covering known sphenic numbers, non-sphenic values (including prime powers and non-squarefree composites), negatives, and the `TypeError` path. Updated `README.md` (`numbers_utils` tree entry and prose) and `.kilo/command/scaffold-project.md`; synchronized embedded copies with `make refresh-scaffold` and verified `python tools/refresh_scaffold.py --check`.
@@ -57275,7 +57284,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -58393,7 +58402,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds `is_number`, `is_integral`, `is_complex`, `is_real`, `is_rational`, `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_strong_number`, `is_harshad_number`, `is_neon_number`, `is_armstrong_number`, `is_automorphic_number`, `is_happy_number`, `is_disarium_number`, `is_pronic_number`, and `is_weird_number` predicates. `is_number` and `is_integral` test whether an object is registered with the `Number` or `Integral` ABCs; `is_complex`, `is_real`, and `is_rational` test against the `Complex`, `Real`, and `Rational` ABCs respectively; `is_perfect_number` tests whether a positive integer equals the sum of its proper divisors; `is_almost_perfect_number` tests whether the sum of proper divisors equals the number minus one; `is_semiperfect_number` tests whether the number can be expressed as the sum of some subset of its proper divisors (every perfect number is semiperfect, and every multiple of a semiperfect number is semiperfect); `is_abundant_number` and `is_deficient_number` test whether the sum of proper divisors exceeds or falls short of the number; `is_strong_number` tests whether the sum of the factorials of the digits equals the number; `is_harshad_number` tests divisibility by the sum of the digits; `is_neon_number` tests whether the sum of the digits of the square equals the number; `is_armstrong_number` tests whether the sum of the digits raised to the power of the digit count equals the number; `is_automorphic_number` tests whether the square ends with the number; `is_happy_number` tests for happy numbers; `is_disarium_number` tests whether the sum of each digit raised to its position power equals the number; `is_pronic_number` tests whether the number is the product of two consecutive integers; `is_spy_number` tests whether the sum of the digits equals the product of the digits; `is_polydivisible_number` tests whether every decimal prefix of the number is divisible by its length (e.g. 1, 12, 126, 1248); `is_pandigital_number` tests whether an integer contains every digit of a base at least once in its representation (e.g. 1023456789 in base 10, 75 in base 4); `is_duck_number` tests whether the decimal representation contains at least one zero that is not a leading zero (e.g. 101, 203); `is_odious_number` tests whether a non-negative integer has an odd number of 1-bits in its binary representation; `is_evil_number` tests whether a non-negative integer has an even number of 1-bits in its binary representation; and `proper_divisors` returns the sorted proper divisors of a positive integer; `is_weird_number` tests whether an abundant number is not semiperfect (e.g. 70 and 836 are weird). The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds classification and divisor helpers including `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `proper_divisors`, `aliquot_sum`, `sum_of_divisors`, `abundance`, `are_amicable`, and `is_amicable_number` (with `TypeError`/`ValueError` validation; `is_amicable_number` is distinct from `prime_utils.is_amicable`). The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -80952,10 +80961,13 @@ __all__: list[str] = [
     "is_narcissistic",
     "is_weird_number",
     "is_sphenic_number",
+    "is_untouchable_number",
+    "proper_divisors",
     "aliquot_sum",
     "sum_of_divisors",
-    "proper_divisors",
-    "is_untouchable_number",
+    "abundance",
+    "are_amicable",
+    "is_amicable_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -82398,6 +82410,113 @@ def is_untouchable_number(n: int) -> bool:
         if aliquot_sum(m) == n:
             return False
     return True
+
+
+def abundance(n: int) -> int:
+    """Return the abundance of *n*.
+
+    The abundance of a positive integer is ``aliquot_sum(n) - n``: positive
+    for abundant numbers, zero for perfect numbers, and negative for
+    deficient numbers.
+
+    Args:
+        n: The positive integer whose abundance is computed.
+
+    Returns:
+        The signed abundance of *n*.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> abundance(12)
+        4
+        >>> abundance(6)
+        0
+        >>> abundance(8)
+        -4
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 1:
+        raise ValueError(f"n must be a positive integer, got {n}")
+    return aliquot_sum(n) - n
+
+
+def are_amicable(a: int, b: int) -> bool:
+    """Return ``True`` when *a* and *b* form an amicable pair.
+
+    Two distinct positive integers are amicable when each equals the sum of
+    the proper divisors of the other. The smallest amicable pair is
+    (220, 284).
+
+    Args:
+        a: The first positive integer.
+        b: The second positive integer.
+
+    Returns:
+        ``True`` if *a* and *b* are distinct and amicable, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
+    Examples:
+        >>> are_amicable(220, 284)
+        True
+        >>> are_amicable(284, 220)
+        True
+        >>> are_amicable(6, 6)
+        False
+        >>> are_amicable(12, 16)
+        False
+    """
+    if isinstance(a, bool) or not isinstance(a, int):
+        raise TypeError(f"a must be an int, got {type(a).__name__}")
+    if isinstance(b, bool) or not isinstance(b, int):
+        raise TypeError(f"b must be an int, got {type(b).__name__}")
+    if a < 1 or b < 1 or a == b:
+        return False
+    return aliquot_sum(a) == b and aliquot_sum(b) == a
+
+
+def is_amicable_number(n: int) -> bool:
+    """Return ``True`` when *n* belongs to an amicable pair.
+
+    A number is amicable when there exists a distinct positive integer whose
+    proper-divisor sum equals *n* and whose own proper-divisor sum equals
+    *n*. Perfect numbers (where the partner would be *n* itself) are not
+    amicable.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is part of an amicable pair, ``False`` otherwise.
+        Numbers below 2 are never amicable.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_amicable_number(220)
+        True
+        >>> is_amicable_number(284)
+        True
+        >>> is_amicable_number(6)
+        False
+        >>> is_amicable_number(1)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 2:
+        return False
+    partner = aliquot_sum(n)
+    if partner == n or partner < 2:
+        return False
+    return aliquot_sum(partner) == n
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -83350,6 +83469,85 @@ class TestIsSphenicNumber(unittest.TestCase):
         for value in (1.5, "30", None, True, [30]):
             with self.assertRaises(TypeError):
                 is_sphenic_number(value)
+
+
+class TestAbundance(unittest.TestCase):
+    def test_known_values(self):
+        from numbers_utils import abundance
+
+        self.assertEqual(abundance(1), -1)
+        self.assertEqual(abundance(6), 0)
+        self.assertEqual(abundance(28), 0)
+        self.assertEqual(abundance(12), 4)
+        self.assertEqual(abundance(8), -1)
+        self.assertEqual(abundance(7), -6)
+
+    def test_validation(self):
+        from numbers_utils import abundance
+
+        with self.assertRaises(TypeError):
+            abundance(1.5)
+        with self.assertRaises(TypeError):
+            abundance(True)
+        with self.assertRaises(ValueError):
+            abundance(0)
+        with self.assertRaises(ValueError):
+            abundance(-1)
+
+
+class TestAreAmicable(unittest.TestCase):
+    def test_known_pairs(self):
+        from numbers_utils import are_amicable
+
+        self.assertTrue(are_amicable(220, 284))
+        self.assertTrue(are_amicable(284, 220))
+        self.assertTrue(are_amicable(1184, 1210))
+
+    def test_non_pairs(self):
+        from numbers_utils import are_amicable
+
+        self.assertFalse(are_amicable(6, 6))
+        self.assertFalse(are_amicable(12, 16))
+        self.assertFalse(are_amicable(220, 220))
+        self.assertFalse(are_amicable(0, 1))
+        self.assertFalse(are_amicable(-220, 284))
+
+    def test_type_error(self):
+        from numbers_utils import are_amicable
+
+        with self.assertRaises(TypeError):
+            are_amicable(220.0, 284)
+        with self.assertRaises(TypeError):
+            are_amicable(220, True)
+        with self.assertRaises(TypeError):
+            are_amicable("220", 284)
+
+
+class TestIsAmicableNumber(unittest.TestCase):
+    def test_known_amicable_numbers(self):
+        from numbers_utils import is_amicable_number
+
+        for value in (220, 284, 1184, 1210, 2620, 2924):
+            self.assertTrue(is_amicable_number(value), value)
+
+    def test_non_amicable(self):
+        from numbers_utils import is_amicable_number
+
+        for value in (1, 2, 6, 28, 496, 12, 100):
+            self.assertFalse(is_amicable_number(value), value)
+
+    def test_edge_cases(self):
+        from numbers_utils import is_amicable_number
+
+        self.assertFalse(is_amicable_number(0))
+        self.assertFalse(is_amicable_number(-220))
+
+    def test_type_error(self):
+        from numbers_utils import is_amicable_number
+
+        for value in (1.5, "220", None, True, [220]):
+            with self.assertRaises(TypeError):
+                is_amicable_number(value)
 
 
 if __name__ == "__main__":
