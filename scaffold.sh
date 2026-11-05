@@ -77044,7 +77044,26 @@ def is_even(value: Number) -> bool:
         TypeError: If *value* is not a number.
     """
     _require_number(value, "value")
-    return int(value) == value and int(value) % 2 == 0
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return False
+        if not value.is_integer():
+            return False
+        value_int = int(value)
+    elif isinstance(value, int):
+        value_int = value
+    else:
+        # Should not happen as _require_number enforces, but be defensive
+        if isinstance(value, float) and not math.isfinite(value):
+            return False
+        try:
+            f = float(value)
+        except Exception:
+            return False
+        if not f.is_integer():
+            return False
+        value_int = int(f)
+    return value_int % 2 == 0
 
 
 def is_odd(value: Number) -> bool:
@@ -77060,7 +77079,25 @@ def is_odd(value: Number) -> bool:
         TypeError: If *value* is not a number.
     """
     _require_number(value, "value")
-    return int(value) == value and int(value) % 2 != 0
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return False
+        if not value.is_integer():
+            return False
+        value_int = int(value)
+    elif isinstance(value, int):
+        value_int = value
+    else:
+        if isinstance(value, float) and not math.isfinite(value):
+            return False
+        try:
+            f = float(value)
+        except Exception:
+            return False
+        if not f.is_integer():
+            return False
+        value_int = int(f)
+    return value_int % 2 != 0
 
 
 def is_pronic_number(value: Number) -> bool:
@@ -79668,6 +79705,13 @@ class TestIsEven(unittest.TestCase):
         self.assertFalse(is_even(-3))
         self.assertFalse(is_even(3.5))
 
+    def test_non_finite(self) -> None:
+        from number_utils import is_even
+
+        self.assertFalse(is_even(float("inf")))
+        self.assertFalse(is_even(float("-inf")))
+        self.assertFalse(is_even(float("nan")))
+
     def test_type_errors(self) -> None:
         from number_utils import is_even
 
@@ -79696,6 +79740,13 @@ class TestIsOdd(unittest.TestCase):
         self.assertFalse(is_odd(2))
         self.assertFalse(is_odd(2.0))
         self.assertFalse(is_odd(2.5))
+
+    def test_non_finite(self) -> None:
+        from number_utils import is_odd
+
+        self.assertFalse(is_odd(float("inf")))
+        self.assertFalse(is_odd(float("-inf")))
+        self.assertFalse(is_odd(float("nan")))
 
     def test_type_errors(self) -> None:
         from number_utils import is_odd
