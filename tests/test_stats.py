@@ -10,6 +10,7 @@ from stats import (
     cumulative_product,
     cumulative_sum,
     geometric_mean,
+    gini_coefficient,
     harmonic_mean,
     kurtosis,
     max_value,
@@ -1038,6 +1039,50 @@ class TestWinsorizedMean(unittest.TestCase):
             winsorized_mean([1, 2, 3], 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             winsorized_mean([1, 2, 3], True)  # type: ignore[arg-type]
+
+
+class TestGiniCoefficient(unittest.TestCase):
+    def test_perfect_equality(self) -> None:
+        self.assertEqual(gini_coefficient([1, 1, 1, 1]), 0.0)
+        self.assertEqual(gini_coefficient([5, 5, 5]), 0.0)
+
+    def test_perfect_inequality_two(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([0, 1]), 0.5)
+
+    def test_basic(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([1, 2, 3, 4, 5]), 0.26666666666666666)
+
+    def test_with_zeros(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([0, 0, 1]), 2.0 / 3.0)
+
+    def test_all_zeros(self) -> None:
+        self.assertEqual(gini_coefficient([0, 0, 0]), 0.0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(gini_coefficient([5]), 0.0)
+
+    def test_floats(self) -> None:
+        self.assertAlmostEqual(gini_coefficient([1.0, 2.0, 3.0]), 0.2222222222222222)
+
+    def test_rejects_non_list(self) -> None:
+        with self.assertRaises(TypeError):
+            gini_coefficient((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_empty(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([])
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            gini_coefficient([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            gini_coefficient([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([-1, 0, 1])
 
 
 class TestRootMeanSquare(unittest.TestCase):

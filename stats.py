@@ -60,8 +60,9 @@ __all__: List[str] = [
     "winsorized_mean",
     "winsorized_variance",
     "winsorized_stddev",
-    "shannon_entropy",
+    "gini_coefficient",
 ]
+
 
 
 def _require_numbers(numbers: List[T | float], name: str = "numbers") -> None:
@@ -1563,6 +1564,61 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
     return math.sqrt(winsorized_variance(numbers, k=k, population=population))
 
 
+def gini_coefficient(numbers: List[T | float]) -> float:
+    """Return the Gini coefficient of inequality for *numbers*.
+
+    The Gini coefficient is a measure of statistical dispersion representing
+    income/wealth inequality, ranging from 0 (perfect equality) to 1 (perfect
+    inequality). Values are sorted and computed as:
+
+        G = (sum_{i,j} |x_i - x_j|) / (2 * n^2 * mean)
+
+    which is equivalent to the more efficient formula based on Lorenz curve.
+
+    Args:
+        numbers: A non-empty list of non-negative ints or floats.
+
+    Returns:
+        The Gini coefficient (float between 0 and 1).
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+        ValueError: If *numbers* is empty or contains negative values.
+
+    Examples:
+        >>> gini_coefficient([1, 1, 1, 1])
+        0.0
+        >>> gini_coefficient([0, 1])
+        0.5
+        >>> gini_coefficient([0, 0, 1])
+        0.444...
+        >>> round(gini_coefficient([1, 2, 3, 4, 5]), 6)
+        0.266667
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if len(numbers) == 0:
+        raise ValueError("numbers cannot be empty")
+    n = len(numbers)
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only ints or floats")
+        if x < 0:
+            raise ValueError("numbers cannot contain negative values")
+        total += x
+    if total == 0:
+        return 0.0
+    sorted_nums = sorted(numbers)
+    cumulative = 0.0
+    weighted_sum = 0.0
+    for i, x in enumerate(sorted_nums, 1):
+        cumulative += x
+        weighted_sum += cumulative
+    gini = (2 * weighted_sum) / (n * total) - (n + 1) / n
+    return gini
+
+
 def shannon_entropy(numbers: List[int | float]) -> float:
     """Return the Shannon entropy of the discrete values in *numbers*.
 
@@ -1603,3 +1659,50 @@ def shannon_entropy(numbers: List[int | float]) -> float:
         p = count / n
         entropy -= p * math.log2(p)
     return float(entropy) if entropy != 0 else 0.0
+
+
+def gini_coefficient(numbers: List[T | float]) -> float:
+    """Return the Gini coefficient of inequality for *numbers*.
+
+    The Gini coefficient is a measure of statistical dispersion representing
+    income/wealth inequality, ranging from 0 (perfect equality) to 1 (perfect
+    inequality).
+
+    Args:
+        numbers: A non-empty list of non-negative ints or floats.
+
+    Returns:
+        The Gini coefficient (float between 0 and 1).
+
+    Raises:
+        TypeError: If *numbers* is not a list or contains non-numeric values.
+        ValueError: If *numbers* is empty or contains negative values.
+
+    Examples:
+        >>> gini_coefficient([1, 1, 1, 1])
+        0.0
+        >>> gini_coefficient([0, 1])
+        0.5
+        >>> round(gini_coefficient([1, 2, 3, 4, 5]), 6)
+        0.266667
+    """
+    if not isinstance(numbers, list):
+        raise TypeError("numbers must be a list")
+    if len(numbers) == 0:
+        raise ValueError("numbers cannot be empty")
+    n = len(numbers)
+    total = 0.0
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError("numbers must contain only ints or floats")
+        if x < 0:
+            raise ValueError("numbers cannot contain negative values")
+        total += x
+    if total == 0:
+        return 0.0
+    sorted_nums = sorted(numbers)
+    weighted_sum = 0.0
+    for i, x in enumerate(sorted_nums, 1):
+        weighted_sum += i * x
+    gini = (2 * weighted_sum) / (n * total) - (n + 1) / n
+    return float(gini) if gini != 0 else 0.0
