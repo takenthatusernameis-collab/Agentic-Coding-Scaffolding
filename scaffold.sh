@@ -86247,6 +86247,7 @@ __all__: List[str] = [
     "is_safe_prime",
     "sum_of_proper_divisors",
     "sum_of_primes_up_to",
+    "is_mersenne_prime",
     "aliquot_sum",
     "is_perfect_number",
     "is_abundant_number",
@@ -88071,6 +88072,44 @@ def sum_of_primes_up_to(n: int) -> int:
     """
     _require_int(n, "n")
     return sum(primes_up_to(n))
+
+
+def is_mersenne_prime(n: int) -> bool:
+    """Return True if *n* is a Mersenne prime.
+
+    A Mersenne prime is a prime number of the form 2**p - 1 where p itself
+    is prime.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if *n* is a Mersenne prime, False otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_mersenne_prime(3)
+        True
+        >>> is_mersenne_prime(7)
+        True
+        >>> is_mersenne_prime(31)
+        True
+        >>> is_mersenne_prime(5)
+        False
+    """
+    _require_int(n, "n")
+    if n < 2:
+        return False
+    if not is_prime(n):
+        return False
+    p = n + 1
+    # n must be 2**p_exp - 1; check via bit trick.
+    if (p & (p - 1)) != 0:
+        return False
+    p_exp = p.bit_length() - 1
+    return is_prime(p_exp)
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
