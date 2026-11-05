@@ -50,6 +50,7 @@ from prompt_utils import (
     has_punctuation,
     has_spaces,
     has_trailing_newline,
+    ends_with_newline,
     has_uppercase,
     has_whitespace,
     indent_lines,
@@ -65,7 +66,9 @@ from prompt_utils import (
     reverse_lines,
     rstrip_lines,
     split_lines,
+    starts_with_newline,
     strip_blank_lines,
+
     strip_leading_newlines,
     strip_lines,
     strip_trailing_newlines,
@@ -705,6 +708,52 @@ class TestEnsureLeadingNewline(unittest.TestCase):
             ensure_leading_newline(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_leading_newline(None)  # type: ignore[arg-type]
+
+
+class TestStartsWithNewline(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(starts_with_newline("\nhello"))
+
+    def test_false(self):
+        self.assertFalse(starts_with_newline("hello"))
+
+    def test_empty(self):
+        self.assertFalse(starts_with_newline(""))
+
+    def test_only_newline(self):
+        self.assertTrue(starts_with_newline("\n"))
+
+    def test_crlf_prefix_not_lf(self):
+        self.assertFalse(starts_with_newline("\r\nhello"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            starts_with_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            starts_with_newline(None)  # type: ignore[arg-type]
+
+
+class TestEndsWithNewline(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(ends_with_newline("hello\n"))
+
+    def test_false(self):
+        self.assertFalse(ends_with_newline("hello"))
+
+    def test_empty(self):
+        self.assertFalse(ends_with_newline(""))
+
+    def test_only_newline(self):
+        self.assertTrue(ends_with_newline("\n"))
+
+    def test_crlf_suffix(self):
+        self.assertTrue(ends_with_newline("hello\r\n"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ends_with_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ends_with_newline(None)  # type: ignore[arg-type]
 
 
 class TestEnsureTrailingNewline(unittest.TestCase):

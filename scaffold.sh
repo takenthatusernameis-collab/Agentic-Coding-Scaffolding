@@ -24649,6 +24649,7 @@ from prompt_utils import (
     has_punctuation,
     has_spaces,
     has_trailing_newline,
+    ends_with_newline,
     has_uppercase,
     has_whitespace,
     indent_lines,
@@ -24664,7 +24665,9 @@ from prompt_utils import (
     reverse_lines,
     rstrip_lines,
     split_lines,
+    starts_with_newline,
     strip_blank_lines,
+
     strip_leading_newlines,
     strip_lines,
     strip_trailing_newlines,
@@ -25304,6 +25307,52 @@ class TestEnsureLeadingNewline(unittest.TestCase):
             ensure_leading_newline(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_leading_newline(None)  # type: ignore[arg-type]
+
+
+class TestStartsWithNewline(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(starts_with_newline("\nhello"))
+
+    def test_false(self):
+        self.assertFalse(starts_with_newline("hello"))
+
+    def test_empty(self):
+        self.assertFalse(starts_with_newline(""))
+
+    def test_only_newline(self):
+        self.assertTrue(starts_with_newline("\n"))
+
+    def test_crlf_prefix_not_lf(self):
+        self.assertFalse(starts_with_newline("\r\nhello"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            starts_with_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            starts_with_newline(None)  # type: ignore[arg-type]
+
+
+class TestEndsWithNewline(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(ends_with_newline("hello\n"))
+
+    def test_false(self):
+        self.assertFalse(ends_with_newline("hello"))
+
+    def test_empty(self):
+        self.assertFalse(ends_with_newline(""))
+
+    def test_only_newline(self):
+        self.assertTrue(ends_with_newline("\n"))
+
+    def test_crlf_suffix(self):
+        self.assertTrue(ends_with_newline("hello\r\n"))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            ends_with_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ends_with_newline(None)  # type: ignore[arg-type]
 
 
 class TestEnsureTrailingNewline(unittest.TestCase):
@@ -37727,6 +37776,8 @@ __all__: List[str] = [
     "count_non_blank_lines",
     "count_trailing_newlines",
     "count_leading_newlines",
+    "starts_with_newline",
+    "ends_with_newline",
     "has_leading_newline",
     "has_trailing_newline",
     "count_paragraphs",
@@ -38704,6 +38755,54 @@ def ensure_leading_newline(text: str) -> str:
     if text.startswith("\n"):
         return text
     return "\n" + text
+
+
+def starts_with_newline(text: str) -> bool:
+    """Return ``True`` if *text* starts with a newline character.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* starts with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> starts_with_newline("\\nhello")
+        True
+        >>> starts_with_newline("hello")
+        False
+        >>> starts_with_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return text.startswith("\n")
+
+
+def ends_with_newline(text: str) -> bool:
+    """Return ``True`` if *text* ends with a newline character.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* ends with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> ends_with_newline("hello\\n")
+        True
+        >>> ends_with_newline("hello")
+        False
+        >>> ends_with_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return text.endswith("\n")
 
 
 def normalize_line_endings(text: str) -> str:
@@ -55838,7 +55937,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — removed duplicate __all__ entries from prime_utils and itertools_utils
+## Unreleased — added starts_with_newline and ends_with_newline to prompt_utils
+
+- Added `starts_with_newline(text)` and `ends_with_newline(text)` to `prompt_utils.py` as boolean companions to the existing newline helpers. Each takes a typed `text` argument, is exported via `__all__`, has a Google-style docstring with ASCII-safe doctests, and raises `TypeError` for non-string arguments. `starts_with_newline` returns `True` when *text* starts with `\n`; `ends_with_newline` returns `True` when *text* ends with `\n` (including CRLF text).
+- Added `TestStartsWithNewline` and `TestEndsWithNewline` to `tests/test_prompt_utils.py` covering positive/negative cases, empty input, a CRLF-prefix distinction for `starts_with_newline`, CRLF acceptance for `ends_with_newline`, and the `TypeError` paths (12 new tests). Imported the new helpers at the top of the test file to match the module's `__all__` contract.
+- Updated the `prompt_utils` tree/prose entries in `README.md` to list `starts_with_newline` and `ends_with_newline`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_prompt_utils` passes (437 tests); `python -m doctest prompt_utils.py` reports a pre-existing `wrap_prompt` docstring indentation failure unchanged by this session; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
+
 
 - Found two real `__all__` defects by scanning every wrapper module for duplicate or undefined export entries: `prime_utils.__all__` listed `is_mersenne_prime` twice (56 entries, 55 unique) and `itertools_utils.__all__` listed `take_while_pred` twice (25 entries, 24 unique). Removed the duplicate entries so each module's `__all__` is a clean, deduplicated export list matching its defined names.
 - Synchronized `prime_utils.py`, `itertools_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -57988,7 +58095,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -58856,7 +58963,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

@@ -1,4 +1,12 @@
-## Unreleased — removed duplicate __all__ entries from prime_utils and itertools_utils
+## Unreleased — added starts_with_newline and ends_with_newline to prompt_utils
+
+- Added `starts_with_newline(text)` and `ends_with_newline(text)` to `prompt_utils.py` as boolean companions to the existing newline helpers. Each takes a typed `text` argument, is exported via `__all__`, has a Google-style docstring with ASCII-safe doctests, and raises `TypeError` for non-string arguments. `starts_with_newline` returns `True` when *text* starts with `\n`; `ends_with_newline` returns `True` when *text* ends with `\n` (including CRLF text).
+- Added `TestStartsWithNewline` and `TestEndsWithNewline` to `tests/test_prompt_utils.py` covering positive/negative cases, empty input, a CRLF-prefix distinction for `starts_with_newline`, CRLF acceptance for `ends_with_newline`, and the `TypeError` paths (12 new tests). Imported the new helpers at the top of the test file to match the module's `__all__` contract.
+- Updated the `prompt_utils` tree/prose entries in `README.md` to list `starts_with_newline` and `ends_with_newline`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_prompt_utils` passes (437 tests); `python -m doctest prompt_utils.py` reports a pre-existing `wrap_prompt` docstring indentation failure unchanged by this session; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
+
 
 - Found two real `__all__` defects by scanning every wrapper module for duplicate or undefined export entries: `prime_utils.__all__` listed `is_mersenne_prime` twice (56 entries, 55 unique) and `itertools_utils.__all__` listed `take_while_pred` twice (25 entries, 24 unique). Removed the duplicate entries so each module's `__all__` is a clean, deduplicated export list matching its defined names.
 - Synchronized `prime_utils.py`, `itertools_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

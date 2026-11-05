@@ -48,6 +48,8 @@ __all__: List[str] = [
     "count_non_blank_lines",
     "count_trailing_newlines",
     "count_leading_newlines",
+    "starts_with_newline",
+    "ends_with_newline",
     "has_leading_newline",
     "has_trailing_newline",
     "count_paragraphs",
@@ -1025,6 +1027,54 @@ def ensure_leading_newline(text: str) -> str:
     if text.startswith("\n"):
         return text
     return "\n" + text
+
+
+def starts_with_newline(text: str) -> bool:
+    """Return ``True`` if *text* starts with a newline character.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* starts with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> starts_with_newline("\\nhello")
+        True
+        >>> starts_with_newline("hello")
+        False
+        >>> starts_with_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return text.startswith("\n")
+
+
+def ends_with_newline(text: str) -> bool:
+    """Return ``True`` if *text* ends with a newline character.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* ends with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> ends_with_newline("hello\\n")
+        True
+        >>> ends_with_newline("hello")
+        False
+        >>> ends_with_newline("")
+        False
+    """
+    _require_string(text, "text")
+    return text.endswith("\n")
 
 
 def normalize_line_endings(text: str) -> str:
