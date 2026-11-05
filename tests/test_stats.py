@@ -1634,6 +1634,88 @@ class TestModeFrequency(unittest.TestCase):
             mode_frequency([True, 1, 2])  # type: ignore[type-var]
 
 
+class TestNanInfRejection(unittest.TestCase):
+    """Verify that NaN and infinite values are rejected consistently."""
+
+    def test_mean_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            mean([1.0, math.nan])
+
+    def test_mean_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            mean([1.0, math.inf])
+        with self.assertRaises(ValueError):
+            mean([1.0, -math.inf])
+
+    def test_median_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            median([1.0, math.nan, 3.0])
+
+    def test_median_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            median([1.0, math.inf])
+
+    def test_variance_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            variance([1.0, math.nan])
+
+    def test_stddev_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            stddev([math.inf, 2.0])
+
+    def test_geometric_mean_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            geometric_mean([1.0, math.nan])
+
+    def test_harmonic_mean_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            harmonic_mean([1.0, math.inf])
+
+    def test_percentile_rejects_nan_p(self) -> None:
+        with self.assertRaises(ValueError):
+            percentile([1, 2, 3], math.nan)
+
+    def test_percentile_rejects_inf_p(self) -> None:
+        with self.assertRaises(ValueError):
+            percentile([1, 2, 3], math.inf)
+
+    def test_quantile_rejects_nan_q(self) -> None:
+        with self.assertRaises(ValueError):
+            quantile([1, 2, 3], math.nan)
+
+    def test_median_grouped_rejects_nan_interval(self) -> None:
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=math.nan)
+
+    def test_median_grouped_rejects_inf_interval(self) -> None:
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=math.inf)
+
+    def test_cumulative_sum_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            cumulative_sum([1.0, math.nan])
+
+    def test_cumulative_product_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            cumulative_product([1.0, math.inf])
+
+    def test_gini_coefficient_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([1.0, math.nan])
+
+    def test_correlation_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([1.0, math.nan], [1.0, 2.0])
+
+    def test_weighted_mean_rejects_nan_weight(self) -> None:
+        with self.assertRaises(ValueError):
+            weighted_mean([1.0, 2.0], [1.0, math.nan])
+
+    def test_z_scores_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            z_scores([1.0, math.nan, 3.0])
+
+
 class TestShannonEntropy(unittest.TestCase):
     def test_identical_values_zero(self) -> None:
         self.assertEqual(shannon_entropy([1, 1, 1, 1]), 0.0)

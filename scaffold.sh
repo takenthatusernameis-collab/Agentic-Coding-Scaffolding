@@ -15568,6 +15568,8 @@ def _require_numbers(numbers: List[T | float], name: str = "numbers") -> None:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError(f"{name} must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError(f"{name} must not contain NaN or infinite values")
 
 
 def _require_int(value: object, name: str) -> int:
@@ -15716,20 +15718,16 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
         TypeError: If numbers is not a list or contains non-numeric values,
             or if interval is not a number.
     """
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    for x in numbers:
-        if isinstance(x, bool) or not isinstance(x, (int, float)):
-            raise TypeError("numbers must contain only numbers")
+    _require_numbers(numbers, "numbers")
     if isinstance(interval, bool) or not isinstance(interval, (int, float)):
         raise TypeError("interval must be a number")
+    if isinstance(interval, float) and (math.isnan(interval) or math.isinf(interval)):
+        raise ValueError("interval must not be NaN or infinite")
     if interval <= 0:
         raise ValueError("interval must be a positive number")
 
     data = sorted(numbers)
     n = len(data)
-    if n == 0:
-        raise ValueError("numbers is empty")
 
     x = data[n // 2]
     # Find cumulative frequency counts at x (using bisect logic conceptually)
@@ -16236,6 +16234,8 @@ def percentile(numbers: List[T | float], p: float) -> float:
     _require_numbers(numbers, "numbers")
     if not isinstance(p, (int, float)) or isinstance(p, bool):
         raise TypeError("p must be a number")
+    if isinstance(p, float) and (math.isnan(p) or math.isinf(p)):
+        raise ValueError("p must not be NaN or infinite")
     if p < 0 or p > 100:
         raise ValueError("p must be between 0 and 100")
     sorted_nums = sorted(float(x) for x in numbers)
@@ -16275,6 +16275,8 @@ def quantile(numbers: List[T | float], q: float) -> float:
     _require_numbers(numbers, "numbers")
     if not isinstance(q, (int, float)) or isinstance(q, bool):
         raise TypeError("q must be a number")
+    if isinstance(q, float) and (math.isnan(q) or math.isinf(q)):
+        raise ValueError("q must not be NaN or infinite")
     if q < 0 or q > 1:
         raise ValueError("q must be between 0 and 1")
     return percentile(numbers, q * 100.0)
@@ -16859,6 +16861,8 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError("numbers must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError("numbers must not contain NaN or infinite values")
     result: List[float] = []
     running = 0.0
     for x in numbers:
@@ -16889,6 +16893,8 @@ def cumulative_product(numbers: List[T | float]) -> List[float]:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError("numbers must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError("numbers must not contain NaN or infinite values")
     result: List[float] = []
     running = 1.0
     for x in numbers:
@@ -17099,6 +17105,8 @@ def gini_coefficient(numbers: List[T | float]) -> float:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError("numbers must contain only ints or floats")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError("numbers must not contain NaN or infinite values")
         if x < 0:
             raise ValueError("numbers cannot contain negative values")
         total += x
@@ -21438,6 +21446,88 @@ class TestModeFrequency(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             mode_frequency([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestNanInfRejection(unittest.TestCase):
+    """Verify that NaN and infinite values are rejected consistently."""
+
+    def test_mean_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            mean([1.0, math.nan])
+
+    def test_mean_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            mean([1.0, math.inf])
+        with self.assertRaises(ValueError):
+            mean([1.0, -math.inf])
+
+    def test_median_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            median([1.0, math.nan, 3.0])
+
+    def test_median_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            median([1.0, math.inf])
+
+    def test_variance_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            variance([1.0, math.nan])
+
+    def test_stddev_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            stddev([math.inf, 2.0])
+
+    def test_geometric_mean_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            geometric_mean([1.0, math.nan])
+
+    def test_harmonic_mean_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            harmonic_mean([1.0, math.inf])
+
+    def test_percentile_rejects_nan_p(self) -> None:
+        with self.assertRaises(ValueError):
+            percentile([1, 2, 3], math.nan)
+
+    def test_percentile_rejects_inf_p(self) -> None:
+        with self.assertRaises(ValueError):
+            percentile([1, 2, 3], math.inf)
+
+    def test_quantile_rejects_nan_q(self) -> None:
+        with self.assertRaises(ValueError):
+            quantile([1, 2, 3], math.nan)
+
+    def test_median_grouped_rejects_nan_interval(self) -> None:
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=math.nan)
+
+    def test_median_grouped_rejects_inf_interval(self) -> None:
+        with self.assertRaises(ValueError):
+            median_grouped([1, 2, 3], interval=math.inf)
+
+    def test_cumulative_sum_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            cumulative_sum([1.0, math.nan])
+
+    def test_cumulative_product_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            cumulative_product([1.0, math.inf])
+
+    def test_gini_coefficient_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([1.0, math.nan])
+
+    def test_correlation_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([1.0, math.nan], [1.0, 2.0])
+
+    def test_weighted_mean_rejects_nan_weight(self) -> None:
+        with self.assertRaises(ValueError):
+            weighted_mean([1.0, 2.0], [1.0, math.nan])
+
+    def test_z_scores_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            z_scores([1.0, math.nan, 3.0])
 
 
 class TestShannonEntropy(unittest.TestCase):

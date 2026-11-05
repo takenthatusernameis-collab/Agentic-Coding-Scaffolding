@@ -74,6 +74,8 @@ def _require_numbers(numbers: List[T | float], name: str = "numbers") -> None:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError(f"{name} must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError(f"{name} must not contain NaN or infinite values")
 
 
 def _require_int(value: object, name: str) -> int:
@@ -222,20 +224,16 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
         TypeError: If numbers is not a list or contains non-numeric values,
             or if interval is not a number.
     """
-    if not isinstance(numbers, list):
-        raise TypeError("numbers must be a list")
-    for x in numbers:
-        if isinstance(x, bool) or not isinstance(x, (int, float)):
-            raise TypeError("numbers must contain only numbers")
+    _require_numbers(numbers, "numbers")
     if isinstance(interval, bool) or not isinstance(interval, (int, float)):
         raise TypeError("interval must be a number")
+    if isinstance(interval, float) and (math.isnan(interval) or math.isinf(interval)):
+        raise ValueError("interval must not be NaN or infinite")
     if interval <= 0:
         raise ValueError("interval must be a positive number")
 
     data = sorted(numbers)
     n = len(data)
-    if n == 0:
-        raise ValueError("numbers is empty")
 
     x = data[n // 2]
     # Find cumulative frequency counts at x (using bisect logic conceptually)
@@ -742,6 +740,8 @@ def percentile(numbers: List[T | float], p: float) -> float:
     _require_numbers(numbers, "numbers")
     if not isinstance(p, (int, float)) or isinstance(p, bool):
         raise TypeError("p must be a number")
+    if isinstance(p, float) and (math.isnan(p) or math.isinf(p)):
+        raise ValueError("p must not be NaN or infinite")
     if p < 0 or p > 100:
         raise ValueError("p must be between 0 and 100")
     sorted_nums = sorted(float(x) for x in numbers)
@@ -781,6 +781,8 @@ def quantile(numbers: List[T | float], q: float) -> float:
     _require_numbers(numbers, "numbers")
     if not isinstance(q, (int, float)) or isinstance(q, bool):
         raise TypeError("q must be a number")
+    if isinstance(q, float) and (math.isnan(q) or math.isinf(q)):
+        raise ValueError("q must not be NaN or infinite")
     if q < 0 or q > 1:
         raise ValueError("q must be between 0 and 1")
     return percentile(numbers, q * 100.0)
@@ -1365,6 +1367,8 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError("numbers must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError("numbers must not contain NaN or infinite values")
     result: List[float] = []
     running = 0.0
     for x in numbers:
@@ -1395,6 +1399,8 @@ def cumulative_product(numbers: List[T | float]) -> List[float]:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError("numbers must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError("numbers must not contain NaN or infinite values")
     result: List[float] = []
     running = 1.0
     for x in numbers:
@@ -1605,6 +1611,8 @@ def gini_coefficient(numbers: List[T | float]) -> float:
     for x in numbers:
         if isinstance(x, bool) or not isinstance(x, (int, float)):
             raise TypeError("numbers must contain only ints or floats")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError("numbers must not contain NaN or infinite values")
         if x < 0:
             raise ValueError("numbers cannot contain negative values")
         total += x
