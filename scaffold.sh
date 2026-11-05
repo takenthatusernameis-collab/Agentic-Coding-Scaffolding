@@ -15561,7 +15561,7 @@ def median(numbers: List[T | float]) -> float:
 
     Examples:
         >>> median([1, 2, 3, 4, 5])
-        3
+        3.0
         >>> median([1, 2, 3, 4])
         2.5
     """
@@ -15714,9 +15714,9 @@ def mode(numbers: List[T | float]) -> float:
 
     Examples:
         >>> mode([1, 2, 2, 3, 4])
-        2
+        2.0
         >>> mode([1, 1, 2, 2, 3])
-        1
+        1.0
     """
     _require_numbers(numbers, "numbers")
     frequency: dict = {}
@@ -16404,7 +16404,7 @@ def geometric_mean(numbers: List[T | float]) -> float:
 
     Examples:
         >>> geometric_mean([1, 2, 3, 4, 5])
-        2.605171
+        2.605171084697352
         >>> geometric_mean([5])
         5.0
     """
@@ -16558,7 +16558,7 @@ def kurtosis(numbers: List[T | float]) -> float:
 
     Examples:
         >>> kurtosis([1, 2, 3, 4, 5])
-        -1.3
+        -1.3000000000000007
     """
     _require_numbers(numbers, "numbers")
     n = len(numbers)
@@ -16998,7 +16998,7 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
 
     Examples:
         >>> winsorized_stddev([1, 2, 3, 4, 5])
-        0.894427190999916
+        0.8944271909999159
         >>> winsorized_stddev([1, 2, 3, 4, 5], k=0)
         1.4142135623730951
     """
@@ -54442,8 +54442,7 @@ def interval_distance(a: Interval, b: Interval) -> float:
     if b[1] < a[0]:
         gap = a[0] - b[1]
         return float(gap)
-    gap = a[0] - b[1]
-    return float(gap)
+    return 0.0
 
 
 def interval_is_subset(a: Interval, b: Interval) -> bool:

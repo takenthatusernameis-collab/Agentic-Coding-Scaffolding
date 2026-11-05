@@ -247,8 +247,7 @@ def interval_distance(a: Interval, b: Interval) -> float:
     if b[1] < a[0]:
         gap = a[0] - b[1]
         return float(gap)
-    gap = a[0] - b[1]
-    return float(gap)
+    return 0.0
 
 
 def interval_is_subset(a: Interval, b: Interval) -> bool:
