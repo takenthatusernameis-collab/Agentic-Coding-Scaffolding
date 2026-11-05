@@ -62,6 +62,7 @@ __all__ = [
     "is_powerful_number",
     "is_pronic_number",
     "is_mersenne_number",
+    "is_mersenne_prime",
     "is_spy_number",
     "is_squarefree_number",
     "is_strong_number",
@@ -2212,3 +2213,70 @@ def is_powerful_number(value: int) -> bool:
                 n //= factor
         factor += 1
     return n == 1
+def is_mersenne_prime(value: Number) -> bool:
+    """Return True if *value* is a Mersenne prime.
+
+    A Mersenne prime is a prime number of the form M_p = 2^p - 1 for some
+    prime *p*. The first Mersenne primes are 3 (p=2), 7 (p=3),
+    31 (p=5), 127 (p=7), 8191 (p=13), etc.
+
+    Args:
+        value: The number to test.
+
+    Returns:
+        True if *value* is a Mersenne prime, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a number.
+
+    Examples:
+        >>> is_mersenne_prime(3)
+        True
+        >>> is_mersenne_prime(7)
+        True
+        >>> is_mersenne_prime(31)
+        True
+        >>> is_mersenne_prime(127)
+        True
+        >>> is_mersenne_prime(1)
+        False
+        >>> is_mersenne_prime(15)
+        False
+        >>> is_mersenne_prime(11)
+        False
+        >>> is_mersenne_prime(0)
+        False
+    """
+    _require_number(value, "value")
+    if isinstance(value, bool):
+        raise TypeError("value must be a number, got bool")
+    if isinstance(value, float) and not value.is_integer():
+        return False
+    if isinstance(value, float):
+        value = int(value)
+    if not isinstance(value, int):
+        raise TypeError(f"value must be a number, got {type(value).__name__}")
+    if value < 2:
+        return False
+
+    def _is_prime_int(n: int) -> bool:
+        if n < 2:
+            return False
+        if n == 2:
+            return True
+        if n % 2 == 0:
+            return False
+        d = 3
+        while d * d <= n:
+            if n % d == 0:
+                return False
+            d += 2
+        return True
+
+    if not _is_prime_int(value):
+        return False
+    m = value + 1
+    if m & (m - 1) != 0:
+        return False
+    p = m.bit_length() - 1
+    return _is_prime_int(p)

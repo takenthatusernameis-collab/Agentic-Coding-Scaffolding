@@ -1,3 +1,7 @@
+## Unreleased — added is_mersenne_prime to number_utils
+
+- Added `is_mersenne_prime(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns `True` if *value* is a prime of the form `2^p - 1` for some prime *p* (e.g. 3, 7, 31, 127, 8191). It rejects non-primes and Mersenne composites such as 15/63/255. Added `TestIsMersennePrime` to `tests/test_number_utils.py`. Updated the `number_utils` tree entry and prose in `README.md`. Regenerated `scaffold.sh` via `tools/refresh_scaffold.py`.
+
 ## Unreleased — added has_alphanumeric to prompt_utils
 
 - Added `has_alphanumeric(text)` to `prompt_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one ASCII letter or digit and `False` otherwise, serving as a boolean companion to :func:`count_letters` and :func:`count_digits`. Added `TestHasAlphanumeric` to `tests/test_prompt_utils.py` covering strings with letters/digits/mixed, negatives, empty input, and the `TypeError` paths (6 new tests). Imported `has_alphanumeric` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md`.

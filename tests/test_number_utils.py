@@ -1815,3 +1815,30 @@ class TestIsDuckNumber(unittest.TestCase):
             is_duck_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_duck_number(None)  # type: ignore[arg-type]
+
+
+class TestIsMersennePrime(unittest.TestCase):
+    def test_mersenne_primes(self) -> None:
+        from number_utils import is_mersenne_prime
+
+        for n in (3, 7, 31, 127, 8191):
+            self.assertTrue(is_mersenne_prime(n), n)
+
+    def test_non_mersenne_primes(self) -> None:
+        from number_utils import is_mersenne_prime
+
+        # Mersenne numbers but not prime, primes not of form 2^p-1, and other values
+        for n in (1, 15, 63, 255, 511, 2, 5, 11, 13, 17, 8193):
+            self.assertFalse(is_mersenne_prime(n), n)
+
+    def test_type_errors(self) -> None:
+        from number_utils import is_mersenne_prime
+
+        with self.assertRaises(TypeError):
+            is_mersenne_prime(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_mersenne_prime(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_mersenne_prime("7")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_mersenne_prime(None)  # type: ignore[arg-type]
