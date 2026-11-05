@@ -21021,6 +21021,10 @@ class TestZScores(unittest.TestCase):
         with self.assertRaises(TypeError):
             z_scores([1, 2, "a"])  # type: ignore[type-var]
 
+    def test_rejects_non_bool_population(self) -> None:
+        with self.assertRaises(TypeError):
+            z_scores([1, 2, 3, 4, 5], population=1)  # type: ignore[arg-type]
+
 
 class TestMidhinge(unittest.TestCase):
     def test_basic(self) -> None:
@@ -21405,6 +21409,10 @@ class TestWinsorizedStddev(unittest.TestCase):
             winsorized_stddev([1, 2, 3], 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             winsorized_stddev([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_rejects_non_bool_population(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_stddev([1, 2, 3, 4, 5], k=1, population=1)  # type: ignore[arg-type]
 
 
 class TestModeFrequency(unittest.TestCase):
