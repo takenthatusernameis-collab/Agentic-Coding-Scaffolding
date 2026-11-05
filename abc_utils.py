@@ -1,4 +1,21 @@
-"""Utilities wrapping :mod:`abc` for abstract base classes."""
+"""Utilities wrapping :mod:`abc` for abstract base classes.
+
+>>> from abc_utils import abstractmethod, is_abstract, update_abstractmethods
+>>> import abc
+>>> class Base(abc.ABC):
+...     @abstractmethod
+...     def method(self): ...
+>>> is_abstract(Base)
+True
+>>> class Sub(Base):
+...     def method(self):
+...         return 1
+>>> _ = update_abstractmethods(Sub)
+>>> is_abstract(Sub)
+False
+>>> is_abstract(int)
+False
+"""
 
 import abc as _abc
 
