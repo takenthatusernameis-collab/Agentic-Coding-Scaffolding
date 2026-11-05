@@ -1,3 +1,12 @@
+## Unreleased — added bit_count and is_zero to bytes_utils
+
+- Added `bit_count(data)` and `is_zero(data)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes arguments. `bit_count` returns the total number of set (1) bits across all bytes (empty input yields `0`); `is_zero` returns `True` when every byte is zero or *data* is empty.
+- Added `TestBitCount` and `TestIsZero` to `tests/test_bytes_utils.py` covering representative inputs, bytearray support, empty input, and the `TypeError` paths (12 new tests). Imported the new helpers to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md` to document `bit_count`, `is_zero`, and the existing `to_int`/`from_int` helpers.
+- Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_bytes_utils` passes (111 tests); `python -m doctest bytes_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_components to version_utils
 
 - Added `count_components(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns the number of dot-separated components in a dotted version string (``"1.2.3"`` yields ``3``, ``"1"`` yields ``1``, and the empty string yields ``0``). Added `TestCountComponents` to `tests/test_version_utils.py` covering happy paths, empty input, prerelease/build metadata, and the `TypeError` path. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

@@ -48183,6 +48183,8 @@ __all__: list[str] = [
     "translate",
     "to_int",
     "from_int",
+    "bit_count",
+    "is_zero",
 ]
 
 
@@ -49322,11 +49324,11 @@ def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
         ValueError: If *byteorder* is not "big" or "little".
 
     Examples:
-        >>> to_int(b"\x01\x00")
+        >>> to_int(from_hex("0100"))
         256
-        >>> to_int(b"\x00\x01", byteorder="little")
+        >>> to_int(from_hex("0001"), byteorder="little")
         256
-        >>> to_int(b"\xff", signed=True)
+        >>> to_int(from_hex("ff"), signed=True)
         -1
         >>> to_int(b"")
         0
@@ -49367,12 +49369,12 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
             requested signedness.
 
     Examples:
-        >>> from_int(256, 2)
-        b'\x01\x00'
-        >>> from_int(256, 2, byteorder="little")
-        b'\x00\x01'
-        >>> from_int(-1, 1, signed=True)
-        b'\xff'
+        >>> to_hex(from_int(256, 2))
+        '0100'
+        >>> to_hex(from_int(256, 2, byteorder="little"))
+        '0001'
+        >>> to_hex(from_int(-1, 1, signed=True))
+        'ff'
         >>> len(from_int(0, 4))
         4
     """
@@ -49387,6 +49389,63 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
     if byteorder not in ("big", "little"):
         raise ValueError("byteorder must be 'big' or 'little'")
     return value.to_bytes(length, byteorder=byteorder, signed=signed)
+
+
+def bit_count(data: bytes) -> int:
+    """Return the total number of set (1) bits in *data*.
+
+    Counts every bit with value 1 across all bytes. An empty input has no
+    set bits and returns 0.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The number of set bits as a non-negative integer.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> bit_count(from_hex("00"))
+        0
+        >>> bit_count(from_hex("ff"))
+        8
+        >>> bit_count(from_hex("0f00"))
+        4
+        >>> bit_count(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(b.bit_count() for b in bytes(data))
+
+
+def is_zero(data: bytes) -> bool:
+    """Return True if *data* contains only zero bytes.
+
+    An empty input is considered all-zero and returns True.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if every byte is 0 (or *data* is empty), False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> is_zero(from_hex("000000"))
+        True
+        >>> is_zero(from_hex("000100"))
+        False
+        >>> is_zero(b"")
+        True
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return all(b == 0 for b in bytes(data))
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -49432,6 +49491,10 @@ from bytes_utils import (
     translate,
     upper,
     xor,
+    to_int,
+    from_int,
+    bit_count,
+    is_zero,
 )
 
 
@@ -50006,6 +50069,59 @@ class TestTranslate(unittest.TestCase):
             translate(b"abc", b"short")
         with self.assertRaises(ValueError):
             translate(b"abc", bytes(range(255)))
+
+
+class TestBitCount(unittest.TestCase):
+    def test_zero_byte(self):
+        self.assertEqual(bit_count(b"\x00"), 0)
+
+    def test_all_set(self):
+        self.assertEqual(bit_count(b"\xff"), 8)
+
+    def test_mixed(self):
+        self.assertEqual(bit_count(b"\x0f\x00"), 4)
+        self.assertEqual(bit_count(b"\x01\x02\x04"), 3)
+
+    def test_empty(self):
+        self.assertEqual(bit_count(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(bit_count(bytearray(b"\xff\x00")), 8)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            bit_count("ff")
+        with self.assertRaises(TypeError):
+            bit_count(255)
+        with self.assertRaises(TypeError):
+            bit_count(None)
+
+
+class TestIsZero(unittest.TestCase):
+    def test_all_zero(self):
+        self.assertTrue(is_zero(b"\x00\x00\x00"))
+
+    def test_contains_nonzero(self):
+        self.assertFalse(is_zero(b"\x00\x01\x00"))
+        self.assertFalse(is_zero(b"\xff"))
+
+    def test_empty(self):
+        self.assertTrue(is_zero(b""))
+
+    def test_single_zero(self):
+        self.assertTrue(is_zero(b"\x00"))
+
+    def test_bytearray(self):
+        self.assertTrue(is_zero(bytearray(b"\x00\x00")))
+        self.assertFalse(is_zero(bytearray(b"\x00\x01")))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_zero("00")
+        with self.assertRaises(TypeError):
+            is_zero(0)
+        with self.assertRaises(TypeError):
+            is_zero(None)
 TESTBYTESUTILS
 
 # --- base64_utils.py ---
@@ -55426,6 +55542,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added bit_count and is_zero to bytes_utils
+
+- Added `bit_count(data)` and `is_zero(data)` to `bytes_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with doctests, and `TypeError` validation for non-bytes arguments. `bit_count` returns the total number of set (1) bits across all bytes (empty input yields `0`); `is_zero` returns `True` when every byte is zero or *data* is empty.
+- Added `TestBitCount` and `TestIsZero` to `tests/test_bytes_utils.py` covering representative inputs, bytearray support, empty input, and the `TypeError` paths (12 new tests). Imported the new helpers to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md` to document `bit_count`, `is_zero`, and the existing `to_int`/`from_int` helpers.
+- Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_bytes_utils` passes (111 tests); `python -m doctest bytes_utils.py` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_components to version_utils
 
 - Added `count_components(version)` to `version_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns the number of dot-separated components in a dotted version string (``"1.2.3"`` yields ``3``, ``"1"`` yields ``1``, and the empty string yields ``0``). Added `TestCountComponents` to `tests/test_version_utils.py` covering happy paths, empty input, prerelease/build metadata, and the `TypeError` path. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -57709,7 +57834,7 @@ id_utils.py                # Identifier generation and validation utilities (gen
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, decode_ascii, encode_ascii, maketrans, translate)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, is_zero)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -58486,7 +58611,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, and `maketrans`/`translate` build and apply a 256-byte translation table. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits, and `is_zero` tests whether all bytes are zero. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 

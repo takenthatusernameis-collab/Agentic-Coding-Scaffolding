@@ -39,6 +39,10 @@ from bytes_utils import (
     translate,
     upper,
     xor,
+    to_int,
+    from_int,
+    bit_count,
+    is_zero,
 )
 
 
@@ -613,3 +617,56 @@ class TestTranslate(unittest.TestCase):
             translate(b"abc", b"short")
         with self.assertRaises(ValueError):
             translate(b"abc", bytes(range(255)))
+
+
+class TestBitCount(unittest.TestCase):
+    def test_zero_byte(self):
+        self.assertEqual(bit_count(b"\x00"), 0)
+
+    def test_all_set(self):
+        self.assertEqual(bit_count(b"\xff"), 8)
+
+    def test_mixed(self):
+        self.assertEqual(bit_count(b"\x0f\x00"), 4)
+        self.assertEqual(bit_count(b"\x01\x02\x04"), 3)
+
+    def test_empty(self):
+        self.assertEqual(bit_count(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(bit_count(bytearray(b"\xff\x00")), 8)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            bit_count("ff")
+        with self.assertRaises(TypeError):
+            bit_count(255)
+        with self.assertRaises(TypeError):
+            bit_count(None)
+
+
+class TestIsZero(unittest.TestCase):
+    def test_all_zero(self):
+        self.assertTrue(is_zero(b"\x00\x00\x00"))
+
+    def test_contains_nonzero(self):
+        self.assertFalse(is_zero(b"\x00\x01\x00"))
+        self.assertFalse(is_zero(b"\xff"))
+
+    def test_empty(self):
+        self.assertTrue(is_zero(b""))
+
+    def test_single_zero(self):
+        self.assertTrue(is_zero(b"\x00"))
+
+    def test_bytearray(self):
+        self.assertTrue(is_zero(bytearray(b"\x00\x00")))
+        self.assertFalse(is_zero(bytearray(b"\x00\x01")))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_zero("00")
+        with self.assertRaises(TypeError):
+            is_zero(0)
+        with self.assertRaises(TypeError):
+            is_zero(None)

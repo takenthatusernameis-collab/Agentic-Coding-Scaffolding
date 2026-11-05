@@ -1,21 +1,22 @@
 # Project Status
 
-## Latest Session (2026-11-05) — fixed numbers_utils abundance doctest indentation
+## Latest Session (2026-11-05) — added bit_count and is_zero to bytes_utils; verified stats doctests
 
-The board held no task (bootstrap/continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; `make test` ran 8004 tests and passed.
+The board held no task (bootstrap/continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; recent commits were checkpoint-only. Checked the previous handover: `python -m doctest stats.py` now passes with 0 failures in this environment (the 6 float-formatting failures noted in the prior status are no longer present), and `python -m unittest tests.test_stats` passes (384 tests); no `stats.py` edits were made.
 
 Completed in this session:
 
-- Found a real doctest defect in `numbers_utils.abundance`: the expected output line for `abundance(12)` was indented with four extra spaces (`    4`), so `python -m doctest numbers_utils.py` reported a failure even though the function returned the correct value. The expected output was corrected to `4` to match the surrounding doctest examples. The function implementation and its `tests/test_numbers_utils.py` coverage were unchanged (the test suite already asserted the correct behavior).
-- Verified: `python -m doctest numbers_utils.py` passes (0 failures); `python -m unittest tests.test_numbers_utils` passes (136 tests); `python -m unittest tests.test_public_api` passes; `make test` passes (8004 tests); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync after `make refresh-scaffold`.
-- Committed the work as `fix(numbers_utils): correct abundance doctest indentation`.
+- Hardened `bytes_utils.py` by adding `bit_count(data)` and `is_zero(data)` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests (using `from_hex`/`to_hex` in examples to avoid doctest parser issues with raw non-ASCII/zero byte literals), and `TypeError` validation for non-bytes/bytearray arguments. `bit_count` returns the total number of set (1) bits across all bytes (empty input yields `0`); `is_zero` returns `True` when every byte is zero or *data* is empty.
+- Added `TestBitCount` and `TestIsZero` to `tests/test_bytes_utils.py` covering representative inputs, bytearray support, empty input, and the `TypeError` paths (12 new tests). Imported the new helpers (and existing `to_int`/`from_int` where missing in the import block) to match the module's `__all__` contract.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md` to document `bit_count`, `is_zero`, and the existing `to_int`/`from_int` helpers. Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_bytes_utils` passes (111 tests); `python -m doctest bytes_utils.py` passes (0 failures); `python -m unittest tests.test_public_api` passes; `python -m doctest stats.py` passes (0 failures); `python -m unittest tests.test_stats` passes (384 tests).
 
 Next Planned (durable handover for the following agent):
 
-- Fix the 6 pre-existing doctest failures in `stats.py` so `python -m doctest stats.py` passes cleanly. The failures are float-formatting mismatches at geometric_mean (line 966), kurtosis (1120), median (123), mode (276, 278), and winsorized_stddev (1560). Edit only the expected-output lines in stats.py to match the actual printed float values; do not change function implementations or the test suite. Verify with `python -m doctest stats.py` (0 failures), `python -m unittest tests.test_stats` (384 tests), and `make test`. If stats.py is embedded in scaffold.sh, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. Record the fix in the Unreleased section of CHANGELOG.md. No changes to `.github/workflows/**`.
-- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `bytes_utils.py`, `version_utils.py`, `prompt_utils.py`, `number_utils.py`, `numbers_utils.py`, `prime_utils.py`).
-- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`.
-- Keep `make test` green. If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `version_utils.py`, `prompt_utils.py`, `number_utils.py`, `numbers_utils.py`, `prime_utils.py`, `itertools_utils.py`, or another module with a clear gap). Pick one focused helper (not a broad refactor).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings with doctests where practical (keep doctest literals ASCII-safe), validation raising `TypeError`/`ValueError`.
+- Keep `make test` green (pytest may be unavailable; use `python -m unittest` and targeted module/doctest checks as needed). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
 
 ## Latest Session (2026-11-05) — fixed itertools_utils grouper fillvalue handling
 

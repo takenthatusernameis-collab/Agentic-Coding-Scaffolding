@@ -62,6 +62,8 @@ __all__: list[str] = [
     "translate",
     "to_int",
     "from_int",
+    "bit_count",
+    "is_zero",
 ]
 
 
@@ -1201,11 +1203,11 @@ def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
         ValueError: If *byteorder* is not "big" or "little".
 
     Examples:
-        >>> to_int(b"\x01\x00")
+        >>> to_int(from_hex("0100"))
         256
-        >>> to_int(b"\x00\x01", byteorder="little")
+        >>> to_int(from_hex("0001"), byteorder="little")
         256
-        >>> to_int(b"\xff", signed=True)
+        >>> to_int(from_hex("ff"), signed=True)
         -1
         >>> to_int(b"")
         0
@@ -1246,12 +1248,12 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
             requested signedness.
 
     Examples:
-        >>> from_int(256, 2)
-        b'\x01\x00'
-        >>> from_int(256, 2, byteorder="little")
-        b'\x00\x01'
-        >>> from_int(-1, 1, signed=True)
-        b'\xff'
+        >>> to_hex(from_int(256, 2))
+        '0100'
+        >>> to_hex(from_int(256, 2, byteorder="little"))
+        '0001'
+        >>> to_hex(from_int(-1, 1, signed=True))
+        'ff'
         >>> len(from_int(0, 4))
         4
     """
@@ -1266,3 +1268,60 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
     if byteorder not in ("big", "little"):
         raise ValueError("byteorder must be 'big' or 'little'")
     return value.to_bytes(length, byteorder=byteorder, signed=signed)
+
+
+def bit_count(data: bytes) -> int:
+    """Return the total number of set (1) bits in *data*.
+
+    Counts every bit with value 1 across all bytes. An empty input has no
+    set bits and returns 0.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The number of set bits as a non-negative integer.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> bit_count(from_hex("00"))
+        0
+        >>> bit_count(from_hex("ff"))
+        8
+        >>> bit_count(from_hex("0f00"))
+        4
+        >>> bit_count(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(b.bit_count() for b in bytes(data))
+
+
+def is_zero(data: bytes) -> bool:
+    """Return True if *data* contains only zero bytes.
+
+    An empty input is considered all-zero and returns True.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if every byte is 0 (or *data* is empty), False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> is_zero(from_hex("000000"))
+        True
+        >>> is_zero(from_hex("000100"))
+        False
+        >>> is_zero(b"")
+        True
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return all(b == 0 for b in bytes(data))
