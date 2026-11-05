@@ -83,6 +83,8 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_blank",
     "ensure_surrounded_by_newlines",
+    "count_newlines",
+    "has_newline",
 ]
 
 
