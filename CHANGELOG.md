@@ -1,3 +1,12 @@
+## Unreleased — added is_coprime to math_utils
+
+- Added `is_coprime(a, b)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *a* and *b* are coprime (their greatest common divisor is 1), reusing the existing `gcd` helper and `math.gcd`.
+- Added `TestIsCoprime` to `tests/test_math_utils.py` covering coprime pairs, non-coprime pairs, edge cases with zero/one/negatives, and the `TypeError` paths (10 new tests). Imported `is_coprime` at the top of the test file to match the module's `__all__` contract.
+- Updated the `math_utils` module tree entry and prose section of `README.md`.
+- Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_math_utils` passes; `python -m doctest math_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_prime to number_utils
 
 - Added `is_prime(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *value* is a prime number greater than 1 (0, 1, and negatives are not prime), using trial division up to the square root.

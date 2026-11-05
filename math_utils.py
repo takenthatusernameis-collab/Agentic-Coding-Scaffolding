@@ -9,6 +9,7 @@ __all__: List[str] = [
     "factorial",
     "fibonacci",
     "gcd",
+    "is_coprime",
     "lcm",
     "is_prime",
     "is_composite",
@@ -138,6 +139,42 @@ def lcm(a: int, b: int) -> int:
     if a == 0 or b == 0:
         return 0
     return abs(a * b) // math.gcd(a, b)
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return True if *a* and *b* are coprime (their GCD is 1).
+
+    Two integers are coprime when their greatest common divisor is 1. By
+    convention, 0 is coprime only with 1 and -1 (since gcd(0, n) equals
+    abs(n)), and no integer other than +/-1 is coprime with 0.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        True if *a* and *b* are coprime, False otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
+    Examples:
+        >>> is_coprime(8, 9)
+        True
+        >>> is_coprime(12, 18)
+        False
+        >>> is_coprime(7, 7)
+        False
+        >>> is_coprime(1, 1)
+        True
+        >>> is_coprime(0, 1)
+        True
+        >>> is_coprime(0, 5)
+        False
+    """
+    a = _require_int(a, "a")
+    b = _require_int(b, "b")
+    return math.gcd(a, b) == 1
 
 
 def is_prime(n: int) -> bool:

@@ -21500,6 +21500,7 @@ __all__: List[str] = [
     "factorial",
     "fibonacci",
     "gcd",
+    "is_coprime",
     "lcm",
     "is_prime",
     "is_composite",
@@ -21629,6 +21630,42 @@ def lcm(a: int, b: int) -> int:
     if a == 0 or b == 0:
         return 0
     return abs(a * b) // math.gcd(a, b)
+
+
+def is_coprime(a: int, b: int) -> bool:
+    """Return True if *a* and *b* are coprime (their GCD is 1).
+
+    Two integers are coprime when their greatest common divisor is 1. By
+    convention, 0 is coprime only with 1 and -1 (since gcd(0, n) equals
+    abs(n)), and no integer other than +/-1 is coprime with 0.
+
+    Args:
+        a: First integer.
+        b: Second integer.
+
+    Returns:
+        True if *a* and *b* are coprime, False otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not an int.
+
+    Examples:
+        >>> is_coprime(8, 9)
+        True
+        >>> is_coprime(12, 18)
+        False
+        >>> is_coprime(7, 7)
+        False
+        >>> is_coprime(1, 1)
+        True
+        >>> is_coprime(0, 1)
+        True
+        >>> is_coprime(0, 5)
+        False
+    """
+    a = _require_int(a, "a")
+    b = _require_int(b, "b")
+    return math.gcd(a, b) == 1
 
 
 def is_prime(n: int) -> bool:
@@ -26746,6 +26783,7 @@ from math_utils import (
     fibonacci,
     gcd,
     is_composite,
+    is_coprime,
     is_even,
     is_odd,
     is_prime,
@@ -26857,6 +26895,40 @@ class TestLCM(unittest.TestCase):
             lcm("4", 6)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             lcm(4, False)  # type: ignore[arg-type]
+
+
+class TestIsCoprime(unittest.TestCase):
+    def test_coprime_pairs(self) -> None:
+        self.assertTrue(is_coprime(8, 9))
+        self.assertTrue(is_coprime(17, 13))
+        self.assertTrue(is_coprime(1, 1))
+        self.assertTrue(is_coprime(1, 5))
+        self.assertTrue(is_coprime(0, 1))
+        self.assertTrue(is_coprime(-8, 9))
+
+    def test_non_coprime_pairs(self) -> None:
+        self.assertFalse(is_coprime(12, 18))
+        self.assertFalse(is_coprime(7, 7))
+        self.assertFalse(is_coprime(6, 9))
+        self.assertFalse(is_coprime(0, 5))
+        self.assertFalse(is_coprime(0, 0))
+        self.assertFalse(is_coprime(-12, 18))
+
+    def test_edge_cases(self) -> None:
+        self.assertTrue(is_coprime(1, 0))
+        self.assertFalse(is_coprime(2, 4))
+        self.assertTrue(is_coprime(2, 3))
+        self.assertTrue(is_coprime(14, 25))
+
+    def test_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_coprime(1.5, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime("8", 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(None, 9)  # type: ignore[arg-type]
 
 
 class TestIsPrime(unittest.TestCase):
@@ -55533,6 +55605,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_coprime to math_utils
+
+- Added `is_coprime(a, b)` to `math_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *a* and *b* are coprime (their greatest common divisor is 1), reusing the existing `gcd` helper and `math.gcd`.
+- Added `TestIsCoprime` to `tests/test_math_utils.py` covering coprime pairs, non-coprime pairs, edge cases with zero/one/negatives, and the `TypeError` paths (10 new tests). Imported `is_coprime` at the top of the test file to match the module's `__all__` contract.
+- Updated the `math_utils` module tree entry and prose section of `README.md`.
+- Synchronized `math_utils.py`, `tests/test_math_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_math_utils` passes; `python -m doctest math_utils.py` passes; `make test` stays green.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_prime to number_utils
 
 - Added `is_prime(value)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int arguments; it returns True when *value* is a prime number greater than 1 (0, 1, and negatives are not prime), using trial division up to the square root.
@@ -57655,7 +57736,7 @@ shapes.py                    # Geometry utilities for areas and perimeters
 strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, count_consonants, count_lowercase, count_uppercase, count_digits, count_letters, count_punctuation, count_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
-math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, lcm, is_prime, is_composite, is_square, clamp, is_even, combination, permutation)
+math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, is_coprime, lcm, is_prime, is_composite, is_square, clamp, is_even, combination, permutation)
 mmap_utils.py               # Utilities wrapping the standard library mmap module
 data_utils.py                # Data utility functions
 dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
@@ -58295,7 +58376,7 @@ MIT
 
 ## Math Utilities Module
 
-The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `lcm`, `is_prime`, `is_composite`, `is_square`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
+The project includes a mathematical utilities module in `math_utils.py` with functions for common mathematical operations: `factorial`, `fibonacci`, `gcd`, `is_coprime`, `lcm`, `is_prime`, `is_composite`, `is_square`, `clamp`, and `is_even`. It also provides `combination` and `permutation` for combinatorial calculations. The module is tested in `tests/test_math_utils.py`.
 
 ## Data Utilities Module
 

@@ -9,6 +9,7 @@ from math_utils import (
     fibonacci,
     gcd,
     is_composite,
+    is_coprime,
     is_even,
     is_odd,
     is_prime,
@@ -120,6 +121,40 @@ class TestLCM(unittest.TestCase):
             lcm("4", 6)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             lcm(4, False)  # type: ignore[arg-type]
+
+
+class TestIsCoprime(unittest.TestCase):
+    def test_coprime_pairs(self) -> None:
+        self.assertTrue(is_coprime(8, 9))
+        self.assertTrue(is_coprime(17, 13))
+        self.assertTrue(is_coprime(1, 1))
+        self.assertTrue(is_coprime(1, 5))
+        self.assertTrue(is_coprime(0, 1))
+        self.assertTrue(is_coprime(-8, 9))
+
+    def test_non_coprime_pairs(self) -> None:
+        self.assertFalse(is_coprime(12, 18))
+        self.assertFalse(is_coprime(7, 7))
+        self.assertFalse(is_coprime(6, 9))
+        self.assertFalse(is_coprime(0, 5))
+        self.assertFalse(is_coprime(0, 0))
+        self.assertFalse(is_coprime(-12, 18))
+
+    def test_edge_cases(self) -> None:
+        self.assertTrue(is_coprime(1, 0))
+        self.assertFalse(is_coprime(2, 4))
+        self.assertTrue(is_coprime(2, 3))
+        self.assertTrue(is_coprime(14, 25))
+
+    def test_non_int_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_coprime(1.5, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime("8", 9)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(8, True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_coprime(None, 9)  # type: ignore[arg-type]
 
 
 class TestIsPrime(unittest.TestCase):
