@@ -19828,6 +19828,7 @@ from stats import (
     geometric_mean,
     gini_coefficient,
     harmonic_mean,
+    interquartile_range,
     iqr,
     kurtosis,
     max_value,
@@ -21710,6 +21711,206 @@ class TestThirdQuartile(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             third_quartile([True, 1, 2])  # type: ignore[type-var]
+
+
+class TestNanInfBoundaryGaps(unittest.TestCase):
+    """NaN/inf/bool rejection for helpers not covered by TestNanInfRejection."""
+
+    def test_pvariance_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            pvariance([1.0, math.nan])
+
+    def test_pvariance_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            pvariance([1.0, math.inf])
+        with self.assertRaises(ValueError):
+            pvariance([1.0, -math.inf])
+
+    def test_pvariance_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            pvariance([True, 1])  # type: ignore[type-var]
+
+    def test_pstdev_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            pstdev([1.0, math.nan])
+
+    def test_pstdev_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            pstdev([math.inf, 2.0])
+
+    def test_pstdev_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            pstdev([False, 2.0])  # type: ignore[type-var]
+
+    def test_trimmed_mean_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1.0, math.nan, 3.0], 0)
+
+    def test_trimmed_mean_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1.0, math.inf, 3.0], 0)
+
+    def test_trimmed_mean_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([True, 2, 3], 0)  # type: ignore[type-var]
+
+    def test_trimean_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            trimean([1.0, math.nan, 3.0, 4.0])
+
+    def test_trimean_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            trimean([1.0, math.inf, 3.0, 4.0])
+
+    def test_interquartile_range_alias_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            interquartile_range([1.0, math.nan, 3.0, 4.0])
+
+    def test_shannon_entropy_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            shannon_entropy([1.0, math.nan])
+
+    def test_shannon_entropy_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            shannon_entropy([1.0, math.inf])
+
+    def test_shannon_entropy_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            shannon_entropy([True, 1])  # type: ignore[type-var]
+
+    def test_winsorized_mean_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1.0, math.nan, 3.0, 4.0, 5.0], k=1)
+
+    def test_winsorized_mean_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1.0, math.inf, 3.0, 4.0, 5.0], k=1)
+
+    def test_winsorized_mean_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([True, 2, 3, 4, 5], k=1)  # type: ignore[type-var]
+
+    def test_winsorized_variance_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([1.0, math.nan, 3.0, 4.0, 5.0], k=1)
+
+    def test_winsorized_variance_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_variance([1.0, math.inf, 3.0, 4.0, 5.0], k=1)
+
+    def test_winsorized_stddev_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1.0, math.nan, 3.0, 4.0, 5.0], k=1)
+
+    def test_winsorized_stddev_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_stddev([1.0, math.inf, 3.0, 4.0, 5.0], k=1)
+
+    def test_gini_coefficient_rejects_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([1.0, -1.0])
+
+    def test_gini_coefficient_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            gini_coefficient([1.0, math.inf])
+
+    def test_gini_coefficient_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            gini_coefficient([True, 1])  # type: ignore[type-var]
+
+    def test_covariance_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            covariance([1.0, math.inf], [1.0, 2.0])
+
+    def test_correlation_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            correlation([1.0, math.inf], [1.0, 2.0])
+
+
+class TestWinsorizedValidation(unittest.TestCase):
+    """Boundary/parameter validation for winsorized helpers."""
+
+    def test_winsorized_mean_k_zero_matches_mean(self) -> None:
+        self.assertAlmostEqual(winsorized_mean([1, 5, 9, 13], k=0), 7.0)
+
+    def test_winsorized_mean_single_element_k_zero(self) -> None:
+        self.assertEqual(winsorized_mean([42], k=0), 42.0)
+
+    def test_winsorized_mean_k_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3, 4], k=2)
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3, 4], k=3)
+
+    def test_winsorized_mean_negative_k_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([1, 2, 3, 4, 5], k=-1)
+
+    def test_winsorized_mean_non_int_k_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, 3, 4, 5], k=1.5)  # type: ignore[arg-type]
+
+    def test_winsorized_mean_bool_k_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean([1, 2, 3, 4, 5], k=True)  # type: ignore[arg-type]
+
+    def test_winsorized_mean_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            winsorized_mean([])
+
+    def test_winsorized_mean_not_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_mean((1, 2, 3, 4, 5))  # type: ignore[arg-type]
+
+    def test_winsorized_variance_population_flag_type(self) -> None:
+        with self.assertRaises(TypeError):
+            winsorized_variance([1, 2, 3, 4, 5], k=1, population=1)  # type: ignore[arg-type]
+
+    def test_winsorized_variance_sample(self) -> None:
+        # small sample; value should be finite and non-negative
+        v = winsorized_variance([1, 2, 3, 4, 100], k=1, population=False)
+        self.assertGreaterEqual(v, 0.0)
+
+    def test_winsorized_stddev_non_negative(self) -> None:
+        self.assertGreaterEqual(winsorized_stddev([1, 2, 3, 4, 5]), 0.0)
+
+    def test_winsorized_all_equal_zero_spread(self) -> None:
+        self.assertEqual(winsorized_mean([5, 5, 5, 5, 5], k=1), 5.0)
+        self.assertEqual(winsorized_variance([5, 5, 5, 5, 5], k=1), 0.0)
+        self.assertEqual(winsorized_stddev([5, 5, 5, 5, 5], k=1), 0.0)
+
+
+class TestTrimmedMeanValidation(unittest.TestCase):
+    """Boundary/parameter validation for trimmed_mean."""
+
+    def test_trimmed_mean_zero_trim(self) -> None:
+        self.assertAlmostEqual(trimmed_mean([1, 2, 3, 4, 5], 0), 3.0)
+
+    def test_trimmed_mean_negative_trim_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3, 4, 5], -1)
+
+    def test_trimmed_mean_trim_too_large_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2, 3, 4, 5], 3)
+        with self.assertRaises(ValueError):
+            trimmed_mean([1, 2], 1)
+
+    def test_trimmed_mean_non_int_trim_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, 3, 4, 5], 1.0)  # type: ignore[arg-type]
+
+    def test_trimmed_mean_bool_trim_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean([1, 2, 3, 4, 5], True)  # type: ignore[arg-type]
+
+    def test_trimmed_mean_empty_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            trimmed_mean([], 0)
+
+    def test_trimmed_mean_not_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            trimmed_mean((1, 2, 3, 4, 5), 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
