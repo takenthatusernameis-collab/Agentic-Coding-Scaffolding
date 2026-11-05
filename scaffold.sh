@@ -54286,12 +54286,15 @@ def interval_contains(interval: Interval, value: float) -> bool:
 
     Raises:
         TypeError: If *interval* is malformed or *value* is not a real number.
-        ValueError: If *interval* is not valid (``low > high``).
+        ValueError: If *interval* is not valid (``low > high``), or if
+            *value* is NaN.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
+    if math.isnan(value):
+        raise ValueError("value must not be NaN")
     low, high = interval
     return low <= value <= high
 
@@ -54479,8 +54482,10 @@ def interval_shift(interval: Interval, delta: float) -> Interval:
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(delta):
         raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
-    if math.isnan(delta) or math.isinf(delta):
-        raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
+    if math.isnan(delta):
+        raise ValueError("delta must not be NaN")
+    if math.isinf(delta):
+        raise TypeError("delta must be finite")
     return (interval[0] + delta, interval[1] + delta)
 
 
@@ -54913,8 +54918,8 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
         self.assertTrue(interval_contains((float("-inf"), float("inf")), 0))
 
     def test_interval_contains_with_nan_value(self):
-        # NaN comparisons return False, no TypeError raised for float NaN
-        self.assertFalse(interval_contains((0, 10), float("nan")))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            interval_contains((0, 10), float("nan"))
 
     def test_interval_overlaps_with_inf(self):
         self.assertTrue(interval_overlaps((0, float("inf")), (5, 10)))
@@ -54957,7 +54962,7 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
         )
 
     def test_interval_shift_with_nan_delta(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("nan"))
 
     def test_interval_shift_with_inf_delta(self):
@@ -55070,6 +55075,24 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
             normalize_interval(True, 5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             normalize_interval(5, False)  # type: ignore[arg-type]
+
+
+    def test_interval_shift_nan_inf_delta_rejected(self):
+        with self.assertRaises(ValueError):
+            interval_shift((0, 1), float("nan"))
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), float("inf"))
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), float("-inf"))
+
+    def test_interval_clamp_nan_value_rejected(self):
+        with self.assertRaises(ValueError):
+            interval_clamp(float("nan"), (0, 1))
+
+    def test_interval_clamp_infinite_bounds(self):
+        self.assertEqual(interval_clamp(5, (float("-inf"), float("inf"))), 5)
+        self.assertEqual(interval_clamp(float("inf"), (0, 10)), 10)
+        self.assertEqual(interval_clamp(float("-inf"), (0, 10)), 0)
 
 
 if __name__ == "__main__":
@@ -81002,6 +81025,7 @@ __all__: list[str] = [
     "abundance",
     "are_amicable",
     "is_amicable_number",
+    "is_fibonacci_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -82464,12 +82488,12 @@ def abundance(n: int) -> int:
         ValueError: If *n* is less than 1.
 
     Examples:
-        >>> abundance(12)
-        4
-        >>> abundance(6)
-        0
-        >>> abundance(8)
-        -4
+>>> abundance(12)
+    4
+    >>> abundance(6)
+    0
+    >>> abundance(8)
+    -1
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError(f"n must be an int, got {type(n).__name__}")

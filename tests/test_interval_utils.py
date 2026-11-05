@@ -358,8 +358,8 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
         self.assertTrue(interval_contains((float("-inf"), float("inf")), 0))
 
     def test_interval_contains_with_nan_value(self):
-        # NaN comparisons return False, no TypeError raised for float NaN
-        self.assertFalse(interval_contains((0, 10), float("nan")))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            interval_contains((0, 10), float("nan"))
 
     def test_interval_overlaps_with_inf(self):
         self.assertTrue(interval_overlaps((0, float("inf")), (5, 10)))
@@ -402,7 +402,7 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
         )
 
     def test_interval_shift_with_nan_delta(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("nan"))
 
     def test_interval_shift_with_inf_delta(self):
@@ -515,6 +515,24 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
             normalize_interval(True, 5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             normalize_interval(5, False)  # type: ignore[arg-type]
+
+
+    def test_interval_shift_nan_inf_delta_rejected(self):
+        with self.assertRaises(ValueError):
+            interval_shift((0, 1), float("nan"))
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), float("inf"))
+        with self.assertRaises(TypeError):
+            interval_shift((0, 1), float("-inf"))
+
+    def test_interval_clamp_nan_value_rejected(self):
+        with self.assertRaises(ValueError):
+            interval_clamp(float("nan"), (0, 1))
+
+    def test_interval_clamp_infinite_bounds(self):
+        self.assertEqual(interval_clamp(5, (float("-inf"), float("inf"))), 5)
+        self.assertEqual(interval_clamp(float("inf"), (0, 10)), 10)
+        self.assertEqual(interval_clamp(float("-inf"), (0, 10)), 0)
 
 
 if __name__ == "__main__":

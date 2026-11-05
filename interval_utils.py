@@ -91,12 +91,15 @@ def interval_contains(interval: Interval, value: float) -> bool:
 
     Raises:
         TypeError: If *interval* is malformed or *value* is not a real number.
-        ValueError: If *interval* is not valid (``low > high``).
+        ValueError: If *interval* is not valid (``low > high``), or if
+            *value* is NaN.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
+    if math.isnan(value):
+        raise ValueError("value must not be NaN")
     low, high = interval
     return low <= value <= high
 
@@ -284,8 +287,10 @@ def interval_shift(interval: Interval, delta: float) -> Interval:
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(delta):
         raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
-    if math.isnan(delta) or math.isinf(delta):
-        raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
+    if math.isnan(delta):
+        raise ValueError("delta must not be NaN")
+    if math.isinf(delta):
+        raise TypeError("delta must be finite")
     return (interval[0] + delta, interval[1] + delta)
 
 
