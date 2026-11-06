@@ -20,6 +20,7 @@ from bytes_utils import (
     is_power_of_two,
     is_zero,
     has_null_byte,
+    lowest_set_bit,
     isalnum,
     isalpha,
     isascii,
@@ -854,6 +855,38 @@ class TestIsPowerOfTwo(unittest.TestCase):
             is_power_of_two(255)
         with self.assertRaises(TypeError):
             is_power_of_two(None)
+
+
+class TestLowestSetBit(unittest.TestCase):
+    def test_no_set_bits(self):
+        self.assertEqual(lowest_set_bit(b""), -1)
+        self.assertEqual(lowest_set_bit(from_hex("00")), -1)
+        self.assertEqual(lowest_set_bit(from_hex("0000")), -1)
+
+    def test_least_significant_set_bit(self):
+        self.assertEqual(lowest_set_bit(from_hex("01")), 0)
+        self.assertEqual(lowest_set_bit(from_hex("02")), 1)
+        self.assertEqual(lowest_set_bit(from_hex("04")), 2)
+        self.assertEqual(lowest_set_bit(from_hex("80")), 7)
+        self.assertEqual(lowest_set_bit(from_hex("ff")), 0)
+
+    def test_multi_byte_position(self):
+        self.assertEqual(lowest_set_bit(from_hex("0100")), 8)
+        self.assertEqual(lowest_set_bit(from_hex("0001")), 0)
+        self.assertEqual(lowest_set_bit(from_hex("0200")), 9)
+
+    def test_bytearray(self):
+        self.assertEqual(lowest_set_bit(bytearray(b"\x01")), 0)
+        self.assertEqual(lowest_set_bit(bytearray(b"\x80")), 7)
+        self.assertEqual(lowest_set_bit(bytearray(b"")), -1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            lowest_set_bit("01")
+        with self.assertRaises(TypeError):
+            lowest_set_bit(255)
+        with self.assertRaises(TypeError):
+            lowest_set_bit(None)
 
 
 class TestRIndex(unittest.TestCase):

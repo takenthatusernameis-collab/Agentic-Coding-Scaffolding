@@ -62,6 +62,7 @@ __all__: list[str] = [
     "is_power_of_two",
     "is_zero",
     "has_null_byte",
+    "lowest_set_bit",
 ]
 
 
@@ -1357,3 +1358,43 @@ def has_null_byte(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return any(b == 0 for b in bytes(data))
+
+
+def lowest_set_bit(data: bytes) -> int:
+    """Return the position of the least significant set bit in *data*, or -1.
+
+    The bytes are interpreted as a big-endian unsigned integer, so the first
+    byte is the most significant. The least significant set bit is the lowest
+    bit position (0-based) whose value is 1. An empty input, or an input with
+    no set bits, returns -1.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The 0-based position of the least significant set bit, or -1 if
+        *data* has no set bits.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> lowest_set_bit(from_hex("00"))
+        -1
+        >>> lowest_set_bit(from_hex("01"))
+        0
+        >>> lowest_set_bit(from_hex("02"))
+        1
+        >>> lowest_set_bit(from_hex("80"))
+        7
+        >>> lowest_set_bit(from_hex("0100"))
+        8
+        >>> lowest_set_bit(from_hex("ff"))
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    value = int.from_bytes(bytes(data), "big")
+    if value == 0:
+        return -1
+    return (value & -value).bit_length() - 1
