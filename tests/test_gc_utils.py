@@ -77,3 +77,33 @@ def test_gc_basic_wrappers():
     assert isinstance(referrers, list)
     objs = gc_utils.get_objects()
     assert isinstance(objs, list)
+
+
+def test_is_tracked_containers():
+    assert gc_utils.is_tracked([1, 2, 3]) is True
+    assert gc_utils.is_tracked({"a": 1}) is True
+    assert gc_utils.is_tracked((1, 2)) is True
+    assert gc_utils.is_tracked(object()) is True
+
+
+def test_is_tracked_atomic():
+    assert gc_utils.is_tracked(42) is False
+    assert gc_utils.is_tracked("hello") is False
+    assert gc_utils.is_tracked(3.14) is False
+    assert gc_utils.is_tracked(True) is False
+    assert gc_utils.is_tracked(None) is False
+
+
+def test_is_tracked_consistent_with_stdlib():
+    for obj in ([], {}, 1, "x", None, object()):
+        assert gc_utils.is_tracked(obj) is gc.is_tracked(obj)
+
+
+def test_is_finalized_atomic():
+    assert gc_utils.is_finalized(42) is False
+    assert gc_utils.is_finalized("hello") is False
+
+
+def test_is_finalized_consistent_with_stdlib():
+    for obj in (1, "x", None, object()):
+        assert gc_utils.is_finalized(obj) is gc.is_finalized(obj)

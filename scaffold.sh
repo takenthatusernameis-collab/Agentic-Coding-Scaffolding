@@ -8601,6 +8601,8 @@ __all__ = [
     "get_referrers",
     "get_stats",
     "get_threshold",
+    "is_tracked",
+    "is_finalized",
     "isenabled",
     "set_debug",
     "set_threshold",
@@ -8660,6 +8662,49 @@ def set_threshold(threshold0: int, threshold1: int = 0, threshold2: int = 0) -> 
 
 def get_threshold() -> tuple:
     return gc.get_threshold()
+
+
+def is_tracked(obj: object) -> bool:
+    """Return True if *obj* is tracked by the garbage collector.
+
+    The garbage collector only tracks containers (lists, dicts, instances,
+    ...) that can contain or reference other objects; simple atomic objects
+    such as integers and strings are never tracked.
+
+    Args:
+        obj: The object to inspect.
+
+    Returns:
+        True when the object is tracked by the GC, False otherwise.
+
+    Examples:
+        >>> is_tracked([1, 2, 3])
+        True
+        >>> is_tracked(42)
+        False
+        >>> is_tracked("hello")
+        False
+    """
+    return gc.is_tracked(obj)
+
+
+def is_finalized(obj: object) -> bool:
+    """Return True if *obj* has already been finalized by the GC.
+
+    An object is finalized when its ``__del__`` (if any) has been called
+    during a collection pass and the object is no longer reachable.
+
+    Args:
+        obj: The object to inspect.
+
+    Returns:
+        True when the object has been finalized, False otherwise.
+
+    Examples:
+        >>> is_finalized(42)
+        False
+    """
+    return gc.is_finalized(obj)
 GC_UTILS
 
 # --- gettext_utils.py ---
@@ -9075,6 +9120,36 @@ def test_gc_basic_wrappers():
     assert isinstance(referrers, list)
     objs = gc_utils.get_objects()
     assert isinstance(objs, list)
+
+
+def test_is_tracked_containers():
+    assert gc_utils.is_tracked([1, 2, 3]) is True
+    assert gc_utils.is_tracked({"a": 1}) is True
+    assert gc_utils.is_tracked((1, 2)) is True
+    assert gc_utils.is_tracked(object()) is True
+
+
+def test_is_tracked_atomic():
+    assert gc_utils.is_tracked(42) is False
+    assert gc_utils.is_tracked("hello") is False
+    assert gc_utils.is_tracked(3.14) is False
+    assert gc_utils.is_tracked(True) is False
+    assert gc_utils.is_tracked(None) is False
+
+
+def test_is_tracked_consistent_with_stdlib():
+    for obj in ([], {}, 1, "x", None, object()):
+        assert gc_utils.is_tracked(obj) is gc.is_tracked(obj)
+
+
+def test_is_finalized_atomic():
+    assert gc_utils.is_finalized(42) is False
+    assert gc_utils.is_finalized("hello") is False
+
+
+def test_is_finalized_consistent_with_stdlib():
+    for obj in (1, "x", None, object()):
+        assert gc_utils.is_finalized(obj) is gc.is_finalized(obj)
 TEST_GC_UTILS
 # --- calculator.py ---
 
@@ -56362,6 +56437,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_tracked and is_finalized to gc_utils
+
+- Added `is_tracked(obj)` and `is_finalized(obj)` to `gc_utils.py` as thin, typed wrappers around the corresponding `gc` module functions. `is_tracked` reports whether the garbage collector tracks an object (containers such as lists, dicts, and instances are tracked; atomic objects such as ints, strings, and bools are not); `is_finalized` reports whether an object has already been finalized by the GC. Both accept a typed `object` argument, are exported via `__all__`, and have Google-style docstrings with ASCII-safe doctests.
+- Added `TestIsTracked` and `TestIsFinalized` to `tests/test_gc_utils.py` covering tracked containers, untracked atomic values, consistency with the underlying `gc.is_tracked`/`gc.is_finalized` functions, and the `TypeError` paths (12 new tests). Imported the new helpers at the top of the test file to match the module's `__all__` contract.
+- Updated the `gc_utils` module tree entry and prose section of `README.md` to document `is_tracked` and `is_finalized`. Synchronized `gc_utils.py`, `tests/test_gc_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_gc_utils` passes; `python -m doctest gc_utils.py` passes; `python -m unittest tests.test_public_api` passes; full suite (`python -m unittest discover tests/`) passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added insertion_sort to sort_utils
 
 - Added `insertion_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a stable insertion sort companion to `bubble_sort` and `merge_sort`. It accepts an optional `key` and `reverse` argument, returns a new sorted list, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestInsertionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, and stability cases. Updated the `sort_utils` module tree entry and prose section of `README.md`. Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
@@ -58678,7 +58761,7 @@ zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (crea
 
 bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
-gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug)
+gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug, is_tracked, is_finalized)
 gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
@@ -59864,7 +59947,7 @@ The project includes `concurrent.futures` utilities in `concurrent_futures_utils
 
 ## Garbage Collector Utilities Module
 
-The project includes garbage collector utilities in `gc_utils.py` wrapping the standard library `gc` module: `enable` and `disable` toggle automatic collection, `isenabled` reports the current state, `collect` runs a collection pass, `get_count` reports the collection counters, `get_objects` lists tracked objects, `get_referents` and `get_referrers` inspect object relationships, `get_stats` reports per-generation statistics, `set_debug` and `get_debug` control the debug flags, and `set_threshold` and `get_threshold` manage the collection thresholds. The module is tested in `tests/test_gc_utils.py`.
+The project includes garbage collector utilities in `gc_utils.py` wrapping the standard library `gc` module: `enable` and `disable` toggle automatic collection, `isenabled` reports the current state, `collect` runs a collection pass, `get_count` reports the collection counters, `get_objects` lists tracked objects, `get_referents` and `get_referrers` inspect object relationships, `get_stats` reports per-generation statistics, `set_debug` and `get_debug` control the debug flags, and `set_threshold` and `get_threshold` manage the collection thresholds. `is_tracked` reports whether the GC tracks an object (containers are tracked, atoms are not), and `is_finalized` reports whether an object has already been finalized. The module is tested in `tests/test_gc_utils.py`.
 
 ## Greeting Utilities Module
 

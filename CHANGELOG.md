@@ -1,3 +1,11 @@
+## Unreleased — added is_tracked and is_finalized to gc_utils
+
+- Added `is_tracked(obj)` and `is_finalized(obj)` to `gc_utils.py` as thin, typed wrappers around the corresponding `gc` module functions. `is_tracked` reports whether the garbage collector tracks an object (containers such as lists, dicts, and instances are tracked; atomic objects such as ints, strings, and bools are not); `is_finalized` reports whether an object has already been finalized by the GC. Both accept a typed `object` argument, are exported via `__all__`, and have Google-style docstrings with ASCII-safe doctests.
+- Added `TestIsTracked` and `TestIsFinalized` to `tests/test_gc_utils.py` covering tracked containers, untracked atomic values, consistency with the underlying `gc.is_tracked`/`gc.is_finalized` functions, and the `TypeError` paths (12 new tests). Imported the new helpers at the top of the test file to match the module's `__all__` contract.
+- Updated the `gc_utils` module tree entry and prose section of `README.md` to document `is_tracked` and `is_finalized`. Synchronized `gc_utils.py`, `tests/test_gc_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_gc_utils` passes; `python -m doctest gc_utils.py` passes; `python -m unittest tests.test_public_api` passes; full suite (`python -m unittest discover tests/`) passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added insertion_sort to sort_utils
 
 - Added `insertion_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a stable insertion sort companion to `bubble_sort` and `merge_sort`. It accepts an optional `key` and `reverse` argument, returns a new sorted list, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestInsertionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, and stability cases. Updated the `sort_utils` module tree entry and prose section of `README.md`. Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.

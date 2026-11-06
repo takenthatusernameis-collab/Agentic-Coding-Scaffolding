@@ -215,7 +215,7 @@ zipfile_utils.py           # ZIP archive utilities wrapping stdlib zipfile (crea
 
 bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_compress, bz2_decompress, bz2_open, bz2_write, bz2_read)
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
-gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug)
+gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug, is_tracked, is_finalized)
 gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
@@ -1401,7 +1401,7 @@ The project includes `concurrent.futures` utilities in `concurrent_futures_utils
 
 ## Garbage Collector Utilities Module
 
-The project includes garbage collector utilities in `gc_utils.py` wrapping the standard library `gc` module: `enable` and `disable` toggle automatic collection, `isenabled` reports the current state, `collect` runs a collection pass, `get_count` reports the collection counters, `get_objects` lists tracked objects, `get_referents` and `get_referrers` inspect object relationships, `get_stats` reports per-generation statistics, `set_debug` and `get_debug` control the debug flags, and `set_threshold` and `get_threshold` manage the collection thresholds. The module is tested in `tests/test_gc_utils.py`.
+The project includes garbage collector utilities in `gc_utils.py` wrapping the standard library `gc` module: `enable` and `disable` toggle automatic collection, `isenabled` reports the current state, `collect` runs a collection pass, `get_count` reports the collection counters, `get_objects` lists tracked objects, `get_referents` and `get_referrers` inspect object relationships, `get_stats` reports per-generation statistics, `set_debug` and `get_debug` control the debug flags, and `set_threshold` and `get_threshold` manage the collection thresholds. `is_tracked` reports whether the GC tracks an object (containers are tracked, atoms are not), and `is_finalized` reports whether an object has already been finalized. The module is tested in `tests/test_gc_utils.py`.
 
 ## Greeting Utilities Module
 

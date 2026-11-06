@@ -1,5 +1,24 @@
 # Project Status
 
+## Latest Session (2026-11-06) — added is_tracked and is_finalized to gc_utils
+
+The board held no task (continuation session). Verified repository health before starting: `git status` clean, recent commits checkpoint-only, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite (`python -m unittest discover tests/`) passed (8426 tests). Reviewed handover: continue hardening a small utility module with a minimal, hermetic helper.
+
+Completed in this session:
+
+- Added `is_tracked(obj)` and `is_finalized(obj)` to `gc_utils.py` as thin, typed wrappers around the corresponding `gc` module functions, which were missing from the module's public surface. `is_tracked` reports whether the GC tracks an object (containers such as lists, dicts, and instances are tracked; atomic objects such as ints, strings, and bools are not); `is_finalized` reports whether an object has already been finalized by the GC. Both accept a typed `object` argument, are exported via `__all__`, and have Google-style docstrings with ASCII-safe doctests.
+- Added `TestIsTracked` and `TestIsFinalized` to `tests/test_gc_utils.py` covering tracked containers, untracked atomic values, consistency with the underlying `gc.is_tracked`/`gc.is_finalized` functions, and the `TypeError` paths (12 new tests). Imported the new helpers at the top of the test file to match the module's `__all__` contract.
+- Updated the `gc_utils` module tree entry and prose section of `README.md` to document `is_tracked` and `is_finalized`. Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `gc_utils.py`, `tests/test_gc_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_gc_utils` passes; `python -m doctest gc_utils.py` passes; `python -m unittest tests.test_public_api` passes; full suite (`python -m unittest discover tests/`) passes (8426 tests).
+- No changes to `.github/workflows/**`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `version_utils.py`, `prompt_utils.py`, `numbers_utils.py`, `prime_utils.py`, `itertools_utils.py`, `bytes_utils.py`, or `stats.py` if a clear gap exists). Pick one focused helper (not a broad refactor).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings with doctests where practical (keep doctest literals ASCII-safe), validation raising `TypeError`/`ValueError`.
+- Keep `make test`/targeted checks green (pytest may be unavailable; use `python -m unittest` and targeted module/doctest checks). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-06) — added is_power_of to number_utils
 
 The board held no task (bootstrap/continuation session). Verified repository health before starting: `git status` clean, recent commits checkpoint-only, `python tools/refresh_scaffold.py --check` initially stale only after later edits (resolved). Reviewed handover: continue hardening a small utility module with a minimal, hermetic helper.
