@@ -49960,6 +49960,20 @@ def ends_with(data: bytes, suffix: bytes) -> bool:
 
 
 def split(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[bytes]:
+    """Split *data* on *sep*, at most *maxsplit* times.
+
+    Args:
+        data: Bytes or bytearray to split.
+        sep: Separator bytes, or ``None`` to split on whitespace runs.
+        maxsplit: Maximum number of splits (-1 for no limit). Bool rejected.
+
+    Returns:
+        List of byte chunks.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray, *sep* invalid, or
+            *maxsplit* is not an int.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if sep is not None and not isinstance(sep, (bytes, bytearray)):
@@ -49972,6 +49986,20 @@ def split(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[byt
 
 
 def find(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    """Return the lowest index of *sub* in *data*, or -1 if not found.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to search for.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        The lowest index where *sub* is found, or -1.
+
+    Raises:
+        TypeError: If *data*/*sub* not bytes-like or *start*/*end* invalid.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(sub, (bytes, bytearray)):
@@ -50058,6 +50086,20 @@ def rindex(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> i
 
 
 def replace(data: bytes, old: bytes, new: bytes, count: int = -1) -> bytes:
+    """Replace occurrences of *old* with *new* in *data*.
+
+    Args:
+        data: Bytes or bytearray to transform.
+        old: Bytes or bytearray to replace.
+        new: Replacement bytes or bytearray.
+        count: Maximum replacements (-1 for all). Bool rejected.
+
+    Returns:
+        Bytes with replacements applied.
+
+    Raises:
+        TypeError: If any argument has an invalid type.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(old, (bytes, bytearray)):
@@ -50070,6 +50112,20 @@ def replace(data: bytes, old: bytes, new: bytes, count: int = -1) -> bytes:
 
 
 def count(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> int:
+    """Count non-overlapping occurrences of *sub* in *data*.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray subsequence to count.
+        start: Optional starting index for the search.
+        end: Optional ending index for the search.
+
+    Returns:
+        Number of occurrences.
+
+    Raises:
+        TypeError: If *data*/*sub* not bytes-like or *start*/*end* invalid.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(sub, (bytes, bytearray)):
@@ -50186,6 +50242,18 @@ def encode_utf8(s: str, errors: str = "strict") -> bytes:
 
 
 def rstrip(data: bytes, chars: bytes | None = None) -> bytes:
+    """Strip trailing *chars* (or whitespace) from *data*.
+
+    Args:
+        data: Bytes or bytearray to strip.
+        chars: Bytes/bytearray of chars to strip, or ``None`` for whitespace.
+
+    Returns:
+        Stripped bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *chars* invalid.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if chars is not None and not isinstance(chars, (bytes, bytearray)):
@@ -50196,6 +50264,18 @@ def rstrip(data: bytes, chars: bytes | None = None) -> bytes:
 
 
 def lstrip(data: bytes, chars: bytes | None = None) -> bytes:
+    """Strip leading *chars* (or whitespace) from *data*.
+
+    Args:
+        data: Bytes or bytearray to strip.
+        chars: Bytes/bytearray of chars to strip, or ``None`` for whitespace.
+
+    Returns:
+        Stripped bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *chars* invalid.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if chars is not None and not isinstance(chars, (bytes, bytearray)):
@@ -50206,6 +50286,18 @@ def lstrip(data: bytes, chars: bytes | None = None) -> bytes:
 
 
 def strip(data: bytes, chars: bytes | None = None) -> bytes:
+    """Strip leading/trailing *chars* (or whitespace) from *data*.
+
+    Args:
+        data: Bytes or bytearray to strip.
+        chars: Bytes/bytearray of chars to strip, or ``None`` for whitespace.
+
+    Returns:
+        Stripped bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *chars* invalid.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if chars is not None and not isinstance(chars, (bytes, bytearray)):
