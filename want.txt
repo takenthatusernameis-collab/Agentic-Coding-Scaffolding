@@ -21,6 +21,8 @@ calculator
 calendar_utils
 call_once_utils
 case_utils
+cgi_utils
+cgitb_utils
 chunk_utils
 circuit_breaker_utils
 cli_utils
@@ -46,6 +48,7 @@ cooldown_utils
 copy_utils
 copyreg_utils
 cprofile_utils
+crypt_utils
 crypto_utils
 csv_utils
 ctypes_utils
@@ -61,6 +64,7 @@ dict_utils
 difflib_utils
 dis_utils
 doctest_utils
+dumbdbm_utils
 duration_utils
 either_utils
 email_utils
@@ -101,6 +105,7 @@ html_utils
 http_utils
 id_utils
 imaplib_utils
+imghdr_utils
 importlib_utils
 ini_utils
 inspect_utils
@@ -129,6 +134,7 @@ modulefinder_utils
 multiprocessing_utils
 netrc_utils
 networking_utils
+nntplib_utils
 ntpath_utils
 nturl2path_utils
 number_utils
@@ -144,6 +150,7 @@ pattern_utils
 pdb_utils
 pickle_utils
 pickletools_utils
+pipes_utils
 pkgutil_utils
 platform_utils
 plistlib_utils
@@ -192,9 +199,11 @@ signal_utils
 site_utils
 slugify_utils
 smtplib_utils
+sndhdr_utils
 socket_utils
 socketserver_utils
 sort_utils
+spwd_utils
 sqlite3_utils
 sre_compile_utils
 sre_constants_utils
@@ -215,6 +224,7 @@ sysconfig_utils
 syslog_utils
 tabnanny_utils
 tarfile_utils
+telnetlib_utils
 temp_utils
 tempfile_utils
 template_utils
