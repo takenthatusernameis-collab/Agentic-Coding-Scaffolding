@@ -1099,6 +1099,8 @@ def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
         raise TypeError("byteorder must be a str")
     if byteorder not in ("big", "little"):
         raise ValueError("byteorder must be 'big' or 'little'")
+    if not isinstance(signed, bool):
+        raise TypeError("signed must be a bool")
     return int.from_bytes(bytes(data), byteorder=byteorder, signed=signed)
 
 
@@ -1148,6 +1150,8 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
         raise TypeError("byteorder must be a str")
     if byteorder not in ("big", "little"):
         raise ValueError("byteorder must be 'big' or 'little'")
+    if not isinstance(signed, bool):
+        raise TypeError("signed must be a bool")
     return value.to_bytes(length, byteorder=byteorder, signed=signed)
 
 
