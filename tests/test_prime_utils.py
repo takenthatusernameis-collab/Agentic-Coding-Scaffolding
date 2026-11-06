@@ -52,6 +52,7 @@ from prime_utils import (
     prime_count,
     prime_factors,
     prime_gap,
+    primes_between,
     primes_up_to,
     primorial,
     radical,
@@ -85,6 +86,52 @@ class TestPrimesUpTo(unittest.TestCase):
             primes_up_to(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             primes_up_to(True)  # type: ignore[arg-type]
+
+
+class TestPrimesBetween(unittest.TestCase):
+    def test_basic_range(self):
+        self.assertEqual(primes_between(10, 30), [11, 13, 17, 19, 23, 29])
+
+    def test_single_prime(self):
+        self.assertEqual(primes_between(2, 2), [2])
+        self.assertEqual(primes_between(7, 7), [7])
+
+    def test_no_primes(self):
+        self.assertEqual(primes_between(0, 1), [])
+        self.assertEqual(primes_between(8, 10), [])
+        self.assertEqual(primes_between(14, 16), [])
+
+    def test_negative_lower_bound(self):
+        self.assertEqual(primes_between(-5, 10), [2, 3, 5, 7])
+
+    def test_upper_below_two(self):
+        self.assertEqual(primes_between(0, 1), [])
+        self.assertEqual(primes_between(-10, -1), [])
+        self.assertEqual(primes_between(1, 1), [])
+
+    def test_large_range(self):
+        self.assertEqual(primes_between(1, 100)[:5], [2, 3, 5, 7, 11])
+        self.assertEqual(primes_between(90, 100), [97])
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            primes_between(10.5, 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between("10", 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(None, 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(True, 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(10, 30.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(10, "30")  # type: ignore[arg-type]
+
+    def test_lower_greater_than_upper_raises(self):
+        with self.assertRaises(ValueError):
+            primes_between(30, 10)
+        with self.assertRaises(ValueError):
+            primes_between(7, 2)
 
 
 class TestIsPrime(unittest.TestCase):

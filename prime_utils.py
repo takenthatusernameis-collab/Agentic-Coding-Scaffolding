@@ -40,6 +40,7 @@ __all__: List[str] = [
     "prime_count",
     "prime_gap",
     "primorial",
+    "primes_between",
     "total_prime_factors",
     "distinct_prime_factors",
     "largest_prime_factor",
@@ -1905,3 +1906,38 @@ def is_cuban_prime(n: int) -> bool:
     if (root - 3) % 6 != 0:
         return False
     return (root - 3) // 6 >= 1
+
+
+def primes_between(lower: int, upper: int) -> List[int]:
+    """Return all prime numbers in the inclusive range [*lower*, *upper*].
+
+    Args:
+        lower: The inclusive lower bound of the range.
+        upper: The inclusive upper bound of the range.
+
+    Returns:
+        A list of all prime numbers *p* with *lower* <= *p* <= *upper*,
+        in ascending order. Returns an empty list when *upper* < 2 or
+        when no primes fall in the range.
+
+    Raises:
+        TypeError: If *lower* or *upper* is not an int.
+        ValueError: If *lower* is greater than *upper*.
+
+    Examples:
+        >>> primes_between(10, 30)
+        [11, 13, 17, 19, 23, 29]
+        >>> primes_between(2, 2)
+        [2]
+        >>> primes_between(0, 1)
+        []
+        >>> primes_between(1, 100)[:5]
+        [2, 3, 5, 7, 11]
+    """
+    _require_int(lower, "lower")
+    _require_int(upper, "upper")
+    if lower > upper:
+        raise ValueError("lower must be <= upper")
+    if upper < 2:
+        return []
+    return [p for p in primes_up_to(upper) if p >= lower]

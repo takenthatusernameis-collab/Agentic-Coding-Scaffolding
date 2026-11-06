@@ -57169,6 +57169,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added primes_between to prime_utils
+
+- Added `primes_between(lower, upper)` to `prime_utils.py` as a range-based prime helper companion to `primes_up_to`, `prime_count`, `next_prime`, and `prev_prime`. It returns all prime numbers *p* with *lower* <= *p* <= *upper* in ascending order, reusing `primes_up_to` for efficiency, accepts typed `int` arguments, raises `TypeError` for non-int/bool arguments and `ValueError` when *lower* > *upper*, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestPrimesBetween` to `tests/test_prime_utils.py` covering basic ranges, single primes, empty ranges, negative lower bounds, large ranges, and the `TypeError`/`ValueError` paths; imported `primes_between` to match the module's `__all__` contract. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prime_utils` passes; `python -m doctest prime_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+
+
 ## Unreleased — added is_even to numbers_utils
 
 - Added `is_even(n)` to `numbers_utils.py` as a parity predicate companion to the existing divisor/number classifications. It returns `True` when *n* is an even integer (including zero and negative even numbers) and `False` otherwise, accepts a typed `int` argument, raises `TypeError` for non-int/bool arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsEven` to `tests/test_numbers_utils.py` covering even/odd/zero/negative values and the `TypeError` path; imported `is_even` to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`. Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_numbers_utils` passes; `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes.
@@ -59576,7 +59581,7 @@ gettext_utils.py           # Internationalization utilities wrapping stdlib gett
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
-prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, is_fermat_pseudoprime, is_amicable, is_perfect_power, is_powerful_number, is_fermat_number, is_strong_prime, is_balanced_prime, is_weak_prime, is_cuban_prime, is_super_prime, is_ugly_number, is_happy_prime, radical, prime_count, prime_gap, primorial, total_prime_factors, distinct_prime_factors, largest_prime_factor)
+prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, is_fermat_pseudoprime, is_amicable, is_perfect_power, is_powerful_number, is_fermat_number, is_strong_prime, is_balanced_prime, is_weak_prime, is_cuban_prime, is_super_prime, is_ugly_number, is_happy_prime, radical, prime_count, prime_gap, primorial, primes_between, total_prime_factors, distinct_prime_factors, largest_prime_factor)
 
 decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subtract, multiply, divide, power, quantize, compare, abs_value, negate, is_positive, is_negative, is_zero)
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
@@ -60450,7 +60455,7 @@ The project includes text wrapping utility functions in `textwrap_utils.py` for 
 
 ## Prime Number Utilities Module
 
-The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563, `is_carmichael_number` tests whether a composite squarefree integer with at least three prime factors satisfies Korselt's criterion (a Fermat pseudoprime to every base coprime to *n*; the smallest is 561), `is_korselt_number` tests whether a composite squarefree integer *n* satisfies Korselt's criterion (for every prime factor *p* of *n*, *p - 1* divides *n - 1*), and `is_giuga_number` tests whether a composite squarefree integer *n* is a Giuga number (for every prime factor *p* of *n*, *p* divides *n // p - 1*; the smallest is 30), `is_fermat_pseudoprime` tests whether a composite integer *n* satisfies `base ** (n - 1) ≡ 1 (mod n)` for a given *base* (default 2; the smallest such base-2 pseudoprime is 341), `is_amicable` tests whether *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — returning False for perfect numbers and numbers below 2, and `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`. `is_powerful_number` tests whether a positive integer is powerful (for every prime factor *p*, *p*² also divides *n*; e.g. 4, 8, 9, 36, 72), returning True for 1 and False for numbers below 1 and for squarefree composites. `is_fermat_number` tests whether a positive integer is a Fermat number (of the form 2^(2^k) + 1; e.g. 3, 5, 17, 257, 65537), `is_strong_prime` tests whether a prime is a strong prime (a prime greater than the arithmetic mean of its nearest primes above and below, i.e. closer to the next prime than to the previous one; the first few are 11, 17, 29, 37, 41, 59, 67, 71, 79, 97, ...), `is_balanced_prime` tests whether a prime equals the arithmetic mean of its two nearest primes (e.g. 5, 53, 157, 173, 211, ...), and `is_weak_prime` tests whether a prime is less than the arithmetic mean of its two nearest primes (e.g. 7, 13, 19, 23, 31, ...), returning False for non-primes and small primes outside the definitions. `is_super_prime` tests whether a prime's position in the sequence of primes is itself prime (e.g. 3, 5, 11, 17, 31, ...), returning False for non-primes. `is_ugly_number` tests whether a positive integer's prime factors are limited to 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, ...), returning False for numbers with other prime factors and for non-positive integers. `is_happy_prime` tests whether a number is both prime and happy (a happy number reaches 1 when iteratively replaced by the sum of squares of its digits; examples include 7, 13, 19, 23, 31, 37, 79, 97, 103, 139), returning False for numbers that are prime but unhappy (including 2, 3, and 5, which fall into the 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 loop), for composites, and for 1. `is_cuban_prime` tests whether a prime is a cuban prime — a prime of the form `3*y**2 + 3*y + 1` for some integer `y >= 1` (e.g. 7, 19, 37, 61, 127, 271, 331, ...), returning False for non-primes and for primes not of that form.
+The project includes prime number utilities in `prime_utils.py` for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `primes_between` returns all prime numbers in the inclusive range [*lower*, *upper*], `total_prime_factors` returns the total number of prime factors with multiplicity (Ω(n)), `distinct_prime_factors` returns the number of distinct prime factors (ω(n)), and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563, `is_carmichael_number` tests whether a composite squarefree integer with at least three prime factors satisfies Korselt's criterion (a Fermat pseudoprime to every base coprime to *n*; the smallest is 561), `is_korselt_number` tests whether a composite squarefree integer *n* satisfies Korselt's criterion (for every prime factor *p* of *n*, *p - 1* divides *n - 1*), and `is_giuga_number` tests whether a composite squarefree integer *n* is a Giuga number (for every prime factor *p* of *n*, *p* divides *n // p - 1*; the smallest is 30), `is_fermat_pseudoprime` tests whether a composite integer *n* satisfies `base ** (n - 1) ≡ 1 (mod n)` for a given *base* (default 2; the smallest such base-2 pseudoprime is 341), `is_amicable` tests whether *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — returning False for perfect numbers and numbers below 2, and `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`. `is_powerful_number` tests whether a positive integer is powerful (for every prime factor *p*, *p*² also divides *n*; e.g. 4, 8, 9, 36, 72), returning True for 1 and False for numbers below 1 and for squarefree composites. `is_fermat_number` tests whether a positive integer is a Fermat number (of the form 2^(2^k) + 1; e.g. 3, 5, 17, 257, 65537), `is_strong_prime` tests whether a prime is a strong prime (a prime greater than the arithmetic mean of its nearest primes above and below, i.e. closer to the next prime than to the previous one; the first few are 11, 17, 29, 37, 41, 59, 67, 71, 79, 97, ...), `is_balanced_prime` tests whether a prime equals the arithmetic mean of its two nearest primes (e.g. 5, 53, 157, 173, 211, ...), and `is_weak_prime` tests whether a prime is less than the arithmetic mean of its two nearest primes (e.g. 7, 13, 19, 23, 31, ...), returning False for non-primes and small primes outside the definitions. `is_super_prime` tests whether a prime's position in the sequence of primes is itself prime (e.g. 3, 5, 11, 17, 31, ...), returning False for non-primes. `is_ugly_number` tests whether a positive integer's prime factors are limited to 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, ...), returning False for numbers with other prime factors and for non-positive integers. `is_happy_prime` tests whether a number is both prime and happy (a happy number reaches 1 when iteratively replaced by the sum of squares of its digits; examples include 7, 13, 19, 23, 31, 37, 79, 97, 103, 139), returning False for numbers that are prime but unhappy (including 2, 3, and 5, which fall into the 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 loop), for composites, and for 1. `is_cuban_prime` tests whether a prime is a cuban prime — a prime of the form `3*y**2 + 3*y + 1` for some integer `y >= 1` (e.g. 7, 19, 37, 61, 127, 271, 331, ...), returning False for non-primes and for primes not of that form.
 
 
 ## Decimal Utilities Module
@@ -90238,6 +90243,7 @@ __all__: List[str] = [
     "prime_count",
     "prime_gap",
     "primorial",
+    "primes_between",
     "total_prime_factors",
     "distinct_prime_factors",
     "largest_prime_factor",
@@ -92103,6 +92109,41 @@ def is_cuban_prime(n: int) -> bool:
     if (root - 3) % 6 != 0:
         return False
     return (root - 3) // 6 >= 1
+
+
+def primes_between(lower: int, upper: int) -> List[int]:
+    """Return all prime numbers in the inclusive range [*lower*, *upper*].
+
+    Args:
+        lower: The inclusive lower bound of the range.
+        upper: The inclusive upper bound of the range.
+
+    Returns:
+        A list of all prime numbers *p* with *lower* <= *p* <= *upper*,
+        in ascending order. Returns an empty list when *upper* < 2 or
+        when no primes fall in the range.
+
+    Raises:
+        TypeError: If *lower* or *upper* is not an int.
+        ValueError: If *lower* is greater than *upper*.
+
+    Examples:
+        >>> primes_between(10, 30)
+        [11, 13, 17, 19, 23, 29]
+        >>> primes_between(2, 2)
+        [2]
+        >>> primes_between(0, 1)
+        []
+        >>> primes_between(1, 100)[:5]
+        [2, 3, 5, 7, 11]
+    """
+    _require_int(lower, "lower")
+    _require_int(upper, "upper")
+    if lower > upper:
+        raise ValueError("lower must be <= upper")
+    if upper < 2:
+        return []
+    return [p for p in primes_up_to(upper) if p >= lower]
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -92161,6 +92202,7 @@ from prime_utils import (
     prime_count,
     prime_factors,
     prime_gap,
+    primes_between,
     primes_up_to,
     primorial,
     radical,
@@ -92194,6 +92236,52 @@ class TestPrimesUpTo(unittest.TestCase):
             primes_up_to(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             primes_up_to(True)  # type: ignore[arg-type]
+
+
+class TestPrimesBetween(unittest.TestCase):
+    def test_basic_range(self):
+        self.assertEqual(primes_between(10, 30), [11, 13, 17, 19, 23, 29])
+
+    def test_single_prime(self):
+        self.assertEqual(primes_between(2, 2), [2])
+        self.assertEqual(primes_between(7, 7), [7])
+
+    def test_no_primes(self):
+        self.assertEqual(primes_between(0, 1), [])
+        self.assertEqual(primes_between(8, 10), [])
+        self.assertEqual(primes_between(14, 16), [])
+
+    def test_negative_lower_bound(self):
+        self.assertEqual(primes_between(-5, 10), [2, 3, 5, 7])
+
+    def test_upper_below_two(self):
+        self.assertEqual(primes_between(0, 1), [])
+        self.assertEqual(primes_between(-10, -1), [])
+        self.assertEqual(primes_between(1, 1), [])
+
+    def test_large_range(self):
+        self.assertEqual(primes_between(1, 100)[:5], [2, 3, 5, 7, 11])
+        self.assertEqual(primes_between(90, 100), [97])
+
+    def test_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            primes_between(10.5, 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between("10", 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(None, 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(True, 30)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(10, 30.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            primes_between(10, "30")  # type: ignore[arg-type]
+
+    def test_lower_greater_than_upper_raises(self):
+        with self.assertRaises(ValueError):
+            primes_between(30, 10)
+        with self.assertRaises(ValueError):
+            primes_between(7, 2)
 
 
 class TestIsPrime(unittest.TestCase):
