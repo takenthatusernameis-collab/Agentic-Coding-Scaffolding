@@ -109237,6 +109237,7 @@ __all__ = [
     "epoch_to_iso",
     "iso_to_epoch",
     "format_duration",
+    "parse_duration",
 ]
 
 
@@ -109290,6 +109291,40 @@ def format_duration(seconds: int) -> str:
     if secs or not parts:
         parts.append(f"{secs}s")
     return " ".join(parts)
+
+
+def parse_duration(text: str) -> int:
+    """Parse a duration string like ``"1h 2m 3s"`` into total seconds.
+
+    Components may be given in any order and any subset; missing components
+    default to zero. Whitespace is ignored.
+
+    >>> parse_duration("0s")
+    0
+    >>> parse_duration("1m 5s")
+    65
+    >>> parse_duration("1h 1m 1s")
+    3661
+    >>> parse_duration("2h")
+    7200
+    """
+    if isinstance(text, bool) or not isinstance(text, str):
+        raise TypeError("text must be a str")
+    import re
+    total = 0
+    found = False
+    for value, unit in re.findall(r"(\d+)\s*([hms])", text):
+        found = True
+        n = int(value)
+        if unit == "h":
+            total += n * 3600
+        elif unit == "m":
+            total += n * 60
+        else:
+            total += n
+    if not found:
+        raise ValueError("invalid duration string")
+    return total
 TIME_UTILS
 
 # --- tests/test_time_utils.py ---
@@ -109333,7 +109368,31 @@ def test_format_duration_minutes():
     assert time_utils.format_duration(65) == "1m 5s"
 
 
-def test_format_duration_hours():
+def test_parse_duration_zero():
+    assert time_utils.parse_duration("0s") == 0
+
+
+def test_parse_duration_roundtrip():
+    for s in [0, 45, 65, 3661, 7200]:
+        assert time_utils.parse_duration(time_utils.format_duration(s)) == s
+
+
+def test_parse_duration_type_error():
+    try:
+        time_utils.parse_duration(123)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_parse_duration_value_error():
+    try:
+        time_utils.parse_duration("garbage")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
     assert time_utils.format_duration(3661) == "1h 1m 1s"
 
 

@@ -37,7 +37,31 @@ def test_format_duration_minutes():
     assert time_utils.format_duration(65) == "1m 5s"
 
 
-def test_format_duration_hours():
+def test_parse_duration_zero():
+    assert time_utils.parse_duration("0s") == 0
+
+
+def test_parse_duration_roundtrip():
+    for s in [0, 45, 65, 3661, 7200]:
+        assert time_utils.parse_duration(time_utils.format_duration(s)) == s
+
+
+def test_parse_duration_type_error():
+    try:
+        time_utils.parse_duration(123)
+    except TypeError:
+        pass
+    else:
+        raise AssertionError("expected TypeError")
+
+
+def test_parse_duration_value_error():
+    try:
+        time_utils.parse_duration("garbage")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
     assert time_utils.format_duration(3661) == "1h 1m 1s"
 
 

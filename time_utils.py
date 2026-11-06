@@ -12,6 +12,7 @@ __all__ = [
     "epoch_to_iso",
     "iso_to_epoch",
     "format_duration",
+    "parse_duration",
 ]
 
 
@@ -65,3 +66,37 @@ def format_duration(seconds: int) -> str:
     if secs or not parts:
         parts.append(f"{secs}s")
     return " ".join(parts)
+
+
+def parse_duration(text: str) -> int:
+    """Parse a duration string like ``"1h 2m 3s"`` into total seconds.
+
+    Components may be given in any order and any subset; missing components
+    default to zero. Whitespace is ignored.
+
+    >>> parse_duration("0s")
+    0
+    >>> parse_duration("1m 5s")
+    65
+    >>> parse_duration("1h 1m 1s")
+    3661
+    >>> parse_duration("2h")
+    7200
+    """
+    if isinstance(text, bool) or not isinstance(text, str):
+        raise TypeError("text must be a str")
+    import re
+    total = 0
+    found = False
+    for value, unit in re.findall(r"(\d+)\s*([hms])", text):
+        found = True
+        n = int(value)
+        if unit == "h":
+            total += n * 3600
+        elif unit == "m":
+            total += n * 60
+        else:
+            total += n
+    if not found:
+        raise ValueError("invalid duration string")
+    return total
