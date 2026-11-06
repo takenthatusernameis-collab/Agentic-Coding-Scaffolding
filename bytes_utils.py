@@ -549,6 +549,20 @@ def rpartition(data: bytes, sep: bytes) -> tuple[bytes, bytes, bytes]:
 
 
 def decode_utf8(data: bytes, errors: str = "strict") -> str:
+    """Decode *data* as UTF-8.
+
+    Args:
+        data: Bytes or bytearray to decode.
+        errors: Decode error handler name.
+
+    Returns:
+        Decoded string.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
+        UnicodeDecodeError: If decoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(errors, str):
@@ -557,6 +571,20 @@ def decode_utf8(data: bytes, errors: str = "strict") -> str:
 
 
 def encode_utf8(s: str, errors: str = "strict") -> bytes:
+    """Encode *s* as UTF-8.
+
+    Args:
+        s: Text to encode.
+        errors: Encode error handler name.
+
+    Returns:
+        Encoded bytes.
+
+    Raises:
+        TypeError: If *s* or *errors* is not a str.
+        UnicodeEncodeError: If encoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(s, str):
         raise TypeError("s must be a string")
     if not isinstance(errors, str):
@@ -595,6 +623,20 @@ def strip(data: bytes, chars: bytes | None = None) -> bytes:
 
 
 def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    """Center *data* in a field of *width* bytes.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+        fillbyte: Single-byte padding value (bytes or bytearray).
+
+    Returns:
+        Centered bytes.
+
+    Raises:
+        TypeError: If *data*/*fillbyte* types are invalid or *width* is not int.
+        ValueError: If *fillbyte* is not exactly one byte.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -608,6 +650,20 @@ def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
 
 
 def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    """Left-justify *data* in a field of *width* bytes.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+        fillbyte: Single-byte padding value (bytes or bytearray).
+
+    Returns:
+        Left-justified bytes.
+
+    Raises:
+        TypeError: If *data*/*fillbyte* types are invalid or *width* is not int.
+        ValueError: If *fillbyte* is not exactly one byte.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -621,6 +677,20 @@ def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
 
 
 def rjust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    """Right-justify *data* in a field of *width* bytes.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+        fillbyte: Single-byte padding value (bytes or bytearray).
+
+    Returns:
+        Right-justified bytes.
+
+    Raises:
+        TypeError: If *data*/*fillbyte* types are invalid or *width* is not int.
+        ValueError: If *fillbyte* is not exactly one byte.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -634,6 +704,18 @@ def rjust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
 
 
 def zfill(data: bytes, width: int) -> bytes:
+    """Pad numeric *data* on the left with ASCII ``0`` digits.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+
+    Returns:
+        Zero-filled bytes.
+
+    Raises:
+        TypeError: If *data* type is invalid or *width* is not int.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -700,6 +782,23 @@ def removesuffix(data: bytes, suffix: bytes) -> bytes:
 
 
 def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
+    """Split *data* on universal newline boundaries.
+
+    This mirrors :meth:`bytes.splitlines` for bytes-like input, recognizing
+    ``\\n``, ``\\r``, and ``\\r\\n``. Other single-byte separators (such as
+    vertical tab, form feed, file/group/record separators, and NEL) are not
+    treated as line boundaries.
+
+    Args:
+        data: Bytes or bytearray to split.
+        keepends: If ``True``, keep line ending bytes in the results.
+
+    Returns:
+        A list of lines.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *keepends* is not bool.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(keepends, bool):
@@ -708,7 +807,7 @@ def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
         data = bytes(data)
     if not data:
         return []
-    result = []
+    result: list[bytes] = []
     i = 0
     n = len(data)
     start = 0
@@ -716,31 +815,16 @@ def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
         b = data[i]
         if b == 0x0D:  # \r
             if i + 1 < n and data[i + 1] == 0x0A:  # \r\n
-                if keepends:
-                    result.append(data[start : i + 2])
-                else:
-                    result.append(data[start:i])
-                i += 2
+                end = i + 2
             else:
-                if keepends:
-                    result.append(data[start : i + 1])
-                else:
-                    result.append(data[start:i])
-                i += 1
+                end = i + 1
+            result.append(data[start:end] if keepends else data[start:i])
+            i = end
             start = i
         elif b == 0x0A:  # \n
-            if keepends:
-                result.append(data[start : i + 1])
-            else:
-                result.append(data[start:i])
-            i += 1
-            start = i
-        elif b in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85):
-            if keepends:
-                result.append(data[start : i + 1])
-            else:
-                result.append(data[start:i])
-            i += 1
+            end = i + 1
+            result.append(data[start:end] if keepends else data[start:i])
+            i = end
             start = i
         else:
             i += 1
@@ -927,20 +1011,59 @@ def isidentifier(data: bytes) -> bool:
 
 
 def join(iterable: object, sep: bytes = b"") -> bytes:
+    """Join bytes-like items from *iterable* with *sep*.
+
+    Args:
+        iterable: Iterable yielding bytes or bytearray objects.
+        sep: Separator bytes or bytearray.
+
+    Returns:
+        Joined bytes.
+
+    Raises:
+        TypeError: If *sep* is not bytes/bytearray, *iterable* is not
+            iterable, or items are not bytes-like.
+    """
     if not isinstance(sep, (bytes, bytearray)):
         raise TypeError("sep must be bytes or bytearray")
     return bytes(sep).join(iterable)  # type: ignore[arg-type]
 
 
 def expandtabs(data: bytes, tabsize: int = 8) -> bytes:
+    """Expand tab characters in *data* using *tabsize* spaces.
+
+    Args:
+        data: Bytes or bytearray to transform.
+        tabsize: Tab stop size. Bool is rejected.
+
+    Returns:
+        Bytes with tabs expanded.
+
+    Raises:
+        TypeError: If *data* type is invalid or *tabsize* is not int.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(tabsize, int):
+    if not isinstance(tabsize, int) or isinstance(tabsize, bool):
         raise TypeError("tabsize must be int")
     return bytes(data).expandtabs(tabsize)
 
 
 def decode_ascii(data: bytes, errors: str = "strict") -> str:
+    """Decode *data* as ASCII.
+
+    Args:
+        data: Bytes or bytearray to decode.
+        errors: Decode error handler name.
+
+    Returns:
+        Decoded string.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
+        UnicodeDecodeError: If decoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(errors, str):
@@ -949,6 +1072,20 @@ def decode_ascii(data: bytes, errors: str = "strict") -> str:
 
 
 def encode_ascii(s: str, errors: str = "strict") -> bytes:
+    """Encode *s* as ASCII.
+
+    Args:
+        s: Text to encode.
+        errors: Encode error handler name.
+
+    Returns:
+        Encoded bytes.
+
+    Raises:
+        TypeError: If *s* or *errors* is not a str.
+        UnicodeEncodeError: If encoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(s, str):
         raise TypeError("s must be str")
     if not isinstance(errors, str):

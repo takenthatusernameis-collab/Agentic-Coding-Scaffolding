@@ -578,6 +578,7 @@ class TestSplitlines(unittest.TestCase):
     def test_splitlines_keepends(self):
         self.assertEqual(splitlines(b"hello\nworld", keepends=True), [b"hello\n", b"world"])
         self.assertEqual(splitlines(b"hello\r\n", keepends=True), [b"hello\r\n"])
+        self.assertEqual(splitlines(bytearray(b"a\r\nb"), keepends=True), [b"a\r\n", b"b"])
 
     def test_splitlines_empty(self):
         self.assertEqual(splitlines(b""), [])
@@ -587,9 +588,17 @@ class TestSplitlines(unittest.TestCase):
 
     def test_splitlines_trailing_newline(self):
         self.assertEqual(splitlines(b"hello\n"), [b"hello"])
+        self.assertEqual(splitlines(b"hello\r"), [b"hello"])
 
     def test_splitlines_bytearray(self):
         self.assertEqual(splitlines(bytearray(b"hello\nworld")), [b"hello", b"world"])
+
+    def test_splitlines_uncommon_separators_not_boundaries(self):
+        # bytes.splitlines recognizes only \n, \r, \r\n.
+        for sep in [b"\x0b", b"\x0c", b"\x1c", b"\x1d", b"\x1e", b"\x85"]:
+            data = b"a" + sep + b"b"
+            self.assertEqual(splitlines(data), [data])
+            self.assertEqual(splitlines(data, keepends=True), [data])
 
     def test_splitlines_type_errors(self):
         with self.assertRaises(TypeError):
@@ -598,6 +607,7 @@ class TestSplitlines(unittest.TestCase):
             splitlines(b"hello\n", keepends="true")
         with self.assertRaises(TypeError):
             splitlines(123)
+
 
 
 class TestMaketrans(unittest.TestCase):
@@ -934,3 +944,103 @@ class TestFromInt(unittest.TestCase):
             from_int(-2, 0, signed=True)
         with self.assertRaises(OverflowError):
             from_int(1, 0, signed=True)
+
+
+class TestCodecAndPadding(unittest.TestCase):
+    def test_decode_encode_utf8(self):
+        from bytes_utils import decode_utf8, encode_utf8
+
+        self.assertEqual(decode_utf8(b"hello"), "hello")
+        self.assertEqual(decode_utf8(bytearray(b"caf\xc3\xa9")), "café")
+        self.assertEqual(decode_utf8(b"\xff", errors="ignore"), "")
+        self.assertEqual(decode_utf8(b"\xff", errors="replace"), "\ufffd")
+        self.assertEqual(encode_utf8("café"), b"caf\xc3\xa9")
+        self.assertEqual(encode_utf8("\udcff", errors="surrogatepass"), b"\xed\xb3\xbf")
+        with self.assertRaises(TypeError):
+            decode_utf8("abc")
+        with self.assertRaises(TypeError):
+            decode_utf8(b"a", errors=True)
+        with self.assertRaises(TypeError):
+            encode_utf8(b"abc")
+        with self.assertRaises(TypeError):
+            encode_utf8("a", errors=True)
+
+    def test_decode_encode_ascii(self):
+        self.assertEqual(decode_ascii(b"abc"), "abc")
+        self.assertEqual(decode_ascii(bytearray(b"hi")), "hi")
+        self.assertEqual(decode_ascii(b"\x80", errors="ignore"), "")
+        self.assertEqual(decode_ascii(b"\x80", errors="replace"), "\ufffd")
+        self.assertEqual(encode_ascii("abc"), b"abc")
+        self.assertEqual(encode_ascii("café", errors="ignore"), b"caf")
+        self.assertEqual(encode_ascii("é", errors="xmlcharrefreplace"), b"&#233;")
+        with self.assertRaises(UnicodeDecodeError):
+            decode_ascii(b"\x80")
+        with self.assertRaises(UnicodeEncodeError):
+            encode_ascii("café")
+        with self.assertRaises(TypeError):
+            decode_ascii("abc")
+        with self.assertRaises(TypeError):
+            decode_ascii(b"abc", errors=123)
+        with self.assertRaises(TypeError):
+            encode_ascii(b"abc")
+        with self.assertRaises(TypeError):
+            encode_ascii("abc", errors=123)
+
+    def test_center_ljust_rjust_zfill(self):
+        from bytes_utils import center, ljust, rjust, zfill
+
+        self.assertEqual(center(bytearray(b"a"), 5, bytearray(b".")), b"..a..")
+        self.assertEqual(ljust(b"a", 3, b"."), b"a..")
+        self.assertEqual(rjust(b"a", 3, b"."), b"..a")
+        self.assertEqual(zfill(bytearray(b"-42"), 5), b"-0042")
+        self.assertEqual(center(b"abc", 2), b"abc")
+        self.assertEqual(ljust(b"abc", -1), b"abc")
+        self.assertEqual(rjust(b"abc", 0), b"abc")
+        self.assertEqual(zfill(b"42", 1), b"42")
+        with self.assertRaises(TypeError):
+            center(b"a", True)
+        with self.assertRaises(TypeError):
+            ljust(b"a", 3, ".")
+        with self.assertRaises(TypeError):
+            rjust("a", 3)
+        with self.assertRaises(TypeError):
+            zfill(b"a", True)
+        with self.assertRaises(ValueError):
+            center(b"a", 3, b"")
+        with self.assertRaises(ValueError):
+            ljust(b"a", 3, b"xx")
+
+    def test_strip_helpers(self):
+        from bytes_utils import lstrip, rstrip, strip
+
+        self.assertEqual(strip(bytearray(b"  hi  ")), b"hi")
+        self.assertEqual(lstrip(bytearray(b"  hi  ")), b"hi  ")
+        self.assertEqual(rstrip(bytearray(b"  hi  ")), b"  hi")
+        self.assertEqual(strip(bytearray(b"xxax"), bytearray(b"x")), b"a")
+        self.assertEqual(lstrip(b"xxax", b"x"), b"ax")
+        self.assertEqual(rstrip(b"xxax", b"x"), b"xxa")
+        self.assertEqual(strip(b"xxax", b""), b"xxax")
+        with self.assertRaises(TypeError):
+            strip("a")
+        with self.assertRaises(TypeError):
+            lstrip(b"a", "x")
+        with self.assertRaises(TypeError):
+            rstrip(1)
+
+    def test_join_expandtabs(self):
+        self.assertEqual(join([bytearray(b"a"), b"b"], bytearray(b"-")), b"a-b")
+        self.assertEqual(join(iter((b"a", b"b"))), b"ab")
+        self.assertEqual(join([]), b"")
+        self.assertEqual(expandtabs(bytearray(b"a\tb"), 4), b"a   b")
+        self.assertEqual(expandtabs(b"a\tb", 0), b"ab")
+        self.assertEqual(expandtabs(b"ab", 4), b"ab")
+        with self.assertRaises(TypeError):
+            join([b"a", "b"])
+        with self.assertRaises(TypeError):
+            join(123)
+        with self.assertRaises(TypeError):
+            join([b"a"], "-")
+        with self.assertRaises(TypeError):
+            expandtabs("a\tb")
+        with self.assertRaises(TypeError):
+            expandtabs(b"a\tb", True)

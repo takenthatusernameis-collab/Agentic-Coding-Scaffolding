@@ -49840,6 +49840,20 @@ def rpartition(data: bytes, sep: bytes) -> tuple[bytes, bytes, bytes]:
 
 
 def decode_utf8(data: bytes, errors: str = "strict") -> str:
+    """Decode *data* as UTF-8.
+
+    Args:
+        data: Bytes or bytearray to decode.
+        errors: Decode error handler name.
+
+    Returns:
+        Decoded string.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
+        UnicodeDecodeError: If decoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(errors, str):
@@ -49848,6 +49862,20 @@ def decode_utf8(data: bytes, errors: str = "strict") -> str:
 
 
 def encode_utf8(s: str, errors: str = "strict") -> bytes:
+    """Encode *s* as UTF-8.
+
+    Args:
+        s: Text to encode.
+        errors: Encode error handler name.
+
+    Returns:
+        Encoded bytes.
+
+    Raises:
+        TypeError: If *s* or *errors* is not a str.
+        UnicodeEncodeError: If encoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(s, str):
         raise TypeError("s must be a string")
     if not isinstance(errors, str):
@@ -49886,6 +49914,20 @@ def strip(data: bytes, chars: bytes | None = None) -> bytes:
 
 
 def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    """Center *data* in a field of *width* bytes.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+        fillbyte: Single-byte padding value (bytes or bytearray).
+
+    Returns:
+        Centered bytes.
+
+    Raises:
+        TypeError: If *data*/*fillbyte* types are invalid or *width* is not int.
+        ValueError: If *fillbyte* is not exactly one byte.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -49899,6 +49941,20 @@ def center(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
 
 
 def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    """Left-justify *data* in a field of *width* bytes.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+        fillbyte: Single-byte padding value (bytes or bytearray).
+
+    Returns:
+        Left-justified bytes.
+
+    Raises:
+        TypeError: If *data*/*fillbyte* types are invalid or *width* is not int.
+        ValueError: If *fillbyte* is not exactly one byte.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -49912,6 +49968,20 @@ def ljust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
 
 
 def rjust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
+    """Right-justify *data* in a field of *width* bytes.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+        fillbyte: Single-byte padding value (bytes or bytearray).
+
+    Returns:
+        Right-justified bytes.
+
+    Raises:
+        TypeError: If *data*/*fillbyte* types are invalid or *width* is not int.
+        ValueError: If *fillbyte* is not exactly one byte.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -49925,6 +49995,18 @@ def rjust(data: bytes, width: int, fillbyte: bytes = b" ") -> bytes:
 
 
 def zfill(data: bytes, width: int) -> bytes:
+    """Pad numeric *data* on the left with ASCII ``0`` digits.
+
+    Args:
+        data: Bytes or bytearray to pad.
+        width: Target width in bytes. Bool is rejected.
+
+    Returns:
+        Zero-filled bytes.
+
+    Raises:
+        TypeError: If *data* type is invalid or *width* is not int.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(width, int) or isinstance(width, bool):
@@ -49991,6 +50073,23 @@ def removesuffix(data: bytes, suffix: bytes) -> bytes:
 
 
 def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
+    """Split *data* on universal newline boundaries.
+
+    This mirrors :meth:`bytes.splitlines` for bytes-like input, recognizing
+    ``\\n``, ``\\r``, and ``\\r\\n``. Other single-byte separators (such as
+    vertical tab, form feed, file/group/record separators, and NEL) are not
+    treated as line boundaries.
+
+    Args:
+        data: Bytes or bytearray to split.
+        keepends: If ``True``, keep line ending bytes in the results.
+
+    Returns:
+        A list of lines.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *keepends* is not bool.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(keepends, bool):
@@ -49999,7 +50098,7 @@ def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
         data = bytes(data)
     if not data:
         return []
-    result = []
+    result: list[bytes] = []
     i = 0
     n = len(data)
     start = 0
@@ -50007,31 +50106,16 @@ def splitlines(data: bytes, keepends: bool = False) -> list[bytes]:
         b = data[i]
         if b == 0x0D:  # \r
             if i + 1 < n and data[i + 1] == 0x0A:  # \r\n
-                if keepends:
-                    result.append(data[start : i + 2])
-                else:
-                    result.append(data[start:i])
-                i += 2
+                end = i + 2
             else:
-                if keepends:
-                    result.append(data[start : i + 1])
-                else:
-                    result.append(data[start:i])
-                i += 1
+                end = i + 1
+            result.append(data[start:end] if keepends else data[start:i])
+            i = end
             start = i
         elif b == 0x0A:  # \n
-            if keepends:
-                result.append(data[start : i + 1])
-            else:
-                result.append(data[start:i])
-            i += 1
-            start = i
-        elif b in (0x0B, 0x0C, 0x1C, 0x1D, 0x1E, 0x85):
-            if keepends:
-                result.append(data[start : i + 1])
-            else:
-                result.append(data[start:i])
-            i += 1
+            end = i + 1
+            result.append(data[start:end] if keepends else data[start:i])
+            i = end
             start = i
         else:
             i += 1
@@ -50218,20 +50302,59 @@ def isidentifier(data: bytes) -> bool:
 
 
 def join(iterable: object, sep: bytes = b"") -> bytes:
+    """Join bytes-like items from *iterable* with *sep*.
+
+    Args:
+        iterable: Iterable yielding bytes or bytearray objects.
+        sep: Separator bytes or bytearray.
+
+    Returns:
+        Joined bytes.
+
+    Raises:
+        TypeError: If *sep* is not bytes/bytearray, *iterable* is not
+            iterable, or items are not bytes-like.
+    """
     if not isinstance(sep, (bytes, bytearray)):
         raise TypeError("sep must be bytes or bytearray")
     return bytes(sep).join(iterable)  # type: ignore[arg-type]
 
 
 def expandtabs(data: bytes, tabsize: int = 8) -> bytes:
+    """Expand tab characters in *data* using *tabsize* spaces.
+
+    Args:
+        data: Bytes or bytearray to transform.
+        tabsize: Tab stop size. Bool is rejected.
+
+    Returns:
+        Bytes with tabs expanded.
+
+    Raises:
+        TypeError: If *data* type is invalid or *tabsize* is not int.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(tabsize, int):
+    if not isinstance(tabsize, int) or isinstance(tabsize, bool):
         raise TypeError("tabsize must be int")
     return bytes(data).expandtabs(tabsize)
 
 
 def decode_ascii(data: bytes, errors: str = "strict") -> str:
+    """Decode *data* as ASCII.
+
+    Args:
+        data: Bytes or bytearray to decode.
+        errors: Decode error handler name.
+
+    Returns:
+        Decoded string.
+
+    Raises:
+        TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
+        UnicodeDecodeError: If decoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(errors, str):
@@ -50240,6 +50363,20 @@ def decode_ascii(data: bytes, errors: str = "strict") -> str:
 
 
 def encode_ascii(s: str, errors: str = "strict") -> bytes:
+    """Encode *s* as ASCII.
+
+    Args:
+        s: Text to encode.
+        errors: Encode error handler name.
+
+    Returns:
+        Encoded bytes.
+
+    Raises:
+        TypeError: If *s* or *errors* is not a str.
+        UnicodeEncodeError: If encoding fails with the selected handler.
+        LookupError: If *errors* is not a known handler.
+    """
     if not isinstance(s, str):
         raise TypeError("s must be str")
     if not isinstance(errors, str):
@@ -51059,6 +51196,7 @@ class TestSplitlines(unittest.TestCase):
     def test_splitlines_keepends(self):
         self.assertEqual(splitlines(b"hello\nworld", keepends=True), [b"hello\n", b"world"])
         self.assertEqual(splitlines(b"hello\r\n", keepends=True), [b"hello\r\n"])
+        self.assertEqual(splitlines(bytearray(b"a\r\nb"), keepends=True), [b"a\r\n", b"b"])
 
     def test_splitlines_empty(self):
         self.assertEqual(splitlines(b""), [])
@@ -51068,9 +51206,17 @@ class TestSplitlines(unittest.TestCase):
 
     def test_splitlines_trailing_newline(self):
         self.assertEqual(splitlines(b"hello\n"), [b"hello"])
+        self.assertEqual(splitlines(b"hello\r"), [b"hello"])
 
     def test_splitlines_bytearray(self):
         self.assertEqual(splitlines(bytearray(b"hello\nworld")), [b"hello", b"world"])
+
+    def test_splitlines_uncommon_separators_not_boundaries(self):
+        # bytes.splitlines recognizes only \n, \r, \r\n.
+        for sep in [b"\x0b", b"\x0c", b"\x1c", b"\x1d", b"\x1e", b"\x85"]:
+            data = b"a" + sep + b"b"
+            self.assertEqual(splitlines(data), [data])
+            self.assertEqual(splitlines(data, keepends=True), [data])
 
     def test_splitlines_type_errors(self):
         with self.assertRaises(TypeError):
@@ -51079,6 +51225,7 @@ class TestSplitlines(unittest.TestCase):
             splitlines(b"hello\n", keepends="true")
         with self.assertRaises(TypeError):
             splitlines(123)
+
 
 
 class TestMaketrans(unittest.TestCase):
@@ -51415,6 +51562,106 @@ class TestFromInt(unittest.TestCase):
             from_int(-2, 0, signed=True)
         with self.assertRaises(OverflowError):
             from_int(1, 0, signed=True)
+
+
+class TestCodecAndPadding(unittest.TestCase):
+    def test_decode_encode_utf8(self):
+        from bytes_utils import decode_utf8, encode_utf8
+
+        self.assertEqual(decode_utf8(b"hello"), "hello")
+        self.assertEqual(decode_utf8(bytearray(b"caf\xc3\xa9")), "café")
+        self.assertEqual(decode_utf8(b"\xff", errors="ignore"), "")
+        self.assertEqual(decode_utf8(b"\xff", errors="replace"), "\ufffd")
+        self.assertEqual(encode_utf8("café"), b"caf\xc3\xa9")
+        self.assertEqual(encode_utf8("\udcff", errors="surrogatepass"), b"\xed\xb3\xbf")
+        with self.assertRaises(TypeError):
+            decode_utf8("abc")
+        with self.assertRaises(TypeError):
+            decode_utf8(b"a", errors=True)
+        with self.assertRaises(TypeError):
+            encode_utf8(b"abc")
+        with self.assertRaises(TypeError):
+            encode_utf8("a", errors=True)
+
+    def test_decode_encode_ascii(self):
+        self.assertEqual(decode_ascii(b"abc"), "abc")
+        self.assertEqual(decode_ascii(bytearray(b"hi")), "hi")
+        self.assertEqual(decode_ascii(b"\x80", errors="ignore"), "")
+        self.assertEqual(decode_ascii(b"\x80", errors="replace"), "\ufffd")
+        self.assertEqual(encode_ascii("abc"), b"abc")
+        self.assertEqual(encode_ascii("café", errors="ignore"), b"caf")
+        self.assertEqual(encode_ascii("é", errors="xmlcharrefreplace"), b"&#233;")
+        with self.assertRaises(UnicodeDecodeError):
+            decode_ascii(b"\x80")
+        with self.assertRaises(UnicodeEncodeError):
+            encode_ascii("café")
+        with self.assertRaises(TypeError):
+            decode_ascii("abc")
+        with self.assertRaises(TypeError):
+            decode_ascii(b"abc", errors=123)
+        with self.assertRaises(TypeError):
+            encode_ascii(b"abc")
+        with self.assertRaises(TypeError):
+            encode_ascii("abc", errors=123)
+
+    def test_center_ljust_rjust_zfill(self):
+        from bytes_utils import center, ljust, rjust, zfill
+
+        self.assertEqual(center(bytearray(b"a"), 5, bytearray(b".")), b"..a..")
+        self.assertEqual(ljust(b"a", 3, b"."), b"a..")
+        self.assertEqual(rjust(b"a", 3, b"."), b"..a")
+        self.assertEqual(zfill(bytearray(b"-42"), 5), b"-0042")
+        self.assertEqual(center(b"abc", 2), b"abc")
+        self.assertEqual(ljust(b"abc", -1), b"abc")
+        self.assertEqual(rjust(b"abc", 0), b"abc")
+        self.assertEqual(zfill(b"42", 1), b"42")
+        with self.assertRaises(TypeError):
+            center(b"a", True)
+        with self.assertRaises(TypeError):
+            ljust(b"a", 3, ".")
+        with self.assertRaises(TypeError):
+            rjust("a", 3)
+        with self.assertRaises(TypeError):
+            zfill(b"a", True)
+        with self.assertRaises(ValueError):
+            center(b"a", 3, b"")
+        with self.assertRaises(ValueError):
+            ljust(b"a", 3, b"xx")
+
+    def test_strip_helpers(self):
+        from bytes_utils import lstrip, rstrip, strip
+
+        self.assertEqual(strip(bytearray(b"  hi  ")), b"hi")
+        self.assertEqual(lstrip(bytearray(b"  hi  ")), b"hi  ")
+        self.assertEqual(rstrip(bytearray(b"  hi  ")), b"  hi")
+        self.assertEqual(strip(bytearray(b"xxax"), bytearray(b"x")), b"a")
+        self.assertEqual(lstrip(b"xxax", b"x"), b"ax")
+        self.assertEqual(rstrip(b"xxax", b"x"), b"xxa")
+        self.assertEqual(strip(b"xxax", b""), b"xxax")
+        with self.assertRaises(TypeError):
+            strip("a")
+        with self.assertRaises(TypeError):
+            lstrip(b"a", "x")
+        with self.assertRaises(TypeError):
+            rstrip(1)
+
+    def test_join_expandtabs(self):
+        self.assertEqual(join([bytearray(b"a"), b"b"], bytearray(b"-")), b"a-b")
+        self.assertEqual(join(iter((b"a", b"b"))), b"ab")
+        self.assertEqual(join([]), b"")
+        self.assertEqual(expandtabs(bytearray(b"a\tb"), 4), b"a   b")
+        self.assertEqual(expandtabs(b"a\tb", 0), b"ab")
+        self.assertEqual(expandtabs(b"ab", 4), b"ab")
+        with self.assertRaises(TypeError):
+            join([b"a", "b"])
+        with self.assertRaises(TypeError):
+            join(123)
+        with self.assertRaises(TypeError):
+            join([b"a"], "-")
+        with self.assertRaises(TypeError):
+            expandtabs("a\tb")
+        with self.assertRaises(TypeError):
+            expandtabs(b"a\tb", True)
 TESTBYTESUTILS
 
 # --- base64_utils.py ---
