@@ -312,34 +312,6 @@ def zip_strict_iterables(*iterables: Iterable[Any]) -> List[Tuple[Any, ...]]:
     return zipped
 
 
-__all__ = [
-    "chain_iterables",
-    "flatten_once",
-    "take_while_pred",
-    "chunk_iterable",
-    "product_of",
-    "combinations_of",
-    "combinations_with_replacement_of",
-    "permutations_of",
-    "group_by_key",
-    "accumulate_values",
-    "repeat_value",
-    "cycle_take",
-    "compress_iterable",
-    "filter_false_iterable",
-    "pairwise_iterable",
-    "partition",
-    "zip_longest_iterables",
-    "zip_strict_iterables",
-    "batched_iterable",
-    "drop_while_pred",
-    "tee_iterables",
-    "starmap_iterable",
-    "count_from",
-    "islice_iterable",
-]
-
-
 def batched_iterable(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
     """Batch data into tuples of length n (Python 3.12+ itertools.batched)."""
     _ensure_iterable(iterable, "iterable")
