@@ -63,6 +63,7 @@ __all__: list[str] = [
     "bit_count",
     "is_power_of_two",
     "is_zero",
+    "is_all_ones",
     "has_null_byte",
     "lowest_set_bit",
     "highest_set_bit",

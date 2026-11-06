@@ -17,6 +17,7 @@ from bytes_utils import (
     from_int,
     index,
     index_of,
+    is_all_ones,
     is_power_of_two,
     is_zero,
     has_null_byte,
@@ -1225,3 +1226,33 @@ class TestCodecAndPadding(unittest.TestCase):
             expandtabs("a\tb")
         with self.assertRaises(TypeError):
             expandtabs(b"a\tb", True)
+
+
+class TestIsAllOnes(unittest.TestCase):
+    def test_all_ones(self):
+        self.assertTrue(is_all_ones(b"\xff\xff\xff"))
+        self.assertTrue(is_all_ones(from_hex("ffffff")))
+
+    def test_not_all_ones(self):
+        self.assertFalse(is_all_ones(b"\xff\xfe\xff"))
+        self.assertFalse(is_all_ones(from_hex("fffeff")))
+        self.assertFalse(is_all_ones(b"\x00"))
+
+    def test_empty(self):
+        self.assertTrue(is_all_ones(b""))
+
+    def test_single(self):
+        self.assertTrue(is_all_ones(b"\xff"))
+        self.assertFalse(is_all_ones(b"\xfe"))
+
+    def test_bytearray(self):
+        self.assertTrue(is_all_ones(bytearray(b"\xff\xff")))
+        self.assertFalse(is_all_ones(bytearray(b"\xff\x00")))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_all_ones("ff")
+        with self.assertRaises(TypeError):
+            is_all_ones(255)
+        with self.assertRaises(TypeError):
+            is_all_ones(None)
