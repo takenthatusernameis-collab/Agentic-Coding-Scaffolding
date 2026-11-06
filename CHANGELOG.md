@@ -1,3 +1,12 @@
+## Unreleased — hardened semver_utils validation and build-metadata precedence
+
+- Hardened `semver_utils.py` input validation to follow repository conventions: `SemanticVersion` now rejects bool/non-int version components (`TypeError`) and non-string `prerelease`/`build` metadata (`TypeError`), while preserving `ValueError` for negative components and invalid version strings.
+- Fixed SemVer precedence so build metadata is ignored for comparison/ordering and equality (`compare_semver("1.0.0+1", "1.0.0+2") == 0`, `parse_semver("1.0.0+a") == parse_semver("1.0.0+b")`); build metadata remains preserved in string output. `is_valid_semver` continues to return `False` for non-string inputs (including bools).
+- Added `TestEdgeCases` in `tests/test_semver_utils.py` covering whitespace stripping, empty metadata-marker rejection, build-metadata precedence/preservation, bool/non-string/type rejection, and bumped parsing behavior checks (28 tests total for the module).
+- Synchronized `semver_utils.py`, `tests/test_semver_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_semver_utils` passes (28 tests); `python -m doctest semver_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — removed duplicate __all__ block from itertools_utils
 
 - Scanned `itertools_utils.py` for duplicate `__all__` blocks (the same class of defect fixed earlier in `prime_utils` and `itertools_utils`). Found a second, complete `__all__` block at module level that overwrote the first incomplete block at line 315, leaving dead code. Removed the stale first block so the module has a single, authoritative `__all__` of 33 unique entries, each matching a defined name.

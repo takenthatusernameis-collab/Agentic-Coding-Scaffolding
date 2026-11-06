@@ -110,5 +110,70 @@ class TestSemanticVersionOrdering(unittest.TestCase):
         self.assertFalse(SemanticVersion(1, 0, 0) < SemanticVersion(1, 0, 0))
 
 
+class TestEdgeCases(unittest.TestCase):
+    def test_whitespace_stripped(self):
+        parsed = parse_semver("  1.2.3-alpha+build  ")
+        self.assertEqual(str(parsed), "1.2.3-alpha+build")
+
+    def test_empty_prerelease_or_build_markers_rejected(self):
+        for invalid in ["1.0.0-", "1.0.0+", "1.0.0-alpha+", "1.0.0-+build"]:
+            with self.assertRaises(ValueError):
+                parse_semver(invalid)
+
+    def test_build_metadata_ignored_for_precedence(self):
+        self.assertEqual(compare_semver("1.0.0+build1", "1.0.0+build2"), 0)
+        self.assertFalse(parse_semver("1.0.0+build1") < parse_semver("1.0.0+build2"))
+        self.assertFalse(parse_semver("1.0.0+build1") > parse_semver("1.0.0+build2"))
+        self.assertEqual(parse_semver("1.0.0+build1"), parse_semver("1.0.0+build2"))
+        self.assertEqual(compare_semver("1.0.0", "1.0.0+bbb"), 0)
+
+    def test_build_metadata_preserved_in_string(self):
+        self.assertEqual(str(parse_semver("1.0.0+build1")), "1.0.0+build1")
+        self.assertNotEqual(str(parse_semver("1.0.0+build1")), str(parse_semver("1.0.0+build2")))
+
+    def test_is_valid_semver_non_string(self):
+        self.assertFalse(is_valid_semver(True))
+        self.assertFalse(is_valid_semver(False))
+        self.assertFalse(is_valid_semver(None))
+        self.assertFalse(is_valid_semver(123))
+        self.assertFalse(is_valid_semver(["1.0.0"]))
+
+    def test_semantic_version_rejects_bool_components(self):
+        with self.assertRaises(TypeError):
+            SemanticVersion(True, 0, 0)
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, False, 0)
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, True)
+
+    def test_semantic_version_rejects_non_int_components(self):
+        with self.assertRaises(TypeError):
+            SemanticVersion("1", 0, 0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 2.0, 0)  # type: ignore[arg-type]
+
+    def test_semantic_version_rejects_non_string_metadata(self):
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, 0, prerelease=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, 0, build=object())  # type: ignore[arg-type]
+
+    def test_semantic_version_accepts_none_metadata(self):
+        v = SemanticVersion(1, 0, 0, prerelease=None, build=None)
+        self.assertIsNone(v.prerelease)
+        self.assertIsNone(v.build)
+
+    def test_compare_semver_rejects_non_string(self):
+        with self.assertRaises(ValueError):
+            compare_semver("1.0.0", True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compare_semver(None, "1.0.0")  # type: ignore[arg-type]
+
+    def test_bump_rejects_non_string(self):
+        for fn in (bump_major, bump_minor, bump_patch):
+            with self.assertRaises(ValueError):
+                fn(True)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -28,6 +28,22 @@ __all__ = [
 ]
 
 
+def _require_component(name: str, value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int")
+    if value < 0:
+        raise ValueError(f"{name} must be non-negative")
+    return value
+
+
+def _require_optional_text(name: str, value: object) -> Optional[str]:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string or None")
+    return value
+
+
 class SemanticVersion:
     """A parsed semantic version: MAJOR.MINOR.PATCH with optional pre-release/build."""
 
@@ -39,13 +55,11 @@ class SemanticVersion:
         prerelease: Optional[str] = None,
         build: Optional[str] = None,
     ) -> None:
-        if major < 0 or minor < 0 or patch < 0:
-            raise ValueError("version components must be non-negative")
-        self.major = major
-        self.minor = minor
-        self.patch = patch
-        self.prerelease = prerelease
-        self.build = build
+        self.major = _require_component("major", major)
+        self.minor = _require_component("minor", minor)
+        self.patch = _require_component("patch", patch)
+        self.prerelease = _require_optional_text("prerelease", prerelease)
+        self.build = _require_optional_text("build", build)
 
     def release_tuple(self) -> Tuple[int, int, int]:
         """Return the (major, minor, patch) release tuple."""
@@ -68,7 +82,6 @@ class SemanticVersion:
         return (
             self.release_tuple() == other.release_tuple()
             and self.prerelease == other.prerelease
-            and self.build == other.build
         )
 
     def __lt__(self, other: "SemanticVersion") -> bool:

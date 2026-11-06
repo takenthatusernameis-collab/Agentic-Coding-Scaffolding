@@ -55012,6 +55012,22 @@ __all__ = [
 ]
 
 
+def _require_component(name: str, value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an int")
+    if value < 0:
+        raise ValueError(f"{name} must be non-negative")
+    return value
+
+
+def _require_optional_text(name: str, value: object) -> Optional[str]:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string or None")
+    return value
+
+
 class SemanticVersion:
     """A parsed semantic version: MAJOR.MINOR.PATCH with optional pre-release/build."""
 
@@ -55023,13 +55039,11 @@ class SemanticVersion:
         prerelease: Optional[str] = None,
         build: Optional[str] = None,
     ) -> None:
-        if major < 0 or minor < 0 or patch < 0:
-            raise ValueError("version components must be non-negative")
-        self.major = major
-        self.minor = minor
-        self.patch = patch
-        self.prerelease = prerelease
-        self.build = build
+        self.major = _require_component("major", major)
+        self.minor = _require_component("minor", minor)
+        self.patch = _require_component("patch", patch)
+        self.prerelease = _require_optional_text("prerelease", prerelease)
+        self.build = _require_optional_text("build", build)
 
     def release_tuple(self) -> Tuple[int, int, int]:
         """Return the (major, minor, patch) release tuple."""
@@ -55052,7 +55066,6 @@ class SemanticVersion:
         return (
             self.release_tuple() == other.release_tuple()
             and self.prerelease == other.prerelease
-            and self.build == other.build
         )
 
     def __lt__(self, other: "SemanticVersion") -> bool:
@@ -55279,6 +55292,71 @@ class TestSemanticVersionOrdering(unittest.TestCase):
         self.assertTrue(SemanticVersion(1, 0, 0) <= SemanticVersion(1, 0, 0))
         self.assertTrue(SemanticVersion(1, 0, 0) >= SemanticVersion(1, 0, 0))
         self.assertFalse(SemanticVersion(1, 0, 0) < SemanticVersion(1, 0, 0))
+
+
+class TestEdgeCases(unittest.TestCase):
+    def test_whitespace_stripped(self):
+        parsed = parse_semver("  1.2.3-alpha+build  ")
+        self.assertEqual(str(parsed), "1.2.3-alpha+build")
+
+    def test_empty_prerelease_or_build_markers_rejected(self):
+        for invalid in ["1.0.0-", "1.0.0+", "1.0.0-alpha+", "1.0.0-+build"]:
+            with self.assertRaises(ValueError):
+                parse_semver(invalid)
+
+    def test_build_metadata_ignored_for_precedence(self):
+        self.assertEqual(compare_semver("1.0.0+build1", "1.0.0+build2"), 0)
+        self.assertFalse(parse_semver("1.0.0+build1") < parse_semver("1.0.0+build2"))
+        self.assertFalse(parse_semver("1.0.0+build1") > parse_semver("1.0.0+build2"))
+        self.assertEqual(parse_semver("1.0.0+build1"), parse_semver("1.0.0+build2"))
+        self.assertEqual(compare_semver("1.0.0", "1.0.0+bbb"), 0)
+
+    def test_build_metadata_preserved_in_string(self):
+        self.assertEqual(str(parse_semver("1.0.0+build1")), "1.0.0+build1")
+        self.assertNotEqual(str(parse_semver("1.0.0+build1")), str(parse_semver("1.0.0+build2")))
+
+    def test_is_valid_semver_non_string(self):
+        self.assertFalse(is_valid_semver(True))
+        self.assertFalse(is_valid_semver(False))
+        self.assertFalse(is_valid_semver(None))
+        self.assertFalse(is_valid_semver(123))
+        self.assertFalse(is_valid_semver(["1.0.0"]))
+
+    def test_semantic_version_rejects_bool_components(self):
+        with self.assertRaises(TypeError):
+            SemanticVersion(True, 0, 0)
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, False, 0)
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, True)
+
+    def test_semantic_version_rejects_non_int_components(self):
+        with self.assertRaises(TypeError):
+            SemanticVersion("1", 0, 0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 2.0, 0)  # type: ignore[arg-type]
+
+    def test_semantic_version_rejects_non_string_metadata(self):
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, 0, prerelease=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, 0, build=object())  # type: ignore[arg-type]
+
+    def test_semantic_version_accepts_none_metadata(self):
+        v = SemanticVersion(1, 0, 0, prerelease=None, build=None)
+        self.assertIsNone(v.prerelease)
+        self.assertIsNone(v.build)
+
+    def test_compare_semver_rejects_non_string(self):
+        with self.assertRaises(ValueError):
+            compare_semver("1.0.0", True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            compare_semver(None, "1.0.0")  # type: ignore[arg-type]
+
+    def test_bump_rejects_non_string(self):
+        for fn in (bump_major, bump_minor, bump_patch):
+            with self.assertRaises(ValueError):
+                fn(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -56409,6 +56487,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — hardened semver_utils validation and build-metadata precedence
+
+- Hardened `semver_utils.py` input validation to follow repository conventions: `SemanticVersion` now rejects bool/non-int version components (`TypeError`) and non-string `prerelease`/`build` metadata (`TypeError`), while preserving `ValueError` for negative components and invalid version strings.
+- Fixed SemVer precedence so build metadata is ignored for comparison/ordering and equality (`compare_semver("1.0.0+1", "1.0.0+2") == 0`, `parse_semver("1.0.0+a") == parse_semver("1.0.0+b")`); build metadata remains preserved in string output. `is_valid_semver` continues to return `False` for non-string inputs (including bools).
+- Added `TestEdgeCases` in `tests/test_semver_utils.py` covering whitespace stripping, empty metadata-marker rejection, build-metadata precedence/preservation, bool/non-string/type rejection, and bumped parsing behavior checks (28 tests total for the module).
+- Synchronized `semver_utils.py`, `tests/test_semver_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_semver_utils` passes (28 tests); `python -m doctest semver_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — removed duplicate __all__ block from itertools_utils
 
 - Scanned `itertools_utils.py` for duplicate `__all__` blocks (the same class of defect fixed earlier in `prime_utils` and `itertools_utils`). Found a second, complete `__all__` block at module level that overwrote the first incomplete block at line 315, leaving dead code. Removed the stale first block so the module has a single, authoritative `__all__` of 33 unique entries, each matching a defined name.
