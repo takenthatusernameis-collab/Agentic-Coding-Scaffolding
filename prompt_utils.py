@@ -29,6 +29,7 @@ __all__: List[str] = [
     "count_sentences",
     "truncate_words",
     "truncate_lines",
+    "truncate_paragraphs",
     "indent_lines",
     "dedent_lines",
     "remove_blank_lines",
@@ -614,6 +615,68 @@ def truncate_lines(text: str, max_lines: int, suffix: str = "...") -> str:
     if max_lines == 0:
         return suffix if suffix else ""
     return "\n".join(lines[:max_lines]) + suffix
+
+
+def truncate_paragraphs(text: str, max_paragraphs: int, suffix: str = "...") -> str:
+    """Truncate *text* to at most *max_paragraphs* paragraphs.
+
+    A paragraph is a run of one or more non-blank lines separated from other
+    paragraphs by one or more blank (whitespace-only) lines. Keeps the first
+    *max_paragraphs* paragraphs, joins them with a single blank line, and
+    appends *suffix* when paragraphs are removed. Returns *text* unchanged
+    when it already has at most *max_paragraphs* paragraphs. Leading and
+    trailing blank lines outside the kept paragraphs are dropped, matching
+    the behavior of :func:`truncate_words` and :func:`truncate_lines`.
+
+    Args:
+        text: The text to truncate.
+        max_paragraphs: The maximum number of paragraphs to keep.
+        suffix: The suffix to append when truncated.
+
+    Returns:
+        The truncated text.
+
+    Raises:
+        TypeError: If *text* or *suffix* is not a string or
+            *max_paragraphs* is not an int.
+        ValueError: If *max_paragraphs* is negative.
+
+    Examples:
+        >>> truncate_paragraphs("p1\\n\\np2\\n\\np3", 1)
+        'p1...'
+        >>> truncate_paragraphs("p1\\n\\np2", 5)
+        'p1\\n\\np2'
+        >>> truncate_paragraphs("p1\\n\\np2", 0)
+        '...'
+        >>> truncate_paragraphs("p1\\n\\np2", 1, suffix=" <more>")
+        'p1 <more>'
+    """
+    _require_string(text, "text")
+    _require_int(max_paragraphs, "max_paragraphs")
+    if max_paragraphs < 0:
+        raise ValueError("max_paragraphs must be non-negative")
+    _require_string(suffix, "suffix")
+    if not text:
+        return text
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    # Split into paragraph blocks: each block is a run of non-blank lines.
+    paragraphs: List[List[str]] = []
+    current: List[str] = []
+    for line in lines:
+        if line.strip() == "":
+            if current:
+                paragraphs.append(current)
+                current = []
+        else:
+            current.append(line)
+    if current:
+        paragraphs.append(current)
+    if len(paragraphs) <= max_paragraphs:
+        return text
+    if max_paragraphs == 0:
+        return suffix if suffix else ""
+    return "\n\n".join("\n".join(p) for p in paragraphs[:max_paragraphs]) + suffix
 
 
 def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -> str:

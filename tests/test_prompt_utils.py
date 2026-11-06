@@ -75,6 +75,7 @@ from prompt_utils import (
     strip_lines,
     strip_trailing_newlines,
     truncate_lines,
+    truncate_paragraphs,
     truncate_prompt,
     truncate_words,
     wrap_prompt,
@@ -1936,3 +1937,84 @@ class TestCountNewlines(unittest.TestCase):
             count_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_newlines(None)  # type: ignore[arg-type]
+
+
+class TestTruncateParagraphs(unittest.TestCase):
+    def test_no_truncation(self):
+        self.assertEqual(
+            truncate_paragraphs("p1\n\np2", 5), "p1\n\np2"
+        )
+
+    def test_exact_paragraphs(self):
+        self.assertEqual(
+            truncate_paragraphs("p1\n\np2", 2), "p1\n\np2"
+        )
+
+    def test_truncates(self):
+        self.assertEqual(
+            truncate_paragraphs("p1\n\np2\n\np3", 1), "p1..."
+        )
+
+    def test_multi_line_paragraphs_kept(self):
+        text = "line1\nline2\n\np2\n\np3"
+        self.assertEqual(truncate_paragraphs(text, 1), "line1\nline2...")
+
+    def test_zero_paragraphs(self):
+        self.assertEqual(truncate_paragraphs("p1\n\np2", 0), "...")
+
+    def test_zero_paragraphs_default_suffix(self):
+        self.assertEqual(truncate_paragraphs("p1\n\np2", 0, suffix="..."), "...")
+
+    def test_custom_suffix(self):
+        self.assertEqual(
+            truncate_paragraphs("p1\n\np2\n\np3", 1, suffix=" <more>"),
+            "p1 <more>",
+        )
+
+    def test_empty_suffix(self):
+        self.assertEqual(truncate_paragraphs("p1\n\np2\n\np3", 1, suffix=""), "p1")
+
+    def test_single_paragraph_kept(self):
+        self.assertEqual(truncate_paragraphs("only", 1), "only")
+
+    def test_leading_blank_lines_dropped(self):
+        text = "\n\np1\n\np2"
+        self.assertEqual(truncate_paragraphs(text, 1), "p1...")
+
+    def test_trailing_blank_lines_dropped(self):
+        text = "p1\n\np2\n\n"
+        self.assertEqual(truncate_paragraphs(text, 1), "p1...")
+
+    def test_consecutive_blank_separators(self):
+        text = "p1\n\n\np2\n\n\np3"
+        self.assertEqual(truncate_paragraphs(text, 1), "p1...")
+
+    def test_crlf_normalized(self):
+        text = "p1\r\n\r\np2\r\n\r\np3"
+        self.assertEqual(truncate_paragraphs(text, 1), "p1...")
+
+    def test_empty_text(self):
+        self.assertEqual(truncate_paragraphs("", 1), "")
+
+    def test_negative_paragraphs(self):
+        with self.assertRaises(ValueError):
+            truncate_paragraphs("p1\n\np2", -1)
+
+    def test_non_str_text(self):
+        with self.assertRaises(TypeError):
+            truncate_paragraphs(123, 1)  # type: ignore[arg-type]
+
+    def test_non_int_max_paragraphs(self):
+        with self.assertRaises(TypeError):
+            truncate_paragraphs("p1\n\np2", "one")  # type: ignore[arg-type]
+
+    def test_non_str_suffix(self):
+        with self.assertRaises(TypeError):
+            truncate_paragraphs("p1\n\np2", 1, suffix=5)  # type: ignore[arg-type]
+
+    def test_matches_count_paragraphs(self):
+        text = "p1\n\np2\nline2\n\np3"
+        self.assertEqual(
+            truncate_paragraphs(text, count_paragraphs(text)),
+            text,
+        )
