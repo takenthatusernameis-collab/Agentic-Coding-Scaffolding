@@ -38417,6 +38417,7 @@ __all__: List[str] = [
     "has_trailing_newline",
     "count_paragraphs",
     "has_paragraphs",
+    "has_words",
     "count_characters",
     "count_non_whitespace_characters",
     "count_whitespace_characters",
