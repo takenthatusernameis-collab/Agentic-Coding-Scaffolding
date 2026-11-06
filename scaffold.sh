@@ -78126,6 +78126,7 @@ __all__ = [
     "is_abundant_number",
     "is_armstrong_number",
     "is_automorphic_number",
+    "is_catalan_number",
     "is_between",
     "is_close",
     "is_coprime",
@@ -79490,6 +79491,54 @@ def is_automorphic_number(value: int) -> bool:
         return False
     square = value * value
     return str(square).endswith(str(value))
+
+
+def is_catalan_number(value: int) -> bool:
+    """Return True if *value* is a Catalan number.
+
+    A Catalan number is a member of the sequence defined by
+    ``C(0) = 1`` and ``C(n+1) = C(n) * (2*(2*n+1))/(n+2)``. The sequence
+    begins 1, 1, 2, 5, 14, 42, 132, 429, 1430, 4862, ...
+
+    Args:
+        value: The integer to test.
+
+    Returns:
+        True if *value* is a Catalan number, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not an int.
+
+    Examples:
+        >>> is_catalan_number(1)
+        True
+        >>> is_catalan_number(2)
+        True
+        >>> is_catalan_number(5)
+        True
+        >>> is_catalan_number(14)
+        True
+        >>> is_catalan_number(3)
+        False
+        >>> is_catalan_number(0)
+        False
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if value < 1:
+        return False
+    c = 1
+    if c == value:
+        return True
+    n = 0
+    while c < value:
+        n += 1
+        c = c * (4 * n - 2) // (n + 1)
+        if c == value:
+            return True
+        if c > value:
+            return False
+    return False
 
 
 def is_happy_number(value: int) -> bool:
