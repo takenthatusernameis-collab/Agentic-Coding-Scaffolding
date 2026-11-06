@@ -45,6 +45,8 @@ from version_utils import (
     is_dev_version,
     is_alpha,
     is_beta,
+    is_rc,
+    is_release_candidate,
     is_equal,
     is_greater,
     is_initial_release,
@@ -641,6 +643,33 @@ class TestIsBeta(unittest.TestCase):
             is_beta(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_beta(None)  # type: ignore[arg-type]
+
+
+class TestIsReleaseCandidate(unittest.TestCase):
+    def test_rc_tag_true(self):
+        self.assertTrue(is_release_candidate("1.2.3-rc1"))
+        self.assertTrue(is_rc("1.0.0-RC.2"))
+        self.assertTrue(is_release_candidate("2.0.0-rc"))
+
+    def test_releasecandidate_tag_true(self):
+        self.assertTrue(is_release_candidate("2.0.0-releasecandidate"))
+        self.assertTrue(is_rc("1.0.0-RELEASECANDIDATE.1"))
+
+    def test_non_rc_prerelease_false(self):
+        self.assertFalse(is_release_candidate("1.2.3-beta1"))
+        self.assertFalse(is_rc("1.0.0-alpha"))
+        self.assertFalse(is_release_candidate("1.2.3-dev0"))
+
+    def test_no_prerelease_false(self):
+        self.assertFalse(is_release_candidate("1.2.3"))
+        self.assertFalse(is_rc("2.0.0"))
+        self.assertFalse(is_release_candidate(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_release_candidate(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_rc(None)  # type: ignore[arg-type]
 
 
 class TestVersionComparisonAliases(unittest.TestCase):

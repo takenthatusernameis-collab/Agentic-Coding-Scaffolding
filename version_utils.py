@@ -44,6 +44,8 @@ __all__ = [
     "is_alpha",
     "is_beta",
     "is_between",
+    "is_rc",
+    "is_release_candidate",
     "is_compatible",
     "is_dev_version",
     "is_equal",
@@ -1157,6 +1159,48 @@ def is_beta(version: str) -> bool:
         raise TypeError("version must be a string")
     tag = get_prerelease(version)
     return tag is not None and tag.lower().startswith("beta")
+
+
+def is_release_candidate(version: str) -> bool:
+    """Return True if *version* is a release candidate pre-release.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if the pre-release tag starts with ``rc`` or ``releasecandidate``
+        (case-insensitive), False otherwise or when there is no pre-release suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_release_candidate("1.2.3-rc1")
+        True
+        >>> is_release_candidate("1.0.0-RC.2")
+        True
+        >>> is_release_candidate("2.0.0-releasecandidate")
+        True
+        >>> is_release_candidate("1.2.3-beta1")
+        False
+        >>> is_release_candidate("1.2.3")
+        False
+        >>> is_release_candidate("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    tag = get_prerelease(version)
+    if tag is None:
+        return False
+    t = tag.lower()
+    if t.startswith("rc"):
+        return True
+    return t.startswith("releasecandidate")
+
+
+# Alias for common naming convention
+is_rc = is_release_candidate
 
 
 def is_version_between(version: str, lower: str, upper: str, inclusive: bool = True) -> bool:
