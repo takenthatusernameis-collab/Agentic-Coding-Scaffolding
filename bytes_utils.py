@@ -68,6 +68,7 @@ __all__: list[str] = [
     "is_zero",
     "has_null_byte",
     "lowest_set_bit",
+    "highest_set_bit",
 ]
 
 
@@ -1399,3 +1400,45 @@ def lowest_set_bit(data: bytes) -> int:
     if value == 0:
         return -1
     return (value & -value).bit_length() - 1
+
+
+def highest_set_bit(data: bytes) -> int:
+    """Return the position of the most significant set bit in *data*, or -1.
+
+    The bytes are interpreted as a big-endian unsigned integer, so the first
+    byte is the most significant. The most significant set bit is the highest
+    bit position (0-based) whose value is 1. An empty input, or an input with
+    no set bits, returns -1.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The 0-based position of the most significant set bit, or -1 if *data*
+        has no set bits.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> highest_set_bit(from_hex("00"))
+        -1
+        >>> highest_set_bit(from_hex("01"))
+        0
+        >>> highest_set_bit(from_hex("02"))
+        1
+        >>> highest_set_bit(from_hex("80"))
+        7
+        >>> highest_set_bit(from_hex("ff"))
+        7
+        >>> highest_set_bit(from_hex("0100"))
+        8
+        >>> highest_set_bit(b"")
+        -1
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    value = int.from_bytes(bytes(data), "big")
+    if value == 0:
+        return -1
+    return value.bit_length() - 1

@@ -21,6 +21,7 @@ from bytes_utils import (
     is_zero,
     has_null_byte,
     lowest_set_bit,
+    highest_set_bit,
     isalnum,
     isalpha,
     isascii,
@@ -888,6 +889,38 @@ class TestLowestSetBit(unittest.TestCase):
             lowest_set_bit(255)
         with self.assertRaises(TypeError):
             lowest_set_bit(None)
+
+
+class TestHighestSetBit(unittest.TestCase):
+    def test_no_set_bits(self):
+        self.assertEqual(highest_set_bit(b""), -1)
+        self.assertEqual(highest_set_bit(from_hex("00")), -1)
+        self.assertEqual(highest_set_bit(from_hex("0000")), -1)
+
+    def test_most_significant_set_bit(self):
+        self.assertEqual(highest_set_bit(from_hex("01")), 0)
+        self.assertEqual(highest_set_bit(from_hex("02")), 1)
+        self.assertEqual(highest_set_bit(from_hex("04")), 2)
+        self.assertEqual(highest_set_bit(from_hex("80")), 7)
+        self.assertEqual(highest_set_bit(from_hex("ff")), 7)
+
+    def test_multi_byte_position(self):
+        self.assertEqual(highest_set_bit(from_hex("0100")), 8)
+        self.assertEqual(highest_set_bit(from_hex("0001")), 0)
+        self.assertEqual(highest_set_bit(from_hex("0200")), 9)
+
+    def test_bytearray(self):
+        self.assertEqual(highest_set_bit(bytearray(b"\x01")), 0)
+        self.assertEqual(highest_set_bit(bytearray(b"\x80")), 7)
+        self.assertEqual(highest_set_bit(bytearray(b"")), -1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            highest_set_bit("01")
+        with self.assertRaises(TypeError):
+            highest_set_bit(255)
+        with self.assertRaises(TypeError):
+            highest_set_bit(None)
 
 
 class TestRIndex(unittest.TestCase):
