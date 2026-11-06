@@ -61,6 +61,7 @@ __all__: List[str] = [
     "is_ugly_number",
     "is_happy_prime",
     "is_weak_prime",
+    "is_cuban_prime",
 ]
 
 
@@ -1854,3 +1855,53 @@ def is_mersenne_prime(n: int) -> bool:
         return False
     p_exp = p.bit_length() - 1
     return is_prime(p_exp)
+
+
+def is_cuban_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a cuban prime.
+
+    A cuban prime is a prime number of the form ``3*y**2 + 3*y + 1`` for some
+    integer ``y >= 1`` (equivalently ``(x**3 - y**3) / (x - y)`` with
+    ``x = y + 1``). The first few cuban primes are 7, 19, 37, 61, 127, 271,
+    331, ... (OEIS A002407).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a cuban prime, ``False`` otherwise. Non-primes and
+        numbers below 7 return ``False``.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_cuban_prime(7)
+        True
+        >>> is_cuban_prime(19)
+        True
+        >>> is_cuban_prime(37)
+        True
+        >>> is_cuban_prime(61)
+        True
+        >>> is_cuban_prime(127)
+        True
+        >>> is_cuban_prime(13)
+        False
+        >>> is_cuban_prime(2)
+        False
+        >>> is_cuban_prime(4)
+        False
+    """
+    _require_int(n, "n")
+    if not is_prime(n) or n < 7:
+        return False
+    # n = 3*y**2 + 3*y + 1  =>  12*n - 3 = (6*y + 3)**2
+    discriminant = 12 * n - 3
+    root = math.isqrt(discriminant)
+    if root * root != discriminant:
+        return False
+    # y = (root - 3) / 6 must be an integer >= 1
+    if (root - 3) % 6 != 0:
+        return False
+    return (root - 3) // 6 >= 1

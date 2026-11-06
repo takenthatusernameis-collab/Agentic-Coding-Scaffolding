@@ -15,6 +15,7 @@ from prime_utils import (
     is_composite,
     is_coprime,
     is_cousin_prime,
+    is_cuban_prime,
     is_deficient_number,
     is_emirp,
     is_fermat_number,
@@ -1848,3 +1849,30 @@ class TestSumOfPrimesUpTo(unittest.TestCase):
             sum_of_primes_up_to("10")
         with self.assertRaises(TypeError):
             sum_of_primes_up_to(True)
+
+
+class TestIsCubanPrime(unittest.TestCase):
+    def test_known_cuban_primes(self):
+        # OEIS A002407 cuban primes (3*y**2 + 3*y + 1)
+        for n in (7, 19, 37, 61, 127, 271, 331, 397, 547, 631):
+            self.assertTrue(is_cuban_prime(n), n)
+
+    def test_primes_that_are_not_cuban(self):
+        for n in (2, 3, 5, 11, 13, 17, 23, 29, 31, 41):
+            self.assertFalse(is_cuban_prime(n), n)
+
+    def test_non_primes(self):
+        for n in (1, 4, 6, 8, 9, 10, 14, 22, 25, 100):
+            self.assertFalse(is_cuban_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, -1, -7, -13, 5):
+            self.assertFalse(is_cuban_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_cuban_prime(7.0)
+        with self.assertRaises(TypeError):
+            is_cuban_prime("7")
+        with self.assertRaises(TypeError):
+            is_cuban_prime(True)
