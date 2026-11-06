@@ -1,5 +1,23 @@
 # Project Status
 
+## Latest Session (2026-11-06) — added is_power_of to number_utils
+
+The board held no task (bootstrap/continuation session). Verified repository health before starting: `git status` clean, recent commits checkpoint-only, `python tools/refresh_scaffold.py --check` initially stale only after later edits (resolved). Reviewed handover: continue hardening a small utility module with a minimal, hermetic helper.
+
+Completed in this session:
+
+- Added `is_power_of(value, base)` to `number_utils.py` with typed validation (`TypeError` for non-number args), `__all__` export, and a Google-style docstring with ASCII-safe doctests. Returns `True` when `base**k == value` for some integer `k >= 0` (integer/integer-valued inputs only), handling positive/negative bases and `base` 0/1/-1 edge cases; non-integer numeric inputs return `False`.
+- Added `TestIsPowerOf` (8 tests) to `tests/test_number_utils.py` covering positive/negative bases, non-powers, edge bases, integer-valued floats, and `TypeError` paths; imported `is_power_of` to match `__all__`.
+- Updated `README.md` (tree + prose) and `CHANGELOG.md` (Unreleased). Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_number_utils` passes (282 tests); `python -m doctest number_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `version_utils.py`, `prompt_utils.py`, `numbers_utils.py`, `prime_utils.py`, `itertools_utils.py`, `bytes_utils.py`, or `stats.py` if a clear gap exists). Pick one focused helper (not a broad refactor).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings with doctests where practical (keep doctest literals ASCII-safe), validation raising `TypeError`/`ValueError`.
+- Keep `make test`/targeted checks green (pytest may be unavailable; use `python -m unittest` and targeted module/doctest checks). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-05) — removed duplicate __all__ entries from prime_utils and itertools_utils
 
 The board held no task (bootstrap/continuation session). Verified repository health before starting: `python tools/refresh_scaffold.py --check` reported all embedded copies in sync; recent commits were checkpoint-only; full suite (`python -m unittest discover tests/`) passed (8282 tests).

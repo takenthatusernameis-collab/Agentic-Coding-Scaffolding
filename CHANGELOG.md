@@ -6,6 +6,16 @@
 - Verified: `python -m unittest tests.test_prompt_utils` passes (437 tests); `python -m doctest prompt_utils.py` reports a pre-existing `wrap_prompt` docstring indentation failure unchanged by this session; `python -m unittest tests.test_public_api` passes.
 - No changes to `.github/workflows/**`.
 
+## Unreleased — added is_power_of to number_utils
+
+- Added `is_power_of(value, base)` to `number_utils.py` with a typed signature, `__all__` export, a Google-style docstring with ASCII-safe doctests, and `TypeError` validation for non-number arguments; it returns `True` when *value* is a non-negative integer power of *base* (i.e. `base**k == value` for some integer `k >= 0`), supporting positive/negative integer bases and the `base in {0, 1, -1}` edge cases. Non-integer numeric inputs (including integer-valued floats handled consistently) return `False`.
+- Added `TestIsPowerOf` to `tests/test_number_utils.py` covering positive bases, non-powers, `base` 1/0/-1, negative bases, integer-valued floats, and the `TypeError` paths (8 new tests). Imported `is_power_of` at the top of the test file to match the module's `__all__` contract.
+- Updated the `number_utils` tree/prose entries in `README.md` to document `is_power_of`. Synchronized `number_utils.py`, `tests/test_number_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_number_utils` passes (282 tests); `python -m doctest number_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
+
+
 
 
 - Found two real `__all__` defects by scanning every wrapper module for duplicate or undefined export entries: `prime_utils.__all__` listed `is_mersenne_prime` twice (56 entries, 55 unique) and `itertools_utils.__all__` listed `take_while_pred` twice (25 entries, 24 unique). Removed the duplicate entries so each module's `__all__` is a clean, deduplicated export list matching its defined names.

@@ -60,6 +60,7 @@ __all__ = [
     "is_perfect_power",
     "is_perfect_square",
     "is_positive",
+    "is_power_of",
     "is_power_of_two",
     "is_powerful_number",
     "is_prime",
@@ -706,6 +707,78 @@ def is_power_of_two(value: Number) -> bool:
     if n <= 0:
         return False
     return (n & (n - 1)) == 0
+
+
+def is_power_of(value: Number, base: Number) -> bool:
+    """Return True if *value* is an integer power of *base*.
+
+    Both *value* and *base* must be integers (or integer-valued floats).
+    The function returns ``True`` when there exists an integer *k >= 0*
+    such that ``base**k == value``.
+
+    Special cases:
+        - ``is_power_of(0, 0)`` is ``True``.
+        - ``is_power_of(1, base)`` is ``True`` for any integer *base*
+          (since ``base**0 == 1``).
+        - ``is_power_of(value, 1)`` is ``True`` only when *value* is 1.
+        - ``is_power_of(value, -1)`` is ``True`` when *value* is 1 or -1.
+        - Negative bases are supported for integer arithmetic.
+
+    Args:
+        value: The number to test.
+        base: The base.
+
+    Returns:
+        True if *value* is a non-negative integer power of *base*.
+
+    Raises:
+        TypeError: If *value* or *base* is not a number.
+
+    Examples:
+        >>> is_power_of(8, 2)
+        True
+        >>> is_power_of(9, 3)
+        True
+        >>> is_power_of(10, 2)
+        False
+        >>> is_power_of(1, 5)
+        True
+        >>> is_power_of(27, 3)
+        True
+        >>> is_power_of(-8, -2)
+        True
+    """
+    _require_number(value, "value")
+    _require_number(base, "base")
+    if not is_integer(value) or not is_integer(base):
+        return False
+    v = int(value)
+    b = int(base)
+    if b == 0:
+        return v == 0
+    if b == 1:
+        return v == 1
+    if b == -1:
+        return v == 1 or v == -1
+    if v == 1:
+        return True
+    if b > 1:
+        if v < b and v != 1:
+            return False
+        while v % b == 0:
+            v //= b
+        return v == 1
+    # b <= -2
+    # value = b^k: parity/sign depends on k, magnitude grows
+    k = 0
+    cur = 1
+    limit = abs(v) * abs(b)
+    while abs(cur) <= limit and k <= 64:
+        if cur == v:
+            return True
+        cur *= b
+        k += 1
+    return cur == v
 
 
 def is_perfect_power(value: Number) -> bool:

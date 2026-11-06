@@ -44,6 +44,7 @@ from number_utils import (
     is_perfect_power,
     is_perfect_square,
     is_positive,
+    is_power_of,
     is_power_of_two,
     is_powerful_number,
     is_pronic_number,
@@ -638,6 +639,59 @@ class TestIsPowerOfTwo(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_power_of_two("x")  # type: ignore[arg-type]
+
+
+class TestIsPowerOf(unittest.TestCase):
+    def test_positive_base_powers(self) -> None:
+        self.assertTrue(is_power_of(8, 2))
+        self.assertTrue(is_power_of(9, 3))
+        self.assertTrue(is_power_of(27, 3))
+        self.assertTrue(is_power_of(16, 4))
+        self.assertTrue(is_power_of(1, 5))
+        self.assertTrue(is_power_of(1, 2))
+        self.assertTrue(is_power_of(5, 5))
+
+    def test_positive_base_non_powers(self) -> None:
+        self.assertFalse(is_power_of(10, 2))
+        self.assertFalse(is_power_of(6, 3))
+        self.assertFalse(is_power_of(2, 4))
+        self.assertFalse(is_power_of(0, 2))
+        self.assertFalse(is_power_of(-8, 2))
+
+    def test_base_one(self) -> None:
+        self.assertTrue(is_power_of(1, 1))
+        self.assertFalse(is_power_of(2, 1))
+        self.assertFalse(is_power_of(0, 1))
+
+    def test_base_zero(self) -> None:
+        self.assertTrue(is_power_of(0, 0))
+        self.assertFalse(is_power_of(1, 0))
+        self.assertFalse(is_power_of(5, 0))
+
+    def test_base_minus_one(self) -> None:
+        self.assertTrue(is_power_of(1, -1))
+        self.assertTrue(is_power_of(-1, -1))
+        self.assertFalse(is_power_of(2, -1))
+        self.assertFalse(is_power_of(0, -1))
+
+    def test_negative_base(self) -> None:
+        self.assertTrue(is_power_of(-8, -2))
+        self.assertTrue(is_power_of(4, -2))
+        self.assertTrue(is_power_of(16, -2))
+        self.assertFalse(is_power_of(-4, -2))
+        self.assertFalse(is_power_of(8, -2))
+        self.assertTrue(is_power_of(1, -2))
+
+    def test_non_integer_values(self) -> None:
+        self.assertFalse(is_power_of(8.5, 2))
+        self.assertFalse(is_power_of(8, 2.5))
+        self.assertTrue(is_power_of(8.0, 2.0))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_power_of("8", 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_power_of(8, "2")  # type: ignore[arg-type]
 
 
 class TestIsPerfectPower(unittest.TestCase):
