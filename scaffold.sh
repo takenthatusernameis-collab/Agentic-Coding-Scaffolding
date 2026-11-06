@@ -50207,27 +50207,95 @@ def lower(data: bytes) -> bytes:
 
 
 def capitalize(data: bytes) -> bytes:
-    """Return a copy with first byte uppercased and rest lowercased."""
+    """Return a copy with first byte uppercased and rest lowercased.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Capitalized bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> capitalize(b"hello")
+        b'Hello'
+        >>> capitalize(bytearray(b"hELLO"))
+        b'Hello'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).capitalize()
 
 
 def title(data: bytes) -> bytes:
-    """Return titlecased bytes."""
+    """Return titlecased bytes.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Titlecased bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> title(b"hello world")
+        b'Hello World'
+        >>> title(bytearray(b"hello WORLD"))
+        b'Hello World'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).title()
 
 
 def swapcase(data: bytes) -> bytes:
-    """Return bytes with case swapped."""
+    """Return bytes with case swapped.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Case-swapped bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> swapcase(b"Hello")
+        b'hELLO'
+        >>> swapcase(bytearray(b"aBc"))
+        b'AbC'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).swapcase()
 
 
 def casefold(data: bytes) -> bytes:
+    """Return a casefolded copy of *data*.
+
+    For ASCII bytes, uses bytearray casefold semantics via UTF-8 decode/encode
+    when possible; falls back to ``lower()`` for invalid UTF-8.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Casefolded bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> casefold(b"Hello")
+        b'hello'
+        >>> casefold(bytearray(b"ß"))
+        b'ss'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     try:
@@ -50339,7 +50407,7 @@ def isidentifier(data: bytes) -> bool:
         False
         >>> isidentifier(b"")
         False
-        >>> isidentifier(b"café")
+        >>> isidentifier(b"caf\xc3\xa9")
         False
     """
     if not isinstance(data, (bytes, bytearray)):
@@ -51638,6 +51706,75 @@ class TestIsZero(unittest.TestCase):
             is_zero(0)
         with self.assertRaises(TypeError):
             is_zero(None)
+
+
+class TestTitle(unittest.TestCase):
+    def test_title(self):
+        self.assertEqual(title(b"hello world"), b"Hello World")
+        self.assertEqual(title(b"HELLO WORLD"), b"Hello World")
+        self.assertEqual(title(b"a b c"), b"A B C")
+
+    def test_empty(self):
+        self.assertEqual(title(b""), b"")
+
+    def test_bytearray(self):
+        self.assertEqual(title(bytearray(b"hello world")), b"Hello World")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            title("hello")
+        with self.assertRaises(TypeError):
+            title(123)
+        with self.assertRaises(TypeError):
+            title(None)
+
+
+class TestSwapcase(unittest.TestCase):
+    def test_swapcase(self):
+        self.assertEqual(swapcase(b"Hello"), b"hELLO")
+        self.assertEqual(swapcase(b"AbCd123"), b"aBcD123")
+        self.assertEqual(swapcase(b"all lower"), b"ALL LOWER")
+        self.assertEqual(swapcase(b"ALL UPPER"), b"all upper")
+
+    def test_empty(self):
+        self.assertEqual(swapcase(b""), b"")
+
+    def test_bytearray(self):
+        self.assertEqual(swapcase(bytearray(b"Hello")), b"hELLO")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            swapcase("hello")
+        with self.assertRaises(TypeError):
+            swapcase(123)
+        with self.assertRaises(TypeError):
+            swapcase(None)
+
+
+class TestCasefold(unittest.TestCase):
+    def test_casefold(self):
+        self.assertEqual(casefold(b"Hello"), b"hello")
+        self.assertEqual(casefold(b"HELLO"), b"hello")
+
+    def test_german_sharp_s(self):
+        self.assertEqual(casefold(b"\xc3\x9f"), b"ss")
+
+    def test_empty(self):
+        self.assertEqual(casefold(b""), b"")
+
+    def test_bytearray(self):
+        self.assertEqual(casefold(bytearray(b"Hello")), b"hello")
+
+    def test_invalid_utf8_fallback(self):
+        self.assertEqual(casefold(b"\xff"), b"\xff".lower())
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            casefold("hello")
+        with self.assertRaises(TypeError):
+            casefold(123)
+        with self.assertRaises(TypeError):
+            casefold(None)
 
 
 class TestHasNullByte(unittest.TestCase):

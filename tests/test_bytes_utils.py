@@ -809,6 +809,75 @@ class TestIsZero(unittest.TestCase):
             is_zero(None)
 
 
+class TestTitle(unittest.TestCase):
+    def test_title(self):
+        self.assertEqual(title(b"hello world"), b"Hello World")
+        self.assertEqual(title(b"HELLO WORLD"), b"Hello World")
+        self.assertEqual(title(b"a b c"), b"A B C")
+
+    def test_empty(self):
+        self.assertEqual(title(b""), b"")
+
+    def test_bytearray(self):
+        self.assertEqual(title(bytearray(b"hello world")), b"Hello World")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            title("hello")
+        with self.assertRaises(TypeError):
+            title(123)
+        with self.assertRaises(TypeError):
+            title(None)
+
+
+class TestSwapcase(unittest.TestCase):
+    def test_swapcase(self):
+        self.assertEqual(swapcase(b"Hello"), b"hELLO")
+        self.assertEqual(swapcase(b"AbCd123"), b"aBcD123")
+        self.assertEqual(swapcase(b"all lower"), b"ALL LOWER")
+        self.assertEqual(swapcase(b"ALL UPPER"), b"all upper")
+
+    def test_empty(self):
+        self.assertEqual(swapcase(b""), b"")
+
+    def test_bytearray(self):
+        self.assertEqual(swapcase(bytearray(b"Hello")), b"hELLO")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            swapcase("hello")
+        with self.assertRaises(TypeError):
+            swapcase(123)
+        with self.assertRaises(TypeError):
+            swapcase(None)
+
+
+class TestCasefold(unittest.TestCase):
+    def test_casefold(self):
+        self.assertEqual(casefold(b"Hello"), b"hello")
+        self.assertEqual(casefold(b"HELLO"), b"hello")
+
+    def test_german_sharp_s(self):
+        self.assertEqual(casefold(b"\xc3\x9f"), b"ss")
+
+    def test_empty(self):
+        self.assertEqual(casefold(b""), b"")
+
+    def test_bytearray(self):
+        self.assertEqual(casefold(bytearray(b"Hello")), b"hello")
+
+    def test_invalid_utf8_fallback(self):
+        self.assertEqual(casefold(b"\xff"), b"\xff".lower())
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            casefold("hello")
+        with self.assertRaises(TypeError):
+            casefold(123)
+        with self.assertRaises(TypeError):
+            casefold(None)
+
+
 class TestHasNullByte(unittest.TestCase):
     def test_has_null(self):
         self.assertTrue(has_null_byte(b"\x00\x00\x00"))

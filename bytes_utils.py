@@ -915,27 +915,95 @@ def lower(data: bytes) -> bytes:
 
 
 def capitalize(data: bytes) -> bytes:
-    """Return a copy with first byte uppercased and rest lowercased."""
+    """Return a copy with first byte uppercased and rest lowercased.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Capitalized bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> capitalize(b"hello")
+        b'Hello'
+        >>> capitalize(bytearray(b"hELLO"))
+        b'Hello'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).capitalize()
 
 
 def title(data: bytes) -> bytes:
-    """Return titlecased bytes."""
+    """Return titlecased bytes.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Titlecased bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> title(b"hello world")
+        b'Hello World'
+        >>> title(bytearray(b"hello WORLD"))
+        b'Hello World'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).title()
 
 
 def swapcase(data: bytes) -> bytes:
-    """Return bytes with case swapped."""
+    """Return bytes with case swapped.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Case-swapped bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> swapcase(b"Hello")
+        b'hELLO'
+        >>> swapcase(bytearray(b"aBc"))
+        b'AbC'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).swapcase()
 
 
 def casefold(data: bytes) -> bytes:
+    """Return a casefolded copy of *data*.
+
+    For ASCII bytes, uses bytearray casefold semantics via UTF-8 decode/encode
+    when possible; falls back to ``lower()`` for invalid UTF-8.
+
+    Args:
+        data: Bytes or bytearray to convert.
+
+    Returns:
+        Casefolded bytes.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> casefold(b"Hello")
+        b'hello'
+        >>> casefold(bytearray(b"ß"))
+        b'ss'
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     try:
