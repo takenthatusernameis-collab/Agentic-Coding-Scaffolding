@@ -56437,6 +56437,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added selection_sort to sort_utils
+
+- Added `selection_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a selection sort companion to `bubble_sort`, `insertion_sort`, and `merge_sort`. It repeatedly selects the minimum (or maximum when *reverse* is True) element from the unsorted remainder and appends it to a new result list, accepting an optional `key` and `reverse` argument, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestSelectionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, non-mutation, string items, and randomized comparison-with-`sorted` cases. Updated the `sort_utils` module tree entry and prose section of `README.md`. Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_sort_utils` passes; `python -m doctest sort_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_tracked and is_finalized to gc_utils
 
 - Added `is_tracked(obj)` and `is_finalized(obj)` to `gc_utils.py` as thin, typed wrappers around the corresponding `gc` module functions. `is_tracked` reports whether the garbage collector tracks an object (containers such as lists, dicts, and instances are tracked; atomic objects such as ints, strings, and bools are not); `is_finalized` reports whether an object has already been finalized by the GC. Both accept a typed `object` argument, are exported via `__all__`, and have Google-style docstrings with ASCII-safe doctests.
@@ -58684,7 +58690,7 @@ xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
-sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, nth_largest, top_n)
+sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
 ossaudiodev_utils.py      # OSS audio device utilities wrapping the standard library ossaudiodev module (open, openmixer, re-exports OSSAudioError, error, AFMT_S16_LE, SOUND_MIXER_PCM, is_available)
@@ -59624,7 +59630,7 @@ The project includes operating system utilities in `os_utils.py` for inspecting 
 
 ## Sorting Utilities Module
 
-The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort`, `insertion_sort`, and `merge_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
+The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort`, `insertion_sort`, `merge_sort`, and `selection_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
 
 ## Graph and Dependency Resolution Utilities Module
 
@@ -101556,6 +101562,7 @@ __all__ = [
     "is_sorted",
     "merge_sort",
     "nth_largest",
+    "selection_sort",
     "top_n",
 ]
 
@@ -101643,6 +101650,64 @@ def insertion_sort(items, *, key=None, reverse=False):
             result[j + 1] = result[j]
             j -= 1
         result[j + 1] = current
+    return result
+
+
+def selection_sort(items, *, key=None, reverse=False):
+    """Return a new list sorted using selection sort.
+
+    A selection sort that returns a new list. It repeatedly selects the
+    minimum (or maximum, when *reverse* is True) element from the unsorted
+    remainder and appends it to the result. Accepts an optional ``key`` and
+    ``reverse`` argument like :func:`bubble_sort` and :func:`insertion_sort`.
+
+    Args:
+        items: An iterable of comparable elements.
+        key: A function that extracts a comparison key from each element.
+            Defaults to the identity function.
+        reverse: If True, sort in descending order. Defaults to False.
+
+    Returns:
+        A new list containing the elements of *items* sorted according to
+        *key* and *reverse*.
+
+    Examples:
+        >>> selection_sort([3, 1, 2])
+        [1, 2, 3]
+        >>> selection_sort([3, 1, 2], reverse=True)
+        [3, 2, 1]
+        >>> selection_sort([1, 2, 3])
+        [1, 2, 3]
+        >>> selection_sort([])
+        []
+        >>> selection_sort([5])
+        [5]
+        >>> selection_sort([3, 1, 2], key=lambda x: -x)
+        [3, 2, 1]
+        >>> selection_sort(["banana", "apple", "cherry"])
+        ['apple', 'banana', 'cherry']
+    """
+    if key is None:
+
+        def key(x):
+            return x
+
+    result = []
+    pool = list(items)
+    while pool:
+        best_index = 0
+        best_key = key(pool[0])
+        for i in range(1, len(pool)):
+            current_key = key(pool[i])
+            if reverse:
+                if current_key > best_key:
+                    best_key = current_key
+                    best_index = i
+            else:
+                if current_key < best_key:
+                    best_key = current_key
+                    best_index = i
+        result.append(pool.pop(best_index))
     return result
 
 
@@ -101759,6 +101824,55 @@ class TestInsertionSort(unittest.TestCase):
     def test_stability(self):
         items = [("a", 1), ("b", 1), ("c", 1)]
         self.assertEqual(sort_utils.insertion_sort(items, key=lambda x: x[1]), items)
+
+
+class TestSelectionSort(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(sort_utils.selection_sort([3, 1, 2]), [1, 2, 3])
+
+    def test_reverse(self):
+        self.assertEqual(sort_utils.selection_sort([1, 2, 3], reverse=True), [3, 2, 1])
+
+    def test_key(self):
+        self.assertEqual(
+            sort_utils.selection_sort([("a", 2), ("b", 1)], key=lambda x: x[1]),
+            [("b", 1), ("a", 2)],
+        )
+
+    def test_empty(self):
+        self.assertEqual(sort_utils.selection_sort([]), [])
+
+    def test_single(self):
+        self.assertEqual(sort_utils.selection_sort([5]), [5])
+
+    def test_already_sorted(self):
+        self.assertEqual(sort_utils.selection_sort([1, 2, 3]), [1, 2, 3])
+
+    def test_duplicates(self):
+        self.assertEqual(sort_utils.selection_sort([2, 1, 2, 1]), [1, 1, 2, 2])
+
+    def test_matches_reference(self):
+        import random
+
+        for _ in range(50):
+            items = [random.randint(-100, 100) for _ in range(random.randint(0, 30))]
+            self.assertEqual(sort_utils.selection_sort(items), sorted(items))
+            self.assertEqual(
+                sort_utils.selection_sort(items, reverse=True),
+                sorted(items, reverse=True),
+            )
+
+    def test_does_not_mutate_input(self):
+        items = [3, 1, 2]
+        result = sort_utils.selection_sort(items)
+        self.assertEqual(items, [3, 1, 2])
+        self.assertEqual(result, [1, 2, 3])
+
+    def test_string_items(self):
+        self.assertEqual(
+            sort_utils.selection_sort(["banana", "apple", "cherry"]),
+            ["apple", "banana", "cherry"],
+        )
 
 
 if __name__ == "__main__":
