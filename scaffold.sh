@@ -113531,6 +113531,7 @@ __all__ = [
     "increment_minor",
     "increment_patch",
     "increment_version",
+    "is_alpha",
     "is_beta",
     "is_between",
     "is_compatible",
@@ -114586,6 +114587,37 @@ def is_version_at_most(version: str, maximum: str) -> bool:
     return compare_versions(version, maximum) <= 0
 
 
+def is_alpha(version: str) -> bool:
+    """Return True if *version* is an alpha pre-release.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if the pre-release tag starts with ``alpha`` (case-insensitive),
+        False otherwise or when there is no pre-release suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_alpha("1.2.3-alpha1")
+        True
+        >>> is_alpha("1.0.0-ALPHA.2")
+        True
+        >>> is_alpha("1.2.3-rc1")
+        False
+        >>> is_alpha("1.2.3")
+        False
+        >>> is_alpha("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    tag = get_prerelease(version)
+    return tag is not None and tag.lower().startswith("alpha")
+
+
 def is_beta(version: str) -> bool:
     """Return True if *version* is a beta pre-release.
 
@@ -114709,6 +114741,7 @@ from version_utils import (
     is_between,
     is_compatible,
     is_dev_version,
+    is_alpha,
     is_beta,
     is_equal,
     is_greater,
@@ -115260,6 +115293,29 @@ class TestIsDevVersion(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_dev_version(123)  # type: ignore[arg-type]
+
+
+class TestIsAlpha(unittest.TestCase):
+    def test_alpha_tag_true(self):
+        self.assertTrue(is_alpha("1.2.3-alpha1"))
+        self.assertTrue(is_alpha("1.0.0-ALPHA.2"))
+        self.assertTrue(is_alpha("2.0.0-alpha"))
+
+    def test_non_alpha_prerelease_false(self):
+        self.assertFalse(is_alpha("1.2.3-rc1"))
+        self.assertFalse(is_alpha("1.0.0-beta"))
+        self.assertFalse(is_alpha("1.2.3-dev0"))
+
+    def test_no_prerelease_false(self):
+        self.assertFalse(is_alpha("1.2.3"))
+        self.assertFalse(is_alpha("2.0.0"))
+        self.assertFalse(is_alpha(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_alpha(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_alpha(None)  # type: ignore[arg-type]
 
 
 class TestIsBeta(unittest.TestCase):
