@@ -19,6 +19,7 @@ from bytes_utils import (
     index_of,
     is_power_of_two,
     is_zero,
+    has_null_byte,
     isalnum,
     isalpha,
     isascii,
@@ -799,6 +800,33 @@ class TestIsZero(unittest.TestCase):
             is_zero(0)
         with self.assertRaises(TypeError):
             is_zero(None)
+
+
+class TestHasNullByte(unittest.TestCase):
+    def test_has_null(self):
+        self.assertTrue(has_null_byte(b"\x00\x00\x00"))
+
+    def test_no_null(self):
+        self.assertFalse(has_null_byte(b"\x01\x02\x03"))
+        self.assertFalse(has_null_byte(b"\xff"))
+
+    def test_empty(self):
+        self.assertFalse(has_null_byte(b""))
+
+    def test_single_null(self):
+        self.assertTrue(has_null_byte(b"\x00"))
+
+    def test_bytearray(self):
+        self.assertTrue(has_null_byte(bytearray(b"\x00\x00")))
+        self.assertFalse(has_null_byte(bytearray(b"\x01\x02")))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_null_byte("00")
+        with self.assertRaises(TypeError):
+            has_null_byte(0)
+        with self.assertRaises(TypeError):
+            has_null_byte(None)
 
 
 class TestIsPowerOfTwo(unittest.TestCase):

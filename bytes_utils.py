@@ -61,6 +61,7 @@ __all__: list[str] = [
     "bit_count",
     "is_power_of_two",
     "is_zero",
+    "has_null_byte",
 ]
 
 
@@ -1331,3 +1332,28 @@ def is_power_of_two(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bit_count(data) == 1
+
+
+def has_null_byte(data: bytes) -> bool:
+    """Return True if *data* contains at least one zero byte.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is 0, False otherwise (empty input is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_null_byte(from_hex("000000"))
+        True
+        >>> has_null_byte(from_hex("010203"))
+        False
+        >>> has_null_byte(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return any(b == 0 for b in bytes(data))
