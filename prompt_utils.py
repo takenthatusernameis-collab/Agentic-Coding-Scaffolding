@@ -25,6 +25,7 @@ __all__: List[str] = [
     "count_words",
     "collapse_blank_lines",
     "count_blank_lines",
+    "has_blank_lines",
     "count_placeholders",
     "count_sentences",
     "has_sentences",
@@ -521,6 +522,38 @@ def count_blank_lines(text: str) -> int:
     """
     _require_string(text, "text")
     return sum(1 for line in text.splitlines() if line.strip() == "")
+
+
+def has_blank_lines(text: str) -> bool:
+    """Return True if *text* contains at least one blank line.
+
+    A blank line is a line that is empty or contains only whitespace. This is
+    a boolean companion to :func:`count_blank_lines`; it returns ``True`` when
+    *text* contains one or more blank lines and ``False`` otherwise, including
+    for empty or whitespace-only text.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one blank line, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_blank_lines("")
+        False
+        >>> has_blank_lines("hello\\nworld")
+        False
+        >>> has_blank_lines("hello\\n\\nworld")
+        True
+        >>> has_blank_lines("   \\n\\t\\n")
+        True
+    """
+    _require_string(text, "text")
+    return count_blank_lines(text) > 0
 
 
 def count_placeholders(template: str) -> int:

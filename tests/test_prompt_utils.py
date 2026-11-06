@@ -44,6 +44,7 @@ from prompt_utils import (
     first_line,
     format_prompt_template,
     has_alphanumeric,
+    has_blank_lines,
     has_digits,
     has_leading_newline,
     has_letters,
@@ -961,6 +962,39 @@ class TestCountBlankLines(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_blank_lines(123)  # type: ignore[arg-type]
+
+
+class TestHasBlankLines(unittest.TestCase):
+    def test_empty(self):
+        self.assertFalse(has_blank_lines(""))
+
+    def test_no_blank_lines(self):
+        self.assertFalse(has_blank_lines("hello\nworld"))
+
+    def test_blank_line_between(self):
+        self.assertTrue(has_blank_lines("hello\n\nworld"))
+
+    def test_whitespace_only_line(self):
+        self.assertTrue(has_blank_lines("hello\n   \n\t\nworld"))
+
+    def test_all_blank(self):
+        self.assertTrue(has_blank_lines("\n\n"))
+
+    def test_single_blank_line(self):
+        self.assertTrue(has_blank_lines("\n"))
+
+    def test_crlf(self):
+        self.assertTrue(has_blank_lines("a\r\n\r\nb"))
+
+    def test_consistency_with_count_blank_lines(self):
+        for sample in ["", "hello\nworld", "hello\n\nworld", "   \n\t\n", "a\r\n\r\nb"]:
+            self.assertEqual(has_blank_lines(sample), count_blank_lines(sample) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_blank_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_blank_lines(None)  # type: ignore[arg-type]
 
 
 class TestCountNonBlankLines(unittest.TestCase):
