@@ -1,5 +1,28 @@
 # Project Status
 
+## Latest Session (2026-11-06) — added selection_sort to sort_utils; removed duplicate __all__ block from itertools_utils
+
+The board held no task (bootstrap/continuation session). Verified repository health before starting: `git status` clean, recent commits checkpoint-only, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite (`python -m unittest discover tests/`) passed (8426 tests). Reviewed the prior handover: continue hardening a small utility module with a minimal, hermetic helper. The most recently modified module was `sort_utils.py`, which had `bubble_sort`, `insertion_sort`, and `merge_sort` but no `selection_sort` — a focused gap to fill.
+
+Completed in this session:
+
+- Added `selection_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a selection sort companion to `bubble_sort`, `insertion_sort`, and `merge_sort`. It repeatedly selects the minimum (or maximum when *reverse* is True) element from the unsorted remainder and appends it to a new result list, accepting an optional `key` and `reverse` argument, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestSelectionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, non-mutation, string items, and randomized comparison-with-`sorted` cases (10 new tests). Updated the `sort_utils` module tree entry and prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_sort_utils` passes (24 tests); `python -m doctest sort_utils.py` passes; `python -m unittest tests.test_public_api` passes; full suite (`python -m unittest discover tests/`) passes (8436 tests).
+- No changes to `.github/workflows/**`.
+
+- Ran a systematic scan of every wrapper module's `__all__` for duplicate or undefined export entries (the same class of defect fixed earlier in `prime_utils` and `itertools_utils`). Found one real defect: `itertools_utils.py` had two `__all__` blocks — a complete one at line 548 that overwrote an earlier incomplete block at line 315, leaving 28 lines of dead code. Removed the stale first block so the module has a single, authoritative `__all__` of 33 unique entries, each matching a defined name. (The scan also surfaced a third defect, recorded below as the next task.)
+- Synchronized `itertools_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_itertools_utils` passes (106 tests); `python -m doctest itertools_utils.py` passes; `python -m unittest tests.test_public_api` passes; full suite (`python -m unittest discover tests/`) passes (8436 tests).
+- No changes to `.github/workflows/**`.
+
+Next Planned (durable handover for the following agent):
+
+- Remove the duplicate `__all__` entry from `string_utils.py`. A scan of every wrapper module's `__all__` found that `string_utils.py` lists `cosine_similarity` twice (34 entries, 33 unique). This is the same class of defect previously fixed in `prime_utils` (duplicate `is_mersenne_prime`) and `itertools_utils` (duplicate `take_while_pred`, plus a stale second `__all__` block removed this session). Scope: inspect `string_utils.py` and remove the duplicate `cosine_similarity` line so `__all__` is a clean, deduplicated list matching the module's defined names. Do NOT change any function behavior or signatures — cleanup-only task. If the module has more than one `__all__` block, consolidate to a single authoritative block.
+- Conventions: keep `make test` green. Run `python -m unittest tests.test_string_utils`, `python -m doctest string_utils.py`, and `python -m unittest tests.test_public_api`. After editing `string_utils.py`, run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check` (embedded copies must stay byte-identical). The CHANGELOG and README prose for `string_utils` are already correct — only the `__all__` list needs fixing, so no doc updates are required unless the README tree entry itself lists the duplicate. No changes to `.github/workflows/**`.
+- Verification: `python -c "import string_utils; from collections import Counter; c=Counter(string_utils.__all__); assert not [k for k,v in c.items() if v>1]"` should pass.
+- If that cleanup is already done, fall back to: continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `version_utils.py`, `prompt_utils.py`, `numbers_utils.py`, `prime_utils.py`, `bytes_utils.py`, or `stats.py` if a clear gap exists). Pick one focused helper (not a broad refactor).
+
 ## Latest Session (2026-11-06) — added is_tracked and is_finalized to gc_utils
 
 The board held no task (continuation session). Verified repository health before starting: `git status` clean, recent commits checkpoint-only, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite (`python -m unittest discover tests/`) passed (8426 tests). Reviewed handover: continue hardening a small utility module with a minimal, hermetic helper.
