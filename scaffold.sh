@@ -38298,6 +38298,7 @@ __all__: List[str] = [
     "last_line",
     "count_lines",
     "count_non_blank_lines",
+    "has_non_blank_lines",
     "count_trailing_newlines",
     "count_leading_newlines",
     "starts_with_newline",
@@ -39486,6 +39487,42 @@ def count_non_blank_lines(text: str) -> int:
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return sum(1 for line in lines if line.strip() != "")
+
+
+def has_non_blank_lines(text: str) -> bool:
+    """Return True if *text* contains at least one non-blank line.
+
+    A non-blank line is a line whose stripped content is non-empty.
+    Whitespace-only lines do not count. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        True if *text* contains at least one non-blank line, False
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_non_blank_lines("")
+        False
+        >>> has_non_blank_lines("   \\n\\t\\n")
+        False
+        >>> has_non_blank_lines("hello")
+        True
+        >>> has_non_blank_lines("   \\nhello")
+        True
+    """
+    _require_string(text, "text")
+    if not text:
+        return False
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    return any(line.strip() != "" for line in lines)
 
 
 def count_trailing_newlines(text: str) -> int:
