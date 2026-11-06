@@ -113547,6 +113547,8 @@ __all__ = [
     "is_newer",
     "is_older",
     "is_prerelease",
+    "is_pre_release",
+    "is_pre",
     "is_release",
     "is_semver",
     "is_stable",
@@ -114106,6 +114108,11 @@ def is_prerelease(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "-" in version
+
+
+# aliases
+is_pre_release = is_prerelease
+is_pre = is_prerelease
 
 
 def is_release(version: str) -> bool:
@@ -115299,6 +115306,14 @@ class TestIsPrerelease(unittest.TestCase):
     def test_prerelease_false(self):
         self.assertFalse(is_prerelease("1.2.3"))
         self.assertFalse(is_prerelease("2.0.0"))
+
+    def test_prerelease_aliases_match(self):
+        from version_utils import is_pre, is_pre_release
+
+        self.assertTrue(is_pre_release("1.2.3-rc1"))
+        self.assertTrue(is_pre("1.0.0-alpha"))
+        self.assertEqual(is_pre_release("1.2.3"), is_prerelease("1.2.3"))
+        self.assertEqual(is_pre("1.0.0"), is_prerelease("1.0.0"))
 
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):

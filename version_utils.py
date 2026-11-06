@@ -57,6 +57,8 @@ __all__ = [
     "is_newer",
     "is_older",
     "is_prerelease",
+    "is_pre_release",
+    "is_pre",
     "is_release",
     "is_semver",
     "is_stable",
@@ -616,6 +618,11 @@ def is_prerelease(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return "-" in version
+
+
+# aliases
+is_pre_release = is_prerelease
+is_pre = is_prerelease
 
 
 def is_release(version: str) -> bool:

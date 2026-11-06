@@ -558,6 +558,14 @@ class TestIsPrerelease(unittest.TestCase):
         self.assertFalse(is_prerelease("1.2.3"))
         self.assertFalse(is_prerelease("2.0.0"))
 
+    def test_prerelease_aliases_match(self):
+        from version_utils import is_pre, is_pre_release
+
+        self.assertTrue(is_pre_release("1.2.3-rc1"))
+        self.assertTrue(is_pre("1.0.0-alpha"))
+        self.assertEqual(is_pre_release("1.2.3"), is_prerelease("1.2.3"))
+        self.assertEqual(is_pre("1.0.0"), is_prerelease("1.0.0"))
+
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_prerelease(123)  # type: ignore[arg-type]
