@@ -190,6 +190,16 @@ class TestRangeStat(unittest.TestCase):
         with self.assertRaises(TypeError):
             range_stat([True, 1, 2])  # type: ignore[type-var]
 
+    def test_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            range_stat([1.0, math.nan])
+
+    def test_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            range_stat([1.0, math.inf])
+        with self.assertRaises(ValueError):
+            range_stat([1.0, -math.inf])
+
     def test_matches_range_alias(self) -> None:
         self.assertIs(range_stat, range)
 
@@ -1109,6 +1119,16 @@ class TestRootMeanSquare(unittest.TestCase):
         with self.assertRaises(TypeError):
             root_mean_square([True, 1, 2])  # type: ignore[type-var]
 
+    def test_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            root_mean_square([1.0, math.nan])
+
+    def test_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            root_mean_square([1.0, math.inf])
+        with self.assertRaises(ValueError):
+            root_mean_square([1.0, -math.inf])
+
 
 class TestStandardError(unittest.TestCase):
     def test_basic(self) -> None:
@@ -1142,6 +1162,16 @@ class TestStandardError(unittest.TestCase):
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
             standard_error([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            standard_error([1.0, math.nan, 3.0])
+
+    def test_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            standard_error([1.0, math.inf, 3.0])
+        with self.assertRaises(ValueError):
+            standard_error([1.0, -math.inf, 3.0])
 
 
 class TestProduct(unittest.TestCase):
@@ -1252,6 +1282,16 @@ class TestMidhinge(unittest.TestCase):
         with self.assertRaises(TypeError):
             midhinge([True, 1, 2])  # type: ignore[type-var]
 
+    def test_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            midhinge([1.0, math.nan, 3.0])
+
+    def test_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            midhinge([1.0, math.inf, 3.0])
+        with self.assertRaises(ValueError):
+            midhinge([1.0, -math.inf, 3.0])
+
 
 class TestQuartile(unittest.TestCase):
     def test_basic(self) -> None:
@@ -1299,12 +1339,23 @@ class TestQuartile(unittest.TestCase):
     def test_rejects_non_numeric(self) -> None:
 
         with self.assertRaises(TypeError):
-            quartile([1, 2, "a"], 1)  # type: ignore[list-item]
+            quartile([1, 2, "a"], 1)  # type: ignore[type-var]
 
-    def test_rejects_bool_in_list(self) -> None:
+    def test_rejects_bool(self) -> None:
 
         with self.assertRaises(TypeError):
             quartile([True, 1, 2], 1)  # type: ignore[type-var]
+
+    def test_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            quartile([1.0, math.nan, 3.0], 1)
+
+    def test_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            quartile([1.0, math.inf, 3.0], 1)
+        with self.assertRaises(ValueError):
+            quartile([1.0, -math.inf, 3.0], 1)
+
 
 
 class TestQuantile(unittest.TestCase):
@@ -1791,6 +1842,24 @@ class TestCoefficientOfRange(unittest.TestCase):
     def test_rejects_non_list(self) -> None:
         with self.assertRaises(TypeError):
             coefficient_of_range((1, 2, 3))  # type: ignore[arg-type]
+
+    def test_rejects_non_numeric(self) -> None:
+        with self.assertRaises(TypeError):
+            coefficient_of_range([1, 2, "a"])  # type: ignore[type-var]
+
+    def test_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            coefficient_of_range([True, 1, 2])  # type: ignore[type-var]
+
+    def test_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            coefficient_of_range([1.0, math.nan])
+
+    def test_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            coefficient_of_range([1.0, math.inf])
+        with self.assertRaises(ValueError):
+            coefficient_of_range([1.0, -math.inf])
 
     def test_rejects_non_numeric(self) -> None:
         numbers: list[object] = [1, "a", 3]

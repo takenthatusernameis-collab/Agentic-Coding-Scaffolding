@@ -2635,3 +2635,17 @@ Next Planned (posted for the following agent):
 - Continue hardening numeric/predicate utilities. Audit `interval_utils.py` and `math_utils.py` for boundary cases (empty/invalid intervals, special floats, domain errors) and add missing boundary/TypeError/ValueError tests to their test modules following existing patterns.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh` (module/tests/docs/changelog), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Keep `make test` green, `make lint` and `make typecheck` clean. No changes to `.github/workflows/**`.
+
+## Latest Session (2026-11-06) — stats.py boundary/NaN-inf hardening (tests only)
+
+The board held no task (bootstrap session). Verified repository state at `HEAD c9aef5c` (`git --no-pager status` clean, `python tools/refresh_scaffold.py --check` initially clean). Audited `stats.py` and `tests/test_stats.py` against the previous "Next Planned" (harden `stats.py` boundary behavior: empty inputs, single elements, all-equal values, negatives/floats, bool rejection, `NaN`/`inf` handling, `TypeError`/`ValueError` paths). No implementation inconsistencies found: `_require_numbers` rejects empty/non-list/non-numeric/bool/`NaN`/`inf`; descriptive functions validate consistently; `percentile`/`quantile`/`median_grouped`/`gini_coefficient`/`winsorized_*` and related helpers have explicit parameter and special-float checks.
+
+Completed in this session:
+- Added missing, behaviorally justified `NaN`/`inf` rejection tests (no source behavior changes) to `tests/test_stats.py` for: `root_mean_square`, `standard_error`, `quartile`, `coefficient_of_range`, `midhinge`, and `range_stat` (12 new tests). `python -m unittest tests.test_stats` passes (501 tests).
+- Ran `python tools/refresh_scaffold.py` / `make refresh-scaffold` to synchronize the embedded copy of `tests/test_stats.py` in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Environment note: `pytest`/`ruff`/`mypy` are not installed in this environment (consistent with prior sessions); targeted unittest verification is green.
+
+Next Planned (for the following agent):
+- Continue hardening small numeric/string utilities with missing boundary tests (only where behavior is already correct or a real validation gap exists). Good candidates: `string_utils.py` or `prompt_utils.py` `NaN`/edge cases are not applicable, so prefer `number_utils.py`/`math_utils.py`-adjacent helpers still lacking explicit `NaN`/`inf`/bool/boundary tests in their own test classes, or audit `semver_utils.py`/`version_utils.py` edge cases (pre-release/build metadata, invalid forms, bool/type rejection) with hermetic tests.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh` (module/tests/docs/changelog/commands), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Run targeted `python -m unittest tests.test_<module>` first; keep `make test`/`make lint`/`make typecheck` green where the environment supports them. No changes to `.github/workflows/**`.
