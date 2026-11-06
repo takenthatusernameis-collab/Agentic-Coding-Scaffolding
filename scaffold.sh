@@ -113534,6 +113534,8 @@ __all__ = [
     "is_alpha",
     "is_beta",
     "is_between",
+    "is_rc",
+    "is_release_candidate",
     "is_compatible",
     "is_dev_version",
     "is_equal",
@@ -114649,6 +114651,48 @@ def is_beta(version: str) -> bool:
     return tag is not None and tag.lower().startswith("beta")
 
 
+def is_release_candidate(version: str) -> bool:
+    """Return True if *version* is a release candidate pre-release.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if the pre-release tag starts with ``rc`` or ``releasecandidate``
+        (case-insensitive), False otherwise or when there is no pre-release suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_release_candidate("1.2.3-rc1")
+        True
+        >>> is_release_candidate("1.0.0-RC.2")
+        True
+        >>> is_release_candidate("2.0.0-releasecandidate")
+        True
+        >>> is_release_candidate("1.2.3-beta1")
+        False
+        >>> is_release_candidate("1.2.3")
+        False
+        >>> is_release_candidate("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    tag = get_prerelease(version)
+    if tag is None:
+        return False
+    t = tag.lower()
+    if t.startswith("rc"):
+        return True
+    return t.startswith("releasecandidate")
+
+
+# Alias for common naming convention
+is_rc = is_release_candidate
+
+
 def is_version_between(version: str, lower: str, upper: str, inclusive: bool = True) -> bool:
     """Return True if *version* is between *lower* and *upper*.
 
@@ -114743,6 +114787,8 @@ from version_utils import (
     is_dev_version,
     is_alpha,
     is_beta,
+    is_rc,
+    is_release_candidate,
     is_equal,
     is_greater,
     is_initial_release,
@@ -115339,6 +115385,33 @@ class TestIsBeta(unittest.TestCase):
             is_beta(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_beta(None)  # type: ignore[arg-type]
+
+
+class TestIsReleaseCandidate(unittest.TestCase):
+    def test_rc_tag_true(self):
+        self.assertTrue(is_release_candidate("1.2.3-rc1"))
+        self.assertTrue(is_rc("1.0.0-RC.2"))
+        self.assertTrue(is_release_candidate("2.0.0-rc"))
+
+    def test_releasecandidate_tag_true(self):
+        self.assertTrue(is_release_candidate("2.0.0-releasecandidate"))
+        self.assertTrue(is_rc("1.0.0-RELEASECANDIDATE.1"))
+
+    def test_non_rc_prerelease_false(self):
+        self.assertFalse(is_release_candidate("1.2.3-beta1"))
+        self.assertFalse(is_rc("1.0.0-alpha"))
+        self.assertFalse(is_release_candidate("1.2.3-dev0"))
+
+    def test_no_prerelease_false(self):
+        self.assertFalse(is_release_candidate("1.2.3"))
+        self.assertFalse(is_rc("2.0.0"))
+        self.assertFalse(is_release_candidate(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_release_candidate(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_rc(None)  # type: ignore[arg-type]
 
 
 class TestVersionComparisonAliases(unittest.TestCase):
