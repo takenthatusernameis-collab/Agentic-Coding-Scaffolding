@@ -14,6 +14,7 @@ from prompt_utils import (
     count_letters,
     count_lines,
     count_lowercase,
+    count_newlines,
     count_non_blank_lines,
     count_non_whitespace_characters,
     count_paragraphs,
@@ -1827,3 +1828,89 @@ class TestCountTabs(unittest.TestCase):
             count_tabs(123)
         with self.assertRaises(TypeError):
             count_tabs([])
+
+
+class TestEnsureSurroundedByNewlines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
+
+    def test_already_surrounded(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
+
+    def test_empty_unchanged(self):
+        self.assertEqual(ensure_surrounded_by_newlines(""), "")
+
+    def test_leading_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello"), "\nhello\n")
+
+    def test_trailing_only(self):
+        self.assertEqual(ensure_surrounded_by_newlines("hello\n"), "\nhello\n")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
+
+
+class TestChomp(unittest.TestCase):
+    def test_lf(self):
+        self.assertEqual(chomp("hello\n"), "hello")
+
+    def test_crlf(self):
+        self.assertEqual(chomp("hello\r\n"), "hello")
+
+    def test_cr(self):
+        self.assertEqual(chomp("hello\r"), "hello")
+
+    def test_no_newline(self):
+        self.assertEqual(chomp("hello"), "hello")
+
+    def test_empty(self):
+        self.assertEqual(chomp(""), "")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            chomp(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            chomp(None)  # type: ignore[arg-type]
+
+
+class TestEscapePlaceholders(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(escape_placeholders("Hello {name}"), "Hello {{name}}")
+
+    def test_no_braces(self):
+        self.assertEqual(escape_placeholders("No braces"), "No braces")
+
+    def test_empty(self):
+        self.assertEqual(escape_placeholders(""), "")
+
+    def test_double_braces(self):
+        self.assertEqual(escape_placeholders("{{a}}"), "{{{{a}}}}")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            escape_placeholders(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            escape_placeholders(None)  # type: ignore[arg-type]
+
+
+class TestCountNewlines(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_newlines("a\nb\nc"), 2)
+
+    def test_none(self):
+        self.assertEqual(count_newlines("abc"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_newlines(""), 0)
+
+    def test_consecutive(self):
+        self.assertEqual(count_newlines("\n\n\n"), 3)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_newlines(None)  # type: ignore[arg-type]
