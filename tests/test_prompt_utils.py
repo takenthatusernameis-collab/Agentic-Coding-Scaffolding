@@ -47,6 +47,7 @@ from prompt_utils import (
     has_leading_newline,
     has_letters,
     has_lowercase,
+    has_paragraphs,
     has_placeholders,
     has_punctuation,
     has_spaces,
@@ -1084,6 +1085,32 @@ class TestCountParagraphs(unittest.TestCase):
             count_paragraphs(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_paragraphs(None)  # type: ignore[arg-type]
+
+
+class TestHasParagraphs(unittest.TestCase):
+    def test_empty(self):
+        self.assertFalse(has_paragraphs(""))
+
+    def test_single_paragraph(self):
+        self.assertTrue(has_paragraphs("hello"))
+
+    def test_multi_line_single_paragraph(self):
+        self.assertTrue(has_paragraphs("hello\nworld"))
+
+    def test_multiple_paragraphs(self):
+        self.assertTrue(has_paragraphs("hello\n\nworld"))
+
+    def test_all_blank(self):
+        self.assertFalse(has_paragraphs("\n\n"))
+
+    def test_crlf(self):
+        self.assertTrue(has_paragraphs("a\r\n\r\nb"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_paragraphs(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_paragraphs(None)  # type: ignore[arg-type]
 
 
 class TestCountWords(unittest.TestCase):

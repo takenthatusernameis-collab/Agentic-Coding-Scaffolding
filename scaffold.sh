@@ -25005,6 +25005,7 @@ from prompt_utils import (
     has_leading_newline,
     has_letters,
     has_lowercase,
+    has_paragraphs,
     has_placeholders,
     has_punctuation,
     has_spaces,
@@ -26042,6 +26043,32 @@ class TestCountParagraphs(unittest.TestCase):
             count_paragraphs(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_paragraphs(None)  # type: ignore[arg-type]
+
+
+class TestHasParagraphs(unittest.TestCase):
+    def test_empty(self):
+        self.assertFalse(has_paragraphs(""))
+
+    def test_single_paragraph(self):
+        self.assertTrue(has_paragraphs("hello"))
+
+    def test_multi_line_single_paragraph(self):
+        self.assertTrue(has_paragraphs("hello\nworld"))
+
+    def test_multiple_paragraphs(self):
+        self.assertTrue(has_paragraphs("hello\n\nworld"))
+
+    def test_all_blank(self):
+        self.assertFalse(has_paragraphs("\n\n"))
+
+    def test_crlf(self):
+        self.assertTrue(has_paragraphs("a\r\n\r\nb"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_paragraphs(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_paragraphs(None)  # type: ignore[arg-type]
 
 
 class TestCountWords(unittest.TestCase):
@@ -38389,6 +38416,7 @@ __all__: List[str] = [
     "has_leading_newline",
     "has_trailing_newline",
     "count_paragraphs",
+    "has_paragraphs",
     "count_characters",
     "count_non_whitespace_characters",
     "count_whitespace_characters",
@@ -39838,6 +39866,40 @@ def count_paragraphs(text: str) -> int:
             in_paragraph = True
             count += 1
     return count
+
+
+def has_paragraphs(text: str) -> bool:
+    """Return True if *text* contains at least one paragraph.
+
+    A paragraph is a run of one or more non-blank lines separated from other
+    paragraphs by one or more blank (whitespace-only) lines. This is a
+    boolean companion to :func:`count_paragraphs`; it returns ``True`` when
+    *text* contains one or more paragraphs and ``False`` otherwise.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one paragraph, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_paragraphs("")
+        False
+        >>> has_paragraphs("hello")
+        True
+        >>> has_paragraphs("hello\\nworld")
+        True
+        >>> has_paragraphs("hello\\n\\nworld")
+        True
+        >>> has_paragraphs("\\n\\n")
+        False
+    """
+    _require_string(text, "text")
+    return count_paragraphs(text) > 0
 
 
 def count_characters(text: str) -> int:
@@ -56735,6 +56797,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_paragraphs to prompt_utils
+
+- Added `has_paragraphs(text)` to `prompt_utils.py` as a boolean companion to `count_paragraphs` and `truncate_paragraphs`. It returns `True` when `count_paragraphs(text) > 0`, reusing the paragraph-splitting logic already in `count_paragraphs`/`truncate_paragraphs`, accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasParagraphs` to `tests/test_prompt_utils.py` covering empty string (False), single line (True), single multi-line paragraph (True), multiple paragraphs (True), blank-only text (False), CRLF normalization, and the `TypeError` path; imported `has_paragraphs` to match the module's `__all__` contract.
+- Updated the `prompt_utils` module tree entry and prose section of `README.md` to document `has_paragraphs`.
+
 ## Unreleased — added truncate_paragraphs to prompt_utils
 
 - Added `truncate_paragraphs(text, max_paragraphs, suffix="...")` to `prompt_utils.py` as a paragraph-level companion to `truncate_prompt`, `truncate_words`, and `truncate_lines`. It splits *text* into paragraph blocks (runs of non-blank lines separated by blank lines), keeps the first *max_paragraphs* paragraphs joined by a single blank line, and appends *suffix* when paragraphs are removed; leading/trailing blank lines outside the kept paragraphs are dropped, matching the truncation semantics of the other truncate_* helpers. Accepts typed arguments, raises `TypeError`/`ValueError` on invalid input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestTruncateParagraphs` (18 tests) to `tests/test_prompt_utils.py` covering no-truncation, exact, truncation, multi-line paragraphs, zero paragraphs, custom/empty suffix, leading/trailing blank-line handling, consecutive blank separators, CRLF normalization, empty text, type/value errors, and consistency with `count_paragraphs`.
@@ -58975,7 +59042,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -59843,7 +59910,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `has_paragraphs`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

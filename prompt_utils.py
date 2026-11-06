@@ -55,6 +55,7 @@ __all__: List[str] = [
     "has_leading_newline",
     "has_trailing_newline",
     "count_paragraphs",
+    "has_paragraphs",
     "count_characters",
     "count_non_whitespace_characters",
     "count_whitespace_characters",
@@ -1504,6 +1505,40 @@ def count_paragraphs(text: str) -> int:
             in_paragraph = True
             count += 1
     return count
+
+
+def has_paragraphs(text: str) -> bool:
+    """Return True if *text* contains at least one paragraph.
+
+    A paragraph is a run of one or more non-blank lines separated from other
+    paragraphs by one or more blank (whitespace-only) lines. This is a
+    boolean companion to :func:`count_paragraphs`; it returns ``True`` when
+    *text* contains one or more paragraphs and ``False`` otherwise.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one paragraph, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_paragraphs("")
+        False
+        >>> has_paragraphs("hello")
+        True
+        >>> has_paragraphs("hello\\nworld")
+        True
+        >>> has_paragraphs("hello\\n\\nworld")
+        True
+        >>> has_paragraphs("\\n\\n")
+        False
+    """
+    _require_string(text, "text")
+    return count_paragraphs(text) > 0
 
 
 def count_characters(text: str) -> int:
