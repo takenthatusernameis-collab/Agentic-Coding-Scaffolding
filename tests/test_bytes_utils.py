@@ -42,6 +42,7 @@ from bytes_utils import (
     upper,
     xor,
 )
+import bytes_utils
 
 
 class TestBytesUtils(unittest.TestCase):
@@ -512,8 +513,36 @@ class TestRemoveSuffix(unittest.TestCase):
             removesuffix(b"hello", 123)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestRSplit(unittest.TestCase):
+    def test_rsplit_basic(self):
+        self.assertEqual(bytes_utils.rsplit(b"a b c", None, 1), [b"a b", b"c"])
+        self.assertEqual(bytes_utils.rsplit(b"a b c", None, 2), [b"a", b"b", b"c"])
+        self.assertEqual(bytes_utils.rsplit(b"a,b,c", b",", 1), [b"a,b", b"c"])
+        self.assertEqual(bytes_utils.rsplit(b"a,b,c", b",", -1), [b"a", b"b", b"c"])
+
+    def test_rsplit_whitespace_boundaries(self):
+        self.assertEqual(bytes_utils.rsplit(b"a b c", None, 0), [b"a b c"])
+        self.assertEqual(bytes_utils.rsplit(b"   ", None), [])
+        self.assertEqual(bytes_utils.rsplit(b"", None), [])
+        self.assertEqual(bytes_utils.rsplit(bytearray(b"a b"), None, 1), [b"a", b"b"])
+
+    def test_rsplit_sep_edges(self):
+        self.assertEqual(bytes_utils.rsplit(b"", b","), [b""])
+        self.assertEqual(bytes_utils.rsplit(b"a", b","), [b"a"])
+        self.assertEqual(bytes_utils.rsplit(bytearray(b"a,b"), bytearray(b","), 1), [b"a", b"b"])
+        with self.assertRaises(ValueError):
+            bytes_utils.rsplit(b"a", b"")
+
+    def test_rsplit_type_errors(self):
+        with self.assertRaises(TypeError):
+            bytes_utils.rsplit("a b")
+        with self.assertRaises(TypeError):
+            bytes_utils.rsplit(b"a b", sep=1)
+        with self.assertRaises(TypeError):
+            bytes_utils.rsplit(b"a b", maxsplit=True)
+
+
+
 
 
 class TestSplitlines(unittest.TestCase):

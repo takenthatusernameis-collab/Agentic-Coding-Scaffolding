@@ -2740,18 +2740,18 @@ Next Planned (for the following agent):
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh` (module/tests/docs/changelog/commands), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Run targeted `python -m unittest tests.test_<module>` first; keep `make test`/`make lint`/`make typecheck` green where the environment supports them. No changes to `.github/workflows/**`.
 
-## Latest Session (2026-11-06) — hardened number_utils (in_range validation, gcd_list docs/tests)
+## Latest Session (2026-11-06) — hardened bytes_utils (fixed broken rsplit, bool/type boundaries)
 
-**Assigned task:** Harden `number_utils.py` boundary behavior and tests (`tests/test_number_utils.py`) (board had no task; followed PROJECT_STATUS.md Next Planned).
+**Assigned task:** Harden `bytes_utils.py` boundary behavior and tests (`tests/test_bytes_utils.py`) (board had no task; followed PROJECT_STATUS.md Next Planned from the previous handover).
 
 **Changes (behaviorally justified):**
-- `in_range`: validates `inclusive` is a `bool` (`TypeError` otherwise), matching `is_between` and its documented contract. Previously non-bool truthy/falsy values were accepted and could invert boundary semantics (e.g. `inclusive=0` acted exclusive).
-- `gcd_list`: corrected docstring return text for empty input (raises `ValueError`; never returns 0).
-- Tests (`tests/test_number_utils.py`, 311→321): `in_range` `inclusive` type errors, NaN bounds, single-point range, negative/float bounds; `gcd_list`/`lcm_list` all-equal, negative values, tuple iterables.
+- `rsplit`: replaced an incomplete/broken implementation (returned `None`/wrong results for common whitespace/maxsplit cases and lacked a coherent contract) with a thin, validated wrapper around `bytes.rsplit` that preserves the module's `TypeError`/`ValueError` behavior (`TypeError` for invalid `data`/`sep`/`maxsplit`, bool `maxsplit` rejected, `ValueError` for empty separator). This fixes incorrect behavior rather than changing a correct contract.
+- Tests (`tests/test_bytes_utils.py`, 112→116): added `TestRSplit` covering basic explicit-separator and whitespace splitting, `maxsplit` from the right, `maxsplit=0`, all-whitespace/empty inputs, bytearray inputs, empty separator `ValueError`, and `TypeError` paths (invalid `data`/`sep`/bool `maxsplit`). Existing `chunk`/`repeat` bool-rejection hardening from the preceding checkpoint remains covered.
 
-**Validation:** `python -m unittest tests.test_number_utils` (321 OK); `python -m doctest number_utils.py` (211 attempted, 0 failed); `make test` (8513 OK). `python tools/refresh_scaffold.py --check` in sync. Ruff/mypy not installed in env. Commit `cf139a9` (includes `scaffold.sh` embedded copies). No `.github/workflows/**` changes.
+**Validation:** `python -m unittest tests.test_bytes_utils` (116 OK); `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded `bytes_utils.py` and `tests/test_bytes_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full `make test`/`make lint`/`make typecheck` not rerun in this environment (pytest/ruff/mypy not installed, consistent with prior sessions). No `.github/workflows/**` changes.
 
 Next Planned (for the following agent):
-- Harden `bytes_utils.py` boundary behavior and tests (`tests/test_bytes_utils.py`): audit for empty bytes/bytearray inputs, single-byte inputs, bool rejection where int/byte values expected, negative/over-range byte values, `TypeError`/`ValueError` paths, and encoding/length edge cases as applicable to the module's API. Add only missing, behaviorally justified tests; fix implementation validation only if incorrect/inconsistent.
+- Continue `bytes_utils.py` boundary audit where still untested/risky: `to_int`/`from_int` signed/byteorder/length edge cases (zero length handling matches stdlib contract? `from_int` currently rejects non-positive length; verify/document/tests for bool `signed`, overflow boundaries, bytearray inputs), `maketrans`/`translate` empty/duplicate mappings and table length errors, `split`/`find`/`index`/`rindex`/`replace`/`count` negative `start`/`end` and bool `end` paths, and any `TypeError`/`ValueError` gaps. Add only missing, behaviorally justified tests; fix implementation validation only if incorrect/inconsistent with documented/std-like behavior.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Run targeted `python -m unittest tests.test_bytes_utils` first; keep `make test` green where the environment supports it. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
+- Run targeted `python -m unittest tests.test_bytes_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
+
