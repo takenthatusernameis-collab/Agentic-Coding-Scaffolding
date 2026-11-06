@@ -23555,6 +23555,7 @@ from string_utils import (
     damerau_levenshtein_distance,
     dedent_text,
     hamming_distance,
+    has_words,
     indent_text,
     is_anagram,
     is_isogram,
@@ -24450,6 +24451,40 @@ class TestCountWords(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     count_words(value)  # type: ignore[arg-type]
+
+
+class TestHasWords(unittest.TestCase):
+    def test_single_word(self):
+        self.assertTrue(has_words("hello"))
+
+    def test_multiple_words(self):
+        self.assertTrue(has_words("hello world"))
+
+    def test_empty(self):
+        self.assertFalse(has_words(""))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_words("   "))
+
+    def test_leading_trailing_whitespace(self):
+        self.assertTrue(has_words("  hello  "))
+
+    def test_multiple_spaces_between_words(self):
+        self.assertTrue(has_words("a   b   c"))
+
+    def test_unicode_words(self):
+        self.assertTrue(has_words("héllo wörld"))
+
+    def test_consistency_with_count_words(self):
+        for text in ("", "   ", "hello", "hello world", "  a  b  ", "héllo"):
+            with self.subTest(text=repr(text)):
+                self.assertEqual(has_words(text), count_words(text) > 0)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    has_words(value)  # type: ignore[arg-type]
 
 
 class TestLevenshteinDistance(unittest.TestCase):
@@ -35866,6 +35901,7 @@ __all__: List[str] = [
     "split_paragraphs",
     "cosine_similarity",
     "count_words",
+    "has_words",
     "levenshtein_distance",
     "levenshtein_similarity",
     "hamming_distance",
@@ -36605,6 +36641,34 @@ def count_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text.split())
+
+
+def has_words(text: str) -> bool:
+    """Return True if *text* contains at least one whitespace-delimited word.
+
+    This is a boolean companion to :func:`count_words`; it returns ``True``
+    when *text* contains one or more whitespace-delimited words and ``False``
+    otherwise (including empty or whitespace-only text).
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one word, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_words("Hello world")
+        True
+        >>> has_words("")
+        False
+        >>> has_words("   ")
+        False
+    """
+    _require_string(text, "text")
+    return count_words(text) > 0
 
 
 def levenshtein_distance(text1: str, text2: str) -> int:
@@ -58199,6 +58263,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_words to string_utils
+
+- Added `has_words(text)` to `string_utils.py` as the boolean companion to `count_words`. `string_utils.py` had `count_words(text)` (returning `len(text.split())`) but no `has_words` boolean counterpart. It returns `True` when *text* contains at least one whitespace-delimited word and `False` for empty or whitespace-only text, reusing `count_words` for consistency. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasWords` to `tests/test_string_utils.py` covering empty, whitespace-only, single/multiple words, leading/trailing whitespace, multiple spaces between words, unicode, consistency with `count_words`, and the `TypeError` path; imported `has_words` to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_string_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_words`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_characters to prompt_utils
 
 - Added `has_characters(text)` to `prompt_utils.py` as a boolean companion to `count_characters`. It returns `True` when *text* contains at least one character (including whitespace) and `False` for empty text, accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasCharacters` to `tests/test_prompt_utils.py` covering single/multiple characters, empty input, whitespace-only input, consistency with `count_characters`, and the `TypeError` path; imported `has_characters` to match the module's `__all__` contract. Updated the `prompt_utils` module tree/prose entries of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_characters`. No changes to `.github/workflows/**`.
@@ -60571,7 +60639,7 @@ csv_utils.py             # CSV utility functions (read/write/append as dicts or 
 set_utils.py             # Set operation utilities (subset, superset, disjoint, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs, count_words, levenshtein_distance, hamming_distance, damerau_levenshtein_distance, is_pangram)
+string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs, count_words, has_words, levenshtein_distance, hamming_distance, damerau_levenshtein_distance, is_pangram)
 tree_utils.py              # Tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
 type_utils.py              # Type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe, is_literal, is_type_var, is_class_var, is_callable, is_tuple, is_list_type, is_dict_type, is_none_type, is_any, unwrap_optional, get_origin_name)
 type_check_utils.py        # Type checking utilities (is_str, is_int, is_float, is_bool, is_list, is_dict, is_tuple, is_set, is_frozenset, is_none, is_numeric, is_iterable, is_callable, ensure_type, coerce_to_str) with input validation
@@ -61277,7 +61345,7 @@ The project includes a statistical utilities module in `statistics_utils.py` wit
 
 ## String Utilities Module
 
-The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `is_anagram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, `split_paragraphs`, and `count_words`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `is_anagram` checks whether two strings contain the same characters in the same quantities, ignoring case and whitespace. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. `count_words` counts whitespace-delimited words. `levenshtein_distance` computes the minimum number of single-character edits (insertions, deletions, or substitutions) needed to transform one string into another, using a dynamic-programming algorithm. `hamming_distance` counts the positions at which two equal-length strings differ, and `damerau_levenshtein_distance` extends Levenshtein with adjacent-character transpositions counted as a single edit. `is_pangram` reports whether a string contains every letter of the English alphabet at least once, case-insensitively and ignoring non-alphabetic characters. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
+The project includes a string utilities module in `string_utils.py` with advanced string manipulation functions: `slugify`, `camel_to_snake`, `snake_to_camel`, `is_isogram`, `is_anagram`, `pluralize`, `truncate`, `wrap_text`, `wrap_words`, `indent_text`, `remove_extra_whitespace`, `remove_blank_lines`, `truncate_words`, `title_case`, `dedent_text`, `reverse_words`, `split_paragraphs`, and `count_words`. `split_paragraphs` splits text into paragraphs separated by blank lines, normalizing line endings and ignoring empty paragraphs. `wrap_words` is a word-aware wrapper that greedily packs words into lines (optionally breaking long words), while `truncate_words` truncates to a maximum number of words. `is_isogram` checks whether a string contains no repeating letters. `is_anagram` checks whether two strings contain the same characters in the same quantities, ignoring case and whitespace. `dedent_text` is the inverse of `indent_text`: it removes the common leading whitespace from every line. `count_words` counts whitespace-delimited words. `has_words` is the boolean companion to `count_words`, returning ``True`` when *text* contains at least one whitespace-delimited word and ``False`` for empty or whitespace-only text. `levenshtein_distance` computes the minimum number of single-character edits (insertions, deletions, or substitutions) needed to transform one string into another, using a dynamic-programming algorithm. `hamming_distance` counts the positions at which two equal-length strings differ, and `damerau_levenshtein_distance` extends Levenshtein with adjacent-character transpositions counted as a single edit. `is_pangram` reports whether a string contains every letter of the English alphabet at least once, case-insensitively and ignoring non-alphabetic characters. Each function validates its inputs and raises `TypeError` for non-string arguments where appropriate. The module is tested in `tests/test_string_utils.py`.
 
 ## Type Utilities Module
 

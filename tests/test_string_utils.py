@@ -10,6 +10,7 @@ from string_utils import (
     damerau_levenshtein_distance,
     dedent_text,
     hamming_distance,
+    has_words,
     indent_text,
     is_anagram,
     is_isogram,
@@ -905,6 +906,40 @@ class TestCountWords(unittest.TestCase):
             with self.subTest(value=value):
                 with self.assertRaises(TypeError):
                     count_words(value)  # type: ignore[arg-type]
+
+
+class TestHasWords(unittest.TestCase):
+    def test_single_word(self):
+        self.assertTrue(has_words("hello"))
+
+    def test_multiple_words(self):
+        self.assertTrue(has_words("hello world"))
+
+    def test_empty(self):
+        self.assertFalse(has_words(""))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_words("   "))
+
+    def test_leading_trailing_whitespace(self):
+        self.assertTrue(has_words("  hello  "))
+
+    def test_multiple_spaces_between_words(self):
+        self.assertTrue(has_words("a   b   c"))
+
+    def test_unicode_words(self):
+        self.assertTrue(has_words("héllo wörld"))
+
+    def test_consistency_with_count_words(self):
+        for text in ("", "   ", "hello", "hello world", "  a  b  ", "héllo"):
+            with self.subTest(text=repr(text)):
+                self.assertEqual(has_words(text), count_words(text) > 0)
+
+    def test_non_string_types(self):
+        for value in (None, 123, 3.14, ["a"], {"a": 1}):
+            with self.subTest(value=value):
+                with self.assertRaises(TypeError):
+                    has_words(value)  # type: ignore[arg-type]
 
 
 class TestLevenshteinDistance(unittest.TestCase):
