@@ -2628,7 +2628,7 @@ def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
         A list of lines without line-ending characters.
 
     Raises:
-        TypeError: If *text* is not a string.
+        TypeError: If *text* is not a string, or *keep_empty* is not a bool.
 
     Examples:
         >>> split_lines("a\\nb\\nc")
@@ -2641,6 +2641,10 @@ def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
         []
     """
     _require_string(text, "text")
+    if not isinstance(keep_empty, bool):
+        raise TypeError(
+            f"keep_empty must be a bool, got {type(keep_empty).__name__}"
+        )
     if not text:
         return []
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")

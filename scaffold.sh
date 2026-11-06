@@ -26742,13 +26742,13 @@ class TestSplitLines(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(split_lines("a\nb\nc"), ["a", "b", "c"])
 
-    def test_empty_text(self):
+    def test_empty(self):
         self.assertEqual(split_lines(""), [])
 
     def test_trailing_newline(self):
         self.assertEqual(split_lines("a\nb\n"), ["a", "b"])
 
-    def test_empty_lines_kept(self):
+    def test_preserves_empty_lines(self):
         self.assertEqual(split_lines("a\n\nb"), ["a", "", "b"])
 
     def test_keep_empty_false(self):
@@ -26762,6 +26762,14 @@ class TestSplitLines(unittest.TestCase):
             split_lines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             split_lines(None)  # type: ignore[arg-type]
+
+    def test_keep_empty_type_error(self):
+        with self.assertRaises(TypeError):
+            split_lines("a\n\nb", keep_empty=0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            split_lines("a\n\nb", keep_empty="no")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            split_lines("a\n\nb", keep_empty=None)  # type: ignore[arg-type]
 
 
 class TestIsBlank(unittest.TestCase):
@@ -41197,7 +41205,7 @@ def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
         A list of lines without line-ending characters.
 
     Raises:
-        TypeError: If *text* is not a string.
+        TypeError: If *text* is not a string, or *keep_empty* is not a bool.
 
     Examples:
         >>> split_lines("a\\nb\\nc")
@@ -41210,6 +41218,10 @@ def split_lines(text: str, *, keep_empty: bool = True) -> List[str]:
         []
     """
     _require_string(text, "text")
+    if not isinstance(keep_empty, bool):
+        raise TypeError(
+            f"keep_empty must be a bool, got {type(keep_empty).__name__}"
+        )
     if not text:
         return []
     normalized = text.replace("\r\n", "\n").replace("\r", "\n")
