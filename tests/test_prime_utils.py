@@ -16,6 +16,7 @@ from prime_utils import (
     is_coprime,
     is_cousin_prime,
     is_cuban_prime,
+    is_proth_prime,
     is_deficient_number,
     is_emirp,
     is_fermat_number,
@@ -1923,3 +1924,31 @@ class TestIsCubanPrime(unittest.TestCase):
             is_cuban_prime("7")
         with self.assertRaises(TypeError):
             is_cuban_prime(True)
+
+
+class TestIsProthPrime(unittest.TestCase):
+    def test_known_proth_primes(self):
+        # k*2**m+1 primes with k < 2**m, k odd
+        for n in (3, 5, 13, 17, 41, 97, 113, 193, 241, 257, 353, 449, 577, 641, 673, 769):
+            self.assertTrue(is_proth_prime(n), n)
+
+    def test_primes_that_are_not_proth(self):
+        # 7 = 3*2+1 but 3 < 2? no -> not Proth; 11: 5*2+1, 5<2 no
+        for n in (7, 11, 23, 31, 47, 59, 71, 79, 83):
+            self.assertFalse(is_proth_prime(n), n)
+
+    def test_non_primes(self):
+        for n in (1, 4, 6, 8, 9, 10, 15, 21, 25, 100):
+            self.assertFalse(is_proth_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, -1, -5, 2):
+            self.assertFalse(is_proth_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_proth_prime(5.0)
+        with self.assertRaises(TypeError):
+            is_proth_prime("5")
+        with self.assertRaises(TypeError):
+            is_proth_prime(True)

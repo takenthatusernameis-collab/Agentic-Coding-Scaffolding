@@ -63,6 +63,7 @@ __all__: List[str] = [
     "is_happy_prime",
     "is_weak_prime",
     "is_cuban_prime",
+    "is_proth_prime",
 ]
 
 
@@ -1941,3 +1942,51 @@ def primes_between(lower: int, upper: int) -> List[int]:
     if upper < 2:
         return []
     return [p for p in primes_up_to(upper) if p >= lower]
+
+
+def is_proth_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a Proth prime.
+
+    A Proth number is a number of the form ``k * 2**m + 1`` where *k* is an
+    odd positive integer and ``k < 2**m``. A Proth prime is a Proth number
+    that is also prime (OEIS A080076 lists Proth primes; the first few are
+    3, 5, 13, 17, 41, 97, 113, 193, 241, 257, ...).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a Proth prime, ``False`` otherwise. Returns
+        ``False`` for non-primes and for primes not expressible in Proth form.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_proth_prime(3)
+        True
+        >>> is_proth_prime(5)
+        True
+        >>> is_proth_prime(13)
+        True
+        >>> is_proth_prime(17)
+        True
+        >>> is_proth_prime(41)
+        True
+        >>> is_proth_prime(7)
+        False
+        >>> is_proth_prime(11)
+        False
+        >>> is_proth_prime(2)
+        False
+    """
+    _require_int(n, "n")
+    if n <= 2 or not is_prime(n):
+        return False
+    value = n - 1
+    m = 0
+    while value % 2 == 0:
+        value //= 2
+        m += 1
+    # value is odd k, and n = k * 2**m + 1; Proth requires k < 2**m
+    return m >= 1 and value < (1 << m)
