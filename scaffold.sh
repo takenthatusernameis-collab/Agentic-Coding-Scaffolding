@@ -55308,7 +55308,9 @@ class SemanticVersion:
 
     def __hash__(self) -> int:
         return hash((self.release_tuple(), self.prerelease))
-    def __lt__(self, other: "SemanticVersion") -> bool:
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, SemanticVersion):
+            return NotImplemented  # type: ignore[return-value]
         if self.release_tuple() != other.release_tuple():
             return self.release_tuple() < other.release_tuple()
         if self.prerelease is None and other.prerelease is None:
@@ -55319,13 +55321,19 @@ class SemanticVersion:
             return True
         return _compare_prerelease(self.prerelease, other.prerelease) < 0
 
-    def __le__(self, other: "SemanticVersion") -> bool:
+    def __le__(self, other: object) -> bool:
+        if not isinstance(other, SemanticVersion):
+            return NotImplemented  # type: ignore[return-value]
         return self < other or self == other
 
-    def __gt__(self, other: "SemanticVersion") -> bool:
-        return not (self <= other)
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, SemanticVersion):
+            return NotImplemented  # type: ignore[return-value]
+        return other < self
 
-    def __ge__(self, other: "SemanticVersion") -> bool:
+    def __ge__(self, other: object) -> bool:
+        if not isinstance(other, SemanticVersion):
+            return NotImplemented  # type: ignore[return-value]
         return not (self < other)
 
     def is_prerelease(self) -> bool:
@@ -55396,8 +55404,8 @@ def _compare_prerelease(a: str, b: str) -> int:
     a_parts = a.split(".")
     b_parts = b.split(".")
     for left, right in zip(a_parts, b_parts):
-        left_digit = left.isdigit()
-        right_digit = right.isdigit()
+        left_digit = left.isdigit() and left.isascii()
+        right_digit = right.isdigit() and right.isascii()
         if left_digit and right_digit:
             li, ri = int(left), int(right)
             if li < ri:
