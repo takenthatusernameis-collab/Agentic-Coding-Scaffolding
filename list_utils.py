@@ -113,29 +113,56 @@ def safe_get(lst: List[T], index: int, default: Optional[T] = None) -> Optional[
 
 
 def find(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
-    """Return the first element in the list that satisfies the predicate.
+    """Find the first element in a list satisfying a predicate.
 
     Args:
         lst: The list to search.
-        predicate: A function that returns ``True`` for the desired element.
+        predicate: A function that returns True for the desired element.
 
     Returns:
-        The first matching element, or ``None`` if no element matches.
+        The first matching element, or None if no match is found.
 
     Raises:
-        TypeError: If ``lst`` is not a list.
+        TypeError: If lst is not a list.
 
     Examples:
-        >>> find([1, 2, 3], lambda x: x > 2)
+        >>> find([1, 2, 3, 4], lambda x: x > 2)
         3
-        >>> find([1, 2, 3], lambda x: x > 5)
-
+        >>> find([1, 2, 3], lambda x: x > 10) is None
+        True
     """
     if not isinstance(lst, list):
-        raise TypeError("lst must be a list")
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
     for item in lst:
         if predicate(item):
             return item
+    return None
+
+
+def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
+    """Find the index of the first element in a list satisfying a predicate.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for the desired element.
+
+    Returns:
+        The index of the first matching element, or None if no match is found.
+
+    Raises:
+        TypeError: If lst is not a list.
+
+    Examples:
+        >>> find_index([10, 20, 30], lambda x: x == 20)
+        1
+        >>> find_index([1, 2, 3], lambda x: x > 10) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for i, item in enumerate(lst):
+        if predicate(item):
+            return i
     return None
 
 

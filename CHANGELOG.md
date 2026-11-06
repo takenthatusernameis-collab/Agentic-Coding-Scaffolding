@@ -2122,6 +2122,10 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
+## Unreleased — added `find_index` to `list_utils`
+
+- Added `find_index(lst, predicate)` to `list_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-list arguments; it returns the index of the first matching element or `None` when no match is found. Added `TestFindIndex` to `tests/test_list_utils.py` (7 new tests) covering basic/edge cases and the `TypeError` path. Updated the `list_utils` module tree entry and prose section of `README.md` to include `find_index`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added has_whitespace to prompt_utils
 
 - Added `has_whitespace(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one whitespace character and `False` otherwise, serving as a boolean companion to whitespace-counting helpers. Added `TestHasWhitespace` to `tests/test_prompt_utils.py` covering whitespace, tabs/newlines, strings without whitespace, empty input, and the `TypeError` path (5 new tests). Imported `has_whitespace` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md` to include `has_whitespace`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_prompt_utils.py -v` passes.

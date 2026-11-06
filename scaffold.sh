@@ -32209,29 +32209,56 @@ def safe_get(lst: List[T], index: int, default: Optional[T] = None) -> Optional[
 
 
 def find(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
-    """Return the first element in the list that satisfies the predicate.
+    """Find the first element in a list satisfying a predicate.
 
     Args:
         lst: The list to search.
-        predicate: A function that returns ``True`` for the desired element.
+        predicate: A function that returns True for the desired element.
 
     Returns:
-        The first matching element, or ``None`` if no element matches.
+        The first matching element, or None if no match is found.
 
     Raises:
-        TypeError: If ``lst`` is not a list.
+        TypeError: If lst is not a list.
 
     Examples:
-        >>> find([1, 2, 3], lambda x: x > 2)
+        >>> find([1, 2, 3, 4], lambda x: x > 2)
         3
-        >>> find([1, 2, 3], lambda x: x > 5)
-
+        >>> find([1, 2, 3], lambda x: x > 10) is None
+        True
     """
     if not isinstance(lst, list):
-        raise TypeError("lst must be a list")
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
     for item in lst:
         if predicate(item):
             return item
+    return None
+
+
+def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
+    """Find the index of the first element in a list satisfying a predicate.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for the desired element.
+
+    Returns:
+        The index of the first matching element, or None if no match is found.
+
+    Raises:
+        TypeError: If lst is not a list.
+
+    Examples:
+        >>> find_index([10, 20, 30], lambda x: x == 20)
+        1
+        >>> find_index([1, 2, 3], lambda x: x > 10) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for i, item in enumerate(lst):
+        if predicate(item):
+            return i
     return None
 
 
@@ -32437,6 +32464,7 @@ from list_utils import (
     chunks,
     drop,
     find,
+    find_index,
     flatten,
     group_by,
     intersperse,
@@ -32713,6 +32741,34 @@ class TestUniquePreserveOrder(unittest.TestCase):
     def test_unique_preserve_order_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             unique_preserve_order("not a list")  # type: ignore[arg-type]
+
+
+class TestFindIndex(unittest.TestCase):
+    def test_find_index_basic(self) -> None:
+        self.assertEqual(find_index([10, 20, 30], lambda x: x == 20), 1)
+
+    def test_find_index_first(self) -> None:
+        self.assertEqual(find_index([5, 6, 7], lambda x: x == 5), 0)
+
+    def test_find_index_last(self) -> None:
+        self.assertEqual(find_index([5, 6, 7], lambda x: x == 7), 2)
+
+    def test_find_index_not_found(self) -> None:
+        self.assertIsNone(find_index([1, 2, 3], lambda x: x > 10))
+
+    def test_find_index_empty(self) -> None:
+        self.assertIsNone(find_index([], lambda x: True))
+
+    def test_find_index_strings(self) -> None:
+        self.assertEqual(find_index(["a", "bb", "ccc"], lambda s: len(s) == 2), 1)
+
+    def test_find_index_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_index("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTLISTUTILS
 
 # --- locale_utils.py ---
@@ -58612,6 +58668,10 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
+## Unreleased — added `find_index` to `list_utils`
+
+- Added `find_index(lst, predicate)` to `list_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-list arguments; it returns the index of the first matching element or `None` when no match is found. Added `TestFindIndex` to `tests/test_list_utils.py` (7 new tests) covering basic/edge cases and the `TypeError` path. Updated the `list_utils` module tree entry and prose section of `README.md` to include `find_index`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — added has_whitespace to prompt_utils
 
 - Added `has_whitespace(text)` to `prompt_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-string arguments; it returns `True` when *text* contains at least one whitespace character and `False` otherwise, serving as a boolean companion to whitespace-counting helpers. Added `TestHasWhitespace` to `tests/test_prompt_utils.py` covering whitespace, tabs/newlines, strings without whitespace, empty input, and the `TypeError` path (5 new tests). Imported `has_whitespace` at the top of the test file to match the module's `__all__` contract. Updated the `prompt_utils` module tree entry and prose section of `README.md` to include `has_whitespace`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_prompt_utils.py -v` passes.
@@ -58734,7 +58794,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, drop, take, intersperse, chunks, flatten, unique_preserve_order)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, drop, take, intersperse, chunks, flatten, unique_preserve_order)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -59401,7 +59461,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `flatten`, `drop`, `take`, `intersperse`, and `chunks`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, and `unique_preserve_order`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

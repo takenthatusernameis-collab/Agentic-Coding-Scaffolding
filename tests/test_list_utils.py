@@ -6,6 +6,7 @@ from list_utils import (
     chunks,
     drop,
     find,
+    find_index,
     flatten,
     group_by,
     intersperse,
@@ -282,3 +283,31 @@ class TestUniquePreserveOrder(unittest.TestCase):
     def test_unique_preserve_order_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             unique_preserve_order("not a list")  # type: ignore[arg-type]
+
+
+class TestFindIndex(unittest.TestCase):
+    def test_find_index_basic(self) -> None:
+        self.assertEqual(find_index([10, 20, 30], lambda x: x == 20), 1)
+
+    def test_find_index_first(self) -> None:
+        self.assertEqual(find_index([5, 6, 7], lambda x: x == 5), 0)
+
+    def test_find_index_last(self) -> None:
+        self.assertEqual(find_index([5, 6, 7], lambda x: x == 7), 2)
+
+    def test_find_index_not_found(self) -> None:
+        self.assertIsNone(find_index([1, 2, 3], lambda x: x > 10))
+
+    def test_find_index_empty(self) -> None:
+        self.assertIsNone(find_index([], lambda x: True))
+
+    def test_find_index_strings(self) -> None:
+        self.assertEqual(find_index(["a", "bb", "ccc"], lambda s: len(s) == 2), 1)
+
+    def test_find_index_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_index("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
