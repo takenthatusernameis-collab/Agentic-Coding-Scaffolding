@@ -45,6 +45,7 @@ from prompt_utils import (
     first_line,
     format_prompt_template,
     has_alphanumeric,
+    has_characters,
     has_blank_lines,
     has_digits,
     has_leading_newline,
@@ -1415,6 +1416,28 @@ class TestHasUniqueWords(unittest.TestCase):
     def test_consistency_with_count_unique_words(self):
         for sample in ["", "hello", "hello world hello", "   ", "a a a"]:
             self.assertEqual(has_unique_words(sample), count_unique_words(sample) > 0)
+
+
+class TestHasCharacters(unittest.TestCase):
+    def test_has_characters(self):
+        self.assertTrue(has_characters("hello"))
+
+    def test_single_character(self):
+        self.assertTrue(has_characters("a"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_characters(""))
+
+    def test_whitespace_only(self):
+        self.assertTrue(has_characters("   "))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_characters(123)  # type: ignore[arg-type]
+
+    def test_consistency_with_count_characters(self):
+        for sample in ["", "hello", "hello world", "   ", "a"]:
+            self.assertEqual(has_characters(sample), count_characters(sample) > 0)
 
 
 class TestStripTrailingNewlines(unittest.TestCase):

@@ -60,6 +60,7 @@ __all__: List[str] = [
     "has_paragraphs",
     "has_words",
     "count_characters",
+    "has_characters",
     "count_non_whitespace_characters",
     "count_whitespace_characters",
     "count_spaces",
@@ -1661,6 +1662,35 @@ def count_characters(text: str) -> int:
     """
     _require_string(text, "text")
     return len(text)
+
+
+def has_characters(text: str) -> bool:
+    """Return True if *text* contains at least one character.
+
+    A boolean companion to :func:`count_characters`; it returns ``True``
+    when *text* contains one or more characters (including whitespace)
+    and ``False`` otherwise (empty text returns False).
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one character, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_characters("hello")
+        True
+        >>> has_characters("")
+        False
+        >>> has_characters("   ")
+        True
+    """
+    _require_string(text, "text")
+    return count_characters(text) > 0
 
 
 def reverse_lines(text: str) -> str:
