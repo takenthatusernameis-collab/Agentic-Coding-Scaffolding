@@ -1337,6 +1337,33 @@ def is_power_of_two(data: bytes) -> bool:
     return bit_count(data) == 1
 
 
+def is_all_ones(data: bytes) -> bool:
+    """Return True if *data* contains only 0xff bytes.
+
+    An empty input is considered all-ones and returns True.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if every byte is 0xff (or *data* is empty), False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> is_all_ones(from_hex("ffffff"))
+        True
+        >>> is_all_ones(from_hex("fffeff"))
+        False
+        >>> is_all_ones(b"")
+        True
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return all(b == 0xff for b in bytes(data))
+
+
 def has_null_byte(data: bytes) -> bool:
     """Return True if *data* contains at least one zero byte.
 
