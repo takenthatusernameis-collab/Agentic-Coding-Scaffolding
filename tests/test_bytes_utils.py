@@ -28,6 +28,8 @@ from bytes_utils import (
     isascii,
     isdigit,
     islower,
+    isprintable,
+    isidentifier,
     isspace,
     istitle,
     isupper,
@@ -305,10 +307,11 @@ class TestPredicates(unittest.TestCase):
             isascii,
             isdigit,
             islower,
+            isprintable,
+            isidentifier,
             isspace,
             istitle,
-    isupper,
-
+            isupper,
         ):
             with self.assertRaises(TypeError):
                 fn("abc")
@@ -1256,3 +1259,58 @@ class TestIsAllOnes(unittest.TestCase):
             is_all_ones(255)
         with self.assertRaises(TypeError):
             is_all_ones(None)
+
+
+class TestIsPrintable(unittest.TestCase):
+    def test_printable(self):
+        self.assertTrue(isprintable(b"hello"))
+        self.assertTrue(isprintable(b"hi there"))
+        self.assertTrue(isprintable(bytearray(b"abc")))
+        self.assertTrue(isprintable(b" !@#$%^&*()_+"))
+
+    def test_not_printable(self):
+        self.assertFalse(isprintable(b""))
+        self.assertFalse(isprintable(b"no\ttabs"))
+        self.assertFalse(isprintable(b"line\nbreak"))
+        self.assertFalse(isprintable(b"\x00\x01"))
+        self.assertFalse(isprintable(b"\x7f\x80"))
+
+    def test_bytearray(self):
+        self.assertTrue(isprintable(bytearray(b"abc")))
+        self.assertFalse(isprintable(bytearray(b"\t")))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            isprintable("abc")
+        with self.assertRaises(TypeError):
+            isprintable(123)
+        with self.assertRaises(TypeError):
+            isprintable(None)
+
+
+class TestIsIdentifier(unittest.TestCase):
+    def test_valid(self):
+        self.assertTrue(isidentifier(b"foo_bar"))
+        self.assertTrue(isidentifier(b"_private"))
+        self.assertTrue(isidentifier(bytearray(b"CamelCase")))
+
+    def test_invalid(self):
+        self.assertFalse(isidentifier(b"9abc"))
+        self.assertFalse(isidentifier(b""))
+        self.assertFalse(isidentifier(b"foo bar"))
+        self.assertFalse(isidentifier(b"caf\xc3\xa9"))
+
+    def test_non_ascii(self):
+        self.assertFalse(isidentifier(b"\xc3\xa9"))
+
+    def test_bytearray(self):
+        self.assertTrue(isidentifier(bytearray(b"foo")))
+        self.assertFalse(isidentifier(bytearray(b"123")))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            isidentifier("abc")
+        with self.assertRaises(TypeError):
+            isidentifier(123)
+        with self.assertRaises(TypeError):
+            isidentifier(None)

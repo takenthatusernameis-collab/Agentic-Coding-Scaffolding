@@ -992,6 +992,72 @@ def isupper(data: bytes) -> bool:
     return bytes(data).isupper()
 
 
+def isprintable(data: bytes) -> bool:
+    """Return True if *data* contains only printable bytes.
+
+    A byte is printable when it is in the ASCII printable range
+    (0x20-0x7E, including the space). An empty input is considered
+    non-printable and returns False, matching :meth:`str.isprintable`.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if every byte is printable, False otherwise (including empty).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isprintable(b"hello")
+        True
+        >>> isprintable(b"hi there")
+        True
+        >>> isprintable(b"")
+        False
+        >>> isprintable(b"no\ttabs")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    raw = bytes(data)
+    return bool(raw) and all(0x20 <= b <= 0x7E for b in raw)
+
+
+def isidentifier(data: bytes) -> bool:
+    """Return True if *data* is a valid ASCII Python identifier.
+
+    The bytes are decoded as ASCII and tested with
+    :meth:`str.isidentifier`. Non-ASCII or undecodable bytes make the
+    result False.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if *data* decodes to a valid identifier, False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isidentifier(b"foo_bar")
+        True
+        >>> isidentifier(b"9abc")
+        False
+        >>> isidentifier(b"")
+        False
+        >>> isidentifier(b"caf\xc3\xa9")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    try:
+        return bytes(data).decode("ascii").isidentifier()
+    except UnicodeDecodeError:
+        return False
+
+
 def join(iterable: object, sep: bytes = b"") -> bytes:
     """Join bytes-like items from *iterable* with *sep*.
 
