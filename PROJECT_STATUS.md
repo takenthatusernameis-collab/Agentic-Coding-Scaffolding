@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-06 12:31Z) — added is_power_of to numbers_utils
+
+The board held no task (bootstrap session). Verified repository health before starting: `git status` clean, recent commits checkpoint-only, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite (`python -m unittest discover tests/`) passed. Reviewed the durable "Next Planned" from the prior status: the two pending handover items were already complete — `has_paragraphs` already exists in `prompt_utils.py` (line 1510, exported in `__all__`, with `TestHasParagraphs` in `tests/test_prompt_utils.py`), and the duplicate `cosine_similarity` entry was already removed from `string_utils.__all__` (33 unique entries, verified via `Counter`). A systematic scan of every wrapper module's `__all__` confirmed no remaining duplicate or undefined export entries (UNDEF entries are legitimate re-exports of stdlib names). Took the fallback path: continued hardening `numbers_utils.py` with a focused, hermetic helper.
+
+Completed in this session:
+
+- Added `is_power_of(value, base)` to `numbers_utils.py` as a base-parameterized power predicate companion to `is_power_of_two`, `is_perfect_power`, `is_perfect_square`, and `is_perfect_cube`. It returns `True` when `base**k == value` for some integer `k >= 0`, handling positive/negative bases and the `base` 0/1/-1 edge cases, accepts typed `int` arguments, raises `TypeError` for non-int/bool arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsPowerOf` (31 tests) to `tests/test_numbers_utils.py` covering known powers, non-powers, negative bases, edge bases (0/1/-1), consistency with direct `base**k` computation, and the `TypeError` path; imported `is_power_of` to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` passes (148 tests); `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes; full suite (`python -m unittest discover tests/`) passes. `make lint`/`make typecheck` are unavailable in this environment (ruff and mypy not installed) but were not required by this change.
+- No changes to `.github/workflows/**`. Committed as `3b73437 feat(numbers_utils): add is_power_of predicate with tests and refresh scaffold`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `version_utils.py`, `prompt_utils.py`, `prime_utils.py`, `bytes_utils.py`, or `stats.py` if a clear gap exists). Pick one focused helper (not a broad refactor).
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings with doctests where practical (keep doctest literals ASCII-safe), validation raising `TypeError`/`ValueError`.
+- Keep `make test`/targeted checks green (pytest may be unavailable; use `python -m unittest` and targeted module/doctest checks). If touching anything embedded in `scaffold.sh` (modules/tests/docs/changelog/scaffold templates/commands), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`.
+
 ## Latest Session (2026-11-06 06:58Z) — hardened number_utils boundary/NaN/inf/bool tests (no behavior changes)
 
 The board held no task (bootstrap session). Executed the durable "Next Planned" from the prior status: audited `number_utils.py` and `tests/test_number_utils.py` for boundary cases, bool rejection, `NaN`/`inf` handling, and `TypeError`/`ValueError` paths. No implementation gaps required fixes; `clamp`/`clamp01` already reject `NaN` with `ValueError`, `integer_nth_root` validates integer-valued/non-negative-degree/even-root-negative cases, `is_finite`/`is_infinite`/`is_nan`/`is_even`/`is_odd`/`is_integer` handle non-finite floats correctly, and int-only helpers reject `bool`/non-int types consistently.
