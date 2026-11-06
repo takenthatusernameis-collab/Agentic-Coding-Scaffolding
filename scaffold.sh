@@ -32107,6 +32107,7 @@ __all__ = [
     "chunks",
     "drop",
     "find",
+    "find_index",
     "flatten",
     "group_by",
     "intersperse",
