@@ -81284,6 +81284,7 @@ from number_utils import (
     additive_persistence,
     ceil_div,
     clamp,
+    clamp01,
     digit_count,
     digit_product,
     digit_sum,
@@ -81360,6 +81361,44 @@ class TestClamp(unittest.TestCase):
         with self.assertRaises(ValueError):
             clamp(5, 10, 0)
 
+    def test_nan_raises(self) -> None:
+        for args in (
+            (float("nan"), 0, 1),
+            (0, float("nan"), 1),
+            (0, 0, float("nan")),
+        ):
+            with self.assertRaises(ValueError):
+                clamp(*args)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            clamp("x", 0, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(0, True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp(0, 0, None)  # type: ignore[arg-type]
+
+
+class TestClamp01(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(clamp01(0.5), 0.5)
+        self.assertEqual(clamp01(-1), 0)
+        self.assertEqual(clamp01(2), 1)
+        self.assertEqual(clamp01(0.0), 0.0)
+        self.assertEqual(clamp01(1.0), 1.0)
+
+    def test_nan_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            clamp01(float("nan"))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            clamp01("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp01(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clamp01(None)  # type: ignore[arg-type]
+
 
 class TestRoundTo(unittest.TestCase):
     def test_default(self) -> None:
@@ -81367,6 +81406,25 @@ class TestRoundTo(unittest.TestCase):
 
     def test_places(self) -> None:
         self.assertEqual(round_to(3.14159, 2), 3.14)
+
+    def test_negative_places_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            round_to(1.23, -1)
+
+    def test_special_floats(self) -> None:
+        import math
+
+        self.assertTrue(math.isnan(round_to(float("nan"), 2)))
+        self.assertTrue(math.isinf(round_to(float("inf"), 2)))
+        self.assertTrue(math.isinf(round_to(float("-inf"), 2)))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            round_to("x", 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            round_to(1.23, 2.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            round_to(1.23, True)  # type: ignore[arg-type]
 
 
 class TestRoundHalfUp(unittest.TestCase):
@@ -81473,25 +81531,32 @@ class TestLerp(unittest.TestCase):
             lerp("a", 10, 0.5)  # type: ignore[arg-type]
 
 
-class TestSign:
-    def test_negative(self):
+class TestSign(unittest.TestCase):
+    def test_negative(self) -> None:
+        self.assertEqual(sign(-5), -1)
 
-        assert sign(-5) == -1
+    def test_zero(self) -> None:
+        self.assertEqual(sign(0), 0)
 
-    def test_zero(self):
+    def test_positive(self) -> None:
+        self.assertEqual(sign(3.5), 1)
 
-        assert sign(0) == 0
+    def test_nan(self) -> None:
+        self.assertEqual(sign(float("nan")), 0)
 
-    def test_positive(self):
+    def test_infinities(self) -> None:
+        self.assertEqual(sign(float("inf")), 1)
+        self.assertEqual(sign(float("-inf")), -1)
 
-        assert sign(3.5) == 1
-
-    def test_non_number_raises(self):
-        import pytest
-
-
-        with pytest.raises(TypeError):
-            sign("x")
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            sign("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sign(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sign(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            sign(None)  # type: ignore[arg-type]
 
 
 class TestIsNegative(unittest.TestCase):
@@ -81848,6 +81913,14 @@ class TestSafeDivide(unittest.TestCase):
         self.assertEqual(safe_divide(10, 0), 0.0)
         self.assertEqual(safe_divide(0, 0), 0.0)
         self.assertEqual(safe_divide(-5, 0), 0.0)
+
+    def test_special_floats(self) -> None:
+        import math
+
+        self.assertTrue(math.isinf(safe_divide(float("inf"), 2)))
+        self.assertTrue(math.isnan(safe_divide(float("nan"), 2)))
+        self.assertTrue(math.isnan(safe_divide(1, float("nan"))))
+        self.assertEqual(safe_divide(float("inf"), 0), 0.0)
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
@@ -83116,6 +83189,9 @@ class TestIsMersenneNumber(unittest.TestCase):
         self.assertTrue(is_mersenne_number(7.0))
         self.assertFalse(is_mersenne_number(5.0))
         self.assertFalse(is_mersenne_number(7.5))
+        self.assertFalse(is_mersenne_number(float("nan")))
+        self.assertFalse(is_mersenne_number(float("inf")))
+        self.assertFalse(is_mersenne_number(float("-inf")))
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
@@ -83178,6 +83254,14 @@ class TestIsMersennePrime(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_mersenne_prime(None)  # type: ignore[arg-type]
 
+    def test_special_floats(self) -> None:
+        from number_utils import is_mersenne_prime
+
+        self.assertFalse(is_mersenne_prime(float("nan")))
+        self.assertFalse(is_mersenne_prime(float("inf")))
+        self.assertFalse(is_mersenne_prime(float("-inf")))
+        self.assertFalse(is_mersenne_prime(7.5))
+
 
 class TestGcdList(unittest.TestCase):
     def test_known(self) -> None:
@@ -83196,6 +83280,10 @@ class TestGcdList(unittest.TestCase):
             gcd_list("abc")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             gcd_list([1, 2.0])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            gcd_list([1, True])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            gcd_list([False, 1])  # type: ignore[list-item]
 
 
 class TestLcmList(unittest.TestCase):
@@ -83215,6 +83303,10 @@ class TestLcmList(unittest.TestCase):
             lcm_list("abc")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             lcm_list([1, 2.0])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            lcm_list([1, True])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            lcm_list([False, 1])  # type: ignore[list-item]
 
 
 class TestIsPrime(unittest.TestCase):
@@ -83285,11 +83377,22 @@ class TestIntegerNthRoot(unittest.TestCase):
         with self.assertRaises(ValueError):
             integer_nth_root(-1, 4)
 
+    def test_special_value_rejection(self) -> None:
+        for v in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                integer_nth_root(v, 2)  # type: ignore[arg-type]
+            with self.assertRaises(ValueError):
+                integer_nth_root(2, v)  # type: ignore[arg-type]
+
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
             integer_nth_root("27", 3)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             integer_nth_root(27, "3")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            integer_nth_root(True, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            integer_nth_root(8, False)  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
