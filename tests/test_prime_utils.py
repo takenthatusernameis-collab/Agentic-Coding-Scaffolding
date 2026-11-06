@@ -16,6 +16,7 @@ from prime_utils import (
     is_coprime,
     is_cousin_prime,
     is_cuban_prime,
+    is_cullen_prime,
     is_proth_prime,
     is_deficient_number,
     is_emirp,
@@ -46,6 +47,7 @@ from prime_utils import (
     is_ugly_number,
     is_weak_prime,
     is_wilson_prime,
+    is_woodall_prime,
     largest_prime_factor,
     next_prime,
     nth_prime,
@@ -1952,3 +1954,57 @@ class TestIsProthPrime(unittest.TestCase):
             is_proth_prime("5")
         with self.assertRaises(TypeError):
             is_proth_prime(True)
+
+
+class TestIsCullenPrime(unittest.TestCase):
+    def test_known_cullen_primes(self):
+        self.assertTrue(is_cullen_prime(3))  # k=1
+
+    def test_cullen_composites_and_non_cullen(self):
+        # Cullen numbers that are composite or not prime values
+        for n in (9, 25, 161):  # k=2 -> 9, k=3 -> 25, k=5 -> 161
+            self.assertFalse(is_cullen_prime(n), n)
+
+    def test_primes_that_are_not_cullen(self):
+        for n in (2, 5, 7, 11, 13, 17, 19, 23):
+            self.assertFalse(is_cullen_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, 1, -1, -3):
+            self.assertFalse(is_cullen_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_cullen_prime(3.0)
+        with self.assertRaises(TypeError):
+            is_cullen_prime("3")
+        with self.assertRaises(TypeError):
+            is_cullen_prime(True)
+
+
+class TestIsWoodallPrime(unittest.TestCase):
+    def test_known_woodall_primes(self):
+        for n in (7, 23, 383):  # k=2,3,6
+            self.assertTrue(is_woodall_prime(n), n)
+
+    def test_woodall_composites(self):
+        # W1=1, W4=63, W5=159
+        for n in (1, 63, 159):
+            self.assertFalse(is_woodall_prime(n), n)
+
+    def test_primes_that_are_not_woodall(self):
+        for n in (2, 3, 5, 11, 13, 17, 19, 29, 31):
+            self.assertFalse(is_woodall_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, -1, -7):
+            self.assertFalse(is_woodall_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_woodall_prime(7.0)
+        with self.assertRaises(TypeError):
+            is_woodall_prime("7")
+        with self.assertRaises(TypeError):
+            is_woodall_prime(True)
+

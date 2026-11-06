@@ -64,6 +64,8 @@ __all__: List[str] = [
     "is_weak_prime",
     "is_cuban_prime",
     "is_proth_prime",
+    "is_cullen_prime",
+    "is_woodall_prime",
 ]
 
 
@@ -1990,3 +1992,91 @@ def is_proth_prime(n: int) -> bool:
         m += 1
     # value is odd k, and n = k * 2**m + 1; Proth requires k < 2**m
     return m >= 1 and value < (1 << m)
+
+
+def is_cullen_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a Cullen prime.
+
+    A Cullen number is a number of the form ``C_k = k * 2**k + 1`` for some
+    positive integer *k*. A Cullen prime is a Cullen number that is also prime.
+    The first Cullen primes correspond to *k* = 1, 141, 4713, ... giving values
+    3, 393050634124102232869567034555427371542904833, ... (OEIS A005849 for
+    indices, A050920 for values).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is prime and equal to ``k * 2**k + 1`` for some
+        positive integer *k*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_cullen_prime(3)
+        True
+        >>> is_cullen_prime(2)
+        False
+        >>> is_cullen_prime(5)
+        False
+        >>> is_cullen_prime(9)
+        False
+    """
+    _require_int(n, "n")
+    if n < 3 or not is_prime(n):
+        return False
+    target = n - 1
+    k = 1
+    while True:
+        value = k * (1 << k)
+        if value == target:
+            return True
+        if value > target:
+            return False
+        k += 1
+
+
+def is_woodall_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a Woodall prime.
+
+    A Woodall number is a number of the form ``W_k = k * 2**k - 1`` for some
+    positive integer *k*. A Woodall prime is a Woodall number that is also
+    prime. The first Woodall primes correspond to *k* = 2, 3, 6, 30, 75, ...
+    giving values 7, 23, 383, 32212254719, ... (OEIS A002234 for indices,
+    A050918 for values).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is prime and equal to ``k * 2**k - 1`` for some
+        positive integer *k*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_woodall_prime(7)
+        True
+        >>> is_woodall_prime(23)
+        True
+        >>> is_woodall_prime(383)
+        True
+        >>> is_woodall_prime(3)
+        False
+        >>> is_woodall_prime(2)
+        False
+    """
+    _require_int(n, "n")
+    if n < 2 or not is_prime(n):
+        return False
+    target = n + 1
+    k = 1
+    while True:
+        value = k * (1 << k)
+        if value == target:
+            return True
+        if value > target:
+            return False
+        k += 1

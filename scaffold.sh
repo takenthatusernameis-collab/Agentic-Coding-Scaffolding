@@ -90306,6 +90306,8 @@ __all__: List[str] = [
     "is_weak_prime",
     "is_cuban_prime",
     "is_proth_prime",
+    "is_cullen_prime",
+    "is_woodall_prime",
 ]
 
 
@@ -92232,6 +92234,94 @@ def is_proth_prime(n: int) -> bool:
         m += 1
     # value is odd k, and n = k * 2**m + 1; Proth requires k < 2**m
     return m >= 1 and value < (1 << m)
+
+
+def is_cullen_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a Cullen prime.
+
+    A Cullen number is a number of the form ``C_k = k * 2**k + 1`` for some
+    positive integer *k*. A Cullen prime is a Cullen number that is also prime.
+    The first Cullen primes correspond to *k* = 1, 141, 4713, ... giving values
+    3, 393050634124102232869567034555427371542904833, ... (OEIS A005849 for
+    indices, A050920 for values).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is prime and equal to ``k * 2**k + 1`` for some
+        positive integer *k*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_cullen_prime(3)
+        True
+        >>> is_cullen_prime(2)
+        False
+        >>> is_cullen_prime(5)
+        False
+        >>> is_cullen_prime(9)
+        False
+    """
+    _require_int(n, "n")
+    if n < 3 or not is_prime(n):
+        return False
+    target = n - 1
+    k = 1
+    while True:
+        value = k * (1 << k)
+        if value == target:
+            return True
+        if value > target:
+            return False
+        k += 1
+
+
+def is_woodall_prime(n: int) -> bool:
+    """Return ``True`` when *n* is a Woodall prime.
+
+    A Woodall number is a number of the form ``W_k = k * 2**k - 1`` for some
+    positive integer *k*. A Woodall prime is a Woodall number that is also
+    prime. The first Woodall primes correspond to *k* = 2, 3, 6, 30, 75, ...
+    giving values 7, 23, 383, 32212254719, ... (OEIS A002234 for indices,
+    A050918 for values).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is prime and equal to ``k * 2**k - 1`` for some
+        positive integer *k*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_woodall_prime(7)
+        True
+        >>> is_woodall_prime(23)
+        True
+        >>> is_woodall_prime(383)
+        True
+        >>> is_woodall_prime(3)
+        False
+        >>> is_woodall_prime(2)
+        False
+    """
+    _require_int(n, "n")
+    if n < 2 or not is_prime(n):
+        return False
+    target = n + 1
+    k = 1
+    while True:
+        value = k * (1 << k)
+        if value == target:
+            return True
+        if value > target:
+            return False
+        k += 1
 PRIME_UTILS
 
 # --- tests/test_prime_utils.py ---
@@ -92254,6 +92344,7 @@ from prime_utils import (
     is_coprime,
     is_cousin_prime,
     is_cuban_prime,
+    is_cullen_prime,
     is_proth_prime,
     is_deficient_number,
     is_emirp,
@@ -92284,6 +92375,7 @@ from prime_utils import (
     is_ugly_number,
     is_weak_prime,
     is_wilson_prime,
+    is_woodall_prime,
     largest_prime_factor,
     next_prime,
     nth_prime,
@@ -94190,6 +94282,59 @@ class TestIsProthPrime(unittest.TestCase):
             is_proth_prime("5")
         with self.assertRaises(TypeError):
             is_proth_prime(True)
+
+
+class TestIsCullenPrime(unittest.TestCase):
+    def test_known_cullen_primes(self):
+        self.assertTrue(is_cullen_prime(3))  # k=1
+
+    def test_cullen_composites_and_non_cullen(self):
+        # Cullen numbers that are composite or not prime values
+        for n in (9, 25, 161):  # k=2 -> 9, k=3 -> 25, k=5 -> 161
+            self.assertFalse(is_cullen_prime(n), n)
+
+    def test_primes_that_are_not_cullen(self):
+        for n in (2, 5, 7, 11, 13, 17, 19, 23):
+            self.assertFalse(is_cullen_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, 1, -1, -3):
+            self.assertFalse(is_cullen_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_cullen_prime(3.0)
+        with self.assertRaises(TypeError):
+            is_cullen_prime("3")
+        with self.assertRaises(TypeError):
+            is_cullen_prime(True)
+
+
+class TestIsWoodallPrime(unittest.TestCase):
+    def test_known_woodall_primes(self):
+        for n in (7, 23, 383):  # k=2,3,6
+            self.assertTrue(is_woodall_prime(n), n)
+
+    def test_woodall_composites(self):
+        # W1=1, W4=63, W5=159
+        for n in (1, 63, 159):
+            self.assertFalse(is_woodall_prime(n), n)
+
+    def test_primes_that_are_not_woodall(self):
+        for n in (2, 3, 5, 11, 13, 17, 19, 29, 31):
+            self.assertFalse(is_woodall_prime(n), n)
+
+    def test_boundary(self):
+        for n in (0, -1, -7):
+            self.assertFalse(is_woodall_prime(n), n)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_woodall_prime(7.0)
+        with self.assertRaises(TypeError):
+            is_woodall_prime("7")
+        with self.assertRaises(TypeError):
+            is_woodall_prime(True)
 TEST_PRIME_UTILS
 
 # --- pstats_utils.py ---
