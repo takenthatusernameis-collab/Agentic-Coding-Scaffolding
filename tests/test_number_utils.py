@@ -18,6 +18,7 @@ from number_utils import (
     is_armstrong_number,
     is_automorphic_number,
     is_between,
+    is_catalan_number,
     is_close,
     is_coprime,
     is_deficient_number,
@@ -2115,3 +2116,30 @@ class TestIntegerNthRoot(unittest.TestCase):
             integer_nth_root(True, 2)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             integer_nth_root(8, False)  # type: ignore[arg-type]
+
+
+class TestIsCatalanNumber(unittest.TestCase):
+    def test_catalan_numbers(self) -> None:
+        for n in (1, 2, 5, 14, 42, 132, 429, 1430, 4862):
+            self.assertTrue(is_catalan_number(n), n)
+
+    def test_non_catalan_numbers(self) -> None:
+        for n in (3, 4, 6, 13, 15, 41, 43, 100):
+            self.assertFalse(is_catalan_number(n), n)
+
+    def test_zero_and_negative(self) -> None:
+        self.assertFalse(is_catalan_number(0))
+        self.assertFalse(is_catalan_number(-1))
+        self.assertFalse(is_catalan_number(-14))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            is_catalan_number(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_catalan_number(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_catalan_number("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_catalan_number(5.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_catalan_number(None)  # type: ignore[arg-type]
