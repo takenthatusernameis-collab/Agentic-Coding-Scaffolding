@@ -28,6 +28,7 @@ __all__: list[str] = [
     "is_semiperfect_number",
     "is_abundant_number",
     "is_deficient_number",
+    "is_fibonacci_number",
     "is_strong_number",
     "is_harshad_number",
     "is_neon_number",
@@ -1293,6 +1294,46 @@ def is_triangular_number(n: int) -> bool:
     if r * r != discriminant:
         return False
     return r % 2 == 1
+
+
+def is_fibonacci_number(n: int) -> bool:
+    """Return ``True`` when *n* is a Fibonacci number.
+
+    A Fibonacci number is a member of the sequence 0, 1, 1, 2, 3, 5, 8, 13, ...
+    using the standard test: *n* is Fibonacci iff one of ``5*n*n + 4`` or
+    ``5*n*n - 4`` is a perfect square.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a Fibonacci number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_fibonacci_number(0)
+        True
+        >>> is_fibonacci_number(1)
+        True
+        >>> is_fibonacci_number(13)
+        True
+        >>> is_fibonacci_number(21)
+        True
+        >>> is_fibonacci_number(4)
+        False
+        >>> is_fibonacci_number(22)
+        False
+        >>> is_fibonacci_number(-3)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    square = 5 * n * n
+    return is_perfect_square(square + 4) or is_perfect_square(square - 4)
 
 
 def is_pentagonal_number(n: int) -> bool:

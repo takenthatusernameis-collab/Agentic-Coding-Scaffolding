@@ -56486,6 +56486,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_fibonacci_number to numbers_utils
+
+- Added `is_fibonacci_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int/bool arguments; it returns `True` when *n* is a member of the Fibonacci sequence (0, 1, 1, 2, 3, 5, ...), using the standard perfect-square test on `5*n*n + 4` and `5*n*n - 4`, and `False` for negative inputs. Added `TestIsFibonacciNumber` to `tests/test_numbers_utils.py` covering known Fibonacci and non-Fibonacci values, negatives, and the `TypeError` path (12 new tests). Updated the `numbers_utils` module tree entry in `README.md`.
+- Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` passes (140 tests); `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes. No changes to `.github/workflows/**`.
+
 ## Unreleased — removed duplicate __all__ entry from string_utils
 
 - Removed the duplicate `cosine_similarity` entry from `string_utils.__all__` (34 entries, 33 unique), the same class of defect previously fixed in `prime_utils` (duplicate `is_mersenne_prime`) and `itertools_utils` (duplicate `take_while_pred` / stale second `__all__` block). `__all__` is now a clean, deduplicated list of 33 entries, each matching a defined name; no function behavior or signatures changed.
@@ -58796,7 +58802,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_fibonacci_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -82904,6 +82910,7 @@ __all__: list[str] = [
     "is_semiperfect_number",
     "is_abundant_number",
     "is_deficient_number",
+    "is_fibonacci_number",
     "is_strong_number",
     "is_harshad_number",
     "is_neon_number",
@@ -84171,6 +84178,46 @@ def is_triangular_number(n: int) -> bool:
     return r % 2 == 1
 
 
+def is_fibonacci_number(n: int) -> bool:
+    """Return ``True`` when *n* is a Fibonacci number.
+
+    A Fibonacci number is a member of the sequence 0, 1, 1, 2, 3, 5, 8, 13, ...
+    using the standard test: *n* is Fibonacci iff one of ``5*n*n + 4`` or
+    ``5*n*n - 4`` is a perfect square.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is a Fibonacci number, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+
+    Examples:
+        >>> is_fibonacci_number(0)
+        True
+        >>> is_fibonacci_number(1)
+        True
+        >>> is_fibonacci_number(13)
+        True
+        >>> is_fibonacci_number(21)
+        True
+        >>> is_fibonacci_number(4)
+        False
+        >>> is_fibonacci_number(22)
+        False
+        >>> is_fibonacci_number(-3)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    if n < 0:
+        return False
+    square = 5 * n * n
+    return is_perfect_square(square + 4) or is_perfect_square(square - 4)
+
+
 def is_pentagonal_number(n: int) -> bool:
     """Return ``True`` when *n* is a pentagonal number."""
     if isinstance(n, bool) or not isinstance(n, int):
@@ -84540,6 +84587,7 @@ from numbers_utils import (
     is_deficient_number,
     is_duck_number,
     is_evil_number,
+    is_fibonacci_number,
     is_happy_number,
     is_harshad_number,
     is_integral,
@@ -84776,6 +84824,25 @@ class TestIsDeficientNumber(unittest.TestCase):
         for value in (1.5, "1", None, True, [1]):
             with self.assertRaises(TypeError):
                 is_deficient_number(value)
+
+
+class TestIsFibonacciNumber(unittest.TestCase):
+    def test_known_fibonacci_numbers(self):
+        for value in (0, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144):
+            self.assertTrue(is_fibonacci_number(value), value)
+
+    def test_non_fibonacci_numbers(self):
+        for value in (4, 6, 7, 9, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 22, 100):
+            self.assertFalse(is_fibonacci_number(value), value)
+
+    def test_negative(self):
+        self.assertFalse(is_fibonacci_number(-1))
+        self.assertFalse(is_fibonacci_number(-13))
+
+    def test_type_error(self):
+        for value in (1.5, "1", None, True, [1]):
+            with self.assertRaises(TypeError):
+                is_fibonacci_number(value)
 
 
 class TestProperDivisors(unittest.TestCase):
