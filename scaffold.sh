@@ -49342,6 +49342,11 @@ __all__: list[str] = [
     "isspace",
     "istitle",
     "isupper",
+    "isprintable",
+    "isidentifier",
+
+    "isprintable",
+    "isidentifier",
                     "join",
     "expandtabs",
     "decode_ascii",
@@ -50280,10 +50285,6 @@ def isupper(data: bytes) -> bool:
     return bytes(data).isupper()
 
 
-
-
-
-
 def join(iterable: object, sep: bytes = b"") -> bytes:
     """Join bytes-like items from *iterable* with *sep*.
 
@@ -51001,7 +51002,8 @@ class TestPredicates(unittest.TestCase):
             islower,
             isspace,
             istitle,
-            isupper,
+    isupper,
+
         ):
             with self.assertRaises(TypeError):
                 fn("abc")

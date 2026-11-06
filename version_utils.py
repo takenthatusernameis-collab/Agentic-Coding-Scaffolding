@@ -185,9 +185,65 @@ def is_equal(a: str, b: str) -> bool:
     return compare_versions(a, b) == 0
 
 
+def is_greater_equal(a: str, b: str) -> bool:
+    """Return True if version *a* is greater than or equal to version *b*.
+
+    A relational companion to :func:`is_greater` that reports ``a >= b``.
+
+    Args:
+        a: A dotted version string.
+        b: A dotted version string.
+
+    Returns:
+        True when ``compare_versions(a, b) >= 0``.
+
+    Raises:
+        TypeError: If *a* or *b* is not a non-empty string.
+        ValueError: If *a* or *b* is not a valid dotted version.
+
+    Examples:
+        >>> is_greater_equal("2.0.0", "1.9.9")
+        True
+        >>> is_greater_equal("1.0.0", "1.0.0")
+        True
+        >>> is_greater_equal("0.9", "1.0")
+        False
+    """
+    return compare_versions(a, b) >= 0
+
+
+def is_less_equal(a: str, b: str) -> bool:
+    """Return True if version *a* is less than or equal to version *b*.
+
+    A relational companion to :func:`is_less` that reports ``a <= b``.
+
+    Args:
+        a: A dotted version string.
+        b: A dotted version string.
+
+    Returns:
+        True when ``compare_versions(a, b) <= 0``.
+
+    Raises:
+        TypeError: If *a* or *b* is not a non-empty string.
+        ValueError: If *a* or *b* is not a valid dotted version.
+
+    Examples:
+        >>> is_less_equal("0.9", "1.0")
+        True
+        >>> is_less_equal("1.0.0", "1.0.0")
+        True
+        >>> is_less_equal("2.0", "1.9")
+        False
+    """
+    return compare_versions(a, b) <= 0
+
+
 greater_than = is_greater
 less_than = is_less
 equal_to = is_equal
+greater_equal = is_greater_equal
+less_equal = is_less_equal
 is_newer = is_greater
 is_older = is_less
 
