@@ -17,6 +17,7 @@ from bytes_utils import (
     from_int,
     index,
     index_of,
+    is_power_of_two,
     is_zero,
     isalnum,
     isalpha,
@@ -798,6 +799,34 @@ class TestIsZero(unittest.TestCase):
             is_zero(0)
         with self.assertRaises(TypeError):
             is_zero(None)
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_single_bit_set(self):
+        self.assertTrue(is_power_of_two(b"\x01"))
+        self.assertTrue(is_power_of_two(b"\x80"))
+        self.assertTrue(is_power_of_two(from_hex("0100")))
+        self.assertTrue(is_power_of_two(from_hex("0001")))
+        self.assertTrue(is_power_of_two(bytearray(b"\x01")))
+
+    def test_not_power_of_two(self):
+        self.assertFalse(is_power_of_two(b"\x00"))
+        self.assertFalse(is_power_of_two(b"\xff"))
+        self.assertFalse(is_power_of_two(b"\x0f"))
+        self.assertFalse(is_power_of_two(b"\x03"))
+        self.assertFalse(is_power_of_two(b"\x01\x01"))
+
+    def test_empty(self):
+        self.assertFalse(is_power_of_two(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two("01")
+        with self.assertRaises(TypeError):
+            is_power_of_two(255)
+        with self.assertRaises(TypeError):
+            is_power_of_two(None)
+
 
 class TestRIndex(unittest.TestCase):
     def test_found(self):

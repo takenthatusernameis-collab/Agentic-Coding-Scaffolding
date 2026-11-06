@@ -59,6 +59,7 @@ __all__: list[str] = [
     "to_int",
     "from_int",
     "bit_count",
+    "is_power_of_two",
     "is_zero",
 ]
 
@@ -1300,3 +1301,33 @@ def is_zero(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return all(b == 0 for b in bytes(data))
+
+
+def is_power_of_two(data: bytes) -> bool:
+    """Return True if *data* has exactly one set bit across all bytes.
+
+    A power-of-two value has exactly one bit set. An empty input has no set
+    bits and returns False.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if exactly one bit is set in *data*, False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> is_power_of_two(from_hex("01"))
+        True
+        >>> is_power_of_two(from_hex("80"))
+        True
+        >>> is_power_of_two(from_hex("0f"))
+        False
+        >>> is_power_of_two(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bit_count(data) == 1

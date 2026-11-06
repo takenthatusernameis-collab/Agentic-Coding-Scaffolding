@@ -49351,6 +49351,7 @@ __all__: list[str] = [
     "to_int",
     "from_int",
     "bit_count",
+    "is_power_of_two",
     "is_zero",
 ]
 
@@ -50592,6 +50593,36 @@ def is_zero(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return all(b == 0 for b in bytes(data))
+
+
+def is_power_of_two(data: bytes) -> bool:
+    """Return True if *data* has exactly one set bit across all bytes.
+
+    A power-of-two value has exactly one bit set. An empty input has no set
+    bits and returns False.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if exactly one bit is set in *data*, False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> is_power_of_two(from_hex("01"))
+        True
+        >>> is_power_of_two(from_hex("80"))
+        True
+        >>> is_power_of_two(from_hex("0f"))
+        False
+        >>> is_power_of_two(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bit_count(data) == 1
 BYTES_UTILS
 
 # --- tests/test_bytes_utils.py ---
@@ -50615,6 +50646,7 @@ from bytes_utils import (
     from_int,
     index,
     index_of,
+    is_power_of_two,
     is_zero,
     isalnum,
     isalpha,
@@ -51396,6 +51428,34 @@ class TestIsZero(unittest.TestCase):
             is_zero(0)
         with self.assertRaises(TypeError):
             is_zero(None)
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_single_bit_set(self):
+        self.assertTrue(is_power_of_two(b"\x01"))
+        self.assertTrue(is_power_of_two(b"\x80"))
+        self.assertTrue(is_power_of_two(from_hex("0100")))
+        self.assertTrue(is_power_of_two(from_hex("0001")))
+        self.assertTrue(is_power_of_two(bytearray(b"\x01")))
+
+    def test_not_power_of_two(self):
+        self.assertFalse(is_power_of_two(b"\x00"))
+        self.assertFalse(is_power_of_two(b"\xff"))
+        self.assertFalse(is_power_of_two(b"\x0f"))
+        self.assertFalse(is_power_of_two(b"\x03"))
+        self.assertFalse(is_power_of_two(b"\x01\x01"))
+
+    def test_empty(self):
+        self.assertFalse(is_power_of_two(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two("01")
+        with self.assertRaises(TypeError):
+            is_power_of_two(255)
+        with self.assertRaises(TypeError):
+            is_power_of_two(None)
+
 
 class TestRIndex(unittest.TestCase):
     def test_found(self):
@@ -57206,6 +57266,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_power_of_two to bytes_utils
+
+- Added `is_power_of_two(data)` to `bytes_utils.py` as a boolean companion to `bit_count`. It returns `True` when exactly one bit is set across all bytes (a power-of-two value) and `False` otherwise, with empty input returning `False`. Accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsPowerOfTwo` to `tests/test_bytes_utils.py` covering single-bit values, non-powers-of-two, empty input, bytearray support, and the `TypeError` path; imported `is_power_of_two` to match the module's `__all__` contract. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bytes_utils` passes; `python -m doctest bytes_utils.py` passes; `python -m unittest tests.test_public_api` passes. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_power_of to numbers_utils
 
 - Added `is_power_of(value, base)` to `numbers_utils.py` as a base-parameterized power predicate companion to `is_power_of_two`, `is_perfect_power`, `is_perfect_square`, and `is_perfect_cube`. It returns `True` when `base**k == value` for some integer `k >= 0`, handling positive/negative bases and the `base` 0/1/-1 edge cases, accepts typed `int` arguments, raises `TypeError` for non-int/bool arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsPowerOf` to `tests/test_numbers_utils.py` covering known powers, non-powers, negative bases, edge bases (0/1/-1), consistency with direct `base**k` computation, and the `TypeError` path; imported `is_power_of` to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`. Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_numbers_utils` passes (148 tests); `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes. No changes to `.github/workflows/**`.
@@ -59651,7 +59715,7 @@ id_utils.py                # Identifier generation and validation utilities (gen
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, is_zero)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, is_power_of_two, is_zero)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -60428,7 +60492,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits, and `is_zero` tests whether all bytes are zero. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits, `is_power_of_two` tests whether exactly one bit is set, and `is_zero` tests whether all bytes are zero. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 
