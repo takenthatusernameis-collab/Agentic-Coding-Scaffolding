@@ -52,10 +52,7 @@ __all__: list[str] = [
     "isupper",
     "isprintable",
     "isidentifier",
-
-    "isprintable",
-    "isidentifier",
-                    "join",
+    "join",
     "expandtabs",
     "decode_ascii",
     "encode_ascii",
