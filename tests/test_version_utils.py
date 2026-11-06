@@ -43,6 +43,7 @@ from version_utils import (
     is_between,
     is_compatible,
     is_dev_version,
+    is_beta,
     is_equal,
     is_greater,
     is_initial_release,
@@ -593,6 +594,29 @@ class TestIsDevVersion(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_dev_version(123)  # type: ignore[arg-type]
+
+
+class TestIsBeta(unittest.TestCase):
+    def test_beta_tag_true(self):
+        self.assertTrue(is_beta("1.2.3-beta1"))
+        self.assertTrue(is_beta("1.0.0-BETA.2"))
+        self.assertTrue(is_beta("2.0.0-beta"))
+
+    def test_non_beta_prerelease_false(self):
+        self.assertFalse(is_beta("1.2.3-rc1"))
+        self.assertFalse(is_beta("1.0.0-alpha"))
+        self.assertFalse(is_beta("1.2.3-dev0"))
+
+    def test_no_prerelease_false(self):
+        self.assertFalse(is_beta("1.2.3"))
+        self.assertFalse(is_beta("2.0.0"))
+        self.assertFalse(is_beta(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_beta(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_beta(None)  # type: ignore[arg-type]
 
 
 class TestVersionComparisonAliases(unittest.TestCase):

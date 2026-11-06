@@ -57910,6 +57910,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_beta to version_utils
+
+- Added `is_beta(version)` to `version_utils.py` as a boolean companion to `get_prerelease`, following the pattern of the existing `is_dev_version`. It returns `True` when the pre-release tag starts with ``beta`` (case-insensitive) and `False` otherwise or when there is no pre-release suffix. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsBeta` to `tests/test_version_utils.py` covering beta/non-beta/no-prerelease/empty inputs and the `TypeError` path; imported `is_beta` to match the module's `__all__` contract. Updated the `version_utils` module tree entry of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_version_utils`; `python -m unittest tests.test_public_api`; `python -m doctest version_utils.py`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_words to prompt_utils
 
 - Added `has_words(text)` to `prompt_utils.py` as a boolean companion to `count_words`. It returns `True` when *text* contains at least one whitespace-delimited word and `False` for empty or whitespace-only text, accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__` (previously listed but unimplemented, now defined), and ships with ASCII-safe doctests. Added `TestHasWords` to `tests/test_prompt_utils.py` covering empty, single/multiple words, whitespace-only, leading/trailing whitespace, unicode, and the `TypeError` path; imported `has_words` to match the module's `__all__` contract. Updated the `prompt_utils` module tree/prose entries of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_words`. No changes to `.github/workflows/**`.
@@ -60305,7 +60309,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, has_prerelease, has_build_metadata, has_metadata)
+version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, is_beta, has_prerelease, has_build_metadata, has_metadata)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -113527,6 +113531,7 @@ __all__ = [
     "increment_minor",
     "increment_patch",
     "increment_version",
+    "is_beta",
     "is_between",
     "is_compatible",
     "is_dev_version",
@@ -114581,6 +114586,37 @@ def is_version_at_most(version: str, maximum: str) -> bool:
     return compare_versions(version, maximum) <= 0
 
 
+def is_beta(version: str) -> bool:
+    """Return True if *version* is a beta pre-release.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if the pre-release tag starts with ``beta`` (case-insensitive),
+        False otherwise or when there is no pre-release suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_beta("1.2.3-beta1")
+        True
+        >>> is_beta("1.0.0-BETA.2")
+        True
+        >>> is_beta("1.2.3-rc1")
+        False
+        >>> is_beta("1.2.3")
+        False
+        >>> is_beta("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    tag = get_prerelease(version)
+    return tag is not None and tag.lower().startswith("beta")
+
+
 def is_version_between(version: str, lower: str, upper: str, inclusive: bool = True) -> bool:
     """Return True if *version* is between *lower* and *upper*.
 
@@ -114673,6 +114709,7 @@ from version_utils import (
     is_between,
     is_compatible,
     is_dev_version,
+    is_beta,
     is_equal,
     is_greater,
     is_initial_release,
@@ -115223,6 +115260,29 @@ class TestIsDevVersion(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_dev_version(123)  # type: ignore[arg-type]
+
+
+class TestIsBeta(unittest.TestCase):
+    def test_beta_tag_true(self):
+        self.assertTrue(is_beta("1.2.3-beta1"))
+        self.assertTrue(is_beta("1.0.0-BETA.2"))
+        self.assertTrue(is_beta("2.0.0-beta"))
+
+    def test_non_beta_prerelease_false(self):
+        self.assertFalse(is_beta("1.2.3-rc1"))
+        self.assertFalse(is_beta("1.0.0-alpha"))
+        self.assertFalse(is_beta("1.2.3-dev0"))
+
+    def test_no_prerelease_false(self):
+        self.assertFalse(is_beta("1.2.3"))
+        self.assertFalse(is_beta("2.0.0"))
+        self.assertFalse(is_beta(""))
+
+    def test_non_string_raises(self):
+        with self.assertRaises(TypeError):
+            is_beta(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_beta(None)  # type: ignore[arg-type]
 
 
 class TestVersionComparisonAliases(unittest.TestCase):

@@ -41,6 +41,7 @@ __all__ = [
     "increment_minor",
     "increment_patch",
     "increment_version",
+    "is_beta",
     "is_between",
     "is_compatible",
     "is_dev_version",
@@ -1093,6 +1094,37 @@ def is_version_at_most(version: str, maximum: str) -> bool:
         False
     """
     return compare_versions(version, maximum) <= 0
+
+
+def is_beta(version: str) -> bool:
+    """Return True if *version* is a beta pre-release.
+
+    Args:
+        version: A dotted version string, optionally with a pre-release suffix.
+
+    Returns:
+        True if the pre-release tag starts with ``beta`` (case-insensitive),
+        False otherwise or when there is no pre-release suffix.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> is_beta("1.2.3-beta1")
+        True
+        >>> is_beta("1.0.0-BETA.2")
+        True
+        >>> is_beta("1.2.3-rc1")
+        False
+        >>> is_beta("1.2.3")
+        False
+        >>> is_beta("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    tag = get_prerelease(version)
+    return tag is not None and tag.lower().startswith("beta")
 
 
 def is_version_between(version: str, lower: str, upper: str, inclusive: bool = True) -> bool:
