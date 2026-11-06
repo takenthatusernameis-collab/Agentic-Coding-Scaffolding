@@ -25009,6 +25009,7 @@ from prompt_utils import (
     has_paragraphs,
     has_placeholders,
     has_punctuation,
+    has_sentences,
     has_spaces,
     has_tabs,
     has_trailing_newline,
@@ -25521,6 +25522,39 @@ class TestCountSentences(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_sentences(123)  # type: ignore[arg-type]
+
+
+class TestHasSentences(unittest.TestCase):
+    def test_single_sentence(self):
+        self.assertTrue(has_sentences("Hello world."))
+
+    def test_multiple_sentences(self):
+        self.assertTrue(has_sentences("Hello world. How are you?"))
+
+    def test_empty(self):
+        self.assertFalse(has_sentences(""))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_sentences("   "))
+
+    def test_no_terminator(self):
+        self.assertFalse(has_sentences("No terminator here"))
+
+    def test_leading_trailing_whitespace(self):
+        self.assertTrue(has_sentences("  Hello world.  "))
+
+    def test_unicode(self):
+        self.assertTrue(has_sentences("Héllo wörld! Comment ça va?"))
+
+    def test_consistency_with_count_sentences(self):
+        for sample in ["", "   ", "a.", "no terminator", "one. two? three!"]:
+            self.assertEqual(has_sentences(sample), count_sentences(sample) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_sentences(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_sentences(None)  # type: ignore[arg-type]
 
 
 class TestTruncateWords(unittest.TestCase):
@@ -38415,6 +38449,7 @@ __all__: List[str] = [
     "count_blank_lines",
     "count_placeholders",
     "count_sentences",
+    "has_sentences",
     "truncate_words",
     "truncate_lines",
     "truncate_paragraphs",
@@ -38959,6 +38994,37 @@ def count_sentences(text: str) -> int:
     if not text.strip():
         return 0
     return len(re.findall(r"[.!?](?:\s|$)", text))
+
+
+def has_sentences(text: str) -> bool:
+    """Return True if *text* contains at least one sentence.
+
+    This is a boolean companion to :func:`count_sentences`; it returns
+    ``True`` when *text* contains one or more sentences and ``False``
+    otherwise (including empty or whitespace-only text).
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one sentence, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_sentences("Hello world. How are you?")
+        True
+        >>> has_sentences("")
+        False
+        >>> has_sentences("   ")
+        False
+        >>> has_sentences("No terminator here")
+        False
+    """
+    _require_string(text, "text")
+    return count_sentences(text) > 0
 
 
 def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
@@ -57848,6 +57914,10 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `has_words(text)` to `prompt_utils.py` as a boolean companion to `count_words`. It returns `True` when *text* contains at least one whitespace-delimited word and `False` for empty or whitespace-only text, accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__` (previously listed but unimplemented, now defined), and ships with ASCII-safe doctests. Added `TestHasWords` to `tests/test_prompt_utils.py` covering empty, single/multiple words, whitespace-only, leading/trailing whitespace, unicode, and the `TypeError` path; imported `has_words` to match the module's `__all__` contract. Updated the `prompt_utils` module tree/prose entries of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_words`. No changes to `.github/workflows/**`.
 
+## Unreleased — added has_sentences to prompt_utils
+
+- Added `has_sentences(text)` to `prompt_utils.py` as a boolean companion to `count_words`/`has_words` and `count_paragraphs`/`has_paragraphs`. It returns `True` when *text* contains at least one sentence (a terminating punctuation mark ``.``, ``!`` or ``?`` followed by whitespace or end of string) and `False` for empty or whitespace-only text or text with no terminator. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasSentences` to `tests/test_prompt_utils.py` covering single/multiple sentences, empty/whitespace-only, no-terminator, leading/trailing whitespace, unicode, consistency with `count_sentences`, and the `TypeError` path; imported `has_sentences` to match the module's `__all__` contract. Updated the `prompt_utils` module tree/prose entries of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_sentences`. No changes to `.github/workflows/**`.
+
 ## Unreleased — fixed public-API contract regressions in version_utils and bytes_utils
 
 ### Fixed
@@ -60148,7 +60218,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, has_words, collapse_blank_lines, count_placeholders, count_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, has_words, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, has_words, collapse_blank_lines, count_placeholders, count_sentences, has_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, has_words, count_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -61016,7 +61086,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `has_paragraphs`, `has_words`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `count_placeholders`, `count_sentences`, `has_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `has_paragraphs`, `has_words`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`.
 
 ## Regex Utilities Module
 

@@ -51,6 +51,7 @@ from prompt_utils import (
     has_paragraphs,
     has_placeholders,
     has_punctuation,
+    has_sentences,
     has_spaces,
     has_tabs,
     has_trailing_newline,
@@ -563,6 +564,39 @@ class TestCountSentences(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_sentences(123)  # type: ignore[arg-type]
+
+
+class TestHasSentences(unittest.TestCase):
+    def test_single_sentence(self):
+        self.assertTrue(has_sentences("Hello world."))
+
+    def test_multiple_sentences(self):
+        self.assertTrue(has_sentences("Hello world. How are you?"))
+
+    def test_empty(self):
+        self.assertFalse(has_sentences(""))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_sentences("   "))
+
+    def test_no_terminator(self):
+        self.assertFalse(has_sentences("No terminator here"))
+
+    def test_leading_trailing_whitespace(self):
+        self.assertTrue(has_sentences("  Hello world.  "))
+
+    def test_unicode(self):
+        self.assertTrue(has_sentences("Héllo wörld! Comment ça va?"))
+
+    def test_consistency_with_count_sentences(self):
+        for sample in ["", "   ", "a.", "no terminator", "one. two? three!"]:
+            self.assertEqual(has_sentences(sample), count_sentences(sample) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_sentences(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_sentences(None)  # type: ignore[arg-type]
 
 
 class TestTruncateWords(unittest.TestCase):

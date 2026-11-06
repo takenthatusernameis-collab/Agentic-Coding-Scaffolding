@@ -27,6 +27,7 @@ __all__: List[str] = [
     "count_blank_lines",
     "count_placeholders",
     "count_sentences",
+    "has_sentences",
     "truncate_words",
     "truncate_lines",
     "truncate_paragraphs",
@@ -571,6 +572,37 @@ def count_sentences(text: str) -> int:
     if not text.strip():
         return 0
     return len(re.findall(r"[.!?](?:\s|$)", text))
+
+
+def has_sentences(text: str) -> bool:
+    """Return True if *text* contains at least one sentence.
+
+    This is a boolean companion to :func:`count_sentences`; it returns
+    ``True`` when *text* contains one or more sentences and ``False``
+    otherwise (including empty or whitespace-only text).
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one sentence, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_sentences("Hello world. How are you?")
+        True
+        >>> has_sentences("")
+        False
+        >>> has_sentences("   ")
+        False
+        >>> has_sentences("No terminator here")
+        False
+    """
+    _require_string(text, "text")
+    return count_sentences(text) > 0
 
 
 def truncate_words(text: str, max_words: int, suffix: str = "...") -> str:
