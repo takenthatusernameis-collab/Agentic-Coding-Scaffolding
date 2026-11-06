@@ -1157,7 +1157,7 @@ def isprintable(data: bytes) -> bool:
 
     A byte is printable when it is in the ASCII printable range
     (0x20-0x7E, including the space). An empty input is considered
-    non-printable and returns False, matching :meth:`str.isprintable`.
+    printable and returns True, matching :meth:`str.isprintable`.
 
     Args:
         data: Bytes or bytearray to inspect.
@@ -1174,14 +1174,14 @@ def isprintable(data: bytes) -> bool:
         >>> isprintable(b"hi there")
         True
         >>> isprintable(b"")
-        False
+        True
         >>> isprintable(b"no\ttabs")
         False
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     raw = bytes(data)
-    return bool(raw) and all(0x20 <= b <= 0x7E for b in raw)
+    return all(0x20 <= b <= 0x7E for b in raw)
 
 
 def isidentifier(data: bytes) -> bool:

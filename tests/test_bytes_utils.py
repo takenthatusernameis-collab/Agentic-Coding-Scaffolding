@@ -1358,7 +1358,7 @@ class TestIsPrintable(unittest.TestCase):
         self.assertTrue(isprintable(b" !@#$%^&*()_+"))
 
     def test_not_printable(self):
-        self.assertFalse(isprintable(b""))
+        self.assertTrue(isprintable(b""))
         self.assertFalse(isprintable(b"no\ttabs"))
         self.assertFalse(isprintable(b"line\nbreak"))
         self.assertFalse(isprintable(b"\x00\x01"))
