@@ -7,11 +7,14 @@ from bytes_utils import (
     chunk,
     concat,
     contains,
+    count,
     decode_ascii,
     encode_ascii,
     ends_with,
     expandtabs,
+    find,
     from_hex,
+    from_int,
     index,
     index_of,
     is_zero,
@@ -30,14 +33,18 @@ from bytes_utils import (
     removeprefix,
     removesuffix,
     repeat,
+    replace,
     reverse,
     rfind,
+    rindex,
     rpartition,
+    split,
     splitlines,
     starts_with,
     swapcase,
     title,
     to_hex,
+    to_int,
     translate,
     upper,
     xor,
@@ -344,6 +351,14 @@ class TestIndex(unittest.TestCase):
             index(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             index(b"abc", b"a", end=1.5)
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", end=True)
+
+    def test_negative_indices(self):
+        self.assertEqual(index(b"abcabc", b"bc", -3), 4)
+        self.assertEqual(index(b"abcabc", b"bc", 0, -1), 1)
 
 
 class TestRFind(unittest.TestCase):
@@ -385,6 +400,14 @@ class TestRFind(unittest.TestCase):
             rfind(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             rfind(b"abc", b"a", end=1.5)
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", end=True)
+
+    def test_negative_indices(self):
+        self.assertEqual(rfind(b"abcabc", b"bc", -5, -1), 1)
+        self.assertEqual(rfind(b"abcabc", b"bc", -3), 4)
 
 
 class TestPartition(unittest.TestCase):
@@ -637,6 +660,11 @@ class TestTranslate(unittest.TestCase):
             bytes([1, 0]) + bytes(range(2, 256)),
         )
 
+    def test_bytearray_table(self):
+        self.assertEqual(translate(b"abc", bytearray(range(256))), b"abc")
+        table = maketrans(b"ab", b"xy")
+        self.assertEqual(translate(b"abc", bytearray(table)), b"xyc")
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             translate("abc", maketrans(b"ab", b"xy"))
@@ -703,3 +731,206 @@ class TestIsZero(unittest.TestCase):
             is_zero(0)
         with self.assertRaises(TypeError):
             is_zero(None)
+
+class TestRIndex(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(rindex(b"hello world", b"o"), 7)
+        self.assertEqual(rindex(b"abcabc", b"bc"), 4)
+
+    def test_not_found_raises(self):
+        with self.assertRaises(ValueError):
+            rindex(b"hello", b"x")
+
+    def test_bytearray_input(self):
+        self.assertEqual(rindex(bytearray(b"hello"), bytearray(b"lo")), 3)
+
+    def test_negative_indices(self):
+        self.assertEqual(rindex(b"abcabc", b"bc", -4), 4)
+        self.assertEqual(rindex(b"abcabc", b"bc", -5, -1), 1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            rindex("abc", b"a")
+        with self.assertRaises(TypeError):
+            rindex(b"abc", "a")
+        with self.assertRaises(TypeError):
+            rindex(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            rindex(b"abc", b"a", end=True)
+
+
+class TestFind(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(find(b"hello world", b"world"), 6)
+        self.assertEqual(find(b"abcabc", b"bc"), 1)
+
+    def test_not_found(self):
+        self.assertEqual(find(b"hello", b"x"), -1)
+
+    def test_bytearray_input(self):
+        self.assertEqual(find(bytearray(b"hello"), bytearray(b"ll")), 2)
+
+    def test_negative_indices(self):
+        self.assertEqual(find(b"abcabc", b"bc", -3), 4)
+        self.assertEqual(find(b"abcabc", b"bc", -10), 1)
+        self.assertEqual(find(b"abcabc", b"bc", 0, -1), 1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            find("abc", b"a")
+        with self.assertRaises(TypeError):
+            find(b"abc", "a")
+        with self.assertRaises(TypeError):
+            find(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            find(b"abc", b"a", end=True)
+
+
+class TestSplit(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(split(b"a,b,c", b","), [b"a", b"b", b"c"])
+        self.assertEqual(split(b"a b c", None), [b"a", b"b", b"c"])
+
+    def test_maxsplit(self):
+        self.assertEqual(split(b"a b c", None, 1), [b"a", b"b c"])
+
+    def test_bytearray_input(self):
+        self.assertEqual(split(bytearray(b"a,b"), bytearray(b",")), [b"a", b"b"])
+
+    def test_empty_separator(self):
+        with self.assertRaises(ValueError):
+            split(b"a", b"")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            split("a b")
+        with self.assertRaises(TypeError):
+            split(b"a b", 1)
+        with self.assertRaises(TypeError):
+            split(b"a b", None, True)
+
+
+class TestReplace(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(replace(b"aa", b"a", b"b"), b"bb")
+        self.assertEqual(replace(b"aa", b"a", b"b", 1), b"ba")
+
+    def test_negative_count(self):
+        self.assertEqual(replace(b"aa", b"a", b"b", -1), b"bb")
+
+    def test_bytearray_input(self):
+        self.assertEqual(
+            replace(bytearray(b"aa"), bytearray(b"a"), bytearray(b"b")),
+            b"bb",
+        )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            replace("aa", b"a", b"b")
+        with self.assertRaises(TypeError):
+            replace(b"aa", "a", b"b")
+        with self.assertRaises(TypeError):
+            replace(b"aa", b"a", "b")
+        with self.assertRaises(TypeError):
+            replace(b"aa", b"a", b"b", True)
+
+
+class TestCount(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count(b"abcabc", b"bc"), 2)
+        self.assertEqual(count(b"aaa", b"a"), 3)
+        self.assertEqual(count(b"abc", b"x"), 0)
+
+    def test_bytearray_input(self):
+        self.assertEqual(count(bytearray(b"abcabc"), bytearray(b"bc")), 2)
+
+    def test_negative_indices(self):
+        self.assertEqual(count(b"abcabc", b"bc", -3), 1)
+        self.assertEqual(count(b"abcabc", b"bc", 0, -1), 1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count("abc", b"a")
+        with self.assertRaises(TypeError):
+            count(b"abc", "a")
+        with self.assertRaises(TypeError):
+            count(b"abc", b"a", True)
+        with self.assertRaises(TypeError):
+            count(b"abc", b"a", 0, True)
+
+
+class TestToInt(unittest.TestCase):
+    def test_big_endian(self):
+        self.assertEqual(to_int(from_hex("0100")), 256)
+        self.assertEqual(to_int(b"\x00\x01"), 1)
+
+    def test_little_endian(self):
+        self.assertEqual(to_int(from_hex("0001"), byteorder="little"), 256)
+
+    def test_signed(self):
+        self.assertEqual(to_int(from_hex("ff"), signed=True), -1)
+        self.assertEqual(to_int(b"\x80", signed=True), -128)
+
+    def test_empty(self):
+        self.assertEqual(to_int(b""), 0)
+        self.assertEqual(to_int(bytearray(b""), signed=True), 0)
+
+    def test_bytearray_input(self):
+        self.assertEqual(to_int(bytearray(b"\x01\x00")), 256)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            to_int("0100")
+        with self.assertRaises(TypeError):
+            to_int(b"\x01", byteorder=1)
+        with self.assertRaises(TypeError):
+            to_int(b"\xff", signed=1)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            to_int(b"\x01", byteorder="middle")
+
+
+class TestFromInt(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(to_hex(from_int(256, 2)), "0100")
+        self.assertEqual(from_int(256, 2, byteorder="little"), b"\x00\x01")
+        self.assertEqual(from_int(-1, 1, signed=True), b"\xff")
+
+    def test_length_zero(self):
+        self.assertEqual(from_int(0, 0), b"")
+        self.assertEqual(from_int(0, 0, byteorder="little", signed=True), b"")
+        self.assertEqual(from_int(-1, 0, signed=True), b"")
+
+    def test_length(self):
+        self.assertEqual(len(from_int(0, 4)), 4)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            from_int(True, 1)
+        with self.assertRaises(TypeError):
+            from_int(1.5, 1)
+        with self.assertRaises(TypeError):
+            from_int(1, True)
+        with self.assertRaises(TypeError):
+            from_int(1, 1, byteorder=1)
+        with self.assertRaises(TypeError):
+            from_int(1, 1, signed=1)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            from_int(1, -1)
+        with self.assertRaises(ValueError):
+            from_int(1, 1, byteorder="middle")
+
+    def test_overflow(self):
+        with self.assertRaises(OverflowError):
+            from_int(256, 1)
+        with self.assertRaises(OverflowError):
+            from_int(-1, 1)
+        with self.assertRaises(OverflowError):
+            from_int(1, 0)
+        with self.assertRaises(OverflowError):
+            from_int(-2, 0, signed=True)
+        with self.assertRaises(OverflowError):
+            from_int(1, 0, signed=True)

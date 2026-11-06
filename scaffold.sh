@@ -50070,33 +50070,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
     if sep_bytes == b"":
         raise ValueError("empty separator")
     return bytes(data).rsplit(sep_bytes, maxsplit)
-    if maxsplit < 0:
-        i = len(data) - len(sep)
-        # search from right
-        # build from right to left
-        # collect split positions
-        # find all occurrences from right to left up to maxsplit? no maxsplit negative means all
-        idx = data.rfind(sep)
-        if idx == -1:
-            return [bytes(data)]
-        # easier to do iteratively
-        # do it properly
-        result_parts = []
-        remaining = bytes(data)
-        splits_done = 0
-        while True:
-            if maxsplit >= 0 and splits_done >= maxsplit:
-                result_parts.append(remaining)
-                break
-            idx = remaining.rfind(sep)
-            if idx == -1:
-                result_parts.append(remaining)
-                break
-            result_parts.append(remaining[idx + len(sep) :])
-            remaining = remaining[:idx]
-            splits_done += 1
-        result_parts.reverse()
-        return result_parts
 
 
 def upper(data: bytes) -> bytes:
@@ -50314,10 +50287,10 @@ def maketrans(frm: bytes, to: bytes) -> bytes:
     return bytes(table)
 
 
-def translate(data: bytes, table: bytes) -> bytes:
+def translate(data: bytes, table: bytes | bytearray) -> bytes:
     """Return a copy of *data* with each byte replaced according to *table*.
 
-    *table* must be a bytes object of length 256 (as produced by
+    *table* must be a bytes-like object of length 256 (as produced by
     :func:`maketrans`); each byte value *b* in *data* is replaced by
     *table[b]*.
 
@@ -50329,8 +50302,7 @@ def translate(data: bytes, table: bytes) -> bytes:
         The translated bytes.
 
     Raises:
-        TypeError: If *data* is not bytes or bytearray, or *table* is not
-            bytes.
+        TypeError: If *data* or *table* is not bytes or bytearray.
         ValueError: If *table* is not exactly 256 bytes long.
 
     Examples:
@@ -50343,11 +50315,11 @@ def translate(data: bytes, table: bytes) -> bytes:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(table, bytes):
-        raise TypeError("table must be bytes")
+    if not isinstance(table, (bytes, bytearray)):
+        raise TypeError("table must be bytes or bytearray")
     if len(table) != 256:
         raise ValueError("table must be exactly 256 bytes long")
-    return bytes(data).translate(table)
+    return bytes(data).translate(bytes(table))
 
 
 def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
@@ -50404,7 +50376,7 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
 
     Args:
         value: The integer to encode.
-        length: The number of bytes in the result (must be positive).
+        length: The number of bytes in the result (must be >= 0).
         byteorder: "big" (most significant byte first) or "little" (least
             significant byte first).
         signed: If True, encode the value in two's-complement form so that
@@ -50414,10 +50386,10 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
         The *length*-byte representation of *value*.
 
     Raises:
-        TypeError: If *value* is not an int (a bool is rejected), or
-            *byteorder* is not a str.
-        ValueError: If *length* is not positive, or *byteorder* is not "big"
-            or "little".
+        TypeError: If *value* is not an int (a bool is rejected), *length* is
+            not an int, *byteorder* is not a str, or *signed* is not a bool.
+        ValueError: If *length* is negative, or *byteorder* is not "big" or
+            "little".
         OverflowError: If *value* does not fit in *length* bytes with the
             requested signedness.
 
@@ -50430,13 +50402,15 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
         'ff'
         >>> len(from_int(0, 4))
         4
+        >>> from_int(0, 0)
+        b''
     """
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError("value must be an int")
     if not isinstance(length, int) or isinstance(length, bool):
         raise TypeError("length must be an int")
-    if length <= 0:
-        raise ValueError("length must be positive")
+    if length < 0:
+        raise ValueError("length must be non-negative")
     if not isinstance(byteorder, str):
         raise TypeError("byteorder must be a str")
     if byteorder not in ("big", "little"):
@@ -50514,11 +50488,14 @@ from bytes_utils import (
     chunk,
     concat,
     contains,
+    count,
     decode_ascii,
     encode_ascii,
     ends_with,
     expandtabs,
+    find,
     from_hex,
+    from_int,
     index,
     index_of,
     is_zero,
@@ -50537,14 +50514,18 @@ from bytes_utils import (
     removeprefix,
     removesuffix,
     repeat,
+    replace,
     reverse,
     rfind,
+    rindex,
     rpartition,
+    split,
     splitlines,
     starts_with,
     swapcase,
     title,
     to_hex,
+    to_int,
     translate,
     upper,
     xor,
@@ -50851,6 +50832,14 @@ class TestIndex(unittest.TestCase):
             index(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             index(b"abc", b"a", end=1.5)
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            index(b"abc", b"a", end=True)
+
+    def test_negative_indices(self):
+        self.assertEqual(index(b"abcabc", b"bc", -3), 4)
+        self.assertEqual(index(b"abcabc", b"bc", 0, -1), 1)
 
 
 class TestRFind(unittest.TestCase):
@@ -50892,6 +50881,14 @@ class TestRFind(unittest.TestCase):
             rfind(b"abc", b"a", start="0")
         with self.assertRaises(TypeError):
             rfind(b"abc", b"a", end=1.5)
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            rfind(b"abc", b"a", end=True)
+
+    def test_negative_indices(self):
+        self.assertEqual(rfind(b"abcabc", b"bc", -5, -1), 1)
+        self.assertEqual(rfind(b"abcabc", b"bc", -3), 4)
 
 
 class TestPartition(unittest.TestCase):
@@ -51144,6 +51141,11 @@ class TestTranslate(unittest.TestCase):
             bytes([1, 0]) + bytes(range(2, 256)),
         )
 
+    def test_bytearray_table(self):
+        self.assertEqual(translate(b"abc", bytearray(range(256))), b"abc")
+        table = maketrans(b"ab", b"xy")
+        self.assertEqual(translate(b"abc", bytearray(table)), b"xyc")
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             translate("abc", maketrans(b"ab", b"xy"))
@@ -51210,6 +51212,209 @@ class TestIsZero(unittest.TestCase):
             is_zero(0)
         with self.assertRaises(TypeError):
             is_zero(None)
+
+class TestRIndex(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(rindex(b"hello world", b"o"), 7)
+        self.assertEqual(rindex(b"abcabc", b"bc"), 4)
+
+    def test_not_found_raises(self):
+        with self.assertRaises(ValueError):
+            rindex(b"hello", b"x")
+
+    def test_bytearray_input(self):
+        self.assertEqual(rindex(bytearray(b"hello"), bytearray(b"lo")), 3)
+
+    def test_negative_indices(self):
+        self.assertEqual(rindex(b"abcabc", b"bc", -4), 4)
+        self.assertEqual(rindex(b"abcabc", b"bc", -5, -1), 1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            rindex("abc", b"a")
+        with self.assertRaises(TypeError):
+            rindex(b"abc", "a")
+        with self.assertRaises(TypeError):
+            rindex(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            rindex(b"abc", b"a", end=True)
+
+
+class TestFind(unittest.TestCase):
+    def test_found(self):
+        self.assertEqual(find(b"hello world", b"world"), 6)
+        self.assertEqual(find(b"abcabc", b"bc"), 1)
+
+    def test_not_found(self):
+        self.assertEqual(find(b"hello", b"x"), -1)
+
+    def test_bytearray_input(self):
+        self.assertEqual(find(bytearray(b"hello"), bytearray(b"ll")), 2)
+
+    def test_negative_indices(self):
+        self.assertEqual(find(b"abcabc", b"bc", -3), 4)
+        self.assertEqual(find(b"abcabc", b"bc", -10), 1)
+        self.assertEqual(find(b"abcabc", b"bc", 0, -1), 1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            find("abc", b"a")
+        with self.assertRaises(TypeError):
+            find(b"abc", "a")
+        with self.assertRaises(TypeError):
+            find(b"abc", b"a", start=True)
+        with self.assertRaises(TypeError):
+            find(b"abc", b"a", end=True)
+
+
+class TestSplit(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(split(b"a,b,c", b","), [b"a", b"b", b"c"])
+        self.assertEqual(split(b"a b c", None), [b"a", b"b", b"c"])
+
+    def test_maxsplit(self):
+        self.assertEqual(split(b"a b c", None, 1), [b"a", b"b c"])
+
+    def test_bytearray_input(self):
+        self.assertEqual(split(bytearray(b"a,b"), bytearray(b",")), [b"a", b"b"])
+
+    def test_empty_separator(self):
+        with self.assertRaises(ValueError):
+            split(b"a", b"")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            split("a b")
+        with self.assertRaises(TypeError):
+            split(b"a b", 1)
+        with self.assertRaises(TypeError):
+            split(b"a b", None, True)
+
+
+class TestReplace(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(replace(b"aa", b"a", b"b"), b"bb")
+        self.assertEqual(replace(b"aa", b"a", b"b", 1), b"ba")
+
+    def test_negative_count(self):
+        self.assertEqual(replace(b"aa", b"a", b"b", -1), b"bb")
+
+    def test_bytearray_input(self):
+        self.assertEqual(
+            replace(bytearray(b"aa"), bytearray(b"a"), bytearray(b"b")),
+            b"bb",
+        )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            replace("aa", b"a", b"b")
+        with self.assertRaises(TypeError):
+            replace(b"aa", "a", b"b")
+        with self.assertRaises(TypeError):
+            replace(b"aa", b"a", "b")
+        with self.assertRaises(TypeError):
+            replace(b"aa", b"a", b"b", True)
+
+
+class TestCount(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count(b"abcabc", b"bc"), 2)
+        self.assertEqual(count(b"aaa", b"a"), 3)
+        self.assertEqual(count(b"abc", b"x"), 0)
+
+    def test_bytearray_input(self):
+        self.assertEqual(count(bytearray(b"abcabc"), bytearray(b"bc")), 2)
+
+    def test_negative_indices(self):
+        self.assertEqual(count(b"abcabc", b"bc", -3), 1)
+        self.assertEqual(count(b"abcabc", b"bc", 0, -1), 1)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count("abc", b"a")
+        with self.assertRaises(TypeError):
+            count(b"abc", "a")
+        with self.assertRaises(TypeError):
+            count(b"abc", b"a", True)
+        with self.assertRaises(TypeError):
+            count(b"abc", b"a", 0, True)
+
+
+class TestToInt(unittest.TestCase):
+    def test_big_endian(self):
+        self.assertEqual(to_int(from_hex("0100")), 256)
+        self.assertEqual(to_int(b"\x00\x01"), 1)
+
+    def test_little_endian(self):
+        self.assertEqual(to_int(from_hex("0001"), byteorder="little"), 256)
+
+    def test_signed(self):
+        self.assertEqual(to_int(from_hex("ff"), signed=True), -1)
+        self.assertEqual(to_int(b"\x80", signed=True), -128)
+
+    def test_empty(self):
+        self.assertEqual(to_int(b""), 0)
+        self.assertEqual(to_int(bytearray(b""), signed=True), 0)
+
+    def test_bytearray_input(self):
+        self.assertEqual(to_int(bytearray(b"\x01\x00")), 256)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            to_int("0100")
+        with self.assertRaises(TypeError):
+            to_int(b"\x01", byteorder=1)
+        with self.assertRaises(TypeError):
+            to_int(b"\xff", signed=1)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            to_int(b"\x01", byteorder="middle")
+
+
+class TestFromInt(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(to_hex(from_int(256, 2)), "0100")
+        self.assertEqual(from_int(256, 2, byteorder="little"), b"\x00\x01")
+        self.assertEqual(from_int(-1, 1, signed=True), b"\xff")
+
+    def test_length_zero(self):
+        self.assertEqual(from_int(0, 0), b"")
+        self.assertEqual(from_int(0, 0, byteorder="little", signed=True), b"")
+        self.assertEqual(from_int(-1, 0, signed=True), b"")
+
+    def test_length(self):
+        self.assertEqual(len(from_int(0, 4)), 4)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            from_int(True, 1)
+        with self.assertRaises(TypeError):
+            from_int(1.5, 1)
+        with self.assertRaises(TypeError):
+            from_int(1, True)
+        with self.assertRaises(TypeError):
+            from_int(1, 1, byteorder=1)
+        with self.assertRaises(TypeError):
+            from_int(1, 1, signed=1)
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            from_int(1, -1)
+        with self.assertRaises(ValueError):
+            from_int(1, 1, byteorder="middle")
+
+    def test_overflow(self):
+        with self.assertRaises(OverflowError):
+            from_int(256, 1)
+        with self.assertRaises(OverflowError):
+            from_int(-1, 1)
+        with self.assertRaises(OverflowError):
+            from_int(1, 0)
+        with self.assertRaises(OverflowError):
+            from_int(-2, 0, signed=True)
+        with self.assertRaises(OverflowError):
+            from_int(1, 0, signed=True)
 TESTBYTESUTILS
 
 # --- base64_utils.py ---
@@ -56717,7 +56922,17 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added has_paragraphs to prompt_utils
+## Unreleased — hardened bytes_utils boundaries and fixed rsplit dead code
+
+### Changed
+
+- Fixed `rsplit` in `bytes_utils.py` by removing unreachable dead code left after the validated `bytes.rsplit` wrapper return path.
+- Fixed `from_int` to accept `length=0` when representable (matching `int.to_bytes`, e.g. `from_int(0, 0) == b""`, `from_int(-1, 0, signed=True) == b""`), while preserving strict `int`/bool validation and `OverflowError`/`ValueError`/`TypeError` behavior.
+- Fixed `translate`/`maketrans` compatibility to accept `bytearray` tables/inputs where behavior matches bytes semantics (`translate` now validates/accepts bytes-like 256-byte tables; docs updated accordingly).
+- Expanded `tests/test_bytes_utils.py` (116→155 tests) with boundary coverage for `to_int`/`from_int` (signed/byteorder/length=0/overflow/bool/type rejection, bytearray inputs), `maketrans`/`translate` bytearray tables and length/type errors, and `split`/`find`/`index`/`rfind`/`rindex`/`replace`/`count` negative `start`/`end`, bool `start`/`end`/`count`/`maxsplit` rejection, and bytearray inputs.
+- Refreshed embedded `bytes_utils.py` and `tests/test_bytes_utils.py` copies in `scaffold.sh` (`python tools/refresh_scaffold.py --check` clean).
+
+
 
 - Added `has_paragraphs(text)` to `prompt_utils.py` as a boolean companion to `count_paragraphs` and `truncate_paragraphs`. It returns `True` when `count_paragraphs(text) > 0`, reusing the paragraph-splitting logic already in `count_paragraphs`/`truncate_paragraphs`, accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasParagraphs` to `tests/test_prompt_utils.py` covering empty string (False), single line (True), single multi-line paragraph (True), multiple paragraphs (True), blank-only text (False), CRLF normalization, and the `TypeError` path; imported `has_paragraphs` to match the module's `__all__` contract.
 - Updated the `prompt_utils` module tree entry and prose section of `README.md` to document `has_paragraphs`.

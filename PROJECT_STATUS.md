@@ -2750,8 +2750,19 @@ Next Planned (for the following agent):
 
 **Validation:** `python -m unittest tests.test_bytes_utils` (116 OK); `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded `bytes_utils.py` and `tests/test_bytes_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full `make test`/`make lint`/`make typecheck` not rerun in this environment (pytest/ruff/mypy not installed, consistent with prior sessions). No `.github/workflows/**` changes.
 
+
+## Latest Session (2026-11-06) — hardened bytes_utils int/translate/search boundaries
+
+**Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned" from previous session: continue `bytes_utils.py` boundary audit for `to_int`/`from_int`, `maketrans`/`translate`, and `split`/`find`/`index`/`rindex`/`replace`/`count` negative/bool index paths.
+
+**Changes (behaviorally justified):**
+- `bytes_utils.py`: removed unreachable dead code left after `rsplit`'s validated return (no behavior change). `from_int` now accepts `length=0` when representable to match stdlib `int.to_bytes` (`from_int(0, 0) == b""`, `from_int(-1, 0, signed=True) == b""`; overflows like `from_int(1, 0)` still raise `OverflowError`; negative length still `ValueError`). `translate` now accepts a 256-byte `bytearray` table (matches bytes-like semantics) while still validating length/type; docs updated.
+- `tests/test_bytes_utils.py` (116→155): added `TestRIndex`, `TestFind`, `TestSplit`, `TestReplace`, `TestCount`, `TestToInt`, and `TestFromInt`, plus missing negative-index/bool `start`/`end` cases for `TestIndex`/`TestRFind` and bytearray-table coverage for `TestTranslate`. Covered signed/byteorder/length=0/overflow/bool/type/value errors for int conversion, bytearray inputs, and stdlib-compatible negative index semantics.
+
+**Validation:** `python -m unittest tests.test_bytes_utils` (155 OK); `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded `bytes_utils.py`/`tests/test_bytes_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `pytest`/`ruff`/`mypy` not installed in this environment (pre-existing). No `.github/workflows/**` changes.
+
 Next Planned (for the following agent):
-- Continue `bytes_utils.py` boundary audit where still untested/risky: `to_int`/`from_int` signed/byteorder/length edge cases (zero length handling matches stdlib contract? `from_int` currently rejects non-positive length; verify/document/tests for bool `signed`, overflow boundaries, bytearray inputs), `maketrans`/`translate` empty/duplicate mappings and table length errors, `split`/`find`/`index`/`rindex`/`replace`/`count` negative `start`/`end` and bool `end` paths, and any `TypeError`/`ValueError` gaps. Add only missing, behaviorally justified tests; fix implementation validation only if incorrect/inconsistent with documented/std-like behavior.
+- Continue `bytes_utils.py` boundary audit for remaining risky/uncovered helpers: `partition`/`rpartition` empty-separator `ValueError` is covered, but audit `expandtabs`/`center`/`ljust`/`rjust`/`zfill` negative/huge width and fill-byte/type/length validation; `removeprefix`/`removesuffix` empty prefix/suffix and bytearray inputs; `strip`/`lstrip`/`rstrip` `chars=None`/empty/bytearray; `splitlines` already tested but verify `keepends` bool and uncommon line separators are fully covered; `join` iterable item-type errors; `decode_utf8`/`encode_utf8`/`decode_ascii`/`encode_ascii` error-handler and bool/type paths. Add only behaviorally justified tests; fix validation only if incorrect/inconsistent.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Run targeted `python -m unittest tests.test_bytes_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
 

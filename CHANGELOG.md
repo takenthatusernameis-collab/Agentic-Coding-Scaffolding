@@ -1,4 +1,14 @@
-## Unreleased — added has_paragraphs to prompt_utils
+## Unreleased — hardened bytes_utils boundaries and fixed rsplit dead code
+
+### Changed
+
+- Fixed `rsplit` in `bytes_utils.py` by removing unreachable dead code left after the validated `bytes.rsplit` wrapper return path.
+- Fixed `from_int` to accept `length=0` when representable (matching `int.to_bytes`, e.g. `from_int(0, 0) == b""`, `from_int(-1, 0, signed=True) == b""`), while preserving strict `int`/bool validation and `OverflowError`/`ValueError`/`TypeError` behavior.
+- Fixed `translate`/`maketrans` compatibility to accept `bytearray` tables/inputs where behavior matches bytes semantics (`translate` now validates/accepts bytes-like 256-byte tables; docs updated accordingly).
+- Expanded `tests/test_bytes_utils.py` (116→155 tests) with boundary coverage for `to_int`/`from_int` (signed/byteorder/length=0/overflow/bool/type rejection, bytearray inputs), `maketrans`/`translate` bytearray tables and length/type errors, and `split`/`find`/`index`/`rfind`/`rindex`/`replace`/`count` negative `start`/`end`, bool `start`/`end`/`count`/`maxsplit` rejection, and bytearray inputs.
+- Refreshed embedded `bytes_utils.py` and `tests/test_bytes_utils.py` copies in `scaffold.sh` (`python tools/refresh_scaffold.py --check` clean).
+
+
 
 - Added `has_paragraphs(text)` to `prompt_utils.py` as a boolean companion to `count_paragraphs` and `truncate_paragraphs`. It returns `True` when `count_paragraphs(text) > 0`, reusing the paragraph-splitting logic already in `count_paragraphs`/`truncate_paragraphs`, accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasParagraphs` to `tests/test_prompt_utils.py` covering empty string (False), single line (True), single multi-line paragraph (True), multiple paragraphs (True), blank-only text (False), CRLF normalization, and the `TypeError` path; imported `has_paragraphs` to match the module's `__all__` contract.
 - Updated the `prompt_utils` module tree entry and prose section of `README.md` to document `has_paragraphs`.

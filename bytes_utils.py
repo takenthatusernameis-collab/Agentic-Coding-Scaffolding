@@ -779,33 +779,6 @@ def rsplit(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[by
     if sep_bytes == b"":
         raise ValueError("empty separator")
     return bytes(data).rsplit(sep_bytes, maxsplit)
-    if maxsplit < 0:
-        i = len(data) - len(sep)
-        # search from right
-        # build from right to left
-        # collect split positions
-        # find all occurrences from right to left up to maxsplit? no maxsplit negative means all
-        idx = data.rfind(sep)
-        if idx == -1:
-            return [bytes(data)]
-        # easier to do iteratively
-        # do it properly
-        result_parts = []
-        remaining = bytes(data)
-        splits_done = 0
-        while True:
-            if maxsplit >= 0 and splits_done >= maxsplit:
-                result_parts.append(remaining)
-                break
-            idx = remaining.rfind(sep)
-            if idx == -1:
-                result_parts.append(remaining)
-                break
-            result_parts.append(remaining[idx + len(sep) :])
-            remaining = remaining[:idx]
-            splits_done += 1
-        result_parts.reverse()
-        return result_parts
 
 
 def upper(data: bytes) -> bytes:
@@ -1023,10 +996,10 @@ def maketrans(frm: bytes, to: bytes) -> bytes:
     return bytes(table)
 
 
-def translate(data: bytes, table: bytes) -> bytes:
+def translate(data: bytes, table: bytes | bytearray) -> bytes:
     """Return a copy of *data* with each byte replaced according to *table*.
 
-    *table* must be a bytes object of length 256 (as produced by
+    *table* must be a bytes-like object of length 256 (as produced by
     :func:`maketrans`); each byte value *b* in *data* is replaced by
     *table[b]*.
 
@@ -1038,8 +1011,7 @@ def translate(data: bytes, table: bytes) -> bytes:
         The translated bytes.
 
     Raises:
-        TypeError: If *data* is not bytes or bytearray, or *table* is not
-            bytes.
+        TypeError: If *data* or *table* is not bytes or bytearray.
         ValueError: If *table* is not exactly 256 bytes long.
 
     Examples:
@@ -1052,11 +1024,11 @@ def translate(data: bytes, table: bytes) -> bytes:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(table, bytes):
-        raise TypeError("table must be bytes")
+    if not isinstance(table, (bytes, bytearray)):
+        raise TypeError("table must be bytes or bytearray")
     if len(table) != 256:
         raise ValueError("table must be exactly 256 bytes long")
-    return bytes(data).translate(table)
+    return bytes(data).translate(bytes(table))
 
 
 def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
@@ -1113,7 +1085,7 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
 
     Args:
         value: The integer to encode.
-        length: The number of bytes in the result (must be positive).
+        length: The number of bytes in the result (must be >= 0).
         byteorder: "big" (most significant byte first) or "little" (least
             significant byte first).
         signed: If True, encode the value in two's-complement form so that
@@ -1123,10 +1095,10 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
         The *length*-byte representation of *value*.
 
     Raises:
-        TypeError: If *value* is not an int (a bool is rejected), or
-            *byteorder* is not a str.
-        ValueError: If *length* is not positive, or *byteorder* is not "big"
-            or "little".
+        TypeError: If *value* is not an int (a bool is rejected), *length* is
+            not an int, *byteorder* is not a str, or *signed* is not a bool.
+        ValueError: If *length* is negative, or *byteorder* is not "big" or
+            "little".
         OverflowError: If *value* does not fit in *length* bytes with the
             requested signedness.
 
@@ -1139,13 +1111,15 @@ def from_int(value: int, length: int, byteorder: str = "big", signed: bool = Fal
         'ff'
         >>> len(from_int(0, 4))
         4
+        >>> from_int(0, 0)
+        b''
     """
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError("value must be an int")
     if not isinstance(length, int) or isinstance(length, bool):
         raise TypeError("length must be an int")
-    if length <= 0:
-        raise ValueError("length must be positive")
+    if length < 0:
+        raise ValueError("length must be non-negative")
     if not isinstance(byteorder, str):
         raise TypeError("byteorder must be a str")
     if byteorder not in ("big", "little"):
