@@ -47025,34 +47025,6 @@ def zip_strict_iterables(*iterables: Iterable[Any]) -> List[Tuple[Any, ...]]:
     return zipped
 
 
-__all__ = [
-    "chain_iterables",
-    "flatten_once",
-    "take_while_pred",
-    "chunk_iterable",
-    "product_of",
-    "combinations_of",
-    "combinations_with_replacement_of",
-    "permutations_of",
-    "group_by_key",
-    "accumulate_values",
-    "repeat_value",
-    "cycle_take",
-    "compress_iterable",
-    "filter_false_iterable",
-    "pairwise_iterable",
-    "partition",
-    "zip_longest_iterables",
-    "zip_strict_iterables",
-    "batched_iterable",
-    "drop_while_pred",
-    "tee_iterables",
-    "starmap_iterable",
-    "count_from",
-    "islice_iterable",
-]
-
-
 def batched_iterable(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
     """Batch data into tuples of length n (Python 3.12+ itertools.batched)."""
     _ensure_iterable(iterable, "iterable")
@@ -56437,6 +56409,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — removed duplicate __all__ block from itertools_utils
+
+- Scanned `itertools_utils.py` for duplicate `__all__` blocks (the same class of defect fixed earlier in `prime_utils` and `itertools_utils`). Found a second, complete `__all__` block at module level that overwrote the first incomplete block at line 315, leaving dead code. Removed the stale first block so the module has a single, authoritative `__all__` of 33 unique entries, each matching a defined name.
+- Synchronized `itertools_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_itertools_utils` passes (106 tests); `python -m doctest itertools_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added selection_sort to sort_utils
 
 - Added `selection_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a selection sort companion to `bubble_sort`, `insertion_sort`, and `merge_sort`. It repeatedly selects the minimum (or maximum when *reverse* is True) element from the unsorted remainder and appends it to a new result list, accepting an optional `key` and `reverse` argument, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestSelectionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, non-mutation, string items, and randomized comparison-with-`sorted` cases. Updated the `sort_utils` module tree entry and prose section of `README.md`. Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
