@@ -1,3 +1,8 @@
+## Unreleased — added is_even to numbers_utils
+
+- Added `is_even(n)` to `numbers_utils.py` as a parity predicate companion to the existing divisor/number classifications. It returns `True` when *n* is an even integer (including zero and negative even numbers) and `False` otherwise, accepts a typed `int` argument, raises `TypeError` for non-int/bool arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsEven` to `tests/test_numbers_utils.py` covering even/odd/zero/negative values and the `TypeError` path; imported `is_even` to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`. Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_numbers_utils` passes; `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+
+
 ## Unreleased — hardened bytes_utils boundaries and fixed rsplit dead code
 
 ### Changed

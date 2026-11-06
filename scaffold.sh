@@ -57169,6 +57169,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_even to numbers_utils
+
+- Added `is_even(n)` to `numbers_utils.py` as a parity predicate companion to the existing divisor/number classifications. It returns `True` when *n* is an even integer (including zero and negative even numbers) and `False` otherwise, accepts a typed `int` argument, raises `TypeError` for non-int/bool arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsEven` to `tests/test_numbers_utils.py` covering even/odd/zero/negative values and the `TypeError` path; imported `is_even` to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`. Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_numbers_utils` passes; `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+
+
 ## Unreleased — hardened bytes_utils boundaries and fixed rsplit dead code
 
 ### Changed
@@ -59524,7 +59529,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_fibonacci_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_fibonacci_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_even, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -60642,7 +60647,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds classification and divisor helpers including `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `proper_divisors`, `aliquot_sum`, `sum_of_divisors`, `abundance`, `are_amicable`, and `is_amicable_number` (with `TypeError`/`ValueError` validation; `is_amicable_number` is distinct from `prime_utils.is_amicable`). The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds classification and divisor helpers including `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_even`, `proper_divisors`, `aliquot_sum`, `sum_of_divisors`, `abundance`, `are_amicable`, and `is_amicable_number` (with `TypeError`/`ValueError` validation; `is_amicable_number` is distinct from `prime_utils.is_amicable`). The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -83903,6 +83908,7 @@ __all__: list[str] = [
     "is_palindromic_number",
     "is_coprime",
     "is_duck_number",
+    "is_even",
     "is_odious_number",
     "is_evil_number",
     "is_perfect_power",
@@ -85516,6 +85522,36 @@ def is_amicable_number(n: int) -> bool:
     if partner == n or partner < 2:
         return False
     return aliquot_sum(partner) == n
+
+
+def is_even(n: int) -> bool:
+    """Return ``True`` when *n* is an even integer.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is divisible by 2 (including zero and negative even
+        numbers), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int (a bool is rejected).
+
+    Examples:
+        >>> is_even(2)
+        True
+        >>> is_even(3)
+        False
+        >>> is_even(0)
+        True
+        >>> is_even(-4)
+        True
+        >>> is_even(-7)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    return n % 2 == 0
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -85537,6 +85573,7 @@ from numbers_utils import (
     is_coprime,
     is_deficient_number,
     is_duck_number,
+    is_even,
     is_evil_number,
     is_fibonacci_number,
     is_happy_number,
@@ -86567,6 +86604,27 @@ class TestIsAmicableNumber(unittest.TestCase):
         for value in (1.5, "220", None, True, [220]):
             with self.assertRaises(TypeError):
                 is_amicable_number(value)
+
+
+class TestIsEven(unittest.TestCase):
+    def test_even_values(self):
+        from numbers_utils import is_even
+
+        for value in (0, 2, -2, 100, -100, 2 * 10**6):
+            self.assertTrue(is_even(value), value)
+
+    def test_odd_values(self):
+        from numbers_utils import is_even
+
+        for value in (1, 3, -1, -3, 99, 2 * 10**6 + 1):
+            self.assertFalse(is_even(value), value)
+
+    def test_type_error(self):
+        from numbers_utils import is_even
+
+        for value in (1.5, 2.0, "2", None, True, [2], (2,)):
+            with self.assertRaises(TypeError):
+                is_even(value)
 
 
 if __name__ == "__main__":

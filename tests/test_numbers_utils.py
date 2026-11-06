@@ -15,6 +15,7 @@ from numbers_utils import (
     is_coprime,
     is_deficient_number,
     is_duck_number,
+    is_even,
     is_evil_number,
     is_fibonacci_number,
     is_happy_number,
@@ -1045,6 +1046,27 @@ class TestIsAmicableNumber(unittest.TestCase):
         for value in (1.5, "220", None, True, [220]):
             with self.assertRaises(TypeError):
                 is_amicable_number(value)
+
+
+class TestIsEven(unittest.TestCase):
+    def test_even_values(self):
+        from numbers_utils import is_even
+
+        for value in (0, 2, -2, 100, -100, 2 * 10**6):
+            self.assertTrue(is_even(value), value)
+
+    def test_odd_values(self):
+        from numbers_utils import is_even
+
+        for value in (1, 3, -1, -3, 99, 2 * 10**6 + 1):
+            self.assertFalse(is_even(value), value)
+
+    def test_type_error(self):
+        from numbers_utils import is_even
+
+        for value in (1.5, 2.0, "2", None, True, [2], (2,)):
+            with self.assertRaises(TypeError):
+                is_even(value)
 
 
 if __name__ == "__main__":

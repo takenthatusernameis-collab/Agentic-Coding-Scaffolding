@@ -44,6 +44,7 @@ __all__: list[str] = [
     "is_palindromic_number",
     "is_coprime",
     "is_duck_number",
+    "is_even",
     "is_odious_number",
     "is_evil_number",
     "is_perfect_power",
@@ -1657,3 +1658,33 @@ def is_amicable_number(n: int) -> bool:
     if partner == n or partner < 2:
         return False
     return aliquot_sum(partner) == n
+
+
+def is_even(n: int) -> bool:
+    """Return ``True`` when *n* is an even integer.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is divisible by 2 (including zero and negative even
+        numbers), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int (a bool is rejected).
+
+    Examples:
+        >>> is_even(2)
+        True
+        >>> is_even(3)
+        False
+        >>> is_even(0)
+        True
+        >>> is_even(-4)
+        True
+        >>> is_even(-7)
+        False
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    return n % 2 == 0
