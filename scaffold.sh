@@ -49430,7 +49430,7 @@ def chunk(data: bytes, size: int) -> list[bytes]:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(size, int) or size <= 0:
+    if isinstance(size, bool) or not isinstance(size, int) or size <= 0:
         raise ValueError("size must be a positive integer")
     data = bytes(data)
     return [data[i : i + size] for i in range(0, len(data), size)]
@@ -49486,7 +49486,7 @@ def repeat(data: bytes, count: int) -> bytes:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(count, int) or count < 0:
+    if isinstance(count, bool) or not isinstance(count, int) or count < 0:
         raise ValueError("count must be a non-negative integer")
     return bytes(data) * count
 
@@ -50679,6 +50679,10 @@ class TestBytesUtils(unittest.TestCase):
     def test_chunk(self):
         self.assertEqual(chunk(b"abcdef", 2), [b"ab", b"cd", b"ef"])
 
+    def test_chunk_bool_size(self):
+        with self.assertRaises(ValueError):
+            chunk(b"ab", True)
+
     def test_concat(self):
         self.assertEqual(concat(b"ab", b"cd", bytearray(b"ef")), b"abcdef")
         self.assertEqual(concat(), b"")
@@ -50696,6 +50700,8 @@ class TestBytesUtils(unittest.TestCase):
             repeat("ab", 2)
         with self.assertRaises(ValueError):
             repeat(b"ab", -1)
+        with self.assertRaises(ValueError):
+            repeat(b"ab", True)
 
     def test_reverse(self):
         self.assertEqual(reverse(b"abc"), b"cba")

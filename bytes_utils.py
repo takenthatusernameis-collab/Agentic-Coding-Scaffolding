@@ -139,7 +139,7 @@ def chunk(data: bytes, size: int) -> list[bytes]:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(size, int) or size <= 0:
+    if isinstance(size, bool) or not isinstance(size, int) or size <= 0:
         raise ValueError("size must be a positive integer")
     data = bytes(data)
     return [data[i : i + size] for i in range(0, len(data), size)]
@@ -195,7 +195,7 @@ def repeat(data: bytes, count: int) -> bytes:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    if not isinstance(count, int) or count < 0:
+    if isinstance(count, bool) or not isinstance(count, int) or count < 0:
         raise ValueError("count must be a non-negative integer")
     return bytes(data) * count
 

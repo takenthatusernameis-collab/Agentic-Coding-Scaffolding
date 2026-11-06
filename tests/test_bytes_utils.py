@@ -57,6 +57,10 @@ class TestBytesUtils(unittest.TestCase):
     def test_chunk(self):
         self.assertEqual(chunk(b"abcdef", 2), [b"ab", b"cd", b"ef"])
 
+    def test_chunk_bool_size(self):
+        with self.assertRaises(ValueError):
+            chunk(b"ab", True)
+
     def test_concat(self):
         self.assertEqual(concat(b"ab", b"cd", bytearray(b"ef")), b"abcdef")
         self.assertEqual(concat(), b"")
@@ -74,6 +78,8 @@ class TestBytesUtils(unittest.TestCase):
             repeat("ab", 2)
         with self.assertRaises(ValueError):
             repeat(b"ab", -1)
+        with self.assertRaises(ValueError):
+            repeat(b"ab", True)
 
     def test_reverse(self):
         self.assertEqual(reverse(b"abc"), b"cba")
