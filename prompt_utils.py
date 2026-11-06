@@ -87,6 +87,7 @@ __all__: List[str] = [
     "strip_leading_newlines",
     "strip_trailing_newlines",
     "count_unique_words",
+    "has_unique_words",
     "join_lines",
     "split_lines",
     "chomp",
@@ -1745,6 +1746,36 @@ def count_unique_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(set(text.split()))
+
+
+def has_unique_words(text: str) -> bool:
+    """Return True if *text* contains at least one distinct word.
+
+    A boolean companion to :func:`count_unique_words`; it returns ``True``
+    when *text* contains one or more distinct whitespace-delimited words and
+    ``False`` otherwise (including empty or whitespace-only text). Comparison
+    is case-sensitive, matching :func:`count_unique_words`.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one distinct word, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_unique_words("hello world hello")
+        True
+        >>> has_unique_words("")
+        False
+        >>> has_unique_words("   ")
+        False
+    """
+    _require_string(text, "text")
+    return count_unique_words(text) > 0
 
 
 def strip_trailing_newlines(text: str) -> str:

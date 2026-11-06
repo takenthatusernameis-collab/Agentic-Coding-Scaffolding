@@ -24988,6 +24988,7 @@ from prompt_utils import (
     count_whitespace_characters,
     count_words,
     has_words,
+    has_unique_words,
     dedent_lines,
     ensure_leading_newline,
     ensure_prefix,
@@ -26347,6 +26348,31 @@ class TestCountUniqueWords(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_unique_words(123)
+
+
+class TestHasUniqueWords(unittest.TestCase):
+    def test_has_unique_words(self):
+        self.assertTrue(has_unique_words("hello world hello"))
+
+    def test_single_unique_word(self):
+        self.assertTrue(has_unique_words("hello"))
+
+    def test_all_duplicates(self):
+        self.assertTrue(has_unique_words("a a a"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_unique_words(""))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_unique_words("   "))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_unique_words(123)  # type: ignore[arg-type]
+
+    def test_consistency_with_count_unique_words(self):
+        for sample in ["", "hello", "hello world hello", "   ", "a a a"]:
+            self.assertEqual(has_unique_words(sample), count_unique_words(sample) > 0)
 
 
 class TestStripTrailingNewlines(unittest.TestCase):
@@ -38543,6 +38569,7 @@ __all__: List[str] = [
     "strip_leading_newlines",
     "strip_trailing_newlines",
     "count_unique_words",
+    "has_unique_words",
     "join_lines",
     "split_lines",
     "chomp",
@@ -40201,6 +40228,36 @@ def count_unique_words(text: str) -> int:
     """
     _require_string(text, "text")
     return len(set(text.split()))
+
+
+def has_unique_words(text: str) -> bool:
+    """Return True if *text* contains at least one distinct word.
+
+    A boolean companion to :func:`count_unique_words`; it returns ``True``
+    when *text* contains one or more distinct whitespace-delimited words and
+    ``False`` otherwise (including empty or whitespace-only text). Comparison
+    is case-sensitive, matching :func:`count_unique_words`.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one distinct word, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_unique_words("hello world hello")
+        True
+        >>> has_unique_words("")
+        False
+        >>> has_unique_words("   ")
+        False
+    """
+    _require_string(text, "text")
+    return count_unique_words(text) > 0
 
 
 def strip_trailing_newlines(text: str) -> str:
@@ -51190,21 +51247,34 @@ class TestBytesUtils(unittest.TestCase):
     def test_upper(self):
         self.assertEqual(upper(b"abc"), b"ABC")
         self.assertEqual(upper(bytearray(b"ab")), b"AB")
+        self.assertEqual(upper(b"Ab1!"), b"AB1!")
+        self.assertEqual(upper(b""), b"")
+        with self.assertRaises(TypeError):
+            upper("abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            upper(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            upper(None)  # type: ignore[arg-type]
 
     def test_lower(self):
         self.assertEqual(lower(b"ABC"), b"abc")
         self.assertEqual(lower(bytearray(b"AB")), b"ab")
+        self.assertEqual(lower(b"Ab1!"), b"ab1!")
+        self.assertEqual(lower(b""), b"")
+        with self.assertRaises(TypeError):
+            lower("ABC")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lower(123)  # type: ignore[arg-type]
 
     def test_capitalize(self):
         self.assertEqual(capitalize(b"hello world"), b"Hello world")
         self.assertEqual(capitalize(b"HELLO"), b"Hello")
         self.assertEqual(capitalize(bytearray(b"hello")), b"Hello")
         self.assertEqual(capitalize(b""), b"")
-
-    def test_title(self):
-        self.assertEqual(title(b"hello world"), b"Hello World")
-        self.assertEqual(title(b"hello-world"), b"Hello-World")
-        self.assertEqual(title(b"HELLO WORLD"), b"Hello World")
+        with self.assertRaises(TypeError):
+            capitalize("hello")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            capitalize(None)  # type: ignore[arg-type]
         self.assertEqual(title(bytearray(b"hello world")), b"Hello World")
         self.assertEqual(title(b""), b"")
 
@@ -51899,7 +51969,14 @@ class TestIsZero(unittest.TestCase):
 class TestTitle(unittest.TestCase):
     def test_title(self):
         self.assertEqual(title(b"hello world"), b"Hello World")
+        self.assertEqual(title(b"hello-world"), b"Hello-World")
         self.assertEqual(title(b"HELLO WORLD"), b"Hello World")
+        self.assertEqual(title(bytearray(b"hello world")), b"Hello World")
+        self.assertEqual(title(b""), b"")
+        with self.assertRaises(TypeError):
+            title("hello")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            title([])  # type: ignore[arg-type]
         self.assertEqual(title(b"a b c"), b"A B C")
 
     def test_empty(self):

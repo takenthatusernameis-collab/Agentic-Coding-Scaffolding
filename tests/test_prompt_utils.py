@@ -30,6 +30,7 @@ from prompt_utils import (
     count_whitespace_characters,
     count_words,
     has_words,
+    has_unique_words,
     dedent_lines,
     ensure_leading_newline,
     ensure_prefix,
@@ -1389,6 +1390,31 @@ class TestCountUniqueWords(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             count_unique_words(123)
+
+
+class TestHasUniqueWords(unittest.TestCase):
+    def test_has_unique_words(self):
+        self.assertTrue(has_unique_words("hello world hello"))
+
+    def test_single_unique_word(self):
+        self.assertTrue(has_unique_words("hello"))
+
+    def test_all_duplicates(self):
+        self.assertTrue(has_unique_words("a a a"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_unique_words(""))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_unique_words("   "))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_unique_words(123)  # type: ignore[arg-type]
+
+    def test_consistency_with_count_unique_words(self):
+        for sample in ["", "hello", "hello world hello", "   ", "a a a"]:
+            self.assertEqual(has_unique_words(sample), count_unique_words(sample) > 0)
 
 
 class TestStripTrailingNewlines(unittest.TestCase):
