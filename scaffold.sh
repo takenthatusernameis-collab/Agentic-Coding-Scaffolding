@@ -78133,6 +78133,7 @@ __all__ = [
     "gcd",
     "gcd_list",
     "in_range",
+    "integer_nth_root",
     "is_abundant_number",
     "is_armstrong_number",
     "is_automorphic_number",
@@ -78892,6 +78893,69 @@ def is_power_of(value: Number, base: Number) -> bool:
         cur *= b
         k += 1
     return cur == v
+
+
+def integer_nth_root(value: Number, n: Number) -> tuple[int, bool]:
+    """Return the integer *n*-th root of *value* and whether it is exact.
+
+    Computes ``(r, exact)`` such that ``r**n <= int(value) < (r+1)**n`` for
+    non-negative *value*, and ``r**n == int(value)`` when *exact* is True.
+    For negative *value*, *n* must be a positive odd integer and the signed
+    root is returned.
+
+    Args:
+        value: The radicand (integer or integer-valued float).
+        n: The root degree (positive integer or integer-valued float).
+
+    Returns:
+        A tuple ``(root, exact)``.
+
+    Raises:
+        TypeError: If *value* or *n* is not a number.
+        ValueError: If *n* is not a positive integer, if *value* is
+            negative and *n* is even, or if inputs are not integer-valued.
+
+    Examples:
+        >>> integer_nth_root(27, 3)
+        (3, True)
+        >>> integer_nth_root(10, 2)
+        (3, False)
+        >>> integer_nth_root(16, 4)
+        (2, True)
+        >>> integer_nth_root(-8, 3)
+        (-2, True)
+    """
+    _require_number(value, "value")
+    _require_number(n, "n")
+    if not is_integer(value):
+        raise ValueError("value must be an integer value")
+    if not is_integer(n):
+        raise ValueError("n must be an integer value")
+    x = int(value)
+    k = int(n)
+    if k <= 0:
+        raise ValueError("n must be a positive integer")
+    if x < 0:
+        if k % 2 == 0:
+            raise ValueError("even root of negative value is not real")
+        r, exact = integer_nth_root(-x, k)
+        return -r, exact
+    if x < 2:
+        return x, True
+    if k == 1:
+        return x, True
+    # Newton's method on integers
+    r = 1 << ((x.bit_length() + k - 1) // k)
+    while True:
+        r_next = ((k - 1) * r + x // (r ** (k - 1))) // k
+        if r_next >= r:
+            break
+        r = r_next
+    exact = r**k == x
+    if not exact and (r + 1) ** k <= x:
+        r += 1
+        exact = r**k == x
+    return r, exact
 
 
 def is_perfect_power(value: Number) -> bool:
@@ -80655,6 +80719,7 @@ from number_utils import (
     is_happy_number,
     is_harshad_number,
     is_hexagonal_number,
+    integer_nth_root,
     is_infinite,
     is_integer,
     is_kaprekar_number,
@@ -82592,6 +82657,53 @@ class TestIsPrime(unittest.TestCase):
             is_prime("7")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_prime(None)  # type: ignore[arg-type]
+
+
+class TestIntegerNthRoot(unittest.TestCase):
+    def test_exact_roots(self) -> None:
+        self.assertEqual(integer_nth_root(27, 3), (3, True))
+        self.assertEqual(integer_nth_root(16, 4), (2, True))
+        self.assertEqual(integer_nth_root(0, 5), (0, True))
+        self.assertEqual(integer_nth_root(1, 10), (1, True))
+        self.assertEqual(integer_nth_root(81, 2), (9, True))
+        self.assertEqual(integer_nth_root(2**60, 2), (2**30, True))
+
+    def test_non_exact_roots(self) -> None:
+        self.assertEqual(integer_nth_root(10, 2), (3, False))
+        self.assertEqual(integer_nth_root(26, 3), (2, False))
+        self.assertEqual(integer_nth_root(2, 3), (1, False))
+
+    def test_negative_odd_root(self) -> None:
+        self.assertEqual(integer_nth_root(-8, 3), (-2, True))
+        self.assertEqual(integer_nth_root(-27, 3), (-3, True))
+        self.assertEqual(integer_nth_root(-10, 3), (-2, False))
+
+    def test_integer_valued_floats(self) -> None:
+        self.assertEqual(integer_nth_root(27.0, 3.0), (3, True))
+
+    def test_invalid_degree(self) -> None:
+        with self.assertRaises(ValueError):
+            integer_nth_root(8, 0)
+        with self.assertRaises(ValueError):
+            integer_nth_root(8, -2)
+        with self.assertRaises(ValueError):
+            integer_nth_root(8, 2.5)
+
+    def test_non_integer_value(self) -> None:
+        with self.assertRaises(ValueError):
+            integer_nth_root(2.5, 2)
+
+    def test_even_root_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            integer_nth_root(-16, 2)
+        with self.assertRaises(ValueError):
+            integer_nth_root(-1, 4)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            integer_nth_root("27", 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            integer_nth_root(27, "3")  # type: ignore[arg-type]
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---

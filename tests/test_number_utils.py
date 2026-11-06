@@ -27,6 +27,7 @@ from number_utils import (
     is_happy_number,
     is_harshad_number,
     is_hexagonal_number,
+    integer_nth_root,
     is_infinite,
     is_integer,
     is_kaprekar_number,
@@ -1964,3 +1965,50 @@ class TestIsPrime(unittest.TestCase):
             is_prime("7")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_prime(None)  # type: ignore[arg-type]
+
+
+class TestIntegerNthRoot(unittest.TestCase):
+    def test_exact_roots(self) -> None:
+        self.assertEqual(integer_nth_root(27, 3), (3, True))
+        self.assertEqual(integer_nth_root(16, 4), (2, True))
+        self.assertEqual(integer_nth_root(0, 5), (0, True))
+        self.assertEqual(integer_nth_root(1, 10), (1, True))
+        self.assertEqual(integer_nth_root(81, 2), (9, True))
+        self.assertEqual(integer_nth_root(2**60, 2), (2**30, True))
+
+    def test_non_exact_roots(self) -> None:
+        self.assertEqual(integer_nth_root(10, 2), (3, False))
+        self.assertEqual(integer_nth_root(26, 3), (2, False))
+        self.assertEqual(integer_nth_root(2, 3), (1, False))
+
+    def test_negative_odd_root(self) -> None:
+        self.assertEqual(integer_nth_root(-8, 3), (-2, True))
+        self.assertEqual(integer_nth_root(-27, 3), (-3, True))
+        self.assertEqual(integer_nth_root(-10, 3), (-2, False))
+
+    def test_integer_valued_floats(self) -> None:
+        self.assertEqual(integer_nth_root(27.0, 3.0), (3, True))
+
+    def test_invalid_degree(self) -> None:
+        with self.assertRaises(ValueError):
+            integer_nth_root(8, 0)
+        with self.assertRaises(ValueError):
+            integer_nth_root(8, -2)
+        with self.assertRaises(ValueError):
+            integer_nth_root(8, 2.5)
+
+    def test_non_integer_value(self) -> None:
+        with self.assertRaises(ValueError):
+            integer_nth_root(2.5, 2)
+
+    def test_even_root_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            integer_nth_root(-16, 2)
+        with self.assertRaises(ValueError):
+            integer_nth_root(-1, 4)
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            integer_nth_root("27", 3)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            integer_nth_root(27, "3")  # type: ignore[arg-type]
