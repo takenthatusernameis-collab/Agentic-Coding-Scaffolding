@@ -38,7 +38,6 @@ __all__: List[str] = [
     "jaro_winkler_distance",
     "jaccard_similarity",
     "jaccard_distance",
-    "cosine_similarity",
     "cosine_distance",
 ]
 

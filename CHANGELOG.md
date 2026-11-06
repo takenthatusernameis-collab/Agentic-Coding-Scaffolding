@@ -1,3 +1,9 @@
+## Unreleased — removed duplicate __all__ entry from string_utils
+
+- Removed the duplicate `cosine_similarity` entry from `string_utils.__all__` (34 entries, 33 unique), the same class of defect previously fixed in `prime_utils` (duplicate `is_mersenne_prime`) and `itertools_utils` (duplicate `take_while_pred` / stale second `__all__` block). `__all__` is now a clean, deduplicated list of 33 entries, each matching a defined name; no function behavior or signatures changed.
+- Synchronized `string_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_string_utils` passes (300 tests); `python -m doctest string_utils.py` passes; `python -m unittest tests.test_public_api` passes; `Counter(string_utils.__all__)` reports no duplicates. No changes to `.github/workflows/**`.
+
 ## Unreleased — hardened semver_utils validation and build-metadata precedence
 
 - Hardened `semver_utils.py` input validation to follow repository conventions: `SemanticVersion` now rejects bool/non-int version components (`TypeError`) and non-string `prerelease`/`build` metadata (`TypeError`), while preserving `ValueError` for negative components and invalid version strings.
