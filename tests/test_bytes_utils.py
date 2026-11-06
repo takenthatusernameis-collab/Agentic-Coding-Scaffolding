@@ -103,21 +103,34 @@ class TestBytesUtils(unittest.TestCase):
     def test_upper(self):
         self.assertEqual(upper(b"abc"), b"ABC")
         self.assertEqual(upper(bytearray(b"ab")), b"AB")
+        self.assertEqual(upper(b"Ab1!"), b"AB1!")
+        self.assertEqual(upper(b""), b"")
+        with self.assertRaises(TypeError):
+            upper("abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            upper(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            upper(None)  # type: ignore[arg-type]
 
     def test_lower(self):
         self.assertEqual(lower(b"ABC"), b"abc")
         self.assertEqual(lower(bytearray(b"AB")), b"ab")
+        self.assertEqual(lower(b"Ab1!"), b"ab1!")
+        self.assertEqual(lower(b""), b"")
+        with self.assertRaises(TypeError):
+            lower("ABC")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lower(123)  # type: ignore[arg-type]
 
     def test_capitalize(self):
         self.assertEqual(capitalize(b"hello world"), b"Hello world")
         self.assertEqual(capitalize(b"HELLO"), b"Hello")
         self.assertEqual(capitalize(bytearray(b"hello")), b"Hello")
         self.assertEqual(capitalize(b""), b"")
-
-    def test_title(self):
-        self.assertEqual(title(b"hello world"), b"Hello World")
-        self.assertEqual(title(b"hello-world"), b"Hello-World")
-        self.assertEqual(title(b"HELLO WORLD"), b"Hello World")
+        with self.assertRaises(TypeError):
+            capitalize("hello")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            capitalize(None)  # type: ignore[arg-type]
         self.assertEqual(title(bytearray(b"hello world")), b"Hello World")
         self.assertEqual(title(b""), b"")
 
@@ -812,7 +825,14 @@ class TestIsZero(unittest.TestCase):
 class TestTitle(unittest.TestCase):
     def test_title(self):
         self.assertEqual(title(b"hello world"), b"Hello World")
+        self.assertEqual(title(b"hello-world"), b"Hello-World")
         self.assertEqual(title(b"HELLO WORLD"), b"Hello World")
+        self.assertEqual(title(bytearray(b"hello world")), b"Hello World")
+        self.assertEqual(title(b""), b"")
+        with self.assertRaises(TypeError):
+            title("hello")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            title([])  # type: ignore[arg-type]
         self.assertEqual(title(b"a b c"), b"A B C")
 
     def test_empty(self):
