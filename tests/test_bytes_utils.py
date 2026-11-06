@@ -305,7 +305,8 @@ class TestPredicates(unittest.TestCase):
             islower,
             isspace,
             istitle,
-            isupper,
+    isupper,
+
         ):
             with self.assertRaises(TypeError):
                 fn("abc")
