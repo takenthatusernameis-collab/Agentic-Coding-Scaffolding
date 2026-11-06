@@ -1,3 +1,9 @@
+## Unreleased — removed duplicate __all__ entry from numbers_utils
+
+- Removed the duplicate `is_fibonacci_number` entry from `numbers_utils.__all__` (56 entries, 55 unique) — the same class of defect previously fixed in `prime_utils` (duplicate `is_mersenne_prime`), `itertools_utils` (duplicate `take_while_pred` / stale second `__all__` block), and `string_utils` (duplicate `cosine_similarity`). Also removed a second, shadowing `is_fibonacci_number` function definition at the end of the module that duplicated the documented implementation at line 1298 (which has the doctests). `__all__` is now a clean, deduplicated list of 55 entries, each matching a single defined name; no other function behavior or signatures changed.
+- Synchronized `numbers_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` passes (140 tests); `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes; `Counter(numbers_utils.__all__)` reports no duplicates. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_fibonacci_number to numbers_utils
 
 - Added `is_fibonacci_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int/bool arguments; it returns `True` when *n* is a member of the Fibonacci sequence (0, 1, 1, 2, 3, 5, ...), using the standard perfect-square test on `5*n*n + 4` and `5*n*n - 4`, and `False` for negative inputs. Added `TestIsFibonacciNumber` to `tests/test_numbers_utils.py` covering known Fibonacci and non-Fibonacci values, negatives, and the `TypeError` path (12 new tests). Updated the `numbers_utils` module tree entry in `README.md`.

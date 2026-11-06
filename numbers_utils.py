@@ -68,7 +68,6 @@ __all__: list[str] = [
     "abundance",
     "are_amicable",
     "is_amicable_number",
-    "is_fibonacci_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -1658,28 +1657,3 @@ def is_amicable_number(n: int) -> bool:
     if partner == n or partner < 2:
         return False
     return aliquot_sum(partner) == n
-
-
-
-def is_fibonacci_number(n: int) -> bool:
-    """Return ``True`` when *n* is a Fibonacci number.
-
-    A non-negative integer is a Fibonacci number when one or both of
-    ``5 * n * n + 4`` and ``5 * n * n - 4`` is a perfect square.
-
-    Args:
-        n: The integer to test.
-
-    Returns:
-        ``True`` if *n* is a Fibonacci number, ``False`` otherwise.
-
-    Raises:
-        TypeError: If *n* is not an int.
-    """
-    if isinstance(n, bool) or not isinstance(n, int):
-        raise TypeError(f"n must be an int, got {type(n).__name__}")
-    if n < 0:
-        return False
-    a = 5 * n * n + 4
-    b = 5 * n * n - 4
-    return is_perfect_square(a) or is_perfect_square(b)
