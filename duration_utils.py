@@ -26,6 +26,7 @@ __all__: list[str] = [
     "to_seconds",
     "duration_between",
     "add_duration",
+    "subtract_duration",
 ]
 
 SECONDS_PER_MINUTE = 60
@@ -371,13 +372,45 @@ def add_duration(
         >>> from datetime import datetime
         >>> dt = datetime(2024, 1, 1, 10, 0, 0)
         >>> add_duration(dt, "1h30m")
-        datetime(2024, 1, 1, 11, 30)
+        datetime.datetime(2024, 1, 1, 11, 30)
     """
     if not isinstance(dt, datetime):
         raise TypeError("dt must be a datetime")
 
     seconds = parse_duration(duration_str)
     return dt + timedelta(seconds=seconds)
+
+
+def subtract_duration(
+    dt: datetime,
+    duration_str: str,
+) -> datetime:
+    """Subtract a parsed duration from a datetime and return the result.
+
+    Args:
+        dt: The base datetime.
+        duration_str: A duration string parseable by :func:`parse_duration`.
+
+    Returns:
+        A new :class:`~datetime.datetime` equal to ``dt - duration``.
+
+    Raises:
+        TypeError: If ``dt`` is not a datetime.
+        ValueError: If ``duration_str`` cannot be parsed.
+
+    Examples:
+        >>> from datetime import datetime
+        >>> dt = datetime(2024, 1, 1, 11, 30, 0)
+        >>> subtract_duration(dt, "1h30m")
+        datetime.datetime(2024, 1, 1, 10, 0)
+        >>> subtract_duration(dt, "2 days")
+        datetime.datetime(2023, 12, 30, 11, 30)
+    """
+    if not isinstance(dt, datetime):
+        raise TypeError("dt must be a datetime")
+
+    seconds = parse_duration(duration_str)
+    return dt - timedelta(seconds=seconds)
 
 
 if __name__ == "__main__":

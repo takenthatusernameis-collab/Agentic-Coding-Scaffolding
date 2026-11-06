@@ -56488,6 +56488,19 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added subtract_duration to duration_utils
+
+- Added `subtract_duration(dt, duration_str)` to `duration_utils.py` as a companion to `add_duration`, subtracting a parsed duration from a `datetime` and returning a new `datetime`. Validates that `dt` is a `datetime` (`TypeError`) and that `duration_str` is parseable (`ValueError`), exported via `__all__`, with a Google-style docstring and ASCII-safe doctests. Added `TestSubtractDuration` (6 tests) to `tests/test_duration_utils.py` covering basic/days/combined/roundtrip and error paths.
+- Updated the `duration_utils` prose in `README.md` to document `subtract_duration`.
+- Synchronized `duration_utils.py`, `tests/test_duration_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_duration_utils` passes (46 tests); `python -m doctest duration_utils.py` passes; `python -m unittest tests.test_public_api` passes. No changes to `.github/workflows/**`.
+
+## Unreleased — removed duplicate __all__ entry from numbers_utils
+
+- Removed the duplicate `is_fibonacci_number` entry from `numbers_utils.__all__` (56 entries, 55 unique) — the same class of defect previously fixed in `prime_utils` (duplicate `is_mersenne_prime`), `itertools_utils` (duplicate `take_while_pred` / stale second `__all__` block), and `string_utils` (duplicate `cosine_similarity`). Also removed a second, shadowing `is_fibonacci_number` function definition at the end of the module that duplicated the documented implementation at line 1298 (which has the doctests). `__all__` is now a clean, deduplicated list of 55 entries, each matching a single defined name; no other function behavior or signatures changed.
+- Synchronized `numbers_utils.py`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` passes (140 tests); `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes; `Counter(numbers_utils.__all__)` reports no duplicates. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_fibonacci_number to numbers_utils
 
 - Added `is_fibonacci_number(n)` to `numbers_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation for non-int/bool arguments; it returns `True` when *n* is a member of the Fibonacci sequence (0, 1, 1, 2, 3, 5, ...), using the standard perfect-square test on `5*n*n + 4` and `5*n*n - 4`, and `False` for negative inputs. Added `TestIsFibonacciNumber` to `tests/test_numbers_utils.py` covering known Fibonacci and non-Fibonacci values, negatives, and the `TypeError` path (12 new tests). Updated the `numbers_utils` module tree entry in `README.md`.
@@ -59680,7 +59693,7 @@ The project includes HTTP utility functions in `http_utils.py` for working with 
 
 ## Time Duration Utilities Module
 
-The project includes time duration utilities in `duration_utils.py` for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, and `add_duration` adds a parsed duration to a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
+The project includes time duration utilities in `duration_utils.py` for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, `add_duration` adds a parsed duration to a datetime, and `subtract_duration` subtracts a parsed duration from a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
 
 ## Temporary File and Directory Utilities Module
 
@@ -65316,6 +65329,7 @@ __all__: list[str] = [
     "to_seconds",
     "duration_between",
     "add_duration",
+    "subtract_duration",
 ]
 
 SECONDS_PER_MINUTE = 60
@@ -65661,13 +65675,45 @@ def add_duration(
         >>> from datetime import datetime
         >>> dt = datetime(2024, 1, 1, 10, 0, 0)
         >>> add_duration(dt, "1h30m")
-        datetime(2024, 1, 1, 11, 30)
+        datetime.datetime(2024, 1, 1, 11, 30)
     """
     if not isinstance(dt, datetime):
         raise TypeError("dt must be a datetime")
 
     seconds = parse_duration(duration_str)
     return dt + timedelta(seconds=seconds)
+
+
+def subtract_duration(
+    dt: datetime,
+    duration_str: str,
+) -> datetime:
+    """Subtract a parsed duration from a datetime and return the result.
+
+    Args:
+        dt: The base datetime.
+        duration_str: A duration string parseable by :func:`parse_duration`.
+
+    Returns:
+        A new :class:`~datetime.datetime` equal to ``dt - duration``.
+
+    Raises:
+        TypeError: If ``dt`` is not a datetime.
+        ValueError: If ``duration_str`` cannot be parsed.
+
+    Examples:
+        >>> from datetime import datetime
+        >>> dt = datetime(2024, 1, 1, 11, 30, 0)
+        >>> subtract_duration(dt, "1h30m")
+        datetime.datetime(2024, 1, 1, 10, 0)
+        >>> subtract_duration(dt, "2 days")
+        datetime.datetime(2023, 12, 30, 11, 30)
+    """
+    if not isinstance(dt, datetime):
+        raise TypeError("dt must be a datetime")
+
+    seconds = parse_duration(duration_str)
+    return dt - timedelta(seconds=seconds)
 
 
 if __name__ == "__main__":
@@ -65691,6 +65737,7 @@ from duration_utils import (
     is_valid_duration,
     parse_duration,
     seconds_to_hms,
+    subtract_duration,
     to_seconds,
 )
 
@@ -65898,6 +65945,33 @@ class TestAddDuration(unittest.TestCase):
         dt = datetime(2024, 1, 1, 10, 0, 0)
         with self.assertRaises(ValueError):
             add_duration(dt, "not a duration")
+
+
+class TestSubtractDuration(unittest.TestCase):
+    def test_basic(self):
+        dt = datetime(2024, 1, 1, 11, 30, 0)
+        self.assertEqual(subtract_duration(dt, "1h30m"), datetime(2024, 1, 1, 10, 0, 0))
+
+    def test_days(self):
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        self.assertEqual(subtract_duration(dt, "2 days"), datetime(2023, 12, 30, 10, 0, 0))
+
+    def test_combined(self):
+        dt = datetime(2024, 1, 1, 12, 0, 0)
+        self.assertEqual(subtract_duration(dt, "1h30m15s"), datetime(2024, 1, 1, 10, 29, 45))
+
+    def test_roundtrip(self):
+        dt = datetime(2024, 6, 15, 8, 0, 0)
+        self.assertEqual(add_duration(subtract_duration(dt, "3h"), "3h"), dt)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            subtract_duration("not a datetime", "1h")  # type: ignore[arg-type]
+
+    def test_invalid_duration(self):
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        with self.assertRaises(ValueError):
+            subtract_duration(dt, "not a duration")
 
 
 if __name__ == "__main__":
@@ -82965,7 +83039,6 @@ __all__: list[str] = [
     "abundance",
     "are_amicable",
     "is_amicable_number",
-    "is_fibonacci_number",
 ]
 
 #: The abstract base class for all numbers.
@@ -84555,31 +84628,6 @@ def is_amicable_number(n: int) -> bool:
     if partner == n or partner < 2:
         return False
     return aliquot_sum(partner) == n
-
-
-
-def is_fibonacci_number(n: int) -> bool:
-    """Return ``True`` when *n* is a Fibonacci number.
-
-    A non-negative integer is a Fibonacci number when one or both of
-    ``5 * n * n + 4`` and ``5 * n * n - 4`` is a perfect square.
-
-    Args:
-        n: The integer to test.
-
-    Returns:
-        ``True`` if *n* is a Fibonacci number, ``False`` otherwise.
-
-    Raises:
-        TypeError: If *n* is not an int.
-    """
-    if isinstance(n, bool) or not isinstance(n, int):
-        raise TypeError(f"n must be an int, got {type(n).__name__}")
-    if n < 0:
-        return False
-    a = 5 * n * n + 4
-    b = 5 * n * n - 4
-    return is_perfect_square(a) or is_perfect_square(b)
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---

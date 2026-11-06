@@ -1,3 +1,10 @@
+## Unreleased — added subtract_duration to duration_utils
+
+- Added `subtract_duration(dt, duration_str)` to `duration_utils.py` as a companion to `add_duration`, subtracting a parsed duration from a `datetime` and returning a new `datetime`. Validates that `dt` is a `datetime` (`TypeError`) and that `duration_str` is parseable (`ValueError`), exported via `__all__`, with a Google-style docstring and ASCII-safe doctests. Added `TestSubtractDuration` (6 tests) to `tests/test_duration_utils.py` covering basic/days/combined/roundtrip and error paths.
+- Updated the `duration_utils` prose in `README.md` to document `subtract_duration`.
+- Synchronized `duration_utils.py`, `tests/test_duration_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_duration_utils` passes (46 tests); `python -m doctest duration_utils.py` passes; `python -m unittest tests.test_public_api` passes. No changes to `.github/workflows/**`.
+
 ## Unreleased — removed duplicate __all__ entry from numbers_utils
 
 - Removed the duplicate `is_fibonacci_number` entry from `numbers_utils.__all__` (56 entries, 55 unique) — the same class of defect previously fixed in `prime_utils` (duplicate `is_mersenne_prime`), `itertools_utils` (duplicate `take_while_pred` / stale second `__all__` block), and `string_utils` (duplicate `cosine_similarity`). Also removed a second, shadowing `is_fibonacci_number` function definition at the end of the module that duplicated the documented implementation at line 1298 (which has the doctests). `__all__` is now a clean, deduplicated list of 55 entries, each matching a single defined name; no other function behavior or signatures changed.

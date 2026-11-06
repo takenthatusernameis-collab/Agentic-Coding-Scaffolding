@@ -1049,7 +1049,7 @@ The project includes HTTP utility functions in `http_utils.py` for working with 
 
 ## Time Duration Utilities Module
 
-The project includes time duration utilities in `duration_utils.py` for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, and `add_duration` adds a parsed duration to a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
+The project includes time duration utilities in `duration_utils.py` for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, `add_duration` adds a parsed duration to a datetime, and `subtract_duration` subtracts a parsed duration from a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
 
 ## Temporary File and Directory Utilities Module
 

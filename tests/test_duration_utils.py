@@ -11,6 +11,7 @@ from duration_utils import (
     is_valid_duration,
     parse_duration,
     seconds_to_hms,
+    subtract_duration,
     to_seconds,
 )
 
@@ -218,6 +219,33 @@ class TestAddDuration(unittest.TestCase):
         dt = datetime(2024, 1, 1, 10, 0, 0)
         with self.assertRaises(ValueError):
             add_duration(dt, "not a duration")
+
+
+class TestSubtractDuration(unittest.TestCase):
+    def test_basic(self):
+        dt = datetime(2024, 1, 1, 11, 30, 0)
+        self.assertEqual(subtract_duration(dt, "1h30m"), datetime(2024, 1, 1, 10, 0, 0))
+
+    def test_days(self):
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        self.assertEqual(subtract_duration(dt, "2 days"), datetime(2023, 12, 30, 10, 0, 0))
+
+    def test_combined(self):
+        dt = datetime(2024, 1, 1, 12, 0, 0)
+        self.assertEqual(subtract_duration(dt, "1h30m15s"), datetime(2024, 1, 1, 10, 29, 45))
+
+    def test_roundtrip(self):
+        dt = datetime(2024, 6, 15, 8, 0, 0)
+        self.assertEqual(add_duration(subtract_duration(dt, "3h"), "3h"), dt)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            subtract_duration("not a datetime", "1h")  # type: ignore[arg-type]
+
+    def test_invalid_duration(self):
+        dt = datetime(2024, 1, 1, 10, 0, 0)
+        with self.assertRaises(ValueError):
+            subtract_duration(dt, "not a duration")
 
 
 if __name__ == "__main__":
