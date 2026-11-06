@@ -6,6 +6,7 @@ import os as _os
 __all__ = [
     "errorcode",
     "errno_code",
+    "errno_name",
     "is_errno",
     "strerror",
 ]
@@ -28,3 +29,9 @@ def errno_code(name: str):
         raise TypeError("name must be a str")
     value = getattr(_errno, name, None)
     return value if isinstance(value, int) else None
+
+
+def errno_name(code: int) -> str | None:
+    if not isinstance(code, int):
+        raise TypeError("code must be an int")
+    return _errno.errorcode.get(code)
