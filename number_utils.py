@@ -969,12 +969,14 @@ def in_range(value: Number, min_value: Number, max_value: Number, inclusive: boo
         True if value is in range, False otherwise.
 
     Raises:
-        TypeError: If any numeric argument is not a number.
+        TypeError: If any numeric argument is not a number or *inclusive* is not a bool.
         ValueError: If min_value > max_value.
     """
     _require_number(value, "value")
     _require_number(min_value, "min_value")
     _require_number(max_value, "max_value")
+    if not isinstance(inclusive, bool):
+        raise TypeError(f"inclusive must be a bool, got {type(inclusive).__name__}")
     if min_value > max_value:
         raise ValueError("min_value must be <= max_value")
     if inclusive:
@@ -1035,7 +1037,7 @@ def gcd_list(numbers):
         numbers: Iterable of integers.
 
     Returns:
-        GCD of all values (0 if empty).
+        GCD of all values.
 
     Raises:
         TypeError: If *numbers* is not iterable or contains non-ints.

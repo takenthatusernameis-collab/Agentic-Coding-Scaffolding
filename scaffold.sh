@@ -79668,12 +79668,14 @@ def in_range(value: Number, min_value: Number, max_value: Number, inclusive: boo
         True if value is in range, False otherwise.
 
     Raises:
-        TypeError: If any numeric argument is not a number.
+        TypeError: If any numeric argument is not a number or *inclusive* is not a bool.
         ValueError: If min_value > max_value.
     """
     _require_number(value, "value")
     _require_number(min_value, "min_value")
     _require_number(max_value, "max_value")
+    if not isinstance(inclusive, bool):
+        raise TypeError(f"inclusive must be a bool, got {type(inclusive).__name__}")
     if min_value > max_value:
         raise ValueError("min_value must be <= max_value")
     if inclusive:
@@ -79734,7 +79736,7 @@ def gcd_list(numbers):
         numbers: Iterable of integers.
 
     Returns:
-        GCD of all values (0 if empty).
+        GCD of all values.
 
     Raises:
         TypeError: If *numbers* is not iterable or contains non-ints.
@@ -82173,6 +82175,35 @@ class TestInRange(unittest.TestCase):
         with self.assertRaises(TypeError):
             in_range(5, 0, "x")  # type: ignore[arg-type]
 
+    def test_inclusive_type_error(self) -> None:
+        from number_utils import in_range
+
+        with self.assertRaises(TypeError):
+            in_range(1, 0, 2, inclusive=1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            in_range(1, 0, 2, inclusive="true")  # type: ignore[arg-type]
+
+    def test_nan_bounds(self) -> None:
+        from number_utils import in_range
+
+        self.assertFalse(in_range(float("nan"), 0, 1))
+        self.assertFalse(in_range(0, float("nan"), 1))
+        self.assertFalse(in_range(0, 0, float("nan")))
+
+    def test_single_point_range(self) -> None:
+        from number_utils import in_range
+
+        self.assertTrue(in_range(5, 5, 5))
+        self.assertFalse(in_range(5, 5, 5, inclusive=False))
+        self.assertFalse(in_range(4, 5, 5))
+
+    def test_negative_and_float(self) -> None:
+        from number_utils import in_range
+
+        self.assertTrue(in_range(-1.5, -2.0, 0.0))
+        self.assertFalse(in_range(-2.5, -2.0, 0.0))
+
+
 
 class TestIsDivisibleBy(unittest.TestCase):
     def test_divisible(self) -> None:
@@ -83276,6 +83307,16 @@ class TestGcdList(unittest.TestCase):
         with self.assertRaises(ValueError):
             gcd_list([])
 
+    def test_all_equal(self) -> None:
+        self.assertEqual(gcd_list([7, 7, 7]), 7)
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(gcd_list([-12, 18]), 6)
+        self.assertEqual(gcd_list([-4, -6]), 2)
+
+    def test_tuple_input(self) -> None:
+        self.assertEqual(gcd_list((12, 18, 24)), 6)
+
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
             gcd_list("abc")  # type: ignore[arg-type]
@@ -83298,6 +83339,15 @@ class TestLcmList(unittest.TestCase):
     def test_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             lcm_list([])
+
+    def test_all_equal(self) -> None:
+        self.assertEqual(lcm_list([6, 6, 6]), 6)
+
+    def test_negative_values(self) -> None:
+        self.assertEqual(lcm_list([-4, 6]), 12)
+
+    def test_tuple_input(self) -> None:
+        self.assertEqual(lcm_list((4, 6)), 12)
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
