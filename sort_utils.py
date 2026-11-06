@@ -2,6 +2,7 @@
 
 __all__ = [
     "bubble_sort",
+    "insertion_sort",
     "is_sorted",
     "merge_sort",
     "nth_largest",
@@ -49,6 +50,49 @@ def bubble_sort(items, *, key=None, reverse=False):
             if cond:
                 result[i], result[i + 1] = result[i + 1], result[i]
                 swapped = True
+    return result
+
+
+def insertion_sort(items, *, key=None, reverse=False):
+    """Return a new list sorted using insertion sort.
+
+    A stable, in-place-style insertion sort that returns a new list. Accepts
+    an optional ``key`` and ``reverse`` argument like :func:`bubble_sort`.
+
+    Examples:
+        >>> insertion_sort([3, 1, 2])
+        [1, 2, 3]
+        >>> insertion_sort([3, 1, 2], reverse=True)
+        [3, 2, 1]
+        >>> insertion_sort([1, 2, 3])
+        [1, 2, 3]
+        >>> insertion_sort([])
+        []
+        >>> insertion_sort([5])
+        [5]
+        >>> insertion_sort([3, 1, 2], key=lambda x: -x)
+        [3, 2, 1]
+        >>> insertion_sort(["banana", "apple", "cherry"])
+        ['apple', 'banana', 'cherry']
+    """
+    if key is None:
+
+        def key(x):
+            return x
+
+    result = list(items)
+    for i in range(1, len(result)):
+        current = result[i]
+        current_key = key(current)
+        j = i - 1
+        while j >= 0:
+            left_key = key(result[j])
+            cond = left_key > current_key if not reverse else left_key < current_key
+            if not cond:
+                break
+            result[j + 1] = result[j]
+            j -= 1
+        result[j + 1] = current
     return result
 
 

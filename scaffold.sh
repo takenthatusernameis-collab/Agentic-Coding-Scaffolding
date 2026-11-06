@@ -56362,6 +56362,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added insertion_sort to sort_utils
+
+- Added `insertion_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a stable insertion sort companion to `bubble_sort` and `merge_sort`. It accepts an optional `key` and `reverse` argument, returns a new sorted list, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestInsertionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, and stability cases. Updated the `sort_utils` module tree entry and prose section of `README.md`. Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_sort_utils` passes; `python -m doctest sort_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added starts_with_newline and ends_with_newline to prompt_utils
 
 - Added `starts_with_newline(text)` and `ends_with_newline(text)` to `prompt_utils.py` as boolean companions to the existing newline helpers. Each takes a typed `text` argument, is exported via `__all__`, has a Google-style docstring with ASCII-safe doctests, and raises `TypeError` for non-string arguments. `starts_with_newline` returns `True` when *text* starts with `\n`; `ends_with_newline` returns `True` when *text* ends with `\n` (including CRLF text).
@@ -58595,7 +58601,7 @@ xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
-sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, merge_sort, nth_largest, top_n)
+sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
 ossaudiodev_utils.py      # OSS audio device utilities wrapping the standard library ossaudiodev module (open, openmixer, re-exports OSSAudioError, error, AFMT_S16_LE, SOUND_MIXER_PCM, is_available)
@@ -59535,7 +59541,7 @@ The project includes operating system utilities in `os_utils.py` for inspecting 
 
 ## Sorting Utilities Module
 
-The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort` and `merge_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
+The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort`, `insertion_sort`, and `merge_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
 
 ## Graph and Dependency Resolution Utilities Module
 
@@ -101463,6 +101469,7 @@ cat > "$OUTPUT_DIR/sort_utils.py" <<'SORT_UTILS'
 
 __all__ = [
     "bubble_sort",
+    "insertion_sort",
     "is_sorted",
     "merge_sort",
     "nth_largest",
@@ -101510,6 +101517,49 @@ def bubble_sort(items, *, key=None, reverse=False):
             if cond:
                 result[i], result[i + 1] = result[i + 1], result[i]
                 swapped = True
+    return result
+
+
+def insertion_sort(items, *, key=None, reverse=False):
+    """Return a new list sorted using insertion sort.
+
+    A stable, in-place-style insertion sort that returns a new list. Accepts
+    an optional ``key`` and ``reverse`` argument like :func:`bubble_sort`.
+
+    Examples:
+        >>> insertion_sort([3, 1, 2])
+        [1, 2, 3]
+        >>> insertion_sort([3, 1, 2], reverse=True)
+        [3, 2, 1]
+        >>> insertion_sort([1, 2, 3])
+        [1, 2, 3]
+        >>> insertion_sort([])
+        []
+        >>> insertion_sort([5])
+        [5]
+        >>> insertion_sort([3, 1, 2], key=lambda x: -x)
+        [3, 2, 1]
+        >>> insertion_sort(["banana", "apple", "cherry"])
+        ['apple', 'banana', 'cherry']
+    """
+    if key is None:
+
+        def key(x):
+            return x
+
+    result = list(items)
+    for i in range(1, len(result)):
+        current = result[i]
+        current_key = key(current)
+        j = i - 1
+        while j >= 0:
+            left_key = key(result[j])
+            cond = left_key > current_key if not reverse else left_key < current_key
+            if not cond:
+                break
+            result[j + 1] = result[j]
+            j -= 1
+        result[j + 1] = current
     return result
 
 
@@ -101596,6 +101646,36 @@ class TestSortUtils(unittest.TestCase):
 
     def test_nth_largest(self):
         self.assertEqual(sort_utils.nth_largest([1, 2, 3], 2), 2)
+
+
+class TestInsertionSort(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(sort_utils.insertion_sort([3, 1, 2]), [1, 2, 3])
+
+    def test_reverse(self):
+        self.assertEqual(sort_utils.insertion_sort([1, 2, 3], reverse=True), [3, 2, 1])
+
+    def test_key(self):
+        self.assertEqual(
+            sort_utils.insertion_sort([("a", 2), ("b", 1)], key=lambda x: x[1]),
+            [("b", 1), ("a", 2)],
+        )
+
+    def test_empty(self):
+        self.assertEqual(sort_utils.insertion_sort([]), [])
+
+    def test_single(self):
+        self.assertEqual(sort_utils.insertion_sort([5]), [5])
+
+    def test_already_sorted(self):
+        self.assertEqual(sort_utils.insertion_sort([1, 2, 3]), [1, 2, 3])
+
+    def test_duplicates(self):
+        self.assertEqual(sort_utils.insertion_sort([2, 1, 2, 1]), [1, 1, 2, 2])
+
+    def test_stability(self):
+        items = [("a", 1), ("b", 1), ("c", 1)]
+        self.assertEqual(sort_utils.insertion_sort(items, key=lambda x: x[1]), items)
 
 
 if __name__ == "__main__":

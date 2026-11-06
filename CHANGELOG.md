@@ -1,3 +1,9 @@
+## Unreleased — added insertion_sort to sort_utils
+
+- Added `insertion_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a stable insertion sort companion to `bubble_sort` and `merge_sort`. It accepts an optional `key` and `reverse` argument, returns a new sorted list, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestInsertionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, and stability cases. Updated the `sort_utils` module tree entry and prose section of `README.md`. Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_sort_utils` passes; `python -m doctest sort_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added starts_with_newline and ends_with_newline to prompt_utils
 
 - Added `starts_with_newline(text)` and `ends_with_newline(text)` to `prompt_utils.py` as boolean companions to the existing newline helpers. Each takes a typed `text` argument, is exported via `__all__`, has a Google-style docstring with ASCII-safe doctests, and raises `TypeError` for non-string arguments. `starts_with_newline` returns `True` when *text* starts with `\n`; `ends_with_newline` returns `True` when *text* ends with `\n` (including CRLF text).
