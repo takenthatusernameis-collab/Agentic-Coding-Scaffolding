@@ -6,6 +6,7 @@ __all__ = [
     "is_sorted",
     "merge_sort",
     "nth_largest",
+    "selection_sort",
     "top_n",
 ]
 
@@ -93,6 +94,64 @@ def insertion_sort(items, *, key=None, reverse=False):
             result[j + 1] = result[j]
             j -= 1
         result[j + 1] = current
+    return result
+
+
+def selection_sort(items, *, key=None, reverse=False):
+    """Return a new list sorted using selection sort.
+
+    A selection sort that returns a new list. It repeatedly selects the
+    minimum (or maximum, when *reverse* is True) element from the unsorted
+    remainder and appends it to the result. Accepts an optional ``key`` and
+    ``reverse`` argument like :func:`bubble_sort` and :func:`insertion_sort`.
+
+    Args:
+        items: An iterable of comparable elements.
+        key: A function that extracts a comparison key from each element.
+            Defaults to the identity function.
+        reverse: If True, sort in descending order. Defaults to False.
+
+    Returns:
+        A new list containing the elements of *items* sorted according to
+        *key* and *reverse*.
+
+    Examples:
+        >>> selection_sort([3, 1, 2])
+        [1, 2, 3]
+        >>> selection_sort([3, 1, 2], reverse=True)
+        [3, 2, 1]
+        >>> selection_sort([1, 2, 3])
+        [1, 2, 3]
+        >>> selection_sort([])
+        []
+        >>> selection_sort([5])
+        [5]
+        >>> selection_sort([3, 1, 2], key=lambda x: -x)
+        [3, 2, 1]
+        >>> selection_sort(["banana", "apple", "cherry"])
+        ['apple', 'banana', 'cherry']
+    """
+    if key is None:
+
+        def key(x):
+            return x
+
+    result = []
+    pool = list(items)
+    while pool:
+        best_index = 0
+        best_key = key(pool[0])
+        for i in range(1, len(pool)):
+            current_key = key(pool[i])
+            if reverse:
+                if current_key > best_key:
+                    best_key = current_key
+                    best_index = i
+            else:
+                if current_key < best_key:
+                    best_key = current_key
+                    best_index = i
+        result.append(pool.pop(best_index))
     return result
 
 

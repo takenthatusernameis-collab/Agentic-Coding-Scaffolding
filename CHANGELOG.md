@@ -1,3 +1,9 @@
+## Unreleased — added selection_sort to sort_utils
+
+- Added `selection_sort(items, *, key=None, reverse=False)` to `sort_utils.py` as a selection sort companion to `bubble_sort`, `insertion_sort`, and `merge_sort`. It repeatedly selects the minimum (or maximum when *reverse* is True) element from the unsorted remainder and appends it to a new result list, accepting an optional `key` and `reverse` argument, and is exported via `__all__` with a Google-style docstring and doctests. Added `TestSelectionSort` to `tests/test_sort_utils.py` covering basic, reverse, key, empty, single, duplicates, already-sorted, non-mutation, string items, and randomized comparison-with-`sorted` cases. Updated the `sort_utils` module tree entry and prose section of `README.md`. Synchronized `sort_utils.py`, `tests/test_sort_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_sort_utils` passes; `python -m doctest sort_utils.py` passes; `python -m unittest tests.test_public_api` passes.
+- No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_tracked and is_finalized to gc_utils
 
 - Added `is_tracked(obj)` and `is_finalized(obj)` to `gc_utils.py` as thin, typed wrappers around the corresponding `gc` module functions. `is_tracked` reports whether the garbage collector tracks an object (containers such as lists, dicts, and instances are tracked; atomic objects such as ints, strings, and bools are not); `is_finalized` reports whether an object has already been finalized by the GC. Both accept a typed `object` argument, are exported via `__all__`, and have Google-style docstrings with ASCII-safe doctests.

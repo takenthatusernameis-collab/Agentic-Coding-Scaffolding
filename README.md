@@ -138,7 +138,7 @@ xml_utils.py               # XML parsing and generation utilities
 seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
-sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, nth_largest, top_n)
+sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
 sys_utils.py               # Python runtime and system information utilities (version, argv, executable, recursion limit, stream encodings)
 wave_utils.py              # Wave audio utilities wrapping stdlib wave (open_read, open_write, wave_info, read_frames, write_frames, create_writer)
 ossaudiodev_utils.py      # OSS audio device utilities wrapping the standard library ossaudiodev module (open, openmixer, re-exports OSSAudioError, error, AFMT_S16_LE, SOUND_MIXER_PCM, is_available)
@@ -1078,7 +1078,7 @@ The project includes operating system utilities in `os_utils.py` for inspecting 
 
 ## Sorting Utilities Module
 
-The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort`, `insertion_sort`, and `merge_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
+The project includes sorting utility functions in `sort_utils.py` for sorting and ordering operations: `is_sorted` checks whether a sequence is sorted, `bubble_sort`, `insertion_sort`, `merge_sort`, and `selection_sort` return new sorted lists, `nth_largest` returns the n-th largest element (1-based), and `top_n` returns the top n items sorted by key. All functions accept an optional `key` and `reverse` argument. The module is tested in `tests/test_sort_utils.py`.
 
 ## Graph and Dependency Resolution Utilities Module
 
