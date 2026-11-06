@@ -29,6 +29,7 @@ from numbers_utils import (
     is_pandigital_number,
     is_perfect_number,
     is_perfect_power,
+    is_power_of,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
@@ -158,10 +159,67 @@ class TestIsDuckNumber(unittest.TestCase):
         for value in (123, 0, 1, 9):
             self.assertFalse(is_duck_number(value), value)
 
+
+class TestIsPowerOf(unittest.TestCase):
+    def test_known_powers(self):
+        cases = [
+            (1, 2, True),
+            (1, 5, True),
+            (1, -3, True),
+            (8, 2, True),
+            (9, 3, True),
+            (16, 2, True),
+            (27, 3, True),
+            (64, 2, True),
+            (125, 5, True),
+            (1000, 10, True),
+            (-8, -2, True),
+            (4, -2, True),
+            (-4, -2, False),
+            (8, -2, False),
+            (0, 5, False),
+            (0, 0, True),
+            (1, 0, True),
+            (1, 1, True),
+            (2, 1, False),
+            (1, -1, True),
+            (-1, -1, True),
+            (2, -1, False),
+            (7, 2, False),
+            (6, 2, False),
+            (10, 3, False),
+            (-27, -3, True),
+            (9, -3, True),
+            (-9, -3, False),
+            (2, 2, True),
+            (3, 3, True),
+        ]
+        for value, base, expected in cases:
+            with self.subTest(value=value, base=base):
+                self.assertEqual(is_power_of(value, base), expected, (value, base))
+
+    def test_consistency_with_direct_power(self):
+        for base in range(-6, 7):
+            if base in (0, 1, -1):
+                continue
+            for k in range(0, 8):
+                value = base ** k
+                self.assertTrue(is_power_of(value, base), (value, base, k))
+            for k in range(1, 6):
+                p = base ** k
+                for delta in (-1, 1):
+                    v = p + delta
+                    if v == base ** (k + 1) or v == base ** (k - 1):
+                        continue
+                    self.assertFalse(is_power_of(v, base), (v, base))
+
     def test_type_error(self):
-        for value in (1.5, "101", None, [0, 1], True):
+        for value in (1.5, "8", None, True, [8]):
             with self.assertRaises(TypeError):
-                is_duck_number(value)
+                is_power_of(value, 2)
+        for base in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_power_of(8, base)
 
 
 if __name__ == "__main__":

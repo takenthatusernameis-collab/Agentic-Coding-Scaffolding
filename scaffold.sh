@@ -57148,6 +57148,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_power_of to numbers_utils
+
+- Added `is_power_of(value, base)` to `numbers_utils.py` as a base-parameterized power predicate companion to `is_power_of_two`, `is_perfect_power`, `is_perfect_square`, and `is_perfect_cube`. It returns `True` when `base**k == value` for some integer `k >= 0`, handling positive/negative bases and the `base` 0/1/-1 edge cases, accepts typed `int` arguments, raises `TypeError` for non-int/bool arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsPowerOf` to `tests/test_numbers_utils.py` covering known powers, non-powers, negative bases, edge bases (0/1/-1), consistency with direct `base**k` computation, and the `TypeError` path; imported `is_power_of` to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`. Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_numbers_utils` passes (148 tests); `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_proth_prime to prime_utils
 
 - Added `is_proth_prime(n)` to `prime_utils.py` as a prime-form helper companion to `is_cuban_prime`, `is_fermat_number`, and `is_mersenne_prime`. A Proth prime is a prime of the form `k * 2**m + 1` where *k* is an odd positive integer and `k < 2**m` (OEIS A080076; e.g. 3, 5, 13, 17, 41, 97, 113, 193, 241, 257, ...). It accepts a typed `int` argument, raises `TypeError` for non-int/bool arguments, returns `False` for non-primes and primes not in Proth form, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsProthPrime` to `tests/test_prime_utils.py` covering known Proth primes, non-Proth primes (e.g. 7, 11), composites, boundaries, and the `TypeError` path; imported `is_proth_prime` to match the module's `__all__` contract. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prime_utils` passes; `python -m doctest prime_utils.py` passes. No changes to `.github/workflows/**`.
@@ -59522,7 +59526,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_fibonacci_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_even, is_odd, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_fibonacci_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_even, is_odd, is_odious_number, is_evil_number, is_perfect_power, is_perfect_square, is_perfect_cube, is_power_of_two, is_power_of, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -60640,7 +60644,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds classification and divisor helpers including `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_even`, `is_odd`, `proper_divisors`, `aliquot_sum`, `sum_of_divisors`, `abundance`, `are_amicable`, and `is_amicable_number` (with `TypeError`/`ValueError` validation; `is_amicable_number` is distinct from `prime_utils.is_amicable`). The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds classification and divisor helpers including `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_even`, `is_odd`, `is_power_of`, `proper_divisors`, `aliquot_sum`, `sum_of_divisors`, `abundance`, `are_amicable`, and `is_amicable_number` (with `TypeError`/`ValueError` validation; `is_amicable_number` is distinct from `prime_utils.is_amicable`). The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -83910,6 +83914,7 @@ __all__: list[str] = [
     "is_perfect_square",
     "is_perfect_cube",
     "is_power_of_two",
+    "is_power_of",
     "is_triangular_number",
     "is_pentagonal_number",
     "is_hexagonal_number",
@@ -85135,6 +85140,79 @@ def is_power_of_two(n: int) -> bool:
     return (n & (n - 1)) == 0
 
 
+def is_power_of(value: int, base: int) -> bool:
+    """Return ``True`` when *value* is an integer power of *base*.
+
+    Returns ``True`` when ``base**k == value`` for some integer ``k >= 0``.
+    Both arguments must be plain ``int`` (booleans are rejected).
+
+    Args:
+        value: The integer to test.
+        base: The integer base of the power.
+
+    Returns:
+        ``True`` if *value* equals ``base`` raised to a non-negative
+        integer exponent, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *value* or *base* is not an int (a bool is rejected).
+
+    Examples:
+        >>> is_power_of(8, 2)
+        True
+        >>> is_power_of(9, 3)
+        True
+        >>> is_power_of(1, 5)
+        True
+        >>> is_power_of(7, 2)
+        False
+        >>> is_power_of(-8, -2)
+        True
+        >>> is_power_of(4, -2)
+        True
+        >>> is_power_of(-4, -2)
+        False
+        >>> is_power_of(0, 5)
+        False
+        >>> is_power_of(8, 2.0)
+        Traceback (most recent call last):
+            ...
+        TypeError: base must be an int, got float
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if isinstance(base, bool) or not isinstance(base, int):
+        raise TypeError(f"base must be an int, got {type(base).__name__}")
+    if base == 0:
+        # 0**0 == 1 and 0**k == 0 for k >= 1.
+        return value in (0, 1)
+    if base == 1:
+        # 1**k == 1 for every k.
+        return value == 1
+    if base == -1:
+        # (-1)**k is either 1 or -1.
+        return value in (1, -1)
+    if value == 1:
+        # base**0 == 1 for any non-zero base.
+        return True
+    if value == 0:
+        # base**k is never 0 when |base| >= 2.
+        return False
+    a = abs(base)
+    v = abs(value)
+    k = 0
+    while v % a == 0:
+        v //= a
+        k += 1
+    if v != 1:
+        return False
+    # |value| == |base| ** k with k >= 1; now check the sign.
+    if base > 0:
+        return value > 0
+    # For a negative base the sign alternates with the exponent.
+    return (value > 0) == (k % 2 == 0)
+
+
 def is_triangular_number(n: int) -> bool:
     """Return ``True`` when *n* is a triangular number.
 
@@ -85615,6 +85693,7 @@ from numbers_utils import (
     is_pandigital_number,
     is_perfect_number,
     is_perfect_power,
+    is_power_of,
     is_polydivisible_number,
     is_pronic_number,
     is_rational,
@@ -85744,10 +85823,67 @@ class TestIsDuckNumber(unittest.TestCase):
         for value in (123, 0, 1, 9):
             self.assertFalse(is_duck_number(value), value)
 
+
+class TestIsPowerOf(unittest.TestCase):
+    def test_known_powers(self):
+        cases = [
+            (1, 2, True),
+            (1, 5, True),
+            (1, -3, True),
+            (8, 2, True),
+            (9, 3, True),
+            (16, 2, True),
+            (27, 3, True),
+            (64, 2, True),
+            (125, 5, True),
+            (1000, 10, True),
+            (-8, -2, True),
+            (4, -2, True),
+            (-4, -2, False),
+            (8, -2, False),
+            (0, 5, False),
+            (0, 0, True),
+            (1, 0, True),
+            (1, 1, True),
+            (2, 1, False),
+            (1, -1, True),
+            (-1, -1, True),
+            (2, -1, False),
+            (7, 2, False),
+            (6, 2, False),
+            (10, 3, False),
+            (-27, -3, True),
+            (9, -3, True),
+            (-9, -3, False),
+            (2, 2, True),
+            (3, 3, True),
+        ]
+        for value, base, expected in cases:
+            with self.subTest(value=value, base=base):
+                self.assertEqual(is_power_of(value, base), expected, (value, base))
+
+    def test_consistency_with_direct_power(self):
+        for base in range(-6, 7):
+            if base in (0, 1, -1):
+                continue
+            for k in range(0, 8):
+                value = base ** k
+                self.assertTrue(is_power_of(value, base), (value, base, k))
+            for k in range(1, 6):
+                p = base ** k
+                for delta in (-1, 1):
+                    v = p + delta
+                    if v == base ** (k + 1) or v == base ** (k - 1):
+                        continue
+                    self.assertFalse(is_power_of(v, base), (v, base))
+
     def test_type_error(self):
-        for value in (1.5, "101", None, [0, 1], True):
+        for value in (1.5, "8", None, True, [8]):
             with self.assertRaises(TypeError):
-                is_duck_number(value)
+                is_power_of(value, 2)
+        for base in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_power_of(8, base)
 
 
 if __name__ == "__main__":

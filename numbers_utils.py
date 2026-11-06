@@ -53,6 +53,7 @@ __all__: list[str] = [
     "is_perfect_square",
     "is_perfect_cube",
     "is_power_of_two",
+    "is_power_of",
     "is_triangular_number",
     "is_pentagonal_number",
     "is_hexagonal_number",
@@ -1276,6 +1277,79 @@ def is_power_of_two(n: int) -> bool:
     if n <= 0:
         return False
     return (n & (n - 1)) == 0
+
+
+def is_power_of(value: int, base: int) -> bool:
+    """Return ``True`` when *value* is an integer power of *base*.
+
+    Returns ``True`` when ``base**k == value`` for some integer ``k >= 0``.
+    Both arguments must be plain ``int`` (booleans are rejected).
+
+    Args:
+        value: The integer to test.
+        base: The integer base of the power.
+
+    Returns:
+        ``True`` if *value* equals ``base`` raised to a non-negative
+        integer exponent, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *value* or *base* is not an int (a bool is rejected).
+
+    Examples:
+        >>> is_power_of(8, 2)
+        True
+        >>> is_power_of(9, 3)
+        True
+        >>> is_power_of(1, 5)
+        True
+        >>> is_power_of(7, 2)
+        False
+        >>> is_power_of(-8, -2)
+        True
+        >>> is_power_of(4, -2)
+        True
+        >>> is_power_of(-4, -2)
+        False
+        >>> is_power_of(0, 5)
+        False
+        >>> is_power_of(8, 2.0)
+        Traceback (most recent call last):
+            ...
+        TypeError: base must be an int, got float
+    """
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"value must be an int, got {type(value).__name__}")
+    if isinstance(base, bool) or not isinstance(base, int):
+        raise TypeError(f"base must be an int, got {type(base).__name__}")
+    if base == 0:
+        # 0**0 == 1 and 0**k == 0 for k >= 1.
+        return value in (0, 1)
+    if base == 1:
+        # 1**k == 1 for every k.
+        return value == 1
+    if base == -1:
+        # (-1)**k is either 1 or -1.
+        return value in (1, -1)
+    if value == 1:
+        # base**0 == 1 for any non-zero base.
+        return True
+    if value == 0:
+        # base**k is never 0 when |base| >= 2.
+        return False
+    a = abs(base)
+    v = abs(value)
+    k = 0
+    while v % a == 0:
+        v //= a
+        k += 1
+    if v != 1:
+        return False
+    # |value| == |base| ** k with k >= 1; now check the sign.
+    if base > 0:
+        return value > 0
+    # For a negative base the sign alternates with the exponent.
+    return (value > 0) == (k % 2 == 0)
 
 
 def is_triangular_number(n: int) -> bool:
