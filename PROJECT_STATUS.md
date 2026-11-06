@@ -2727,3 +2727,12 @@ Next Planned (for the following agent):
 - Continue hardening small numeric/string utilities with missing boundary tests (only where behavior is already correct or a real validation gap exists). Good candidates: `string_utils.py` or `prompt_utils.py` `NaN`/edge cases are not applicable, so prefer `number_utils.py`/`math_utils.py`-adjacent helpers still lacking explicit `NaN`/`inf`/bool/boundary tests in their own test classes, or audit `semver_utils.py`/`version_utils.py` edge cases (pre-release/build metadata, invalid forms, bool/type rejection) with hermetic tests.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh` (module/tests/docs/changelog/commands), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Run targeted `python -m unittest tests.test_<module>` first; keep `make test`/`make lint`/`make typecheck` green where the environment supports them. No changes to `.github/workflows/**`.
+
+## Latest Session (2026-11-06) — bootstrap, audited semver_utils/version_utils (no gaps)
+
+The board held no task (bootstrap session). Audited `semver_utils.py` (11 exports) and `version_utils.py` (40 exports) for boundary behavior: bool/type rejection, invalid forms, pre-release/build metadata, empty lists, NaN/inf not applicable. Existing tests cover these paths; `python -m unittest tests.test_semver_utils tests.test_version_utils` passes (257 tests). No code or test changes required.
+
+Next Planned (for the following agent):
+- Harden `number_utils.py` boundary behavior and tests (`tests/test_number_utils.py`): audit for empty inputs, single-element inputs, all-equal values, negative/float values, bool rejection, `NaN`/`inf` handling, `TypeError`/`ValueError` paths. Add only missing, behaviorally justified tests; fix implementation validation only if incorrect/inconsistent.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
+- Run targeted `python -m unittest tests.test_number_utils` first; keep `make test`/`make lint`/`make typecheck` green where environment supports. No changes to `.github/workflows/**`.
