@@ -50832,6 +50832,63 @@ class TestPredicates(unittest.TestCase):
         self.assertFalse(isupper(b"Abc"))
         self.assertFalse(isupper(b""))
         self.assertFalse(isupper(b" "))
+    def test_isalnum(self):
+        from bytes_utils import isalnum
+        self.assertTrue(isalnum(b"abc123"))
+        self.assertTrue(isalnum(bytearray(b"A1")))
+        self.assertFalse(isalnum(b"abc 123"))
+        self.assertFalse(isalnum(b""))
+        self.assertFalse(isalnum(b"-"))
+
+    def test_isalpha(self):
+        from bytes_utils import isalpha
+        self.assertTrue(isalpha(b"abc"))
+        self.assertTrue(isalpha(bytearray(b"ABC")))
+        self.assertFalse(isalpha(b"abc1"))
+        self.assertFalse(isalpha(b""))
+        self.assertFalse(isalpha(b" "))
+
+    def test_isascii(self):
+        from bytes_utils import isascii
+        self.assertTrue(isascii(b"abc\x7f"))
+        self.assertTrue(isascii(bytearray(b"")))
+        self.assertTrue(isascii(b"\x00\x20~"))
+        self.assertFalse(isascii(b"\x80"))
+        self.assertFalse(isascii(bytearray(b"caf\xc3")))
+
+    def test_isdigit(self):
+        from bytes_utils import isdigit
+        self.assertTrue(isdigit(b"123"))
+        self.assertTrue(isdigit(bytearray(b"0")))
+        self.assertFalse(isdigit(b"12a"))
+        self.assertFalse(isdigit(b""))
+        self.assertFalse(isdigit(b"1.2"))
+
+    def test_isspace(self):
+        from bytes_utils import isspace
+        self.assertTrue(isspace(b" \t\n\r\v\f"))
+        self.assertTrue(isspace(bytearray(b" ")))
+        self.assertFalse(isspace(b" a "))
+        self.assertFalse(isspace(b""))
+
+    def test_case_helpers_type_and_bytearray(self):
+        from bytes_utils import capitalize, casefold, lower, swapcase, title, upper
+        for fn in (upper, lower, capitalize, title, swapcase, casefold):
+            self.assertEqual(fn(bytearray(b"AbC")), fn(b"AbC"))
+            self.assertEqual(fn(b""), b"")
+            with self.assertRaises(TypeError):
+                fn("abc")
+
+    def test_predicate_type_and_empty(self):
+        from bytes_utils import isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper
+        preds = (isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper)
+        for fn in preds:
+            self.assertIsInstance(fn(bytearray(b"a")), bool)
+            with self.assertRaises(TypeError):
+                fn("abc")
+            with self.assertRaises(TypeError):
+                fn(None)
+
 
     def test_type_errors(self):
         for fn in (
