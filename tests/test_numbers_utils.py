@@ -16,6 +16,7 @@ from numbers_utils import (
     is_deficient_number,
     is_duck_number,
     is_even,
+    is_odd,
     is_evil_number,
     is_fibonacci_number,
     is_happy_number,
@@ -1067,6 +1068,21 @@ class TestIsEven(unittest.TestCase):
         for value in (1.5, 2.0, "2", None, True, [2], (2,)):
             with self.assertRaises(TypeError):
                 is_even(value)
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_odd_values(self):
+        for value in (1, 3, -1, -3, 99, 2 * 10**6 + 1):
+            self.assertTrue(is_odd(value), value)
+
+    def test_even_values(self):
+        for value in (0, 2, -2, 100, -100, 2 * 10**6):
+            self.assertFalse(is_odd(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, 2.0, "3", None, True, [3], (3,)):
+            with self.assertRaises(TypeError):
+                is_odd(value)
 
 
 if __name__ == "__main__":

@@ -57169,6 +57169,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_odd to numbers_utils
+
+- Added `is_odd(n)` to `numbers_utils.py` as the parity complement to `is_even`. It returns `True` when *n* is not divisible by 2 (including negative odd numbers) and `False` otherwise, accepts a typed `int` argument, raises `TypeError` for non-int/bool arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestIsOdd` to `tests/test_numbers_utils.py` covering odd/even/zero/negative values and the `TypeError` path; imported `is_odd` to match the module's `__all__` contract. Updated the `numbers_utils` module tree entry and prose section of `README.md`. Synchronized `numbers_utils.py`, `tests/test_numbers_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_numbers_utils` passes (146 tests); `python -m doctest numbers_utils.py` passes; `python -m unittest tests.test_public_api` passes. No changes to `.github/workflows/**`.
+
+
 ## Unreleased — added primes_between to prime_utils
 
 - Added `primes_between(lower, upper)` to `prime_utils.py` as a range-based prime helper companion to `primes_up_to`, `prime_count`, `next_prime`, and `prev_prime`. It returns all prime numbers *p* with *lower* <= *p* <= *upper* in ascending order, reusing `primes_up_to` for efficiency, accepts typed `int` arguments, raises `TypeError` for non-int/bool arguments and `ValueError` when *lower* > *upper*, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestPrimesBetween` to `tests/test_prime_utils.py` covering basic ranges, single primes, empty ranges, negative lower bounds, large ranges, and the `TypeError`/`ValueError` paths; imported `primes_between` to match the module's `__all__` contract. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prime_utils` passes; `python -m doctest prime_utils.py` passes; `python -m unittest tests.test_public_api` passes.
@@ -59534,7 +59539,7 @@ tomllib_utils.py          # TOML parsing utilities wrapping stdlib tomllib (read
 token_utils.py            # Python token constant utilities wrapping stdlib token (is_eof, is_nonterminal, is_terminal, tok_name, exact_token_types, n_tokens, nt_offset)
 sched_utils.py            # Scheduler utilities wrapping stdlib sched (scheduler, enter, enterabs, cancel, empty, run, queue)
 quopri_utils.py           # Quoted-printable encoding and decoding utilities wrapping stdlib quopri (encode, decode, encode_file, decode_file, isqp)
-numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_fibonacci_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_even, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
+numbers_utils.py          # Numeric abstract base class utilities wrapping stdlib numbers (Number, Complex, Real, Rational, Integral, is_number, is_integral, is_complex, is_real, is_rational, is_perfect_number, is_almost_perfect_number, is_abundant_number, is_deficient_number, is_fibonacci_number, is_strong_number, is_harshad_number, is_neon_number, is_armstrong_number, is_automorphic_number, is_disarium_number, is_happy_number, is_pronic_number, is_pandigital_number, is_spy_number, is_polydivisible_number, is_repdigit_number, is_palindromic_number, is_coprime, is_duck_number, is_even, is_odd, is_odious_number, is_evil_number, is_perfect_power, is_kaprekar_number, is_semiperfect_number, is_weird_number, proper_divisors, aliquot_sum, sum_of_divisors, abundance, are_amicable, is_amicable_number)
 netrc_utils.py            # Netrc utilities wrapping stdlib netrc (netrc, NetrcParseError)
 getopt_utils.py           # Command line option parsing utilities wrapping stdlib getopt (getopt, gnu_getopt, GetoptError)
 filecmp_utils.py          # File comparison utilities wrapping stdlib filecmp (cmp_files, cmp_directories, same_file)
@@ -60652,7 +60657,7 @@ The project includes netrc utilities in `netrc_utils.py` wrapping the standard l
 
 ## Numbers Utilities Module
 
-The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds classification and divisor helpers including `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_even`, `proper_divisors`, `aliquot_sum`, `sum_of_divisors`, `abundance`, `are_amicable`, and `is_amicable_number` (with `TypeError`/`ValueError` validation; `is_amicable_number` is distinct from `prime_utils.is_amicable`). The module is tested in `tests/test_numbers_utils.py`.
+The project includes numeric abstract base class utilities in `numbers_utils.py` wrapping the standard library `numbers` module: the module re-exports `Number`, `Complex`, `Real`, `Rational`, and `Integral`, and adds classification and divisor helpers including `is_perfect_number`, `is_abundant_number`, `is_deficient_number`, `is_even`, `is_odd`, `proper_divisors`, `aliquot_sum`, `sum_of_divisors`, `abundance`, `are_amicable`, and `is_amicable_number` (with `TypeError`/`ValueError` validation; `is_amicable_number` is distinct from `prime_utils.is_amicable`). The module is tested in `tests/test_numbers_utils.py`.
 
 ## Quopri Utilities Module
 
@@ -83914,6 +83919,7 @@ __all__: list[str] = [
     "is_coprime",
     "is_duck_number",
     "is_even",
+    "is_odd",
     "is_odious_number",
     "is_evil_number",
     "is_perfect_power",
@@ -85554,9 +85560,43 @@ def is_even(n: int) -> bool:
         >>> is_even(-7)
         False
     """
-    if isinstance(n, bool) or not isinstance(n, int):
+    if isinstance(n, bool):
+        raise TypeError("n must be an int, got bool")
+    if not isinstance(n, int):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     return n % 2 == 0
+
+
+def is_odd(n: int) -> bool:
+    """Return ``True`` when *n* is an odd integer.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is not divisible by 2 (including negative odd
+        numbers), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int (a bool is rejected).
+
+    Examples:
+        >>> is_odd(3)
+        True
+        >>> is_odd(2)
+        False
+        >>> is_odd(0)
+        False
+        >>> is_odd(-5)
+        True
+        >>> is_odd(-4)
+        False
+    """
+    if isinstance(n, bool):
+        raise TypeError("n must be an int, got bool")
+    if not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    return n % 2 != 0
 NUMBERS_UTILS
 
 # --- tests/test_numbers_utils.py ---
@@ -85579,6 +85619,7 @@ from numbers_utils import (
     is_deficient_number,
     is_duck_number,
     is_even,
+    is_odd,
     is_evil_number,
     is_fibonacci_number,
     is_happy_number,
@@ -86630,6 +86671,21 @@ class TestIsEven(unittest.TestCase):
         for value in (1.5, 2.0, "2", None, True, [2], (2,)):
             with self.assertRaises(TypeError):
                 is_even(value)
+
+
+class TestIsOdd(unittest.TestCase):
+    def test_odd_values(self):
+        for value in (1, 3, -1, -3, 99, 2 * 10**6 + 1):
+            self.assertTrue(is_odd(value), value)
+
+    def test_even_values(self):
+        for value in (0, 2, -2, 100, -100, 2 * 10**6):
+            self.assertFalse(is_odd(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, 2.0, "3", None, True, [3], (3,)):
+            with self.assertRaises(TypeError):
+                is_odd(value)
 
 
 if __name__ == "__main__":

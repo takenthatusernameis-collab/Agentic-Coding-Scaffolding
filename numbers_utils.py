@@ -45,6 +45,7 @@ __all__: list[str] = [
     "is_coprime",
     "is_duck_number",
     "is_even",
+    "is_odd",
     "is_odious_number",
     "is_evil_number",
     "is_perfect_power",
@@ -1685,6 +1686,41 @@ def is_even(n: int) -> bool:
         >>> is_even(-7)
         False
     """
-    if isinstance(n, bool) or not isinstance(n, int):
+    if isinstance(n, bool):
+        raise TypeError("n must be an int, got bool")
+    if not isinstance(n, int):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     return n % 2 == 0
+
+
+def is_odd(n: int) -> bool:
+    """Return ``True`` when *n* is an odd integer.
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        ``True`` if *n* is not divisible by 2 (including negative odd
+        numbers), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int (a bool is rejected).
+
+    Examples:
+        >>> is_odd(3)
+        True
+        >>> is_odd(2)
+        False
+        >>> is_odd(0)
+        False
+        >>> is_odd(-5)
+        True
+        >>> is_odd(-4)
+        False
+    """
+    if isinstance(n, bool):
+        raise TypeError("n must be an int, got bool")
+    if not isinstance(n, int):
+        raise TypeError(f"n must be an int, got {type(n).__name__}")
+    return n % 2 != 0
+
