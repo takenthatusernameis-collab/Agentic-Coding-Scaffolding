@@ -50,11 +50,7 @@ __all__: list[str] = [
     "isspace",
     "istitle",
     "isupper",
-    "isdecimal",
-    "isnumeric",
-    "isprintable",
-    "isidentifier",
-    "join",
+                    "join",
     "expandtabs",
     "decode_ascii",
     "encode_ascii",
@@ -912,18 +908,21 @@ def lower(data: bytes) -> bytes:
 
 
 def capitalize(data: bytes) -> bytes:
+    """Return a copy with first byte uppercased and rest lowercased."""
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).capitalize()
 
 
 def title(data: bytes) -> bytes:
+    """Return titlecased bytes."""
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).title()
 
 
 def swapcase(data: bytes) -> bytes:
+    """Return bytes with case swapped."""
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).swapcase()
@@ -986,28 +985,8 @@ def isupper(data: bytes) -> bool:
     return bytes(data).isupper()
 
 
-def isdecimal(data: bytes) -> bool:
-    if not isinstance(data, (bytes, bytearray)):
-        raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isdecimal()  # type: ignore[attr-defined,no-any-return]
 
 
-def isnumeric(data: bytes) -> bool:
-    if not isinstance(data, (bytes, bytearray)):
-        raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isnumeric()  # type: ignore[attr-defined,no-any-return]
-
-
-def isprintable(data: bytes) -> bool:
-    if not isinstance(data, (bytes, bytearray)):
-        raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isprintable()  # type: ignore[attr-defined,no-any-return]
-
-
-def isidentifier(data: bytes) -> bool:
-    if not isinstance(data, (bytes, bytearray)):
-        raise TypeError("data must be bytes or bytearray")
-    return bytes(data).isidentifier()  # type: ignore[attr-defined,no-any-return]
 
 
 def join(iterable: object, sep: bytes = b"") -> bytes:
