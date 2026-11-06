@@ -29,6 +29,7 @@ from prompt_utils import (
     count_vowels,
     count_whitespace_characters,
     count_words,
+    has_words,
     dedent_lines,
     ensure_leading_newline,
     ensure_prefix,
@@ -1140,6 +1141,32 @@ class TestCountWords(unittest.TestCase):
             count_words(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_words(None)  # type: ignore[arg-type]
+
+
+class TestHasWords(unittest.TestCase):
+    def test_empty(self):
+        self.assertFalse(has_words(""))
+
+    def test_single_word(self):
+        self.assertTrue(has_words("hello"))
+
+    def test_multiple_words(self):
+        self.assertTrue(has_words("Hello world"))
+
+    def test_whitespace_only(self):
+        self.assertFalse(has_words("   "))
+
+    def test_leading_trailing_whitespace(self):
+        self.assertTrue(has_words("  hello  "))
+
+    def test_unicode(self):
+        self.assertTrue(has_words("héllo wörld"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_words(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_words(None)  # type: ignore[arg-type]
 
 
 class TestTruncateLines(unittest.TestCase):

@@ -448,6 +448,34 @@ def count_words(text: str) -> int:
     return len(text.split())
 
 
+def has_words(text: str) -> bool:
+    """Return True if *text* contains at least one whitespace-delimited word.
+
+    This is a boolean companion to :func:`count_words`; it returns ``True``
+    when *text* contains one or more whitespace-delimited words and ``False``
+    otherwise (including empty or whitespace-only text).
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one word, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_words("Hello world")
+        True
+        >>> has_words("")
+        False
+        >>> has_words("   ")
+        False
+    """
+    _require_string(text, "text")
+    return count_words(text) > 0
+
+
 def collapse_blank_lines(text: str) -> str:
     """Collapse runs of three or more newlines into a single blank line.
 
