@@ -84,6 +84,8 @@ class SemanticVersion:
             and self.prerelease == other.prerelease
         )
 
+    def __hash__(self) -> int:
+        return hash((self.release_tuple(), self.prerelease))
     def __lt__(self, other: "SemanticVersion") -> bool:
         if self.release_tuple() != other.release_tuple():
             return self.release_tuple() < other.release_tuple()
