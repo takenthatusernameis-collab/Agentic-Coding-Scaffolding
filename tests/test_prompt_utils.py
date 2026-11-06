@@ -50,6 +50,7 @@ from prompt_utils import (
     has_placeholders,
     has_punctuation,
     has_spaces,
+    has_tabs,
     has_trailing_newline,
     ends_with_newline,
     has_uppercase,
@@ -306,6 +307,27 @@ class TestHasSpaces(unittest.TestCase):
             has_spaces(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_spaces(None)  # type: ignore[arg-type]
+
+
+class TestHasTabs(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_tabs("a\tb"))
+        self.assertTrue(has_tabs("\t"))
+        self.assertTrue(has_tabs("\t\t\t"))
+
+    def test_no_tabs(self) -> None:
+        self.assertFalse(has_tabs("hello"))
+        self.assertFalse(has_tabs(" "))
+        self.assertFalse(has_tabs("\n"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_tabs(""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_tabs(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_tabs(None)  # type: ignore[arg-type]
 
 
 class TestFormatPromptTemplate(unittest.TestCase):

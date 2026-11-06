@@ -67,6 +67,7 @@ __all__: List[str] = [
     "has_punctuation",
     "has_alphanumeric",
     "has_spaces",
+    "has_tabs",
     "has_consonants",
     "has_vowels",
     "count_letters",
@@ -2194,6 +2195,37 @@ def has_spaces(text: str) -> bool:
     """
     _require_string(text, "text")
     return any(ch == " " for ch in text)
+
+
+def has_tabs(text: str) -> bool:
+    """Return True if *text* contains at least one tab character ('\\t').
+
+    A boolean companion to :func:`count_tabs` that reports whether *text*
+    contains at least one horizontal tab character (U+0009). Spaces, newlines,
+    and other Unicode whitespace are not considered. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one tab character, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_tabs("a\\tb")
+        True
+        >>> has_tabs("Hello")
+        False
+        >>> has_tabs("\\t")
+        True
+        >>> has_tabs("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch == "\t" for ch in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:

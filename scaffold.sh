@@ -24864,6 +24864,7 @@ from prompt_utils import (
     has_placeholders,
     has_punctuation,
     has_spaces,
+    has_tabs,
     has_trailing_newline,
     ends_with_newline,
     has_uppercase,
@@ -25120,6 +25121,27 @@ class TestHasSpaces(unittest.TestCase):
             has_spaces(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_spaces(None)  # type: ignore[arg-type]
+
+
+class TestHasTabs(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_tabs("a\tb"))
+        self.assertTrue(has_tabs("\t"))
+        self.assertTrue(has_tabs("\t\t\t"))
+
+    def test_no_tabs(self) -> None:
+        self.assertFalse(has_tabs("hello"))
+        self.assertFalse(has_tabs(" "))
+        self.assertFalse(has_tabs("\n"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_tabs(""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_tabs(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_tabs(None)  # type: ignore[arg-type]
 
 
 class TestFormatPromptTemplate(unittest.TestCase):
@@ -38097,6 +38119,7 @@ __all__: List[str] = [
     "has_punctuation",
     "has_alphanumeric",
     "has_spaces",
+    "has_tabs",
     "has_consonants",
     "has_vowels",
     "count_letters",
@@ -40224,6 +40247,37 @@ def has_spaces(text: str) -> bool:
     """
     _require_string(text, "text")
     return any(ch == " " for ch in text)
+
+
+def has_tabs(text: str) -> bool:
+    """Return True if *text* contains at least one tab character ('\\t').
+
+    A boolean companion to :func:`count_tabs` that reports whether *text*
+    contains at least one horizontal tab character (U+0009). Spaces, newlines,
+    and other Unicode whitespace are not considered. Empty text returns False.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one tab character, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_tabs("a\\tb")
+        True
+        >>> has_tabs("Hello")
+        False
+        >>> has_tabs("\\t")
+        True
+        >>> has_tabs("")
+        False
+    """
+    _require_string(text, "text")
+    return any(ch == "\t" for ch in text)
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
