@@ -71,6 +71,7 @@ __all__: List[str] = [
     "has_whitespace",
     "has_uppercase",
     "has_letters",
+    "has_lines",
     "has_punctuation",
     "has_alphanumeric",
     "has_spaces",
