@@ -145436,6 +145436,26 @@ def reverse_deque(d: deque) -> None:
     d.reverse()
 
 
+def is_empty(d: deque) -> bool:
+    """Return True when deque d contains no elements.
+
+    Args:
+        d: A deque to inspect.
+
+    Returns:
+        True if d is empty, False otherwise.
+
+    Examples:
+        >>> d = create_deque()
+        >>> is_empty(d)
+        True
+        >>> append_right(d, 1)
+        >>> is_empty(d)
+        False
+    """
+    return len(d) == 0
+
+
 __all__ = [
     "create_deque",
     "append_left",
@@ -145453,6 +145473,7 @@ __all__ = [
     "peek_right",
     "remove_from_deque",
     "reverse_deque",
+    "is_empty",
 ]
 DEQUE_UTILS
 
@@ -145470,6 +145491,7 @@ from deque_utils import (
     extend_left,
     extend_right,
     has_in_deque,
+    is_empty,
     peek_left,
     peek_right,
     pop_left,
@@ -145647,6 +145669,33 @@ class TestDequeUtils(unittest.TestCase):
         append_right(d, 2)
         append_right(d, 3)
         self.assertEqual(deque_to_list(d), [2, 3])
+
+
+
+
+class TestIsEmpty(unittest.TestCase):
+    def test_empty(self):
+        self.assertTrue(is_empty(create_deque()))
+
+    def test_single_element(self):
+        self.assertFalse(is_empty(create_deque([1])))
+
+    def test_after_pop(self):
+        d = create_deque([1, 2])
+        pop_left(d)
+        pop_left(d)
+        self.assertTrue(is_empty(d))
+
+    def test_after_clear(self):
+        d = create_deque([1, 2, 3])
+        clear_deque(d)
+        self.assertTrue(is_empty(d))
+
+    def test_consistency_with_len(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(is_empty(d), len(deque_to_list(d)) == 0)
+        clear_deque(d)
+        self.assertEqual(is_empty(d), len(deque_to_list(d)) == 0)
 
 
 if __name__ == "__main__":
