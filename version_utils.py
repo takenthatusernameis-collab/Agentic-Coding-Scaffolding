@@ -16,6 +16,7 @@ __all__ = [
     "compare",
     "compare_versions",
     "count_components",
+    "has_components",
     "dec",
     "decrement",
     "decrement_major",
@@ -154,6 +155,36 @@ def count_components(version: str) -> int:
     if not version:
         return 0
     return len(version.split("."))
+
+
+def has_components(version: str) -> bool:
+    """Return ``True`` when *version* has at least one component.
+
+    This is the boolean companion to :func:`count_components`. It returns
+    ``True`` for any non-empty version string and ``False`` for the empty
+    string, reusing :func:`count_components` for consistency.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        ``True`` if *version* contains at least one component, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_components("1.2.3")
+        True
+        >>> has_components("1")
+        True
+        >>> has_components("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return count_components(version) > 0
 
 
 def version_to_tuple(version: str) -> Tuple[int, ...]:

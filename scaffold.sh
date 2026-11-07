@@ -13050,6 +13050,35 @@ def count_vowels(s: str) -> int:
     return sum(1 for ch in s.lower() if ch in vowels)
 
 
+def has_vowels(s: str) -> bool:
+    """Return True if *s* contains any ASCII vowel (a, e, i, o, u).
+
+    A boolean companion to :func:`count_vowels` that reports whether *s*
+    contains at least one ASCII vowel, case-insensitive. Empty text returns
+    False.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains at least one ASCII vowel, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_vowels("hello")
+        True
+        >>> has_vowels("xyz")
+        False
+        >>> has_vowels("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch in "aeiouAEIOU" for ch in s)
+
+
 def count_consonants(s: str) -> int:
     """Return the number of consonants in the given string.
 
@@ -114170,6 +114199,7 @@ __all__ = [
     "compare",
     "compare_versions",
     "count_components",
+    "has_components",
     "dec",
     "decrement",
     "decrement_major",
@@ -114308,6 +114338,36 @@ def count_components(version: str) -> int:
     if not version:
         return 0
     return len(version.split("."))
+
+
+def has_components(version: str) -> bool:
+    """Return ``True`` when *version* has at least one component.
+
+    This is the boolean companion to :func:`count_components`. It returns
+    ``True`` for any non-empty version string and ``False`` for the empty
+    string, reusing :func:`count_components` for consistency.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        ``True`` if *version* contains at least one component, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_components("1.2.3")
+        True
+        >>> has_components("1")
+        True
+        >>> has_components("")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return count_components(version) > 0
 
 
 def version_to_tuple(version: str) -> Tuple[int, ...]:
@@ -115446,6 +115506,7 @@ from version_utils import (
     get_prerelease_tag,
     greater_than,
     has_build_metadata,
+    has_components,
     has_metadata,
     has_prerelease,
     increment,
@@ -116548,6 +116609,25 @@ class TestCountComponents(unittest.TestCase):
             count_components(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_components(None)  # type: ignore[arg-type]
+
+
+class TestHasComponents(unittest.TestCase):
+    """Tests for the ``has_components`` helper."""
+
+    def test_non_empty_returns_true(self):
+        self.assertTrue(has_components("1.2.3"))
+
+    def test_single_component_returns_true(self):
+        self.assertTrue(has_components("5"))
+
+    def test_empty_returns_false(self):
+        self.assertFalse(has_components(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_components(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_components(None)  # type: ignore[arg-type]
 
 
 class TestRemainingVersionAliases(unittest.TestCase):

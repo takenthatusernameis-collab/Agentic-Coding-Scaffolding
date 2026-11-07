@@ -33,6 +33,7 @@ from version_utils import (
     get_prerelease_tag,
     greater_than,
     has_build_metadata,
+    has_components,
     has_metadata,
     has_prerelease,
     increment,
@@ -1135,6 +1136,25 @@ class TestCountComponents(unittest.TestCase):
             count_components(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_components(None)  # type: ignore[arg-type]
+
+
+class TestHasComponents(unittest.TestCase):
+    """Tests for the ``has_components`` helper."""
+
+    def test_non_empty_returns_true(self):
+        self.assertTrue(has_components("1.2.3"))
+
+    def test_single_component_returns_true(self):
+        self.assertTrue(has_components("5"))
+
+    def test_empty_returns_false(self):
+        self.assertFalse(has_components(""))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_components(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_components(None)  # type: ignore[arg-type]
 
 
 class TestRemainingVersionAliases(unittest.TestCase):
