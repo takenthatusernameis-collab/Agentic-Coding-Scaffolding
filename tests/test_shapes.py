@@ -628,3 +628,57 @@ class TestPoints(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             point_in_circle((1, 1), (0, 0), True)
+
+
+class TestPointInRectangle(unittest.TestCase):
+    def test_inside(self):
+        from shapes import point_in_rectangle
+
+        self.assertTrue(point_in_rectangle((1, 1), 0, 0, 3, 3))
+        self.assertTrue(point_in_rectangle((2, 2), 0, 0, 3, 3))
+
+    def test_outside(self):
+        from shapes import point_in_rectangle
+
+        self.assertFalse(point_in_rectangle((5, 5), 0, 0, 3, 3))
+        self.assertFalse(point_in_rectangle((-1, 1), 0, 0, 3, 3))
+
+    def test_on_boundary(self):
+        from shapes import point_in_rectangle
+
+        self.assertTrue(point_in_rectangle((3, 0), 0, 0, 3, 3))
+        self.assertTrue(point_in_rectangle((0, 3), 0, 0, 3, 3))
+
+    def test_corner_order_invariant(self):
+        from shapes import point_in_rectangle
+
+        self.assertTrue(point_in_rectangle((1, 1), 3, 3, 0, 0))
+        self.assertFalse(point_in_rectangle((5, 5), 3, 3, 0, 0))
+
+    def test_rejects_bad_point(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(TypeError):
+            point_in_rectangle("bad", 0, 0, 3, 3)  # type: ignore[arg-type]
+
+    def test_rejects_bool_coordinate(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(TypeError):
+            point_in_rectangle((1, 1), 0, 0, True, 3)  # type: ignore[arg-type]
+
+    def test_rejects_zero_width(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(ValueError):
+            point_in_rectangle((1, 1), 0, 0, 0, 3)
+
+    def test_rejects_negative_height(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(ValueError):
+            point_in_rectangle((1, 1), 0, 0, 3, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
