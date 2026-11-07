@@ -38,6 +38,8 @@ __all__: List[str] = [
     "ensure_surrounded_by_newlines",
     "count_leading_newlines",
     "count_trailing_newlines",
+    "has_leading_newlines",
+    "has_trailing_newlines",
     "strip_leading_newlines",
     "strip_trailing_newlines",
     "normalize_whitespace",

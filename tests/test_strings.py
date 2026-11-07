@@ -2468,6 +2468,28 @@ class TestNewlineHelpers(unittest.TestCase):
         with self.assertRaises(TypeError):
             strip_leading_newlines(None)  # type: ignore[arg-type]
 
+    def test_has_leading_newlines(self):
+        from strings import has_leading_newlines
+
+        self.assertTrue(has_leading_newlines("\nhello"))
+        self.assertTrue(has_leading_newlines("\n"))
+        self.assertFalse(has_leading_newlines("hello"))
+        self.assertFalse(has_leading_newlines(""))
+        self.assertFalse(has_leading_newlines(" \nhello"))
+        with self.assertRaises(TypeError):
+            has_leading_newlines(123)  # type: ignore[arg-type]
+
+    def test_has_trailing_newlines(self):
+        from strings import has_trailing_newlines
+
+        self.assertTrue(has_trailing_newlines("hello\n"))
+        self.assertTrue(has_trailing_newlines("\n"))
+        self.assertFalse(has_trailing_newlines("hello"))
+        self.assertFalse(has_trailing_newlines(""))
+        self.assertTrue(has_trailing_newlines("hello \n"))
+        with self.assertRaises(TypeError):
+            has_trailing_newlines(None)  # type: ignore[arg-type]
+
     def test_strip_trailing_newlines(self):
         from strings import strip_trailing_newlines
 
