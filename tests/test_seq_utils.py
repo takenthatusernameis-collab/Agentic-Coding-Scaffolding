@@ -14,6 +14,7 @@ from seq_utils import (
     is_sorted,
     last,
     nth,
+    nth_or_default,
     split_at,
     tail,
     take_while,
@@ -67,6 +68,25 @@ class TestNth(unittest.TestCase):
         with self.assertRaises(TypeError):
             nth(123, 0)  # type: ignore[arg-type]
 
+
+
+class TestNthOrDefault(unittest.TestCase):
+    def test_nth_or_default_valid(self):
+        self.assertEqual(nth_or_default([1, 2, 3], 0), 1)
+        self.assertEqual(nth_or_default([1, 2, 3], 2), 3)
+        self.assertEqual(nth_or_default([1, 2, 3], -1), 3)
+
+    def test_nth_or_default_out_of_range(self):
+        self.assertEqual(nth_or_default([1, 2, 3], 5, 0), 0)
+        self.assertEqual(nth_or_default([1, 2, 3], -4, "x"), "x")
+        self.assertIsNone(nth_or_default([], 0))
+        self.assertEqual(nth_or_default([], 0, 42), 42)
+
+    def test_nth_or_default_type_error(self):
+        with self.assertRaises(TypeError):
+            nth_or_default([1, 2, 3], "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_or_default(123, 0)  # type: ignore[arg-type]
 
 class TestHead(unittest.TestCase):
     def test_head(self):

@@ -27,6 +27,7 @@ __all__ = [
     "is_sorted",
     "last",
     "nth",
+    "nth_or_default",
     "split_at",
     "tail",
     "take_while",
@@ -109,6 +110,38 @@ def nth(sequence: Sequence[T], n: int) -> Optional[T]:
         return sequence[n]
     except IndexError:
         return None
+
+
+def nth_or_default(sequence: Sequence[T], n: int, default: Optional[T] = None) -> Optional[T]:
+    """Return the element at index ``n``, or ``default`` if out of range.
+
+    Negative indices are supported, mirroring normal sequence indexing.
+
+    Args:
+        sequence: The sequence to inspect.
+        n: The index of the element to retrieve.
+        default: The value to return when ``n`` is out of range.
+
+    Returns:
+        The element at index ``n``, or ``default`` when the index is invalid.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+
+    Examples:
+        >>> nth_or_default([1, 2, 3], 1)
+        2
+        >>> nth_or_default([1, 2, 3], 5, 0)
+        0
+        >>> nth_or_default([1, 2, 3], 5)
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    try:
+        return sequence[n]
+    except IndexError:
+        return default
 
 
 def head(sequence: Sequence[T], n: int = 1) -> List[T]:
