@@ -446,6 +446,39 @@ def first_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
     return default
 
 
+def last_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
+    """Return the last element of *iterable*, or *default* if it is empty.
+
+    Consumes the iterable fully to determine the last element.
+
+    Args:
+        iterable: The iterable to inspect.
+        default: Value returned when the iterable is empty.
+
+    Returns:
+        The last element of *iterable*, or *default*.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> last_or_default([1, 2, 3])
+        3
+        >>> last_or_default([])
+        >>> last_or_default([], default="none")
+        'none'
+        >>> last_or_default(x for x in range(5))
+        4
+    """
+    _ensure_iterable(iterable, "iterable")
+    result = default
+    found = False
+    for element in iterable:
+        result = element
+        found = True
+    return result if found else default
+
+
 def count_from(start: int = 0, step: int = 1) -> List[Any]:
     """Count infinitely from start with step; return first 1000 as list for safety."""
     if not isinstance(start, int) or isinstance(start, bool):
@@ -608,6 +641,7 @@ __all__ = [
     "islice_iterable",
     "is_empty_iterable",
     "first_or_default",
+    "last_or_default",
     "unique_everseen",
     "unique_justseen",
     "sliding_window",

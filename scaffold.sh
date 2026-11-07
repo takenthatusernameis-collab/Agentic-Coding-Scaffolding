@@ -33166,12 +33166,14 @@ __all__ = [
     "drop",
     "find",
     "find_index",
+    "first_or_default",
     "flatten",
     "group_by",
     "has_duplicates",
     "intersperse",
     "is_empty",
     "is_sorted",
+    "last_or_default",
     "partition",
     "safe_get",
     "take",
@@ -33612,6 +33614,56 @@ def is_sorted(lst: List[T], reverse: bool = False) -> bool:
     if reverse:
         return all(lst[i] >= lst[i + 1] for i in range(len(lst) - 1))
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
+
+
+def first_or_default(lst: List[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the first element of a list, or ``default`` if empty.
+
+    Args:
+        lst: The list to inspect.
+        default: The value to return when ``lst`` is empty.
+
+    Returns:
+        The first element of ``lst``, or ``default`` when empty.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> first_or_default([1, 2, 3])
+        1
+        >>> first_or_default([], 0)
+        0
+        >>> first_or_default([])
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return lst[0] if lst else default
+
+
+def last_or_default(lst: List[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the last element of a list, or ``default`` if empty.
+
+    Args:
+        lst: The list to inspect.
+        default: The value to return when ``lst`` is empty.
+
+    Returns:
+        The last element of ``lst``, or ``default`` when empty.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> last_or_default([1, 2, 3])
+        3
+        >>> last_or_default([], 0)
+        0
+        >>> last_or_default([])
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return lst[-1] if lst else default
 LISTUTILS
 # --- tests/test_list_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
@@ -33624,12 +33676,14 @@ from list_utils import (
     drop,
     find,
     find_index,
+    first_or_default,
     flatten,
     group_by,
     has_duplicates,
     intersperse,
     is_empty,
     is_sorted,
+    last_or_default,
     partition,
     safe_get,
     take,
@@ -49423,6 +49477,39 @@ def first_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
     return default
 
 
+def last_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
+    """Return the last element of *iterable*, or *default* if it is empty.
+
+    Consumes the iterable fully to determine the last element.
+
+    Args:
+        iterable: The iterable to inspect.
+        default: Value returned when the iterable is empty.
+
+    Returns:
+        The last element of *iterable*, or *default*.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> last_or_default([1, 2, 3])
+        3
+        >>> last_or_default([])
+        >>> last_or_default([], default="none")
+        'none'
+        >>> last_or_default(x for x in range(5))
+        4
+    """
+    _ensure_iterable(iterable, "iterable")
+    result = default
+    found = False
+    for element in iterable:
+        result = element
+        found = True
+    return result if found else default
+
+
 def count_from(start: int = 0, step: int = 1) -> List[Any]:
     """Count infinitely from start with step; return first 1000 as list for safety."""
     if not isinstance(start, int) or isinstance(start, bool):
@@ -49585,6 +49672,7 @@ __all__ = [
     "islice_iterable",
     "is_empty_iterable",
     "first_or_default",
+    "last_or_default",
     "unique_everseen",
     "unique_justseen",
     "sliding_window",
@@ -49602,6 +49690,7 @@ import unittest
 
 from itertools_utils import (
     first_or_default,
+    last_or_default,
     accumulate_values,
     chain_iterables,
     chunk_iterable,
@@ -50139,6 +50228,28 @@ class TestFirstOrDefault(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             first_or_default(None)
+
+
+class TestLastOrDefault(unittest.TestCase):
+    def test_last_element(self):
+        self.assertEqual(last_or_default([1, 2, 3]), 3)
+
+    def test_empty_list(self):
+        self.assertIsNone(last_or_default([]))
+
+    def test_empty_with_default(self):
+        self.assertEqual(last_or_default([], default="none"), "none")
+
+    def test_generator(self):
+        self.assertEqual(last_or_default(x for x in range(5)), 4)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            last_or_default(42)
+
+    def test_rejects_none(self):
+        with self.assertRaises(TypeError):
+            last_or_default(None)
 
 
 if __name__ == "__main__":
