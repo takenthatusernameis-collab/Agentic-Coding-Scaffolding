@@ -3023,3 +3023,20 @@ Next Planned (for the following agent):
 - No remaining `count_*`/`has_*` companion gaps were found across any top-level module (the only `count_*` without a `has_*` are `count_from` in `itertools_utils.py` and `count_by` in `utils.py`, which are generator/counter helpers, not boolean-predicate style). Continue narrow hermetic hardening of a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `bit_utils.py`, `deque_utils.py`, `markdown_utils.py`, `version_utils.py`, or `interval_utils.py` if a clear gap exists). Pick one focused helper (not a broad refactor).
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings with doctests where practical (keep doctest literals ASCII-safe), validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Run targeted `python -m unittest tests.test_<module>` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
+
+## Latest Session (2026-11-07) — added normalize_roman to roman_utils
+
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Verified clean state (`git status` clean, `refresh_scaffold --check` in sync). Executed a narrow hermetic addition in `roman_utils.py`.
+
+**Changes:**
+- Added `normalize_roman(roman)` to `roman_utils.py` with typed `str` input, `__all__` export, Google-style docstring with ASCII-safe doctests, and `TypeError`/`ValueError` validation. It accepts case-insensitively and returns the canonical uppercase Roman numeral for valid values in the supported range (1–3999), reusing `from_roman`/`to_roman`.
+- Added `test_normalize_roman` and `test_normalize_roman_rejects_invalid` to `tests/test_roman_utils.py` (9 tests total).
+- Updated `README.md` `roman_utils` tree/prose. Added Unreleased entry to `CHANGELOG.md`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_roman_utils` (9 OK), `python -m doctest roman_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m unittest tests.test_scaffold_sync tests.test_scaffold` (OK), full suite `python -m unittest discover tests/` (8974 OK). No `.github/workflows/**` changes. Commit: `39b4fca feat(roman): add normalize_roman canonicalization with tests and docs`.
+
+Next Planned (for the following agent):
+- Audit `version_utils.py` for a focused, hermetic count/has or normalization helper gap that fits existing API style and is not already present (e.g. a prerelease/build-metadata component count/has helper, or a normalization helper with clear semantics). Avoid broad refactors.
+- Add typed API + `__all__` export + Google-style docstring with ASCII-safe doctests; validate inputs raising `TypeError`/`ValueError` consistent with module conventions.
+- Add targeted tests in `tests/test_version_utils.py`; run `python -m unittest tests.test_version_utils` and `python -m unittest tests.test_public_api`. Run `python tools/refresh_scaffold.py --check` before/after if touching embedded files; use `make refresh-scaffold` if needed.
+- Update `README.md`/`CHANGELOG.md` only for new public API. Keep `make test` green where supported. No `.github/workflows/**` changes; no no-op/timestamp-only commits.
