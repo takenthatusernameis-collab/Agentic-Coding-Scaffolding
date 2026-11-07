@@ -59042,6 +59042,14 @@ class TestIntervalIsDegenerate(unittest.TestCase):
     def test_invalid(self):
         with self.assertRaises(ValueError):
             interval_is_degenerate((5, 1))
+
+
+class TestBoolRejection(unittest.TestCase):
+    def test_normalize_interval_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            normalize_interval(True, 5)
+        with self.assertRaises(TypeError):
+            normalize_interval(1, False)
 TEST_INTERVAL_UTILS
 
 

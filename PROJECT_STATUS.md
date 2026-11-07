@@ -2876,3 +2876,18 @@ Next Planned (for the following agent):
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Run targeted `python -m unittest tests.test_interval_utils tests.test_number_utils` (or the chosen modules) first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
 
+
+## Latest Session (2026-11-07) — interval_utils bool-rejection test hardening
+
+**Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned": hardening pass on interval_utils.py and number_utils.py.
+
+**Changes:**
+- `tests/test_interval_utils.py`: added `TestBoolRejection` covering bool rejection in `normalize_interval` for both endpoints (validation already enforced via `_is_number`).
+- Refreshed embedded copy in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_interval_utils` (127 OK). No `.github/workflows/**` changes.
+
+Next Planned (for the following agent):
+- Perform a narrow, hermetic hardening pass on `number_utils.py`: audit for missing `TypeError`/`ValueError` boundary tests and edge cases (bool rejection, NaN/inf where applicable, empty inputs, inverted bounds, negative/zero widths, float/int consistency, ordering invariants). Add only behaviorally justified tests; fix implementation validation only if current behavior is incorrect or inconsistent with the module's documented contract.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Run targeted `python -m unittest tests.test_number_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
