@@ -101,6 +101,7 @@ __all__: List[str] = [
     "count_digits",
     "has_digits",
     "count_letters",
+    "has_letters",
     "count_punctuation",
     "has_punctuation",
     "count_whitespace",
