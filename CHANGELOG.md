@@ -2282,7 +2282,11 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
-## Unreleased — added `find_index` to `list_utils`
+## Unreleased — added `count_leading_zeros` and `has_leading_zeros` to `bit_utils`
+
+- Added `count_leading_zeros(value, width)` and boolean companion `has_leading_zeros(value, width)` to `bit_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and validation raising `TypeError`/`ValueError` (including rejection of values that do not fit within *width*). `count_leading_zeros` returns the number of zero bits to the left of the most significant set bit within a fixed *width* (returning *width* for zero). Added `TestCountLeadingZeros` and `TestHasLeadingZeros` to `tests/test_bit_utils.py` covering basic widths, zero/full-width cases, consistency, width-fit/value/type errors, and bool rejection (7 new tests). Updated the `bit_utils` module tree entry and prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (43 tests), `python -m doctest bit_utils.py` (44 doctests), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (OK). No changes to `.github/workflows/**`.
+
+
 
 - Added `find_index(lst, predicate)` to `list_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-list arguments; it returns the index of the first matching element or `None` when no match is found. Added `TestFindIndex` to `tests/test_list_utils.py` (7 new tests) covering basic/edge cases and the `TypeError` path. Updated the `list_utils` module tree entry and prose section of `README.md` to include `find_index`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 

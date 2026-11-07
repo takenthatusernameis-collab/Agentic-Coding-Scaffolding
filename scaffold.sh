@@ -44528,6 +44528,8 @@ __all__: list[str] = [
     "toggle_bit",
     "is_even",
     "is_odd",
+    "count_leading_zeros",
+    "has_leading_zeros",
     "count_trailing_zeros",
     "has_trailing_zeros",
 ]
@@ -44939,6 +44941,69 @@ def count_trailing_zeros(value: int) -> int:
     return count
 
 
+def count_leading_zeros(value: int, width: int) -> int:
+    """Return the number of leading zero bits within a fixed bit width.
+
+    Leading zeros are the zero bits to the left of the most significant
+    set bit, measured from the top of the given *width*.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to count leading zeros (positive).
+
+    Returns:
+        The number of leading zeros. Returns *width* when *value* is 0.
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> count_leading_zeros(1, 8)
+        7
+        >>> count_leading_zeros(8, 8)
+        4
+        >>> count_leading_zeros(0, 8)
+        8
+        >>> count_leading_zeros(255, 8)
+        0
+    """
+    _validate_nonnegative_int(value)
+    _validate_positive_int(width, "width")
+    if value.bit_length() > width:
+        raise ValueError("value does not fit within width bits")
+    if value == 0:
+        return width
+    return width - value.bit_length()
+
+
+def has_leading_zeros(value: int, width: int) -> bool:
+    """Return True if *value* has at least one leading zero in *width* bits.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to check leading zeros (positive).
+
+    Returns:
+        True if *value* has a leading zero within *width* bits.
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> has_leading_zeros(1, 8)
+        True
+        >>> has_leading_zeros(255, 8)
+        False
+        >>> has_leading_zeros(0, 8)
+        True
+    """
+    return count_leading_zeros(value, width) > 0
+
+
 def has_trailing_zeros(value: int) -> bool:
     """Return True if value has at least one trailing zero bit.
 
@@ -44973,9 +45038,11 @@ import unittest
 
 from bit_utils import (
     clear_bit,
-    count_trailing_zeros,
+    count_leading_zeros,
     count_set_bits,
+    count_trailing_zeros,
     get_bit,
+    has_leading_zeros,
     has_set_bits,
     has_trailing_zeros,
     is_even,
@@ -45199,6 +45266,65 @@ class TestHasTrailingZeros(unittest.TestCase):
             has_trailing_zeros(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_trailing_zeros(-1)
+
+class TestCountLeadingZeros(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_leading_zeros(1, 8), 7)
+        self.assertEqual(count_leading_zeros(8, 8), 4)
+        self.assertEqual(count_leading_zeros(0, 8), 8)
+        self.assertEqual(count_leading_zeros(255, 8), 0)
+        self.assertEqual(count_leading_zeros(0b0100, 4), 1)
+
+    def test_width_one(self):
+        self.assertEqual(count_leading_zeros(0, 1), 1)
+        self.assertEqual(count_leading_zeros(1, 1), 0)
+
+    def test_large_width(self):
+        self.assertEqual(count_leading_zeros(1, 32), 31)
+        self.assertEqual(count_leading_zeros(0, 32), 32)
+
+    def test_value_too_wide(self):
+        with self.assertRaises(ValueError):
+            count_leading_zeros(256, 8)
+        with self.assertRaises(ValueError):
+            count_leading_zeros(16, 4)
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            count_leading_zeros("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_zeros(1, "8")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_zeros(True, 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_zeros(1, True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            count_leading_zeros(-1, 8)
+        with self.assertRaises(ValueError):
+            count_leading_zeros(1, 0)
+        with self.assertRaises(ValueError):
+            count_leading_zeros(1, -8)
+
+
+class TestHasLeadingZeros(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_leading_zeros(1, 8))
+        self.assertFalse(has_leading_zeros(255, 8))
+        self.assertTrue(has_leading_zeros(0, 8))
+        self.assertFalse(has_leading_zeros(0b1111, 4))
+
+    def test_consistency(self):
+        for v, w in [(0, 8), (1, 8), (7, 8), (128, 8), (255, 8), (3, 16)]:
+            self.assertEqual(
+                has_leading_zeros(v, w),
+                count_leading_zeros(v, w) > 0,
+            )
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_leading_zeros("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_leading_zeros(256, 8)
 
 
 if __name__ == "__main__":
@@ -62166,7 +62292,11 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
-## Unreleased — added `find_index` to `list_utils`
+## Unreleased — added `count_leading_zeros` and `has_leading_zeros` to `bit_utils`
+
+- Added `count_leading_zeros(value, width)` and boolean companion `has_leading_zeros(value, width)` to `bit_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and validation raising `TypeError`/`ValueError` (including rejection of values that do not fit within *width*). `count_leading_zeros` returns the number of zero bits to the left of the most significant set bit within a fixed *width* (returning *width* for zero). Added `TestCountLeadingZeros` and `TestHasLeadingZeros` to `tests/test_bit_utils.py` covering basic widths, zero/full-width cases, consistency, width-fit/value/type errors, and bool rejection (7 new tests). Updated the `bit_utils` module tree entry and prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (43 tests), `python -m doctest bit_utils.py` (44 doctests), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (OK). No changes to `.github/workflows/**`.
+
+
 
 - Added `find_index(lst, predicate)` to `list_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and `TypeError` validation for non-list arguments; it returns the index of the first matching element or `None` when no match is found. Added `TestFindIndex` to `tests/test_list_utils.py` (7 new tests) covering basic/edge cases and the `TypeError` path. Updated the `list_utils` module tree entry and prose section of `README.md` to include `find_index`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, and `README.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
@@ -62313,7 +62443,7 @@ timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
 async_utils.py            # Asynchronous utility functions
 asyncio_utils.py     # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
-bit_utils.py              # Bitwise utility functions for working with binary representations
+bit_utils.py              # Bitwise utility functions for working with binary representations (set/leading/trailing zero counts, power-of-two, shifts, rotates, bit access, parity)
 call_once_utils.py        # Call-once execution utilities (call_once)
 concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 concurrent_futures_utils.py # concurrent.futures wrappers with validation
@@ -63128,7 +63258,7 @@ The project includes asynchronous utility functions in `async_utils.py` for runn
 
 ## Bit Utilities Module
 
-The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits` counts the number of 1 bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
+The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
 
 ## Collections Utilities Module
 

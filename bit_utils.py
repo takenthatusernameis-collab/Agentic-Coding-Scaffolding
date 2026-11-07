@@ -24,6 +24,8 @@ __all__: list[str] = [
     "toggle_bit",
     "is_even",
     "is_odd",
+    "count_leading_zeros",
+    "has_leading_zeros",
     "count_trailing_zeros",
     "has_trailing_zeros",
 ]
@@ -433,6 +435,69 @@ def count_trailing_zeros(value: int) -> int:
         value >>= 1
         count += 1
     return count
+
+
+def count_leading_zeros(value: int, width: int) -> int:
+    """Return the number of leading zero bits within a fixed bit width.
+
+    Leading zeros are the zero bits to the left of the most significant
+    set bit, measured from the top of the given *width*.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to count leading zeros (positive).
+
+    Returns:
+        The number of leading zeros. Returns *width* when *value* is 0.
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> count_leading_zeros(1, 8)
+        7
+        >>> count_leading_zeros(8, 8)
+        4
+        >>> count_leading_zeros(0, 8)
+        8
+        >>> count_leading_zeros(255, 8)
+        0
+    """
+    _validate_nonnegative_int(value)
+    _validate_positive_int(width, "width")
+    if value.bit_length() > width:
+        raise ValueError("value does not fit within width bits")
+    if value == 0:
+        return width
+    return width - value.bit_length()
+
+
+def has_leading_zeros(value: int, width: int) -> bool:
+    """Return True if *value* has at least one leading zero in *width* bits.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to check leading zeros (positive).
+
+    Returns:
+        True if *value* has a leading zero within *width* bits.
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> has_leading_zeros(1, 8)
+        True
+        >>> has_leading_zeros(255, 8)
+        False
+        >>> has_leading_zeros(0, 8)
+        True
+    """
+    return count_leading_zeros(value, width) > 0
 
 
 def has_trailing_zeros(value: int) -> bool:

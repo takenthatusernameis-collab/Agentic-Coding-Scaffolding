@@ -4,9 +4,11 @@ import unittest
 
 from bit_utils import (
     clear_bit,
-    count_trailing_zeros,
+    count_leading_zeros,
     count_set_bits,
+    count_trailing_zeros,
     get_bit,
+    has_leading_zeros,
     has_set_bits,
     has_trailing_zeros,
     is_even,
@@ -230,6 +232,65 @@ class TestHasTrailingZeros(unittest.TestCase):
             has_trailing_zeros(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_trailing_zeros(-1)
+
+class TestCountLeadingZeros(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_leading_zeros(1, 8), 7)
+        self.assertEqual(count_leading_zeros(8, 8), 4)
+        self.assertEqual(count_leading_zeros(0, 8), 8)
+        self.assertEqual(count_leading_zeros(255, 8), 0)
+        self.assertEqual(count_leading_zeros(0b0100, 4), 1)
+
+    def test_width_one(self):
+        self.assertEqual(count_leading_zeros(0, 1), 1)
+        self.assertEqual(count_leading_zeros(1, 1), 0)
+
+    def test_large_width(self):
+        self.assertEqual(count_leading_zeros(1, 32), 31)
+        self.assertEqual(count_leading_zeros(0, 32), 32)
+
+    def test_value_too_wide(self):
+        with self.assertRaises(ValueError):
+            count_leading_zeros(256, 8)
+        with self.assertRaises(ValueError):
+            count_leading_zeros(16, 4)
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            count_leading_zeros("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_zeros(1, "8")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_zeros(True, 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_zeros(1, True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            count_leading_zeros(-1, 8)
+        with self.assertRaises(ValueError):
+            count_leading_zeros(1, 0)
+        with self.assertRaises(ValueError):
+            count_leading_zeros(1, -8)
+
+
+class TestHasLeadingZeros(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_leading_zeros(1, 8))
+        self.assertFalse(has_leading_zeros(255, 8))
+        self.assertTrue(has_leading_zeros(0, 8))
+        self.assertFalse(has_leading_zeros(0b1111, 4))
+
+    def test_consistency(self):
+        for v, w in [(0, 8), (1, 8), (7, 8), (128, 8), (255, 8), (3, 16)]:
+            self.assertEqual(
+                has_leading_zeros(v, w),
+                count_leading_zeros(v, w) > 0,
+            )
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_leading_zeros("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_leading_zeros(256, 8)
 
 
 if __name__ == "__main__":
