@@ -49769,6 +49769,43 @@ def last_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
     return result if found else default
 
 
+def nth_or_default(iterable: Iterable[Any], n: int, default: Any = None) -> Any:
+    """Return the element at index *n* of *iterable*, or *default* if out of range.
+
+    Works for any iterable — including one-shot generators — by consuming
+    elements only until the *n*-th (0-indexed) item is seen.
+
+    Args:
+        iterable: The iterable to inspect.
+        n: The 0-based index of the element to retrieve.
+        default: Value returned when *n* is out of range.
+
+    Returns:
+        The element at index *n*, or *default* when the iterable is too short.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *n* is not an int.
+
+    Examples:
+        >>> nth_or_default([1, 2, 3], 1)
+        2
+        >>> nth_or_default([1, 2, 3], 5)
+        >>> nth_or_default([1, 2, 3], 5, default="none")
+        'none'
+        >>> nth_or_default(x for x in range(5), 3)
+        3
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be a non-negative index")
+    for index, element in enumerate(iterable):
+        if index == n:
+            return element
+    return default
+
+
 def count_from(start: int = 0, step: int = 1) -> List[Any]:
     """Count infinitely from start with step; return first 1000 as list for safety."""
     if not isinstance(start, int) or isinstance(start, bool):
@@ -49903,6 +49940,70 @@ def ncycles(iterable: Iterable[Any], n: int) -> List[Any]:
     return list(chain.from_iterable(repeat(list(iterable), n)))
 
 
+def count_if(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> int:
+    """Count items in *iterable* for which *predicate* is truthy.
+
+    Args:
+        iterable: The iterable to inspect.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        The number of items where *predicate(item)* is truthy.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *predicate* is not callable.
+
+    Examples:
+        >>> count_if([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        2
+        >>> count_if([], bool)
+        0
+        >>> count_if([0, 1, 2], bool)
+        2
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    total = 0
+    for item in iterable:
+        if predicate(item):
+            total += 1
+    return total
+
+
+def has_any(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
+    """Return ``True`` if any item in *iterable* satisfies *predicate*.
+
+    Short-circuits on the first match.
+
+    Args:
+        iterable: The iterable to inspect.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        ``True`` when at least one item satisfies *predicate*, ``False``
+        otherwise (including for an empty iterable).
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *predicate* is not callable.
+
+    Examples:
+        >>> has_any([1, 2, 3], lambda x: x > 2)
+        True
+        >>> has_any([1, 2, 3], lambda x: x > 5)
+        False
+        >>> has_any([], bool)
+        False
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in iterable:
+        if predicate(item):
+            return True
+    return False
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -49932,6 +50033,7 @@ __all__ = [
     "is_empty_iterable",
     "first_or_default",
     "last_or_default",
+    "nth_or_default",
     "unique_everseen",
     "unique_justseen",
     "sliding_window",
@@ -49940,6 +50042,8 @@ __all__ = [
     "roundrobin",
     "padnone",
     "ncycles",
+    "count_if",
+    "has_any",
 ]
 ITERTOOLS_UTILS
 
@@ -49956,11 +50060,13 @@ from itertools_utils import (
     combinations_of,
     combinations_with_replacement_of,
     count_from,
+    count_if,
     cycle_take,
     drop_while_pred,
     flatten_once,
     group_by_key,
     grouper,
+    has_any,
     is_empty_iterable,
     pairwise_iterable,
     partition,
@@ -50509,6 +50615,66 @@ class TestLastOrDefault(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             last_or_default(None)
+
+
+class TestCountIf(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_if([1, 2, 3, 4, 5], lambda x: x % 2 == 0), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_if([], bool), 0)
+
+    def test_none_match(self):
+        self.assertEqual(count_if([1, 3, 5], lambda x: x % 2 == 0), 0)
+
+    def test_all_match(self):
+        self.assertEqual(count_if([2, 4, 6], lambda x: x % 2 == 0), 3)
+
+    def test_generator(self):
+        self.assertEqual(count_if((x for x in range(5)), lambda x: x > 2), 2)
+
+    def test_truthiness(self):
+        self.assertEqual(count_if([0, 1, "", "a", None, []], bool), 2)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            count_if(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            count_if([1, 2, 3], 123)
+
+
+class TestHasAny(unittest.TestCase):
+    def test_match(self):
+        self.assertTrue(has_any([1, 2, 3], lambda x: x > 2))
+
+    def test_no_match(self):
+        self.assertFalse(has_any([1, 2, 3], lambda x: x > 5))
+
+    def test_empty(self):
+        self.assertFalse(has_any([], bool))
+
+    def test_short_circuits(self):
+        seen = []
+
+        def pred(x):
+            seen.append(x)
+            return x == 2
+
+        self.assertTrue(has_any([1, 2, 3, 4], pred))
+        self.assertEqual(seen, [1, 2])
+
+    def test_generator(self):
+        self.assertTrue(has_any((x for x in range(10)), lambda x: x == 7))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            has_any(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            has_any([1, 2, 3], "x")
 
 
 if __name__ == "__main__":
@@ -60847,6 +61013,10 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Completed the `merge(d1, d2)` feature for `dict_utils.py`. The implementation and `__all__` export were already present from an earlier checkpoint, but the feature shipped without tests, README documentation, or a CHANGELOG entry. `merge` performs a one-level shallow merge: values from *d2* overwrite the corresponding values in *d1* for shared keys without recursing into nested dictionaries, complementing `deep_merge`. It accepts typed `Dict[K, V]` arguments, raises `TypeError` for non-dicts, returns a new dict without mutating the inputs, and ships with Google-style docstring and ASCII-safe doctests. Added `TestMerge` (8 tests) to `tests/test_dict_utils.py` covering basic/overlapping/non-overlapping merges, empty inputs on either side, shallow vs. deep behavior, non-mutation of inputs, and the `TypeError` path; imported `merge` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils` (35 OK); targeted doctest for `merge`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
 
+## Unreleased — added count_if/has_any to itertools_utils
+
+- Added `count_if(iterable, predicate)` and boolean companion `has_any(iterable, predicate)` to `itertools_utils.py`. `count_if` returns the number of items for which *predicate* is truthy; `has_any` reports whether any item satisfies *predicate*, short-circuiting on the first match. Both work with any iterable (including generators), accept typed `Iterable[Any]`/`Callable` arguments, raise `TypeError` for non-iterables or non-callables, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountIf` (8 tests) and `TestHasAny` (7 tests) to `tests/test_itertools_utils.py` covering basic/empty/no-match/all-match, generators, truthiness/short-circuit behavior, and `TypeError` paths; imported helpers to match `__all__`. Updated the `itertools_utils` module tree entry and prose section of `README.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_itertools_utils` (146 OK); doctests for new helpers OK (a pre-existing unrelated `nth_or_default` doctest generator-expression syntax issue remains); `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_key to dict_utils
 
 - Added `has_key(d, key)` to `dict_utils.py` as a boolean companion reporting whether *key* is present in *d*. The module already had `safe_get`, `select_keys`, and `omit_keys` for key access but no direct presence predicate, so callers relied on the raw `in` operator. `has_key` short-circuits on membership, accepts typed `Dict[K, Any]` and `K` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasKey` (4 tests) to `tests/test_dict_utils.py` covering present, absent, empty dict, and the `TypeError` path; imported `has_key` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `has_key`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -63321,7 +63491,7 @@ maybe_utils.py             # Maybe/Option type utilities for functional programm
 either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_left, unwrap_or, unwrap_or_else, is_right, is_left, is_ok, is_err)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
-itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, grouper, roundrobin, padnone, ncycles, count_from, is_empty_iterable, etc.)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, grouper, roundrobin, padnone, ncycles, count_from, count_if, has_any, is_empty_iterable, etc.)
 
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
@@ -64242,7 +64412,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. The `grouper` helper collects data into fixed-length chunks, padding the final short chunk with a configurable `fillvalue` (defaulting to `None`) so every emitted tuple has exactly *n* elements; `roundrobin` visits input iterables in a round-robin fashion until each is exhausted; `padnone` yields the sequence elements followed by `None` indefinitely; and `ncycles` repeats a sequence *n* times. `count_from` counts infinitely from a start value with a step, returning the first 1000 values as a list for safety. `is_empty_iterable` reports whether an iterable yields no items, working for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. The `grouper` helper collects data into fixed-length chunks, padding the final short chunk with a configurable `fillvalue` (defaulting to `None`) so every emitted tuple has exactly *n* elements; `roundrobin` visits input iterables in a round-robin fashion until each is exhausted; `padnone` yields the sequence elements followed by `None` indefinitely; and `ncycles` repeats a sequence *n* times. `count_from` counts infinitely from a start value with a step, returning the first 1000 values as a list for safety. `count_if` counts items for which a predicate is truthy; `has_any` reports whether any item satisfies a predicate, short-circuiting on the first match. `is_empty_iterable` reports whether an iterable yields no items, working for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 

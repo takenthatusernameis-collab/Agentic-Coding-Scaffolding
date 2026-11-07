@@ -650,6 +650,70 @@ def ncycles(iterable: Iterable[Any], n: int) -> List[Any]:
     return list(chain.from_iterable(repeat(list(iterable), n)))
 
 
+def count_if(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> int:
+    """Count items in *iterable* for which *predicate* is truthy.
+
+    Args:
+        iterable: The iterable to inspect.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        The number of items where *predicate(item)* is truthy.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *predicate* is not callable.
+
+    Examples:
+        >>> count_if([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        2
+        >>> count_if([], bool)
+        0
+        >>> count_if([0, 1, 2], bool)
+        2
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    total = 0
+    for item in iterable:
+        if predicate(item):
+            total += 1
+    return total
+
+
+def has_any(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
+    """Return ``True`` if any item in *iterable* satisfies *predicate*.
+
+    Short-circuits on the first match.
+
+    Args:
+        iterable: The iterable to inspect.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        ``True`` when at least one item satisfies *predicate*, ``False``
+        otherwise (including for an empty iterable).
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *predicate* is not callable.
+
+    Examples:
+        >>> has_any([1, 2, 3], lambda x: x > 2)
+        True
+        >>> has_any([1, 2, 3], lambda x: x > 5)
+        False
+        >>> has_any([], bool)
+        False
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in iterable:
+        if predicate(item):
+            return True
+    return False
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -688,4 +752,6 @@ __all__ = [
     "roundrobin",
     "padnone",
     "ncycles",
+    "count_if",
+    "has_any",
 ]

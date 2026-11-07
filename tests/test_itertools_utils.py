@@ -9,11 +9,13 @@ from itertools_utils import (
     combinations_of,
     combinations_with_replacement_of,
     count_from,
+    count_if,
     cycle_take,
     drop_while_pred,
     flatten_once,
     group_by_key,
     grouper,
+    has_any,
     is_empty_iterable,
     pairwise_iterable,
     partition,
@@ -562,6 +564,66 @@ class TestLastOrDefault(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             last_or_default(None)
+
+
+class TestCountIf(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_if([1, 2, 3, 4, 5], lambda x: x % 2 == 0), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_if([], bool), 0)
+
+    def test_none_match(self):
+        self.assertEqual(count_if([1, 3, 5], lambda x: x % 2 == 0), 0)
+
+    def test_all_match(self):
+        self.assertEqual(count_if([2, 4, 6], lambda x: x % 2 == 0), 3)
+
+    def test_generator(self):
+        self.assertEqual(count_if((x for x in range(5)), lambda x: x > 2), 2)
+
+    def test_truthiness(self):
+        self.assertEqual(count_if([0, 1, "", "a", None, []], bool), 2)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            count_if(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            count_if([1, 2, 3], 123)
+
+
+class TestHasAny(unittest.TestCase):
+    def test_match(self):
+        self.assertTrue(has_any([1, 2, 3], lambda x: x > 2))
+
+    def test_no_match(self):
+        self.assertFalse(has_any([1, 2, 3], lambda x: x > 5))
+
+    def test_empty(self):
+        self.assertFalse(has_any([], bool))
+
+    def test_short_circuits(self):
+        seen = []
+
+        def pred(x):
+            seen.append(x)
+            return x == 2
+
+        self.assertTrue(has_any([1, 2, 3, 4], pred))
+        self.assertEqual(seen, [1, 2])
+
+    def test_generator(self):
+        self.assertTrue(has_any((x for x in range(10)), lambda x: x == 7))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            has_any(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            has_any([1, 2, 3], "x")
 
 
 if __name__ == "__main__":
