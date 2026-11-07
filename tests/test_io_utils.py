@@ -8,6 +8,7 @@ from io_utils import (
     append_text,
     atomic_write_text,
     count_lines,
+    has_lines,
     iter_lines,
     read_lines,
     stream_copy,
@@ -151,6 +152,60 @@ class TestIterLines(unittest.TestCase):
             self.assertEqual(list(iter_lines(path)), lines)
         finally:
             Path(path).unlink()
+
+
+class TestHasLines(unittest.TestCase):
+    def test_has_lines_multiple(self):
+        content = "one\ntwo\nthree\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            path = f.name
+        try:
+            self.assertTrue(has_lines(path))
+        finally:
+            Path(path).unlink()
+
+    def test_has_lines_no_trailing_newline(self):
+        content = "one\ntwo\nthree"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            path = f.name
+        try:
+            self.assertTrue(has_lines(path))
+        finally:
+            Path(path).unlink()
+
+    def test_has_lines_empty_file(self):
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            path = f.name
+        try:
+            self.assertFalse(has_lines(path))
+        finally:
+            Path(path).unlink()
+
+    def test_has_lines_single_line(self):
+        content = "only one line"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            path = f.name
+        try:
+            self.assertTrue(has_lines(path))
+        finally:
+            Path(path).unlink()
+
+    def test_has_lines_consistency_with_count_lines(self):
+        content = "a\nb\nc\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+            f.write(content)
+            path = f.name
+        try:
+            self.assertEqual(has_lines(path), count_lines(path) > 0)
+        finally:
+            Path(path).unlink()
+
+    def test_has_lines_invalid_type(self):
+        with self.assertRaises(TypeError):
+            has_lines(123)
 
 
 if __name__ == "__main__":

@@ -161,6 +161,43 @@ def iter_lines(path: Union[str, Path]) -> Iterator[str]:
             yield line.rstrip("\n")
 
 
+def has_lines(path: Union[str, Path]) -> bool:
+    """Return ``True`` when a file contains at least one line.
+
+    This is the boolean companion to :func:`count_lines`; it returns ``True``
+    when the file has one or more lines and ``False`` for an empty file,
+    reusing :func:`count_lines` for consistency.
+
+    Args:
+        path: Path to the file to inspect.
+
+    Returns:
+        ``True`` when the file contains at least one line, ``False`` when it
+        is empty.
+
+    Raises:
+        TypeError: If *path* is not a string or path-like object.
+        FileNotFoundError: If the file does not exist.
+
+    Examples:
+        >>> import tempfile, os
+        >>> with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        ...     _ = f.write("hello\\nworld\\n")
+        ...     p = f.name
+        >>> has_lines(p)
+        True
+        >>> with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as f:
+        ...     _ = f.write("")
+        ...     e = f.name
+        >>> has_lines(e)
+        False
+        >>> os.unlink(p); os.unlink(e)
+    """
+    if not isinstance(path, (str, Path)):
+        raise TypeError("path must be a string or path-like object")
+    return count_lines(path) > 0
+
+
 __all__ = [
     "read_lines",
     "write_lines",
@@ -168,5 +205,6 @@ __all__ = [
     "atomic_write_text",
     "stream_copy",
     "count_lines",
+    "has_lines",
     "iter_lines",
 ]

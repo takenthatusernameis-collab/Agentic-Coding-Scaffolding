@@ -280,7 +280,7 @@ copy_utils.py              # Copy utilities (shallow/deep copy, dict copy, merge
 exceptions_utils.py        # Custom exception classes and error handling utilities
 email_utils.py             # Email utilities wrapping the standard library email.utils module
 enum_utils.py              # Enum utilities wrapping the standard library enum module (Enum, IntEnum, StrEnum, Flag, IntFlag, auto, unique, member lookups, names/values, as_dict/as_list)
-io_utils.py                # Line-oriented and atomic input/output utilities
+io_utils.py                # Line-oriented and atomic input/output utilities (read_lines, write_lines, append_text, atomic_write_text, stream_copy, count_lines, has_lines, iter_lines)
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
 argparse_utils.py           # Argument parsing utilities
@@ -909,7 +909,7 @@ The project includes enum utilities in `enum_utils.py` for working with Python `
 
 ## IO Utilities Module
 
-The project includes line-oriented and atomic input/output utilities in `io_utils.py`: `read_lines` and `write_lines` for line-based file IO, `append_text` to append to files, `atomic_write_text` to write content atomically via a temp file and `os.replace`, `stream_copy` to copy file contents in chunks, `count_lines` to count lines, and `iter_lines` to stream lines without loading the file into memory. The module is tested in `tests/test_io_utils.py`.
+The project includes line-oriented and atomic input/output utilities in `io_utils.py`: `read_lines` and `write_lines` for line-based file IO, `append_text` to append to files, `atomic_write_text` to write content atomically via a temp file and `os.replace`, `stream_copy` to copy file contents in chunks, `count_lines` to count lines, `has_lines` to test whether a file has at least one line, and `iter_lines` to stream lines without loading the file into memory. The module is tested in `tests/test_io_utils.py`.
 
 ## Terminal Utilities Module
 
