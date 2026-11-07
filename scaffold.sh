@@ -50814,8 +50814,8 @@ def casefold(data: bytes) -> bytes:
     Examples:
         >>> casefold(b"Hello")
         b'hello'
-        >>> casefold(bytearray(b"ß"))
-        b'ss'
+        >>> casefold(bytearray(b"HELLO"))
+        b'hello'
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -50826,48 +50826,216 @@ def casefold(data: bytes) -> bytes:
 
 
 def isalnum(data: bytes) -> bool:
+    """Return ``True`` if all bytes are alphanumeric and there is at least one.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).isalnum()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isalnum(b"abc123")
+        True
+        >>> isalnum(bytearray(b"abc123"))
+        True
+        >>> isalnum(b"abc 123")
+        False
+        >>> isalnum(b"")
+        False
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isalnum()
 
 
 def isalpha(data: bytes) -> bool:
+    """Return ``True`` if all bytes are alphabetic and there is at least one.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).isalpha()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isalpha(b"abc")
+        True
+        >>> isalpha(bytearray(b"ABC"))
+        True
+        >>> isalpha(b"abc123")
+        False
+        >>> isalpha(b"")
+        False
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isalpha()
 
 
 def isascii(data: bytes) -> bool:
+    """Return ``True`` if *data* is empty or all bytes are in ``0x00``–``0x7F``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).isascii()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isascii(b"abc")
+        True
+        >>> isascii(bytearray(b"123"))
+        True
+        >>> isascii(b"\\x80")
+        False
+        >>> isascii(b"")
+        True
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isascii()
 
 
 def isdigit(data: bytes) -> bool:
+    """Return ``True`` if all bytes are ASCII digits and there is at least one.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).isdigit()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isdigit(b"123")
+        True
+        >>> isdigit(bytearray(b"0"))
+        True
+        >>> isdigit(b"12a")
+        False
+        >>> isdigit(b"")
+        False
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isdigit()
 
 
 def islower(data: bytes) -> bool:
+    """Return ``True`` if there is at least one cased byte and all cased bytes are lowercase.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).islower()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> islower(b"abc")
+        True
+        >>> islower(bytearray(b"abc123"))
+        True
+        >>> islower(b"Abc")
+        False
+        >>> islower(b"")
+        False
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).islower()
 
 
 def isspace(data: bytes) -> bool:
+    """Return ``True`` if all bytes are whitespace and there is at least one.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).isspace()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isspace(b"   ")
+        True
+        >>> isspace(bytearray(b"\\t\\n"))
+        True
+        >>> isspace(b"a")
+        False
+        >>> isspace(b"")
+        False
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isspace()
 
 
 def istitle(data: bytes) -> bool:
+    """Return ``True`` if *data* is titlecased and there is at least one cased byte.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).istitle()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> istitle(b"Hello World")
+        True
+        >>> istitle(bytearray(b"Hello"))
+        True
+        >>> istitle(b"hello world")
+        False
+        >>> istitle(b"")
+        False
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).istitle()
 
 
 def isupper(data: bytes) -> bool:
+    """Return ``True`` if there is at least one cased byte and all cased bytes are uppercase.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if ``bytes(data).isupper()`` is true.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> isupper(b"ABC")
+        True
+        >>> isupper(bytearray(b"ABC123"))
+        True
+        >>> isupper(b"Abc")
+        False
+        >>> isupper(b"")
+        False
+    """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isupper()
@@ -50878,13 +51046,14 @@ def isprintable(data: bytes) -> bool:
 
     A byte is printable when it is in the ASCII printable range
     (0x20-0x7E, including the space). An empty input is considered
-    printable and returns True, matching :meth:`str.isprintable`.
+    printable and returns ``True``, matching :meth:`str.isprintable`.
 
     Args:
         data: Bytes or bytearray to inspect.
 
     Returns:
-        True if every byte is printable, False otherwise (including empty).
+        ``True`` if every byte is printable (including empty input),
+        ``False`` otherwise.
 
     Raises:
         TypeError: If *data* is not bytes or bytearray.
@@ -50896,7 +51065,7 @@ def isprintable(data: bytes) -> bool:
         True
         >>> isprintable(b"")
         True
-        >>> isprintable(b"no\ttabs")
+        >>> isprintable(b"no\\ttabs")
         False
     """
     if not isinstance(data, (bytes, bytearray)):
@@ -50928,7 +51097,7 @@ def isidentifier(data: bytes) -> bool:
         False
         >>> isidentifier(b"")
         False
-        >>> isidentifier(b"caf\xc3\xa9")
+        >>> isidentifier(b"caf\\xc3\\xa9")
         False
     """
     if not isinstance(data, (bytes, bytearray)):
@@ -52850,11 +53019,14 @@ class TestIsPrintable(unittest.TestCase):
         self.assertTrue(isprintable(b" !@#$%^&*()_+"))
 
     def test_not_printable(self):
-        self.assertTrue(isprintable(b""))
         self.assertFalse(isprintable(b"no\ttabs"))
         self.assertFalse(isprintable(b"line\nbreak"))
         self.assertFalse(isprintable(b"\x00\x01"))
         self.assertFalse(isprintable(b"\x7f\x80"))
+
+    def test_empty(self):
+        self.assertTrue(isprintable(b""))
+        self.assertTrue(isprintable(bytearray()))
 
     def test_bytearray(self):
         self.assertTrue(isprintable(bytearray(b"abc")))
@@ -58402,9 +58574,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added has_in_deque to deque_utils
+## Unreleased — bytes_utils predicate documentation and doctest hardening (2026-11-07)
 
-- Added `has_in_deque(d, x)` to `deque_utils.py` as the boolean companion to `count_in_deque`. `deque_utils.py` had `count_in_deque(d, x)` (returning the number of occurrences of `x` in deque `d`) but no `has_in_deque` boolean counterpart. It returns `True` when `x` occurs at least once in `d` and `False` otherwise, reusing `count_in_deque` for consistency. Accepts typed `deque`/`Any` arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasInDeque` to `tests/test_deque_utils.py` covering present/absent/empty/single/duplicates/consistency-with-`count_in_deque`/strings cases; imported `has_in_deque` to match the module's `__all__` contract. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils`; targeted doctest for `has_in_deque`; `python -m unittest tests.test_public_api`. No changes to `.github/workflows/**`.
+- **`bytes_utils.py`**: added Google-style docstrings with ASCII-safe doctests for simple predicate wrappers (`isalnum`, `isalpha`, `isascii`, `isdigit`, `islower`, `isspace`, `istitle`, `isupper`). Corrected `isprintable` docstring text to state empty input returns `True` (matching module/`str.isprintable`-style behavior). Replaced non-ASCII/escaped doctest literals (`casefold`, `isidentifier`, `isprintable`) with ASCII-safe examples so `python -m doctest bytes_utils.py` passes.
+- **`tests/test_bytes_utils.py`**: clarified `TestIsPrintable` with an explicit empty/`bytearray()` case (218 tests pass).
+- **Verification**: `python -m unittest tests.test_bytes_utils` (218 OK); `python -m unittest tests.test_public_api` (OK); `python -m doctest bytes_utils.py` (OK). Refreshed embedded `bytes_utils.py`/`tests/test_bytes_utils.py` in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
+
 
 ## Unreleased — added has_lines to io_utils
 

@@ -1430,11 +1430,14 @@ class TestIsPrintable(unittest.TestCase):
         self.assertTrue(isprintable(b" !@#$%^&*()_+"))
 
     def test_not_printable(self):
-        self.assertTrue(isprintable(b""))
         self.assertFalse(isprintable(b"no\ttabs"))
         self.assertFalse(isprintable(b"line\nbreak"))
         self.assertFalse(isprintable(b"\x00\x01"))
         self.assertFalse(isprintable(b"\x7f\x80"))
+
+    def test_empty(self):
+        self.assertTrue(isprintable(b""))
+        self.assertTrue(isprintable(bytearray()))
 
     def test_bytearray(self):
         self.assertTrue(isprintable(bytearray(b"abc")))

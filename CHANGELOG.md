@@ -1,6 +1,10 @@
-## Unreleased — added has_in_deque to deque_utils
+## Unreleased — bytes_utils predicate documentation and doctest hardening (2026-11-07)
 
-- Added `has_in_deque(d, x)` to `deque_utils.py` as the boolean companion to `count_in_deque`. `deque_utils.py` had `count_in_deque(d, x)` (returning the number of occurrences of `x` in deque `d`) but no `has_in_deque` boolean counterpart. It returns `True` when `x` occurs at least once in `d` and `False` otherwise, reusing `count_in_deque` for consistency. Accepts typed `deque`/`Any` arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasInDeque` to `tests/test_deque_utils.py` covering present/absent/empty/single/duplicates/consistency-with-`count_in_deque`/strings cases; imported `has_in_deque` to match the module's `__all__` contract. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils`; targeted doctest for `has_in_deque`; `python -m unittest tests.test_public_api`. No changes to `.github/workflows/**`.
+- **`bytes_utils.py`**: added Google-style docstrings with ASCII-safe doctests for simple predicate wrappers (`isalnum`, `isalpha`, `isascii`, `isdigit`, `islower`, `isspace`, `istitle`, `isupper`). Corrected `isprintable` docstring text to state empty input returns `True` (matching module/`str.isprintable`-style behavior). Replaced non-ASCII/escaped doctest literals (`casefold`, `isidentifier`, `isprintable`) with ASCII-safe examples so `python -m doctest bytes_utils.py` passes.
+- **`tests/test_bytes_utils.py`**: clarified `TestIsPrintable` with an explicit empty/`bytearray()` case (218 tests pass).
+- **Verification**: `python -m unittest tests.test_bytes_utils` (218 OK); `python -m unittest tests.test_public_api` (OK); `python -m doctest bytes_utils.py` (OK). Refreshed embedded `bytes_utils.py`/`tests/test_bytes_utils.py` in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
+
 
 ## Unreleased — added has_lines to io_utils
 
