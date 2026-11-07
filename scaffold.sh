@@ -192,6 +192,7 @@
 
 #   - json_utils.py — # JSON utility functions (read/write/parse/dump/validate)
 
+#   - collections_abc_utils.py — # Utilities wrapping collections.abc (is_* checks for iterables, mappings, sequences, callables, and more)
 #   - collections_utils.py — # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 
 #   - csv_utils.py — # CSV utility functions (read/write/append as dicts or lists)
@@ -446,6 +447,7 @@
 
 #   - test_circuit_breaker_utils.py — # Tests for circuit_breaker_utils.py
 
+#   - test_collections_abc_utils.py — # Tests for collections_abc_utils.py
 #   - test_collections_utils.py — # Tests for collections_utils.py
 
 #   - test_compression_utils.py — # Tests for compression_utils.py
@@ -4385,6 +4387,7 @@ py_modules = [
     "calculator",
     "backoff_utils",
     "hostname_utils",
+    "collections_abc_utils",
     "collections_utils",
     "config_utils",
     "configparser_utils",

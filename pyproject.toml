@@ -45,6 +45,7 @@ py_modules = [
     "calculator",
     "backoff_utils",
     "hostname_utils",
+    "collections_abc_utils",
     "collections_utils",
     "config_utils",
     "configparser_utils",

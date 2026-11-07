@@ -923,6 +923,10 @@ The project includes asynchronous utility functions in `async_utils.py` for runn
 
 The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `count_trailing_ones`/`has_trailing_ones` measure trailing one bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
 
+## Collections ABC Utilities Module
+
+The project includes utilities wrapping :mod:`collections.abc` in `collections_abc_utils.py`: `get_abc`, `is_iterable`, `is_iterator`, `is_reversible`, `is_collection`, `is_sequence`, `is_mutable_sequence`, `is_set`, `is_mutable_set`, `is_mapping`, `is_mutable_mapping`, `is_container`, `is_sized`, `is_hashable`, `is_callable`, `is_awaitable`, `is_coroutine`, `is_async_iterable`, `is_async_iterator`, `is_generator`, and `is_async_generator`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is tested in `tests/test_collections_abc_utils.py`.
+
 ## Collections Utilities Module
 
 The project includes collection utilities in `collections_utils.py` for working with iterables and data structures: `chunk`, `flatten`, `deep_flatten`, `windowed`, `uniq`, `uniq_by`, `frequency`, `most_common`, `least_common`, `merge_dicts`, `to_deque`, `pluck`, `compact`, and `partition_by`. The module is tested in `tests/test_collections_utils.py`.
