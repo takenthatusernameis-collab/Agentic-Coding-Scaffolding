@@ -47924,6 +47924,53 @@ class TestDeepMerge(unittest.TestCase):
         self.assertEqual(result["a"]["c"], 2)
 
 
+class TestMerge(unittest.TestCase):
+    def test_merge_basic(self) -> None:
+        d1 = {"a": 1, "b": 2}
+        d2 = {"b": 3, "c": 4}
+        result = merge(d1, d2)
+        self.assertEqual(result, {"a": 1, "b": 3, "c": 4})
+
+    def test_merge_non_overlapping(self) -> None:
+        d1 = {"a": 1}
+        d2 = {"b": 2}
+        result = merge(d1, d2)
+        self.assertEqual(result, {"a": 1, "b": 2})
+
+    def test_merge_first_empty(self) -> None:
+        self.assertEqual(merge({}, {"a": 1}), {"a": 1})
+
+    def test_merge_second_empty(self) -> None:
+        self.assertEqual(merge({"a": 1}, {}), {"a": 1})
+
+    def test_merge_both_empty(self) -> None:
+        self.assertEqual(merge({}, {}), {})
+
+    def test_merge_is_shallow(self) -> None:
+        d1 = {"a": {"x": 1}}
+        d2 = {"a": {"y": 2}}
+        result = merge(d1, d2)
+        # Shallow: d2's nested dict replaces d1's entirely (no deep merge).
+        self.assertEqual(result["a"], {"y": 2})
+
+    def test_merge_does_not_mutate_inputs(self) -> None:
+        d1 = {"a": 1, "b": 2}
+        d2 = {"b": 3, "c": 4}
+        result = merge(d1, d2)
+        self.assertEqual(d1, {"a": 1, "b": 2})
+        self.assertEqual(d2, {"b": 3, "c": 4})
+        result["a"] = 99
+        self.assertEqual(d1, {"a": 1, "b": 2})
+
+    def test_merge_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            merge("x", {"a": 1})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge({"a": 1}, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge(None, None)  # type: ignore[arg-type]
+
+
 class TestFlattenDict(unittest.TestCase):
     def test_flatten_basic(self) -> None:
         d = {"a": 1, "b": {"c": 2, "d": 3}}
@@ -60796,6 +60843,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added merge to dict_utils
+
+- Completed the `merge(d1, d2)` feature for `dict_utils.py`. The implementation and `__all__` export were already present from an earlier checkpoint, but the feature shipped without tests, README documentation, or a CHANGELOG entry. `merge` performs a one-level shallow merge: values from *d2* overwrite the corresponding values in *d1* for shared keys without recursing into nested dictionaries, complementing `deep_merge`. It accepts typed `Dict[K, V]` arguments, raises `TypeError` for non-dicts, returns a new dict without mutating the inputs, and ships with Google-style docstring and ASCII-safe doctests. Added `TestMerge` (8 tests) to `tests/test_dict_utils.py` covering basic/overlapping/non-overlapping merges, empty inputs on either side, shallow vs. deep behavior, non-mutation of inputs, and the `TypeError` path; imported `merge` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils` (35 OK); targeted doctest for `merge`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_key to dict_utils
 
 - Added `has_key(d, key)` to `dict_utils.py` as a boolean companion reporting whether *key* is present in *d*. The module already had `safe_get`, `select_keys`, and `omit_keys` for key access but no direct presence predicate, so callers relied on the raw `in` operator. `has_key` short-circuits on membership, accepts typed `Dict[K, Any]` and `K` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasKey` (4 tests) to `tests/test_dict_utils.py` covering present, absent, empty dict, and the `TypeError` path; imported `has_key` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `has_key`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -63288,7 +63339,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter, has_key)
+dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -63977,7 +64028,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key`. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key`. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 

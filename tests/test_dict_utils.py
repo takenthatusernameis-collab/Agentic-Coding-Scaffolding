@@ -40,6 +40,53 @@ class TestDeepMerge(unittest.TestCase):
         self.assertEqual(result["a"]["c"], 2)
 
 
+class TestMerge(unittest.TestCase):
+    def test_merge_basic(self) -> None:
+        d1 = {"a": 1, "b": 2}
+        d2 = {"b": 3, "c": 4}
+        result = merge(d1, d2)
+        self.assertEqual(result, {"a": 1, "b": 3, "c": 4})
+
+    def test_merge_non_overlapping(self) -> None:
+        d1 = {"a": 1}
+        d2 = {"b": 2}
+        result = merge(d1, d2)
+        self.assertEqual(result, {"a": 1, "b": 2})
+
+    def test_merge_first_empty(self) -> None:
+        self.assertEqual(merge({}, {"a": 1}), {"a": 1})
+
+    def test_merge_second_empty(self) -> None:
+        self.assertEqual(merge({"a": 1}, {}), {"a": 1})
+
+    def test_merge_both_empty(self) -> None:
+        self.assertEqual(merge({}, {}), {})
+
+    def test_merge_is_shallow(self) -> None:
+        d1 = {"a": {"x": 1}}
+        d2 = {"a": {"y": 2}}
+        result = merge(d1, d2)
+        # Shallow: d2's nested dict replaces d1's entirely (no deep merge).
+        self.assertEqual(result["a"], {"y": 2})
+
+    def test_merge_does_not_mutate_inputs(self) -> None:
+        d1 = {"a": 1, "b": 2}
+        d2 = {"b": 3, "c": 4}
+        result = merge(d1, d2)
+        self.assertEqual(d1, {"a": 1, "b": 2})
+        self.assertEqual(d2, {"b": 3, "c": 4})
+        result["a"] = 99
+        self.assertEqual(d1, {"a": 1, "b": 2})
+
+    def test_merge_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            merge("x", {"a": 1})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge({"a": 1}, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            merge(None, None)  # type: ignore[arg-type]
+
+
 class TestFlattenDict(unittest.TestCase):
     def test_flatten_basic(self) -> None:
         d = {"a": 1, "b": {"c": 2, "d": 3}}
