@@ -52690,14 +52690,17 @@ class TestCodecAndPadding(unittest.TestCase):
         self.assertEqual(encode_ascii("", errors="ignore"), b"")
         self.assertEqual(encode_ascii("café", errors="ignore"), b"caf")
         self.assertEqual(encode_ascii("é", errors="xmlcharrefreplace"), b"&#233;")
+        # Unknown error handlers are resolved only when an error occurs.
+        self.assertEqual(decode_ascii(b"a", errors="no-such-handler"), "a")
+        self.assertEqual(encode_ascii("a", errors="no-such-handler"), b"a")
         with self.assertRaises(UnicodeDecodeError):
             decode_ascii(b"\x80")
         with self.assertRaises(UnicodeEncodeError):
             encode_ascii("café")
-        with self.assertRaises((LookupError, ValueError)):
-            decode_ascii(b"a", errors="no-such-handler")
-        with self.assertRaises((LookupError, ValueError)):
-            encode_ascii("a", errors="no-such-handler")
+        with self.assertRaises(LookupError):
+            decode_ascii(b"\x80", errors="no-such-handler")
+        with self.assertRaises(LookupError):
+            encode_ascii("é", errors="no-such-handler")
         with self.assertRaises(TypeError):
             decode_ascii("abc")
         with self.assertRaises(TypeError):
