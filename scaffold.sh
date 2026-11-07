@@ -36138,7 +36138,9 @@ __all__ = [
     "deep_merge",
     "filter_dict",
     "flatten_dict",
+    "has_key",
     "invert_dict",
+    "merge",
     "omit_keys",
     "safe_get",
     "select_keys",
@@ -36162,6 +36164,39 @@ def deep_merge(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
             result[key] = deep_merge(result[key], value)
         else:
             result[key] = value
+    return result
+
+
+def merge(d1: Dict[K, V], d2: Dict[K, V]) -> Dict[K, V]:
+    """Shallowly merge two dictionaries.
+
+    Unlike :func:`deep_merge`, this performs a one-level merge: values from
+    *d2* overwrite the corresponding values in *d1* for shared keys, without
+    recursing into nested dictionaries.
+
+    Args:
+        d1: Base dictionary.
+        d2: Dictionary whose entries override those in d1.
+
+    Returns:
+        New dictionary containing all entries from *d1* plus the entries from
+        *d2* (with *d2* taking precedence on key conflicts).
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> merge({"a": 1, "b": 2}, {"b": 3, "c": 4})
+        {'a': 1, 'b': 3, 'c': 4}
+        >>> merge({"a": {"x": 1}}, {"a": {"y": 2}})
+        {'a': {'y': 2}}
+    """
+    if not isinstance(d1, dict):
+        raise TypeError("d1 must be a dict")
+    if not isinstance(d2, dict):
+        raise TypeError("d2 must be a dict")
+    result: Dict[K, V] = dict(d1)
+    result.update(d2)
     return result
 
 
@@ -36225,6 +36260,32 @@ def safe_get(d: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
             return default
         current = current[key]
     return current
+
+
+def has_key(d: Dict[K, Any], key: K) -> bool:
+    """Report whether *key* is present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        key: Key to look for.
+
+    Returns:
+        ``True`` when *key* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_key({"a": 1, "b": 2}, "a")
+        True
+        >>> has_key({"a": 1, "b": 2}, "c")
+        False
+        >>> has_key({}, "a")
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    return key in d
 
 
 def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
@@ -47829,7 +47890,9 @@ from dict_utils import (
     deep_merge,
     filter_dict,
     flatten_dict,
+    has_key,
     invert_dict,
+    merge,
     omit_keys,
     safe_get,
     select_keys,
@@ -47907,6 +47970,27 @@ class TestSafeGet(unittest.TestCase):
     def test_safe_get_partial(self) -> None:
         d = {"a": 1}
         self.assertEqual(safe_get(d, "a", "b", default="x"), "x")
+
+
+class TestHasKey(unittest.TestCase):
+    def test_has_key_present(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertTrue(has_key(d, "a"))
+        self.assertTrue(has_key(d, "b"))
+
+    def test_has_key_absent(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertFalse(has_key(d, "c"))
+        self.assertFalse(has_key(d, "z"))
+
+    def test_has_key_empty_dict(self) -> None:
+        self.assertFalse(has_key({}, "a"))
+
+    def test_has_key_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_key("x", "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_key(None, "a")  # type: ignore[arg-type]
 
 
 class TestInvertDict(unittest.TestCase):
@@ -60712,6 +60796,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_key to dict_utils
+
+- Added `has_key(d, key)` to `dict_utils.py` as a boolean companion reporting whether *key* is present in *d*. The module already had `safe_get`, `select_keys`, and `omit_keys` for key access but no direct presence predicate, so callers relied on the raw `in` operator. `has_key` short-circuits on membership, accepts typed `Dict[K, Any]` and `K` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasKey` (4 tests) to `tests/test_dict_utils.py` covering present, absent, empty dict, and the `TypeError` path; imported `has_key` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `has_key`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_equal to set_utils
 
 - Added `is_equal(a, b)` to `set_utils.py` as a membership/equality predicate reporting whether two iterables contain the same set of elements. The module already had `is_subset`/`is_superset`/`is_disjoint` for relational comparisons but no direct equality check, so callers relied on comparing the raw sets themselves. `is_equal` ignores order, multiplicity, and concrete iterable type — only the distinct elements matter — accepts typed `Iterable[Any]` arguments, raises `TypeError` for non-iterables, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsEqual` (10 tests) to `tests/test_set_utils.py` covering same/different order, duplicate-ignoring, non-equality, empty/one-empty, disjoint, strings, tuples, and `TypeError` paths; imported `is_equal` to match `__all__`. Updated the `set_utils` module tree entry and prose section of `README.md`. Synchronized `set_utils.py`, `tests/test_set_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_set_utils`; targeted doctest for `is_equal`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -63200,7 +63288,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter)
+dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten, safe get, invert, filter, has_key)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -63889,7 +63977,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, and predicate-based filtering. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key`. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 

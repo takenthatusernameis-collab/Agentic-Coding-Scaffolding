@@ -6,6 +6,7 @@ from dict_utils import (
     deep_merge,
     filter_dict,
     flatten_dict,
+    has_key,
     invert_dict,
     merge,
     omit_keys,
@@ -85,6 +86,27 @@ class TestSafeGet(unittest.TestCase):
     def test_safe_get_partial(self) -> None:
         d = {"a": 1}
         self.assertEqual(safe_get(d, "a", "b", default="x"), "x")
+
+
+class TestHasKey(unittest.TestCase):
+    def test_has_key_present(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertTrue(has_key(d, "a"))
+        self.assertTrue(has_key(d, "b"))
+
+    def test_has_key_absent(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertFalse(has_key(d, "c"))
+        self.assertFalse(has_key(d, "z"))
+
+    def test_has_key_empty_dict(self) -> None:
+        self.assertFalse(has_key({}, "a"))
+
+    def test_has_key_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_key("x", "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_key(None, "a")  # type: ignore[arg-type]
 
 
 class TestInvertDict(unittest.TestCase):

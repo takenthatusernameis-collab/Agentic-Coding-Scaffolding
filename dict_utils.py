@@ -11,6 +11,7 @@ __all__ = [
     "deep_merge",
     "filter_dict",
     "flatten_dict",
+    "has_key",
     "invert_dict",
     "merge",
     "omit_keys",
@@ -132,6 +133,32 @@ def safe_get(d: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
             return default
         current = current[key]
     return current
+
+
+def has_key(d: Dict[K, Any], key: K) -> bool:
+    """Report whether *key* is present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        key: Key to look for.
+
+    Returns:
+        ``True`` when *key* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_key({"a": 1, "b": 2}, "a")
+        True
+        >>> has_key({"a": 1, "b": 2}, "c")
+        False
+        >>> has_key({}, "a")
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    return key in d
 
 
 def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
