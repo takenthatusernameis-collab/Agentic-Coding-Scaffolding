@@ -1267,80 +1267,127 @@ class TestCodecAndPadding(unittest.TestCase):
         self.assertEqual(decode_ascii(b"\x80", errors="ignore"), "")
         self.assertEqual(decode_ascii(b"\x80", errors="replace"), "\ufffd")
         self.assertEqual(encode_ascii("abc"), b"abc")
+        self.assertEqual(encode_ascii("", errors="ignore"), b"")
         self.assertEqual(encode_ascii("café", errors="ignore"), b"caf")
         self.assertEqual(encode_ascii("é", errors="xmlcharrefreplace"), b"&#233;")
         with self.assertRaises(UnicodeDecodeError):
             decode_ascii(b"\x80")
         with self.assertRaises(UnicodeEncodeError):
             encode_ascii("café")
+        with self.assertRaises((LookupError, ValueError)):
+            decode_ascii(b"a", errors="no-such-handler")
+        with self.assertRaises((LookupError, ValueError)):
+            encode_ascii("a", errors="no-such-handler")
         with self.assertRaises(TypeError):
             decode_ascii("abc")
         with self.assertRaises(TypeError):
             decode_ascii(b"abc", errors=123)
         with self.assertRaises(TypeError):
+            decode_ascii(None)
+        with self.assertRaises(TypeError):
             encode_ascii(b"abc")
         with self.assertRaises(TypeError):
             encode_ascii("abc", errors=123)
+        with self.assertRaises(TypeError):
+            encode_ascii(None)
 
     def test_center_ljust_rjust_zfill(self):
         from bytes_utils import center, ljust, rjust, zfill
 
         self.assertEqual(center(bytearray(b"a"), 5, bytearray(b".")), b"..a..")
+        self.assertEqual(ljust(bytearray(b"a"), 5, bytearray(b".")), b"a....")
+        self.assertEqual(rjust(bytearray(b"a"), 5, bytearray(b".")), b"....a")
         self.assertEqual(ljust(b"a", 3, b"."), b"a..")
         self.assertEqual(rjust(b"a", 3, b"."), b"..a")
         self.assertEqual(zfill(bytearray(b"-42"), 5), b"-0042")
+        self.assertEqual(zfill(b"+42", 5), b"+0042")
         self.assertEqual(center(b"abc", 2), b"abc")
+        self.assertEqual(center(b"abc", 0), b"abc")
+        self.assertEqual(center(b"abc", -5), b"abc")
         self.assertEqual(ljust(b"abc", -1), b"abc")
+        self.assertEqual(ljust(b"abc", 0), b"abc")
         self.assertEqual(rjust(b"abc", 0), b"abc")
+        self.assertEqual(rjust(b"abc", -1), b"abc")
         self.assertEqual(zfill(b"42", 1), b"42")
+        self.assertEqual(zfill(b"42", 0), b"42")
+        self.assertEqual(zfill(b"42", -1), b"42")
+        self.assertEqual(zfill(b"", 3), b"000")
+        self.assertEqual(center(b"", 3, b"."), b"...")
         with self.assertRaises(TypeError):
             center(b"a", True)
+        with self.assertRaises(TypeError):
+            ljust(b"a", True)
+        with self.assertRaises(TypeError):
+            rjust(b"a", True)
         with self.assertRaises(TypeError):
             ljust(b"a", 3, ".")
         with self.assertRaises(TypeError):
             rjust("a", 3)
         with self.assertRaises(TypeError):
+            center("a", 3)
+        with self.assertRaises(TypeError):
             zfill(b"a", True)
+        with self.assertRaises(TypeError):
+            zfill("a", 3)
         with self.assertRaises(ValueError):
             center(b"a", 3, b"")
         with self.assertRaises(ValueError):
             ljust(b"a", 3, b"xx")
+        with self.assertRaises(ValueError):
+            rjust(b"a", 3, b"")
 
-    def test_strip_helpers(self):
+    def test_strip_variants(self):
         from bytes_utils import lstrip, rstrip, strip
 
         self.assertEqual(strip(bytearray(b"  hi  ")), b"hi")
         self.assertEqual(lstrip(bytearray(b"  hi  ")), b"hi  ")
         self.assertEqual(rstrip(bytearray(b"  hi  ")), b"  hi")
-        self.assertEqual(strip(bytearray(b"xxax"), bytearray(b"x")), b"a")
+        self.assertEqual(strip(b"xxax", b"x"), b"a")
+        self.assertEqual(strip(bytearray(b"..a.."), bytearray(b".")), b"a")
+        self.assertEqual(lstrip(bytearray(b"..a.."), bytearray(b".")), b"a..")
+        self.assertEqual(rstrip(bytearray(b"..a.."), bytearray(b".")), b"..a")
         self.assertEqual(lstrip(b"xxax", b"x"), b"ax")
         self.assertEqual(rstrip(b"xxax", b"x"), b"xxa")
-        self.assertEqual(strip(b"xxax", b""), b"xxax")
+        self.assertEqual(strip(b""), b"")
+        self.assertEqual(lstrip(b"", b"x"), b"")
+        self.assertEqual(rstrip(b"", b"x"), b"")
+        self.assertEqual(strip(b" \t\na\r "), b"a")
+        self.assertEqual(lstrip(b" \t\na"), b"a")
+        self.assertEqual(rstrip(b"a \t\n"), b"a")
         with self.assertRaises(TypeError):
-            strip("a")
+            strip(b"a", "x")
         with self.assertRaises(TypeError):
             lstrip(b"a", "x")
         with self.assertRaises(TypeError):
+            rstrip(b"a", "x")
+        with self.assertRaises(TypeError):
+            strip("a")
+        with self.assertRaises(TypeError):
+            lstrip("a")
+        with self.assertRaises(TypeError):
             rstrip(1)
 
-    def test_join_expandtabs(self):
-        self.assertEqual(join([bytearray(b"a"), b"b"], bytearray(b"-")), b"a-b")
-        self.assertEqual(join(iter((b"a", b"b"))), b"ab")
-        self.assertEqual(join([]), b"")
-        self.assertEqual(expandtabs(bytearray(b"a\tb"), 4), b"a   b")
-        self.assertEqual(expandtabs(b"a\tb", 0), b"ab")
-        self.assertEqual(expandtabs(b"ab", 4), b"ab")
+    def test_join_expandtabs_edges(self):
+        self.assertEqual(join([bytearray(b"a"), b"b"], bytearray(b",")), b"a,b")
+        self.assertEqual(join(iter([b"a", b"b"]), b"-"), b"a-b")
+        self.assertEqual(join([b"only"], b","), b"only")
+        self.assertEqual(join([b"", b""], b","), b",")
+        self.assertEqual(expandtabs(b"\t", 0), b"")
+        self.assertEqual(expandtabs(b"\t", -1), b"")
+        self.assertEqual(expandtabs(bytearray(b"a\tb"), 1), b"a b")
+        self.assertEqual(expandtabs(b"", 4), b"")
         with self.assertRaises(TypeError):
-            join([b"a", "b"])
+            join("ab", b"-")
         with self.assertRaises(TypeError):
-            join(123)
+            join([b"a", "b"], b"-")
         with self.assertRaises(TypeError):
-            join([b"a"], "-")
+            join(123, b"-")
         with self.assertRaises(TypeError):
-            expandtabs("a\tb")
+            expandtabs(b"a", True)
         with self.assertRaises(TypeError):
-            expandtabs(b"a\tb", True)
-
+            expandtabs(b"a", None)
+        with self.assertRaises(TypeError):
+            expandtabs("a", 4)
 
 class TestIsAllOnes(unittest.TestCase):
     def test_all_ones(self):
