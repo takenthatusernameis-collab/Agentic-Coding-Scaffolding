@@ -2931,3 +2931,18 @@ Next Planned (for the following agent):
 - Run targeted `python -m unittest tests.test_number_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Run targeted `python -m unittest tests.test_number_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
+
+## Latest Session (2026-11-07) — bootstrap hardening checkpoint
+
+**Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned": audit `map_range`, `in_range`, `percentage`, `safe_divide` for NaN/inf/empty/bounds invariants.
+
+**Changes:**
+- Verified existing coverage (`TestPercentage`, `TestSafeDivide`, `TestMapRange`, `TestInRange`) covers NaN propagation, type rejection, zero span, and invalid bounds.
+- No code changes required; all targeted tests pass.
+
+**Validation:** `python -m unittest tests.test_number_utils` (348 OK). `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
+Next Planned (for the following agent):
+- Continue narrow hermetic hardening of `number_utils.py`: audit remaining functions (`gcd_list`, `lcm_list`, `clamp`, `clamp01`, `is_between`) for NaN/inf/empty/bounds invariants.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
+- Run targeted `python -m unittest tests.test_number_utils` first; keep `make test` green. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
