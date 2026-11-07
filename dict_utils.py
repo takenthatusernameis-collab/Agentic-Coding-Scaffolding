@@ -12,6 +12,7 @@ __all__ = [
     "filter_dict",
     "flatten_dict",
     "invert_dict",
+    "merge",
     "omit_keys",
     "safe_get",
     "select_keys",
@@ -35,6 +36,39 @@ def deep_merge(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
             result[key] = deep_merge(result[key], value)
         else:
             result[key] = value
+    return result
+
+
+def merge(d1: Dict[K, V], d2: Dict[K, V]) -> Dict[K, V]:
+    """Shallowly merge two dictionaries.
+
+    Unlike :func:`deep_merge`, this performs a one-level merge: values from
+    *d2* overwrite the corresponding values in *d1* for shared keys, without
+    recursing into nested dictionaries.
+
+    Args:
+        d1: Base dictionary.
+        d2: Dictionary whose entries override those in d1.
+
+    Returns:
+        New dictionary containing all entries from *d1* plus the entries from
+        *d2* (with *d2* taking precedence on key conflicts).
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> merge({"a": 1, "b": 2}, {"b": 3, "c": 4})
+        {'a': 1, 'b': 3, 'c': 4}
+        >>> merge({"a": {"x": 1}}, {"a": {"y": 2}})
+        {'a': {'y': 2}}
+    """
+    if not isinstance(d1, dict):
+        raise TypeError("d1 must be a dict")
+    if not isinstance(d2, dict):
+        raise TypeError("d2 must be a dict")
+    result: Dict[K, V] = dict(d1)
+    result.update(d2)
     return result
 
 

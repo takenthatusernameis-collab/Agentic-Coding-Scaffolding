@@ -7,6 +7,7 @@ from dict_utils import (
     filter_dict,
     flatten_dict,
     invert_dict,
+    merge,
     omit_keys,
     safe_get,
     select_keys,
