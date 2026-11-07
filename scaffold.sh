@@ -24027,6 +24027,7 @@ from set_utils import (
     difference,
     intersection,
     is_disjoint,
+    is_equal,
     is_subset,
     is_superset,
     power_set,
@@ -24083,6 +24084,41 @@ class TestIsDisjoint(unittest.TestCase):
             is_disjoint(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_disjoint([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsEqual(unittest.TestCase):
+    def test_is_equal_same_order(self):
+        self.assertTrue(is_equal([1, 2, 3], [1, 2, 3]))
+
+    def test_is_equal_different_order(self):
+        self.assertTrue(is_equal([1, 2, 3], [3, 2, 1]))
+
+    def test_is_equal_duplicates_ignored(self):
+        self.assertTrue(is_equal([1, 2, 2, 3], [1, 2, 3]))
+
+    def test_is_equal_not_equal(self):
+        self.assertFalse(is_equal([1, 2], [1, 2, 3]))
+
+    def test_is_equal_empty(self):
+        self.assertTrue(is_equal([], []))
+
+    def test_is_equal_one_empty(self):
+        self.assertFalse(is_equal([1, 2], []))
+
+    def test_is_equal_disjoint(self):
+        self.assertFalse(is_equal([1, 2], [3, 4]))
+
+    def test_is_equal_strings(self):
+        self.assertTrue(is_equal("abc", "cba"))
+
+    def test_is_equal_tuples(self):
+        self.assertTrue(is_equal((1, 2), [2, 1]))
+
+    def test_is_equal_type_error(self):
+        with self.assertRaises(TypeError):
+            is_equal(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_equal([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIntersection(unittest.TestCase):
@@ -36398,6 +36434,7 @@ __all__ = [
     "difference",
     "intersection",
     "is_disjoint",
+    "is_equal",
     "is_subset",
     "is_superset",
     "power_set",
@@ -36489,6 +36526,35 @@ def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return not (_to_set(a) & _to_set(b))
+
+
+def is_equal(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether two iterables contain the same set of elements.
+
+    Order, multiplicity, and the concrete iterable type of the inputs do
+    not matter; only the distinct elements they yield are compared.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` when *a* and *b* represent the same set, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not iterable.
+
+    Examples:
+        >>> is_equal([1, 2, 3], [3, 2, 1])
+        True
+        >>> is_equal([1, 2, 2, 3], [1, 2, 3])
+        True
+        >>> is_equal([1, 2], [1, 2, 3])
+        False
+        >>> is_equal([], [])
+        True
+    """
+    return _to_set(a) == _to_set(b)
 
 
 def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
@@ -60646,6 +60712,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_equal to set_utils
+
+- Added `is_equal(a, b)` to `set_utils.py` as a membership/equality predicate reporting whether two iterables contain the same set of elements. The module already had `is_subset`/`is_superset`/`is_disjoint` for relational comparisons but no direct equality check, so callers relied on comparing the raw sets themselves. `is_equal` ignores order, multiplicity, and concrete iterable type — only the distinct elements matter — accepts typed `Iterable[Any]` arguments, raises `TypeError` for non-iterables, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsEqual` (10 tests) to `tests/test_set_utils.py` covering same/different order, duplicate-ignoring, non-equality, empty/one-empty, disjoint, strings, tuples, and `TypeError` paths; imported `is_equal` to match `__all__`. Updated the `set_utils` module tree entry and prose section of `README.md`. Synchronized `set_utils.py`, `tests/test_set_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_set_utils`; targeted doctest for `is_equal`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added contains to list_utils
 
 - Added `contains(lst, element)` to `list_utils.py` as a membership predicate reporting whether *element* is present in *lst*. The module already had `find`/`find_index` for predicate-based lookup but no direct membership helper, so callers relied on the raw `in` operator or `any(...)`. `contains` short-circuits on the first match, accepts a typed `List[T]` argument, raises `TypeError` for non-lists, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestContains` (9 tests) to `tests/test_list_utils.py` covering present/absent, empty list, first/last element, duplicates, `None` value, and the `TypeError` path; imported `contains` to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils`; targeted doctest for `contains`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -63134,7 +63204,7 @@ dict_utils.py            # Dictionary utilities (deep merge, flatten, unflatten,
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
-set_utils.py             # Set operation utilities (subset, superset, disjoint, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+set_utils.py             # Set operation utilities (subset, superset, disjoint, equal, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs, count_words, has_words, levenshtein_distance, hamming_distance, damerau_levenshtein_distance, is_pangram)
@@ -63831,7 +63901,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `is_equal`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 

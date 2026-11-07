@@ -7,6 +7,7 @@ from set_utils import (
     difference,
     intersection,
     is_disjoint,
+    is_equal,
     is_subset,
     is_superset,
     power_set,
@@ -63,6 +64,41 @@ class TestIsDisjoint(unittest.TestCase):
             is_disjoint(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_disjoint([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsEqual(unittest.TestCase):
+    def test_is_equal_same_order(self):
+        self.assertTrue(is_equal([1, 2, 3], [1, 2, 3]))
+
+    def test_is_equal_different_order(self):
+        self.assertTrue(is_equal([1, 2, 3], [3, 2, 1]))
+
+    def test_is_equal_duplicates_ignored(self):
+        self.assertTrue(is_equal([1, 2, 2, 3], [1, 2, 3]))
+
+    def test_is_equal_not_equal(self):
+        self.assertFalse(is_equal([1, 2], [1, 2, 3]))
+
+    def test_is_equal_empty(self):
+        self.assertTrue(is_equal([], []))
+
+    def test_is_equal_one_empty(self):
+        self.assertFalse(is_equal([1, 2], []))
+
+    def test_is_equal_disjoint(self):
+        self.assertFalse(is_equal([1, 2], [3, 4]))
+
+    def test_is_equal_strings(self):
+        self.assertTrue(is_equal("abc", "cba"))
+
+    def test_is_equal_tuples(self):
+        self.assertTrue(is_equal((1, 2), [2, 1]))
+
+    def test_is_equal_type_error(self):
+        with self.assertRaises(TypeError):
+            is_equal(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_equal([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIntersection(unittest.TestCase):

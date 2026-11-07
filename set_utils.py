@@ -10,6 +10,7 @@ __all__ = [
     "difference",
     "intersection",
     "is_disjoint",
+    "is_equal",
     "is_subset",
     "is_superset",
     "power_set",
@@ -101,6 +102,35 @@ def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return not (_to_set(a) & _to_set(b))
+
+
+def is_equal(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether two iterables contain the same set of elements.
+
+    Order, multiplicity, and the concrete iterable type of the inputs do
+    not matter; only the distinct elements they yield are compared.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` when *a* and *b* represent the same set, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not iterable.
+
+    Examples:
+        >>> is_equal([1, 2, 3], [3, 2, 1])
+        True
+        >>> is_equal([1, 2, 2, 3], [1, 2, 3])
+        True
+        >>> is_equal([1, 2], [1, 2, 3])
+        False
+        >>> is_equal([], [])
+        True
+    """
+    return _to_set(a) == _to_set(b)
 
 
 def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
