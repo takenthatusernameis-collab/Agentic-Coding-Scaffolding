@@ -2201,3 +2201,37 @@ class TestBoolRejectionNumberUtils(unittest.TestCase):
     def test_gcd_rejects_bool(self):
         with self.assertRaises(TypeError):
             gcd(True, 2)
+
+    def test_is_even_rejects_bool(self):
+        from number_utils import is_even
+        with self.assertRaises(TypeError):
+            is_even(True)
+
+    def test_is_odd_rejects_bool(self):
+        from number_utils import is_odd
+        with self.assertRaises(TypeError):
+            is_odd(True)
+
+    def test_is_integer_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_integer(True)
+
+    def test_sign_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sign(True)
+
+    def test_safe_divide_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            safe_divide(True, 2)
+
+    def test_lerp_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            lerp(True, 0, 1)
+
+    def test_is_between_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_between(True, 0, 1)
+
+    def test_integer_nth_root_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            integer_nth_root(True, 2)

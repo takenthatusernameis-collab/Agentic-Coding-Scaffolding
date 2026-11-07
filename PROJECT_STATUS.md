@@ -2900,7 +2900,19 @@ Next Planned (for the following agent):
 
 **Validation:** `python -m unittest tests.test_interval_utils` (127 OK). No `.github/workflows/**` changes.
 
+## Latest Session (2026-11-07) — number_utils bool-rejection test hardening
+
+**Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned": hardening pass on number_utils.py.
+
+**Changes:**
+- `tests/test_number_utils.py`: expanded `TestBoolRejectionNumberUtils` with bool-rejection cases for `is_even`, `is_odd`, `is_integer`, `sign`, `safe_divide`, `lerp`, `is_between`, `integer_nth_root`.
+- Refreshed embedded copy in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_number_utils` (331 OK). No `.github/workflows/**` changes.
+
 Next Planned (for the following agent):
-- Perform a narrow, hermetic hardening pass on `number_utils.py`: audit for missing `TypeError`/`ValueError` boundary tests and edge cases (bool rejection, NaN/inf where applicable, empty inputs, inverted bounds, negative/zero widths, float/int consistency, ordering invariants). Add only behaviorally justified tests; fix implementation validation only if current behavior is incorrect or inconsistent with the module's documented contract.
+- Continue narrow hermetic hardening of `number_utils.py`: audit NaN/inf handling, empty inputs (`gcd_list`/`lcm_list`), inverted bounds, float/int consistency, and ordering invariants. Add only behaviorally justified tests; fix validation only if incorrect.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Run targeted `python -m unittest tests.test_number_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 - Run targeted `python -m unittest tests.test_number_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
