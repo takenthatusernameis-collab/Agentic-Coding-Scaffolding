@@ -17,6 +17,7 @@ from deque_utils import (
     pop_right,
     remove_from_deque,
     reverse_deque,
+    size,
     rotate_deque,
 )
 
@@ -215,6 +216,50 @@ class TestIsEmpty(unittest.TestCase):
         self.assertEqual(is_empty(d), len(deque_to_list(d)) == 0)
         clear_deque(d)
         self.assertEqual(is_empty(d), len(deque_to_list(d)) == 0)
+
+
+class TestSize(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(size(create_deque()), 0)
+
+    def test_single_element(self):
+        self.assertEqual(size(create_deque([1])), 1)
+
+    def test_multiple_elements(self):
+        self.assertEqual(size(create_deque([1, 2, 3])), 3)
+
+    def test_after_append(self):
+        d = create_deque()
+        self.assertEqual(size(d), 0)
+        append_right(d, 1)
+        self.assertEqual(size(d), 1)
+        append_right(d, 2)
+        self.assertEqual(size(d), 2)
+
+    def test_after_pop(self):
+        d = create_deque([1, 2])
+        self.assertEqual(size(d), 2)
+        pop_left(d)
+        self.assertEqual(size(d), 1)
+        pop_left(d)
+        self.assertEqual(size(d), 0)
+
+    def test_after_clear(self):
+        d = create_deque([1, 2, 3])
+        clear_deque(d)
+        self.assertEqual(size(d), 0)
+
+    def test_consistency_with_len(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(size(d), len(deque_to_list(d)))
+        clear_deque(d)
+        self.assertEqual(size(d), len(deque_to_list(d)))
+
+    def test_consistency_with_is_empty(self):
+        d = create_deque([1, 2])
+        self.assertEqual(size(d) == 0, is_empty(d))
+        clear_deque(d)
+        self.assertEqual(size(d) == 0, is_empty(d))
 
 
 if __name__ == "__main__":

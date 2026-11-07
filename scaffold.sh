@@ -60008,6 +60008,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added size to deque_utils
+
+- Added `size(d: deque) -> int` to `deque_utils.py` as an integer companion to `is_empty`, returning the number of elements in a deque (`len(d)`). It accepts a typed `collections.deque` argument, is exported via `__all__`, and ships with Google-style docstrings and ASCII-safe doctests. Added `TestSize` (7 tests) to `tests/test_deque_utils.py` covering empty, single-element, multiple elements, append/pop/clear mutation, and consistency with `len(deque_to_list(d))` and `is_empty`; imported `size` to match the module's `__all__` contract. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils`; targeted doctest for `size`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No `.github/workflows/**` changes.
+
 ## Unreleased — completed is_empty for deque_utils
 
 - Finished the `is_empty` feature left incomplete by the prior checkpoint commit (`aa8d6d7`), which had added the implementation, `__all__` export, and tests to `deque_utils.py` and `scaffold.sh` but shipped no README/CHANGELOG documentation. `deque_utils.py` had `create_deque`, append/pop/extend/rotate/clear, `count_in_deque`/`has_in_deque`, peek, remove, reverse, and `deque_to_list`, but no `is_empty` predicate (callers currently rely on truthiness/length of the raw deque). `is_empty(d)` returns ``True`` when the deque contains no elements and ``False`` otherwise, accepting a typed `collections.deque` argument and exporting via `__all__` with ASCII-safe doctests. Added `TestIsEmpty` (5 tests) to `tests/test_deque_utils.py` covering empty, single-element, after-pop/clear, and consistency with `len(deque_to_list(d)) == 0`; imported `is_empty` to match the module's `__all__` contract. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils`; targeted doctest for `is_empty`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No `.github/workflows/**` changes.
@@ -62453,7 +62457,7 @@ concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessP
 concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
-deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, has_in_deque, remove_from_deque, reverse_deque, is_empty)
+deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, has_in_deque, remove_from_deque, reverse_deque, size, is_empty)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
@@ -63510,7 +63514,7 @@ The project includes deprecation utilities in `deprecation_utils.py` for marking
 
 ## Deque Utilities Module
 
-The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), and `is_empty` returns ``True`` when the deque contains no elements. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
+The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), and `is_empty` returns ``True`` when the deque contains no elements. `size` returns the number of elements in a deque as an integer companion to `is_empty`. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
 
 ## Ring Buffer Utilities Module
 
@@ -145440,6 +145444,29 @@ def reverse_deque(d: deque) -> None:
     d.reverse()
 
 
+def size(d: deque) -> int:
+    """Return the number of elements in deque d.
+
+    Args:
+        d: A deque to measure.
+
+    Returns:
+        The number of elements in d.
+
+    Examples:
+        >>> d = create_deque()
+        >>> size(d)
+        0
+        >>> append_right(d, 1)
+        >>> size(d)
+        1
+        >>> append_right(d, 2)
+        >>> size(d)
+        2
+    """
+    return len(d)
+
+
 def is_empty(d: deque) -> bool:
     """Return True when deque d contains no elements.
 
@@ -145477,6 +145504,7 @@ __all__ = [
     "peek_right",
     "remove_from_deque",
     "reverse_deque",
+    "size",
     "is_empty",
 ]
 DEQUE_UTILS
@@ -145502,6 +145530,7 @@ from deque_utils import (
     pop_right,
     remove_from_deque,
     reverse_deque,
+    size,
     rotate_deque,
 )
 
@@ -145700,6 +145729,50 @@ class TestIsEmpty(unittest.TestCase):
         self.assertEqual(is_empty(d), len(deque_to_list(d)) == 0)
         clear_deque(d)
         self.assertEqual(is_empty(d), len(deque_to_list(d)) == 0)
+
+
+class TestSize(unittest.TestCase):
+    def test_empty(self):
+        self.assertEqual(size(create_deque()), 0)
+
+    def test_single_element(self):
+        self.assertEqual(size(create_deque([1])), 1)
+
+    def test_multiple_elements(self):
+        self.assertEqual(size(create_deque([1, 2, 3])), 3)
+
+    def test_after_append(self):
+        d = create_deque()
+        self.assertEqual(size(d), 0)
+        append_right(d, 1)
+        self.assertEqual(size(d), 1)
+        append_right(d, 2)
+        self.assertEqual(size(d), 2)
+
+    def test_after_pop(self):
+        d = create_deque([1, 2])
+        self.assertEqual(size(d), 2)
+        pop_left(d)
+        self.assertEqual(size(d), 1)
+        pop_left(d)
+        self.assertEqual(size(d), 0)
+
+    def test_after_clear(self):
+        d = create_deque([1, 2, 3])
+        clear_deque(d)
+        self.assertEqual(size(d), 0)
+
+    def test_consistency_with_len(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(size(d), len(deque_to_list(d)))
+        clear_deque(d)
+        self.assertEqual(size(d), len(deque_to_list(d)))
+
+    def test_consistency_with_is_empty(self):
+        d = create_deque([1, 2])
+        self.assertEqual(size(d) == 0, is_empty(d))
+        clear_deque(d)
+        self.assertEqual(size(d) == 0, is_empty(d))
 
 
 if __name__ == "__main__":

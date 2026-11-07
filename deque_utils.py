@@ -139,6 +139,29 @@ def reverse_deque(d: deque) -> None:
     d.reverse()
 
 
+def size(d: deque) -> int:
+    """Return the number of elements in deque d.
+
+    Args:
+        d: A deque to measure.
+
+    Returns:
+        The number of elements in d.
+
+    Examples:
+        >>> d = create_deque()
+        >>> size(d)
+        0
+        >>> append_right(d, 1)
+        >>> size(d)
+        1
+        >>> append_right(d, 2)
+        >>> size(d)
+        2
+    """
+    return len(d)
+
+
 def is_empty(d: deque) -> bool:
     """Return True when deque d contains no elements.
 
@@ -176,5 +199,6 @@ __all__ = [
     "peek_right",
     "remove_from_deque",
     "reverse_deque",
+    "size",
     "is_empty",
 ]
