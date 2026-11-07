@@ -479,6 +479,43 @@ def last_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
     return result if found else default
 
 
+def nth_or_default(iterable: Iterable[Any], n: int, default: Any = None) -> Any:
+    """Return the element at index *n* of *iterable*, or *default* if out of range.
+
+    Works for any iterable — including one-shot generators — by consuming
+    elements only until the *n*-th (0-indexed) item is seen.
+
+    Args:
+        iterable: The iterable to inspect.
+        n: The 0-based index of the element to retrieve.
+        default: Value returned when *n* is out of range.
+
+    Returns:
+        The element at index *n*, or *default* when the iterable is too short.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *n* is not an int.
+
+    Examples:
+        >>> nth_or_default([1, 2, 3], 1)
+        2
+        >>> nth_or_default([1, 2, 3], 5)
+        >>> nth_or_default([1, 2, 3], 5, default="none")
+        'none'
+        >>> nth_or_default(x for x in range(5), 3)
+        3
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be a non-negative index")
+    for index, element in enumerate(iterable):
+        if index == n:
+            return element
+    return default
+
+
 def count_from(start: int = 0, step: int = 1) -> List[Any]:
     """Count infinitely from start with step; return first 1000 as list for safety."""
     if not isinstance(start, int) or isinstance(start, bool):
@@ -642,6 +679,7 @@ __all__ = [
     "is_empty_iterable",
     "first_or_default",
     "last_or_default",
+    "nth_or_default",
     "unique_everseen",
     "unique_justseen",
     "sliding_window",
