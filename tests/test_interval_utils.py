@@ -8,6 +8,7 @@ from interval_utils import (
     interval_intersection,
     interval_is_degenerate,
     interval_is_subset,
+    intervals_equal,
     interval_length,
     interval_midpoint,
     interval_overlaps,
@@ -274,6 +275,19 @@ class TestIntervalIsSubset(unittest.TestCase):
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):
             interval_is_subset((5, 1), (1, 5))
+
+
+class TestIntervalsEqual(unittest.TestCase):
+    def test_equal(self):
+        self.assertTrue(intervals_equal((1, 5), (1, 5)))
+
+    def test_different(self):
+        self.assertFalse(intervals_equal((1, 5), (2, 5)))
+        self.assertFalse(intervals_equal((1, 5), (1, 6)))
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            intervals_equal((5, 1), (1, 5))
 
 
 class TestIntervalShift(unittest.TestCase):

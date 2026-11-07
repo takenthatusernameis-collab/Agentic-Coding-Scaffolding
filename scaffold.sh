@@ -60231,6 +60231,7 @@ __all__ = [
     "interval_midpoint",
     "interval_distance",
     "interval_is_subset",
+    "intervals_equal",
     "interval_clamp",
     "interval_shift",
     "interval_symmetric_difference",
@@ -60474,6 +60475,24 @@ def interval_is_subset(a: Interval, b: Interval) -> bool:
     return b[0] <= a[0] and a[1] <= b[1]
 
 
+def intervals_equal(a: Interval, b: Interval) -> bool:
+    """Return True if *a* and *b* have identical endpoints.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        True if ``a[0] == b[0]`` and ``a[1] == b[1]``.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    return a[0] == b[0] and a[1] == b[1]
+
+
 def interval_shift(interval: Interval, delta: float) -> Interval:
     """Return *interval* translated by *delta*.
 
@@ -60597,6 +60616,7 @@ from interval_utils import (
     interval_intersection,
     interval_is_degenerate,
     interval_is_subset,
+    intervals_equal,
     interval_length,
     interval_midpoint,
     interval_overlaps,
@@ -60863,6 +60883,19 @@ class TestIntervalIsSubset(unittest.TestCase):
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):
             interval_is_subset((5, 1), (1, 5))
+
+
+class TestIntervalsEqual(unittest.TestCase):
+    def test_equal(self):
+        self.assertTrue(intervals_equal((1, 5), (1, 5)))
+
+    def test_different(self):
+        self.assertFalse(intervals_equal((1, 5), (2, 5)))
+        self.assertFalse(intervals_equal((1, 5), (1, 6)))
+
+    def test_invalid_raises(self):
+        with self.assertRaises(ValueError):
+            intervals_equal((5, 1), (1, 5))
 
 
 class TestIntervalShift(unittest.TestCase):
@@ -61183,6 +61216,8 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added values_equal to dict_utils
+
 ## Unreleased — added merge to dict_utils
 
 - Completed the `merge(d1, d2)` feature for `dict_utils.py`. The implementation and `__all__` export were already present from an earlier checkpoint, but the feature shipped without tests, README documentation, or a CHANGELOG entry. `merge` performs a one-level shallow merge: values from *d2* overwrite the corresponding values in *d1* for shared keys without recursing into nested dictionaries, complementing `deep_merge`. It accepts typed `Dict[K, V]` arguments, raises `TypeError` for non-dicts, returns a new dict without mutating the inputs, and ships with Google-style docstring and ASCII-safe doctests. Added `TestMerge` (8 tests) to `tests/test_dict_utils.py` covering basic/overlapping/non-overlapping merges, empty inputs on either side, shallow vs. deep behavior, non-mutation of inputs, and the `TypeError` path; imported `merge` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils` (35 OK); targeted doctest for `merge`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.

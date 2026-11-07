@@ -26,6 +26,7 @@ __all__ = [
     "interval_midpoint",
     "interval_distance",
     "interval_is_subset",
+    "intervals_equal",
     "interval_clamp",
     "interval_shift",
     "interval_symmetric_difference",
@@ -267,6 +268,24 @@ def interval_is_subset(a: Interval, b: Interval) -> bool:
     if not is_valid_interval(a) or not is_valid_interval(b):
         raise ValueError(f"invalid interval: {a!r} or {b!r}")
     return b[0] <= a[0] and a[1] <= b[1]
+
+
+def intervals_equal(a: Interval, b: Interval) -> bool:
+    """Return True if *a* and *b* have identical endpoints.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        True if ``a[0] == b[0]`` and ``a[1] == b[1]``.
+
+    Raises:
+        ValueError: If either interval is not valid.
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    return a[0] == b[0] and a[1] == b[1]
 
 
 def interval_shift(interval: Interval, delta: float) -> Interval:
