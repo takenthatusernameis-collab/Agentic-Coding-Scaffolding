@@ -11,6 +11,7 @@ from typing import Optional
 
 __all__: list[str] = [
     "count_set_bits",
+    "has_set_bits",
     "is_power_of_two",
     "next_power_of_two",
     "prev_power_of_two",
@@ -70,6 +71,31 @@ def count_set_bits(value: int) -> int:
     """
     _validate_nonnegative_int(value)
     return bin(value).count("1")
+
+
+def has_set_bits(value: int) -> bool:
+    """Return True if value has at least one set bit.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        True if value has at least one set bit, False otherwise.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> has_set_bits(0)
+        False
+        >>> has_set_bits(5)  # 0b101
+        True
+        >>> has_set_bits(7)  # 0b111
+        True
+    """
+    _validate_nonnegative_int(value)
+    return count_set_bits(value) > 0
 
 
 def is_power_of_two(value: int) -> bool:

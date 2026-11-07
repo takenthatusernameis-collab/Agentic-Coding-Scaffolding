@@ -5,6 +5,7 @@ import unittest
 from bit_utils import (
     clear_bit,
     count_set_bits,
+    has_set_bits,
     get_bit,
     is_even,
     is_odd,
@@ -41,6 +42,29 @@ class TestCountSetBits(unittest.TestCase):
     def test_value_errors(self):
         with self.assertRaises(ValueError):
             count_set_bits(-1)
+
+
+class TestHasSetBits(unittest.TestCase):
+    def test_zero(self):
+        self.assertFalse(has_set_bits(0))
+
+    def test_single_bit(self):
+        self.assertTrue(has_set_bits(1))
+        self.assertTrue(has_set_bits(8))
+
+    def test_multiple_bits(self):
+        self.assertTrue(has_set_bits(5))
+        self.assertTrue(has_set_bits(7))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_set_bits("5")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_set_bits(True)  # type: ignore[arg-type]
+
+    def test_value_errors(self):
+        with self.assertRaises(ValueError):
+            has_set_bits(-1)
 
 
 class TestIsPowerOfTwo(unittest.TestCase):
