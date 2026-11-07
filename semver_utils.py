@@ -119,6 +119,16 @@ class SemanticVersion:
         return self.prerelease is not None
 
 
+def _validate_semver_identifiers(name: str, value: Optional[str]) -> None:
+    if value is None:
+        return
+    for part in value.split("."):
+        if not part:
+            raise ValueError(f"{name} identifiers must not be empty")
+        if name == "prerelease" and part.isascii() and part.isdigit() and len(part) > 1 and part[0] == "0":
+            raise ValueError("numeric prerelease identifiers must not include leading zeroes")
+
+
 def parse_semver(version: str) -> SemanticVersion:
     """Parse a semantic version string into a :class:`SemanticVersion`.
 
@@ -130,12 +140,16 @@ def parse_semver(version: str) -> SemanticVersion:
     match = SEMVER_RE.match(version.strip())
     if match is None:
         raise ValueError(f"invalid semantic version: {version!r}")
+    prerelease = match.group("prerelease")
+    build = match.group("build")
+    _validate_semver_identifiers("prerelease", prerelease)
+    _validate_semver_identifiers("build", build)
     return SemanticVersion(
         major=int(match.group("major")),
         minor=int(match.group("minor")),
         patch=int(match.group("patch")),
-        prerelease=match.group("prerelease"),
-        build=match.group("build"),
+        prerelease=prerelease,
+        build=build,
     )
 
 

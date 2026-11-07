@@ -115,10 +115,25 @@ class TestEdgeCases(unittest.TestCase):
         parsed = parse_semver("  1.2.3-alpha+build  ")
         self.assertEqual(str(parsed), "1.2.3-alpha+build")
 
+    def test_whitespace_only_rejected(self):
+        for invalid in ["   ", "\t", "\n", " \t\n "]:
+            with self.assertRaises(ValueError):
+                parse_semver(invalid)
+        self.assertFalse(is_valid_semver("   "))
+
     def test_empty_prerelease_or_build_markers_rejected(self):
         for invalid in ["1.0.0-", "1.0.0+", "1.0.0-alpha+", "1.0.0-+build"]:
             with self.assertRaises(ValueError):
                 parse_semver(invalid)
+
+    def test_numeric_prerelease_leading_zeroes_rejected(self):
+        for invalid in ["1.0.0-01", "1.0.0-alpha.01", "1.0.0-00", "1.0.0-1.02"]:
+            with self.assertRaises(ValueError):
+                parse_semver(invalid)
+            self.assertFalse(is_valid_semver(invalid))
+        # Single zero is valid
+        self.assertEqual(parse_semver("1.0.0-0").prerelease, "0")
+        self.assertTrue(is_valid_semver("1.0.0-alpha.0"))
 
     def test_build_metadata_ignored_for_precedence(self):
         self.assertEqual(compare_semver("1.0.0+build1", "1.0.0+build2"), 0)
@@ -127,9 +142,22 @@ class TestEdgeCases(unittest.TestCase):
         self.assertEqual(parse_semver("1.0.0+build1"), parse_semver("1.0.0+build2"))
         self.assertEqual(compare_semver("1.0.0", "1.0.0+bbb"), 0)
 
+    def test_build_metadata_ignored_for_equality_and_hash(self):
+        a = SemanticVersion(1, 0, 0, build="a")
+        b = SemanticVersion(1, 0, 0, build="b")
+        self.assertEqual(a, b)
+        self.assertEqual(hash(a), hash(b))
+        self.assertEqual(str(a), "1.0.0+a")
+        self.assertEqual(str(b), "1.0.0+b")
+
     def test_build_metadata_preserved_in_string(self):
         self.assertEqual(str(parse_semver("1.0.0+build1")), "1.0.0+build1")
         self.assertNotEqual(str(parse_semver("1.0.0+build1")), str(parse_semver("1.0.0+build2")))
+
+    def test_bump_strips_prerelease_and_build(self):
+        self.assertEqual(bump_major("1.2.3-alpha+build"), "2.0.0")
+        self.assertEqual(bump_minor("1.2.3-alpha.1"), "1.3.0")
+        self.assertEqual(bump_patch("1.2.3+build.7"), "1.2.4")
 
     def test_is_valid_semver_non_string(self):
         self.assertFalse(is_valid_semver(True))
@@ -151,12 +179,24 @@ class TestEdgeCases(unittest.TestCase):
             SemanticVersion("1", 0, 0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             SemanticVersion(1, 2.0, 0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, None)  # type: ignore[arg-type]
+
+    def test_semantic_version_rejects_negative_components(self):
+        with self.assertRaises(ValueError):
+            SemanticVersion(-1, 0, 0)
+        with self.assertRaises(ValueError):
+            SemanticVersion(0, -1, 0)
+        with self.assertRaises(ValueError):
+            SemanticVersion(0, 0, -1)
 
     def test_semantic_version_rejects_non_string_metadata(self):
         with self.assertRaises(TypeError):
             SemanticVersion(1, 0, 0, prerelease=1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             SemanticVersion(1, 0, 0, build=object())  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, 0, prerelease=True)  # type: ignore[arg-type]
 
     def test_semantic_version_accepts_none_metadata(self):
         v = SemanticVersion(1, 0, 0, prerelease=None, build=None)

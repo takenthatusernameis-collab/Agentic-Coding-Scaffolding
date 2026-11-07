@@ -330,6 +330,19 @@ class TestIsValidVersion(unittest.TestCase):
     def test_non_string(self):
         self.assertFalse(is_valid_version(123))  # type: ignore[arg-type]
         self.assertFalse(is_valid_version(None))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_version(True))
+        self.assertFalse(is_valid_version(False))
+        self.assertFalse(is_valid_version(["1.0.0"]))
+        self.assertFalse(is_valid_version(("1", "0")))
+
+    def test_v_prefix_and_whitespace_behavior(self):
+        # parse_version accepts leading v/V; is_valid_version validates dotted digits
+        self.assertEqual(parse_version("v1.2.3"), (1, 2, 3))
+        self.assertEqual(parse_version("V1.0.0"), (1, 0, 0))
+        self.assertFalse(is_valid_version("v1.2.3"))
+        self.assertFalse(is_valid_version("V1.0.0"))
+        self.assertFalse(is_valid_version(" 1.2.3"))
+        self.assertFalse(is_valid_version("1.2.3 "))
 
 
 class TestGetVersionComponents(unittest.TestCase):
@@ -570,6 +583,10 @@ class TestIsPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_prerelease(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prerelease(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prerelease(None)  # type: ignore[arg-type]
 
 
 class TestGetPrerelease(unittest.TestCase):
@@ -584,6 +601,12 @@ class TestGetPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             get_prerelease(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_prerelease(False)  # type: ignore[arg-type]
+
+    def test_prerelease_with_build_metadata(self):
+        self.assertEqual(get_prerelease("1.2.3-alpha+build.1"), "alpha+build.1")
+        self.assertTrue(is_prerelease("1.2.3-alpha+build.1"))
 
     def test_alias(self):
         self.assertEqual(get_prerelease_tag("1.2.3-beta"), "beta")
@@ -863,6 +886,12 @@ class TestGetBuildMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             get_build_metadata(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_build_metadata(True)  # type: ignore[arg-type]
+
+    def test_build_after_prerelease(self):
+        self.assertEqual(get_build_metadata("1.2.3-alpha+build.1"), "build.1")
+        self.assertTrue(has_build_metadata("1.2.3-alpha+build.1"))
 
     def test_alias(self):
         self.assertEqual(get_build("1.2.3+beta"), "beta")
@@ -883,6 +912,8 @@ class TestHasBuildMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_build_metadata(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_build_metadata(False)  # type: ignore[arg-type]
 
 
 class TestHasPrerelease(unittest.TestCase):
@@ -900,6 +931,8 @@ class TestHasPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_prerelease(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prerelease(None)  # type: ignore[arg-type]
 
 
 class TestIsRelease(unittest.TestCase):
@@ -917,6 +950,11 @@ class TestIsRelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_release(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_release(False)  # type: ignore[arg-type]
+
+    def test_empty_string_is_not_release(self):
+        self.assertFalse(is_release(""))
 
 
 class TestHasMetadata(unittest.TestCase):
@@ -933,6 +971,8 @@ class TestHasMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_metadata(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_metadata(True)  # type: ignore[arg-type]
 
 
 class TestStripPrerelease(unittest.TestCase):

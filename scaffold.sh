@@ -57574,6 +57574,16 @@ class SemanticVersion:
         return self.prerelease is not None
 
 
+def _validate_semver_identifiers(name: str, value: Optional[str]) -> None:
+    if value is None:
+        return
+    for part in value.split("."):
+        if not part:
+            raise ValueError(f"{name} identifiers must not be empty")
+        if name == "prerelease" and part.isascii() and part.isdigit() and len(part) > 1 and part[0] == "0":
+            raise ValueError("numeric prerelease identifiers must not include leading zeroes")
+
+
 def parse_semver(version: str) -> SemanticVersion:
     """Parse a semantic version string into a :class:`SemanticVersion`.
 
@@ -57585,12 +57595,16 @@ def parse_semver(version: str) -> SemanticVersion:
     match = SEMVER_RE.match(version.strip())
     if match is None:
         raise ValueError(f"invalid semantic version: {version!r}")
+    prerelease = match.group("prerelease")
+    build = match.group("build")
+    _validate_semver_identifiers("prerelease", prerelease)
+    _validate_semver_identifiers("build", build)
     return SemanticVersion(
         major=int(match.group("major")),
         minor=int(match.group("minor")),
         patch=int(match.group("patch")),
-        prerelease=match.group("prerelease"),
-        build=match.group("build"),
+        prerelease=prerelease,
+        build=build,
     )
 
 
@@ -57780,10 +57794,25 @@ class TestEdgeCases(unittest.TestCase):
         parsed = parse_semver("  1.2.3-alpha+build  ")
         self.assertEqual(str(parsed), "1.2.3-alpha+build")
 
+    def test_whitespace_only_rejected(self):
+        for invalid in ["   ", "\t", "\n", " \t\n "]:
+            with self.assertRaises(ValueError):
+                parse_semver(invalid)
+        self.assertFalse(is_valid_semver("   "))
+
     def test_empty_prerelease_or_build_markers_rejected(self):
         for invalid in ["1.0.0-", "1.0.0+", "1.0.0-alpha+", "1.0.0-+build"]:
             with self.assertRaises(ValueError):
                 parse_semver(invalid)
+
+    def test_numeric_prerelease_leading_zeroes_rejected(self):
+        for invalid in ["1.0.0-01", "1.0.0-alpha.01", "1.0.0-00", "1.0.0-1.02"]:
+            with self.assertRaises(ValueError):
+                parse_semver(invalid)
+            self.assertFalse(is_valid_semver(invalid))
+        # Single zero is valid
+        self.assertEqual(parse_semver("1.0.0-0").prerelease, "0")
+        self.assertTrue(is_valid_semver("1.0.0-alpha.0"))
 
     def test_build_metadata_ignored_for_precedence(self):
         self.assertEqual(compare_semver("1.0.0+build1", "1.0.0+build2"), 0)
@@ -57792,9 +57821,22 @@ class TestEdgeCases(unittest.TestCase):
         self.assertEqual(parse_semver("1.0.0+build1"), parse_semver("1.0.0+build2"))
         self.assertEqual(compare_semver("1.0.0", "1.0.0+bbb"), 0)
 
+    def test_build_metadata_ignored_for_equality_and_hash(self):
+        a = SemanticVersion(1, 0, 0, build="a")
+        b = SemanticVersion(1, 0, 0, build="b")
+        self.assertEqual(a, b)
+        self.assertEqual(hash(a), hash(b))
+        self.assertEqual(str(a), "1.0.0+a")
+        self.assertEqual(str(b), "1.0.0+b")
+
     def test_build_metadata_preserved_in_string(self):
         self.assertEqual(str(parse_semver("1.0.0+build1")), "1.0.0+build1")
         self.assertNotEqual(str(parse_semver("1.0.0+build1")), str(parse_semver("1.0.0+build2")))
+
+    def test_bump_strips_prerelease_and_build(self):
+        self.assertEqual(bump_major("1.2.3-alpha+build"), "2.0.0")
+        self.assertEqual(bump_minor("1.2.3-alpha.1"), "1.3.0")
+        self.assertEqual(bump_patch("1.2.3+build.7"), "1.2.4")
 
     def test_is_valid_semver_non_string(self):
         self.assertFalse(is_valid_semver(True))
@@ -57816,12 +57858,24 @@ class TestEdgeCases(unittest.TestCase):
             SemanticVersion("1", 0, 0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             SemanticVersion(1, 2.0, 0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, None)  # type: ignore[arg-type]
+
+    def test_semantic_version_rejects_negative_components(self):
+        with self.assertRaises(ValueError):
+            SemanticVersion(-1, 0, 0)
+        with self.assertRaises(ValueError):
+            SemanticVersion(0, -1, 0)
+        with self.assertRaises(ValueError):
+            SemanticVersion(0, 0, -1)
 
     def test_semantic_version_rejects_non_string_metadata(self):
         with self.assertRaises(TypeError):
             SemanticVersion(1, 0, 0, prerelease=1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             SemanticVersion(1, 0, 0, build=object())  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            SemanticVersion(1, 0, 0, prerelease=True)  # type: ignore[arg-type]
 
     def test_semantic_version_accepts_none_metadata(self):
         v = SemanticVersion(1, 0, 0, prerelease=None, build=None)
@@ -116459,6 +116513,19 @@ class TestIsValidVersion(unittest.TestCase):
     def test_non_string(self):
         self.assertFalse(is_valid_version(123))  # type: ignore[arg-type]
         self.assertFalse(is_valid_version(None))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_version(True))
+        self.assertFalse(is_valid_version(False))
+        self.assertFalse(is_valid_version(["1.0.0"]))
+        self.assertFalse(is_valid_version(("1", "0")))
+
+    def test_v_prefix_and_whitespace_behavior(self):
+        # parse_version accepts leading v/V; is_valid_version validates dotted digits
+        self.assertEqual(parse_version("v1.2.3"), (1, 2, 3))
+        self.assertEqual(parse_version("V1.0.0"), (1, 0, 0))
+        self.assertFalse(is_valid_version("v1.2.3"))
+        self.assertFalse(is_valid_version("V1.0.0"))
+        self.assertFalse(is_valid_version(" 1.2.3"))
+        self.assertFalse(is_valid_version("1.2.3 "))
 
 
 class TestGetVersionComponents(unittest.TestCase):
@@ -116699,6 +116766,10 @@ class TestIsPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_prerelease(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prerelease(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_prerelease(None)  # type: ignore[arg-type]
 
 
 class TestGetPrerelease(unittest.TestCase):
@@ -116713,6 +116784,12 @@ class TestGetPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             get_prerelease(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_prerelease(False)  # type: ignore[arg-type]
+
+    def test_prerelease_with_build_metadata(self):
+        self.assertEqual(get_prerelease("1.2.3-alpha+build.1"), "alpha+build.1")
+        self.assertTrue(is_prerelease("1.2.3-alpha+build.1"))
 
     def test_alias(self):
         self.assertEqual(get_prerelease_tag("1.2.3-beta"), "beta")
@@ -116992,6 +117069,12 @@ class TestGetBuildMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             get_build_metadata(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_build_metadata(True)  # type: ignore[arg-type]
+
+    def test_build_after_prerelease(self):
+        self.assertEqual(get_build_metadata("1.2.3-alpha+build.1"), "build.1")
+        self.assertTrue(has_build_metadata("1.2.3-alpha+build.1"))
 
     def test_alias(self):
         self.assertEqual(get_build("1.2.3+beta"), "beta")
@@ -117012,6 +117095,8 @@ class TestHasBuildMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_build_metadata(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_build_metadata(False)  # type: ignore[arg-type]
 
 
 class TestHasPrerelease(unittest.TestCase):
@@ -117029,6 +117114,8 @@ class TestHasPrerelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_prerelease(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prerelease(None)  # type: ignore[arg-type]
 
 
 class TestIsRelease(unittest.TestCase):
@@ -117046,6 +117133,11 @@ class TestIsRelease(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             is_release(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_release(False)  # type: ignore[arg-type]
+
+    def test_empty_string_is_not_release(self):
+        self.assertFalse(is_release(""))
 
 
 class TestHasMetadata(unittest.TestCase):
@@ -117062,6 +117154,8 @@ class TestHasMetadata(unittest.TestCase):
     def test_non_string_raises(self):
         with self.assertRaises(TypeError):
             has_metadata(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_metadata(True)  # type: ignore[arg-type]
 
 
 class TestStripPrerelease(unittest.TestCase):
