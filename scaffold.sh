@@ -48907,6 +48907,7 @@ from itertools_utils import (
     chunk_iterable,
     combinations_of,
     combinations_with_replacement_of,
+    count_from,
     cycle_take,
     drop_while_pred,
     flatten_once,
@@ -49369,6 +49370,21 @@ class TestGrouper(unittest.TestCase):
             grouper([1, 2, 3], 0)
         with self.assertRaises(ValueError):
             grouper([1, 2, 3], -1)
+
+
+    def test_count_from_default(self):
+        self.assertEqual(count_from(), list(range(1000)))
+
+    def test_count_from_start_step(self):
+        self.assertEqual(count_from(5, 2)[:5], [5, 7, 9, 11, 13])
+
+    def test_count_from_bad_start_type(self):
+        with self.assertRaises(TypeError):
+            count_from(True)
+
+    def test_count_from_bad_step_type(self):
+        with self.assertRaises(TypeError):
+            count_from(0, True)
 
 
 if __name__ == "__main__":
