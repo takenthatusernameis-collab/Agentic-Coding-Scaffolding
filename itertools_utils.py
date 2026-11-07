@@ -714,6 +714,26 @@ def has_any(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
     return False
 
 
+def has_all(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in iterable:
+        if not predicate(item):
+            return False
+    return True
+
+
+def has_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in iterable:
+        if predicate(item):
+            return False
+    return True
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -754,4 +774,6 @@ __all__ = [
     "ncycles",
     "count_if",
     "has_any",
+    "has_all",
+    "has_none",
 ]

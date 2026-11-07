@@ -50052,6 +50052,26 @@ def has_any(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
     return False
 
 
+def has_all(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in iterable:
+        if not predicate(item):
+            return False
+    return True
+
+
+def has_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in iterable:
+        if predicate(item):
+            return False
+    return True
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -50092,6 +50112,8 @@ __all__ = [
     "ncycles",
     "count_if",
     "has_any",
+    "has_all",
+    "has_none",
 ]
 ITERTOOLS_UTILS
 
@@ -50114,7 +50136,9 @@ from itertools_utils import (
     flatten_once,
     group_by_key,
     grouper,
+    has_all,
     has_any,
+    has_none,
     is_empty_iterable,
     pairwise_iterable,
     partition,
@@ -50723,6 +50747,63 @@ class TestHasAny(unittest.TestCase):
     def test_rejects_non_callable(self):
         with self.assertRaises(TypeError):
             has_any([1, 2, 3], "x")
+
+class TestHasAll(unittest.TestCase):
+    def test_all_match(self):
+        self.assertTrue(has_all([1, 2, 3], lambda x: x > 0))
+
+    def test_not_all_match(self):
+        self.assertFalse(has_all([1, 2, 3], lambda x: x > 2))
+
+    def test_empty(self):
+        self.assertTrue(has_all([], bool))
+
+    def test_short_circuits(self):
+        seen = []
+
+        def pred(x):
+            seen.append(x)
+            return x > 2
+
+        self.assertFalse(has_all([1, 2, 3, 4], pred))
+        self.assertEqual(seen, [1])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            has_all(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            has_all([1, 2, 3], "x")
+
+
+class TestHasNone(unittest.TestCase):
+    def test_none_match(self):
+        self.assertTrue(has_none([1, 2, 3], lambda x: x > 5))
+
+    def test_some_match(self):
+        self.assertFalse(has_none([1, 2, 3], lambda x: x > 2))
+
+    def test_empty(self):
+        self.assertTrue(has_none([], bool))
+
+    def test_short_circuits(self):
+        seen = []
+
+        def pred(x):
+            seen.append(x)
+            return x > 2
+
+        self.assertFalse(has_none([1, 2, 3, 4], pred))
+        self.assertEqual(seen, [1, 2, 3])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            has_none(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            has_none([1, 2, 3], "x")
 
 
 if __name__ == "__main__":
