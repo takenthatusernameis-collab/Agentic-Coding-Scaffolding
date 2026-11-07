@@ -12862,6 +12862,7 @@ __all__: List[str] = [
     "count_consonants",
     "count_lowercase",
     "count_uppercase",
+    "has_uppercase",
     "is_anagram",
     "is_isogram",
     "capitalize_words",
@@ -13175,6 +13176,37 @@ def count_uppercase(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isupper())
+
+
+def has_uppercase(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one uppercase letter.
+
+    A boolean companion to :func:`count_uppercase`. Returns ``True`` when *s*
+    has at least one uppercase alphabetic character and ``False`` for empty
+    or lowercase-only text.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more uppercase letters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_uppercase("Hello World")
+        True
+        >>> has_uppercase("HELLO")
+        True
+        >>> has_uppercase("hello")
+        False
+        >>> has_uppercase("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isupper() for ch in s)
 
 
 def count_lowercase(s: str) -> int:
@@ -17470,6 +17502,7 @@ from strings import (
     has_digits,
     has_letters,
     has_punctuation,
+    has_uppercase,
     has_vowels,
     has_whitespace,
     initials,
@@ -17750,6 +17783,41 @@ class TestCountUppercase(unittest.TestCase):
             count_uppercase(42)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestHasUppercase(unittest.TestCase):
+    def test_has_uppercase_basic(self):
+        self.assertTrue(has_uppercase("Hello World"))
+        self.assertTrue(has_uppercase("HELLO"))
+
+    def test_has_uppercase_no_uppercase(self):
+        self.assertFalse(has_uppercase("hello"))
+        self.assertFalse(has_uppercase("hello world"))
+
+    def test_has_uppercase_empty(self):
+        self.assertFalse(has_uppercase(""))
+
+    def test_has_uppercase_mixed_case(self):
+        self.assertTrue(has_uppercase("PyThOn"))
+        self.assertTrue(has_uppercase("A"))
+
+    def test_has_uppercase_ignores_non_alpha(self):
+        self.assertTrue(has_uppercase("A B-C"))
+        self.assertFalse(has_uppercase("a b-c"))
+
+    def test_has_uppercase_unicode_uppercase(self):
+        self.assertTrue(has_uppercase("ÉLF"))
+
+    def test_has_uppercase_consistency_with_count_uppercase(self):
+        cases = ["Hello World", "HELLO", "hello", "", "PyThOn 3.10!", "A B-C"]
+        for s in cases:
+            self.assertEqual(has_uppercase(s), count_uppercase(s) > 0)
+
+    def test_has_uppercase_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_uppercase(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_uppercase(None)  # type: ignore[arg-type]
 
 
 class TestCountDigits(unittest.TestCase):
@@ -59056,6 +59124,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_uppercase to strings
+
+- Added `has_uppercase(s)` to `strings.py` as the boolean companion to `count_uppercase`. `strings.py` had `count_uppercase(s)` (returning the number of uppercase letters) but no `has_uppercase` boolean counterpart. It returns `True` when *s* contains at least one uppercase letter and `False` for empty or lowercase-only text, reusing `count_uppercase` for consistency. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasUppercase` (9 tests) to `tests/test_strings.py` covering basic, no-uppercase, empty, mixed case, non-alpha-ignored, unicode-uppercase, consistency with `count_uppercase`, and the `TypeError` path; imported `has_uppercase` to match the module's `__all__` contract. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings`; targeted doctest for `has_uppercase`; `python -m unittest tests.test_public_api`. No `.github/workflows/**` changes.
+
 ## Unreleased — added has_consonants to strings
 
 - Added `has_consonants(s)` to `strings.py` as the boolean companion to `count_consonants`. `strings.py` had `count_consonants(s)` (returning the number of consonant characters, case-insensitive and ignoring non-alphabetic characters) but no `has_consonants` boolean counterpart, unlike `count_vowels`/`has_vowels` which are already complete. It returns `True` when *s* contains at least one consonant (an alphabetic character that is not a, e, i, o, u) and `False` for vowel-only, digit-only, punctuation-only, or empty text, reusing the same vowel set as `count_consonants` for consistency. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasConsonants` (7 tests) to `tests/test_strings.py` covering basic, no-consonants, all-consonants, non-alpha-ignored, empty, consistency with `count_consonants`, and the `TypeError` path; imported `has_consonants` to match the module's `__all__` contract. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings`; targeted doctest for `has_consonants`; `python -m unittest tests.test_public_api`. No `.github/workflows/**` changes.
@@ -61405,7 +61477,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, has_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, is_coprime, lcm, is_prime, is_composite, is_square, clamp, is_even, combination, permutation)
@@ -62034,7 +62106,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `has_vowels`, `count_consonants`, `has_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `count_whitespace`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `repeat_string`, `remove_vowels`, `remove_consonants`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_decimal`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_anagram`, `is_isogram`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `char_count`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `find`, `rfind`, `removeprefix`, `removesuffix`, `remove_prefix`, `remove_suffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, `capitalize_words`, and `is_blank`, `ensure_prefix`, `ensure_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, and `ensure_surrounded_by_newlines`, `count_leading_newlines`, `count_trailing_newlines`, `strip_leading_newlines`, `strip_trailing_newlines`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. `has_vowels` is the boolean companion to `count_vowels`, returning ``True`` when *s* contains at least one ASCII vowel (a, e, i, o, u), case-insensitive, and ``False`` for empty or consonant-only text. `has_consonants` is the boolean companion to `count_consonants`, returning ``True`` when *s* contains at least one consonant (an alphabetic character that is not a vowel), case-insensitive, and ``False`` for vowel-only, digit-only, punctuation-only, or empty text. `has_digits` is the boolean companion to `count_digits`, returning ``True`` when *s* contains at least one digit character and ``False`` for empty or digit-free text. `has_letters` is the boolean companion to `count_letters`, returning ``True`` when *s* contains at least one alphabetic character and ``False`` for digit-only, punctuation-only, or empty text. `has_punctuation` is the boolean companion to `count_punctuation`, returning ``True`` when *s* contains at least one punctuation character and ``False`` otherwise. `has_whitespace` is the boolean companion to `count_whitespace`, returning ``True`` when *s* contains at least one whitespace character and ``False`` otherwise. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `has_vowels`, `count_consonants`, `has_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `count_whitespace`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `repeat_string`, `remove_vowels`, `remove_consonants`, `is_alpha`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_decimal`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_anagram`, `is_isogram`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `char_count`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `find`, `rfind`, `removeprefix`, `removesuffix`, `remove_prefix`, `remove_suffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, `capitalize_words`, and `is_blank`, `ensure_prefix`, `ensure_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, and `ensure_surrounded_by_newlines`, `count_leading_newlines`, `count_trailing_newlines`, `strip_leading_newlines`, `strip_trailing_newlines`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. `has_vowels` is the boolean companion to `count_vowels`, returning ``True`` when *s* contains at least one ASCII vowel (a, e, i, o, u), case-insensitive, and ``False`` for empty or consonant-only text. `has_consonants` is the boolean companion to `count_consonants`, returning ``True`` when *s* contains at least one consonant (an alphabetic character that is not a vowel), case-insensitive, and ``False`` for vowel-only, digit-only, punctuation-only, or empty text. `has_digits` is the boolean companion to `count_digits`, returning ``True`` when *s* contains at least one digit character and ``False`` for empty or digit-free text. `has_letters` is the boolean companion to `count_letters`, returning ``True`` when *s* contains at least one alphabetic character and ``False`` for digit-only, punctuation-only, or empty text. `has_punctuation` is the boolean companion to `count_punctuation`, returning ``True`` when *s* contains at least one punctuation character and ``False`` otherwise. `has_whitespace` is the boolean companion to `count_whitespace`, returning ``True`` when *s* contains at least one whitespace character and ``False`` otherwise. `has_uppercase` is the boolean companion to `count_uppercase`, returning ``True`` when *s* contains at least one uppercase letter and ``False`` for empty or lowercase-only text. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

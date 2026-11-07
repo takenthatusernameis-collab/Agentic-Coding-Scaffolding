@@ -16,6 +16,7 @@ __all__: List[str] = [
     "count_consonants",
     "count_lowercase",
     "count_uppercase",
+    "has_uppercase",
     "is_anagram",
     "is_isogram",
     "capitalize_words",
@@ -329,6 +330,37 @@ def count_uppercase(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isupper())
+
+
+def has_uppercase(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one uppercase letter.
+
+    A boolean companion to :func:`count_uppercase`. Returns ``True`` when *s*
+    has at least one uppercase alphabetic character and ``False`` for empty
+    or lowercase-only text.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more uppercase letters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_uppercase("Hello World")
+        True
+        >>> has_uppercase("HELLO")
+        True
+        >>> has_uppercase("hello")
+        False
+        >>> has_uppercase("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isupper() for ch in s)
 
 
 def count_lowercase(s: str) -> int:

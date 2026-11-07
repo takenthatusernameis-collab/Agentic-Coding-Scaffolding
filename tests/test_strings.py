@@ -36,6 +36,7 @@ from strings import (
     has_digits,
     has_letters,
     has_punctuation,
+    has_uppercase,
     has_vowels,
     has_whitespace,
     initials,
@@ -316,6 +317,41 @@ class TestCountUppercase(unittest.TestCase):
             count_uppercase(42)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestHasUppercase(unittest.TestCase):
+    def test_has_uppercase_basic(self):
+        self.assertTrue(has_uppercase("Hello World"))
+        self.assertTrue(has_uppercase("HELLO"))
+
+    def test_has_uppercase_no_uppercase(self):
+        self.assertFalse(has_uppercase("hello"))
+        self.assertFalse(has_uppercase("hello world"))
+
+    def test_has_uppercase_empty(self):
+        self.assertFalse(has_uppercase(""))
+
+    def test_has_uppercase_mixed_case(self):
+        self.assertTrue(has_uppercase("PyThOn"))
+        self.assertTrue(has_uppercase("A"))
+
+    def test_has_uppercase_ignores_non_alpha(self):
+        self.assertTrue(has_uppercase("A B-C"))
+        self.assertFalse(has_uppercase("a b-c"))
+
+    def test_has_uppercase_unicode_uppercase(self):
+        self.assertTrue(has_uppercase("ÉLF"))
+
+    def test_has_uppercase_consistency_with_count_uppercase(self):
+        cases = ["Hello World", "HELLO", "hello", "", "PyThOn 3.10!", "A B-C"]
+        for s in cases:
+            self.assertEqual(has_uppercase(s), count_uppercase(s) > 0)
+
+    def test_has_uppercase_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_uppercase(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_uppercase(None)  # type: ignore[arg-type]
 
 
 class TestCountDigits(unittest.TestCase):
