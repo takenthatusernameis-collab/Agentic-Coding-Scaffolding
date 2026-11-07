@@ -12,12 +12,14 @@ __all__ = [
     "drop",
     "find",
     "find_index",
+    "first_or_default",
     "flatten",
     "group_by",
     "has_duplicates",
     "intersperse",
     "is_empty",
     "is_sorted",
+    "last_or_default",
     "partition",
     "safe_get",
     "take",
@@ -458,3 +460,53 @@ def is_sorted(lst: List[T], reverse: bool = False) -> bool:
     if reverse:
         return all(lst[i] >= lst[i + 1] for i in range(len(lst) - 1))
     return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
+
+
+def first_or_default(lst: List[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the first element of a list, or ``default`` if empty.
+
+    Args:
+        lst: The list to inspect.
+        default: The value to return when ``lst`` is empty.
+
+    Returns:
+        The first element of ``lst``, or ``default`` when empty.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> first_or_default([1, 2, 3])
+        1
+        >>> first_or_default([], 0)
+        0
+        >>> first_or_default([])
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return lst[0] if lst else default
+
+
+def last_or_default(lst: List[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the last element of a list, or ``default`` if empty.
+
+    Args:
+        lst: The list to inspect.
+        default: The value to return when ``lst`` is empty.
+
+    Returns:
+        The last element of ``lst``, or ``default`` when empty.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> last_or_default([1, 2, 3])
+        3
+        >>> last_or_default([], 0)
+        0
+        >>> last_or_default([])
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return lst[-1] if lst else default
