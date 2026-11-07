@@ -11539,6 +11539,7 @@ __all__: List[str] = [
     "point_distance",
     "midpoint",
     "point_in_circle",
+    "point_in_rectangle",
 ]
 
 
@@ -12206,6 +12207,63 @@ def point_in_circle(point: tuple[float, float], center: tuple[float, float], rad
         raise ValueError("Radius cannot be negative.")
     dist = point_distance(point, center)
     return dist <= radius + 1e-9
+
+
+def point_in_rectangle(
+    point: tuple[float, float],
+    x1: float,
+    y1: float,
+    x2: float,
+    y2: float,
+) -> bool:
+    """Return True if *point* lies inside or on the rectangle defined by opposite corners.
+
+    The rectangle is axis-aligned and defined by two opposite corners ``(x1, y1)``
+    and ``(x2, y2)``; the bounds are normalized internally so the order of the
+    corners does not matter. A point on the boundary counts as inside.
+
+    Args:
+        point: The ``(x, y)`` point to test.
+        x1: X-coordinate of the first rectangle corner.
+        y1: Y-coordinate of the first rectangle corner.
+        x2: X-coordinate of the opposite rectangle corner.
+        y2: Y-coordinate of the opposite rectangle corner.
+
+    Returns:
+        ``True`` if *point* is inside or on the rectangle, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *point* is not a 2-tuple/list of numbers, or if any
+            coordinate is not a number (booleans are rejected).
+        ValueError: If the rectangle has zero or negative width/height.
+
+    >>> point_in_rectangle((1, 1), 0, 0, 3, 3)
+    True
+    >>> point_in_rectangle((5, 5), 0, 0, 3, 3)
+    False
+    >>> point_in_rectangle((3, 0), 0, 0, 3, 3)
+    True
+    >>> point_in_rectangle((1, 1), 3, 3, 0, 0)
+    True
+    """
+    if not isinstance(point, (tuple, list)) or len(point) != 2:
+        raise TypeError("point must be a point (x, y)")
+    px, py = point
+    for value, name in ((px, "px"), (py, "py")):
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise TypeError("coordinates must be numbers")
+    for value, name in ((x1, "x1"), (y1, "y1"), (x2, "x2"), (y2, "y2")):
+        if not isinstance(value, (int, float)) or isinstance(value, bool):
+            raise TypeError(f"{name} must be a number")
+    left = min(x1, x2)
+    right = max(x1, x2)
+    bottom = min(y1, y2)
+    top = max(y1, y2)
+    if right - left <= 0:
+        raise ValueError("Rectangle width must be positive.")
+    if top - bottom <= 0:
+        raise ValueError("Rectangle height must be positive.")
+    return left - 1e-9 <= px <= right + 1e-9 and bottom - 1e-9 <= py <= top + 1e-9
 SHAPES
 
 # --- tests/test_shapes.py ---
@@ -12840,6 +12898,60 @@ class TestPoints(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             point_in_circle((1, 1), (0, 0), True)
+
+
+class TestPointInRectangle(unittest.TestCase):
+    def test_inside(self):
+        from shapes import point_in_rectangle
+
+        self.assertTrue(point_in_rectangle((1, 1), 0, 0, 3, 3))
+        self.assertTrue(point_in_rectangle((2, 2), 0, 0, 3, 3))
+
+    def test_outside(self):
+        from shapes import point_in_rectangle
+
+        self.assertFalse(point_in_rectangle((5, 5), 0, 0, 3, 3))
+        self.assertFalse(point_in_rectangle((-1, 1), 0, 0, 3, 3))
+
+    def test_on_boundary(self):
+        from shapes import point_in_rectangle
+
+        self.assertTrue(point_in_rectangle((3, 0), 0, 0, 3, 3))
+        self.assertTrue(point_in_rectangle((0, 3), 0, 0, 3, 3))
+
+    def test_corner_order_invariant(self):
+        from shapes import point_in_rectangle
+
+        self.assertTrue(point_in_rectangle((1, 1), 3, 3, 0, 0))
+        self.assertFalse(point_in_rectangle((5, 5), 3, 3, 0, 0))
+
+    def test_rejects_bad_point(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(TypeError):
+            point_in_rectangle("bad", 0, 0, 3, 3)  # type: ignore[arg-type]
+
+    def test_rejects_bool_coordinate(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(TypeError):
+            point_in_rectangle((1, 1), 0, 0, True, 3)  # type: ignore[arg-type]
+
+    def test_rejects_zero_width(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(ValueError):
+            point_in_rectangle((1, 1), 0, 0, 0, 3)
+
+    def test_rejects_negative_height(self):
+        from shapes import point_in_rectangle
+
+        with self.assertRaises(ValueError):
+            point_in_rectangle((1, 1), 0, 0, 3, 0)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTSHAPES
 
 # --- strings.py ---
