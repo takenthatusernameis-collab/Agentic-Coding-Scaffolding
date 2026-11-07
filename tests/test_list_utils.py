@@ -4,6 +4,7 @@ import unittest
 
 from list_utils import (
     chunks,
+    contains,
     drop,
     find,
     find_index,
@@ -124,6 +125,36 @@ class TestFind(unittest.TestCase):
     def test_find_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             find("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestContains(unittest.TestCase):
+    def test_contains_present(self) -> None:
+        self.assertTrue(contains([1, 2, 3, 4], 3))
+
+    def test_contains_absent(self) -> None:
+        self.assertFalse(contains([1, 2, 3], 5))
+
+    def test_contains_empty_list(self) -> None:
+        self.assertFalse(contains([], 1))
+
+    def test_contains_strings(self) -> None:
+        self.assertTrue(contains(["a", "b", "c"], "b"))
+
+    def test_contains_first_element(self) -> None:
+        self.assertTrue(contains([10, 20, 30], 10))
+
+    def test_contains_last_element(self) -> None:
+        self.assertTrue(contains([10, 20, 30], 30))
+
+    def test_contains_duplicates_present(self) -> None:
+        self.assertTrue(contains([1, 2, 2, 3], 2))
+
+    def test_contains_none_value(self) -> None:
+        self.assertTrue(contains([1, None, 3], None))
+
+    def test_contains_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            contains("not a list", 1)  # type: ignore[arg-type]
 
 
 class TestDrop(unittest.TestCase):

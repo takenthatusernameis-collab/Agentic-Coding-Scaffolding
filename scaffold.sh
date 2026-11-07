@@ -33163,6 +33163,7 @@ __all__ = [
     "K",
     "T",
     "chunks",
+    "contains",
     "drop",
     "find",
     "find_index",
@@ -33324,6 +33325,36 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
         if predicate(item):
             return i
     return None
+
+
+def contains(lst: List[T], element: T) -> bool:
+    """Return ``True`` when *element* is present in *lst*.
+
+    Uses equality comparison and short-circuits on the first match.
+
+    Args:
+        lst: The list to search.
+        element: The value to look for.
+
+    Returns:
+        ``True`` if *element* equals any item in *lst*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> contains([1, 2, 3, 4], 3)
+        True
+        >>> contains([1, 2, 3], 5)
+        False
+        >>> contains([], 1)
+        False
+        >>> contains(["a", "b", "c"], "b")
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return element in lst
 
 
 def drop(lst: List[T], n: int) -> List[T]:
@@ -33673,6 +33704,7 @@ import unittest
 
 from list_utils import (
     chunks,
+    contains,
     drop,
     find,
     find_index,
@@ -33793,6 +33825,36 @@ class TestFind(unittest.TestCase):
     def test_find_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             find("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestContains(unittest.TestCase):
+    def test_contains_present(self) -> None:
+        self.assertTrue(contains([1, 2, 3, 4], 3))
+
+    def test_contains_absent(self) -> None:
+        self.assertFalse(contains([1, 2, 3], 5))
+
+    def test_contains_empty_list(self) -> None:
+        self.assertFalse(contains([], 1))
+
+    def test_contains_strings(self) -> None:
+        self.assertTrue(contains(["a", "b", "c"], "b"))
+
+    def test_contains_first_element(self) -> None:
+        self.assertTrue(contains([10, 20, 30], 10))
+
+    def test_contains_last_element(self) -> None:
+        self.assertTrue(contains([10, 20, 30], 30))
+
+    def test_contains_duplicates_present(self) -> None:
+        self.assertTrue(contains([1, 2, 2, 3], 2))
+
+    def test_contains_none_value(self) -> None:
+        self.assertTrue(contains([1, None, 3], None))
+
+    def test_contains_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            contains("not a list", 1)  # type: ignore[arg-type]
 
 
 class TestDrop(unittest.TestCase):
@@ -60584,6 +60646,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added contains to list_utils
+
+- Added `contains(lst, element)` to `list_utils.py` as a membership predicate reporting whether *element* is present in *lst*. The module already had `find`/`find_index` for predicate-based lookup but no direct membership helper, so callers relied on the raw `in` operator or `any(...)`. `contains` short-circuits on the first match, accepts a typed `List[T]` argument, raises `TypeError` for non-lists, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestContains` (9 tests) to `tests/test_list_utils.py` covering present/absent, empty list, first/last element, duplicates, `None` value, and the `TypeError` path; imported `contains` to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils`; targeted doctest for `contains`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added is_empty_iterable to itertools_utils
 
 - Added `is_empty_iterable(iterable)` to `itertools_utils.py` as a boolean predicate reporting whether an iterable yields no items. Unlike `len(iterable)`, it works for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. It accepts a typed `Iterable[Any]` argument, raises `TypeError` for non-iterables, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsEmptyIterable` (9 tests) to `tests/test_itertools_utils.py` covering empty/non-empty list, empty/non-empty string, empty tuple, empty/non-empty generator, and `TypeError` paths for non-iterable and `None`; imported `is_empty_iterable` to match the module's `__all__` contract. Updated the `itertools_utils` module tree entry and prose section of `README.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_itertools_utils`; targeted doctest for `is_empty_iterable`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -63036,7 +63102,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, drop, take, intersperse, chunks, flatten, unique_preserve_order)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -63703,7 +63769,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, and `unique_preserve_order`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, and `contains`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

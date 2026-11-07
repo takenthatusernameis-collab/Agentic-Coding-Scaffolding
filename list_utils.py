@@ -9,6 +9,7 @@ __all__ = [
     "K",
     "T",
     "chunks",
+    "contains",
     "drop",
     "find",
     "find_index",
@@ -170,6 +171,36 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
         if predicate(item):
             return i
     return None
+
+
+def contains(lst: List[T], element: T) -> bool:
+    """Return ``True`` when *element* is present in *lst*.
+
+    Uses equality comparison and short-circuits on the first match.
+
+    Args:
+        lst: The list to search.
+        element: The value to look for.
+
+    Returns:
+        ``True`` if *element* equals any item in *lst*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> contains([1, 2, 3, 4], 3)
+        True
+        >>> contains([1, 2, 3], 5)
+        False
+        >>> contains([], 1)
+        False
+        >>> contains(["a", "b", "c"], "b")
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return element in lst
 
 
 def drop(lst: List[T], n: int) -> List[T]:
