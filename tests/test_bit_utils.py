@@ -4,6 +4,7 @@ import unittest
 
 from bit_utils import (
     clear_bit,
+    clear_lowest_set_bit,
     count_leading_zeros,
     count_set_bits,
     count_trailing_zeros,
@@ -291,6 +292,29 @@ class TestHasLeadingZeros(unittest.TestCase):
             has_leading_zeros("1", 8)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_leading_zeros(256, 8)
+
+
+class TestClearLowestSetBit(unittest.TestCase):
+    def test_clear_lowest_set_bit(self):
+        self.assertEqual(clear_lowest_set_bit(0), 0)
+        self.assertEqual(clear_lowest_set_bit(1), 0)
+        self.assertEqual(clear_lowest_set_bit(10), 8)
+        self.assertEqual(clear_lowest_set_bit(12), 8)
+        self.assertEqual(clear_lowest_set_bit(0b1010), 0b1000)
+        self.assertEqual(clear_lowest_set_bit(0b1000), 0)
+        # clearing repeatedly yields 0 and decrements set-bit count by 1
+        v = 0b1111
+        for expected in (0b1110, 0b1100, 0b1000, 0):
+            v = clear_lowest_set_bit(v)
+            self.assertEqual(v, expected)
+
+    def test_clear_lowest_set_bit_errors(self):
+        with self.assertRaises(TypeError):
+            clear_lowest_set_bit("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clear_lowest_set_bit(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            clear_lowest_set_bit(-1)
 
 
 if __name__ == "__main__":

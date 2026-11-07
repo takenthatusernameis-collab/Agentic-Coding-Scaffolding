@@ -21,6 +21,7 @@ __all__: list[str] = [
     "get_bit",
     "set_bit",
     "clear_bit",
+    "clear_lowest_set_bit",
     "toggle_bit",
     "is_even",
     "is_odd",
@@ -339,6 +340,37 @@ def clear_bit(value: int, index: int) -> int:
     _validate_nonnegative_int(value)
     _validate_index(index)
     return value & ~(1 << index)
+
+
+def clear_lowest_set_bit(value: int) -> int:
+    """Clear the lowest (least significant) set bit of value.
+
+    Uses Brian Kernighan's method (``value & (value - 1)``).
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The value with its lowest set bit cleared. Returns 0 when *value* is 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> clear_lowest_set_bit(0)
+        0
+        >>> clear_lowest_set_bit(1)  # 0b1 -> 0b0
+        0
+        >>> clear_lowest_set_bit(10)  # 0b1010 -> 0b1000
+        8
+        >>> clear_lowest_set_bit(12)  # 0b1100 -> 0b1000
+        8
+    """
+    _validate_nonnegative_int(value)
+    if value == 0:
+        return 0
+    return value & (value - 1)
 
 
 def toggle_bit(value: int, index: int) -> int:

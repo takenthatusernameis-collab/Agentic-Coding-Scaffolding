@@ -44525,6 +44525,7 @@ __all__: list[str] = [
     "get_bit",
     "set_bit",
     "clear_bit",
+    "clear_lowest_set_bit",
     "toggle_bit",
     "is_even",
     "is_odd",
@@ -44845,6 +44846,37 @@ def clear_bit(value: int, index: int) -> int:
     return value & ~(1 << index)
 
 
+def clear_lowest_set_bit(value: int) -> int:
+    """Clear the lowest (least significant) set bit of value.
+
+    Uses Brian Kernighan's method (``value & (value - 1)``).
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The value with its lowest set bit cleared. Returns 0 when *value* is 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> clear_lowest_set_bit(0)
+        0
+        >>> clear_lowest_set_bit(1)  # 0b1 -> 0b0
+        0
+        >>> clear_lowest_set_bit(10)  # 0b1010 -> 0b1000
+        8
+        >>> clear_lowest_set_bit(12)  # 0b1100 -> 0b1000
+        8
+    """
+    _validate_nonnegative_int(value)
+    if value == 0:
+        return 0
+    return value & (value - 1)
+
+
 def toggle_bit(value: int, index: int) -> int:
     """Return value with the bit at index flipped.
 
@@ -45038,6 +45070,7 @@ import unittest
 
 from bit_utils import (
     clear_bit,
+    clear_lowest_set_bit,
     count_leading_zeros,
     count_set_bits,
     count_trailing_zeros,
@@ -45325,6 +45358,29 @@ class TestHasLeadingZeros(unittest.TestCase):
             has_leading_zeros("1", 8)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_leading_zeros(256, 8)
+
+
+class TestClearLowestSetBit(unittest.TestCase):
+    def test_clear_lowest_set_bit(self):
+        self.assertEqual(clear_lowest_set_bit(0), 0)
+        self.assertEqual(clear_lowest_set_bit(1), 0)
+        self.assertEqual(clear_lowest_set_bit(10), 8)
+        self.assertEqual(clear_lowest_set_bit(12), 8)
+        self.assertEqual(clear_lowest_set_bit(0b1010), 0b1000)
+        self.assertEqual(clear_lowest_set_bit(0b1000), 0)
+        # clearing repeatedly yields 0 and decrements set-bit count by 1
+        v = 0b1111
+        for expected in (0b1110, 0b1100, 0b1000, 0):
+            v = clear_lowest_set_bit(v)
+            self.assertEqual(v, expected)
+
+    def test_clear_lowest_set_bit_errors(self):
+        with self.assertRaises(TypeError):
+            clear_lowest_set_bit("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            clear_lowest_set_bit(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            clear_lowest_set_bit(-1)
 
 
 if __name__ == "__main__":
@@ -62300,6 +62356,10 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
+## Unreleased — added `clear_lowest_set_bit` to `bit_utils`
+
+- Added `clear_lowest_set_bit(value)` to `bit_utils.py` with a typed signature, `__all__` export, Google-style docstring with ASCII-safe doctests, and validation raising `TypeError`/`ValueError`; it clears the lowest set bit via Brian Kernighan's method (`value & (value - 1)`), returning 0 for 0. Added `TestClearLowestSetBit` to `tests/test_bit_utils.py` covering basic values, repeated clearing, bool/type rejection, and negative `ValueError` (2 new tests). Updated the `bit_utils` module prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (45 tests), `python -m doctest bit_utils.py` (48 doctests), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (8888 tests, OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added `count_leading_zeros` and `has_leading_zeros` to `bit_utils`
 
 - Added `count_leading_zeros(value, width)` and boolean companion `has_leading_zeros(value, width)` to `bit_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and validation raising `TypeError`/`ValueError` (including rejection of values that do not fit within *width*). `count_leading_zeros` returns the number of zero bits to the left of the most significant set bit within a fixed *width* (returning *width* for zero). Added `TestCountLeadingZeros` and `TestHasLeadingZeros` to `tests/test_bit_utils.py` covering basic widths, zero/full-width cases, consistency, width-fit/value/type errors, and bool rejection (7 new tests). Updated the `bit_utils` module tree entry and prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (43 tests), `python -m doctest bit_utils.py` (44 doctests), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (OK). No changes to `.github/workflows/**`.
@@ -63266,7 +63326,7 @@ The project includes asynchronous utility functions in `async_utils.py` for runn
 
 ## Bit Utilities Module
 
-The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
+The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
 
 ## Collections Utilities Module
 
