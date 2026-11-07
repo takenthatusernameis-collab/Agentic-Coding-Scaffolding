@@ -39267,6 +39267,7 @@ __all__: List[str] = [
     "ensure_surrounded_by_newlines",
     "count_newlines",
     "has_newline",
+    "has_newlines",
 ]
 
 
@@ -42093,6 +42094,33 @@ def has_newline(text: str) -> bool:
     """
     _require_string(text, "text")
     return "\n" in text
+
+
+def has_newlines(text: str) -> bool:
+    """Return True if *text* contains at least one newline character.
+
+    A boolean companion to :func:`count_newlines`. Returns ``True`` when
+    *text* contains one or more ``\\n`` characters and ``False`` otherwise,
+    reusing ``count_newlines`` for consistency.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        True if *text* contains ``\\n``, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_newlines("hello\\nworld")
+        True
+        >>> has_newlines("hello")
+        False
+        >>> has_newlines("")
+        False
+    """
+    return count_newlines(text) > 0
 PROMPTUTILS
 
 # --- type_utils.py ---
