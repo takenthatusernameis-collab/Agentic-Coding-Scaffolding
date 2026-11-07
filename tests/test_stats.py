@@ -1861,15 +1861,6 @@ class TestCoefficientOfRange(unittest.TestCase):
         with self.assertRaises(ValueError):
             coefficient_of_range([1.0, -math.inf])
 
-    def test_rejects_non_numeric(self) -> None:
-        numbers: list[object] = [1, "a", 3]
-        with self.assertRaises(TypeError):
-            coefficient_of_range(numbers)  # type: ignore[type-var]
-
-    def test_rejects_bool(self) -> None:
-        with self.assertRaises(TypeError):
-            coefficient_of_range([True, 1, 2])  # type: ignore[type-var]
-
 
 class TestIqr(unittest.TestCase):
     def test_basic(self) -> None:

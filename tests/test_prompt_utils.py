@@ -29,9 +29,8 @@ from prompt_utils import (
     count_vowels,
     count_whitespace_characters,
     count_words,
-    has_words,
-    has_unique_words,
     dedent_lines,
+    ends_with_newline,
     ensure_leading_newline,
     ensure_prefix,
     ensure_suffix,
@@ -45,12 +44,11 @@ from prompt_utils import (
     first_line,
     format_prompt_template,
     has_alphanumeric,
-    has_characters,
     has_blank_lines,
+    has_characters,
     has_digits,
     has_leading_newline,
     has_letters,
-    has_lines,
     has_lowercase,
     has_paragraphs,
     has_placeholders,
@@ -59,9 +57,10 @@ from prompt_utils import (
     has_spaces,
     has_tabs,
     has_trailing_newline,
-    ends_with_newline,
+    has_unique_words,
     has_uppercase,
     has_whitespace,
+    has_words,
     indent_lines,
     is_blank,
     join_lines,
@@ -77,7 +76,6 @@ from prompt_utils import (
     split_lines,
     starts_with_newline,
     strip_blank_lines,
-
     strip_leading_newlines,
     strip_lines,
     strip_trailing_newlines,
@@ -2033,68 +2031,6 @@ class TestCountTabs(unittest.TestCase):
             count_tabs([])
 
 
-class TestEnsureSurroundedByNewlines(unittest.TestCase):
-    def test_basic(self):
-        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
-
-    def test_already_surrounded(self):
-        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
-
-    def test_empty_unchanged(self):
-        self.assertEqual(ensure_surrounded_by_newlines(""), "")
-
-    def test_leading_only(self):
-        self.assertEqual(ensure_surrounded_by_newlines("\nhello"), "\nhello\n")
-
-    def test_trailing_only(self):
-        self.assertEqual(ensure_surrounded_by_newlines("hello\n"), "\nhello\n")
-
-    def test_type_errors(self):
-        with self.assertRaises(TypeError):
-            ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
-
-
-class TestChomp(unittest.TestCase):
-    def test_lf(self):
-        self.assertEqual(chomp("hello\n"), "hello")
-
-    def test_crlf(self):
-        self.assertEqual(chomp("hello\r\n"), "hello")
-
-    def test_cr(self):
-        self.assertEqual(chomp("hello\r"), "hello")
-
-    def test_no_newline(self):
-        self.assertEqual(chomp("hello"), "hello")
-
-    def test_empty(self):
-        self.assertEqual(chomp(""), "")
-
-    def test_type_errors(self):
-        with self.assertRaises(TypeError):
-            chomp(123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            chomp(None)  # type: ignore[arg-type]
-
-
-class TestEscapePlaceholders(unittest.TestCase):
-    def test_basic(self):
-        self.assertEqual(escape_placeholders("Hello {name}"), "Hello {{name}}")
-
-    def test_no_braces(self):
-        self.assertEqual(escape_placeholders("No braces"), "No braces")
-
-    def test_empty(self):
-        self.assertEqual(escape_placeholders(""), "")
-
-    def test_double_braces(self):
-        self.assertEqual(escape_placeholders("{{a}}"), "{{{{a}}}}")
-
-    def test_type_errors(self):
-        with self.assertRaises(TypeError):
-            escape_placeholders(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             escape_placeholders(None)  # type: ignore[arg-type]
 

@@ -16,7 +16,6 @@ from numbers_utils import (
     is_deficient_number,
     is_duck_number,
     is_even,
-    is_odd,
     is_evil_number,
     is_fibonacci_number,
     is_happy_number,
@@ -24,13 +23,14 @@ from numbers_utils import (
     is_integral,
     is_neon_number,
     is_number,
+    is_odd,
     is_odious_number,
     is_palindromic_number,
     is_pandigital_number,
     is_perfect_number,
     is_perfect_power,
-    is_power_of,
     is_polydivisible_number,
+    is_power_of,
     is_pronic_number,
     is_rational,
     is_real,
@@ -1109,19 +1109,16 @@ class TestIsAmicableNumber(unittest.TestCase):
 
 class TestIsEven(unittest.TestCase):
     def test_even_values(self):
-        from numbers_utils import is_even
 
         for value in (0, 2, -2, 100, -100, 2 * 10**6):
             self.assertTrue(is_even(value), value)
 
     def test_odd_values(self):
-        from numbers_utils import is_even
 
         for value in (1, 3, -1, -3, 99, 2 * 10**6 + 1):
             self.assertFalse(is_even(value), value)
 
     def test_type_error(self):
-        from numbers_utils import is_even
 
         for value in (1.5, 2.0, "2", None, True, [2], (2,)):
             with self.assertRaises(TypeError):

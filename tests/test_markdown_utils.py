@@ -5,8 +5,8 @@ import unittest
 from markdown_utils import (
     count_words,
     extract_code_blocks,
-    heading_level,
     has_words,
+    heading_level,
     is_heading,
     strip_markdown,
 )
