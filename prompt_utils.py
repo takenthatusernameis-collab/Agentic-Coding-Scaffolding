@@ -1362,6 +1362,41 @@ def count_lines(text: str) -> int:
     return len(lines)
 
 
+def has_lines(text: str) -> bool:
+    """Return True if *text* contains at least one line.
+
+    Empty text returns False. A trailing newline does not create an extra
+    empty line.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        True if *text* contains at least one line, False otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_lines("")
+        False
+        >>> has_lines("hello")
+        True
+        >>> has_lines("hello\\nworld")
+        True
+        >>> has_lines("hello\\n")
+        True
+    """
+    _require_string(text, "text")
+    if not text:
+        return False
+    normalized = text.replace("\\r\\n", "\\n").replace("\\r", "\\n")
+    lines = normalized.split("\\n")
+    if lines and lines[-1] == "":
+        lines = lines[:-1]
+    return len(lines) > 0
+
+
 def count_non_blank_lines(text: str) -> int:
     """Return the number of non-blank (non-whitespace-only) lines in *text*.
 

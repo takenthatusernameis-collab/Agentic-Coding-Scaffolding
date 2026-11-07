@@ -50,6 +50,7 @@ from prompt_utils import (
     has_digits,
     has_leading_newline,
     has_letters,
+    has_lines,
     has_lowercase,
     has_paragraphs,
     has_placeholders,
