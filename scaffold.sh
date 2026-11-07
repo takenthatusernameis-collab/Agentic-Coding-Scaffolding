@@ -36377,6 +36377,8 @@ def values_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     if not isinstance(d2, dict):
         raise TypeError("d2 must be a dict")
     return set(d1.values()) == set(d2.values())
+
+
 def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
     """Invert a dictionary by swapping keys and values.
 
