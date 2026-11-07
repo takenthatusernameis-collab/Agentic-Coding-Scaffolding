@@ -204,6 +204,35 @@ def count_vowels(s: str) -> int:
     return sum(1 for ch in s.lower() if ch in vowels)
 
 
+def has_vowels(s: str) -> bool:
+    """Return True if *s* contains any ASCII vowel (a, e, i, o, u).
+
+    A boolean companion to :func:`count_vowels` that reports whether *s*
+    contains at least one ASCII vowel, case-insensitive. Empty text returns
+    False.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains at least one ASCII vowel, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_vowels("hello")
+        True
+        >>> has_vowels("xyz")
+        False
+        >>> has_vowels("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch in "aeiouAEIOU" for ch in s)
+
+
 def count_consonants(s: str) -> int:
     """Return the number of consonants in the given string.
 
