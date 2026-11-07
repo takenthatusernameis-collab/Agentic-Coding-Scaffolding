@@ -59284,6 +59284,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_topics to pydoc_data_utils
+
+- Added `has_topics()` to `pydoc_data_utils.py` as the boolean companion to `count_topics`. `pydoc_data_utils.py` had `count_topics()` (returning the number of topics the standard library holds) but no `has_topics` boolean counterpart. It returns ``True`` when the standard library holds at least one topic and ``False`` otherwise, reusing `count_topics` for consistency. It takes no arguments, raises `RuntimeError` when the interpreter does not ship the `pydoc_data` package (the same failure mode as `count_topics`), is exported via `__all__`, and ships with an ASCII-safe doctest. Added `TestHasTopics` (2 tests) to `tests/test_pydoc_data_utils.py` covering the positive case and consistency with `count_topics`; imported `has_topics` to match the module's `__all__` contract. Updated the `pydoc_data_utils` module tree entry and prose section of `README.md`. Synchronized `pydoc_data_utils.py`, `tests/test_pydoc_data_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_pydoc_data_utils`; targeted doctest for `has_topics`; `python -m unittest tests.test_public_api`. No `.github/workflows/**` changes.
+
 ## Unreleased — added has_uppercase to strings
 
 - Added `has_uppercase(s)` to `strings.py` as the boolean companion to `count_uppercase`. `strings.py` had `count_uppercase(s)` (returning the number of uppercase letters) but no `has_uppercase` boolean counterpart. It returns `True` when *s* contains at least one uppercase letter and `False` for empty or lowercase-only text, reusing `count_uppercase` for consistency. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasUppercase` (9 tests) to `tests/test_strings.py` covering basic, no-uppercase, empty, mixed case, non-alpha-ignored, unicode-uppercase, consistency with `count_uppercase`, and the `TypeError` path; imported `has_uppercase` to match the module's `__all__` contract. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings`; targeted doctest for `has_uppercase`; `python -m unittest tests.test_public_api`. No `.github/workflows/**` changes.
@@ -61895,7 +61899,7 @@ bdb_utils.py                 # Debugger framework utilities wrapping stdlib bdb 
 pdb_utils.py                 # Interactive debugger utilities wrapping stdlib pdb (create_pdb, set_trace, post_mortem, pm, run, runeval, runctx, runcall)
 ipaddress_utils.py           # IP address utilities wrapping stdlib ipaddress (ip_address, ip_network, ip_interface, is_valid_address, network_hosts, subnets, summarize_addresses)
 pydoc_utils.py               # Documentation utilities wrapping stdlib pydoc (render_doc, doc, writedoc, writedocs, apropos, locate, resolve, safeimport, importfile, getdoc, synopsis, source_synopsis, describe, classify_class_attrs, classname, parentname, visiblename, isdata, ispackage, ispath, allmethods, splitdoc, stripid, replace, cram, plain, cli, help, getpager, browse) with input validation
-pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
+pydoc_data_utils.py          # Documentation topic utilities wrapping stdlib pydoc_data (count_topics, has_topics, get_topic, get_topic_names, get_topic_section, get_topic_sections, get_topic_title, get_topics, get_topics_subset, has_topic, search_topics, wrap_topic) with input validation
 antigravity_utils.py         # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 wsgiref_utils.py              # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 venv_utils.py                 # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
@@ -63265,7 +63269,7 @@ The project includes WSGI utilities in `wsgiref_utils.py` wrapping the standard 
 
 ## Pydoc Data Utilities Module
 
-The project includes documentation topic utilities in `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package: `get_topics` returns a copy of the topics of the Python Language Reference, `get_topics_subset` returns the topics of the given names, `get_topic` returns the text of a single topic, `get_topic_names` returns the names of the topics, `count_topics` returns the number of the topics, and `has_topic` reports whether a topic exists. The helper `get_topic_title` returns the title of a topic, `get_topic_sections` returns the headings of the sections of a topic, and `get_topic_section` returns the text of a single section. The helper `search_topics` returns the topics that hold a text, and `wrap_topic` returns the text of a topic, wrapped for a terminal. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the network, the file system, or a process. The module is tested in `tests/test_pydoc_data_utils.py`.
+The project includes documentation topic utilities in `pydoc_data_utils.py` wrapping the standard library `pydoc_data` package: `get_topics` returns a copy of the topics of the Python Language Reference, `get_topics_subset` returns the topics of the given names, `get_topic` returns the text of a single topic, `get_topic_names` returns the names of the topics, `count_topics` returns the number of the topics, and `has_topics` reports whether the documentation holds any topic. The helper `has_topic` reports whether a topic exists, `get_topic_title` returns the title of a topic, `get_topic_sections` returns the headings of the sections of a topic, and `get_topic_section` returns the text of a single section. The helper `search_topics` returns the topics that hold a text, and `wrap_topic` returns the text of a topic, wrapped for a terminal. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is pure computation, so it works on every platform and never touches the network, the file system, or a process. The module is tested in `tests/test_pydoc_data_utils.py`.
 
 ## Antigravity Utilities Module
 
@@ -128807,6 +128811,7 @@ __all__: list[str] = [
     "get_topics",
     "get_topics_subset",
     "has_topic",
+    "has_topics",
     "search_topics",
     "wrap_topic",
 ]
@@ -128896,6 +128901,27 @@ def count_topics() -> int:
         The number of topics of the documentation of the language.
     """
     return len(_standard_topics())
+
+
+def has_topics() -> bool:
+    """Report whether the standard library holds any topic.
+
+    A boolean companion to :func:`count_topics`. Returns ``True`` when the
+    standard library holds at least one topic and ``False`` when it holds
+    none, reusing :func:`count_topics` for consistency.
+
+    Returns:
+        ``True`` when the documentation of the language holds at least one
+        topic, ``False`` otherwise.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pydoc_data``
+            package.
+
+    >>> has_topics()
+    True
+    """
+    return count_topics() > 0
 
 
 def get_topics() -> Dict[str, str]:
@@ -129122,6 +129148,7 @@ from pydoc_data_utils import (
     get_topics,
     get_topics_subset,
     has_topic,
+    has_topics,
     search_topics,
     wrap_topic,
 )
@@ -129199,6 +129226,16 @@ class TestTopicCollection(unittest.TestCase):
     def test_get_topics_subset_rejects_an_empty_name(self):
         with self.assertRaises(ValueError):
             get_topics_subset([""])
+
+
+class TestHasTopics(unittest.TestCase):
+    """Verify the boolean companion to count_topics."""
+
+    def test_has_topics_reports_topics_when_the_library_holds_topics(self):
+        self.assertTrue(has_topics())
+
+    def test_has_topics_is_consistent_with_count_topics(self):
+        self.assertEqual(has_topics(), count_topics() > 0)
 
 
 class TestSingleTopic(unittest.TestCase):

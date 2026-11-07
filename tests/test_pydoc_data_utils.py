@@ -15,6 +15,7 @@ from pydoc_data_utils import (
     get_topics,
     get_topics_subset,
     has_topic,
+    has_topics,
     search_topics,
     wrap_topic,
 )
@@ -92,6 +93,16 @@ class TestTopicCollection(unittest.TestCase):
     def test_get_topics_subset_rejects_an_empty_name(self):
         with self.assertRaises(ValueError):
             get_topics_subset([""])
+
+
+class TestHasTopics(unittest.TestCase):
+    """Verify the boolean companion to count_topics."""
+
+    def test_has_topics_reports_topics_when_the_library_holds_topics(self):
+        self.assertTrue(has_topics())
+
+    def test_has_topics_is_consistent_with_count_topics(self):
+        self.assertEqual(has_topics(), count_topics() > 0)
 
 
 class TestSingleTopic(unittest.TestCase):

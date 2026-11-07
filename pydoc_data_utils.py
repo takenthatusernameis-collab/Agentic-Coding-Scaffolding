@@ -37,6 +37,7 @@ __all__: list[str] = [
     "get_topics",
     "get_topics_subset",
     "has_topic",
+    "has_topics",
     "search_topics",
     "wrap_topic",
 ]
@@ -126,6 +127,27 @@ def count_topics() -> int:
         The number of topics of the documentation of the language.
     """
     return len(_standard_topics())
+
+
+def has_topics() -> bool:
+    """Report whether the standard library holds any topic.
+
+    A boolean companion to :func:`count_topics`. Returns ``True`` when the
+    standard library holds at least one topic and ``False`` when it holds
+    none, reusing :func:`count_topics` for consistency.
+
+    Returns:
+        ``True`` when the documentation of the language holds at least one
+        topic, ``False`` otherwise.
+
+    Raises:
+        RuntimeError: If the interpreter does not ship the ``pydoc_data``
+            package.
+
+    >>> has_topics()
+    True
+    """
+    return count_topics() > 0
 
 
 def get_topics() -> Dict[str, str]:
