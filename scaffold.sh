@@ -84384,6 +84384,12 @@ class TestPercentage(unittest.TestCase):
     def test_zero_total(self) -> None:
         self.assertEqual(percentage(5, 0), "0.0%")
 
+    def test_nan_propagates(self) -> None:
+        import math
+
+        self.assertTrue(math.isnan(float(percentage(float("nan"), 4).rstrip("%"))))
+        self.assertTrue(math.isnan(float(percentage(1, float("nan")).rstrip("%"))))
+
 
 class TestLerp(unittest.TestCase):
     def test_endpoints(self) -> None:
@@ -85029,6 +85035,20 @@ class TestMapRange(unittest.TestCase):
     def test_zero_source_span(self) -> None:
         with self.assertRaises(ValueError):
             map_range(5, 10, 10, 0, 100)
+
+    def test_nan_propagates(self) -> None:
+        import math
+
+        self.assertTrue(math.isnan(map_range(float("nan"), 0, 10, 0, 100)))
+        self.assertTrue(math.isnan(map_range(5, float("nan"), 10, 0, 100)))
+        self.assertTrue(math.isnan(map_range(5, 0, 10, float("nan"), 100)))
+
+    def test_type_error_all_args(self) -> None:
+        for i in range(5):
+            args = [5, 0, 10, 0, 100]
+            args[i] = "x"
+            with self.assertRaises(TypeError):
+                map_range(*args)  # type: ignore[arg-type]
 
     def test_remap_alias(self) -> None:
         self.assertEqual(remap(5, 0, 10, 0, 100), map_range(5, 0, 10, 0, 100))
