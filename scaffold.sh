@@ -58311,6 +58311,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_words to markdown_utils
+
+- Added `has_words(text)` to `markdown_utils.py` as the boolean companion to `count_words`. `markdown_utils.py` had `count_words(text)` (returning `len(text.split())`) but no `has_words` boolean counterpart. It returns `True` when *text* contains at least one whitespace-delimited word and `False` for empty or whitespace-only text, reusing `count_words` for consistency. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasWords` to `tests/test_markdown_utils.py` covering empty, whitespace-only, single/multiple words, leading/trailing whitespace, multiple spaces between words, unicode, consistency with `count_words`, and the `TypeError` path; imported `has_words` to match the module's `__all__` contract. Updated the `markdown_utils` module tree entry of `README.md`. Synchronized `markdown_utils.py`, `tests/test_markdown_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_markdown_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_words`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_words to string_utils
 
 - Added `has_words(text)` to `string_utils.py` as the boolean companion to `count_words`. `string_utils.py` had `count_words(text)` (returning `len(text.split())`) but no `has_words` boolean counterpart. It returns `True` when *text* contains at least one whitespace-delimited word and `False` for empty or whitespace-only text, reusing `count_words` for consistency. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasWords` to `tests/test_string_utils.py` covering empty, whitespace-only, single/multiple words, leading/trailing whitespace, multiple spaces between words, unicode, consistency with `count_words`, and the `TypeError` path; imported `has_words` to match the module's `__all__` contract. Updated the `string_utils` module tree entry and prose section of `README.md`. Synchronized `string_utils.py`, `tests/test_string_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_string_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_words`. No changes to `.github/workflows/**`.
@@ -60788,7 +60792,7 @@ decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subt
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
-markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, heading detection)
+markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, has_words, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch, format_duration)
 timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
@@ -78254,6 +78258,7 @@ __all__ = [
     "count_words",
     "extract_code_blocks",
     "heading_level",
+    "has_words",
     "is_heading",
     "strip_markdown",
 ]
@@ -78291,6 +78296,35 @@ def count_words(text: str) -> int:
     return len(text.split())
 
 
+def has_words(text: str) -> bool:
+    """Return True if *text* contains at least one whitespace-delimited word.
+
+    This is a boolean companion to :func:`count_words`; it returns ``True``
+    when *text* contains one or more whitespace-delimited words and ``False``
+    otherwise (including empty or whitespace-only text).
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one word, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_words("Hello world")
+        True
+        >>> has_words("")
+        False
+        >>> has_words("   ")
+        False
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return count_words(text) > 0
+
+
 def is_heading(line: str) -> bool:
     """Return True if line is a markdown heading."""
     return bool(re.match(r"^#{1,6}\s+\S", line))
@@ -78314,6 +78348,7 @@ from markdown_utils import (
     count_words,
     extract_code_blocks,
     heading_level,
+    has_words,
     is_heading,
     strip_markdown,
 )
@@ -78362,6 +78397,40 @@ class TestCountWords(unittest.TestCase):
 
     def test_empty(self) -> None:
         self.assertEqual(count_words(""), 0)
+
+
+class TestHasWords(unittest.TestCase):
+    def test_empty(self) -> None:
+        self.assertFalse(has_words(""))
+
+    def test_whitespace_only(self) -> None:
+        self.assertFalse(has_words("   "))
+        self.assertFalse(has_words("\t\n"))
+
+    def test_single_word(self) -> None:
+        self.assertTrue(has_words("hello"))
+
+    def test_multiple_words(self) -> None:
+        self.assertTrue(has_words("hello world foo"))
+
+    def test_leading_trailing_whitespace(self) -> None:
+        self.assertTrue(has_words("  hello world  "))
+
+    def test_multiple_spaces_between_words(self) -> None:
+        self.assertTrue(has_words("a   b   c"))
+
+    def test_unicode(self) -> None:
+        self.assertTrue(has_words("héllo wörld"))
+
+    def test_consistent_with_count_words(self) -> None:
+        self.assertEqual(has_words("hello world"), count_words("hello world") > 0)
+        self.assertEqual(has_words(""), count_words("") > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_words(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_words(123)  # type: ignore[arg-type]
 
 
 class TestHeading(unittest.TestCase):

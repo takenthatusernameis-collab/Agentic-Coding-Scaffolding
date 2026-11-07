@@ -6,6 +6,7 @@ from markdown_utils import (
     count_words,
     extract_code_blocks,
     heading_level,
+    has_words,
     is_heading,
     strip_markdown,
 )
@@ -54,6 +55,40 @@ class TestCountWords(unittest.TestCase):
 
     def test_empty(self) -> None:
         self.assertEqual(count_words(""), 0)
+
+
+class TestHasWords(unittest.TestCase):
+    def test_empty(self) -> None:
+        self.assertFalse(has_words(""))
+
+    def test_whitespace_only(self) -> None:
+        self.assertFalse(has_words("   "))
+        self.assertFalse(has_words("\t\n"))
+
+    def test_single_word(self) -> None:
+        self.assertTrue(has_words("hello"))
+
+    def test_multiple_words(self) -> None:
+        self.assertTrue(has_words("hello world foo"))
+
+    def test_leading_trailing_whitespace(self) -> None:
+        self.assertTrue(has_words("  hello world  "))
+
+    def test_multiple_spaces_between_words(self) -> None:
+        self.assertTrue(has_words("a   b   c"))
+
+    def test_unicode(self) -> None:
+        self.assertTrue(has_words("héllo wörld"))
+
+    def test_consistent_with_count_words(self) -> None:
+        self.assertEqual(has_words("hello world"), count_words("hello world") > 0)
+        self.assertEqual(has_words(""), count_words("") > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_words(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_words(123)  # type: ignore[arg-type]
 
 
 class TestHeading(unittest.TestCase):

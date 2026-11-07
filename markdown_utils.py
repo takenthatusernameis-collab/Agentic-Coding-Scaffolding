@@ -9,6 +9,7 @@ __all__ = [
     "count_words",
     "extract_code_blocks",
     "heading_level",
+    "has_words",
     "is_heading",
     "strip_markdown",
 ]
@@ -44,6 +45,35 @@ def strip_markdown(text: str) -> str:
 def count_words(text: str) -> int:
     """Count whitespace-delimited words in text."""
     return len(text.split())
+
+
+def has_words(text: str) -> bool:
+    """Return True if *text* contains at least one whitespace-delimited word.
+
+    This is a boolean companion to :func:`count_words`; it returns ``True``
+    when *text* contains one or more whitespace-delimited words and ``False``
+    otherwise (including empty or whitespace-only text).
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one word, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_words("Hello world")
+        True
+        >>> has_words("")
+        False
+        >>> has_words("   ")
+        False
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return count_words(text) > 0
 
 
 def is_heading(line: str) -> bool:
