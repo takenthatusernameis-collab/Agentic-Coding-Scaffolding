@@ -98,6 +98,10 @@ __all__: List[str] = [
     "chunk_string",
     "remove_vowels",
     "remove_consonants",
+    "count_vowels",
+    "has_vowels",
+    "count_consonants",
+    "has_consonants",
     "count_digits",
     "has_digits",
     "count_letters",
@@ -265,6 +269,40 @@ def count_consonants(s: str) -> int:
     _require_string(s, "s")
     vowels = {"a", "e", "i", "o", "u"}
     return sum(1 for ch in s.lower() if ch.isalpha() and ch not in vowels)
+
+
+def has_consonants(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one consonant.
+
+    A boolean companion to :func:`count_consonants`. Comparison is
+    case-insensitive and ignores non-alphabetic characters, so ``True`` is
+    returned when *s* has at least one alphabetic character that is not a
+    vowel (a, e, i, o, u); digit-only, punctuation-only, and empty text
+    return ``False``.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more consonant characters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_consonants("hello")
+        True
+        >>> has_consonants("aeiou")
+        False
+        >>> has_consonants("123")
+        False
+        >>> has_consonants("")
+        False
+    """
+    _require_string(s, "s")
+    vowels = {"a", "e", "i", "o", "u"}
+    return any(ch.isalpha() and ch not in vowels for ch in s.lower())
 
 
 def count_uppercase(s: str) -> int:

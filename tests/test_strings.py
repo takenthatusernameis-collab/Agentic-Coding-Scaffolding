@@ -32,6 +32,7 @@ from strings import (
     ensure_trailing_newline,
     find,
     first_n,
+    has_consonants,
     has_digits,
     has_letters,
     has_punctuation,
@@ -226,6 +227,37 @@ class TestCountConsonants(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             count_consonants(None)  # type: ignore[arg-type]
+
+
+class TestHasConsonants(unittest.TestCase):
+    def test_has_consonants_basic(self):
+        self.assertTrue(has_consonants("hello"))
+        self.assertTrue(has_consonants("HELLO"))
+
+    def test_has_consonants_no_consonants(self):
+        self.assertFalse(has_consonants("aeiou"))
+        self.assertFalse(has_consonants("AEIOU"))
+
+    def test_has_consonants_all_consonants(self):
+        self.assertTrue(has_consonants("rhythm"))
+
+    def test_has_consonants_ignores_non_alpha(self):
+        self.assertTrue(has_consonants("hello world"))
+        self.assertFalse(has_consonants("a1e2"))
+
+    def test_has_consonants_empty(self):
+        self.assertFalse(has_consonants(""))
+
+    def test_has_consonants_consistency_with_count_consonants(self):
+        cases = ["hello", "aeiou", "rhythm", "hello world", "a1e2", ""]
+        for s in cases:
+            self.assertEqual(has_consonants(s), count_consonants(s) > 0)
+
+    def test_has_consonants_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_consonants(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_consonants(None)  # type: ignore[arg-type]
 
 
 class TestCountLowercase(unittest.TestCase):
