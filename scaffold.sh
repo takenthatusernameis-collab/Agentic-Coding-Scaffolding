@@ -59462,7 +59462,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count/has_code_blocks to markdown_utils
+
+- Added `count_code_blocks(text)` and `has_code_blocks(text)` to `markdown_utils.py` as count/boolean companions to `extract_code_blocks`. `count_code_blocks` returns the number of fenced code blocks using the same extraction rules as `extract_code_blocks`; `has_code_blocks` returns `True` when at least one fenced code block is present. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with ASCII-safe doctests. Added `TestCountCodeBlocks` and `TestHasCodeBlocks` (11 tests) to `tests/test_markdown_utils.py` covering basic cases, consistency with `extract_code_blocks`/`count_code_blocks`, and `TypeError` paths; imported the new helpers to match the module's `__all__` contract. Updated the `markdown_utils` module tree entry and prose section of `README.md`. Synchronized `markdown_utils.py`, `tests/test_markdown_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_markdown_utils`; `python -m unittest tests.test_public_api`; targeted doctests for `markdown_utils`. No `.github/workflows/**` changes.
+
 ## Unreleased — added has_occurrences to strings
+
 
 - Added `has_occurrences(s, substring)` to `strings.py` as the boolean companion to `count_occurrences`. `strings.py` had `count_occurrences(s, substring)` (returning the number of non-overlapping occurrences of *substring* in *s*) but no `has_occurrences` boolean counterpart. It returns `True` when *substring* occurs at least once in *s* and `False` when it is absent, including for empty *s*, reusing `count_occurrences` for consistency. Accepts typed `str` arguments, raises `TypeError` for non-strings and `ValueError` for an empty *substring* (the same contract as `count_occurrences`), is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasOccurrences` (7 tests) to `tests/test_strings.py` covering basic, no-occurrences, empty *s*, non-overlapping matching, consistency with `count_occurrences`, empty-substring `ValueError`, and the `TypeError` path; imported `has_occurrences` to match the module's `__all__` contract. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings`; targeted doctest for `has_occurrences`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No `.github/workflows/**` changes.
 
@@ -61991,7 +61996,7 @@ decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subt
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
-markdown_utils.py          # Markdown utility functions (extract code blocks, strip formatting, count words, has_words, heading detection)
+markdown_utils.py          # Markdown utility functions (extract/count/has fenced code blocks, strip formatting, count/has words, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch, format_duration)
 timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
@@ -62894,7 +62899,7 @@ The project includes networking utilities in `networking_utils.py` for TCP port 
 
 ## Markdown Utilities Module
 
-The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `is_heading` detects Markdown headings, and `heading_level` returns the heading level (1-6) or 0 if not a heading. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
+The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `count_code_blocks` counts them, `has_code_blocks` reports whether any are present, `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `has_words` reports whether any words are present, `is_heading` detects Markdown headings, and `heading_level` returns the heading level (1-6) or 0 if not a heading. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
 
 ## Time Utilities Module
 
@@ -79631,10 +79636,12 @@ import re
 from typing import List
 
 __all__ = [
+    "count_code_blocks",
     "count_words",
     "extract_code_blocks",
-    "heading_level",
+    "has_code_blocks",
     "has_words",
+    "heading_level",
     "is_heading",
     "strip_markdown",
 ]
@@ -79644,6 +79651,59 @@ def extract_code_blocks(text: str) -> List[str]:
     """Extract fenced code blocks (``` ... ```) from markdown text."""
     pattern = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.DOTALL)
     return [block.strip("\n") for block in pattern.findall(text)]
+
+
+def count_code_blocks(text: str) -> int:
+    """Count fenced code blocks (``` ... ```) in markdown text.
+
+    This uses the same extraction rules as :func:`extract_code_blocks`.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        The number of fenced code blocks found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_code_blocks("no code")
+        0
+        >>> count_code_blocks("```\\na\\n```")
+        1
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return len(extract_code_blocks(text))
+
+
+def has_code_blocks(text: str) -> bool:
+    """Return True if *text* contains at least one fenced code block.
+
+    This is a boolean companion to :func:`count_code_blocks`; it returns
+    ``True`` when *text* contains one or more fenced code blocks and ``False``
+    otherwise.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one fenced code block, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_code_blocks("```\\na\\n```")
+        True
+        >>> has_code_blocks("plain text")
+        False
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return count_code_blocks(text) > 0
 
 
 def strip_markdown(text: str) -> str:
@@ -79721,8 +79781,10 @@ cat > "$OUTPUT_DIR/tests/test_markdown_utils.py" <<'TEST_MARKDOWN_UTILS'
 import unittest
 
 from markdown_utils import (
+    count_code_blocks,
     count_words,
     extract_code_blocks,
+    has_code_blocks,
     has_words,
     heading_level,
     is_heading,
@@ -79745,6 +79807,55 @@ class TestExtractCodeBlocks(unittest.TestCase):
     def test_language_tag_optional(self) -> None:
         text = "```\nplain\n```"
         self.assertEqual(extract_code_blocks(text), ["plain"])
+
+
+class TestCountCodeBlocks(unittest.TestCase):
+    def test_no_blocks(self) -> None:
+        self.assertEqual(count_code_blocks("no code"), 0)
+
+    def test_single_block(self) -> None:
+        text = "```py\nx = 1\n```"
+        self.assertEqual(count_code_blocks(text), 1)
+
+    def test_multiple_blocks(self) -> None:
+        text = "```js\na()\n```\n\n```py\nb()\n```"
+        self.assertEqual(count_code_blocks(text), 2)
+
+    def test_consistent_with_extract(self) -> None:
+        text = "intro\n```python\nprint('hi')\n```\noutro"
+        self.assertEqual(count_code_blocks(text), len(extract_code_blocks(text)))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_code_blocks(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_code_blocks(123)  # type: ignore[arg-type]
+
+
+class TestHasCodeBlocks(unittest.TestCase):
+    def test_no_blocks(self) -> None:
+        self.assertFalse(has_code_blocks("plain text"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_code_blocks(""))
+
+    def test_single_block(self) -> None:
+        self.assertTrue(has_code_blocks("```\na\n```"))
+
+    def test_multiple_blocks(self) -> None:
+        text = "```js\na()\n```\n\n```py\nb()\n```"
+        self.assertTrue(has_code_blocks(text))
+
+    def test_consistent_with_count(self) -> None:
+        text = "```py\nx = 1\n```"
+        self.assertEqual(has_code_blocks(text), count_code_blocks(text) > 0)
+        self.assertEqual(has_code_blocks("none"), count_code_blocks("none") > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_code_blocks(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_code_blocks(123)  # type: ignore[arg-type]
 
 
 class TestStripMarkdown(unittest.TestCase):

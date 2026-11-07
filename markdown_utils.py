@@ -6,10 +6,12 @@ import re
 from typing import List
 
 __all__ = [
+    "count_code_blocks",
     "count_words",
     "extract_code_blocks",
-    "heading_level",
+    "has_code_blocks",
     "has_words",
+    "heading_level",
     "is_heading",
     "strip_markdown",
 ]
@@ -19,6 +21,59 @@ def extract_code_blocks(text: str) -> List[str]:
     """Extract fenced code blocks (``` ... ```) from markdown text."""
     pattern = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.DOTALL)
     return [block.strip("\n") for block in pattern.findall(text)]
+
+
+def count_code_blocks(text: str) -> int:
+    """Count fenced code blocks (``` ... ```) in markdown text.
+
+    This uses the same extraction rules as :func:`extract_code_blocks`.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        The number of fenced code blocks found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_code_blocks("no code")
+        0
+        >>> count_code_blocks("```\\na\\n```")
+        1
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return len(extract_code_blocks(text))
+
+
+def has_code_blocks(text: str) -> bool:
+    """Return True if *text* contains at least one fenced code block.
+
+    This is a boolean companion to :func:`count_code_blocks`; it returns
+    ``True`` when *text* contains one or more fenced code blocks and ``False``
+    otherwise.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one fenced code block, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_code_blocks("```\\na\\n```")
+        True
+        >>> has_code_blocks("plain text")
+        False
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return count_code_blocks(text) > 0
 
 
 def strip_markdown(text: str) -> str:

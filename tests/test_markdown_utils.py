@@ -3,8 +3,10 @@
 import unittest
 
 from markdown_utils import (
+    count_code_blocks,
     count_words,
     extract_code_blocks,
+    has_code_blocks,
     has_words,
     heading_level,
     is_heading,
@@ -27,6 +29,55 @@ class TestExtractCodeBlocks(unittest.TestCase):
     def test_language_tag_optional(self) -> None:
         text = "```\nplain\n```"
         self.assertEqual(extract_code_blocks(text), ["plain"])
+
+
+class TestCountCodeBlocks(unittest.TestCase):
+    def test_no_blocks(self) -> None:
+        self.assertEqual(count_code_blocks("no code"), 0)
+
+    def test_single_block(self) -> None:
+        text = "```py\nx = 1\n```"
+        self.assertEqual(count_code_blocks(text), 1)
+
+    def test_multiple_blocks(self) -> None:
+        text = "```js\na()\n```\n\n```py\nb()\n```"
+        self.assertEqual(count_code_blocks(text), 2)
+
+    def test_consistent_with_extract(self) -> None:
+        text = "intro\n```python\nprint('hi')\n```\noutro"
+        self.assertEqual(count_code_blocks(text), len(extract_code_blocks(text)))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_code_blocks(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_code_blocks(123)  # type: ignore[arg-type]
+
+
+class TestHasCodeBlocks(unittest.TestCase):
+    def test_no_blocks(self) -> None:
+        self.assertFalse(has_code_blocks("plain text"))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_code_blocks(""))
+
+    def test_single_block(self) -> None:
+        self.assertTrue(has_code_blocks("```\na\n```"))
+
+    def test_multiple_blocks(self) -> None:
+        text = "```js\na()\n```\n\n```py\nb()\n```"
+        self.assertTrue(has_code_blocks(text))
+
+    def test_consistent_with_count(self) -> None:
+        text = "```py\nx = 1\n```"
+        self.assertEqual(has_code_blocks(text), count_code_blocks(text) > 0)
+        self.assertEqual(has_code_blocks("none"), count_code_blocks("none") > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_code_blocks(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_code_blocks(123)  # type: ignore[arg-type]
 
 
 class TestStripMarkdown(unittest.TestCase):
