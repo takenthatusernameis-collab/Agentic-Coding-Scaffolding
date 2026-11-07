@@ -44490,6 +44490,7 @@ __all__: list[str] = [
     "is_even",
     "is_odd",
     "count_trailing_zeros",
+    "has_trailing_zeros",
 ]
 
 
@@ -44897,6 +44898,32 @@ def count_trailing_zeros(value: int) -> int:
         value >>= 1
         count += 1
     return count
+
+
+def has_trailing_zeros(value: int) -> bool:
+    """Return True if value has at least one trailing zero bit.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        True if value has at least one trailing zero bit, False otherwise.
+        Returns False for value 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> has_trailing_zeros(0)
+        False
+        >>> has_trailing_zeros(5)  # 0b101
+        False
+        >>> has_trailing_zeros(8)  # 0b1000
+        True
+    """
+    _validate_nonnegative_int(value)
+    return count_trailing_zeros(value) > 0
 BITUTILS
 
 # --- tests/test_bit_utils.py ---
@@ -44911,6 +44938,7 @@ from bit_utils import (
     count_set_bits,
     get_bit,
     has_set_bits,
+    has_trailing_zeros,
     is_even,
     is_odd,
     is_power_of_two,
@@ -45116,6 +45144,22 @@ class TestCountTrailingZeros(unittest.TestCase):
             count_trailing_zeros(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             count_trailing_zeros(-1)
+
+
+class TestHasTrailingZeros(unittest.TestCase):
+    def test_basic(self):
+        self.assertFalse(has_trailing_zeros(0))
+        self.assertFalse(has_trailing_zeros(1))
+        self.assertTrue(has_trailing_zeros(8))
+        self.assertTrue(has_trailing_zeros(12))
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_trailing_zeros("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_zeros(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_trailing_zeros(-1)
 
 
 if __name__ == "__main__":

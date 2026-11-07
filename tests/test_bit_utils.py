@@ -8,6 +8,7 @@ from bit_utils import (
     count_set_bits,
     get_bit,
     has_set_bits,
+    has_trailing_zeros,
     is_even,
     is_odd,
     is_power_of_two,
@@ -213,6 +214,22 @@ class TestCountTrailingZeros(unittest.TestCase):
             count_trailing_zeros(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             count_trailing_zeros(-1)
+
+
+class TestHasTrailingZeros(unittest.TestCase):
+    def test_basic(self):
+        self.assertFalse(has_trailing_zeros(0))
+        self.assertFalse(has_trailing_zeros(1))
+        self.assertTrue(has_trailing_zeros(8))
+        self.assertTrue(has_trailing_zeros(12))
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_trailing_zeros("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_zeros(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_trailing_zeros(-1)
 
 
 if __name__ == "__main__":

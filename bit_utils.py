@@ -25,6 +25,7 @@ __all__: list[str] = [
     "is_even",
     "is_odd",
     "count_trailing_zeros",
+    "has_trailing_zeros",
 ]
 
 
@@ -432,3 +433,29 @@ def count_trailing_zeros(value: int) -> int:
         value >>= 1
         count += 1
     return count
+
+
+def has_trailing_zeros(value: int) -> bool:
+    """Return True if value has at least one trailing zero bit.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        True if value has at least one trailing zero bit, False otherwise.
+        Returns False for value 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> has_trailing_zeros(0)
+        False
+        >>> has_trailing_zeros(5)  # 0b101
+        False
+        >>> has_trailing_zeros(8)  # 0b1000
+        True
+    """
+    _validate_nonnegative_int(value)
+    return count_trailing_zeros(value) > 0
