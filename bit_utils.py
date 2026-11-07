@@ -24,6 +24,7 @@ __all__: list[str] = [
     "toggle_bit",
     "is_even",
     "is_odd",
+    "count_trailing_zeros",
 ]
 
 
@@ -400,3 +401,34 @@ def is_odd(value: int) -> bool:
     if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError("value must be an integer")
     return (value & 1) == 1
+
+
+def count_trailing_zeros(value: int) -> int:
+    """Return the number of trailing zero bits in the binary representation of value.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The count of trailing zero bits. Returns 0 for value 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> count_trailing_zeros(0)
+        0
+        >>> count_trailing_zeros(5)  # 0b101
+        0
+        >>> count_trailing_zeros(8)  # 0b1000
+        3
+    """
+    _validate_nonnegative_int(value)
+    if value == 0:
+        return 0
+    count = 0
+    while (value & 1) == 0:
+        value >>= 1
+        count += 1
+    return count

@@ -4,6 +4,7 @@ import unittest
 
 from bit_utils import (
     clear_bit,
+    count_trailing_zeros,
     count_set_bits,
     get_bit,
     has_set_bits,
@@ -196,6 +197,22 @@ class TestEvenOdd(unittest.TestCase):
             is_even("4")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_odd(True)  # type: ignore[arg-type]
+
+
+class TestCountTrailingZeros(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_trailing_zeros(0), 0)
+        self.assertEqual(count_trailing_zeros(1), 0)
+        self.assertEqual(count_trailing_zeros(8), 3)
+        self.assertEqual(count_trailing_zeros(12), 2)
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            count_trailing_zeros("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_trailing_zeros(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            count_trailing_zeros(-1)
 
 
 if __name__ == "__main__":
