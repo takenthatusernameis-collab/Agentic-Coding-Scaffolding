@@ -7,9 +7,11 @@ from typing import List
 
 __all__ = [
     "count_code_blocks",
+    "count_headings",
     "count_words",
     "extract_code_blocks",
     "has_code_blocks",
+    "has_headings",
     "has_words",
     "heading_level",
     "is_heading",
@@ -129,6 +131,60 @@ def has_words(text: str) -> bool:
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     return count_words(text) > 0
+
+
+def count_headings(text: str) -> int:
+    """Count Markdown headings in *text*.
+
+    A heading is a line that starts with one to six ``#`` characters
+    followed by whitespace and non-whitespace content, matching the same
+    rule used by :func:`is_heading`.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        The number of heading lines found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_headings("# Title")
+        1
+        >>> count_headings("no headings here")
+        0
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return sum(1 for line in text.splitlines() if is_heading(line))
+
+
+def has_headings(text: str) -> bool:
+    """Return True if *text* contains at least one Markdown heading.
+
+    This is a boolean companion to :func:`count_headings`; it returns
+    ``True`` when *text* contains one or more heading lines and ``False``
+    otherwise.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one heading, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_headings("# Title")
+        True
+        >>> has_headings("plain text")
+        False
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return count_headings(text) > 0
 
 
 def is_heading(line: str) -> bool:

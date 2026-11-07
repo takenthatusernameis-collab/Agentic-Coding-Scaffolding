@@ -226,7 +226,7 @@ decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subt
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
-markdown_utils.py          # Markdown utility functions (extract/count/has fenced code blocks, strip formatting, count/has words, heading detection)
+markdown_utils.py          # Markdown utility functions (extract/count/has fenced code blocks, strip formatting, count/has words, count/has headings, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch, format_duration)
 timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
@@ -1129,7 +1129,7 @@ The project includes networking utilities in `networking_utils.py` for TCP port 
 
 ## Markdown Utilities Module
 
-The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `count_code_blocks` counts them, `has_code_blocks` reports whether any are present, `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `has_words` reports whether any words are present, `is_heading` detects Markdown headings, and `heading_level` returns the heading level (1-6) or 0 if not a heading. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
+The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `count_code_blocks` counts them, `has_code_blocks` reports whether any are present, `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `has_words` reports whether any words are present, `is_heading` detects Markdown headings, `heading_level` returns the heading level (1-6) or 0 if not a heading, `count_headings` counts heading lines, and `has_headings` reports whether any are present. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
 
 ## Time Utilities Module
 

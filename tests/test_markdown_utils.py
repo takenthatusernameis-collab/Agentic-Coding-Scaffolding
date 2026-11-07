@@ -4,9 +4,11 @@ import unittest
 
 from markdown_utils import (
     count_code_blocks,
+    count_headings,
     count_words,
     extract_code_blocks,
     has_code_blocks,
+    has_headings,
     has_words,
     heading_level,
     is_heading,
@@ -152,3 +154,30 @@ class TestHeading(unittest.TestCase):
         self.assertEqual(heading_level("# Title"), 1)
         self.assertEqual(heading_level("### Deep"), 3)
         self.assertEqual(heading_level("not heading"), 0)
+
+
+class TestCountHeadings(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_headings("# Title\n## Sub\nplain"), 2)
+
+    def test_none(self) -> None:
+        self.assertEqual(count_headings("no headings here"), 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_headings(None)  # type: ignore[arg-type]
+
+
+class TestHasHeadings(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(has_headings("# Title"))
+
+    def test_false(self) -> None:
+        self.assertFalse(has_headings("plain text"))
+
+    def test_consistency(self) -> None:
+        self.assertEqual(has_headings("# Title"), count_headings("# Title") > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_headings(None)  # type: ignore[arg-type]

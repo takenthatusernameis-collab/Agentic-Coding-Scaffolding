@@ -33129,7 +33129,10 @@ __all__ = [
     "find_index",
     "flatten",
     "group_by",
+    "has_duplicates",
     "intersperse",
+    "is_empty",
+    "is_sorted",
     "partition",
     "safe_get",
     "take",
@@ -33473,6 +33476,103 @@ def unique_preserve_order(lst: List[T]) -> List[T]:
         seen.add(item)
         result.append(item)
     return result
+
+
+def is_empty(lst: List[T]) -> bool:
+    """Return ``True`` when *lst* has no elements.
+
+    Args:
+        lst: The list to check.
+
+    Returns:
+        ``True`` if *lst* is empty, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> is_empty([])
+        True
+        >>> is_empty([1, 2])
+        False
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return len(lst) == 0
+
+
+def has_duplicates(lst: List[T]) -> bool:
+    """Return ``True`` when *lst* contains any duplicate element.
+
+    Elements are compared by equality; hashable elements use a set for
+    efficiency. Unhashable elements fall back to linear membership checks.
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        ``True`` if any element appears more than once, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> has_duplicates([1, 2, 2, 3])
+        True
+        >>> has_duplicates([1, 2, 3])
+        False
+        >>> has_duplicates([])
+        False
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen: set = set()
+    unhashable: List[T] = []
+    for item in lst:
+        try:
+            if item in seen:
+                return True
+            seen.add(item)
+        except TypeError:
+            if item in unhashable:
+                return True
+            unhashable.append(item)
+    return False
+
+
+def is_sorted(lst: List[T], reverse: bool = False) -> bool:
+    """Return ``True`` when *lst* is sorted in non-descending order.
+
+    Args:
+        lst: The list to check.
+        reverse: If ``True``, check for non-ascending (descending) order.
+
+    Returns:
+        ``True`` if *lst* is sorted in the requested direction, ``False``
+        otherwise. An empty list or a single-element list is considered sorted.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or ``reverse`` is not a bool.
+
+    Examples:
+        >>> is_sorted([1, 2, 3])
+        True
+        >>> is_sorted([3, 2, 1])
+        False
+        >>> is_sorted([3, 2, 1], reverse=True)
+        True
+        >>> is_sorted([])
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not isinstance(reverse, bool):
+        raise TypeError("reverse must be a bool")
+    if len(lst) < 2:
+        return True
+    if reverse:
+        return all(lst[i] >= lst[i + 1] for i in range(len(lst) - 1))
+    return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
 LISTUTILS
 # --- tests/test_list_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
@@ -33487,7 +33587,10 @@ from list_utils import (
     find_index,
     flatten,
     group_by,
+    has_duplicates,
     intersperse,
+    is_empty,
+    is_sorted,
     partition,
     safe_get,
     take,
@@ -33738,8 +33841,65 @@ class TestFlatten(unittest.TestCase):
             flatten([[1, 2], 3])  # type: ignore[list-item]
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestIsEmpty(unittest.TestCase):
+    def test_empty(self) -> None:
+        self.assertTrue(is_empty([]))
+
+    def test_not_empty(self) -> None:
+        self.assertFalse(is_empty([1]))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            is_empty("x")  # type: ignore[arg-type]
+
+
+class TestHasDuplicates(unittest.TestCase):
+    def test_has_duplicates_true(self) -> None:
+        self.assertTrue(has_duplicates([1, 2, 2, 3]))
+
+    def test_has_duplicates_false(self) -> None:
+        self.assertFalse(has_duplicates([1, 2, 3]))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_duplicates([]))
+
+    def test_strings(self) -> None:
+        self.assertTrue(has_duplicates(["a", "b", "a"]))
+
+    def test_unhashable(self) -> None:
+        self.assertTrue(has_duplicates([[1], [2], [1]]))
+        self.assertFalse(has_duplicates([[1], [2]]))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_duplicates("aa")  # type: ignore[arg-type]
+
+
+class TestIsSorted(unittest.TestCase):
+    def test_sorted(self) -> None:
+        self.assertTrue(is_sorted([1, 2, 3]))
+
+    def test_unsorted(self) -> None:
+        self.assertFalse(is_sorted([3, 2, 1]))
+
+    def test_reverse_sorted(self) -> None:
+        self.assertTrue(is_sorted([3, 2, 1], reverse=True))
+        self.assertFalse(is_sorted([1, 2, 3], reverse=True))
+
+    def test_empty_and_single(self) -> None:
+        self.assertTrue(is_sorted([]))
+        self.assertTrue(is_sorted([1]))
+
+    def test_with_equal_elements(self) -> None:
+        self.assertTrue(is_sorted([1, 1, 2]))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            is_sorted("abc")  # type: ignore[arg-type]
+
+    def test_reverse_not_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            is_sorted([1, 2], reverse=1)  # type: ignore[arg-type]
 
 
 class TestUniquePreserveOrder(unittest.TestCase):
@@ -59590,6 +59750,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_headings/has_headings to markdown_utils
+
+- Added `count_headings(text)` and `has_headings(text)` to `markdown_utils.py` as count/boolean companions to `is_heading`. `count_headings` counts lines that are Markdown headings (1-6 `#`); `has_headings` returns `True` when at least one heading line is present. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with ASCII-safe doctests. Updated `markdown_utils` module tree entry and prose section of `README.md`. Synchronized with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — completed count_from for itertools_utils
 
 - Finished the `count_from` feature left incomplete by the prior checkpoint commit (`50127d8`), which had added the implementation, `__all__` export, and tests to `itertools_utils.py` and `scaffold.sh` but shipped no README/CHANGELOG documentation. `itertools_utils.py` had no `count_from` helper; `count_from(start, step)` counts infinitely from *start* with *step*, returning the first 1000 values as a list for safety. It accepts typed `int` arguments (defaulting to `start=0`, `step=1`), raises `TypeError` for non-ints including booleans, is exported via `__all__`, and ships with ASCII-safe doctests. Added `test_count_from_default`, `test_count_from_start_step`, `test_count_from_bad_start_type`, and `test_count_from_bad_step_type` (4 tests) to the existing `TestIterToolsUtils` class in `tests/test_itertools_utils.py`; imported `count_from` to match the module's `__all__` contract. Updated the `itertools_utils` module tree entry and prose section of `README.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_itertools_utils`; targeted doctest for `count_from`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No `.github/workflows/**` changes.
@@ -62137,7 +62301,7 @@ decimal_utils.py           # Decimal arithmetic utilities (to_decimal, add, subt
 difflib_utils.py           # Difflib utility functions for sequence comparison and diffing
 fractions_utils.py         # Fraction arithmetic utilities (to_fraction, add, subtract, multiply, divide, power, compare, abs_value, negate, is_positive, is_negative, is_zero, is_integer, numerator, denominator, to_float, from_float)
 heapq_utils.py             # Heap queue utilities wrapping stdlib heapq (heapify, heappush, heappop, heapreplace, heappushpop, merge, nlargest, nsmallest)
-markdown_utils.py          # Markdown utility functions (extract/count/has fenced code blocks, strip formatting, count/has words, heading detection)
+markdown_utils.py          # Markdown utility functions (extract/count/has fenced code blocks, strip formatting, count/has words, count/has headings, heading detection)
 time_utils.py              # Time utility functions (now_epoch, now_iso, epoch_to_iso, iso_to_epoch, format_duration)
 timezone_utils.py          # Time zone utilities (IANA lookups, conversion, formatting, DST) wrapping stdlib zoneinfo
 cli_utils.py               # Command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
@@ -63040,7 +63204,7 @@ The project includes networking utilities in `networking_utils.py` for TCP port 
 
 ## Markdown Utilities Module
 
-The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `count_code_blocks` counts them, `has_code_blocks` reports whether any are present, `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `has_words` reports whether any words are present, `is_heading` detects Markdown headings, and `heading_level` returns the heading level (1-6) or 0 if not a heading. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
+The project includes Markdown utility functions in `markdown_utils.py` for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `count_code_blocks` counts them, `has_code_blocks` reports whether any are present, `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `has_words` reports whether any words are present, `is_heading` detects Markdown headings, `heading_level` returns the heading level (1-6) or 0 if not a heading, `count_headings` counts heading lines, and `has_headings` reports whether any are present. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
 
 ## Time Utilities Module
 
@@ -79778,9 +79942,11 @@ from typing import List
 
 __all__ = [
     "count_code_blocks",
+    "count_headings",
     "count_words",
     "extract_code_blocks",
     "has_code_blocks",
+    "has_headings",
     "has_words",
     "heading_level",
     "is_heading",
@@ -79902,6 +80068,60 @@ def has_words(text: str) -> bool:
     return count_words(text) > 0
 
 
+def count_headings(text: str) -> int:
+    """Count Markdown headings in *text*.
+
+    A heading is a line that starts with one to six ``#`` characters
+    followed by whitespace and non-whitespace content, matching the same
+    rule used by :func:`is_heading`.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        The number of heading lines found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_headings("# Title")
+        1
+        >>> count_headings("no headings here")
+        0
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return sum(1 for line in text.splitlines() if is_heading(line))
+
+
+def has_headings(text: str) -> bool:
+    """Return True if *text* contains at least one Markdown heading.
+
+    This is a boolean companion to :func:`count_headings`; it returns
+    ``True`` when *text* contains one or more heading lines and ``False``
+    otherwise.
+
+    Args:
+        text: The markdown string to inspect.
+
+    Returns:
+        ``True`` if *text* contains at least one heading, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_headings("# Title")
+        True
+        >>> has_headings("plain text")
+        False
+    """
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
+    return count_headings(text) > 0
+
+
 def is_heading(line: str) -> bool:
     """Return True if line is a markdown heading."""
     return bool(re.match(r"^#{1,6}\s+\S", line))
@@ -79923,9 +80143,11 @@ import unittest
 
 from markdown_utils import (
     count_code_blocks,
+    count_headings,
     count_words,
     extract_code_blocks,
     has_code_blocks,
+    has_headings,
     has_words,
     heading_level,
     is_heading,
@@ -80071,6 +80293,33 @@ class TestHeading(unittest.TestCase):
         self.assertEqual(heading_level("# Title"), 1)
         self.assertEqual(heading_level("### Deep"), 3)
         self.assertEqual(heading_level("not heading"), 0)
+
+
+class TestCountHeadings(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_headings("# Title\n## Sub\nplain"), 2)
+
+    def test_none(self) -> None:
+        self.assertEqual(count_headings("no headings here"), 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_headings(None)  # type: ignore[arg-type]
+
+
+class TestHasHeadings(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(has_headings("# Title"))
+
+    def test_false(self) -> None:
+        self.assertFalse(has_headings("plain text"))
+
+    def test_consistency(self) -> None:
+        self.assertEqual(has_headings("# Title"), count_headings("# Title") > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_headings(None)  # type: ignore[arg-type]
 TEST_MARKDOWN_UTILS
 
 # --- memoize_utils.py ---
