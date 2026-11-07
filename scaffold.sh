@@ -44526,11 +44526,14 @@ __all__: list[str] = [
     "set_bit",
     "clear_bit",
     "clear_lowest_set_bit",
+    "isolate_lowest_set_bit",
     "toggle_bit",
     "is_even",
     "is_odd",
     "count_leading_zeros",
     "has_leading_zeros",
+    "count_leading_ones",
+    "has_leading_ones",
     "count_trailing_zeros",
     "has_trailing_zeros",
 ]
@@ -44877,6 +44880,37 @@ def clear_lowest_set_bit(value: int) -> int:
     return value & (value - 1)
 
 
+def isolate_lowest_set_bit(value: int) -> int:
+    """Return an integer with only the lowest set bit of value preserved.
+
+    Uses the two's-complement identity ``value & -value``.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The isolated lowest set bit as an integer. Returns 0 when *value* is 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> isolate_lowest_set_bit(0)
+        0
+        >>> isolate_lowest_set_bit(1)  # 0b1
+        1
+        >>> isolate_lowest_set_bit(10)  # 0b1010 -> 0b0010
+        2
+        >>> isolate_lowest_set_bit(12)  # 0b1100 -> 0b0100
+        4
+    """
+    _validate_nonnegative_int(value)
+    if value == 0:
+        return 0
+    return value & -value
+
+
 def toggle_bit(value: int, index: int) -> int:
     """Return value with the bit at index flipped.
 
@@ -45034,6 +45068,71 @@ def has_leading_zeros(value: int, width: int) -> bool:
         True
     """
     return count_leading_zeros(value, width) > 0
+
+
+def count_leading_ones(value: int, width: int) -> int:
+    """Return the number of leading one bits within a fixed bit width.
+
+    Leading ones are the one bits to the left of the most significant
+    zero bit, measured from the top of the given *width*.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to count leading ones (positive).
+
+    Returns:
+        The number of leading ones. Returns *width* when *value* fills all
+        bits (i.e. value == (1 << width) - 1).
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> count_leading_ones(255, 8)
+        8
+        >>> count_leading_ones(128, 8)
+        1
+        >>> count_leading_ones(0, 8)
+        0
+        >>> count_leading_ones(254, 8)
+        7
+    """
+    _validate_nonnegative_int(value)
+    _validate_positive_int(width, "width")
+    if value.bit_length() > width:
+        raise ValueError("value does not fit within width bits")
+    mask = (1 << width) - 1
+    complement = (~value) & mask
+    return count_leading_zeros(complement, width)
+
+
+def has_leading_ones(value: int, width: int) -> bool:
+    """Return True if *value* has at least one leading one in *width* bits.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to check leading ones (positive).
+
+    Returns:
+        True if *value* has a leading one within *width* bits.
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> has_leading_ones(255, 8)
+        True
+        >>> has_leading_ones(0, 8)
+        False
+        >>> has_leading_ones(128, 8)
+        True
+    """
+    return count_leading_ones(value, width) > 0
+
 
 
 def has_trailing_zeros(value: int) -> bool:

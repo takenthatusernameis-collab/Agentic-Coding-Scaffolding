@@ -28,6 +28,8 @@ __all__: list[str] = [
     "is_odd",
     "count_leading_zeros",
     "has_leading_zeros",
+    "count_leading_ones",
+    "has_leading_ones",
     "count_trailing_zeros",
     "has_trailing_zeros",
 ]
@@ -562,6 +564,71 @@ def has_leading_zeros(value: int, width: int) -> bool:
         True
     """
     return count_leading_zeros(value, width) > 0
+
+
+def count_leading_ones(value: int, width: int) -> int:
+    """Return the number of leading one bits within a fixed bit width.
+
+    Leading ones are the one bits to the left of the most significant
+    zero bit, measured from the top of the given *width*.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to count leading ones (positive).
+
+    Returns:
+        The number of leading ones. Returns *width* when *value* fills all
+        bits (i.e. value == (1 << width) - 1).
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> count_leading_ones(255, 8)
+        8
+        >>> count_leading_ones(128, 8)
+        1
+        >>> count_leading_ones(0, 8)
+        0
+        >>> count_leading_ones(254, 8)
+        7
+    """
+    _validate_nonnegative_int(value)
+    _validate_positive_int(width, "width")
+    if value.bit_length() > width:
+        raise ValueError("value does not fit within width bits")
+    mask = (1 << width) - 1
+    complement = (~value) & mask
+    return count_leading_zeros(complement, width)
+
+
+def has_leading_ones(value: int, width: int) -> bool:
+    """Return True if *value* has at least one leading one in *width* bits.
+
+    Args:
+        value: A non-negative integer.
+        width: The bit width in which to check leading ones (positive).
+
+    Returns:
+        True if *value* has a leading one within *width* bits.
+
+    Raises:
+        TypeError: If *value* or *width* is not an integer.
+        ValueError: If *value* is negative, *width* is not positive, or
+            *value* does not fit within *width* bits.
+
+    Examples:
+        >>> has_leading_ones(255, 8)
+        True
+        >>> has_leading_ones(0, 8)
+        False
+        >>> has_leading_ones(128, 8)
+        True
+    """
+    return count_leading_ones(value, width) > 0
+
 
 
 def has_trailing_zeros(value: int) -> bool:
