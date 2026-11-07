@@ -12945,9 +12945,12 @@ __all__: List[str] = [
     "remove_vowels",
     "remove_consonants",
     "count_digits",
+    "has_digits",
     "count_letters",
     "count_punctuation",
+    "has_punctuation",
     "count_whitespace",
+    "has_whitespace",
     "strip_non_ascii",
     "truncate_bytes",
     "repeat_string",
@@ -14756,6 +14759,32 @@ def count_digits(s: str) -> int:
     return sum(1 for ch in s if ch.isdigit())
 
 
+def has_digits(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one digit character.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more digit characters, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_digits("abc123")
+        True
+        >>> has_digits("2024")
+        True
+        >>> has_digits("hello")
+        False
+        >>> has_digits("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isdigit() for ch in s)
+
+
 def count_letters(s: str) -> int:
     """Return the number of alphabetic characters in *s*.
 
@@ -14767,9 +14796,46 @@ def count_letters(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_letters("abc123")
+        3
+        >>> count_letters("Hello World!")
+        10
+        >>> count_letters("12345")
+        0
+        >>> count_letters("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
+
+
+def has_letters(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one alphabetic character.
+
+    A boolean companion to :func:`count_letters`.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more alphabetic characters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_letters("abc123")
+        True
+        >>> has_letters("12345")
+        False
+        >>> has_letters("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isalpha() for ch in s)
 
 
 def count_punctuation(s: str) -> int:
@@ -14796,6 +14862,35 @@ def count_punctuation(s: str) -> int:
     import string
 
     return sum(1 for ch in s if ch in string.punctuation)
+
+
+def has_punctuation(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one punctuation character.
+
+    A boolean companion to :func:`count_punctuation`.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more punctuation characters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_punctuation("Hello, world!")
+        True
+        >>> has_punctuation("no punct")
+        False
+        >>> has_punctuation("")
+        False
+    """
+    _require_string(s, "s")
+    import string
+
+    return any(ch in string.punctuation for ch in s)
 
 
 def count_whitespace(s: str) -> int:
@@ -14826,6 +14921,33 @@ def count_whitespace(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isspace())
+
+
+def has_whitespace(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one whitespace character.
+
+    A boolean companion to :func:`count_whitespace`.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more whitespace characters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_whitespace("hello world")
+        True
+        >>> has_whitespace("nospace")
+        False
+        >>> has_whitespace("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isspace() for ch in s)
 
 
 def is_subsequence(needle: str, haystack: str) -> bool:
@@ -17294,6 +17416,7 @@ from strings import (
     count_punctuation,
     count_uppercase,
     count_vowels,
+    count_whitespace,
     count_words,
     drop,
     ends_with,
@@ -17304,12 +17427,17 @@ from strings import (
     ensure_trailing_newline,
     find,
     first_n,
+    has_digits,
+    has_letters,
+    has_punctuation,
     has_vowels,
+    has_whitespace,
     initials,
     is_alpha,
     is_alphanumeric,
     is_anagram,
     is_ascii,
+
     is_binary,
     is_blank,
     is_decimal,
@@ -17580,6 +17708,98 @@ class TestCountDigits(unittest.TestCase):
             count_digits(42)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_digits(None)  # type: ignore[arg-type]
+
+
+class TestHasDigits(unittest.TestCase):
+    def test_has_digits_basic(self):
+        self.assertTrue(has_digits("abc123"))
+
+    def test_has_digits_no_digits(self):
+        self.assertFalse(has_digits("hello"))
+
+    def test_has_digits_empty(self):
+        self.assertFalse(has_digits(""))
+
+    def test_has_digits_unicode(self):
+        self.assertTrue(has_digits("①②③"))
+
+    def test_has_digits_consistency_with_count_digits(self):
+        self.assertEqual(has_digits("abc123"), count_digits("abc123") > 0)
+        self.assertEqual(has_digits(""), count_digits("") > 0)
+        self.assertEqual(has_digits("hello"), count_digits("hello") > 0)
+
+    def test_has_digits_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_digits(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_digits(None)  # type: ignore[arg-type]
+
+
+class TestHasLetters(unittest.TestCase):
+    def test_has_letters_basic(self):
+        self.assertTrue(has_letters("abc123"))
+        self.assertTrue(has_letters("Hello World!"))
+
+    def test_has_letters_no_letters(self):
+        self.assertFalse(has_letters("12345"))
+        self.assertFalse(has_letters("!@#"))
+
+    def test_has_letters_empty(self):
+        self.assertFalse(has_letters(""))
+
+    def test_has_letters_consistency_with_count_letters(self):
+        cases = ["abc123", "", "12345", "Hello World!"]
+        for s in cases:
+            self.assertEqual(has_letters(s), count_letters(s) > 0)
+
+    def test_has_letters_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_letters(42)  # type: ignore[arg-type]
+
+
+class TestHasPunctuation(unittest.TestCase):
+    def test_has_punctuation_basic(self):
+        self.assertTrue(has_punctuation("Hello, world!"))
+        self.assertTrue(has_punctuation("..."))
+
+    def test_has_punctuation_no_punctuation(self):
+        self.assertFalse(has_punctuation("no punct"))
+        self.assertFalse(has_punctuation("abc123"))
+
+    def test_has_punctuation_empty(self):
+        self.assertFalse(has_punctuation(""))
+
+    def test_has_punctuation_consistency_with_count_punctuation(self):
+        cases = ["Hello, world!", "no punct", "", "a-b_c"]
+        for s in cases:
+            self.assertEqual(has_punctuation(s), count_punctuation(s) > 0)
+
+    def test_has_punctuation_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_punctuation(42)  # type: ignore[arg-type]
+
+
+class TestHasWhitespace(unittest.TestCase):
+    def test_has_whitespace_basic(self):
+        self.assertTrue(has_whitespace("hello world"))
+        self.assertTrue(has_whitespace("a\tb"))
+        self.assertTrue(has_whitespace("line\n"))
+
+    def test_has_whitespace_no_whitespace(self):
+        self.assertFalse(has_whitespace("nospace"))
+        self.assertFalse(has_whitespace("abc123"))
+
+    def test_has_whitespace_empty(self):
+        self.assertFalse(has_whitespace(""))
+
+    def test_has_whitespace_consistency_with_count_whitespace(self):
+        cases = ["hello world", "nospace", "", "a  b\tc"]
+        for s in cases:
+            self.assertEqual(has_whitespace(s), count_whitespace(s) > 0)
+
+    def test_has_whitespace_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_whitespace(42)  # type: ignore[arg-type]
 
 
 class TestIsIsogram(unittest.TestCase):

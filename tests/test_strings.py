@@ -15,13 +15,13 @@ from strings import (
     contains_any,
     count_consonants,
     count_digits,
-    has_digits,
     count_letters,
     count_lowercase,
     count_occurrences,
     count_punctuation,
     count_uppercase,
     count_vowels,
+    count_whitespace,
     count_words,
     drop,
     ends_with,
@@ -32,12 +32,17 @@ from strings import (
     ensure_trailing_newline,
     find,
     first_n,
+    has_digits,
+    has_letters,
+    has_punctuation,
     has_vowels,
+    has_whitespace,
     initials,
     is_alpha,
     is_alphanumeric,
     is_anagram,
     is_ascii,
+
     is_binary,
     is_blank,
     is_decimal,
@@ -333,6 +338,73 @@ class TestHasDigits(unittest.TestCase):
             has_digits(42)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_digits(None)  # type: ignore[arg-type]
+
+
+class TestHasLetters(unittest.TestCase):
+    def test_has_letters_basic(self):
+        self.assertTrue(has_letters("abc123"))
+        self.assertTrue(has_letters("Hello World!"))
+
+    def test_has_letters_no_letters(self):
+        self.assertFalse(has_letters("12345"))
+        self.assertFalse(has_letters("!@#"))
+
+    def test_has_letters_empty(self):
+        self.assertFalse(has_letters(""))
+
+    def test_has_letters_consistency_with_count_letters(self):
+        cases = ["abc123", "", "12345", "Hello World!"]
+        for s in cases:
+            self.assertEqual(has_letters(s), count_letters(s) > 0)
+
+    def test_has_letters_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_letters(42)  # type: ignore[arg-type]
+
+
+class TestHasPunctuation(unittest.TestCase):
+    def test_has_punctuation_basic(self):
+        self.assertTrue(has_punctuation("Hello, world!"))
+        self.assertTrue(has_punctuation("..."))
+
+    def test_has_punctuation_no_punctuation(self):
+        self.assertFalse(has_punctuation("no punct"))
+        self.assertFalse(has_punctuation("abc123"))
+
+    def test_has_punctuation_empty(self):
+        self.assertFalse(has_punctuation(""))
+
+    def test_has_punctuation_consistency_with_count_punctuation(self):
+        cases = ["Hello, world!", "no punct", "", "a-b_c"]
+        for s in cases:
+            self.assertEqual(has_punctuation(s), count_punctuation(s) > 0)
+
+    def test_has_punctuation_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_punctuation(42)  # type: ignore[arg-type]
+
+
+class TestHasWhitespace(unittest.TestCase):
+    def test_has_whitespace_basic(self):
+        self.assertTrue(has_whitespace("hello world"))
+        self.assertTrue(has_whitespace("a\tb"))
+        self.assertTrue(has_whitespace("line\n"))
+
+    def test_has_whitespace_no_whitespace(self):
+        self.assertFalse(has_whitespace("nospace"))
+        self.assertFalse(has_whitespace("abc123"))
+
+    def test_has_whitespace_empty(self):
+        self.assertFalse(has_whitespace(""))
+
+    def test_has_whitespace_consistency_with_count_whitespace(self):
+        cases = ["hello world", "nospace", "", "a  b\tc"]
+        for s in cases:
+            self.assertEqual(has_whitespace(s), count_whitespace(s) > 0)
+
+    def test_has_whitespace_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_whitespace(42)  # type: ignore[arg-type]
 
 
 class TestIsIsogram(unittest.TestCase):

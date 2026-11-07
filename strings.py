@@ -102,7 +102,9 @@ __all__: List[str] = [
     "has_digits",
     "count_letters",
     "count_punctuation",
+    "has_punctuation",
     "count_whitespace",
+    "has_whitespace",
     "strip_non_ascii",
     "truncate_bytes",
     "repeat_string",
@@ -1948,9 +1950,46 @@ def count_letters(s: str) -> int:
 
     Raises:
         TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_letters("abc123")
+        3
+        >>> count_letters("Hello World!")
+        10
+        >>> count_letters("12345")
+        0
+        >>> count_letters("")
+        0
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isalpha())
+
+
+def has_letters(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one alphabetic character.
+
+    A boolean companion to :func:`count_letters`.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more alphabetic characters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_letters("abc123")
+        True
+        >>> has_letters("12345")
+        False
+        >>> has_letters("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isalpha() for ch in s)
 
 
 def count_punctuation(s: str) -> int:
@@ -1977,6 +2016,35 @@ def count_punctuation(s: str) -> int:
     import string
 
     return sum(1 for ch in s if ch in string.punctuation)
+
+
+def has_punctuation(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one punctuation character.
+
+    A boolean companion to :func:`count_punctuation`.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more punctuation characters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_punctuation("Hello, world!")
+        True
+        >>> has_punctuation("no punct")
+        False
+        >>> has_punctuation("")
+        False
+    """
+    _require_string(s, "s")
+    import string
+
+    return any(ch in string.punctuation for ch in s)
 
 
 def count_whitespace(s: str) -> int:
@@ -2007,6 +2075,33 @@ def count_whitespace(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isspace())
+
+
+def has_whitespace(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one whitespace character.
+
+    A boolean companion to :func:`count_whitespace`.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more whitespace characters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_whitespace("hello world")
+        True
+        >>> has_whitespace("nospace")
+        False
+        >>> has_whitespace("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isspace() for ch in s)
 
 
 def is_subsequence(needle: str, haystack: str) -> bool:
