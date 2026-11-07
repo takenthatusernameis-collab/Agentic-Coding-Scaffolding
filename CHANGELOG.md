@@ -1,3 +1,7 @@
+## Unreleased — added `normalize_roman` to `roman_utils`
+
+- Added `normalize_roman(roman)` to `roman_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError`/`ValueError`; it accepts case-insensitively and returns the canonical uppercase Roman numeral for valid values in the supported range (1–3999). Added `test_normalize_roman` and `test_normalize_roman_rejects_invalid` to `tests/test_roman_utils.py`. Updated `README.md` roman module listing/prose. Synchronized `roman_utils.py` and `tests/test_roman_utils.py` into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_roman_utils` (9 OK), `python -m doctest roman_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m unittest tests.test_scaffold_sync` (15 OK), full suite `python -m unittest discover tests/` (8974 OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_trailing_ones/has_trailing_ones to bit_utils
 ## Unreleased — added size to deque_utils
 

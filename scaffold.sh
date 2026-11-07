@@ -60224,6 +60224,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added `normalize_roman` to `roman_utils`
+
+- Added `normalize_roman(roman)` to `roman_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError`/`ValueError`; it accepts case-insensitively and returns the canonical uppercase Roman numeral for valid values in the supported range (1–3999). Added `test_normalize_roman` and `test_normalize_roman_rejects_invalid` to `tests/test_roman_utils.py`. Updated `README.md` roman module listing/prose. Synchronized `roman_utils.py` and `tests/test_roman_utils.py` into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_roman_utils` (9 OK), `python -m doctest roman_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m unittest tests.test_scaffold_sync` (15 OK), full suite `python -m unittest discover tests/` (8974 OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_trailing_ones/has_trailing_ones to bit_utils
 ## Unreleased — added size to deque_utils
 
@@ -62641,7 +62645,7 @@ urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
 prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, has_words, collapse_blank_lines, count_blank_lines, has_blank_lines, count_placeholders, count_sentences, has_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, has_words, count_characters, has_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
 random_utils.py             # Random number generation and sampling utilities
-roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman)
+roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman, normalize_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
 rlcompleter_utils.py        # Interactive tab completion utilities wrapping stdlib rlcompleter (Completer, complete)
 tempfile_utils.py           # Temporary file and directory management utilities (mkstemp, mkdtemp, NamedTemporaryFile, TemporaryDirectory)
@@ -63259,7 +63263,7 @@ The project includes a string utilities module in `strings.py` with functions fo
 
 The project includes a statistics utilities module in `stats.py` with functions for common statistical operations: `mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `mode_frequency`, `multimode`, `min_value`, `max_value`, `midrange`, `product`, `trimmed_mean`, `winsorized_mean`, `winsorized_stddev`, `variance`, `pvariance`, `stddev`, `pstdev`, `skewness`, `kurtosis`, `mean_absolute_deviation`, `median_absolute_deviation`, `midhinge`, `quantile`, `covariance`, and `correlation`. The module supports both population and sample variance/stddev calculations. `median_grouped` estimates the median of grouped continuous data using the class interval approach. `covariance` computes the covariance between two paired lists (population or sample), and `correlation` returns the Pearson correlation coefficient ranging from -1 to 1. `trimmed_mean` discards a configurable number of values from each end of the sorted list before averaging, making it robust to outliers. `z_scores` returns the standardized z-scores of the values, measuring how many standard deviations each value is from the mean. `root_mean_square` returns the square root of the arithmetic mean of the squared values. `standard_error` returns the standard error of the mean, the sample standard deviation divided by the square root of the sample size (raising `ValueError` for lists with fewer than two elements). `range` (aliased from `range_stat`) returns the difference between the maximum and minimum values. `sum_values` returns the sum of all values, `sum_of_squares` the sum of the squared values, and `sum_of_cubes` the sum of the cubed values. `cumulative_sum` returns the running totals of the values, a list whose i-th element is the sum of the first i+1 elements (empty input yields an empty list). `coefficient_of_variation` returns the ratio of the standard deviation to the mean. `winsorized_mean` computes a winsorized mean that replaces the k smallest and k largest values with the nearest remaining values before averaging, reducing outlier influence without discarding data, and `winsorized_stddev`/`winsorized_variance` compute the corresponding dispersion of the winsorized values. `shannon_entropy` returns the Shannon entropy of the discrete values in bits (0 for a list of identical values, `log2(n)` for n distinct values), measuring the uncertainty or information content of the distribution. `geometric_mean` and `harmonic_mean` compute the geometric and harmonic means respectively, both requiring strictly positive inputs. Input validation ensures appropriate errors for empty lists or invalid inputs. The module is tested in `tests/test_stats.py`.
 
-The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, and `is_valid_roman` for converting between integers and Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
+The project includes a Roman numeral conversion utilities module in `roman_utils.py` with functions `to_roman`, `from_roman`, `is_valid_roman`, and `normalize_roman` for converting, validating, and canonicalizing Roman numerals in the range 1 to 3999. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_roman_utils.py`.
 
 ## License
 
@@ -143343,6 +143347,7 @@ _ROMAN_PATTERN = r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$
 __all__ = [
     "from_roman",
     "is_valid_roman",
+    "normalize_roman",
     "to_roman",
 ]
 
@@ -143409,19 +143414,49 @@ def is_valid_roman(roman: str) -> bool:
 
     Returns:
         ``True`` if *roman* is a valid Roman numeral, ``False`` otherwise.
+
+    Examples:
+        >>> is_valid_roman("XIV")
+        True
+        >>> is_valid_roman("IIII")
+        False
     """
     try:
         from_roman(roman)
     except (TypeError, ValueError):
         return False
     return True
+
+
+def normalize_roman(roman: str) -> str:
+    """Return the canonical uppercase form of a Roman numeral.
+
+    Args:
+        roman: Roman numeral string to normalize.
+
+    Returns:
+        The canonical uppercase Roman numeral representation.
+
+    Raises:
+        TypeError: If *roman* is not a string.
+        ValueError: If *roman* is not a valid Roman numeral.
+
+    Examples:
+        >>> normalize_roman("xiv")
+        'XIV'
+        >>> normalize_roman("MCMLXXXIV")
+        'MCMLXXXIV'
+    """
+    if not isinstance(roman, str):
+        raise TypeError("roman must be a string")
+    return to_roman(from_roman(roman.upper()))
 ROMAN_UTILS
 
 # --- tests/test_roman_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_roman_utils.py" <<'TEST_ROMAN_UTILS'
 import unittest
 
-from roman_utils import from_roman, is_valid_roman, to_roman
+from roman_utils import from_roman, is_valid_roman, normalize_roman, to_roman
 
 
 class TestRomanUtils(unittest.TestCase):
@@ -143501,6 +143536,19 @@ class TestRomanUtils(unittest.TestCase):
         self.assertFalse(is_valid_roman("IIII"))
         self.assertFalse(is_valid_roman("notroman"))
         self.assertFalse(is_valid_roman(1))
+    def test_normalize_roman(self):
+        self.assertEqual(normalize_roman("xiv"), "XIV")
+        self.assertEqual(normalize_roman("MCMLXXXIV"), "MCMLXXXIV")
+        self.assertEqual(normalize_roman("i"), "I")
+        self.assertEqual(normalize_roman("mmmcmxcix"), "MMMCMXCIX")
+
+    def test_normalize_roman_rejects_invalid(self):
+        with self.assertRaises(ValueError):
+            normalize_roman("")
+        with self.assertRaises(ValueError):
+            normalize_roman("IIII")
+        with self.assertRaises(TypeError):
+            normalize_roman(1)
 
 
 if __name__ == "__main__":

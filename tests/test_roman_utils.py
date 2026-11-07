@@ -1,6 +1,6 @@
 import unittest
 
-from roman_utils import from_roman, is_valid_roman, to_roman
+from roman_utils import from_roman, is_valid_roman, normalize_roman, to_roman
 
 
 class TestRomanUtils(unittest.TestCase):
@@ -80,6 +80,19 @@ class TestRomanUtils(unittest.TestCase):
         self.assertFalse(is_valid_roman("IIII"))
         self.assertFalse(is_valid_roman("notroman"))
         self.assertFalse(is_valid_roman(1))
+    def test_normalize_roman(self):
+        self.assertEqual(normalize_roman("xiv"), "XIV")
+        self.assertEqual(normalize_roman("MCMLXXXIV"), "MCMLXXXIV")
+        self.assertEqual(normalize_roman("i"), "I")
+        self.assertEqual(normalize_roman("mmmcmxcix"), "MMMCMXCIX")
+
+    def test_normalize_roman_rejects_invalid(self):
+        with self.assertRaises(ValueError):
+            normalize_roman("")
+        with self.assertRaises(ValueError):
+            normalize_roman("IIII")
+        with self.assertRaises(TypeError):
+            normalize_roman(1)
 
 
 if __name__ == "__main__":

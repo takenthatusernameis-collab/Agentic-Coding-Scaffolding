@@ -34,6 +34,7 @@ _ROMAN_PATTERN = r"^(?=.)M{0,3}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$
 __all__ = [
     "from_roman",
     "is_valid_roman",
+    "normalize_roman",
     "to_roman",
 ]
 
@@ -100,9 +101,39 @@ def is_valid_roman(roman: str) -> bool:
 
     Returns:
         ``True`` if *roman* is a valid Roman numeral, ``False`` otherwise.
+
+    Examples:
+        >>> is_valid_roman("XIV")
+        True
+        >>> is_valid_roman("IIII")
+        False
     """
     try:
         from_roman(roman)
     except (TypeError, ValueError):
         return False
     return True
+
+
+def normalize_roman(roman: str) -> str:
+    """Return the canonical uppercase form of a Roman numeral.
+
+    Args:
+        roman: Roman numeral string to normalize.
+
+    Returns:
+        The canonical uppercase Roman numeral representation.
+
+    Raises:
+        TypeError: If *roman* is not a string.
+        ValueError: If *roman* is not a valid Roman numeral.
+
+    Examples:
+        >>> normalize_roman("xiv")
+        'XIV'
+        >>> normalize_roman("MCMLXXXIV")
+        'MCMLXXXIV'
+    """
+    if not isinstance(roman, str):
+        raise TypeError("roman must be a string")
+    return to_roman(from_roman(roman.upper()))
