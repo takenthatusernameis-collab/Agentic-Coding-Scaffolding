@@ -1,3 +1,7 @@
+## Unreleased — added contains_key to dict_utils
+
+- Added `contains_key(d, key)` to `dict_utils.py` as an alias for `has_key`, so the module offers a single `contains_*` naming convention alongside `select_keys` and `omit_keys`. `contains_key` delegates to `has_key`, accepts typed `Dict[K, Any]` and `K` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestContainsKey` (5 tests) to `tests/test_dict_utils.py` covering present, absent, empty dict, consistency with `has_key`, and the `TypeError` path; imported `contains_key` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `contains_key`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added values_equal to dict_utils
 
 ## Unreleased — added merge to dict_utils

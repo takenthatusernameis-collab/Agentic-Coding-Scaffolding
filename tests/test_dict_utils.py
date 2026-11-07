@@ -3,6 +3,7 @@
 import unittest
 
 from dict_utils import (
+    contains_key,
     deep_merge,
     filter_dict,
     flatten_dict,
@@ -156,6 +157,32 @@ class TestHasKey(unittest.TestCase):
             has_key("x", "a")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_key(None, "a")  # type: ignore[arg-type]
+
+
+class TestContainsKey(unittest.TestCase):
+    def test_contains_key_present(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertTrue(contains_key(d, "a"))
+        self.assertTrue(contains_key(d, "b"))
+
+    def test_contains_key_absent(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertFalse(contains_key(d, "c"))
+        self.assertFalse(contains_key(d, "z"))
+
+    def test_contains_key_empty_dict(self) -> None:
+        self.assertFalse(contains_key({}, "a"))
+
+    def test_contains_key_matches_has_key(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        for key in ("a", "b", "c", "z"):
+            self.assertEqual(contains_key(d, key), has_key(d, key))
+
+    def test_contains_key_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            contains_key("x", "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_key(None, "a")  # type: ignore[arg-type]
 
 
 class TestKeysEqual(unittest.TestCase):

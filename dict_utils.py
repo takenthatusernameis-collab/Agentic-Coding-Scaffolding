@@ -8,6 +8,7 @@ V = TypeVar("V")
 __all__ = [
     "K",
     "V",
+    "contains_key",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
@@ -163,6 +164,32 @@ def has_key(d: Dict[K, Any], key: K) -> bool:
     return key in d
 
 
+def contains_key(d: Dict[K, Any], key: K) -> bool:
+    """Report whether *key* is present in *d*.
+
+    This is an alias for :func:`has_key`, provided so the module offers a single
+    ``contains_*`` naming convention alongside :func:`select_keys` and
+    :func:`omit_keys`.
+
+    Args:
+        d: Dictionary to search in.
+        key: Key to look for.
+
+    Returns:
+        ``True`` when *key* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> contains_key({"a": 1, "b": 2}, "a")
+        True
+        >>> contains_key({"a": 1, "b": 2}, "c")
+        False
+        >>> contains_key({}, "a")
+        False
+    """
+    return has_key(d, key)
 
 
 def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:

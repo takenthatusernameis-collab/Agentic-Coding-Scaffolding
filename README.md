@@ -118,7 +118,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
+dict_utils.py            # Dictionary utilities (contains_key, deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -807,7 +807,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key`. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key` (or its alias `contains_key`). The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 

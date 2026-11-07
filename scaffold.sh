@@ -36135,6 +36135,7 @@ V = TypeVar("V")
 __all__ = [
     "K",
     "V",
+    "contains_key",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
@@ -36290,6 +36291,32 @@ def has_key(d: Dict[K, Any], key: K) -> bool:
     return key in d
 
 
+def contains_key(d: Dict[K, Any], key: K) -> bool:
+    """Report whether *key* is present in *d*.
+
+    This is an alias for :func:`has_key`, provided so the module offers a single
+    ``contains_*`` naming convention alongside :func:`select_keys` and
+    :func:`omit_keys`.
+
+    Args:
+        d: Dictionary to search in.
+        key: Key to look for.
+
+    Returns:
+        ``True`` when *key* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> contains_key({"a": 1, "b": 2}, "a")
+        True
+        >>> contains_key({"a": 1, "b": 2}, "c")
+        False
+        >>> contains_key({}, "a")
+        False
+    """
+    return has_key(d, key)
 
 
 def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
@@ -47949,6 +47976,7 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 import unittest
 
 from dict_utils import (
+    contains_key,
     deep_merge,
     filter_dict,
     flatten_dict,
@@ -48102,6 +48130,32 @@ class TestHasKey(unittest.TestCase):
             has_key("x", "a")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_key(None, "a")  # type: ignore[arg-type]
+
+
+class TestContainsKey(unittest.TestCase):
+    def test_contains_key_present(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertTrue(contains_key(d, "a"))
+        self.assertTrue(contains_key(d, "b"))
+
+    def test_contains_key_absent(self) -> None:
+        d = {"a": 1, "b": 2}
+        self.assertFalse(contains_key(d, "c"))
+        self.assertFalse(contains_key(d, "z"))
+
+    def test_contains_key_empty_dict(self) -> None:
+        self.assertFalse(contains_key({}, "a"))
+
+    def test_contains_key_matches_has_key(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        for key in ("a", "b", "c", "z"):
+            self.assertEqual(contains_key(d, key), has_key(d, key))
+
+    def test_contains_key_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            contains_key("x", "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_key(None, "a")  # type: ignore[arg-type]
 
 
 class TestKeysEqual(unittest.TestCase):
@@ -61216,6 +61270,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added contains_key to dict_utils
+
+- Added `contains_key(d, key)` to `dict_utils.py` as an alias for `has_key`, so the module offers a single `contains_*` naming convention alongside `select_keys` and `omit_keys`. `contains_key` delegates to `has_key`, accepts typed `Dict[K, Any]` and `K` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestContainsKey` (5 tests) to `tests/test_dict_utils.py` covering present, absent, empty dict, consistency with `has_key`, and the `TypeError` path; imported `contains_key` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `contains_key`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added values_equal to dict_utils
 
 ## Unreleased — added merge to dict_utils
@@ -63718,7 +63776,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
+dict_utils.py            # Dictionary utilities (contains_key, deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -64407,7 +64465,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key`. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key` (or its alias `contains_key`). The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 
