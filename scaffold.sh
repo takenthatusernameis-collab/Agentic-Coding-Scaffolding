@@ -70767,6 +70767,7 @@ from typing import Any, Iterable, List, Optional
 
 __all__ = [
     "count_lines",
+    "has_lines",
     "filenames",
     "read_lines",
 ]
@@ -70788,6 +70789,11 @@ def count_lines(files: Optional[Iterable[str]] = None) -> int:
     return count
 
 
+
+def has_lines(files: Optional[Iterable[str]] = None) -> bool:
+    """Return True when the input contains at least one line."""
+    return count_lines(files) > 0
+
 def filenames(files: Optional[Iterable[str]] = None) -> List[str]:
     names: List[str] = []
     with fileinput.input(files=files) as f:
@@ -70804,7 +70810,7 @@ cat > "$OUTPUT_DIR/tests/test_fileinput_utils.py" <<'TEST_FILEINPUT_UTILS'
 import tempfile
 from pathlib import Path
 
-from fileinput_utils import count_lines, filenames, read_lines
+from fileinput_utils import count_lines, filenames, has_lines, read_lines
 
 
 def test_read_lines():
@@ -70827,6 +70833,20 @@ def test_filenames():
         p = Path(d) / "a.txt"
         p.write_text("x\n")
         assert filenames([str(p)]) == [str(p)]
+
+
+def test_has_lines_true():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "a.txt"
+        p.write_text("one\ntwo\nthree\n")
+        assert has_lines([str(p)]) is True
+
+
+def test_has_lines_false():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "a.txt"
+        p.write_text("")
+        assert has_lines([str(p)]) is False
 TEST_FILEINPUT_UTILS
 
 # --- fnmatch_utils.py ---

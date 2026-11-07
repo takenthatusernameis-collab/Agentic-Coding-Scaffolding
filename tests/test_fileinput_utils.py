@@ -3,7 +3,7 @@
 import tempfile
 from pathlib import Path
 
-from fileinput_utils import count_lines, filenames, read_lines
+from fileinput_utils import count_lines, filenames, has_lines, read_lines
 
 
 def test_read_lines():
@@ -26,3 +26,17 @@ def test_filenames():
         p = Path(d) / "a.txt"
         p.write_text("x\n")
         assert filenames([str(p)]) == [str(p)]
+
+
+def test_has_lines_true():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "a.txt"
+        p.write_text("one\ntwo\nthree\n")
+        assert has_lines([str(p)]) is True
+
+
+def test_has_lines_false():
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "a.txt"
+        p.write_text("")
+        assert has_lines([str(p)]) is False

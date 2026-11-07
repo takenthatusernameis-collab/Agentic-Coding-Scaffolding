@@ -5,6 +5,7 @@ from typing import Any, Iterable, List, Optional
 
 __all__ = [
     "count_lines",
+    "has_lines",
     "filenames",
     "read_lines",
 ]
@@ -25,6 +26,11 @@ def count_lines(files: Optional[Iterable[str]] = None) -> int:
             count += 1
     return count
 
+
+
+def has_lines(files: Optional[Iterable[str]] = None) -> bool:
+    """Return True when the input contains at least one line."""
+    return count_lines(files) > 0
 
 def filenames(files: Optional[Iterable[str]] = None) -> List[str]:
     names: List[str] = []
