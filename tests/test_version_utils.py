@@ -1292,3 +1292,80 @@ class TestRemainingVersionAliases(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestMetadataAndBoolBoundaries(unittest.TestCase):
+    def test_parse_version_rejects_semver_metadata(self):
+        # version_utils.parse_version is for dotted integer components; semver metadata
+        # is handled by semver_utils.
+        with self.assertRaises(ValueError):
+            parse_version("1.2.3-rc1")
+        with self.assertRaises(ValueError):
+            parse_version("1.2.3+build")
+
+    def test_strip_metadata_validates_core(self):
+        with self.assertRaises(ValueError):
+            strip_metadata("1.2.a-rc1")
+        with self.assertRaises((ValueError, TypeError)):
+            strip_metadata("")
+        with self.assertRaises(TypeError):
+            strip_metadata(True)  # type: ignore[arg-type]
+
+    def test_strip_prerelease_and_build_validate_core(self):
+        with self.assertRaises(ValueError):
+            strip_prerelease("1.2.a-rc1")
+        with self.assertRaises(ValueError):
+            strip_build_metadata("1.2.a+build")
+        with self.assertRaises(TypeError):
+            strip_prerelease(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_build_metadata(False)  # type: ignore[arg-type]
+
+    def test_get_build_metadata_with_hyphen_in_build(self):
+        self.assertEqual(get_build_metadata("1.2.3+build-1"), "build-1")
+        self.assertTrue(has_build_metadata("1.2.3+build-1"))
+
+    def test_get_prerelease_with_build(self):
+        self.assertEqual(get_prerelease("1.2.3-alpha+build.1"), "alpha+build.1")
+        self.assertTrue(has_prerelease("1.2.3-alpha+build.1"))
+
+    def test_has_metadata_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_metadata(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prerelease(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_build_metadata(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_release(None)  # type: ignore[arg-type]
+
+    def test_normalize_version_rejects_bool_length(self):
+        with self.assertRaises(TypeError):
+            normalize_version("1.2", True)  # type: ignore[arg-type]
+
+    def test_bump_decrement_reject_bool_inputs(self):
+        with self.assertRaises(TypeError):
+            bump_version(True, "patch")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bump_version("1.2.3", True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            decrement_version(False, "patch")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            decrement_version("1.2.3", False)  # type: ignore[arg-type]
+
+    def test_is_valid_version_rejects_metadata_forms(self):
+        self.assertFalse(is_valid_version("1.2.3-rc1"))
+        self.assertFalse(is_valid_version("1.2.3+build"))
+
+    def test_get_prerelease_build_type_errors(self):
+        with self.assertRaises(TypeError):
+            get_prerelease(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            get_build_metadata(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_dev_version(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_alpha(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_beta(False)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_release_candidate(None)  # type: ignore[arg-type]

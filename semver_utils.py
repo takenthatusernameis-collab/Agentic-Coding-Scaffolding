@@ -60,6 +60,8 @@ class SemanticVersion:
         self.patch = _require_component("patch", patch)
         self.prerelease = _require_optional_text("prerelease", prerelease)
         self.build = _require_optional_text("build", build)
+        _validate_semver_identifiers("prerelease", self.prerelease)
+        _validate_semver_identifiers("build", self.build)
 
     def release_tuple(self) -> Tuple[int, int, int]:
         """Return the (major, minor, patch) release tuple."""

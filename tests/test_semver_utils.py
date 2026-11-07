@@ -217,3 +217,27 @@ class TestEdgeCases(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestSemanticVersionIdentifierValidation(unittest.TestCase):
+    def test_rejects_empty_prerelease_identifier(self):
+        for bad in ("", ".", "a..b", ".a", "a.", "alpha..1"):
+            with self.assertRaises(ValueError):
+                SemanticVersion(1, 0, 0, prerelease=bad)
+
+    def test_rejects_empty_build_identifier(self):
+        for bad in ("", ".", "a..b", ".a", "a.", "build..1"):
+            with self.assertRaises(ValueError):
+                SemanticVersion(1, 0, 0, build=bad)
+
+    def test_rejects_numeric_prerelease_leading_zeroes(self):
+        for bad in ("01", "alpha.01", "00", "1.02"):
+            with self.assertRaises(ValueError):
+                SemanticVersion(1, 0, 0, prerelease=bad)
+
+    def test_accepts_valid_identifiers(self):
+        v = SemanticVersion(1, 0, 0, prerelease="alpha.1.0", build="build.123.sha")
+        self.assertEqual(str(v), "1.0.0-alpha.1.0+build.123.sha")
+
+    def test_compare_semver_rejects_bool_true(self):
+        with self.assertRaises(ValueError):
+            compare_semver(True, "1.0.0")  # type: ignore[arg-type]

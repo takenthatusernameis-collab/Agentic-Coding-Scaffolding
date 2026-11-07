@@ -2860,20 +2860,19 @@ Next Planned (for the following agent):
 - Run targeted `python -m unittest tests.test_bytes_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
 
 
-## Latest Session (2026-11-07) — bytes_utils predicate docs/doctests and parity check
+## Latest Session (2026-11-07) — semver_utils/version_utils boundary hardening
 
-**Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned": audit `bytes_utils.py` case/predicate helpers for bytearray parity and strict type rejection; verify edge/empty/type behavior for `isprintable`/`isidentifier` and note `isdecimal`/`isnumeric` status.
+**Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned": harden `semver_utils.py` and `version_utils.py` boundary/validation behavior with hermetic tests.
 
-**Findings/changes (behaviorally justified, no API changes):**
-- Confirmed `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` and predicates (`isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper`/`isprintable`/`isidentifier`) already accept `bytearray` and reject invalid types with `TypeError`; existing tests already cover bytearray parity and strict rejection broadly.
-- `bytes_utils` does **not** expose `isdecimal`/`isnumeric` (and stdlib `bytes` does not provide them), so no implementation/test gap was introduced.
-- Added Google-style docstrings with ASCII-safe doctests for the simple predicate wrappers (`isalnum`–`isupper`) and corrected `isprintable` docstring text to match actual behavior (empty input returns `True`, matching `str.isprintable` semantics used by the module). Fixed non-ASCII/escaped doctest literals (`casefold`, `isidentifier`, `isprintable`) so `python -m doctest bytes_utils.py` is hermetic and passes.
-- Tests: clarified `TestIsPrintable` to include an explicit empty/bytearray-empty case (218 tests in `tests.test_bytes_utils`, all passing). `python -m unittest tests.test_public_api` passes.
+**Changes (behaviorally justified):**
+- `semver_utils.py`: `SemanticVersion.__init__` now validates prerelease/build identifiers via `_validate_semver_identifiers` (same contract as `parse_semver`). Previously, `SemanticVersion(1,0,0, prerelease="01")` or empty identifiers like `"a..b"` were accepted, creating semantically invalid versions inconsistent with parsing/ordering rules. This is a validation fix, not an API change.
+- `tests/test_semver_utils.py` (34→39): added `TestSemanticVersionIdentifierValidation` covering empty/`..` identifier rejection, numeric prerelease leading-zero rejection in direct construction, valid identifier acceptance, and `compare_semver` bool rejection.
+- `tests/test_version_utils.py` (260→270): added `TestMetadataAndBoolBoundaries` covering dotted-integer parser rejection of semver metadata (`1.2.3-rc1`/`+build`), `strip_*`/metadata helper validation and type errors (incl. bool/None where applicable), `get_prerelease`/`get_build_metadata` behavior with `+`/`-` combinations, `normalize_version` bool-length rejection, `bump_version`/`decrement_version` bool rejection, and `is_valid_version` metadata-form behavior.
 
-**Validation:** `python -m unittest tests.test_bytes_utils` (218 OK); `python -m unittest tests.test_public_api` (OK); `python -m doctest bytes_utils.py` (OK). `python tools/refresh_scaffold.py` refreshed embedded copies in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `pytest`/`ruff`/`mypy` not installed in this environment (pre-existing). No `.github/workflows/**` changes.
+**Validation:** `python -m unittest tests.test_semver_utils tests.test_version_utils` (299 OK); `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded `semver_utils.py`, `tests/test_semver_utils.py`, `tests/test_version_utils.py` in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `pytest`/`ruff`/`mypy` not installed in this environment (pre-existing). No `.github/workflows/**` changes.
 
 Next Planned (for the following agent):
-- Perform a narrow, hermetic hardening pass on `semver_utils.py` and `version_utils.py`: audit for missing `TypeError`/`ValueError` boundary tests and edge parsing/comparison cases (invalid forms, empty/whitespace, non-string/bool inputs, leading-zero/metadata/pre-release normalization where the module defines behavior, equality/ordering consistency). Add only behaviorally justified tests; fix implementation validation only if current behavior is incorrect or inconsistent with the module's documented contract.
+- Perform a narrow, hermetic hardening pass on `interval_utils.py` and `number_utils.py` (or another small numeric module with clear contracts): audit for missing `TypeError`/`ValueError` boundary tests and edge cases (bool rejection, `NaN`/`inf` where applicable, empty inputs, inverted bounds, negative/zero widths, float/int consistency, and ordering invariants). Add only behaviorally justified tests; fix implementation validation only if current behavior is incorrect or inconsistent with the module's documented contract.
 - Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
-- Run targeted `python -m unittest tests.test_semver_utils tests.test_version_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
+- Run targeted `python -m unittest tests.test_interval_utils tests.test_number_utils` (or the chosen modules) first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
 
