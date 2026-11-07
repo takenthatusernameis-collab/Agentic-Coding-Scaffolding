@@ -27,6 +27,8 @@ __all__ = [
     "from_tuple",
     "get_build",
     "get_build_metadata",
+    "count_build_metadata_identifiers",
+    "has_build_metadata_identifiers",
     "has_build_metadata",
     "has_metadata",
     "has_prerelease",
@@ -765,6 +767,72 @@ def get_build_metadata(version: str) -> str | None:
 
 
 get_build = get_build_metadata
+
+
+def count_build_metadata_identifiers(version: str) -> int:
+    """Count dot-separated identifiers in *version*'s build metadata.
+
+    Build metadata follows the first ``+`` character (for example
+    ``"1.2.3+build.123"`` has identifiers ``build`` and ``123``). Returns
+    ``0`` when no build metadata is present or when the metadata is empty.
+
+    Args:
+        version: A dotted version string, optionally with build metadata.
+
+    Returns:
+        The number of dot-separated build metadata identifiers.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> count_build_metadata_identifiers("1.2.3+build.123")
+        2
+        >>> count_build_metadata_identifiers("1.2.3+20130313144700")
+        1
+        >>> count_build_metadata_identifiers("1.2.3-rc1+build.123")
+        2
+        >>> count_build_metadata_identifiers("1.2.3")
+        0
+        >>> count_build_metadata_identifiers("")
+        0
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    metadata = get_build_metadata(version)
+    if metadata is None or metadata == "":
+        return 0
+    return len(metadata.split("."))
+
+
+def has_build_metadata_identifiers(version: str) -> bool:
+    """Return ``True`` when *version* has at least one build metadata identifier.
+
+    This is the boolean companion to
+    :func:`count_build_metadata_identifiers`. It returns ``False`` when no
+    build metadata is present or when the metadata is empty, reusing
+    :func:`count_build_metadata_identifiers` for consistency.
+
+    Args:
+        version: A dotted version string, optionally with build metadata.
+
+    Returns:
+        ``True`` if at least one build metadata identifier is present.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_build_metadata_identifiers("1.2.3+build.123")
+        True
+        >>> has_build_metadata_identifiers("1.2.3")
+        False
+        >>> has_build_metadata_identifiers("1.2.3+")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return count_build_metadata_identifiers(version) > 0
 
 
 def has_build_metadata(version: str) -> bool:

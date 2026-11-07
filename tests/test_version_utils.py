@@ -15,6 +15,7 @@ from version_utils import (
     cmp_versions,
     compare,
     compare_versions,
+    count_build_metadata_identifiers,
     count_components,
     dec,
     decrement,
@@ -33,6 +34,7 @@ from version_utils import (
     get_prerelease_tag,
     greater_than,
     has_build_metadata,
+    has_build_metadata_identifiers,
     has_components,
     has_metadata,
     has_prerelease,
@@ -1369,3 +1371,56 @@ class TestMetadataAndBoolBoundaries(unittest.TestCase):
             is_beta(False)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_release_candidate(None)  # type: ignore[arg-type]
+
+
+class TestCountBuildMetadataIdentifiers(unittest.TestCase):
+    def test_counts_identifiers(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+build.123"), 2)
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+20130313144700"), 1)
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+a.b.c"), 3)
+
+    def test_no_metadata_returns_zero(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3"), 0)
+        self.assertEqual(count_build_metadata_identifiers("1.2.3-rc1"), 0)
+        self.assertEqual(count_build_metadata_identifiers(""), 0)
+
+    def test_empty_metadata_returns_zero(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+"), 0)
+
+    def test_with_prerelease(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3-rc1+build.123"), 2)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_build_metadata_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_build_metadata_identifiers(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_build_metadata_identifiers(True)  # type: ignore[arg-type]
+
+
+class TestHasBuildMetadataIdentifiers(unittest.TestCase):
+    def test_has_identifiers(self):
+        self.assertTrue(has_build_metadata_identifiers("1.2.3+build.123"))
+        self.assertTrue(has_build_metadata_identifiers("1.2.3+20130313144700"))
+
+    def test_no_identifiers(self):
+        self.assertFalse(has_build_metadata_identifiers("1.2.3"))
+        self.assertFalse(has_build_metadata_identifiers("1.2.3-rc1"))
+        self.assertFalse(has_build_metadata_identifiers(""))
+        self.assertFalse(has_build_metadata_identifiers("1.2.3+"))
+
+    def test_consistency_with_count(self):
+        cases = ["1.2.3", "1.2.3+a", "1.2.3+a.b", "1.2.3-rc1+a.b", "1.2.3+", ""]
+        for version in cases:
+            self.assertEqual(
+                has_build_metadata_identifiers(version),
+                count_build_metadata_identifiers(version) > 0,
+                msg=version,
+            )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_build_metadata_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_build_metadata_identifiers(False)  # type: ignore[arg-type]

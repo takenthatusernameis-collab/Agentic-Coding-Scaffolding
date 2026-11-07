@@ -60353,6 +60353,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_build_metadata_identifiers to version_utils
+
+- Added `count_build_metadata_identifiers(version)` and boolean companion `has_build_metadata_identifiers(version)` to `version_utils.py`. `count_build_metadata_identifiers` returns the number of dot-separated identifiers in a version's build metadata suffix (after `+`), or `0` when no build metadata is present or it is empty; `has_build_metadata_identifiers` reports whether any identifier is present, reusing the count helper for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountBuildMetadataIdentifiers` and `TestHasBuildMetadataIdentifiers` (9 tests) to `tests/test_version_utils.py` covering counts, no/empty metadata, prerelease+build, consistency with `count_build_metadata_identifiers`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_version_utils`; targeted doctest for the new helpers; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_set_bits to bytes_utils
 
 - Added `has_set_bits(data)` to `bytes_utils.py` as the boolean companion to `bit_count`, returning `True` when any bit in *data* is set and `False` for empty or all-zero input. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, reuses `bit_count` for consistency, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasSetBits` (6 tests) to `tests/test_bytes_utils.py` covering zero/all-set, empty, bytearray, consistency with `bit_count`, and `TypeError` paths; imported `has_set_bits` to match the module's `__all__` contract. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bytes_utils`; targeted doctest for `has_set_bits`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -62867,7 +62871,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, is_beta, has_prerelease, has_build_metadata, has_metadata)
+version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, is_beta, has_prerelease, has_build_metadata, count_build_metadata_identifiers, has_build_metadata_identifiers, has_metadata)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -63793,7 +63797,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `count_components` returns the number of dot-separated components in a version string, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, and `has_metadata` is a convenience boolean that reports whether a version string carries prerelease or build metadata, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `count_components` returns the number of dot-separated components in a version string, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, `count_build_metadata_identifiers` counts dot-separated build metadata identifiers and `has_build_metadata_identifiers` reports whether any are present, and `has_metadata` is a convenience boolean that reports whether a version string carries prerelease or build metadata, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -116704,6 +116708,8 @@ __all__ = [
     "from_tuple",
     "get_build",
     "get_build_metadata",
+    "count_build_metadata_identifiers",
+    "has_build_metadata_identifiers",
     "has_build_metadata",
     "has_metadata",
     "has_prerelease",
@@ -117444,6 +117450,72 @@ def get_build_metadata(version: str) -> str | None:
 get_build = get_build_metadata
 
 
+def count_build_metadata_identifiers(version: str) -> int:
+    """Count dot-separated identifiers in *version*'s build metadata.
+
+    Build metadata follows the first ``+`` character (for example
+    ``"1.2.3+build.123"`` has identifiers ``build`` and ``123``). Returns
+    ``0`` when no build metadata is present or when the metadata is empty.
+
+    Args:
+        version: A dotted version string, optionally with build metadata.
+
+    Returns:
+        The number of dot-separated build metadata identifiers.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> count_build_metadata_identifiers("1.2.3+build.123")
+        2
+        >>> count_build_metadata_identifiers("1.2.3+20130313144700")
+        1
+        >>> count_build_metadata_identifiers("1.2.3-rc1+build.123")
+        2
+        >>> count_build_metadata_identifiers("1.2.3")
+        0
+        >>> count_build_metadata_identifiers("")
+        0
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    metadata = get_build_metadata(version)
+    if metadata is None or metadata == "":
+        return 0
+    return len(metadata.split("."))
+
+
+def has_build_metadata_identifiers(version: str) -> bool:
+    """Return ``True`` when *version* has at least one build metadata identifier.
+
+    This is the boolean companion to
+    :func:`count_build_metadata_identifiers`. It returns ``False`` when no
+    build metadata is present or when the metadata is empty, reusing
+    :func:`count_build_metadata_identifiers` for consistency.
+
+    Args:
+        version: A dotted version string, optionally with build metadata.
+
+    Returns:
+        ``True`` if at least one build metadata identifier is present.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_build_metadata_identifiers("1.2.3+build.123")
+        True
+        >>> has_build_metadata_identifiers("1.2.3")
+        False
+        >>> has_build_metadata_identifiers("1.2.3+")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return count_build_metadata_identifiers(version) > 0
+
+
 def has_build_metadata(version: str) -> bool:
     """Return True if *version* carries a build metadata suffix.
 
@@ -117982,6 +118054,7 @@ from version_utils import (
     cmp_versions,
     compare,
     compare_versions,
+    count_build_metadata_identifiers,
     count_components,
     dec,
     decrement,
@@ -118000,6 +118073,7 @@ from version_utils import (
     get_prerelease_tag,
     greater_than,
     has_build_metadata,
+    has_build_metadata_identifiers,
     has_components,
     has_metadata,
     has_prerelease,
@@ -119336,6 +119410,59 @@ class TestMetadataAndBoolBoundaries(unittest.TestCase):
             is_beta(False)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_release_candidate(None)  # type: ignore[arg-type]
+
+
+class TestCountBuildMetadataIdentifiers(unittest.TestCase):
+    def test_counts_identifiers(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+build.123"), 2)
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+20130313144700"), 1)
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+a.b.c"), 3)
+
+    def test_no_metadata_returns_zero(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3"), 0)
+        self.assertEqual(count_build_metadata_identifiers("1.2.3-rc1"), 0)
+        self.assertEqual(count_build_metadata_identifiers(""), 0)
+
+    def test_empty_metadata_returns_zero(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3+"), 0)
+
+    def test_with_prerelease(self):
+        self.assertEqual(count_build_metadata_identifiers("1.2.3-rc1+build.123"), 2)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_build_metadata_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_build_metadata_identifiers(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_build_metadata_identifiers(True)  # type: ignore[arg-type]
+
+
+class TestHasBuildMetadataIdentifiers(unittest.TestCase):
+    def test_has_identifiers(self):
+        self.assertTrue(has_build_metadata_identifiers("1.2.3+build.123"))
+        self.assertTrue(has_build_metadata_identifiers("1.2.3+20130313144700"))
+
+    def test_no_identifiers(self):
+        self.assertFalse(has_build_metadata_identifiers("1.2.3"))
+        self.assertFalse(has_build_metadata_identifiers("1.2.3-rc1"))
+        self.assertFalse(has_build_metadata_identifiers(""))
+        self.assertFalse(has_build_metadata_identifiers("1.2.3+"))
+
+    def test_consistency_with_count(self):
+        cases = ["1.2.3", "1.2.3+a", "1.2.3+a.b", "1.2.3-rc1+a.b", "1.2.3+", ""]
+        for version in cases:
+            self.assertEqual(
+                has_build_metadata_identifiers(version),
+                count_build_metadata_identifiers(version) > 0,
+                msg=version,
+            )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_build_metadata_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_build_metadata_identifiers(False)  # type: ignore[arg-type]
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---
