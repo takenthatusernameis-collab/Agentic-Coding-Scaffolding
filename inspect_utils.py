@@ -22,6 +22,7 @@ __all__ = [
     "get_source_file",
     "get_source_lines",
     "has_parameter",
+    "has_parameters",
     "is_async_callable",
     "is_builtin",
     "is_callable",
@@ -169,6 +170,35 @@ def count_parameters(func: Any) -> int:
         ValueError: If the signature cannot be introspected.
     """
     return len(get_signature(func).parameters)
+
+
+def has_parameters(func: Any) -> bool:
+    """Return ``True`` if *func* declares at least one parameter.
+
+    A boolean companion to :func:`count_parameters` that reports whether
+    *func* declares any parameters at all. Callables with no parameters
+    (such as ``lambda: None``) return ``False``.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        ``True`` if *func* declares at least one parameter, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *func* is not callable.
+        ValueError: If the signature cannot be introspected.
+
+    Examples:
+        >>> def example(a, b): ...
+        >>> has_parameters(example)
+        True
+        >>> def empty(): ...
+        >>> has_parameters(empty)
+        False
+    """
+    return count_parameters(func) > 0
 
 
 def has_parameter(func: Any, name: str) -> bool:

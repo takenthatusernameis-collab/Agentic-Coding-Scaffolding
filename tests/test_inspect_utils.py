@@ -12,6 +12,7 @@ from inspect_utils import (
     get_source_file,
     get_source_lines,
     has_parameter,
+    has_parameters,
     is_async_callable,
     is_builtin,
     is_callable,
@@ -146,6 +147,39 @@ class TestCountParameters(unittest.TestCase):
             pass
 
         self.assertEqual(count_parameters(example), 0)
+
+
+class TestHasParameters(unittest.TestCase):
+    def test_has_parameters(self):
+        def example(a, b=1):
+            pass
+
+        self.assertTrue(has_parameters(example))
+
+    def test_no_parameters(self):
+        def example():
+            pass
+
+        self.assertFalse(has_parameters(example))
+
+    def test_single_parameter(self):
+        def example(a):
+            pass
+
+        self.assertTrue(has_parameters(example))
+
+    def test_consistency_with_count_parameters(self):
+        def example(a, b, c=3):
+            pass
+
+        self.assertEqual(has_parameters(example), count_parameters(example) > 0)
+
+    def test_builtin_with_params(self):
+        self.assertTrue(has_parameters(len))
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            has_parameters(42)
 
 
 class TestHasParameter(unittest.TestCase):

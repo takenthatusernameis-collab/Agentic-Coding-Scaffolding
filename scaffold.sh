@@ -58677,6 +58677,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_parameters to inspect_utils
+
+- Added `has_parameters(func)` to `inspect_utils.py` as the boolean companion to `count_parameters`. `inspect_utils.py` had `count_parameters(func)` (returning the number of declared parameters) but no `has_parameters` boolean counterpart. It returns ``True`` when *func* declares at least one parameter and ``False`` for parameterless callables, reusing `count_parameters` for consistency. Accepts a typed callable argument, raises `TypeError` for non-callables and `ValueError` when the signature cannot be introspected, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasParameters` (6 tests) to `tests/test_inspect_utils.py` covering has-parameters, no-parameters, single-parameter, consistency with `count_parameters`, built-in with params, and the `TypeError` path; imported `has_parameters` to match the module's `__all__` contract. Updated the `inspect_utils` module tree entry and prose section of `README.md`. Verified: `python -m unittest tests.test_inspect_utils` (41 tests); `python -m ruff check inspect_utils.py tests/test_inspect_utils.py`; `python -m mypy inspect_utils.py tests/test_inspect_utils.py`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_vowels to strings
 
 - Added `has_vowels(s)` to `strings.py` as the boolean companion to `count_vowels`. `strings.py` had `count_vowels(s)` (returning the number of vowels in *s*) but no `has_vowels` boolean counterpart. It returns `True` when *s* contains at least one ASCII vowel (a, e, i, o, u), case-insensitive, and `False` for empty or consonant-only text, reusing the vowel set for consistency. Accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasVowels` to `tests/test_strings.py` covering basic, no-vowels, empty, case-insensitive, all-vowels, single-vowel, non-alpha, consistency with `count_vowels`, and the `TypeError` path; imported `has_vowels` to match the module's `__all__` contract. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings`; `python -m unittest tests.test_public_api`; targeted doctest for `has_vowels`. No changes to `.github/workflows/**`.
@@ -61170,7 +61174,7 @@ bz2_utils.py               # BZ2 compression utilities wrapping stdlib bz2 (bz2_
 lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lzma_compress, lzma_decompress, lzma_open, lzma_write, lzma_read)
 gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug, is_tracked, is_finalized)
 gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
-inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, source)
+inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, has_parameters, source)
 interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, is_fermat_pseudoprime, is_amicable, is_perfect_power, is_powerful_number, is_fermat_number, is_strong_prime, is_balanced_prime, is_weak_prime, is_cuban_prime, is_proth_prime, is_super_prime, is_ugly_number, is_happy_prime, radical, prime_count, prime_gap, primorial, primes_between, total_prime_factors, distinct_prime_factors, largest_prime_factor)
@@ -62106,7 +62110,7 @@ The project includes identifier generation and validation utilities in `id_utils
 
 ## Inspect Utilities Module
 
-The project includes callable and object introspection utilities in `inspect_utils.py` for working with Python callables using the standard library `inspect` module: `get_callable_name` returns the name of a callable or the class name of a callable instance, `is_callable` tests whether an object can be called, `is_async_callable` detects coroutine functions, `get_signature` returns an `inspect.Signature`, `get_parameter_names` and `get_parameter_kinds` describe a callable's parameters, `count_parameters` returns the parameter count, `has_parameter` checks for a named parameter, `bind_arguments` binds positional and keyword arguments with defaults applied, `is_builtin` detects built-in functions, and `get_source_file`/`get_source_lines` locate a callable's source. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_inspect_utils.py`.
+The project includes callable and object introspection utilities in `inspect_utils.py` for working with Python callables using the standard library `inspect` module: `get_callable_name` returns the name of a callable or the class name of a callable instance, `is_callable` tests whether an object can be called, `is_async_callable` detects coroutine functions, `get_signature` returns an `inspect.Signature`, `get_parameter_names` and `get_parameter_kinds` describe a callable's parameters, `count_parameters` returns the parameter count, `has_parameter` checks for a named parameter, `has_parameters` is the boolean companion to `count_parameters`, returning ``True`` when *func* declares at least one parameter and ``False`` for parameterless callables, `bind_arguments` binds positional and keyword arguments with defaults applied, `is_builtin` detects built-in functions, and `get_source_file`/`get_source_lines` locate a callable's source. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_inspect_utils.py`.
 
 ## Call Once Utilities Module
 
@@ -76199,6 +76203,7 @@ __all__ = [
     "get_source_file",
     "get_source_lines",
     "has_parameter",
+    "has_parameters",
     "is_async_callable",
     "is_builtin",
     "is_callable",
@@ -76348,6 +76353,35 @@ def count_parameters(func: Any) -> int:
     return len(get_signature(func).parameters)
 
 
+def has_parameters(func: Any) -> bool:
+    """Return ``True`` if *func* declares at least one parameter.
+
+    A boolean companion to :func:`count_parameters` that reports whether
+    *func* declares any parameters at all. Callables with no parameters
+    (such as ``lambda: None``) return ``False``.
+
+    Args:
+        func: A callable object.
+
+    Returns:
+        ``True`` if *func* declares at least one parameter, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *func* is not callable.
+        ValueError: If the signature cannot be introspected.
+
+    Examples:
+        >>> def example(a, b): ...
+        >>> has_parameters(example)
+        True
+        >>> def empty(): ...
+        >>> has_parameters(empty)
+        False
+    """
+    return count_parameters(func) > 0
+
+
 def has_parameter(func: Any, name: str) -> bool:
     """Return ``True`` if *func* declares a parameter named *name*.
 
@@ -76480,6 +76514,7 @@ from inspect_utils import (
     get_source_file,
     get_source_lines,
     has_parameter,
+    has_parameters,
     is_async_callable,
     is_builtin,
     is_callable,
@@ -76614,6 +76649,39 @@ class TestCountParameters(unittest.TestCase):
             pass
 
         self.assertEqual(count_parameters(example), 0)
+
+
+class TestHasParameters(unittest.TestCase):
+    def test_has_parameters(self):
+        def example(a, b=1):
+            pass
+
+        self.assertTrue(has_parameters(example))
+
+    def test_no_parameters(self):
+        def example():
+            pass
+
+        self.assertFalse(has_parameters(example))
+
+    def test_single_parameter(self):
+        def example(a):
+            pass
+
+        self.assertTrue(has_parameters(example))
+
+    def test_consistency_with_count_parameters(self):
+        def example(a, b, c=3):
+            pass
+
+        self.assertEqual(has_parameters(example), count_parameters(example) > 0)
+
+    def test_builtin_with_params(self):
+        self.assertTrue(has_parameters(len))
+
+    def test_not_callable(self):
+        with self.assertRaises(TypeError):
+            has_parameters(42)
 
 
 class TestHasParameter(unittest.TestCase):
