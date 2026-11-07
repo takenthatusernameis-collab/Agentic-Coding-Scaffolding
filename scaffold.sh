@@ -44536,6 +44536,8 @@ __all__: list[str] = [
     "has_leading_ones",
     "count_trailing_zeros",
     "has_trailing_zeros",
+    "count_trailing_ones",
+    "has_trailing_ones",
 ]
 
 
@@ -45159,6 +45161,65 @@ def has_trailing_zeros(value: int) -> bool:
     """
     _validate_nonnegative_int(value)
     return count_trailing_zeros(value) > 0
+
+
+def count_trailing_ones(value: int) -> int:
+    """Return the number of trailing one bits in the binary representation of value.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The count of trailing one bits. Returns 0 for value 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> count_trailing_ones(0)
+        0
+        >>> count_trailing_ones(5)  # 0b101
+        1
+        >>> count_trailing_ones(7)  # 0b111
+        3
+        >>> count_trailing_ones(8)  # 0b1000
+        0
+    """
+    _validate_nonnegative_int(value)
+    count = 0
+    while value > 0 and (value & 1) == 1:
+        value >>= 1
+        count += 1
+    return count
+
+
+def has_trailing_ones(value: int) -> bool:
+    """Return True if value has at least one trailing one bit.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        True if value has a trailing one bit, False otherwise.
+        Returns False for value 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> has_trailing_ones(0)
+        False
+        >>> has_trailing_ones(5)  # 0b101
+        True
+        >>> has_trailing_ones(8)  # 0b1000
+        False
+        >>> has_trailing_ones(7)  # 0b111
+        True
+    """
+    _validate_nonnegative_int(value)
+    return count_trailing_ones(value) > 0
 BITUTILS
 
 # --- tests/test_bit_utils.py ---
@@ -60163,6 +60224,7 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_trailing_ones/has_trailing_ones to bit_utils
 ## Unreleased — added size to deque_utils
 
 - Added `size(d: deque) -> int` to `deque_utils.py` as an integer companion to `is_empty`, returning the number of elements in a deque (`len(d)`). It accepts a typed `collections.deque` argument, is exported via `__all__`, and ships with Google-style docstrings and ASCII-safe doctests. Added `TestSize` (7 tests) to `tests/test_deque_utils.py` covering empty, single-element, multiple elements, append/pop/clear mutation, and consistency with `len(deque_to_list(d))` and `is_empty`; imported `size` to match the module's `__all__` contract. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils`; targeted doctest for `size`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No `.github/workflows/**` changes.
@@ -63425,7 +63487,7 @@ The project includes asynchronous utility functions in `async_utils.py` for runn
 
 ## Bit Utilities Module
 
-The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
+The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `count_trailing_ones`/`has_trailing_ones` measure trailing one bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
 
 ## Collections Utilities Module
 

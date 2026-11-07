@@ -32,6 +32,8 @@ __all__: list[str] = [
     "has_leading_ones",
     "count_trailing_zeros",
     "has_trailing_zeros",
+    "count_trailing_ones",
+    "has_trailing_ones",
 ]
 
 
@@ -655,3 +657,62 @@ def has_trailing_zeros(value: int) -> bool:
     """
     _validate_nonnegative_int(value)
     return count_trailing_zeros(value) > 0
+
+
+def count_trailing_ones(value: int) -> int:
+    """Return the number of trailing one bits in the binary representation of value.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The count of trailing one bits. Returns 0 for value 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> count_trailing_ones(0)
+        0
+        >>> count_trailing_ones(5)  # 0b101
+        1
+        >>> count_trailing_ones(7)  # 0b111
+        3
+        >>> count_trailing_ones(8)  # 0b1000
+        0
+    """
+    _validate_nonnegative_int(value)
+    count = 0
+    while value > 0 and (value & 1) == 1:
+        value >>= 1
+        count += 1
+    return count
+
+
+def has_trailing_ones(value: int) -> bool:
+    """Return True if value has at least one trailing one bit.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        True if value has a trailing one bit, False otherwise.
+        Returns False for value 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> has_trailing_ones(0)
+        False
+        >>> has_trailing_ones(5)  # 0b101
+        True
+        >>> has_trailing_ones(8)  # 0b1000
+        False
+        >>> has_trailing_ones(7)  # 0b111
+        True
+    """
+    _validate_nonnegative_int(value)
+    return count_trailing_ones(value) > 0
