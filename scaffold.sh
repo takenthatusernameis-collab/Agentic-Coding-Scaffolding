@@ -36140,6 +36140,7 @@ __all__ = [
     "flatten_dict",
     "has_key",
     "invert_dict",
+    "keys_equal",
     "merge",
     "omit_keys",
     "safe_get",
@@ -36287,6 +36288,37 @@ def has_key(d: Dict[K, Any], key: K) -> bool:
         raise TypeError("d must be a dict")
     return key in d
 
+
+
+
+def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
+    """Report whether two dictionaries have the same set of keys.
+
+    Only the keys are compared; values and key order are ignored.
+
+    Args:
+        d1: First dictionary.
+        d2: Second dictionary.
+
+    Returns:
+        ``True`` when *d1* and *d2* contain the same keys, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> keys_equal({"a": 1, "b": 2}, {"a": 3, "b": 4})
+        True
+        >>> keys_equal({"a": 1}, {"a": 1, "b": 2})
+        False
+        >>> keys_equal({}, {})
+        True
+    """
+    if not isinstance(d1, dict):
+        raise TypeError("d1 must be a dict")
+    if not isinstance(d2, dict):
+        raise TypeError("d2 must be a dict")
+    return set(d1) == set(d2)
 
 def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
     """Invert a dictionary by swapping keys and values.
@@ -47892,6 +47924,7 @@ from dict_utils import (
     flatten_dict,
     has_key,
     invert_dict,
+    keys_equal,
     merge,
     omit_keys,
     safe_get,
@@ -48038,6 +48071,21 @@ class TestHasKey(unittest.TestCase):
             has_key("x", "a")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_key(None, "a")  # type: ignore[arg-type]
+
+
+class TestKeysEqual(unittest.TestCase):
+    def test_same_keys(self) -> None:
+        self.assertTrue(keys_equal({"a": 1, "b": 2}, {"a": 3, "b": 4}))
+
+    def test_different_keys(self) -> None:
+        self.assertFalse(keys_equal({"a": 1}, {"a": 1, "b": 2}))
+
+    def test_empty(self) -> None:
+        self.assertTrue(keys_equal({}, {}))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            keys_equal("not a dict", {})
 
 
 class TestInvertDict(unittest.TestCase):
