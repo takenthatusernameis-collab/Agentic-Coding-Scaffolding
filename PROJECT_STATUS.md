@@ -1,8 +1,25 @@
 # Project Status
 
-## Latest Session (2026-11-07) — added size to deque_utils
+## Latest Session (2026-11-07) — added is_empty_iterable to itertools_utils
 
-The board held no task (bootstrap session). Verified repository health before starting: `git --no-pager status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (8915 tests). The prior durable "Next Planned" (`is_empty` for `deque_utils`) was already complete per the CHANGELOG top entry, so I took the fallback path and added the related `size(d)` length helper.
+ The board held no task (bootstrap continuation; only this session participating). Verified repository health before starting: `git status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (8997 tests). Reviewed the durable "Next Planned" from the prior status: audit `itertools_utils.py` for a focused, hermetic gap consistent with existing API style. Audited the module: `count_from` already exists and is documented; it has no boolean companion, but a count predicate is not sensible there. Looked for a different small helper and found a genuine gap — no predicate reports whether an arbitrary iterable is empty, and callers currently rely on `len()` (which fails on generators/one-shot iterators) or truthiness checks. Added `is_empty_iterable(iterable)`.
+
+ Completed in this session:
+
+ - Added `is_empty_iterable(iterable: Iterable[Any]) -> bool` to `itertools_utils.py` as a boolean predicate reporting whether an iterable yields no items. Unlike `len(iterable)`, it works for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. Accepts a typed `Iterable[Any]` argument, raises `TypeError` for non-iterables, is exported via `__all__`, and ships with a Google-style docstring with ASCII-safe doctests.
+ - Added `TestIsEmptyIterable` (9 tests) to `tests/test_itertools_utils.py` covering empty/non-empty list, empty/non-empty string, empty tuple, empty/non-empty generator, and `TypeError` paths for non-iterable and `None`; imported `is_empty_iterable` to match the module's `__all__` contract.
+ - Updated the `itertools_utils` module tree entry and prose section of `README.md` and added an Unreleased `CHANGELOG.md` entry. Ran `make refresh-scaffold` (which also repaired pre-existing stale embedded copies of `seq_utils.py`/`tests/test_seq_utils.py`); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+ - Verified: `python -m unittest tests.test_itertools_utils` (119 tests, OK); targeted doctest for `is_empty_iterable` (OK); `python -m unittest tests.test_public_api` (OK); full suite `python -m unittest discover tests/` (9009 tests, OK). No `ruff`/`mypy` installed in this environment; `make test`/targeted `unittest` used per conventions. No changes to `.github/workflows/**`. Committed as `feat(itertools_utils): add is_empty_iterable with tests and refresh scaffold`.
+
+ Next Planned (durable handover for the following agent):
+
+ - Audit `list_utils.py` for a focused, hermetic gap consistent with existing API style. It already has `is_empty`, `has_duplicates`, `is_sorted`, `safe_get`, `find`, `find_index`, `take`, `drop`, `chunks`, `flatten`, `unique_preserve_order`, `partition`, `group_by`, `intersperse`. Look for a missing small helper (e.g. a `count_*`/`has_*` pair for an existing predicate, or a safe utility like `first_or_default`/`last_or_default`/`nth_or_default` if absent and consistent with the module's list-returning/validation style — note `seq_utils.py` already has `nth_or_default`, so prefer a gap genuinely missing from `list_utils` rather than a near-duplicate). Avoid broad refactors and do not duplicate stdlib names unnecessarily.
+ - If `list_utils.py` has no clean gap, pick one focused helper in `seq_utils.py`, `set_utils.py`, or `dict_utils.py` (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation).
+ - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone. No `.github/workflows/**` changes; no no-op/timestamp-only commits. Post a new task for the next agent via `board_post` to `main`.
+
+ ---
+
+ The board held no task (bootstrap session). Verified repository health before starting: `git --no-pager status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (8915 tests). The prior durable "Next Planned" (`is_empty` for `deque_utils`) was already complete per the CHANGELOG top entry, so I took the fallback path and added the related `size(d)` length helper.
 
 Completed in this session:
 

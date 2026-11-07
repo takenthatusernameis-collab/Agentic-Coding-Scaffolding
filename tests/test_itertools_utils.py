@@ -12,6 +12,7 @@ from itertools_utils import (
     flatten_once,
     group_by_key,
     grouper,
+    is_empty_iterable,
     pairwise_iterable,
     partition,
     product_of,
@@ -484,6 +485,37 @@ class TestGrouper(unittest.TestCase):
     def test_count_from_bad_step_type(self):
         with self.assertRaises(TypeError):
             count_from(0, True)
+
+
+class TestIsEmptyIterable(unittest.TestCase):
+    def test_empty_list(self):
+        self.assertTrue(is_empty_iterable([]))
+
+    def test_non_empty_list(self):
+        self.assertFalse(is_empty_iterable([1, 2, 3]))
+
+    def test_empty_string(self):
+        self.assertTrue(is_empty_iterable(""))
+
+    def test_non_empty_string(self):
+        self.assertFalse(is_empty_iterable("abc"))
+
+    def test_empty_tuple(self):
+        self.assertTrue(is_empty_iterable(()))
+
+    def test_generator_empty(self):
+        self.assertTrue(is_empty_iterable(iter(())))
+
+    def test_generator_non_empty(self):
+        self.assertFalse(is_empty_iterable(x for x in range(3)))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            is_empty_iterable(42)
+
+    def test_rejects_none(self):
+        with self.assertRaises(TypeError):
+            is_empty_iterable(None)
 
 
 if __name__ == "__main__":

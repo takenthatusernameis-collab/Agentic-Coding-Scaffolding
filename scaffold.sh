@@ -49360,6 +49360,38 @@ def starmap_iterable(function: Callable[..., Any], iterable: Iterable[Iterable[A
     return list(starmap(function, iterable))
 
 
+def is_empty_iterable(iterable: Iterable[Any]) -> bool:
+    """Return ``True`` when *iterable* contains no elements.
+
+    Unlike ``len(iterable)``, this works for any iterable — including
+    generators and other one-shot iterators — by consuming elements only
+    until the first item is seen.
+
+    Args:
+        iterable: The iterable to inspect.
+
+    Returns:
+        ``True`` when the iterable yields no items, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> is_empty_iterable([])
+        True
+        >>> is_empty_iterable([1, 2, 3])
+        False
+        >>> is_empty_iterable(iter(()))
+        True
+        >>> is_empty_iterable(x for x in [])
+        True
+    """
+    _ensure_iterable(iterable, "iterable")
+    for element in iterable:
+        return False
+    return True
+
+
 def count_from(start: int = 0, step: int = 1) -> List[Any]:
     """Count infinitely from start with step; return first 1000 as list for safety."""
     if not isinstance(start, int) or isinstance(start, bool):
@@ -49520,6 +49552,7 @@ __all__ = [
     "starmap_iterable",
     "count_from",
     "islice_iterable",
+    "is_empty_iterable",
     "unique_everseen",
     "unique_justseen",
     "sliding_window",
@@ -49547,6 +49580,7 @@ from itertools_utils import (
     flatten_once,
     group_by_key,
     grouper,
+    is_empty_iterable,
     pairwise_iterable,
     partition,
     product_of,
@@ -50019,6 +50053,37 @@ class TestGrouper(unittest.TestCase):
     def test_count_from_bad_step_type(self):
         with self.assertRaises(TypeError):
             count_from(0, True)
+
+
+class TestIsEmptyIterable(unittest.TestCase):
+    def test_empty_list(self):
+        self.assertTrue(is_empty_iterable([]))
+
+    def test_non_empty_list(self):
+        self.assertFalse(is_empty_iterable([1, 2, 3]))
+
+    def test_empty_string(self):
+        self.assertTrue(is_empty_iterable(""))
+
+    def test_non_empty_string(self):
+        self.assertFalse(is_empty_iterable("abc"))
+
+    def test_empty_tuple(self):
+        self.assertTrue(is_empty_iterable(()))
+
+    def test_generator_empty(self):
+        self.assertTrue(is_empty_iterable(iter(())))
+
+    def test_generator_non_empty(self):
+        self.assertFalse(is_empty_iterable(x for x in range(3)))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            is_empty_iterable(42)
+
+    def test_rejects_none(self):
+        with self.assertRaises(TypeError):
+            is_empty_iterable(None)
 
 
 if __name__ == "__main__":
@@ -60353,6 +60418,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added is_empty_iterable to itertools_utils
+
+- Added `is_empty_iterable(iterable)` to `itertools_utils.py` as a boolean predicate reporting whether an iterable yields no items. Unlike `len(iterable)`, it works for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. It accepts a typed `Iterable[Any]` argument, raises `TypeError` for non-iterables, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsEmptyIterable` (9 tests) to `tests/test_itertools_utils.py` covering empty/non-empty list, empty/non-empty string, empty tuple, empty/non-empty generator, and `TypeError` paths for non-iterable and `None`; imported `is_empty_iterable` to match the module's `__all__` contract. Updated the `itertools_utils` module tree entry and prose section of `README.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_itertools_utils`; targeted doctest for `is_empty_iterable`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_build_metadata_identifiers to version_utils
 
 - Added `count_build_metadata_identifiers(version)` and boolean companion `has_build_metadata_identifiers(version)` to `version_utils.py`. `count_build_metadata_identifiers` returns the number of dot-separated identifiers in a version's build metadata suffix (after `+`), or `0` when no build metadata is present or it is empty; `has_build_metadata_identifiers` reports whether any identifier is present, reusing the count helper for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountBuildMetadataIdentifiers` and `TestHasBuildMetadataIdentifiers` (9 tests) to `tests/test_version_utils.py` covering counts, no/empty metadata, prerelease+build, consistency with `count_build_metadata_identifiers`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `version_utils` module tree entry and prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_version_utils`; targeted doctest for the new helpers; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -62811,7 +62880,7 @@ maybe_utils.py             # Maybe/Option type utilities for functional programm
 either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_left, unwrap_or, unwrap_or_else, is_right, is_left, is_ok, is_err)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
-itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, grouper, roundrobin, padnone, ncycles, count_from, etc.)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, grouper, roundrobin, padnone, ncycles, count_from, is_empty_iterable, etc.)
 
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
@@ -63732,7 +63801,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. The `grouper` helper collects data into fixed-length chunks, padding the final short chunk with a configurable `fillvalue` (defaulting to `None`) so every emitted tuple has exactly *n* elements; `roundrobin` visits input iterables in a round-robin fashion until each is exhausted; `padnone` yields the sequence elements followed by `None` indefinitely; and `ncycles` repeats a sequence *n* times. `count_from` counts infinitely from a start value with a step, returning the first 1000 values as a list for safety. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. The `grouper` helper collects data into fixed-length chunks, padding the final short chunk with a configurable `fillvalue` (defaulting to `None`) so every emitted tuple has exactly *n* elements; `roundrobin` visits input iterables in a round-robin fashion until each is exhausted; `padnone` yields the sequence elements followed by `None` indefinitely; and `ncycles` repeats a sequence *n* times. `count_from` counts infinitely from a start value with a step, returning the first 1000 values as a list for safety. `is_empty_iterable` reports whether an iterable yields no items, working for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 
@@ -102588,6 +102657,7 @@ __all__ = [
     "is_sorted",
     "last",
     "nth",
+    "nth_or_default",
     "split_at",
     "tail",
     "take_while",
@@ -102670,6 +102740,38 @@ def nth(sequence: Sequence[T], n: int) -> Optional[T]:
         return sequence[n]
     except IndexError:
         return None
+
+
+def nth_or_default(sequence: Sequence[T], n: int, default: Optional[T] = None) -> Optional[T]:
+    """Return the element at index ``n``, or ``default`` if out of range.
+
+    Negative indices are supported, mirroring normal sequence indexing.
+
+    Args:
+        sequence: The sequence to inspect.
+        n: The index of the element to retrieve.
+        default: The value to return when ``n`` is out of range.
+
+    Returns:
+        The element at index ``n``, or ``default`` when the index is invalid.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+
+    Examples:
+        >>> nth_or_default([1, 2, 3], 1)
+        2
+        >>> nth_or_default([1, 2, 3], 5, 0)
+        0
+        >>> nth_or_default([1, 2, 3], 5)
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    try:
+        return sequence[n]
+    except IndexError:
+        return default
 
 
 def head(sequence: Sequence[T], n: int = 1) -> List[T]:
@@ -103040,6 +103142,7 @@ from seq_utils import (
     is_sorted,
     last,
     nth,
+    nth_or_default,
     split_at,
     tail,
     take_while,
@@ -103093,6 +103196,25 @@ class TestNth(unittest.TestCase):
         with self.assertRaises(TypeError):
             nth(123, 0)  # type: ignore[arg-type]
 
+
+
+class TestNthOrDefault(unittest.TestCase):
+    def test_nth_or_default_valid(self):
+        self.assertEqual(nth_or_default([1, 2, 3], 0), 1)
+        self.assertEqual(nth_or_default([1, 2, 3], 2), 3)
+        self.assertEqual(nth_or_default([1, 2, 3], -1), 3)
+
+    def test_nth_or_default_out_of_range(self):
+        self.assertEqual(nth_or_default([1, 2, 3], 5, 0), 0)
+        self.assertEqual(nth_or_default([1, 2, 3], -4, "x"), "x")
+        self.assertIsNone(nth_or_default([], 0))
+        self.assertEqual(nth_or_default([], 0, 42), 42)
+
+    def test_nth_or_default_type_error(self):
+        with self.assertRaises(TypeError):
+            nth_or_default([1, 2, 3], "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            nth_or_default(123, 0)  # type: ignore[arg-type]
 
 class TestHead(unittest.TestCase):
     def test_head(self):

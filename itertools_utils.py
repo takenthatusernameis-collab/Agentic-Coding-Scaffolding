@@ -383,6 +383,38 @@ def starmap_iterable(function: Callable[..., Any], iterable: Iterable[Iterable[A
     return list(starmap(function, iterable))
 
 
+def is_empty_iterable(iterable: Iterable[Any]) -> bool:
+    """Return ``True`` when *iterable* contains no elements.
+
+    Unlike ``len(iterable)``, this works for any iterable — including
+    generators and other one-shot iterators — by consuming elements only
+    until the first item is seen.
+
+    Args:
+        iterable: The iterable to inspect.
+
+    Returns:
+        ``True`` when the iterable yields no items, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> is_empty_iterable([])
+        True
+        >>> is_empty_iterable([1, 2, 3])
+        False
+        >>> is_empty_iterable(iter(()))
+        True
+        >>> is_empty_iterable(x for x in [])
+        True
+    """
+    _ensure_iterable(iterable, "iterable")
+    for element in iterable:
+        return False
+    return True
+
+
 def count_from(start: int = 0, step: int = 1) -> List[Any]:
     """Count infinitely from start with step; return first 1000 as list for safety."""
     if not isinstance(start, int) or isinstance(start, bool):
@@ -543,6 +575,7 @@ __all__ = [
     "starmap_iterable",
     "count_from",
     "islice_iterable",
+    "is_empty_iterable",
     "unique_everseen",
     "unique_justseen",
     "sliding_window",
