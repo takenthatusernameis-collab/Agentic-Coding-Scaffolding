@@ -99,6 +99,7 @@ __all__: List[str] = [
     "remove_vowels",
     "remove_consonants",
     "count_digits",
+    "has_digits",
     "count_letters",
     "count_punctuation",
     "count_whitespace",
@@ -1908,6 +1909,32 @@ def count_digits(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.isdigit())
+
+
+def has_digits(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one digit character.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more digit characters, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_digits("abc123")
+        True
+        >>> has_digits("2024")
+        True
+        >>> has_digits("hello")
+        False
+        >>> has_digits("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.isdigit() for ch in s)
 
 
 def count_letters(s: str) -> int:

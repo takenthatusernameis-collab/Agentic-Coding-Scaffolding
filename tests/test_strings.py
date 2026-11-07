@@ -15,6 +15,7 @@ from strings import (
     contains_any,
     count_consonants,
     count_digits,
+    has_digits,
     count_letters,
     count_lowercase,
     count_occurrences,
@@ -307,6 +308,31 @@ class TestCountDigits(unittest.TestCase):
             count_digits(42)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_digits(None)  # type: ignore[arg-type]
+
+
+class TestHasDigits(unittest.TestCase):
+    def test_has_digits_basic(self):
+        self.assertTrue(has_digits("abc123"))
+
+    def test_has_digits_no_digits(self):
+        self.assertFalse(has_digits("hello"))
+
+    def test_has_digits_empty(self):
+        self.assertFalse(has_digits(""))
+
+    def test_has_digits_unicode(self):
+        self.assertTrue(has_digits("①②③"))
+
+    def test_has_digits_consistency_with_count_digits(self):
+        self.assertEqual(has_digits("abc123"), count_digits("abc123") > 0)
+        self.assertEqual(has_digits(""), count_digits("") > 0)
+        self.assertEqual(has_digits("hello"), count_digits("hello") > 0)
+
+    def test_has_digits_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_digits(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_digits(None)  # type: ignore[arg-type]
 
 
 class TestIsIsogram(unittest.TestCase):
