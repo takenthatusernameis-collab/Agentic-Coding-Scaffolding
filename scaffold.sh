@@ -58370,6 +58370,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_in_deque to deque_utils
+
+- Added `has_in_deque(d, x)` to `deque_utils.py` as the boolean companion to `count_in_deque`. `deque_utils.py` had `count_in_deque(d, x)` (returning the number of occurrences of `x` in deque `d`) but no `has_in_deque` boolean counterpart. It returns `True` when `x` occurs at least once in `d` and `False` otherwise, reusing `count_in_deque` for consistency. Accepts typed `deque`/`Any` arguments, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasInDeque` to `tests/test_deque_utils.py` covering present/absent/empty/single/duplicates/consistency-with-`count_in_deque`/strings cases; imported `has_in_deque` to match the module's `__all__` contract. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils`; targeted doctest for `has_in_deque`; `python -m unittest tests.test_public_api`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_lines to io_utils
 
 - Added `has_lines(path)` to `io_utils.py` as the boolean companion to `count_lines`. `io_utils.py` had `count_lines(path)` (returning the number of lines in a file) but no `has_lines` boolean counterpart. It returns ``True`` when the file contains at least one line and ``False`` for an empty file, reusing `count_lines` for consistency. Accepts a typed path argument (string or path-like), raises `TypeError` for non-path inputs, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestHasLines` to `tests/test_io_utils.py` covering multiple lines, no trailing newline, empty file, single line, consistency with `count_lines`, and the `TypeError` path; imported `has_lines` to match the module's `__all__` contract. Updated the `io_utils` module tree entry and prose section of `README.md`. Synchronized `io_utils.py`, `tests/test_io_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_io_utils`; `python -m unittest tests.test_public_api`; targeted doctest for `has_lines`. No changes to `.github/workflows/**`.
@@ -60746,7 +60750,7 @@ concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessP
 concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
-deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, remove_from_deque, reverse_deque)
+deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, has_in_deque, remove_from_deque, reverse_deque)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
@@ -61803,7 +61807,7 @@ The project includes deprecation utilities in `deprecation_utils.py` for marking
 
 ## Deque Utilities Module
 
-The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, and `deque_to_list` converts it to a list. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
+The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, and `deque_to_list` converts it to a list. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
 
 ## Ring Buffer Utilities Module
 
@@ -143000,6 +143004,26 @@ def count_in_deque(d: deque, x: Any) -> int:
     return d.count(x)
 
 
+def has_in_deque(d: deque, x: Any) -> bool:
+    """Return True if deque d contains x at least once.
+
+    Args:
+        d: A deque to search.
+        x: The value to look for.
+
+    Returns:
+        True if x occurs at least once in d, False otherwise.
+
+    Examples:
+        >>> d = create_deque([1, 2, 1, 3, 1])
+        >>> has_in_deque(d, 1)
+        True
+        >>> has_in_deque(d, 9)
+        False
+    """
+    return count_in_deque(d, x) > 0
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -143022,6 +143046,7 @@ __all__ = [
     "clear_deque",
     "deque_to_list",
     "count_in_deque",
+    "has_in_deque",
     "remove_from_deque",
     "reverse_deque",
 ]
@@ -143040,6 +143065,7 @@ from deque_utils import (
     deque_to_list,
     extend_left,
     extend_right,
+    has_in_deque,
     pop_left,
     pop_right,
     remove_from_deque,
@@ -143138,6 +143164,44 @@ class TestDequeUtils(unittest.TestCase):
         self.assertEqual(count_in_deque(d, 1), 3)
         self.assertEqual(count_in_deque(d, 2), 1)
         self.assertEqual(count_in_deque(d, 9), 0)
+
+    def test_has_in_deque_present(self):
+        d = create_deque([1, 2, 1, 3, 1])
+        self.assertTrue(has_in_deque(d, 1))
+        self.assertTrue(has_in_deque(d, 2))
+        self.assertTrue(has_in_deque(d, 3))
+
+    def test_has_in_deque_absent(self):
+        d = create_deque([1, 2, 1, 3, 1])
+        self.assertFalse(has_in_deque(d, 9))
+        self.assertFalse(has_in_deque(d, 0))
+
+    def test_has_in_deque_empty(self):
+        d = create_deque()
+        self.assertFalse(has_in_deque(d, 1))
+
+    def test_has_in_deque_single_present(self):
+        d = create_deque([42])
+        self.assertTrue(has_in_deque(d, 42))
+
+    def test_has_in_deque_single_absent(self):
+        d = create_deque([42])
+        self.assertFalse(has_in_deque(d, 7))
+
+    def test_has_in_deque_duplicates(self):
+        d = create_deque([5, 5, 5])
+        self.assertTrue(has_in_deque(d, 5))
+        self.assertFalse(has_in_deque(d, 6))
+
+    def test_has_in_deque_consistent_with_count(self):
+        d = create_deque([1, 2, 1, 3, 1])
+        for x in range(10):
+            self.assertEqual(has_in_deque(d, x), count_in_deque(d, x) > 0)
+
+    def test_has_in_deque_strings(self):
+        d = create_deque(["a", "b", "a"])
+        self.assertTrue(has_in_deque(d, "a"))
+        self.assertFalse(has_in_deque(d, "c"))
 
     def test_remove_from_deque(self):
         d = create_deque([1, 2, 3, 2])

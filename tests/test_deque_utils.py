@@ -9,6 +9,7 @@ from deque_utils import (
     deque_to_list,
     extend_left,
     extend_right,
+    has_in_deque,
     pop_left,
     pop_right,
     remove_from_deque,
@@ -107,6 +108,44 @@ class TestDequeUtils(unittest.TestCase):
         self.assertEqual(count_in_deque(d, 1), 3)
         self.assertEqual(count_in_deque(d, 2), 1)
         self.assertEqual(count_in_deque(d, 9), 0)
+
+    def test_has_in_deque_present(self):
+        d = create_deque([1, 2, 1, 3, 1])
+        self.assertTrue(has_in_deque(d, 1))
+        self.assertTrue(has_in_deque(d, 2))
+        self.assertTrue(has_in_deque(d, 3))
+
+    def test_has_in_deque_absent(self):
+        d = create_deque([1, 2, 1, 3, 1])
+        self.assertFalse(has_in_deque(d, 9))
+        self.assertFalse(has_in_deque(d, 0))
+
+    def test_has_in_deque_empty(self):
+        d = create_deque()
+        self.assertFalse(has_in_deque(d, 1))
+
+    def test_has_in_deque_single_present(self):
+        d = create_deque([42])
+        self.assertTrue(has_in_deque(d, 42))
+
+    def test_has_in_deque_single_absent(self):
+        d = create_deque([42])
+        self.assertFalse(has_in_deque(d, 7))
+
+    def test_has_in_deque_duplicates(self):
+        d = create_deque([5, 5, 5])
+        self.assertTrue(has_in_deque(d, 5))
+        self.assertFalse(has_in_deque(d, 6))
+
+    def test_has_in_deque_consistent_with_count(self):
+        d = create_deque([1, 2, 1, 3, 1])
+        for x in range(10):
+            self.assertEqual(has_in_deque(d, x), count_in_deque(d, x) > 0)
+
+    def test_has_in_deque_strings(self):
+        d = create_deque(["a", "b", "a"])
+        self.assertTrue(has_in_deque(d, "a"))
+        self.assertFalse(has_in_deque(d, "c"))
 
     def test_remove_from_deque(self):
         d = create_deque([1, 2, 3, 2])

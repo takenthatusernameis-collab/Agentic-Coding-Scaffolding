@@ -61,6 +61,26 @@ def count_in_deque(d: deque, x: Any) -> int:
     return d.count(x)
 
 
+def has_in_deque(d: deque, x: Any) -> bool:
+    """Return True if deque d contains x at least once.
+
+    Args:
+        d: A deque to search.
+        x: The value to look for.
+
+    Returns:
+        True if x occurs at least once in d, False otherwise.
+
+    Examples:
+        >>> d = create_deque([1, 2, 1, 3, 1])
+        >>> has_in_deque(d, 1)
+        True
+        >>> has_in_deque(d, 9)
+        False
+    """
+    return count_in_deque(d, x) > 0
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -83,6 +103,7 @@ __all__ = [
     "clear_deque",
     "deque_to_list",
     "count_in_deque",
+    "has_in_deque",
     "remove_from_deque",
     "reverse_deque",
 ]
