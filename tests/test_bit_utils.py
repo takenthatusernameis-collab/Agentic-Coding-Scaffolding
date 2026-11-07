@@ -5,8 +5,8 @@ import unittest
 from bit_utils import (
     clear_bit,
     count_set_bits,
-    has_set_bits,
     get_bit,
+    has_set_bits,
     is_even,
     is_odd,
     is_power_of_two,

@@ -12,6 +12,7 @@ __all__: List[str] = [
     "reverse_words",
     "is_palindrome",
     "count_vowels",
+    "has_vowels",
     "count_consonants",
     "count_lowercase",
     "count_uppercase",
