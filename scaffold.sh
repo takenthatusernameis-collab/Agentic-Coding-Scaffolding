@@ -145487,6 +145487,26 @@ def is_empty(d: deque) -> bool:
     return len(d) == 0
 
 
+def has_items(d: deque) -> bool:
+    """Return True when deque d contains at least one element.
+
+    Args:
+        d: A deque to inspect.
+
+    Returns:
+        True if d is non-empty, False otherwise.
+
+    Examples:
+        >>> d = create_deque()
+        >>> has_items(d)
+        False
+        >>> append_right(d, 1)
+        >>> has_items(d)
+        True
+    """
+    return len(d) > 0
+
+
 __all__ = [
     "create_deque",
     "append_left",
@@ -145506,6 +145526,7 @@ __all__ = [
     "reverse_deque",
     "size",
     "is_empty",
+    "has_items",
 ]
 DEQUE_UTILS
 
@@ -145523,6 +145544,7 @@ from deque_utils import (
     extend_left,
     extend_right,
     has_in_deque,
+    has_items,
     is_empty,
     peek_left,
     peek_right,
@@ -145777,6 +145799,28 @@ class TestSize(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestHasItems(unittest.TestCase):
+    def test_empty(self):
+        self.assertFalse(has_items(create_deque()))
+
+    def test_single_element(self):
+        self.assertTrue(has_items(create_deque([1])))
+
+    def test_multiple_elements(self):
+        self.assertTrue(has_items(create_deque([1, 2, 3])))
+
+    def test_after_clear(self):
+        d = create_deque([1, 2, 3])
+        self.assertTrue(has_items(d))
+        clear_deque(d)
+        self.assertFalse(has_items(d))
+
+    def test_consistent_with_size_and_is_empty(self):
+        d = create_deque()
+        self.assertEqual(has_items(d), size(d) > 0)
+        self.assertEqual(has_items(d), not is_empty(d))
 TEST_DEQUE_UTILS
 
 # --- dumbdbm_utils.py ---

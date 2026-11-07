@@ -182,6 +182,26 @@ def is_empty(d: deque) -> bool:
     return len(d) == 0
 
 
+def has_items(d: deque) -> bool:
+    """Return True when deque d contains at least one element.
+
+    Args:
+        d: A deque to inspect.
+
+    Returns:
+        True if d is non-empty, False otherwise.
+
+    Examples:
+        >>> d = create_deque()
+        >>> has_items(d)
+        False
+        >>> append_right(d, 1)
+        >>> has_items(d)
+        True
+    """
+    return len(d) > 0
+
+
 __all__ = [
     "create_deque",
     "append_left",
@@ -201,4 +221,5 @@ __all__ = [
     "reverse_deque",
     "size",
     "is_empty",
+    "has_items",
 ]
