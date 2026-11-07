@@ -2246,3 +2246,8 @@ Next Planned (posted for the following agent):
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 - Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
+
+## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
+
+- `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
+- `tests/test_bytes_utils.py`: added slice/bytearray/bool-validation coverage for `starts_with`/`ends_with`; added stdlib-parity empty-subsequence cases for `index`/`rindex`/`find`/`rfind`; added empty-old/empty-sub and bytearray parity cases for `replace`/`count`/`split`. Targeted verification: `python -m unittest tests.test_bytes_utils` (217 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded `bytes_utils.py`/`tests/test_bytes_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.

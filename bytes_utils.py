@@ -317,56 +317,68 @@ def index(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> in
     return bytes(data).index(bytes(sub), start, end)
 
 
-def starts_with(data: bytes, prefix: bytes) -> bool:
-    """Return True if *data* starts with *prefix*.
+def starts_with(
+    data: bytes,
+    prefix: bytes,
+    start: int = 0,
+    end: int | None = None,
+) -> bool:
+    """Return True if *data* starts with *prefix* in the given slice.
 
     Args:
-        data: Bytes or bytearray to test.
-        prefix: Bytes or bytearray prefix.
+        data: Bytes or bytearray to inspect.
+        prefix: Bytes or bytearray prefix to match.
+        start: Optional starting index for the search slice.
+        end: Optional ending index for the search slice.
 
     Returns:
-        True if *data* starts with *prefix*.
+        True if the selected slice starts with *prefix*, otherwise False.
 
     Raises:
-        TypeError: If *data* or *prefix* is not bytes or bytearray.
-
-    Examples:
-        >>> starts_with(b"hello", b"he")
-        True
-        >>> starts_with(b"hello", b"lo")
-        False
+        TypeError: If *data*/*prefix* are not bytes-like, or if *start*/*end*
+            are not valid integers (bool is rejected).
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(prefix, (bytes, bytearray)):
         raise TypeError("prefix must be bytes or bytearray")
-    return bytes(data).startswith(bytes(prefix))
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).startswith(bytes(prefix), start, end)
 
 
-def ends_with(data: bytes, suffix: bytes) -> bool:
-    """Return True if *data* ends with *suffix*.
+def ends_with(
+    data: bytes,
+    suffix: bytes,
+    start: int = 0,
+    end: int | None = None,
+) -> bool:
+    """Return True if *data* ends with *suffix* in the given slice.
 
     Args:
-        data: Bytes or bytearray to check.
-        suffix: Suffix to look for.
+        data: Bytes or bytearray to inspect.
+        suffix: Bytes or bytearray suffix to match.
+        start: Optional starting index for the search slice.
+        end: Optional ending index for the search slice.
 
     Returns:
-        True if *data* ends with *suffix*, False otherwise.
+        True if the selected slice ends with *suffix*, otherwise False.
 
     Raises:
-        TypeError: If *data* or *suffix* is not bytes or bytearray.
-
-    Examples:
-        >>> ends_with(b"hello", b"lo")
-        True
-        >>> ends_with(b"hello", b"he")
-        False
+        TypeError: If *data*/*suffix* are not bytes-like, or if *start*/*end*
+            are not valid integers (bool is rejected).
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(suffix, (bytes, bytearray)):
         raise TypeError("suffix must be bytes or bytearray")
-    return bytes(data).endswith(bytes(suffix))
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).endswith(bytes(suffix), start, end)
 
 
 def split(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[bytes]:

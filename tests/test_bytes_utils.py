@@ -172,6 +172,29 @@ class TestBytesUtils(unittest.TestCase):
         self.assertTrue(ends_with(b"hello", b"lo"))
         self.assertFalse(ends_with(b"hello", b"he"))
 
+    def test_starts_with_slice_and_bytearray(self):
+        self.assertTrue(starts_with(b"abc", b"b", 1))
+        self.assertFalse(starts_with(b"abc", b"a", 1))
+        self.assertTrue(starts_with(bytearray(b"abc"), bytearray(b"ab"), 0, 2))
+        self.assertTrue(starts_with(b"abc", b"", 3))
+        self.assertFalse(starts_with(b"abc", b"c", 0, 2))
+        self.assertTrue(starts_with(b"abc", b"b", -2, -1))
+        with self.assertRaises(TypeError):
+            starts_with(b"abc", b"a", True)
+        with self.assertRaises(TypeError):
+            starts_with(b"abc", b"a", 0, True)
+
+    def test_ends_with_slice_and_bytearray(self):
+        self.assertTrue(ends_with(b"abc", b"b", 0, 2))
+        self.assertFalse(ends_with(b"abc", b"c", 0, 2))
+        self.assertTrue(ends_with(bytearray(b"abc"), bytearray(b"bc"), 1))
+        self.assertTrue(ends_with(b"abc", b"", 0, 0))
+        self.assertTrue(ends_with(b"abc", b"b", -2, -1))
+        with self.assertRaises(TypeError):
+            ends_with(b"abc", b"a", True)
+        with self.assertRaises(TypeError):
+            ends_with(b"abc", b"a", 0, True)
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             to_hex("abc")
@@ -376,6 +399,9 @@ class TestIndex(unittest.TestCase):
     def test_empty_subsequence(self):
         self.assertEqual(index(b"abc", b""), 0)
         self.assertEqual(index(b"", b""), 0)
+        self.assertEqual(index(bytearray(b"abc"), bytearray(b""), 1, 2), 1)
+        self.assertEqual(index(b"abc", b"", 3), 3)
+        self.assertEqual(index(b"", b""), 0)
 
     def test_first_occurrence(self):
         self.assertEqual(index(b"ababab", b"ab"), 0)
@@ -425,6 +451,8 @@ class TestRFind(unittest.TestCase):
     def test_empty_subsequence(self):
         self.assertEqual(rfind(b"abc", b""), 3)
         self.assertEqual(rfind(b"", b""), 0)
+        self.assertEqual(rfind(bytearray(b"abc"), bytearray(b""), 1, 2), 2)
+        self.assertEqual(rfind(b"abc", b"", 4), -1)
 
     def test_last_occurrence(self):
         self.assertEqual(rfind(b"ababab", b"ab"), 4)
@@ -996,6 +1024,11 @@ class TestRIndex(unittest.TestCase):
         with self.assertRaises(ValueError):
             rindex(b"hello", b"x")
 
+    def test_empty_subsequence(self):
+        self.assertEqual(rindex(b"abc", b""), 3)
+        self.assertEqual(rindex(b"", b""), 0)
+        self.assertEqual(rindex(bytearray(b"abc"), bytearray(b""), 1, 2), 2)
+
     def test_bytearray_input(self):
         self.assertEqual(rindex(bytearray(b"hello"), bytearray(b"lo")), 3)
 
@@ -1056,6 +1089,11 @@ class TestSplit(unittest.TestCase):
         with self.assertRaises(ValueError):
             split(b"a", b"")
 
+    def test_bytearray_whitespace_and_stdlib_parity(self):
+        self.assertEqual(split(bytearray(b" a  b\tc ")), [b"a", b"b", b"c"])
+        self.assertEqual(split(bytearray(b"a-b-c"), bytearray(b"-"), 1), [b"a", b"b-c"])
+        self.assertEqual(split(b"nospace"), [b"nospace"])
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             split("a b")
@@ -1078,6 +1116,13 @@ class TestReplace(unittest.TestCase):
             replace(bytearray(b"aa"), bytearray(b"a"), bytearray(b"b")),
             b"bb",
         )
+
+    def test_empty_old_stdlib_parity(self):
+        self.assertEqual(replace(b"abc", b"", b"-"), b"-a-b-c-")
+        self.assertEqual(replace(b"abc", b"", b"-", 2), b"-a-bc")
+        self.assertEqual(replace(bytearray(b"ab"), bytearray(b""), b"x", 0), b"ab")
+        self.assertEqual(replace(b"", b"", b"x"), b"x")
+        self.assertEqual(replace(b"", b"", b"x", -1), b"x")
 
     def test_type_errors(self):
         with self.assertRaises(TypeError):
@@ -1102,6 +1147,12 @@ class TestCount(unittest.TestCase):
     def test_negative_indices(self):
         self.assertEqual(count(b"abcabc", b"bc", -3), 1)
         self.assertEqual(count(b"abcabc", b"bc", 0, -1), 1)
+
+    def test_empty_sub_stdlib_parity(self):
+        self.assertEqual(count(b"abc", b""), 4)
+        self.assertEqual(count(bytearray(b"abc"), bytearray(b""), 1, 2), 2)
+        self.assertEqual(count(b"abc", b"", 3), 1)
+        self.assertEqual(count(b"abc", b"", 4), 0)
 
     def test_type_errors(self):
         with self.assertRaises(TypeError):

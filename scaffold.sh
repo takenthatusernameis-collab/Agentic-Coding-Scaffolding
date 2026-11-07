@@ -49947,56 +49947,68 @@ def index(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> in
     return bytes(data).index(bytes(sub), start, end)
 
 
-def starts_with(data: bytes, prefix: bytes) -> bool:
-    """Return True if *data* starts with *prefix*.
+def starts_with(
+    data: bytes,
+    prefix: bytes,
+    start: int = 0,
+    end: int | None = None,
+) -> bool:
+    """Return True if *data* starts with *prefix* in the given slice.
 
     Args:
-        data: Bytes or bytearray to test.
-        prefix: Bytes or bytearray prefix.
+        data: Bytes or bytearray to inspect.
+        prefix: Bytes or bytearray prefix to match.
+        start: Optional starting index for the search slice.
+        end: Optional ending index for the search slice.
 
     Returns:
-        True if *data* starts with *prefix*.
+        True if the selected slice starts with *prefix*, otherwise False.
 
     Raises:
-        TypeError: If *data* or *prefix* is not bytes or bytearray.
-
-    Examples:
-        >>> starts_with(b"hello", b"he")
-        True
-        >>> starts_with(b"hello", b"lo")
-        False
+        TypeError: If *data*/*prefix* are not bytes-like, or if *start*/*end*
+            are not valid integers (bool is rejected).
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(prefix, (bytes, bytearray)):
         raise TypeError("prefix must be bytes or bytearray")
-    return bytes(data).startswith(bytes(prefix))
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).startswith(bytes(prefix), start, end)
 
 
-def ends_with(data: bytes, suffix: bytes) -> bool:
-    """Return True if *data* ends with *suffix*.
+def ends_with(
+    data: bytes,
+    suffix: bytes,
+    start: int = 0,
+    end: int | None = None,
+) -> bool:
+    """Return True if *data* ends with *suffix* in the given slice.
 
     Args:
-        data: Bytes or bytearray to check.
-        suffix: Suffix to look for.
+        data: Bytes or bytearray to inspect.
+        suffix: Bytes or bytearray suffix to match.
+        start: Optional starting index for the search slice.
+        end: Optional ending index for the search slice.
 
     Returns:
-        True if *data* ends with *suffix*, False otherwise.
+        True if the selected slice ends with *suffix*, otherwise False.
 
     Raises:
-        TypeError: If *data* or *suffix* is not bytes or bytearray.
-
-    Examples:
-        >>> ends_with(b"hello", b"lo")
-        True
-        >>> ends_with(b"hello", b"he")
-        False
+        TypeError: If *data*/*suffix* are not bytes-like, or if *start*/*end*
+            are not valid integers (bool is rejected).
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     if not isinstance(suffix, (bytes, bytearray)):
         raise TypeError("suffix must be bytes or bytearray")
-    return bytes(data).endswith(bytes(suffix))
+    if not isinstance(start, int) or isinstance(start, bool):
+        raise TypeError("start must be an int")
+    if end is not None and (not isinstance(end, int) or isinstance(end, bool)):
+        raise TypeError("end must be an int or None")
+    return bytes(data).endswith(bytes(suffix), start, end)
 
 
 def split(data: bytes, sep: bytes | None = None, maxsplit: int = -1) -> list[bytes]:
@@ -51501,6 +51513,29 @@ class TestBytesUtils(unittest.TestCase):
         self.assertTrue(ends_with(b"hello", b"lo"))
         self.assertFalse(ends_with(b"hello", b"he"))
 
+    def test_starts_with_slice_and_bytearray(self):
+        self.assertTrue(starts_with(b"abc", b"b", 1))
+        self.assertFalse(starts_with(b"abc", b"a", 1))
+        self.assertTrue(starts_with(bytearray(b"abc"), bytearray(b"ab"), 0, 2))
+        self.assertTrue(starts_with(b"abc", b"", 3))
+        self.assertFalse(starts_with(b"abc", b"c", 0, 2))
+        self.assertTrue(starts_with(b"abc", b"b", -2, -1))
+        with self.assertRaises(TypeError):
+            starts_with(b"abc", b"a", True)
+        with self.assertRaises(TypeError):
+            starts_with(b"abc", b"a", 0, True)
+
+    def test_ends_with_slice_and_bytearray(self):
+        self.assertTrue(ends_with(b"abc", b"b", 0, 2))
+        self.assertFalse(ends_with(b"abc", b"c", 0, 2))
+        self.assertTrue(ends_with(bytearray(b"abc"), bytearray(b"bc"), 1))
+        self.assertTrue(ends_with(b"abc", b"", 0, 0))
+        self.assertTrue(ends_with(b"abc", b"b", -2, -1))
+        with self.assertRaises(TypeError):
+            ends_with(b"abc", b"a", True)
+        with self.assertRaises(TypeError):
+            ends_with(b"abc", b"a", 0, True)
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             to_hex("abc")
@@ -51705,6 +51740,9 @@ class TestIndex(unittest.TestCase):
     def test_empty_subsequence(self):
         self.assertEqual(index(b"abc", b""), 0)
         self.assertEqual(index(b"", b""), 0)
+        self.assertEqual(index(bytearray(b"abc"), bytearray(b""), 1, 2), 1)
+        self.assertEqual(index(b"abc", b"", 3), 3)
+        self.assertEqual(index(b"", b""), 0)
 
     def test_first_occurrence(self):
         self.assertEqual(index(b"ababab", b"ab"), 0)
@@ -51754,6 +51792,8 @@ class TestRFind(unittest.TestCase):
     def test_empty_subsequence(self):
         self.assertEqual(rfind(b"abc", b""), 3)
         self.assertEqual(rfind(b"", b""), 0)
+        self.assertEqual(rfind(bytearray(b"abc"), bytearray(b""), 1, 2), 2)
+        self.assertEqual(rfind(b"abc", b"", 4), -1)
 
     def test_last_occurrence(self):
         self.assertEqual(rfind(b"ababab", b"ab"), 4)
@@ -52325,6 +52365,11 @@ class TestRIndex(unittest.TestCase):
         with self.assertRaises(ValueError):
             rindex(b"hello", b"x")
 
+    def test_empty_subsequence(self):
+        self.assertEqual(rindex(b"abc", b""), 3)
+        self.assertEqual(rindex(b"", b""), 0)
+        self.assertEqual(rindex(bytearray(b"abc"), bytearray(b""), 1, 2), 2)
+
     def test_bytearray_input(self):
         self.assertEqual(rindex(bytearray(b"hello"), bytearray(b"lo")), 3)
 
@@ -52385,6 +52430,11 @@ class TestSplit(unittest.TestCase):
         with self.assertRaises(ValueError):
             split(b"a", b"")
 
+    def test_bytearray_whitespace_and_stdlib_parity(self):
+        self.assertEqual(split(bytearray(b" a  b\tc ")), [b"a", b"b", b"c"])
+        self.assertEqual(split(bytearray(b"a-b-c"), bytearray(b"-"), 1), [b"a", b"b-c"])
+        self.assertEqual(split(b"nospace"), [b"nospace"])
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             split("a b")
@@ -52407,6 +52457,13 @@ class TestReplace(unittest.TestCase):
             replace(bytearray(b"aa"), bytearray(b"a"), bytearray(b"b")),
             b"bb",
         )
+
+    def test_empty_old_stdlib_parity(self):
+        self.assertEqual(replace(b"abc", b"", b"-"), b"-a-b-c-")
+        self.assertEqual(replace(b"abc", b"", b"-", 2), b"-a-bc")
+        self.assertEqual(replace(bytearray(b"ab"), bytearray(b""), b"x", 0), b"ab")
+        self.assertEqual(replace(b"", b"", b"x"), b"x")
+        self.assertEqual(replace(b"", b"", b"x", -1), b"x")
 
     def test_type_errors(self):
         with self.assertRaises(TypeError):
@@ -52431,6 +52488,12 @@ class TestCount(unittest.TestCase):
     def test_negative_indices(self):
         self.assertEqual(count(b"abcabc", b"bc", -3), 1)
         self.assertEqual(count(b"abcabc", b"bc", 0, -1), 1)
+
+    def test_empty_sub_stdlib_parity(self):
+        self.assertEqual(count(b"abc", b""), 4)
+        self.assertEqual(count(bytearray(b"abc"), bytearray(b""), 1, 2), 2)
+        self.assertEqual(count(b"abc", b"", 3), 1)
+        self.assertEqual(count(b"abc", b"", 4), 0)
 
     def test_type_errors(self):
         with self.assertRaises(TypeError):
@@ -60458,6 +60521,11 @@ Next Planned (posted for the following agent):
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 - Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
+
+## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
+
+- `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
+- `tests/test_bytes_utils.py`: added slice/bytearray/bool-validation coverage for `starts_with`/`ends_with`; added stdlib-parity empty-subsequence cases for `index`/`rindex`/`find`/`rfind`; added empty-old/empty-sub and bytearray parity cases for `replace`/`count`/`split`. Targeted verification: `python -m unittest tests.test_bytes_utils` (217 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded `bytes_utils.py`/`tests/test_bytes_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 CHANGELOG
 
 # Substitute project name in templated documents
