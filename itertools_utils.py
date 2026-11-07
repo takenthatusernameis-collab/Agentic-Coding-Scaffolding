@@ -415,6 +415,37 @@ def is_empty_iterable(iterable: Iterable[Any]) -> bool:
     return True
 
 
+def first_or_default(iterable: Iterable[Any], default: Any = None) -> Any:
+    """Return the first element of *iterable*, or *default* if it is empty.
+
+    Works for any iterable, including one-shot generators, by consuming only
+    until the first element is seen.
+
+    Args:
+        iterable: The iterable to inspect.
+        default: Value returned when the iterable is empty.
+
+    Returns:
+        The first element of *iterable*, or *default*.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> first_or_default([1, 2, 3])
+        1
+        >>> first_or_default([])
+        >>> first_or_default([], default="none")
+        'none'
+        >>> first_or_default(x for x in range(5))
+        0
+    """
+    _ensure_iterable(iterable, "iterable")
+    for element in iterable:
+        return element
+    return default
+
+
 def count_from(start: int = 0, step: int = 1) -> List[Any]:
     """Count infinitely from start with step; return first 1000 as list for safety."""
     if not isinstance(start, int) or isinstance(start, bool):
@@ -576,6 +607,7 @@ __all__ = [
     "count_from",
     "islice_iterable",
     "is_empty_iterable",
+    "first_or_default",
     "unique_everseen",
     "unique_justseen",
     "sliding_window",

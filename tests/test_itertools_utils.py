@@ -1,6 +1,7 @@
 import unittest
 
 from itertools_utils import (
+    first_or_default,
     accumulate_values,
     chain_iterables,
     chunk_iterable,
@@ -516,6 +517,28 @@ class TestIsEmptyIterable(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             is_empty_iterable(None)
+
+
+class TestFirstOrDefault(unittest.TestCase):
+    def test_first_element(self):
+        self.assertEqual(first_or_default([1, 2, 3]), 1)
+
+    def test_empty_list(self):
+        self.assertIsNone(first_or_default([]))
+
+    def test_empty_with_default(self):
+        self.assertEqual(first_or_default([], default="none"), "none")
+
+    def test_generator(self):
+        self.assertEqual(first_or_default(x for x in range(5)), 0)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            first_or_default(42)
+
+    def test_rejects_none(self):
+        with self.assertRaises(TypeError):
+            first_or_default(None)
 
 
 if __name__ == "__main__":
