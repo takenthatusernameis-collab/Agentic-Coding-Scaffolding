@@ -51335,6 +51335,7 @@ __all__: list[str] = [
     "is_power_of_two",
     "is_zero",
     "is_all_ones",
+    "count_null_bytes",
     "has_null_byte",
     "lowest_set_bit",
     "highest_set_bit",
@@ -53040,8 +53041,38 @@ def is_all_ones(data: bytes) -> bool:
     return all(b == 0xff for b in bytes(data))
 
 
+def count_null_bytes(data: bytes) -> int:
+    """Return the number of zero bytes in *data*.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The count of bytes equal to 0 (empty input returns 0).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_null_bytes(from_hex("000000"))
+        3
+        >>> count_null_bytes(from_hex("010203"))
+        0
+        >>> count_null_bytes(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if b == 0)
+
+
 def has_null_byte(data: bytes) -> bool:
     """Return True if *data* contains at least one zero byte.
+
+    This is the boolean companion to :func:`count_null_bytes`. It returns
+    ``True`` when *data* contains at least one zero byte and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_null_bytes`
+    for consistency.
 
     Args:
         data: Bytes or bytearray to inspect.
@@ -53062,7 +53093,7 @@ def has_null_byte(data: bytes) -> bool:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    return any(b == 0 for b in bytes(data))
+    return count_null_bytes(data) > 0
 
 
 def lowest_set_bit(data: bytes) -> int:
@@ -53160,6 +53191,7 @@ from bytes_utils import (
     concat,
     contains,
     count,
+    count_null_bytes,
     decode_ascii,
     encode_ascii,
     ends_with,
@@ -54073,6 +54105,40 @@ class TestHasNullByte(unittest.TestCase):
             has_null_byte(0)
         with self.assertRaises(TypeError):
             has_null_byte(None)
+
+
+class TestCountNullBytes(unittest.TestCase):
+    def test_all_null(self):
+        self.assertEqual(count_null_bytes(b"\x00\x00\x00"), 3)
+
+    def test_no_null(self):
+        self.assertEqual(count_null_bytes(b"\x01\x02\x03"), 0)
+        self.assertEqual(count_null_bytes(b"\xff"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_null_bytes(b""), 0)
+
+    def test_single_null(self):
+        self.assertEqual(count_null_bytes(b"\x00"), 1)
+
+    def test_mixed(self):
+        self.assertEqual(count_null_bytes(b"\x00\x01\x00\x02\x00"), 3)
+
+    def test_bytearray(self):
+        self.assertEqual(count_null_bytes(bytearray(b"\x00\x00")), 2)
+        self.assertEqual(count_null_bytes(bytearray(b"\x01\x02")), 0)
+
+    def test_consistency_with_has_null_byte(self):
+        data = b"\x00\x01\x00\x02"
+        self.assertEqual(count_null_bytes(data) > 0, has_null_byte(data))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_null_bytes("00")
+        with self.assertRaises(TypeError):
+            count_null_bytes(0)
+        with self.assertRaises(TypeError):
+            count_null_bytes(None)
 
 
 class TestIsPowerOfTwo(unittest.TestCase):
@@ -60224,6 +60290,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_null_bytes to bytes_utils
+
+- Added `count_null_bytes(data)` to `bytes_utils.py` as the integer companion to `has_null_byte`, returning the number of zero bytes in *data*. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_null_byte` to reuse `count_null_bytes(data) > 0` for consistency. Added `TestCountNullBytes` (8 tests) to `tests/test_bytes_utils.py` covering all-null, no-null, empty, single-null, mixed, bytearray, consistency with `has_null_byte`, and `TypeError` paths; imported `count_null_bytes` to match the module's `__all__` contract. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bytes_utils`; targeted doctest for `count_null_bytes`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added `normalize_roman` to `roman_utils`
 
 - Added `normalize_roman(roman)` to `roman_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError`/`ValueError`; it accepts case-insensitively and returns the canonical uppercase Roman numeral for valid values in the supported range (1–3999). Added `test_normalize_roman` and `test_normalize_roman_rejects_invalid` to `tests/test_roman_utils.py`. Updated `README.md` roman module listing/prose. Synchronized `roman_utils.py` and `tests/test_roman_utils.py` into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_roman_utils` (9 OK), `python -m doctest roman_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m unittest tests.test_scaffold_sync` (15 OK), full suite `python -m unittest discover tests/` (8974 OK). No changes to `.github/workflows/**`.
@@ -62810,7 +62880,7 @@ id_utils.py                # Identifier generation and validation utilities (gen
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, isprintable, isidentifier, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, is_power_of_two, is_zero, lowest_set_bit, highest_set_bit)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, isprintable, isidentifier, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, is_power_of_two, is_zero, lowest_set_bit, highest_set_bit, count_null_bytes, has_null_byte)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -63587,7 +63657,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits, `is_power_of_two` tests whether exactly one bit is set, `is_zero` tests whether all bytes are zero, and `lowest_set_bit` returns the position of the least significant set bit (or -1 when none is set), and `highest_set_bit` returns the position of the most significant set bit (or -1 when none is set). `isprintable` tests whether every byte is in the ASCII printable range (0x20-0x7E, False for empty), and `isidentifier` tests whether the ASCII-decoded bytes form a valid Python identifier. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits, `is_power_of_two` tests whether exactly one bit is set, `is_zero` tests whether all bytes are zero, and `lowest_set_bit` returns the position of the least significant set bit (or -1 when none is set), and `highest_set_bit` returns the position of the most significant set bit (or -1 when none is set), `count_null_bytes` counts the number of zero bytes, and `has_null_byte` reports whether any zero byte is present. `isprintable` tests whether every byte is in the ASCII printable range (0x20-0x7E, False for empty), and `isidentifier` tests whether the ASCII-decoded bytes form a valid Python identifier. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 

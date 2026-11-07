@@ -9,6 +9,7 @@ from bytes_utils import (
     concat,
     contains,
     count,
+    count_null_bytes,
     decode_ascii,
     encode_ascii,
     ends_with,
@@ -922,6 +923,40 @@ class TestHasNullByte(unittest.TestCase):
             has_null_byte(0)
         with self.assertRaises(TypeError):
             has_null_byte(None)
+
+
+class TestCountNullBytes(unittest.TestCase):
+    def test_all_null(self):
+        self.assertEqual(count_null_bytes(b"\x00\x00\x00"), 3)
+
+    def test_no_null(self):
+        self.assertEqual(count_null_bytes(b"\x01\x02\x03"), 0)
+        self.assertEqual(count_null_bytes(b"\xff"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_null_bytes(b""), 0)
+
+    def test_single_null(self):
+        self.assertEqual(count_null_bytes(b"\x00"), 1)
+
+    def test_mixed(self):
+        self.assertEqual(count_null_bytes(b"\x00\x01\x00\x02\x00"), 3)
+
+    def test_bytearray(self):
+        self.assertEqual(count_null_bytes(bytearray(b"\x00\x00")), 2)
+        self.assertEqual(count_null_bytes(bytearray(b"\x01\x02")), 0)
+
+    def test_consistency_with_has_null_byte(self):
+        data = b"\x00\x01\x00\x02"
+        self.assertEqual(count_null_bytes(data) > 0, has_null_byte(data))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_null_bytes("00")
+        with self.assertRaises(TypeError):
+            count_null_bytes(0)
+        with self.assertRaises(TypeError):
+            count_null_bytes(None)
 
 
 class TestIsPowerOfTwo(unittest.TestCase):

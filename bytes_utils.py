@@ -64,6 +64,7 @@ __all__: list[str] = [
     "is_power_of_two",
     "is_zero",
     "is_all_ones",
+    "count_null_bytes",
     "has_null_byte",
     "lowest_set_bit",
     "highest_set_bit",
@@ -1769,8 +1770,38 @@ def is_all_ones(data: bytes) -> bool:
     return all(b == 0xff for b in bytes(data))
 
 
+def count_null_bytes(data: bytes) -> int:
+    """Return the number of zero bytes in *data*.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The count of bytes equal to 0 (empty input returns 0).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_null_bytes(from_hex("000000"))
+        3
+        >>> count_null_bytes(from_hex("010203"))
+        0
+        >>> count_null_bytes(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if b == 0)
+
+
 def has_null_byte(data: bytes) -> bool:
     """Return True if *data* contains at least one zero byte.
+
+    This is the boolean companion to :func:`count_null_bytes`. It returns
+    ``True`` when *data* contains at least one zero byte and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_null_bytes`
+    for consistency.
 
     Args:
         data: Bytes or bytearray to inspect.
@@ -1791,7 +1822,7 @@ def has_null_byte(data: bytes) -> bool:
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
-    return any(b == 0 for b in bytes(data))
+    return count_null_bytes(data) > 0
 
 
 def lowest_set_bit(data: bytes) -> int:
