@@ -977,6 +977,13 @@ def has_prime_factors(n: int) -> bool:
     Raises:
         TypeError: If *n* is not an int.
         ValueError: If *n* is less than 1.
+
+    >>> has_prime_factors(12)
+    True
+    >>> has_prime_factors(1)
+    False
+    >>> has_prime_factors(2)
+    True
     """
     return total_prime_factors(n) > 0
 

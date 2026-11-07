@@ -5,6 +5,7 @@ import unittest
 from prime_utils import (
     coprime,
     distinct_prime_factors,
+    has_prime_factors,
     is_abundant_number,
     is_amicable,
     is_automorphic,
@@ -1116,6 +1117,36 @@ class TestTotalPrimeFactors(unittest.TestCase):
             total_prime_factors(0)
         with self.assertRaises(ValueError):
             total_prime_factors(-1)
+
+
+class TestHasPrimeFactors(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_prime_factors(2))
+        self.assertTrue(has_prime_factors(12))
+        self.assertTrue(has_prime_factors(30))
+
+    def test_prime_power(self):
+        self.assertTrue(has_prime_factors(8))
+        self.assertTrue(has_prime_factors(27))
+
+    def test_no_prime_factors(self):
+        self.assertFalse(has_prime_factors(1))
+
+    def test_consistency_with_total_prime_factors(self):
+        for n in range(1, 200):
+            self.assertEqual(has_prime_factors(n), total_prime_factors(n) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_prime_factors(5.0)
+        with self.assertRaises(TypeError):
+            has_prime_factors(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            has_prime_factors(0)
+        with self.assertRaises(ValueError):
+            has_prime_factors(-1)
 
 
 class TestDistinctPrimeFactors(unittest.TestCase):
