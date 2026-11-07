@@ -78,6 +78,7 @@ from strings import (
     remove_blank_lines,
     remove_consonants,
     remove_digits,
+    keep_digits,
     remove_punctuation,
     remove_vowels,
     remove_whitespace,
@@ -1635,6 +1636,19 @@ class TestNewHelpers(unittest.TestCase):
 
         self.assertEqual(remove_digits("a1b2c3"), "abc")
         self.assertEqual(remove_digits("no digits"), "no digits")
+
+    def test_keep_digits(self):
+        self.assertEqual(keep_digits("a1b2c3"), "123")
+        self.assertEqual(keep_digits("no digits"), "")
+        self.assertEqual(keep_digits("2024"), "2024")
+        self.assertEqual(keep_digits(""), "")
+        self.assertEqual(keep_digits("Order #42: 3 items"), "423")
+
+    def test_keep_digits_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            keep_digits(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            keep_digits(None)  # type: ignore[arg-type]
 
     def test_is_palindrome(self):
         from strings import is_palindrome

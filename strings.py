@@ -100,6 +100,7 @@ __all__: List[str] = [
     "has_words",
     "remove_punctuation",
     "remove_digits",
+    "keep_digits",
     "remove_blank_lines",
     "chunk_string",
     "remove_vowels",
@@ -1941,6 +1942,30 @@ def remove_digits(s: str) -> str:
     """Remove all digit characters from string."""
     _require_string(s, "s")
     return "".join(ch for ch in s if not ch.isdigit())
+
+
+def keep_digits(s: str) -> str:
+    """Keep only digit characters from *s*.
+
+    Args:
+        s: The input string.
+
+    Returns:
+        A string containing only the digit characters from *s*, in order.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> keep_digits("a1b2c3")
+        '123'
+        >>> keep_digits("no digits")
+        ''
+        >>> keep_digits("2024")
+        '2024'
+    """
+    _require_string(s, "s")
+    return "".join(ch for ch in s if ch.isdigit())
 
 
 def remove_blank_lines(s: str) -> str:
