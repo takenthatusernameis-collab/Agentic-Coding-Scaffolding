@@ -9,7 +9,10 @@ from list_utils import (
     find_index,
     flatten,
     group_by,
+    has_duplicates,
     intersperse,
+    is_empty,
+    is_sorted,
     partition,
     safe_get,
     take,
@@ -260,8 +263,65 @@ class TestFlatten(unittest.TestCase):
             flatten([[1, 2], 3])  # type: ignore[list-item]
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestIsEmpty(unittest.TestCase):
+    def test_empty(self) -> None:
+        self.assertTrue(is_empty([]))
+
+    def test_not_empty(self) -> None:
+        self.assertFalse(is_empty([1]))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            is_empty("x")  # type: ignore[arg-type]
+
+
+class TestHasDuplicates(unittest.TestCase):
+    def test_has_duplicates_true(self) -> None:
+        self.assertTrue(has_duplicates([1, 2, 2, 3]))
+
+    def test_has_duplicates_false(self) -> None:
+        self.assertFalse(has_duplicates([1, 2, 3]))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_duplicates([]))
+
+    def test_strings(self) -> None:
+        self.assertTrue(has_duplicates(["a", "b", "a"]))
+
+    def test_unhashable(self) -> None:
+        self.assertTrue(has_duplicates([[1], [2], [1]]))
+        self.assertFalse(has_duplicates([[1], [2]]))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_duplicates("aa")  # type: ignore[arg-type]
+
+
+class TestIsSorted(unittest.TestCase):
+    def test_sorted(self) -> None:
+        self.assertTrue(is_sorted([1, 2, 3]))
+
+    def test_unsorted(self) -> None:
+        self.assertFalse(is_sorted([3, 2, 1]))
+
+    def test_reverse_sorted(self) -> None:
+        self.assertTrue(is_sorted([3, 2, 1], reverse=True))
+        self.assertFalse(is_sorted([1, 2, 3], reverse=True))
+
+    def test_empty_and_single(self) -> None:
+        self.assertTrue(is_sorted([]))
+        self.assertTrue(is_sorted([1]))
+
+    def test_with_equal_elements(self) -> None:
+        self.assertTrue(is_sorted([1, 1, 2]))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            is_sorted("abc")  # type: ignore[arg-type]
+
+    def test_reverse_not_bool_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            is_sorted([1, 2], reverse=1)  # type: ignore[arg-type]
 
 
 class TestUniquePreserveOrder(unittest.TestCase):

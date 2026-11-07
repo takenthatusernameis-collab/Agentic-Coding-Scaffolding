@@ -14,7 +14,10 @@ __all__ = [
     "find_index",
     "flatten",
     "group_by",
+    "has_duplicates",
     "intersperse",
+    "is_empty",
+    "is_sorted",
     "partition",
     "safe_get",
     "take",
@@ -358,3 +361,100 @@ def unique_preserve_order(lst: List[T]) -> List[T]:
         seen.add(item)
         result.append(item)
     return result
+
+
+def is_empty(lst: List[T]) -> bool:
+    """Return ``True`` when *lst* has no elements.
+
+    Args:
+        lst: The list to check.
+
+    Returns:
+        ``True`` if *lst* is empty, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> is_empty([])
+        True
+        >>> is_empty([1, 2])
+        False
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return len(lst) == 0
+
+
+def has_duplicates(lst: List[T]) -> bool:
+    """Return ``True`` when *lst* contains any duplicate element.
+
+    Elements are compared by equality; hashable elements use a set for
+    efficiency. Unhashable elements fall back to linear membership checks.
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        ``True`` if any element appears more than once, ``False`` otherwise.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> has_duplicates([1, 2, 2, 3])
+        True
+        >>> has_duplicates([1, 2, 3])
+        False
+        >>> has_duplicates([])
+        False
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen: set = set()
+    unhashable: List[T] = []
+    for item in lst:
+        try:
+            if item in seen:
+                return True
+            seen.add(item)
+        except TypeError:
+            if item in unhashable:
+                return True
+            unhashable.append(item)
+    return False
+
+
+def is_sorted(lst: List[T], reverse: bool = False) -> bool:
+    """Return ``True`` when *lst* is sorted in non-descending order.
+
+    Args:
+        lst: The list to check.
+        reverse: If ``True``, check for non-ascending (descending) order.
+
+    Returns:
+        ``True`` if *lst* is sorted in the requested direction, ``False``
+        otherwise. An empty list or a single-element list is considered sorted.
+
+    Raises:
+        TypeError: If ``lst`` is not a list or ``reverse`` is not a bool.
+
+    Examples:
+        >>> is_sorted([1, 2, 3])
+        True
+        >>> is_sorted([3, 2, 1])
+        False
+        >>> is_sorted([3, 2, 1], reverse=True)
+        True
+        >>> is_sorted([])
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not isinstance(reverse, bool):
+        raise TypeError("reverse must be a bool")
+    if len(lst) < 2:
+        return True
+    if reverse:
+        return all(lst[i] >= lst[i + 1] for i in range(len(lst) - 1))
+    return all(lst[i] <= lst[i + 1] for i in range(len(lst) - 1))
