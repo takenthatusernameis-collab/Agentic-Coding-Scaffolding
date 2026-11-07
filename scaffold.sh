@@ -36145,6 +36145,7 @@ __all__ = [
     "omit_keys",
     "safe_get",
     "select_keys",
+    "values_equal",
     "unflatten_dict",
 ]
 
@@ -36320,6 +36321,35 @@ def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
         raise TypeError("d2 must be a dict")
     return set(d1) == set(d2)
 
+
+def values_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
+    """Report whether two dictionaries have the same set of values.
+
+    Only the values are compared; keys and value order are ignored.
+
+    Args:
+        d1: First dictionary.
+        d2: Second dictionary.
+
+    Returns:
+        ``True`` when *d1* and *d2* contain the same values, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> values_equal({"a": 1, "b": 2}, {"c": 2, "d": 1})
+        True
+        >>> values_equal({"a": 1}, {"a": 1, "b": 2})
+        False
+        >>> values_equal({}, {})
+        True
+    """
+    if not isinstance(d1, dict):
+        raise TypeError("d1 must be a dict")
+    if not isinstance(d2, dict):
+        raise TypeError("d2 must be a dict")
+    return set(d1.values()) == set(d2.values())
 def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
     """Invert a dictionary by swapping keys and values.
 
@@ -47930,6 +47960,7 @@ from dict_utils import (
     safe_get,
     select_keys,
     unflatten_dict,
+    values_equal,
 )
 
 
@@ -48087,6 +48118,20 @@ class TestKeysEqual(unittest.TestCase):
         with self.assertRaises(TypeError):
             keys_equal("not a dict", {})
 
+
+class TestValuesEqual(unittest.TestCase):
+    def test_same_values(self):
+        self.assertTrue(values_equal({"a": 1, "b": 2}, {"c": 2, "d": 1}))
+
+    def test_different(self):
+        self.assertFalse(values_equal({"a": 1}, {"a": 1, "b": 2}))
+
+    def test_empty(self):
+        self.assertTrue(values_equal({}, {}))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            values_equal("not a dict", {})
 
 class TestInvertDict(unittest.TestCase):
     def test_invert_basic(self) -> None:

@@ -14,6 +14,7 @@ from dict_utils import (
     safe_get,
     select_keys,
     unflatten_dict,
+    values_equal,
 )
 
 
@@ -171,6 +172,20 @@ class TestKeysEqual(unittest.TestCase):
         with self.assertRaises(TypeError):
             keys_equal("not a dict", {})
 
+
+class TestValuesEqual(unittest.TestCase):
+    def test_same_values(self):
+        self.assertTrue(values_equal({"a": 1, "b": 2}, {"c": 2, "d": 1}))
+
+    def test_different(self):
+        self.assertFalse(values_equal({"a": 1}, {"a": 1, "b": 2}))
+
+    def test_empty(self):
+        self.assertTrue(values_equal({}, {}))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            values_equal("not a dict", {})
 
 class TestInvertDict(unittest.TestCase):
     def test_invert_basic(self) -> None:
