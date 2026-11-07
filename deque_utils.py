@@ -86,6 +86,54 @@ def remove_from_deque(d: deque, value: Any) -> None:
     d.remove(value)
 
 
+def peek_left(d: deque) -> Any:
+    """Return the leftmost element of deque d without removing it.
+
+    Args:
+        d: A deque to peek into.
+
+    Returns:
+        The leftmost element.
+
+    Raises:
+        IndexError: If the deque is empty.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3])
+        >>> peek_left(d)
+        1
+        >>> d == create_deque([1, 2, 3])
+        True
+    """
+    if not d:
+        raise IndexError("peek from an empty deque")
+    return d[0]
+
+
+def peek_right(d: deque) -> Any:
+    """Return the rightmost element of deque d without removing it.
+
+    Args:
+        d: A deque to peek into.
+
+    Returns:
+        The rightmost element.
+
+    Raises:
+        IndexError: If the deque is empty.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3])
+        >>> peek_right(d)
+        3
+        >>> d == create_deque([1, 2, 3])
+        True
+    """
+    if not d:
+        raise IndexError("peek from an empty deque")
+    return d[-1]
+
+
 def reverse_deque(d: deque) -> None:
     """Reverse the deque in place."""
     d.reverse()
@@ -104,6 +152,8 @@ __all__ = [
     "deque_to_list",
     "count_in_deque",
     "has_in_deque",
+    "peek_left",
+    "peek_right",
     "remove_from_deque",
     "reverse_deque",
 ]

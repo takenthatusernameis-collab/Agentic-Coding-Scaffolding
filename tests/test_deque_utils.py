@@ -10,6 +10,8 @@ from deque_utils import (
     extend_left,
     extend_right,
     has_in_deque,
+    peek_left,
+    peek_right,
     pop_left,
     pop_right,
     remove_from_deque,

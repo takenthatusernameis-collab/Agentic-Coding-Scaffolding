@@ -13058,6 +13058,7 @@ __all__: List[str] = [
     "has_words",
     "remove_punctuation",
     "remove_digits",
+    "keep_digits",
     "remove_blank_lines",
     "chunk_string",
     "remove_vowels",
@@ -14899,6 +14900,30 @@ def remove_digits(s: str) -> str:
     """Remove all digit characters from string."""
     _require_string(s, "s")
     return "".join(ch for ch in s if not ch.isdigit())
+
+
+def keep_digits(s: str) -> str:
+    """Keep only digit characters from *s*.
+
+    Args:
+        s: The input string.
+
+    Returns:
+        A string containing only the digit characters from *s*, in order.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> keep_digits("a1b2c3")
+        '123'
+        >>> keep_digits("no digits")
+        ''
+        >>> keep_digits("2024")
+        '2024'
+    """
+    _require_string(s, "s")
+    return "".join(ch for ch in s if ch.isdigit())
 
 
 def remove_blank_lines(s: str) -> str:
@@ -17788,6 +17813,7 @@ from strings import (
     remove_blank_lines,
     remove_consonants,
     remove_digits,
+    keep_digits,
     remove_punctuation,
     remove_vowels,
     remove_whitespace,
@@ -19345,6 +19371,19 @@ class TestNewHelpers(unittest.TestCase):
 
         self.assertEqual(remove_digits("a1b2c3"), "abc")
         self.assertEqual(remove_digits("no digits"), "no digits")
+
+    def test_keep_digits(self):
+        self.assertEqual(keep_digits("a1b2c3"), "123")
+        self.assertEqual(keep_digits("no digits"), "")
+        self.assertEqual(keep_digits("2024"), "2024")
+        self.assertEqual(keep_digits(""), "")
+        self.assertEqual(keep_digits("Order #42: 3 items"), "423")
+
+    def test_keep_digits_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            keep_digits(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            keep_digits(None)  # type: ignore[arg-type]
 
     def test_is_palindrome(self):
         from strings import is_palindrome
@@ -145214,6 +145253,54 @@ def remove_from_deque(d: deque, value: Any) -> None:
     d.remove(value)
 
 
+def peek_left(d: deque) -> Any:
+    """Return the leftmost element of deque d without removing it.
+
+    Args:
+        d: A deque to peek into.
+
+    Returns:
+        The leftmost element.
+
+    Raises:
+        IndexError: If the deque is empty.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3])
+        >>> peek_left(d)
+        1
+        >>> d == create_deque([1, 2, 3])
+        True
+    """
+    if not d:
+        raise IndexError("peek from an empty deque")
+    return d[0]
+
+
+def peek_right(d: deque) -> Any:
+    """Return the rightmost element of deque d without removing it.
+
+    Args:
+        d: A deque to peek into.
+
+    Returns:
+        The rightmost element.
+
+    Raises:
+        IndexError: If the deque is empty.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3])
+        >>> peek_right(d)
+        3
+        >>> d == create_deque([1, 2, 3])
+        True
+    """
+    if not d:
+        raise IndexError("peek from an empty deque")
+    return d[-1]
+
+
 def reverse_deque(d: deque) -> None:
     """Reverse the deque in place."""
     d.reverse()
@@ -145232,6 +145319,8 @@ __all__ = [
     "deque_to_list",
     "count_in_deque",
     "has_in_deque",
+    "peek_left",
+    "peek_right",
     "remove_from_deque",
     "reverse_deque",
 ]
@@ -145251,6 +145340,8 @@ from deque_utils import (
     extend_left,
     extend_right,
     has_in_deque,
+    peek_left,
+    peek_right,
     pop_left,
     pop_right,
     remove_from_deque,
