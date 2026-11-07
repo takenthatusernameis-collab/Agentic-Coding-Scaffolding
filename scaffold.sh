@@ -148356,6 +148356,287 @@ def option_name(opt: int) -> str:
     return _OPTION_NAMES.get(opt, str(opt))
 TELNETLIB_UTILS
 
+# --- collections_abc_utils.py ---
+cat > "$OUTPUT_DIR/collections_abc_utils.py" <<'COLLECTIONS_ABC_UTILS'
+"""Utilities wrapping :mod:`collections.abc` abstract base classes.
+
+>>> from collections_abc_utils import is_sequence, is_mapping, is_iterable, get_abc
+>>> is_sequence([1, 2])
+True
+>>> is_mapping({"a": 1})
+True
+>>> is_iterable(42)
+False
+>>> get_abc("Sequence").__name__
+'Sequence'
+"""
+
+from __future__ import annotations
+
+import collections.abc as _cabc
+from typing import Any
+
+__all__ = [
+    "get_abc",
+    "is_async_generator",
+    "is_async_iterable",
+    "is_async_iterator",
+    "is_awaitable",
+    "is_callable",
+    "is_collection",
+    "is_container",
+    "is_coroutine",
+    "is_generator",
+    "is_hashable",
+    "is_iterable",
+    "is_iterator",
+    "is_mapping",
+    "is_mutable_mapping",
+    "is_mutable_sequence",
+    "is_mutable_set",
+    "is_reversible",
+    "is_sequence",
+    "is_set",
+    "is_sized",
+]
+
+
+def _require_str(name: Any, label: str) -> str:
+    if not isinstance(name, str):
+        raise TypeError(f"{label} must be a string")
+    return name
+
+
+def get_abc(name: str) -> type:
+    """Return the :mod:`collections.abc` ABC class with the given *name*.
+
+    Args:
+        name: Public ABC name (e.g. ``"Sequence"``, ``"Mapping"``).
+
+    Returns:
+        The ABC class.
+
+    Raises:
+        TypeError: If *name* is not a string.
+        AttributeError: If *name* is not a public collections.abc attribute.
+        ValueError: If *name* starts with ``_``.
+    """
+    _require_str(name, "name")
+    if name.startswith("_"):
+        raise ValueError("name must be a public collections.abc attribute")
+    value = getattr(_cabc, name)
+    if not isinstance(value, type):
+        raise TypeError(f"collections.abc.{name} is not a class")
+    return value
+
+
+def is_awaitable(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Awaitable`."""
+    return isinstance(obj, _cabc.Awaitable)
+
+
+def is_coroutine(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Coroutine`."""
+    return isinstance(obj, _cabc.Coroutine)
+
+
+def is_async_iterable(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.AsyncIterable`."""
+    return isinstance(obj, _cabc.AsyncIterable)
+
+
+def is_async_iterator(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.AsyncIterator`."""
+    return isinstance(obj, _cabc.AsyncIterator)
+
+
+def is_async_generator(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.AsyncGenerator`."""
+    return isinstance(obj, _cabc.AsyncGenerator)
+
+
+def is_hashable(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Hashable`."""
+    return isinstance(obj, _cabc.Hashable)
+
+
+def is_iterable(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Iterable`."""
+    return isinstance(obj, _cabc.Iterable)
+
+
+def is_iterator(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Iterator`."""
+    return isinstance(obj, _cabc.Iterator)
+
+
+def is_generator(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Generator`."""
+    return isinstance(obj, _cabc.Generator)
+
+
+def is_reversible(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Reversible`."""
+    return isinstance(obj, _cabc.Reversible)
+
+
+def is_sized(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Sized`."""
+    return isinstance(obj, _cabc.Sized)
+
+
+def is_container(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Container`."""
+    return isinstance(obj, _cabc.Container)
+
+
+def is_collection(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Collection`."""
+    return isinstance(obj, _cabc.Collection)
+
+
+def is_callable(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Callable`."""
+    return isinstance(obj, _cabc.Callable)
+
+
+def is_set(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Set`."""
+    return isinstance(obj, _cabc.Set)
+
+
+def is_mutable_set(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.MutableSet`."""
+    return isinstance(obj, _cabc.MutableSet)
+
+
+def is_mapping(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Mapping`."""
+    return isinstance(obj, _cabc.Mapping)
+
+
+def is_mutable_mapping(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.MutableMapping`."""
+    return isinstance(obj, _cabc.MutableMapping)
+
+
+def is_sequence(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.Sequence`."""
+    return isinstance(obj, _cabc.Sequence)
+
+
+def is_mutable_sequence(obj: Any) -> bool:
+    """Return ``True`` if *obj* is an instance of :class:`collections.abc.MutableSequence`."""
+    return isinstance(obj, _cabc.MutableSequence)
+COLLECTIONS_ABC_UTILS
+
+# --- tests/test_collections_abc_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_collections_abc_utils.py" <<'TEST_COLLECTIONS_ABC_UTILS'
+"""Tests for collections_abc_utils."""
+
+from __future__ import annotations
+
+import collections.abc as cabc
+import unittest
+
+import collections_abc_utils as cau
+
+
+class TestGetAbc(unittest.TestCase):
+    def test_returns_public_abc(self) -> None:
+        self.assertIs(cau.get_abc("Sequence"), cabc.Sequence)
+        self.assertIs(cau.get_abc("Mapping"), cabc.Mapping)
+
+    def test_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            cau.get_abc(123)  # type: ignore[arg-type]
+
+    def test_rejects_private_name(self) -> None:
+        with self.assertRaises(ValueError):
+            cau.get_abc("_CallableGenericAlias")
+
+    def test_rejects_unknown_name(self) -> None:
+        with self.assertRaises(AttributeError):
+            cau.get_abc("NotARealABC")
+
+
+class TestPredicates(unittest.TestCase):
+    def test_sequences(self) -> None:
+        self.assertTrue(cau.is_sequence([1, 2]))
+        self.assertTrue(cau.is_sequence("ab"))
+        self.assertFalse(cau.is_sequence({1, 2}))
+        self.assertTrue(cau.is_mutable_sequence([1]))
+        self.assertFalse(cau.is_mutable_sequence((1,)))
+
+    def test_mappings(self) -> None:
+        self.assertTrue(cau.is_mapping({"a": 1}))
+        self.assertTrue(cau.is_mutable_mapping({"a": 1}))
+        self.assertFalse(cau.is_mapping([1, 2]))
+
+    def test_sets(self) -> None:
+        self.assertTrue(cau.is_set({1, 2}))
+        self.assertTrue(cau.is_mutable_set({1, 2}))
+        self.assertFalse(cau.is_mutable_set(frozenset({1})))
+
+    def test_iterables(self) -> None:
+        self.assertTrue(cau.is_iterable([1]))
+        self.assertTrue(cau.is_iterable(iter([1])))
+        self.assertTrue(cau.is_iterator(iter([1])))
+        self.assertFalse(cau.is_iterator([1]))
+        self.assertFalse(cau.is_iterable(42))
+
+    def test_generators(self) -> None:
+        def gen():
+            yield 1
+
+        g = gen()
+        self.assertTrue(cau.is_generator(g))
+        self.assertTrue(cau.is_iterator(g))
+
+    def test_callable_hashable_sized_container(self) -> None:
+        self.assertTrue(cau.is_callable(lambda: None))
+        self.assertFalse(cau.is_callable(1))
+        self.assertTrue(cau.is_hashable("x"))
+        self.assertFalse(cau.is_hashable([1]))
+        self.assertTrue(cau.is_sized([1, 2]))
+        self.assertTrue(cau.is_container([1, 2]))
+        self.assertTrue(cau.is_collection([1, 2]))
+
+    def test_reversible(self) -> None:
+        self.assertTrue(cau.is_reversible([1, 2]))
+        self.assertFalse(cau.is_reversible({1, 2}))
+
+    def test_async_predicates(self) -> None:
+        async def coro():
+            return 1
+
+        c = coro()
+        try:
+            self.assertTrue(cau.is_coroutine(c))
+            self.assertTrue(cau.is_awaitable(c))
+        finally:
+            c.close()
+
+        async def agen():
+            yield 1
+
+        a = agen()
+        try:
+            self.assertTrue(cau.is_async_generator(a))
+            self.assertTrue(cau.is_async_iterator(a))
+            self.assertTrue(cau.is_async_iterable(a))
+        finally:
+            # close async generator
+            try:
+                a.aclose().send(None)
+            except StopIteration:
+                pass
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_COLLECTIONS_ABC_UTILS
+
 
 
 # --- substitute the project name in the templated documents ---
