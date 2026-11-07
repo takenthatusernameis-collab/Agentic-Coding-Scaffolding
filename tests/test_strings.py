@@ -31,6 +31,7 @@ from strings import (
     ensure_trailing_newline,
     find,
     first_n,
+    has_vowels,
     initials,
     is_alpha,
     is_alphanumeric,
@@ -161,6 +162,43 @@ class TestCountVowels(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             count_vowels(42)  # type: ignore[arg-type]
+
+
+class TestHasVowels(unittest.TestCase):
+    def test_has_vowels_basic(self):
+        self.assertTrue(has_vowels("hello"))
+
+    def test_has_vowels_no_vowels(self):
+        self.assertFalse(has_vowels("xyz"))
+
+    def test_has_vowels_empty(self):
+        self.assertFalse(has_vowels(""))
+
+    def test_has_vowels_case_insensitive(self):
+        self.assertTrue(has_vowels("HELLO"))
+        self.assertTrue(has_vowels("aeiou"))
+        self.assertFalse(has_vowels("RHYTHM"))
+
+    def test_has_vowels_all_vowels(self):
+        self.assertTrue(has_vowels("aeiou"))
+
+    def test_has_vowels_single_vowel(self):
+        self.assertTrue(has_vowels("a"))
+        self.assertTrue(has_vowels("e"))
+
+    def test_has_vowels_with_non_alpha(self):
+        self.assertTrue(has_vowels("123!@#a"))
+        self.assertFalse(has_vowels("123!@#"))
+
+    def test_has_vowels_consistency_with_count_vowels(self):
+        self.assertEqual(has_vowels("hello"), count_vowels("hello") > 0)
+        self.assertEqual(has_vowels(""), count_vowels("") > 0)
+
+    def test_has_vowels_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_vowels(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_vowels(None)  # type: ignore[arg-type]
 
 
 class TestCountConsonants(unittest.TestCase):
