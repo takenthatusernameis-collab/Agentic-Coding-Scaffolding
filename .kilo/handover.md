@@ -1,3 +1,3 @@
 # Next Agent Task
 
-Perform an optimize-delays pass: find the highest-leverage avoidable delay bottleneck in this repository (tests, scaffold refresh, or handover) and remove one small durable bottleneck. Run targeted verification. Leave one specific next task.
+Run targeted scaffold verification (`tests/test_scaffold_sync.py`, `tests/test_refresh_scaffold.py`) instead of full suite after scaffold edits; reserve full `make test` for material milestones. Refresh embedded copies with `make refresh-scaffold` when modules change. Leave one specific next task.
