@@ -15,6 +15,7 @@ __all__ = [
     "concat",
     "count",
     "count_by",
+    "has_by",
     "dedupe",
     "difference",
     "drop",
@@ -489,6 +490,29 @@ def count_by(lst: List[T], predicate: Callable[[T], bool]) -> int:
         if predicate(item):
             count_result += 1
     return count_result
+
+def has_by(lst: List[T], predicate: Callable[[T], bool]) -> bool:
+    """Return True if any element of lst satisfies predicate.
+
+    A boolean companion to :func:`count_by`. Returns ``True`` when
+    ``count_by`` would return a value greater than zero.
+
+    Args:
+        lst: The list to test.
+        predicate: A callable returning True for matching elements.
+
+    Returns:
+        True if at least one element matches, False otherwise.
+
+    Examples:
+        >>> has_by([1, 2, 3], lambda x: x > 2)
+        True
+        >>> has_by([1, 2, 3], lambda x: x > 5)
+        False
+        >>> has_by([], lambda x: True)
+        False
+    """
+    return count_by(lst, predicate) > 0
 
 
 def to_dict(pairs: List[List[Any]]) -> Dict[Any, Any]:
