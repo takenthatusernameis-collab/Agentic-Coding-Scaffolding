@@ -1864,6 +1864,11 @@ def count_words(s: str) -> int:
     words = s.split()
     return len(words)
 
+def has_words(s: str) -> bool:
+    """Return True if *s* contains at least one word."""
+    _require_string(s, "s")
+    return len(s.split()) > 0
+
 
 def remove_punctuation(s: str) -> str:
     """Remove all punctuation characters from string."""
@@ -2336,6 +2341,12 @@ def count_leading_newlines(text: str) -> int:
     return count
 
 
+def has_leading_newlines(text: str) -> bool:
+    """Return True if *text* starts with at least one newline."""
+    _require_string(text, "text")
+    return text.startswith("\n")
+
+
 def count_trailing_newlines(text: str) -> int:
     """Count trailing newline characters in *text*.
 
@@ -2366,6 +2377,12 @@ def count_trailing_newlines(text: str) -> int:
         else:
             break
     return count
+
+
+def has_trailing_newlines(text: str) -> bool:
+    """Return True if *text* ends with at least one newline."""
+    _require_string(text, "text")
+    return text.endswith("\n")
 
 
 def strip_leading_newlines(text: str) -> str:
