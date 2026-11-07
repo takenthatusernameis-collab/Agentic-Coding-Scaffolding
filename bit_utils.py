@@ -22,6 +22,7 @@ __all__: list[str] = [
     "set_bit",
     "clear_bit",
     "clear_lowest_set_bit",
+    "isolate_lowest_set_bit",
     "toggle_bit",
     "is_even",
     "is_odd",
@@ -371,6 +372,37 @@ def clear_lowest_set_bit(value: int) -> int:
     if value == 0:
         return 0
     return value & (value - 1)
+
+
+def isolate_lowest_set_bit(value: int) -> int:
+    """Return an integer with only the lowest set bit of value preserved.
+
+    Uses the two's-complement identity ``value & -value``.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        The isolated lowest set bit as an integer. Returns 0 when *value* is 0.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> isolate_lowest_set_bit(0)
+        0
+        >>> isolate_lowest_set_bit(1)  # 0b1
+        1
+        >>> isolate_lowest_set_bit(10)  # 0b1010 -> 0b0010
+        2
+        >>> isolate_lowest_set_bit(12)  # 0b1100 -> 0b0100
+        4
+    """
+    _validate_nonnegative_int(value)
+    if value == 0:
+        return 0
+    return value & -value
 
 
 def toggle_bit(value: int, index: int) -> int:
