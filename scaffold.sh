@@ -86448,6 +86448,21 @@ class TestBoolRejectionNumberUtils(unittest.TestCase):
     def test_integer_nth_root_rejects_bool(self):
         with self.assertRaises(TypeError):
             integer_nth_root(True, 2)
+
+    def test_percentage_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            percentage(True, 2)
+        with self.assertRaises(TypeError):
+            percentage(1, True)
+
+    def test_map_range_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            map_range(True, 0, 10, 0, 100)
+
+    def test_in_range_rejects_bool(self):
+        from number_utils import in_range
+        with self.assertRaises(TypeError):
+            in_range(True, 0, 10)
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
