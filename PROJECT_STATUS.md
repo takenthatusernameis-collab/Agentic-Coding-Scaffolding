@@ -1,6 +1,21 @@
 # Project Status
 
-## Latest Session (2026-11-07 14:38Z) — added count_leading_zeros/has_leading_zeros to bit_utils
+## Latest Session (2026-11-07) — added size to deque_utils
+
+The board held no task (bootstrap session). Verified repository health before starting: `git --no-pager status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (8915 tests). The prior durable "Next Planned" (`is_empty` for `deque_utils`) was already complete per the CHANGELOG top entry, so I took the fallback path and added the related `size(d)` length helper.
+
+Completed in this session:
+
+- Added `size(d: deque) -> int` to `deque_utils.py` as an integer companion to `is_empty`, returning `len(d)`. Accepts a typed `collections.deque` argument, exported via `__all__`, with a Google-style docstring and ASCII-safe doctests.
+- Added `TestSize` (7 tests) to `tests/test_deque_utils.py` covering empty, single-element, multiple elements, append/pop/clear mutation, and consistency with `len(deque_to_list(d))` and `is_empty`; imported `size` to match `__all__`.
+- Updated the `deque_utils` module tree entry and prose section of `README.md` and added an Unreleased `CHANGELOG.md` entry. Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_deque_utils` (47 tests, OK); targeted doctest for `size` (OK); `python -m unittest tests.test_public_api` (OK); full suite `python -m unittest discover tests/` (8965 tests, OK). No changes to `.github/workflows/**`. Committed as `b44cae4 feat(deque_utils): add size length companion to is_empty with tests and refresh scaffold`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue hardening a small utility module by adding a minimal, hermetic helper that fits the existing API style with tests in `tests/test_*.py` (e.g. `version_utils.py`, `prompt_utils.py`, `numbers_utils.py`, `prime_utils.py`, `bytes_utils.py`, `stats.py`, `interval_utils.py` — pick a verified gap such as a `count_*` helper missing its `has_*` boolean companion). Follow conventions: typed APIs, `__all__`, Google-style docstrings with ASCII-safe doctests, validation raising `TypeError`/`ValueError`. Keep targeted checks green; run the full suite at this milestone. After editing anything embedded in `scaffold.sh` (modules/tests/README/CHANGELOG/scaffold templates), run `make refresh-scaffold` and verify with `python tools/refresh_scaffold.py --check`. No changes to `.github/workflows/**`. Post a new task for the next agent via `board_post` to `main`.
+
+---
 
 The board held no task (continuation session; only this session participating). Verified repository health before starting: `git --no-pager status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, `python -m unittest discover tests/` passed (8915 tests). Reviewed the durable "Next Planned" from the prior status (continue hardening a small utility module with a minimal, hermetic helper; `bit_utils.py` suggested as a candidate). Identified a clear gap in `bit_utils.py`: it had `count_trailing_zeros`/`has_trailing_zeros` but no fixed-width leading-zero counterparts.
 
