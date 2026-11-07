@@ -2900,6 +2900,21 @@ Next Planned (for the following agent):
 
 **Validation:** `python -m unittest tests.test_interval_utils` (127 OK). No `.github/workflows/**` changes.
 
+## Latest Session (2026-11-07) — number_utils.py NaN/inf/edge hardening
+
+**Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned": narrow hardening pass on number_utils.py (NaN/inf/empty/bound/invariants).
+
+**Changes:**
+- `tests/test_number_utils.py`: expanded `TestGcdList` (zeros `[0]`, `[0,5]`, `[0,0]`, `[0,0,0]`, NaN element type rejection), `TestLcmList` (zero cases `[0]`, `[0,5]` returns 0, `[0,0]` raises ValueError; inf element rejection), `TestLerp` (extrapolation, NaN propagation, infinities, full type errors), `TestIsBetween` (NaN comparisons follow Python semantics, infinities), `TestClamp` (infinities), `TestClamp01` (infinities). Added `import math`.
+- Refreshed embedded copy in `scaffold.sh`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_number_utils` (342 OK). No `.github/workflows/**` changes.
+
+Next Planned (for the following agent):
+- Continue narrow hermetic hardening of `number_utils.py`: audit remaining functions (`map_range`, `in_range`, `percentage`, `safe_divide`) for NaN/inf/empty/bounds/invariants. Add behaviorally justified tests first; fix validation only if clearly incorrect and consistent with module conventions.
+- Follow conventions: typed APIs, `__all__`, Google-style docstrings, validation raising `TypeError`/`ValueError`. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Run targeted `python -m unittest tests.test_number_utils` first; keep `make test` green where supported. No changes to `.github/workflows/**`. Avoid no-op/timestamp-only commits.
+
 ## Latest Session (2026-11-07) — number_utils bool-rejection test hardening
 
 **Assigned task:** Board held no task (bootstrap). Executed PROJECT_STATUS "Next Planned": hardening pass on number_utils.py.

@@ -84132,6 +84132,7 @@ NUMBER_UTILS
 cat > "$OUTPUT_DIR/tests/test_number_utils.py" <<'TEST_NUMBER_UTILS'
 """Tests for number_utils module."""
 
+import math
 import unittest
 
 from number_utils import (
@@ -84225,6 +84226,13 @@ class TestClamp(unittest.TestCase):
             with self.assertRaises(ValueError):
                 clamp(*args)
 
+    def test_infinities(self) -> None:
+        self.assertEqual(clamp(float("inf"), 0, 10), 10)
+        self.assertEqual(clamp(float("-inf"), 0, 10), 0)
+        self.assertEqual(clamp(5, float("-inf"), float("inf")), 5)
+        with self.assertRaises(ValueError):
+            clamp(5, float("inf"), 0)
+
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
             clamp("x", 0, 1)  # type: ignore[arg-type]
@@ -84245,6 +84253,10 @@ class TestClamp01(unittest.TestCase):
     def test_nan_raises(self) -> None:
         with self.assertRaises(ValueError):
             clamp01(float("nan"))
+
+    def test_infinities(self) -> None:
+        self.assertEqual(clamp01(float("inf")), 1)
+        self.assertEqual(clamp01(float("-inf")), 0)
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
@@ -84381,9 +84393,26 @@ class TestLerp(unittest.TestCase):
     def test_midpoint(self) -> None:
         self.assertEqual(lerp(0, 10, 0.5), 5.0)
 
+    def test_extrapolation(self) -> None:
+        self.assertEqual(lerp(0, 10, 2), 20)
+        self.assertEqual(lerp(0, 10, -1), -10)
+
+    def test_nan_propagates(self) -> None:
+        self.assertTrue(math.isnan(lerp(0, 10, float("nan"))))
+        self.assertTrue(math.isnan(lerp(float("nan"), 10, 0.5)))
+        self.assertTrue(math.isnan(lerp(0, float("nan"), 0.5)))
+
+    def test_infinities(self) -> None:
+        self.assertTrue(math.isinf(lerp(0, 10, float("inf"))))
+        self.assertTrue(math.isinf(lerp(0, float("inf"), 2)))
+
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             lerp("a", 10, 0.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lerp(0, "b", 0.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lerp(0, 10, "c")  # type: ignore[arg-type]
 
 
 class TestSign(unittest.TestCase):
@@ -84558,6 +84587,17 @@ class TestIsBetween(unittest.TestCase):
     def test_floats(self) -> None:
         self.assertTrue(is_between(2.5, 1.0, 3.0))
         self.assertTrue(is_between(1.0, 1.0, 3.0))
+
+    def test_nan_comparisons_follow_python_semantics(self) -> None:
+        self.assertFalse(is_between(float("nan"), 0, 10))
+        self.assertFalse(is_between(5, float("nan"), 10))
+        self.assertFalse(is_between(5, 0, float("nan")))
+        self.assertFalse(is_between(float("nan"), float("nan"), float("nan")))
+
+    def test_infinities(self) -> None:
+        self.assertTrue(is_between(0, float("-inf"), float("inf")))
+        self.assertTrue(is_between(float("inf"), 0, float("inf")))
+        self.assertTrue(is_between(float("-inf"), float("-inf"), 0))
 
     def test_invalid_bounds(self) -> None:
         with self.assertRaises(ValueError):
@@ -86169,6 +86209,12 @@ class TestGcdList(unittest.TestCase):
     def test_tuple_input(self) -> None:
         self.assertEqual(gcd_list((12, 18, 24)), 6)
 
+    def test_zeros(self) -> None:
+        self.assertEqual(gcd_list([0]), 0)
+        self.assertEqual(gcd_list([0, 5]), 5)
+        self.assertEqual(gcd_list([0, 0]), 0)
+        self.assertEqual(gcd_list([0, 0, 0]), 0)
+
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
             gcd_list("abc")  # type: ignore[arg-type]
@@ -86178,6 +86224,8 @@ class TestGcdList(unittest.TestCase):
             gcd_list([1, True])  # type: ignore[list-item]
         with self.assertRaises(TypeError):
             gcd_list([False, 1])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            gcd_list([float("nan")])  # type: ignore[list-item]
 
 
 class TestLcmList(unittest.TestCase):
@@ -86201,6 +86249,17 @@ class TestLcmList(unittest.TestCase):
     def test_tuple_input(self) -> None:
         self.assertEqual(lcm_list((4, 6)), 12)
 
+    def test_zero_single(self) -> None:
+        self.assertEqual(lcm_list([0]), 0)
+
+    def test_zero_with_nonzero(self) -> None:
+        self.assertEqual(lcm_list([0, 5]), 0)
+        self.assertEqual(lcm_list([4, 0]), 0)
+
+    def test_all_zero_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            lcm_list([0, 0])
+
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
             lcm_list("abc")  # type: ignore[arg-type]
@@ -86210,6 +86269,8 @@ class TestLcmList(unittest.TestCase):
             lcm_list([1, True])  # type: ignore[list-item]
         with self.assertRaises(TypeError):
             lcm_list([False, 1])  # type: ignore[list-item]
+        with self.assertRaises(TypeError):
+            lcm_list([float("inf")])  # type: ignore[list-item]
 
 
 class TestIsPrime(unittest.TestCase):
