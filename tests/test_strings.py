@@ -34,6 +34,7 @@ from strings import (
     first_n,
     has_consonants,
     has_digits,
+    has_lowercase,
     has_letters,
     has_punctuation,
     has_uppercase,
@@ -352,6 +353,41 @@ class TestHasUppercase(unittest.TestCase):
             has_uppercase(42)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_uppercase(None)  # type: ignore[arg-type]
+
+
+class TestHasLowercase(unittest.TestCase):
+    def test_has_lowercase_basic(self):
+        self.assertTrue(has_lowercase("Hello World"))
+        self.assertTrue(has_lowercase("hello"))
+
+    def test_has_lowercase_no_lowercase(self):
+        self.assertFalse(has_lowercase("HELLO"))
+        self.assertFalse(has_lowercase("HELLO WORLD"))
+
+    def test_has_lowercase_empty(self):
+        self.assertFalse(has_lowercase(""))
+
+    def test_has_lowercase_mixed_case(self):
+        self.assertTrue(has_lowercase("PyThOn"))
+        self.assertTrue(has_lowercase("a"))
+
+    def test_has_lowercase_ignores_non_alpha(self):
+        self.assertTrue(has_lowercase("a B-C"))
+        self.assertFalse(has_lowercase("A B-C"))
+
+    def test_has_lowercase_unicode_lowercase(self):
+        self.assertTrue(has_lowercase("élève"))
+
+    def test_has_lowercase_consistency_with_count_lowercase(self):
+        cases = ["Hello World", "HELLO", "hello", "", "PyThOn 3.10!", "A B-C"]
+        for s in cases:
+            self.assertEqual(has_lowercase(s), count_lowercase(s) > 0)
+
+    def test_has_lowercase_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_lowercase(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_lowercase(None)  # type: ignore[arg-type]
 
 
 class TestCountDigits(unittest.TestCase):

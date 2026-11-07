@@ -16,6 +16,7 @@ __all__: List[str] = [
     "count_consonants",
     "count_lowercase",
     "count_uppercase",
+    "has_lowercase",
     "has_uppercase",
     "is_anagram",
     "is_isogram",
@@ -387,6 +388,37 @@ def count_lowercase(s: str) -> int:
     """
     _require_string(s, "s")
     return sum(1 for ch in s if ch.islower())
+
+
+def has_lowercase(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one lowercase letter.
+
+    A boolean companion to :func:`count_lowercase`. Returns ``True`` when *s*
+    has at least one lowercase alphabetic character and ``False`` for empty
+    or uppercase-only text.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more lowercase letters, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_lowercase("Hello World")
+        True
+        >>> has_lowercase("hello")
+        True
+        >>> has_lowercase("HELLO")
+        False
+        >>> has_lowercase("")
+        False
+    """
+    _require_string(s, "s")
+    return any(ch.islower() for ch in s)
 
 
 def is_anagram(s1: str, s2: str) -> bool:
