@@ -86163,6 +86163,16 @@ class TestIsCatalanNumber(unittest.TestCase):
             is_catalan_number(5.0)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_catalan_number(None)  # type: ignore[arg-type]
+
+
+class TestBoolRejectionNumberUtils(unittest.TestCase):
+    def test_clamp_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            clamp(True, 0, 1)
+
+    def test_gcd_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            gcd(True, 2)
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
