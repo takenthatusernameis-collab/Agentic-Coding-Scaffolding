@@ -61,6 +61,7 @@ __all__: list[str] = [
     "to_int",
     "from_int",
     "bit_count",
+    "has_set_bits",
     "is_power_of_two",
     "is_zero",
     "is_all_ones",
@@ -1684,6 +1685,38 @@ def bit_count(data: bytes) -> int:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return sum(b.bit_count() for b in bytes(data))
+
+
+def has_set_bits(data: bytes) -> bool:
+    """Return True if *data* contains at least one set (1) bit.
+
+    This is the boolean companion to :func:`bit_count`. It returns ``True``
+    when any bit in *data* is set and ``False`` otherwise (an empty input
+    has no set bits and is ``False``), reusing :func:`bit_count` for
+    consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any bit is set, False otherwise (empty input is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_set_bits(from_hex("00"))
+        False
+        >>> has_set_bits(from_hex("01"))
+        True
+        >>> has_set_bits(from_hex("ff"))
+        True
+        >>> has_set_bits(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bit_count(data) > 0
 
 
 def is_zero(data: bytes) -> bool:

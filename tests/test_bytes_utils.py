@@ -18,6 +18,7 @@ from bytes_utils import (
     from_hex,
     from_int,
     has_null_byte,
+    has_set_bits,
     highest_set_bit,
     index,
     index_of,
@@ -793,6 +794,35 @@ class TestBitCount(unittest.TestCase):
             bit_count(255)
         with self.assertRaises(TypeError):
             bit_count(None)
+
+
+class TestHasSetBits(unittest.TestCase):
+    def test_zero_byte(self):
+        self.assertFalse(has_set_bits(b"\x00"))
+
+    def test_has_set(self):
+        self.assertTrue(has_set_bits(b"\x01"))
+        self.assertTrue(has_set_bits(b"\xff"))
+        self.assertTrue(has_set_bits(b"\x00\x80"))
+
+    def test_empty(self):
+        self.assertFalse(has_set_bits(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_set_bits(bytearray(b"\x00\x01")))
+        self.assertFalse(has_set_bits(bytearray(b"\x00\x00")))
+
+    def test_consistency_with_bit_count(self):
+        for data in [b"", b"\x00", b"\xff", b"\x0f\x00", bytes(range(64))]:
+            self.assertEqual(has_set_bits(data), bit_count(data) > 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_set_bits("ff")
+        with self.assertRaises(TypeError):
+            has_set_bits(255)
+        with self.assertRaises(TypeError):
+            has_set_bits(None)
 
 
 class TestIsZero(unittest.TestCase):

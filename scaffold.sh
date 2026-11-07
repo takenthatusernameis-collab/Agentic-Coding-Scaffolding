@@ -51332,6 +51332,7 @@ __all__: list[str] = [
     "to_int",
     "from_int",
     "bit_count",
+    "has_set_bits",
     "is_power_of_two",
     "is_zero",
     "is_all_ones",
@@ -52957,6 +52958,38 @@ def bit_count(data: bytes) -> int:
     return sum(b.bit_count() for b in bytes(data))
 
 
+def has_set_bits(data: bytes) -> bool:
+    """Return True if *data* contains at least one set (1) bit.
+
+    This is the boolean companion to :func:`bit_count`. It returns ``True``
+    when any bit in *data* is set and ``False`` otherwise (an empty input
+    has no set bits and is ``False``), reusing :func:`bit_count` for
+    consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any bit is set, False otherwise (empty input is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_set_bits(from_hex("00"))
+        False
+        >>> has_set_bits(from_hex("01"))
+        True
+        >>> has_set_bits(from_hex("ff"))
+        True
+        >>> has_set_bits(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return bit_count(data) > 0
+
+
 def is_zero(data: bytes) -> bool:
     """Return True if *data* contains only zero bytes.
 
@@ -53200,6 +53233,7 @@ from bytes_utils import (
     from_hex,
     from_int,
     has_null_byte,
+    has_set_bits,
     highest_set_bit,
     index,
     index_of,
@@ -53975,6 +54009,35 @@ class TestBitCount(unittest.TestCase):
             bit_count(255)
         with self.assertRaises(TypeError):
             bit_count(None)
+
+
+class TestHasSetBits(unittest.TestCase):
+    def test_zero_byte(self):
+        self.assertFalse(has_set_bits(b"\x00"))
+
+    def test_has_set(self):
+        self.assertTrue(has_set_bits(b"\x01"))
+        self.assertTrue(has_set_bits(b"\xff"))
+        self.assertTrue(has_set_bits(b"\x00\x80"))
+
+    def test_empty(self):
+        self.assertFalse(has_set_bits(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_set_bits(bytearray(b"\x00\x01")))
+        self.assertFalse(has_set_bits(bytearray(b"\x00\x00")))
+
+    def test_consistency_with_bit_count(self):
+        for data in [b"", b"\x00", b"\xff", b"\x0f\x00", bytes(range(64))]:
+            self.assertEqual(has_set_bits(data), bit_count(data) > 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_set_bits("ff")
+        with self.assertRaises(TypeError):
+            has_set_bits(255)
+        with self.assertRaises(TypeError):
+            has_set_bits(None)
 
 
 class TestIsZero(unittest.TestCase):
@@ -60290,6 +60353,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_set_bits to bytes_utils
+
+- Added `has_set_bits(data)` to `bytes_utils.py` as the boolean companion to `bit_count`, returning `True` when any bit in *data* is set and `False` for empty or all-zero input. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, reuses `bit_count` for consistency, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasSetBits` (6 tests) to `tests/test_bytes_utils.py` covering zero/all-set, empty, bytearray, consistency with `bit_count`, and `TypeError` paths; imported `has_set_bits` to match the module's `__all__` contract. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bytes_utils`; targeted doctest for `has_set_bits`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_null_bytes to bytes_utils
 
 - Added `count_null_bytes(data)` to `bytes_utils.py` as the integer companion to `has_null_byte`, returning the number of zero bytes in *data*. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_null_byte` to reuse `count_null_bytes(data) > 0` for consistency. Added `TestCountNullBytes` (8 tests) to `tests/test_bytes_utils.py` covering all-null, no-null, empty, single-null, mixed, bytearray, consistency with `has_null_byte`, and `TypeError` paths; imported `count_null_bytes` to match the module's `__all__` contract. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bytes_utils`; targeted doctest for `count_null_bytes`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -62880,7 +62947,7 @@ id_utils.py                # Identifier generation and validation utilities (gen
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, isprintable, isidentifier, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, is_power_of_two, is_zero, lowest_set_bit, highest_set_bit, count_null_bytes, has_null_byte)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, isalpha, isascii, isdigit, islower, isspace, istitle, isupper, isprintable, isidentifier, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, has_set_bits, is_power_of_two, is_zero, lowest_set_bit, highest_set_bit, count_null_bytes, has_null_byte)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -63657,7 +63724,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits, `is_power_of_two` tests whether exactly one bit is set, `is_zero` tests whether all bytes are zero, and `lowest_set_bit` returns the position of the least significant set bit (or -1 when none is set), and `highest_set_bit` returns the position of the most significant set bit (or -1 when none is set), `count_null_bytes` counts the number of zero bytes, and `has_null_byte` reports whether any zero byte is present. `isprintable` tests whether every byte is in the ASCII printable range (0x20-0x7E, False for empty), and `isidentifier` tests whether the ASCII-decoded bytes form a valid Python identifier. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`isalpha`/`isascii`/`isdigit`/`islower`/`isspace`/`istitle`/`isupper` are predicates, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits and `has_set_bits` reports whether any bit is set, `is_power_of_two` tests whether exactly one bit is set, `is_zero` tests whether all bytes are zero, and `lowest_set_bit` returns the position of the least significant set bit (or -1 when none is set), and `highest_set_bit` returns the position of the most significant set bit (or -1 when none is set), `count_null_bytes` counts the number of zero bytes, and `has_null_byte` reports whether any zero byte is present. `isprintable` tests whether every byte is in the ASCII printable range (0x20-0x7E, False for empty), and `isidentifier` tests whether the ASCII-decoded bytes form a valid Python identifier. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 
