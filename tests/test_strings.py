@@ -36,6 +36,7 @@ from strings import (
     has_digits,
     has_lowercase,
     has_letters,
+    has_occurrences,
     has_punctuation,
     has_uppercase,
     has_vowels,
@@ -1353,6 +1354,45 @@ class TestCountOccurrences(unittest.TestCase):
             count_occurrences(123, "a")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_occurrences("a", 123)  # type: ignore[arg-type]
+
+
+class TestHasOccurrences(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_occurrences("hello world", "o"))
+        self.assertTrue(has_occurrences("ababab", "ab"))
+
+    def test_no_occurrences(self):
+        self.assertFalse(has_occurrences("hello", "x"))
+        self.assertFalse(has_occurrences("abc", "xyz"))
+
+    def test_empty_string(self):
+        self.assertFalse(has_occurrences("", "a"))
+
+    def test_overlapping_ignored(self):
+        # non-overlapping matching, like count_occurrences
+        self.assertTrue(has_occurrences("aaa", "aa"))
+        self.assertFalse(has_occurrences("aaa", "aaaa"))
+
+    def test_consistency_with_count_occurrences(self):
+        for s, sub in (
+            ("hello world", "o"),
+            ("hello", "x"),
+            ("ababab", "ab"),
+            ("", "a"),
+            ("aaa", "aa"),
+            ("aaa", "aaaa"),
+        ):
+            self.assertEqual(has_occurrences(s, sub), count_occurrences(s, sub) > 0)
+
+    def test_empty_substring(self):
+        with self.assertRaises(ValueError):
+            has_occurrences("hello", "")
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_occurrences(123, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_occurrences("a", 123)  # type: ignore[arg-type]
 
 
 class TestStartsWith(unittest.TestCase):

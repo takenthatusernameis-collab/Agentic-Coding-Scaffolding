@@ -65,6 +65,7 @@ __all__: List[str] = [
     "initials",
     "swap_case",
     "count_occurrences",
+    "has_occurrences",
     "starts_with",
     "ends_with",
     "find",
@@ -1459,6 +1460,37 @@ def count_occurrences(s: str, substring: str) -> int:
     if substring == "":
         raise ValueError("substring cannot be empty")
     return s.count(substring)
+
+
+def has_occurrences(s: str, substring: str) -> bool:
+    """Return True if *substring* occurs at least once in *s*.
+
+    A boolean companion to :func:`count_occurrences`. Returns ``True`` when
+    *substring* is found in *s* and ``False`` when it is absent, reusing
+    ``count_occurrences`` for consistency.
+
+    Args:
+        s: The string to search in.
+        substring: The substring to search for.
+
+    Returns:
+        True if *substring* is present in *s*, False otherwise.
+
+    Raises:
+        TypeError: If *s* or *substring* is not a string.
+        ValueError: If *substring* is empty.
+
+    Examples:
+        >>> has_occurrences("hello world", "o")
+        True
+        >>> has_occurrences("hello", "x")
+        False
+        >>> has_occurrences("ababab", "ab")
+        True
+        >>> has_occurrences("", "a")
+        False
+    """
+    return count_occurrences(s, substring) > 0
 
 
 def starts_with(s: str, prefix: str) -> bool:
