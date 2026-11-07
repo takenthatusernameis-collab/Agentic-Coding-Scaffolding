@@ -94,6 +94,7 @@ __all__: List[str] = [
     "contains_any",
     "contains_all",
     "count_words",
+    "has_words",
     "remove_punctuation",
     "remove_digits",
     "remove_blank_lines",
@@ -1865,9 +1866,33 @@ def count_words(s: str) -> int:
     return len(words)
 
 def has_words(s: str) -> bool:
-    """Return True if *s* contains at least one word."""
+    """Return ``True`` if *s* contains at least one word.
+
+    A boolean companion to :func:`count_words`. Returns ``True`` when *s*
+    contains at least one whitespace-delimited word and ``False`` for empty
+    or whitespace-only text.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* has one or more words, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_words("Hello World")
+        True
+        >>> has_words("hello")
+        True
+        >>> has_words("   ")
+        False
+        >>> has_words("")
+        False
+    """
     _require_string(s, "s")
-    return len(s.split()) > 0
+    return count_words(s) > 0
 
 
 def remove_punctuation(s: str) -> str:

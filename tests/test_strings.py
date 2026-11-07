@@ -40,6 +40,7 @@ from strings import (
     has_uppercase,
     has_vowels,
     has_whitespace,
+    has_words,
     initials,
     is_alpha,
     is_alphanumeric,
@@ -509,6 +510,31 @@ class TestHasWhitespace(unittest.TestCase):
     def test_has_whitespace_rejects_non_string(self):
         with self.assertRaises(TypeError):
             has_whitespace(42)  # type: ignore[arg-type]
+
+
+class TestHasWords(unittest.TestCase):
+    def test_has_words_basic(self):
+        self.assertTrue(has_words("Hello World"))
+        self.assertTrue(has_words("one"))
+
+    def test_has_words_no_words(self):
+        self.assertFalse(has_words(""))
+        self.assertFalse(has_words("   "))
+
+    def test_has_words_mixed(self):
+        self.assertTrue(has_words("a b c"))
+        self.assertTrue(has_words("  spaced  "))
+
+    def test_has_words_consistency_with_count_words(self):
+        cases = ["Hello World", "one", "", "   ", "a  b\tc"]
+        for s in cases:
+            self.assertEqual(has_words(s), count_words(s) > 0)
+
+    def test_has_words_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_words(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_words(None)  # type: ignore[arg-type]
 
 
 class TestIsIsogram(unittest.TestCase):
