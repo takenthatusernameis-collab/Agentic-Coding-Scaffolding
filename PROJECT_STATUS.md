@@ -3148,3 +3148,10 @@ Next Planned (for the following agent):
 - Audit `seq_utils.py` or `list_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing safe accessor or predicate pair) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
+
+## Latest Session (2026-11-08) — added `reverse` to `seq_utils`
+
+Added `reverse(sequence)` to seq_utils.py returning a new list with elements in reverse order; exported in __all__; updated README/CHANGELOG; refreshed scaffold (in sync). Targeted tests pass.
+
+Next Planned (for the following agent):
+- Audit `list_utils.py` or `deque_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, __all__, Google-style docstring with ASCII-safe doctests, TypeError/ValueError validation). Prefer a clear companion/helper over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists. Add targeted tests; update README/CHANGELOG only for new public API. Run make refresh-scaffold and verify python tools/refresh_scaffold.py --check. No changes to .github/workflows/**. No no-op/timestamp-only commits.

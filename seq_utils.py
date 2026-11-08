@@ -46,6 +46,7 @@ __all__ = [
     "nth",
     "nth_or_default",
     "partition",
+    "reverse",
     "split_at",
     "tail",
     "take_while",
@@ -472,6 +473,28 @@ def unique(sequence: Sequence[T]) -> List[T]:
 distinct = unique
 
 
+def reverse(sequence: Sequence[T]) -> List[T]:
+    """Return a new list containing the elements of ``sequence`` in reverse order.
+
+    Args:
+        sequence: The sequence to reverse.
+
+    Returns:
+        A new list with the elements in reverse order.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> reverse([1, 2, 3])
+        [3, 2, 1]
+        >>> reverse([])
+        []
+        >>> reverse("abc")
+        ['c', 'b', 'a']
+    """
+    _require_sequence(sequence)
+    return list(reversed(sequence))
 def count_duplicates(sequence: Sequence[T]) -> int:
     """Return the number of duplicate (extra) elements in *sequence*.
 

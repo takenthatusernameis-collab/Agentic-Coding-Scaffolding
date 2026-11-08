@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- Added `reverse(sequence)` to `seq_utils.py` returning a new list with elements in reverse order.
+
 ### Added
 - `seq_utils`: added `all_where(sequence, predicate) -> bool` and `none_where(sequence, predicate) -> bool` as predicate companions to `has_where`/`count_where`. `all_where` returns `True` when every element satisfies *predicate* (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` returns `True` when no element satisfies *predicate* (including empty sequences), serving as the negation companion to `has_where`. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestAllWhere` (7 tests) and `TestNoneWhere` (7 tests) to `tests/test_seq_utils.py` covering all/some/none/empty/string/tuple cases, consistency with `count_where`/`has_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
