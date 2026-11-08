@@ -60520,7 +60520,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
 - `xml_utils.py` — XML parsing and generation utilities (`parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, `validate_well_formed`)
 - `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
-- `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `flatten`, `interleave`, `adjacent_pairs`, `chunk`, `is_sorted`)
+- `seq_utils.py` — sequence utilities (`first`, `last`, `nth`, `head`, `tail`, `split_at`, `take_while`, `drop_while`, `flatten`, `interleave`, `adjacent_pairs`, `chunk`, `is_sorted`, `find`, `find_index`, `find_last`, `find_last_index`, `find_all`, `find_all_indices`, `index_of`, `last_index_of`, `count_where`, `has_where`, `partition`)
 - `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
 - `number_utils.py` — number utility functions (`clamp`, `round_to`, `round_half_up`, `is_integer`, `format_number`, `percentage`, `lerp`, `map_range`, `remap`, `sign`, `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `in_range`, `is_finite`, `is_infinite`, `is_nan`, `safe_divide`, `is_perfect_cube`, `is_perfect_square`, `is_power_of_two`, `is_palindromic_number`, `gcd`, `lcm`, `ceil_div`, `is_divisible_by`, `is_multiple_of`, `divides`, `is_coprime`, `digit_sum`, `digit_count`, `digit_product`, `digital_root`, `is_triangular_number`, `is_perfect_number`, `is_automorphic_number`, `is_happy_number`, `is_armstrong_number`, `is_harshad_number`, `is_neon_number`, `is_lucas_number`, `is_spy_number`)
 - `tests/test_number_utils.py` — unit tests for `number_utils.py`
@@ -62938,6 +62938,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
 ### Added
+- `seq_utils`: added `partition(sequence, predicate) -> Tuple[List[T], List[T]]` as a predicate-based splitter, returning a `(matching, not_matching)` pair of lists. Items for which *predicate* returns true go into the first list, the rest into the second, with order preserved within each list. Accepts any `Sequence`, validates with `_require_sequence`, requires a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestPartition` (8 tests) to `tests/test_seq_utils.py` covering even/odd split, empty list, all-match, none-match, order preservation, tuple+string inputs, and the `TypeError` paths (non-sequence and non-callable predicate); imported `partition` to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `list_utils`: added `count_duplicates(lst: List[T]) -> int` as the integer companion to `has_duplicates`, returning the number of elements beyond their first occurrence (`len(lst)` minus the number of distinct elements). Hashable elements use a set for efficiency; unhashable elements fall back to linear membership checks. It accepts a typed `List[T]` argument, raises `TypeError` for non-lists, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. `has_duplicates` was refactored to reuse `count_duplicates(lst) > 0`. Added `TestCountDuplicates` (10 tests) to `tests/test_list_utils.py` covering basic/none/empty/multiple-same/multiple-values/all-same/strings/unhashable/consistency-with-`has_duplicates`/`TypeError` paths; imported `count_duplicates` to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `interval_utils`: added `interval_adjacent(a, b) -> bool` as a boolean predicate reporting whether two intervals touch back-to-back at a single shared endpoint (``a[1] == b[0]`` or ``b[1] == a[0]``) without overlapping interiors, complementing `interval_overlaps`. It accepts typed `Interval` arguments (``(low, high)`` tuples/lists), validates both intervals with `is_valid_interval` raising `ValueError` for invalid input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIntervalAdjacent` (8 tests) to `tests/test_interval_utils.py` covering touching in either direction, overlapping/disjoint/identical intervals, degenerate intervals, float endpoints, and the `ValueError` path; imported `interval_adjacent` to match `__all__`. Updated the `interval_utils` module tree entry and prose section of `README.md`. Synchronized `interval_utils.py`, `tests/test_interval_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `count_where(sequence, predicate) -> int` as the predicate-count companion to `count_occurrences`, and boolean companion `has_where(sequence, predicate) -> bool`. `count_where` returns the number of elements in *sequence* for which *predicate* returns true (empty sequence yields ``0``); `has_where` reports whether at least one element satisfies *predicate*, reusing `count_where` for consistency. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountWhere` (7 tests) and `TestHasWhere` (5 tests) to `tests/test_seq_utils.py` covering basic/no-match/empty/string/tuple/all-match cases, consistency between `has_where` and `count_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -65514,7 +65515,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, find, find_index, find_last, find_last_index, index_of, last_index_of)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -66449,7 +66450,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -105427,6 +105428,7 @@ __all__ = [
     "last_index_of",
     "nth",
     "nth_or_default",
+    "partition",
     "split_at",
     "tail",
     "take_while",
@@ -105595,6 +105597,45 @@ def tail(sequence: Sequence[T], n: int = 1) -> List[T]:
     if n == 0:
         return []
     return list(sequence[-n:])
+
+
+def partition(
+    sequence: Sequence[T], predicate: Callable[[T], bool]
+) -> Tuple[List[T], List[T]]:
+    """Split ``sequence`` into ``(matching, not_matching)`` by ``predicate``.
+
+    Items for which ``predicate`` returns true go into the first list, the rest
+    into the second. Order is preserved within each list.
+
+    Args:
+        sequence: The sequence to split.
+        predicate: A callable returning true for items to include in the first
+            list.
+
+    Returns:
+        A tuple of ``(matching, not_matching)`` lists.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        ([2, 4], [1, 3, 5])
+        >>> partition([], bool)
+        ([], [])
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    matching: List[T] = []
+    not_matching: List[T] = []
+    for item in sequence:
+        if predicate(item):
+            matching.append(item)
+        else:
+            not_matching.append(item)
+    return matching, not_matching
 
 
 def split_at(sequence: Sequence[T], index: int) -> Tuple[List[T], List[T]]:
@@ -106364,6 +106405,7 @@ from seq_utils import (
     last_index_of,
     nth,
     nth_or_default,
+    partition,
     split_at,
     tail,
     take_while,
@@ -107017,6 +107059,53 @@ class TestFindAll(unittest.TestCase):
         self.assertEqual(find_all_indices([1, 2, 3, 4], lambda x: x > 2), [2, 3])
         self.assertEqual(find_all([], lambda x: True), [])
         self.assertEqual(find_all_indices([], lambda x: True), [])
+
+
+class TestPartition(unittest.TestCase):
+    def test_partition_even_odd(self):
+        matching, non_matching = partition([1, 2, 3, 4], lambda x: x % 2 == 0)
+        self.assertEqual(matching, [2, 4])
+        self.assertEqual(non_matching, [1, 3])
+
+    def test_partition_empty_list(self):
+        matching, non_matching = partition([], lambda x: True)
+        self.assertEqual(matching, [])
+        self.assertEqual(non_matching, [])
+
+    def test_partition_all_match(self):
+        matching, non_matching = partition([1, 2, 3], lambda x: True)
+        self.assertEqual(matching, [1, 2, 3])
+        self.assertEqual(non_matching, [])
+
+    def test_partition_none_match(self):
+        matching, non_matching = partition([1, 2, 3], lambda x: False)
+        self.assertEqual(matching, [])
+        self.assertEqual(non_matching, [1, 2, 3])
+
+    def test_partition_preserves_order(self):
+        matching, non_matching = partition([3, 1, 4, 1, 5, 9], lambda x: x % 2 == 0)
+        self.assertEqual(matching, [4])
+        self.assertEqual(non_matching, [3, 1, 1, 5, 9])
+
+    def test_partition_tuple_and_string(self):
+        matching, non_matching = partition(("a", "b", "c"), lambda c: c in "aeiou")
+        self.assertEqual(matching, ["a"])
+        self.assertEqual(non_matching, ["b", "c"])
+        matching, non_matching = partition("hello", lambda c: c == "l")
+        self.assertEqual(matching, ["l", "l"])
+        self.assertEqual(non_matching, ["h", "e", "o"])
+
+    def test_partition_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            partition(None, lambda x: True)
+
+    def test_partition_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            partition([1, 2, 3], None)
 TEST_SEQ_UTILS
 
 # --- shelve_utils.py ---

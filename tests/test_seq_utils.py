@@ -28,6 +28,7 @@ from seq_utils import (
     last_index_of,
     nth,
     nth_or_default,
+    partition,
     split_at,
     tail,
     take_while,
@@ -681,3 +682,50 @@ class TestFindAll(unittest.TestCase):
         self.assertEqual(find_all_indices([1, 2, 3, 4], lambda x: x > 2), [2, 3])
         self.assertEqual(find_all([], lambda x: True), [])
         self.assertEqual(find_all_indices([], lambda x: True), [])
+
+
+class TestPartition(unittest.TestCase):
+    def test_partition_even_odd(self):
+        matching, non_matching = partition([1, 2, 3, 4], lambda x: x % 2 == 0)
+        self.assertEqual(matching, [2, 4])
+        self.assertEqual(non_matching, [1, 3])
+
+    def test_partition_empty_list(self):
+        matching, non_matching = partition([], lambda x: True)
+        self.assertEqual(matching, [])
+        self.assertEqual(non_matching, [])
+
+    def test_partition_all_match(self):
+        matching, non_matching = partition([1, 2, 3], lambda x: True)
+        self.assertEqual(matching, [1, 2, 3])
+        self.assertEqual(non_matching, [])
+
+    def test_partition_none_match(self):
+        matching, non_matching = partition([1, 2, 3], lambda x: False)
+        self.assertEqual(matching, [])
+        self.assertEqual(non_matching, [1, 2, 3])
+
+    def test_partition_preserves_order(self):
+        matching, non_matching = partition([3, 1, 4, 1, 5, 9], lambda x: x % 2 == 0)
+        self.assertEqual(matching, [4])
+        self.assertEqual(non_matching, [3, 1, 1, 5, 9])
+
+    def test_partition_tuple_and_string(self):
+        matching, non_matching = partition(("a", "b", "c"), lambda c: c in "aeiou")
+        self.assertEqual(matching, ["a"])
+        self.assertEqual(non_matching, ["b", "c"])
+        matching, non_matching = partition("hello", lambda c: c == "l")
+        self.assertEqual(matching, ["l", "l"])
+        self.assertEqual(non_matching, ["h", "e", "o"])
+
+    def test_partition_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            partition(None, lambda x: True)
+
+    def test_partition_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            partition([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            partition([1, 2, 3], None)
