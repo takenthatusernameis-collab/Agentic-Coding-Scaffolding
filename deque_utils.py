@@ -81,6 +81,36 @@ def has_in_deque(d: deque, x: Any) -> bool:
     return count_in_deque(d, x) > 0
 
 
+def index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> int:
+    """Return the index of the first occurrence of value in deque d.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the first matching element.
+
+    Raises:
+        ValueError: If value is not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> index_in_deque(d, 2)
+        1
+        >>> index_in_deque(d, 2, 2)
+        3
+    """
+    if stop is None:
+        return d.index(value, start)
+    return d.index(value, start, stop)
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -215,6 +245,7 @@ __all__ = [
     "deque_to_list",
     "count_in_deque",
     "has_in_deque",
+    "index_in_deque",
     "peek_left",
     "peek_right",
     "remove_from_deque",

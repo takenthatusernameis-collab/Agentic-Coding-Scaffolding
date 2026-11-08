@@ -63045,6 +63045,10 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
+- Added `index_in_deque(d, value, start=0, stop=None)` to `deque_utils.py` as a typed companion to `collections.deque.index`, returning the 0-based index of the first matching element with optional `start`/`stop` bounds and raising `ValueError` when absent (stdlib behavior preserved). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestIndexInDeque` to `tests/test_deque_utils.py` covering basic lookup, `start`/`stop` ranges, missing/empty/range-miss `ValueError` paths, and list-consistency. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils` (60 OK), `python -m doctest deque_utils.py`, `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
+
+
 - Added `find_last(lst, predicate)` and `find_last_index(lst, predicate)` to `list_utils.py` as last-match companions to `find`/`find_index`. Both scan from the end of the list and return the last element or 0-based index satisfying *predicate*, or `None` when no match is found (including for an empty list). Typed APIs accept a `List[T]` and callable predicate, raise `TypeError` for non-lists, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestFindLast` and `TestFindLastIndex` (14 tests) to `tests/test_list_utils.py` covering basic/multiple-match/no-match/empty/first-element/string cases and `TypeError` paths; imported the helpers to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 - Added `reverse(sequence)` to `seq_utils.py` returning a new list with elements in reverse order.
@@ -66667,7 +66671,7 @@ The project includes deprecation utilities in `deprecation_utils.py` for marking
 
 ## Deque Utilities Module
 
-The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), and `is_empty` returns ``True`` when the deque contains no elements. `size` returns the number of elements in a deque as an integer companion to `is_empty`. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
+The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `index_in_deque` returns the index of the first occurrence with optional `start`/`stop` bounds (raising ``ValueError`` when absent), `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), `is_empty` returns ``True`` when the deque contains no elements, and `has_items` is its boolean companion. `size` returns the number of elements in a deque as an integer companion to `is_empty`. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
 
 ## Ring Buffer Utilities Module
 
@@ -150181,6 +150185,36 @@ def has_in_deque(d: deque, x: Any) -> bool:
     return count_in_deque(d, x) > 0
 
 
+def index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> int:
+    """Return the index of the first occurrence of value in deque d.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the first matching element.
+
+    Raises:
+        ValueError: If value is not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> index_in_deque(d, 2)
+        1
+        >>> index_in_deque(d, 2, 2)
+        3
+    """
+    if stop is None:
+        return d.index(value, start)
+    return d.index(value, start, stop)
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -150315,6 +150349,7 @@ __all__ = [
     "deque_to_list",
     "count_in_deque",
     "has_in_deque",
+    "index_in_deque",
     "peek_left",
     "peek_right",
     "remove_from_deque",
@@ -150340,6 +150375,7 @@ from deque_utils import (
     extend_right,
     has_in_deque,
     has_items,
+    index_in_deque,
     is_empty,
     peek_left,
     peek_right,
@@ -150592,8 +150628,49 @@ class TestSize(unittest.TestCase):
         self.assertEqual(size(d) == 0, is_empty(d))
 
 
+class TestIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(index_in_deque(d, 1), 0)
+        self.assertEqual(index_in_deque(d, 2), 1)
+        self.assertEqual(index_in_deque(d, 3), 2)
+
+    def test_start(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(index_in_deque(d, 2, 2), 3)
+
+    def test_start_stop_found(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(index_in_deque(d, 2, 2, 4), 3)
+
+    def test_start_stop_missing_raises(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        with self.assertRaises(ValueError):
+            index_in_deque(d, 1, 1, 4)
+
+    def test_missing_raises(self):
+        d = create_deque([1, 2, 3])
+        with self.assertRaises(ValueError):
+            index_in_deque(d, 9)
+
+    def test_missing_in_range_raises(self):
+        d = create_deque([1, 2, 3, 2])
+        with self.assertRaises(ValueError):
+            index_in_deque(d, 2, 2, 3)
+
+    def test_empty_raises(self):
+        with self.assertRaises(ValueError):
+            index_in_deque(create_deque(), 1)
+
+    def test_consistent_with_list(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        for v in (1, 2, 3):
+            self.assertEqual(index_in_deque(d, v), deque_to_list(d).index(v))
+
+
 if __name__ == "__main__":
     unittest.main()
+
 
 
 class TestHasItems(unittest.TestCase):

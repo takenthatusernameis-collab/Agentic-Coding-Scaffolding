@@ -11,6 +11,7 @@ from deque_utils import (
     extend_right,
     has_in_deque,
     has_items,
+    index_in_deque,
     is_empty,
     peek_left,
     peek_right,
@@ -263,8 +264,49 @@ class TestSize(unittest.TestCase):
         self.assertEqual(size(d) == 0, is_empty(d))
 
 
+class TestIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(index_in_deque(d, 1), 0)
+        self.assertEqual(index_in_deque(d, 2), 1)
+        self.assertEqual(index_in_deque(d, 3), 2)
+
+    def test_start(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(index_in_deque(d, 2, 2), 3)
+
+    def test_start_stop_found(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(index_in_deque(d, 2, 2, 4), 3)
+
+    def test_start_stop_missing_raises(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        with self.assertRaises(ValueError):
+            index_in_deque(d, 1, 1, 4)
+
+    def test_missing_raises(self):
+        d = create_deque([1, 2, 3])
+        with self.assertRaises(ValueError):
+            index_in_deque(d, 9)
+
+    def test_missing_in_range_raises(self):
+        d = create_deque([1, 2, 3, 2])
+        with self.assertRaises(ValueError):
+            index_in_deque(d, 2, 2, 3)
+
+    def test_empty_raises(self):
+        with self.assertRaises(ValueError):
+            index_in_deque(create_deque(), 1)
+
+    def test_consistent_with_list(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        for v in (1, 2, 3):
+            self.assertEqual(index_in_deque(d, v), deque_to_list(d).index(v))
+
+
 if __name__ == "__main__":
     unittest.main()
+
 
 
 class TestHasItems(unittest.TestCase):
