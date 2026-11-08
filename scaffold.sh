@@ -25944,13 +25944,17 @@ from prompt_utils import (
     has_alphanumeric,
     has_blank_lines,
     has_characters,
+    has_consonants,
     has_digits,
     has_leading_newline,
     has_leading_newlines,
     has_letters,
+    has_lines,
     has_lowercase,
     has_newline,
     has_newlines,
+    has_non_blank_lines,
+    has_non_whitespace_characters,
     has_paragraphs,
     has_placeholders,
     has_prefix,
@@ -25964,7 +25968,9 @@ from prompt_utils import (
     has_trailing_newlines,
     has_unique_words,
     has_uppercase,
+    has_vowels,
     has_whitespace,
+    has_whitespace_characters,
     has_words,
     has_keywords,
     indent_lines,
@@ -28439,6 +28445,80 @@ class TestTruncateParagraphs(unittest.TestCase):
             truncate_paragraphs(text, count_paragraphs(text)),
             text,
         )
+
+
+class TestHasConsonants(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_consonants("hello"))
+        self.assertFalse(has_consonants("aeiou"))
+        self.assertFalse(has_consonants(""))
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_consonants(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_consonants(None)  # type: ignore[arg-type]
+
+
+class TestHasVowels(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_vowels("hello"))
+        self.assertFalse(has_vowels("xyz"))
+        self.assertFalse(has_vowels(""))
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_vowels(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_vowels(None)  # type: ignore[arg-type]
+
+
+class TestHasLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_lines("hello"))
+        self.assertTrue(has_lines("a\nb"))
+        self.assertFalse(has_lines(""))
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_lines(None)  # type: ignore[arg-type]
+
+
+class TestHasNonBlankLines(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_non_blank_lines("hello"))
+        self.assertFalse(has_non_blank_lines(""))
+        self.assertFalse(has_non_blank_lines("   \n\t"))
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_non_blank_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_non_blank_lines(None)  # type: ignore[arg-type]
+
+
+class TestHasWhitespaceCharacters(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_whitespace_characters("a b"))
+        self.assertFalse(has_whitespace_characters("abc"))
+        self.assertTrue(has_whitespace_characters("   "))
+        self.assertFalse(has_whitespace_characters(""))
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_whitespace_characters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_whitespace_characters(None)  # type: ignore[arg-type]
+
+
+class TestHasNonWhitespaceCharacters(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_non_whitespace_characters("a b"))
+        self.assertTrue(has_non_whitespace_characters("abc"))
+        self.assertFalse(has_non_whitespace_characters("   "))
+        self.assertFalse(has_non_whitespace_characters(""))
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_non_whitespace_characters(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_non_whitespace_characters(None)  # type: ignore[arg-type]
 TESTPROMPTUTILS
 
 # --- tests/test_tree_utils.py ---
