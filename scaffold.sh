@@ -105344,6 +105344,7 @@ __all__ = [
     "find_index",
     "first",
     "flatten",
+    "count_duplicates",
     "has_duplicates",
     "has_occurrences",
     "has_where",
@@ -105742,6 +105743,49 @@ def unique(sequence: Sequence[T]) -> List[T]:
 distinct = unique
 
 
+def count_duplicates(sequence: Sequence[T]) -> int:
+    """Return the number of duplicate (extra) elements in *sequence*.
+
+    The result is ``len(sequence)`` minus the number of distinct elements, so
+    a sequence with no duplicates returns ``0``. Elements are compared by
+    equality; hashable elements use a set for efficiency, and unhashable
+    elements fall back to linear membership checks.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        The number of elements beyond their first occurrence.
+
+    Raises:
+        TypeError: If *sequence* is not a sequence.
+
+    Examples:
+        >>> count_duplicates([1, 2, 2, 3])
+        1
+        >>> count_duplicates([1, 2, 3])
+        0
+        >>> count_duplicates([])
+        0
+    """
+    _require_sequence(sequence)
+    seen: set = set()
+    unhashable: List[T] = []
+    unique = 0
+    for item in sequence:
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+            unique += 1
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
+            unique += 1
+    return len(sequence) - unique
+
+
 def has_duplicates(sequence: Sequence[T]) -> bool:
     """Return ``True`` when ``sequence`` contains at least one duplicate value.
 
@@ -105766,12 +105810,7 @@ def has_duplicates(sequence: Sequence[T]) -> bool:
         False
     """
     _require_sequence(sequence)
-    seen: set = set()
-    for item in sequence:
-        if item in seen:
-            return True
-        seen.add(item)
-    return False
+    return count_duplicates(sequence) > 0
 
 
 def flatten(sequence: Sequence[Any]) -> List[Any]:
