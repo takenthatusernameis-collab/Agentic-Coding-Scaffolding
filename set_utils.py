@@ -11,6 +11,8 @@ __all__ = [
     "intersection",
     "is_disjoint",
     "is_equal",
+    "is_proper_subset",
+    "is_proper_superset",
     "is_subset",
     "is_superset",
     "power_set",
@@ -102,6 +104,64 @@ def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return not (_to_set(a) & _to_set(b))
+
+
+def is_proper_subset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether every element of ``a`` is in ``b`` and ``b`` has more.
+
+    A proper (strict) subset relationship means ``a`` is a subset of ``b``
+    but the two sets are not equal.
+
+    Args:
+        a: Candidate proper subset iterable.
+        b: Superset iterable.
+
+    Returns:
+        ``True`` if ``a`` is a proper subset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_proper_subset([1, 2], [1, 2, 3])
+        True
+        >>> is_proper_subset([1, 2], [1, 2])
+        False
+        >>> is_proper_subset([1, 4], [1, 2, 3])
+        False
+    """
+    sa = _to_set(a)
+    sb = _to_set(b)
+    return sa < sb
+
+
+def is_proper_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` contains every element of ``b`` and has more.
+
+    A proper (strict) superset relationship means ``a`` is a superset of
+    ``b`` but the two sets are not equal.
+
+    Args:
+        a: Candidate proper superset iterable.
+        b: Subset iterable.
+
+    Returns:
+        ``True`` if ``a`` is a proper superset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_proper_superset([1, 2, 3], [1, 2])
+        True
+        >>> is_proper_superset([1, 2], [1, 2])
+        False
+        >>> is_proper_superset([1, 2], [2, 3])
+        False
+    """
+    sa = _to_set(a)
+    sb = _to_set(b)
+    return sa > sb
 
 
 def is_equal(a: Iterable[Any], b: Iterable[Any]) -> bool:
