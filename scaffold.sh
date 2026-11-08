@@ -65037,6 +65037,10 @@ Next Planned (posted for the following agent):
 
 - Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
 
+## Unreleased — seq_utils find_index predicate search
+
+- Added `find_index(sequence, predicate)` to `seq_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError` for non-sequence inputs and non-callable predicates; it returns the 0-based index of the first element satisfying *predicate*, or `None` when no match is found (complements `index_of` value search). Added `TestFindIndex` to `tests/test_seq_utils.py` (9 tests). Updated `README.md` (tree + prose). Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_seq_utils -q`, `python -m unittest tests.test_public_api -q`. No `.github/workflows/**` changes.
+
 ## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
@@ -65187,7 +65191,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, index_of, last_index_of)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, find_index, index_of, last_index_of)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -66122,7 +66126,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -105045,6 +105049,7 @@ __all__ = [
     "count_occurrences",
     "distinct",
     "drop_while",
+    "find_index",
     "first",
     "flatten",
     "has_occurrences",
@@ -105639,6 +105644,41 @@ def last_index_of(sequence: Sequence[T], value: T) -> Optional[int]:
     return None
 
 
+def find_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[int]:
+    """Return the index of the first element satisfying ``predicate``.
+
+    Returns ``None`` when no element satisfies the predicate, including for
+    an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for a matching element.
+
+    Returns:
+        The 0-based index of the first matching element, or ``None`` when no
+        match is found.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find_index([1, 2, 3, 4], lambda x: x > 2)
+        2
+        >>> find_index([1, 2, 3], lambda x: x > 5) is None
+        True
+        >>> find_index([], lambda x: True) is None
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for index, item in enumerate(sequence):
+        if predicate(item):
+            return index
+    return None
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -105657,6 +105697,7 @@ from seq_utils import (
     count_occurrences,
     distinct,
     drop_while,
+    find_index,
     first,
     flatten,
     has_occurrences,
@@ -106065,6 +106106,44 @@ class TestLastIndexOf(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFindIndex(unittest.TestCase):
+    """Test cases for the find_index function."""
+
+    def test_basic_match(self):
+        self.assertEqual(find_index([1, 2, 3, 4], lambda x: x > 2), 2)
+
+    def test_first_match_returned(self):
+        self.assertEqual(find_index([1, 2, 3, 4], lambda x: x % 2 == 0), 1)
+
+    def test_no_match(self):
+        self.assertIsNone(find_index([1, 2, 3], lambda x: x > 5))
+
+    def test_empty_sequence(self):
+        self.assertIsNone(find_index([], lambda x: True))
+
+    def test_match_at_start(self):
+        self.assertEqual(find_index([10, 20, 30], lambda x: x == 10), 0)
+
+    def test_match_at_end(self):
+        self.assertEqual(find_index([10, 20, 30], lambda x: x == 30), 2)
+
+    def test_tuple_and_string(self):
+        self.assertEqual(find_index((5, 6, 7), lambda x: x == 6), 1)
+        self.assertEqual(find_index("hello", lambda c: c == "l"), 2)
+
+    def test_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_index(123, lambda x: True)
+        with self.assertRaises(TypeError):
+            find_index(None, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_index([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            find_index([1, 2, 3], None)
 TEST_SEQ_UTILS
 
 # --- shelve_utils.py ---

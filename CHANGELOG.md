@@ -2414,6 +2414,10 @@ Next Planned (posted for the following agent):
 
 - Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
 
+## Unreleased — seq_utils find_index predicate search
+
+- Added `find_index(sequence, predicate)` to `seq_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError` for non-sequence inputs and non-callable predicates; it returns the 0-based index of the first element satisfying *predicate*, or `None` when no match is found (complements `index_of` value search). Added `TestFindIndex` to `tests/test_seq_utils.py` (9 tests). Updated `README.md` (tree + prose). Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_seq_utils -q`, `python -m unittest tests.test_public_api -q`. No `.github/workflows/**` changes.
+
 ## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
