@@ -31,6 +31,7 @@ from prompt_utils import (
     count_whitespace,
     count_whitespace_characters,
     count_words,
+    count_keywords,
     dedent_lines,
     ends_with_newline,
     ensure_leading_newline,
@@ -66,6 +67,7 @@ from prompt_utils import (
     has_uppercase,
     has_whitespace,
     has_words,
+    has_keywords,
     indent_lines,
     is_blank,
     join_lines,
@@ -406,6 +408,80 @@ class TestExtractKeywords(unittest.TestCase):
     def test_extract_keywords_rejects_negative_min_length(self):
         with self.assertRaises(ValueError):
             extract_keywords("hello", min_length=-1)
+
+
+class TestCountKeywords(unittest.TestCase):
+    def test_count_keywords_basic(self):
+        self.assertEqual(count_keywords("The quick brown fox jumps"), 4)
+
+    def test_count_keywords_empty(self):
+        self.assertEqual(count_keywords(""), 0)
+
+    def test_count_keywords_whitespace_only(self):
+        self.assertEqual(count_keywords("   \n\t  "), 0)
+
+    def test_count_keywords_min_length(self):
+        self.assertEqual(count_keywords("hi there how are you", min_length=3), 3)
+
+    def test_count_keywords_min_length_one(self):
+        # All words except stop words; "the" is filtered out
+        self.assertEqual(count_keywords("the", min_length=1), 0)
+
+    def test_count_keywords_duplicates(self):
+        # Duplicates removed while preserving order
+        self.assertEqual(count_keywords("test test testing"), 2)
+
+    def test_count_keywords_consistency_with_extract(self):
+        text = "The quick brown fox jumps over the lazy dog"
+        self.assertEqual(count_keywords(text), len(extract_keywords(text)))
+
+    def test_count_keywords_consistency_with_has(self):
+        text = "The quick brown fox jumps"
+        self.assertEqual(count_keywords(text) > 0, has_keywords(text))
+        self.assertEqual(count_keywords("") > 0, has_keywords(""))
+
+    def test_count_keywords_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            count_keywords(123)  # type: ignore[arg-type]
+
+    def test_count_keywords_rejects_non_int_min_length(self):
+        with self.assertRaises(TypeError):
+            count_keywords("hello", min_length=1.5)  # type: ignore[arg-type]
+
+    def test_count_keywords_rejects_negative_min_length(self):
+        with self.assertRaises(ValueError):
+            count_keywords("hello", min_length=-1)
+
+
+class TestHasKeywords(unittest.TestCase):
+    def test_has_keywords_true(self):
+        self.assertTrue(has_keywords("The quick brown fox jumps"))
+
+    def test_has_keywords_false_empty(self):
+        self.assertFalse(has_keywords(""))
+
+    def test_has_keywords_false_stopwords_only(self):
+        self.assertFalse(has_keywords("the and is"))
+
+    def test_has_keywords_min_length(self):
+        self.assertFalse(has_keywords("hi", min_length=3))
+        self.assertTrue(has_keywords("hello", min_length=3))
+
+    def test_has_keywords_consistency_with_count(self):
+        for text in ["", "The quick brown fox", "the and is", "hello world"]:
+            self.assertEqual(has_keywords(text), count_keywords(text) > 0)
+
+    def test_has_keywords_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            has_keywords(123)  # type: ignore[arg-type]
+
+    def test_has_keywords_rejects_non_int_min_length(self):
+        with self.assertRaises(TypeError):
+            has_keywords("hello", min_length=1.5)  # type: ignore[arg-type]
+
+    def test_has_keywords_rejects_negative_min_length(self):
+        with self.assertRaises(ValueError):
+            has_keywords("hello", min_length=-1)
 
 
 class TestExtractSentences(unittest.TestCase):

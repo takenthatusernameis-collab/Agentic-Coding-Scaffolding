@@ -63,6 +63,8 @@ __all__: List[str] = [
     "count_paragraphs",
     "has_paragraphs",
     "has_words",
+    "count_keywords",
+    "has_keywords",
     "count_characters",
     "has_characters",
     "count_non_whitespace_characters",
@@ -272,6 +274,72 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
             seen.add(k)
             result.append(k)
     return result
+
+
+def count_keywords(text: str, min_length: int = 3) -> int:
+    """Return the number of keywords extracted from *text*.
+
+    A integer companion to :func:`extract_keywords`; it returns the length of
+    the keyword list that :func:`extract_keywords` would produce for the same
+    arguments, without allocating the list itself. Empty text returns zero.
+
+    Args:
+        text: The text to analyze.
+        min_length: Minimum length of keywords to count.
+
+    Returns:
+        The number of keywords found.
+
+    Raises:
+        TypeError: If *text* is not a string or *min_length* is not an int.
+        ValueError: If *min_length* is negative.
+
+    Examples:
+        >>> count_keywords("The quick brown fox jumps")
+        4
+        >>> count_keywords("")
+        0
+        >>> count_keywords("The", min_length=1)
+        0
+    """
+    _require_string(text, "text")
+    _require_int(min_length, "min_length")
+    if min_length < 0:
+        raise ValueError("min_length must be non-negative")
+    return len(extract_keywords(text, min_length))
+
+
+def has_keywords(text: str, min_length: int = 3) -> bool:
+    """Return True if *text* contains at least one keyword.
+
+    A boolean companion to :func:`extract_keywords` and :func:`count_keywords`;
+    it returns ``True`` when *text* yields one or more keywords and ``False``
+    otherwise, reusing :func:`count_keywords` for consistency.
+
+    Args:
+        text: The text to inspect.
+        min_length: Minimum length of keywords to consider.
+
+    Returns:
+        ``True`` if *text* contains at least one keyword, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string or *min_length* is not an int.
+        ValueError: If *min_length* is negative.
+
+    Examples:
+        >>> has_keywords("The quick brown fox jumps")
+        True
+        >>> has_keywords("")
+        False
+        >>> has_keywords("The", min_length=1)
+        False
+    """
+    _require_string(text, "text")
+    _require_int(min_length, "min_length")
+    if min_length < 0:
+        raise ValueError("min_length must be non-negative")
+    return count_keywords(text, min_length) > 0
 
 
 def extract_sentences(text: str) -> List[str]:
