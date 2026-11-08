@@ -61287,6 +61287,12 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 ## Unreleased — added values_equal to dict_utils
 
+- Added `values_equal(d1, d2)` to `dict_utils.py` as a boolean predicate reporting whether two dictionaries contain the same set of values, ignoring keys and value order. The module already had `keys_equal` for key-set comparison but no value-set counterpart, so callers relied on comparing `set(d1.values())` themselves. `values_equal` accepts typed `Dict[Any, Any]` arguments, raises `TypeError` for non-dict inputs, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestValuesEqual` (4 tests) to `tests/test_dict_utils.py` covering same values in different key order, different value sets, empty dicts, and the `TypeError` path; imported `values_equal` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `values_equal`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
+## Unreleased — added keys_equal to dict_utils
+
+- Added `keys_equal(d1, d2)` to `dict_utils.py` as a boolean predicate reporting whether two dictionaries have the same set of keys, ignoring values and key order. The module already had `has_key`/`contains_key` for single-key presence but no key-set comparison helper, so callers relied on comparing `set(d1)` themselves. `keys_equal` accepts typed `Dict[Any, Any]` arguments, raises `TypeError` for non-dict inputs, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestKeysEqual` (4 tests) to `tests/test_dict_utils.py` covering same keys with different values, different key sets, empty dicts, and the `TypeError` path; imported `keys_equal` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `keys_equal`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added merge to dict_utils
 
 - Completed the `merge(d1, d2)` feature for `dict_utils.py`. The implementation and `__all__` export were already present from an earlier checkpoint, but the feature shipped without tests, README documentation, or a CHANGELOG entry. `merge` performs a one-level shallow merge: values from *d2* overwrite the corresponding values in *d1* for shared keys without recursing into nested dictionaries, complementing `deep_merge`. It accepts typed `Dict[K, V]` arguments, raises `TypeError` for non-dicts, returns a new dict without mutating the inputs, and ships with Google-style docstring and ASCII-safe doctests. Added `TestMerge` (8 tests) to `tests/test_dict_utils.py` covering basic/overlapping/non-overlapping merges, empty inputs on either side, shallow vs. deep behavior, non-mutation of inputs, and the `TypeError` path; imported `merge` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils` (35 OK); targeted doctest for `merge`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -63788,7 +63794,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (contains_key, deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
+dict_utils.py            # Dictionary utilities (contains_key, keys_equal, values_equal, deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -64477,7 +64483,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key` (or its alias `contains_key`). The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key` (or its alias `contains_key`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 
