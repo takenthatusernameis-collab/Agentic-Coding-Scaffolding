@@ -16,6 +16,7 @@ from seq_utils import (
     interleave,
     is_sorted,
     last,
+    last_index_of,
     nth,
     nth_or_default,
     split_at,
@@ -373,6 +374,44 @@ class TestIndexOf(unittest.TestCase):
             index_of(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             index_of(None, 1)  # type: ignore[arg-type]
+
+
+class TestLastIndexOf(unittest.TestCase):
+    def test_last_index_of_present(self):
+        self.assertEqual(last_index_of([1, 2, 3, 2], 2), 3)
+        self.assertEqual(last_index_of("abracadabra", "a"), 10)
+        self.assertEqual(last_index_of((10, 20, 30), 10), 0)
+
+    def test_last_index_of_absent(self):
+        self.assertIsNone(last_index_of([1, 2, 3], 4))
+        self.assertIsNone(last_index_of("hello", "z"))
+
+    def test_last_index_of_empty(self):
+        self.assertIsNone(last_index_of([], 1))
+        self.assertIsNone(last_index_of("", "a"))
+
+    def test_last_index_of_single_occurrence(self):
+        self.assertEqual(last_index_of([5, 1, 5, 5], 1), 1)
+
+    def test_last_index_of_all_match(self):
+        self.assertEqual(last_index_of([5, 5, 5], 5), 2)
+
+    def test_last_index_of_consistency(self):
+        seq = [1, 2, 2, 3]
+        self.assertEqual(last_index_of(seq, 2) is not None, has_occurrences(seq, 2))
+        self.assertEqual(last_index_of(seq, 5) is not None, has_occurrences(seq, 5))
+        first_idx = index_of(seq, 2)
+        last_idx = last_index_of(seq, 2)
+        self.assertIsNotNone(first_idx)
+        self.assertIsNotNone(last_idx)
+        assert first_idx is not None and last_idx is not None
+        self.assertLessEqual(first_idx, last_idx)
+
+    def test_last_index_of_type_error(self):
+        with self.assertRaises(TypeError):
+            last_index_of(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            last_index_of(None, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

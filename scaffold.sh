@@ -25888,6 +25888,7 @@ from prompt_utils import (
     count_whitespace,
     count_whitespace_characters,
     count_words,
+    count_keywords,
     dedent_lines,
     ends_with_newline,
     ensure_leading_newline,
@@ -25923,6 +25924,7 @@ from prompt_utils import (
     has_uppercase,
     has_whitespace,
     has_words,
+    has_keywords,
     indent_lines,
     is_blank,
     join_lines,
@@ -26263,6 +26265,80 @@ class TestExtractKeywords(unittest.TestCase):
     def test_extract_keywords_rejects_negative_min_length(self):
         with self.assertRaises(ValueError):
             extract_keywords("hello", min_length=-1)
+
+
+class TestCountKeywords(unittest.TestCase):
+    def test_count_keywords_basic(self):
+        self.assertEqual(count_keywords("The quick brown fox jumps"), 4)
+
+    def test_count_keywords_empty(self):
+        self.assertEqual(count_keywords(""), 0)
+
+    def test_count_keywords_whitespace_only(self):
+        self.assertEqual(count_keywords("   \n\t  "), 0)
+
+    def test_count_keywords_min_length(self):
+        self.assertEqual(count_keywords("hi there how are you", min_length=3), 3)
+
+    def test_count_keywords_min_length_one(self):
+        # All words except stop words; "the" is filtered out
+        self.assertEqual(count_keywords("the", min_length=1), 0)
+
+    def test_count_keywords_duplicates(self):
+        # Duplicates removed while preserving order
+        self.assertEqual(count_keywords("test test testing"), 2)
+
+    def test_count_keywords_consistency_with_extract(self):
+        text = "The quick brown fox jumps over the lazy dog"
+        self.assertEqual(count_keywords(text), len(extract_keywords(text)))
+
+    def test_count_keywords_consistency_with_has(self):
+        text = "The quick brown fox jumps"
+        self.assertEqual(count_keywords(text) > 0, has_keywords(text))
+        self.assertEqual(count_keywords("") > 0, has_keywords(""))
+
+    def test_count_keywords_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            count_keywords(123)  # type: ignore[arg-type]
+
+    def test_count_keywords_rejects_non_int_min_length(self):
+        with self.assertRaises(TypeError):
+            count_keywords("hello", min_length=1.5)  # type: ignore[arg-type]
+
+    def test_count_keywords_rejects_negative_min_length(self):
+        with self.assertRaises(ValueError):
+            count_keywords("hello", min_length=-1)
+
+
+class TestHasKeywords(unittest.TestCase):
+    def test_has_keywords_true(self):
+        self.assertTrue(has_keywords("The quick brown fox jumps"))
+
+    def test_has_keywords_false_empty(self):
+        self.assertFalse(has_keywords(""))
+
+    def test_has_keywords_false_stopwords_only(self):
+        self.assertFalse(has_keywords("the and is"))
+
+    def test_has_keywords_min_length(self):
+        self.assertFalse(has_keywords("hi", min_length=3))
+        self.assertTrue(has_keywords("hello", min_length=3))
+
+    def test_has_keywords_consistency_with_count(self):
+        for text in ["", "The quick brown fox", "the and is", "hello world"]:
+            self.assertEqual(has_keywords(text), count_keywords(text) > 0)
+
+    def test_has_keywords_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            has_keywords(123)  # type: ignore[arg-type]
+
+    def test_has_keywords_rejects_non_int_min_length(self):
+        with self.assertRaises(TypeError):
+            has_keywords("hello", min_length=1.5)  # type: ignore[arg-type]
+
+    def test_has_keywords_rejects_negative_min_length(self):
+        with self.assertRaises(ValueError):
+            has_keywords("hello", min_length=-1)
 
 
 class TestExtractSentences(unittest.TestCase):
@@ -40227,6 +40303,8 @@ __all__: List[str] = [
     "count_paragraphs",
     "has_paragraphs",
     "has_words",
+    "count_keywords",
+    "has_keywords",
     "count_characters",
     "has_characters",
     "count_non_whitespace_characters",
@@ -40436,6 +40514,72 @@ def extract_keywords(text: str, min_length: int = 3) -> List[str]:
             seen.add(k)
             result.append(k)
     return result
+
+
+def count_keywords(text: str, min_length: int = 3) -> int:
+    """Return the number of keywords extracted from *text*.
+
+    A integer companion to :func:`extract_keywords`; it returns the length of
+    the keyword list that :func:`extract_keywords` would produce for the same
+    arguments, without allocating the list itself. Empty text returns zero.
+
+    Args:
+        text: The text to analyze.
+        min_length: Minimum length of keywords to count.
+
+    Returns:
+        The number of keywords found.
+
+    Raises:
+        TypeError: If *text* is not a string or *min_length* is not an int.
+        ValueError: If *min_length* is negative.
+
+    Examples:
+        >>> count_keywords("The quick brown fox jumps")
+        4
+        >>> count_keywords("")
+        0
+        >>> count_keywords("The", min_length=1)
+        0
+    """
+    _require_string(text, "text")
+    _require_int(min_length, "min_length")
+    if min_length < 0:
+        raise ValueError("min_length must be non-negative")
+    return len(extract_keywords(text, min_length))
+
+
+def has_keywords(text: str, min_length: int = 3) -> bool:
+    """Return True if *text* contains at least one keyword.
+
+    A boolean companion to :func:`extract_keywords` and :func:`count_keywords`;
+    it returns ``True`` when *text* yields one or more keywords and ``False``
+    otherwise, reusing :func:`count_keywords` for consistency.
+
+    Args:
+        text: The text to inspect.
+        min_length: Minimum length of keywords to consider.
+
+    Returns:
+        ``True`` if *text* contains at least one keyword, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string or *min_length* is not an int.
+        ValueError: If *min_length* is negative.
+
+    Examples:
+        >>> has_keywords("The quick brown fox jumps")
+        True
+        >>> has_keywords("")
+        False
+        >>> has_keywords("The", min_length=1)
+        False
+    """
+    _require_string(text, "text")
+    _require_int(min_length, "min_length")
+    if min_length < 0:
+        raise ValueError("min_length must be non-negative")
+    return count_keywords(text, min_length) > 0
 
 
 def extract_sentences(text: str) -> List[str]:
@@ -62350,19 +62494,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added index_of to seq_utils
+## [Unreleased]
 
-- Added `index_of(sequence, value)` to `seq_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns the 0-based index of the first element equal to *value* (by `==`) or `None` when *value* is not present, including for empty sequences. Added `TestIndexOf` to `tests/test_seq_utils.py` covering present/absent/empty/first-match cases, consistency with `has_occurrences`, and the `TypeError` path (6 new tests). Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No changes to `.github/workflows/**`.
-
-## Unreleased — added has_surrounded_by_newlines to prompt_utils
-
-- Audited `prompt_utils.py` for a remaining focused, hermetic gap in the `ensure_*` family. The module had `ensure_surrounded_by_newlines` (exported, tested, documented) but no boolean `has_*` companion, unlike `ensure_prefix`/`has_prefix`, `ensure_suffix`/`has_suffix`, `ensure_leading_newline`/`has_leading_newline`, and `ensure_trailing_newline`/`has_trailing_newline`. Added `has_surrounded_by_newlines(text)` as the missing boolean companion. It returns ``True`` when *text* starts and ends with a newline character and ``False`` otherwise (empty text returns ``False``), reusing `has_leading_newline` and `has_trailing_newline` for consistency. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests.
-- Added `TestHasSurroundedByNewlines` (7 tests) to `tests/test_prompt_utils.py` covering both-newlines, leading-only, trailing-only, no-newlines, empty, consistency with `ensure_surrounded_by_newlines`, and `TypeError` paths; imported `has_surrounded_by_newlines` to match `__all__`. Updated the prompt_utils prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` (OK); targeted doctest for `has_surrounded_by_newlines` (0 failures); `python -m unittest tests.test_public_api` (exit 0); full suite `python -m unittest discover tests/` (OK). Note: `python -m doctest prompt_utils.py` raises a pre-existing, unrelated `ValueError` in the `wrap_prompt` docstring — not addressed here. No `.github/workflows/**` changes.
-
-## Unreleased — added count_whitespace to prompt_utils
-
-- Audited `prompt_utils.py` for a remaining focused, hermetic gap consistent with the module's `count_*`/`has_*` pairing convention. Found that `has_whitespace` (exported, tested, documented) had no integer companion, while the sibling `has_whitespace_characters`/`count_whitespace_characters` pair and every other `has_*` predicate in the module had its `count_*` counterpart. Added `count_whitespace(text)` as the missing integer companion. It returns the number of whitespace characters in *text* (as defined by :meth:`str.isspace`), counting spaces, tabs, newlines, and other Unicode whitespace; empty text returns zero. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_whitespace` to reuse `count_whitespace(text) > 0` for consistency with the module's other boolean companions (it previously used a bare `any(c.isspace() for c in text)`).
-- Added `TestCountWhitespace` (11 tests) to `tests/test_prompt_utils.py` covering empty, no-whitespace, single/multiple spaces, tabs, newlines, mixed whitespace, Unicode-not-counted, consistency with `count_whitespace_characters`, consistency with `has_whitespace`, and `TypeError` paths (int, None, list); imported `count_whitespace` to match `__all__`. Updated the `prompt_utils` module tree entry and prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` (552 tests, OK); targeted doctests for `count_whitespace` and `has_whitespace` (0 failures); `python -m unittest tests.test_public_api` (exit 0); full suite `python -m unittest discover tests/` (9126 tests, exit 0). Note: `python -m doctest prompt_utils.py` raises a pre-existing, unrelated `ValueError` in the `wrap_prompt` docstring (inconsistent leading whitespace) — confirmed present before this session's changes; not addressed here. No `.github/workflows/**` changes.
+### Added
+- `seq_utils`: added `last_index_of(sequence, value) -> Optional[int]` returning the 0-based index of the last occurrence of a value (or `None` when absent), the companion to `index_of`. Exported via `__all__` with Google-style docstring/doctests and `TypeError` validation. Added `TestLastIndexOf` (7 tests) in `tests/test_seq_utils.py` covering present/absent/empty cases, single/all matches, consistency with `index_of`/`has_occurrences`, and type errors.
 
 ## Unreleased — added count_alphanumeric to prompt_utils
 
@@ -64925,7 +65060,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, index_of)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, index_of, last_index_of)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -65860,7 +65995,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; and `index_of` returns the 0-based index of the first matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -104791,6 +104926,7 @@ __all__ = [
     "interleave",
     "is_sorted",
     "last",
+    "last_index_of",
     "nth",
     "nth_or_default",
     "split_at",
@@ -105342,6 +105478,40 @@ def index_of(sequence: Sequence[T], value: T) -> Optional[int]:
     return None
 
 
+def last_index_of(sequence: Sequence[T], value: T) -> Optional[int]:
+    """Return the index of the last occurrence of ``value`` in ``sequence``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the last matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> last_index_of([1, 2, 3, 2], 2)
+        3
+        >>> last_index_of("abracadabra", "a")
+        10
+        >>> last_index_of([1, 2, 3], 4) is None
+        True
+        >>> last_index_of([], 1) is None
+        True
+    """
+    _require_sequence(sequence)
+    for index in range(len(sequence) - 1, -1, -1):
+        if sequence[index] == value:
+            return index
+    return None
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -105368,6 +105538,7 @@ from seq_utils import (
     interleave,
     is_sorted,
     last,
+    last_index_of,
     nth,
     nth_or_default,
     split_at,
@@ -105725,6 +105896,44 @@ class TestIndexOf(unittest.TestCase):
             index_of(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             index_of(None, 1)  # type: ignore[arg-type]
+
+
+class TestLastIndexOf(unittest.TestCase):
+    def test_last_index_of_present(self):
+        self.assertEqual(last_index_of([1, 2, 3, 2], 2), 3)
+        self.assertEqual(last_index_of("abracadabra", "a"), 10)
+        self.assertEqual(last_index_of((10, 20, 30), 10), 0)
+
+    def test_last_index_of_absent(self):
+        self.assertIsNone(last_index_of([1, 2, 3], 4))
+        self.assertIsNone(last_index_of("hello", "z"))
+
+    def test_last_index_of_empty(self):
+        self.assertIsNone(last_index_of([], 1))
+        self.assertIsNone(last_index_of("", "a"))
+
+    def test_last_index_of_single_occurrence(self):
+        self.assertEqual(last_index_of([5, 1, 5, 5], 1), 1)
+
+    def test_last_index_of_all_match(self):
+        self.assertEqual(last_index_of([5, 5, 5], 5), 2)
+
+    def test_last_index_of_consistency(self):
+        seq = [1, 2, 2, 3]
+        self.assertEqual(last_index_of(seq, 2) is not None, has_occurrences(seq, 2))
+        self.assertEqual(last_index_of(seq, 5) is not None, has_occurrences(seq, 5))
+        first_idx = index_of(seq, 2)
+        last_idx = last_index_of(seq, 2)
+        self.assertIsNotNone(first_idx)
+        self.assertIsNotNone(last_idx)
+        assert first_idx is not None and last_idx is not None
+        self.assertLessEqual(first_idx, last_idx)
+
+    def test_last_index_of_type_error(self):
+        with self.assertRaises(TypeError):
+            last_index_of(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            last_index_of(None, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

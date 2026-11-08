@@ -29,6 +29,7 @@ __all__ = [
     "interleave",
     "is_sorted",
     "last",
+    "last_index_of",
     "nth",
     "nth_or_default",
     "split_at",
@@ -576,6 +577,40 @@ def index_of(sequence: Sequence[T], value: T) -> Optional[int]:
     _require_sequence(sequence)
     for index, item in enumerate(sequence):
         if item == value:
+            return index
+    return None
+
+
+def last_index_of(sequence: Sequence[T], value: T) -> Optional[int]:
+    """Return the index of the last occurrence of ``value`` in ``sequence``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the last matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> last_index_of([1, 2, 3, 2], 2)
+        3
+        >>> last_index_of("abracadabra", "a")
+        10
+        >>> last_index_of([1, 2, 3], 4) is None
+        True
+        >>> last_index_of([], 1) is None
+        True
+    """
+    _require_sequence(sequence)
+    for index in range(len(sequence) - 1, -1, -1):
+        if sequence[index] == value:
             return index
     return None
 
