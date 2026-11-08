@@ -11,6 +11,8 @@ from seq_utils import (
     drop_while,
     find,
     find_index,
+    find_last,
+    find_last_index,
     first,
     flatten,
     has_duplicates,
@@ -577,3 +579,95 @@ class TestHasDuplicates(unittest.TestCase):
     def test_non_sequence_raises(self):
         with self.assertRaises(TypeError):
             has_duplicates(123)
+
+
+class TestFindLast(unittest.TestCase):
+    """Test cases for the find_last function."""
+
+    def test_basic_match(self):
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x > 2), 4)
+
+    def test_last_match_returned(self):
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x % 2 == 0), 4)
+
+    def test_no_match(self):
+        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 5))
+
+    def test_empty_sequence(self):
+        self.assertIsNone(find_last([], lambda x: True))
+
+    def test_match_at_start(self):
+        self.assertEqual(find_last([10, 20, 30], lambda x: x == 10), 10)
+
+    def test_tuple_and_string(self):
+        self.assertEqual(find_last((5, 6, 7), lambda x: x < 7), 6)
+        self.assertEqual(find_last("hello", lambda c: c == "l"), "l")
+
+    def test_consistency_with_find(self):
+        seq = [1, 2, 3, 2, 1]
+        pred = lambda x: x == 2
+        self.assertEqual(find(seq, pred), 2)
+        self.assertEqual(find_last(seq, pred), 2)
+        seq2 = [1, 3, 5]
+        self.assertIsNone(find(seq2, lambda x: x % 2 == 0))
+        self.assertIsNone(find_last(seq2, lambda x: x % 2 == 0))
+
+    def test_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last(123, lambda x: True)
+        with self.assertRaises(TypeError):
+            find_last(None, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            find_last([1, 2, 3], None)
+
+
+class TestFindLastIndex(unittest.TestCase):
+    """Test cases for the find_last_index function."""
+
+    def test_basic_match(self):
+        self.assertEqual(find_last_index([1, 2, 3, 4], lambda x: x > 2), 3)
+
+    def test_last_match_returned(self):
+        self.assertEqual(find_last_index([1, 2, 3, 4], lambda x: x % 2 == 0), 3)
+
+    def test_no_match(self):
+        self.assertIsNone(find_last_index([1, 2, 3], lambda x: x > 5))
+
+    def test_empty_sequence(self):
+        self.assertIsNone(find_last_index([], lambda x: True))
+
+    def test_match_at_start(self):
+        self.assertEqual(find_last_index([10, 20, 30], lambda x: x == 10), 0)
+
+    def test_match_at_end(self):
+        self.assertEqual(find_last_index([10, 20, 30], lambda x: x == 30), 2)
+
+    def test_tuple_and_string(self):
+        self.assertEqual(find_last_index((5, 6, 7), lambda x: x < 7), 1)
+        self.assertEqual(find_last_index("hello", lambda c: c == "l"), 3)
+
+    def test_consistency_with_find_index(self):
+        seq = [1, 2, 3, 2, 1]
+        pred = lambda x: x == 2
+        self.assertEqual(find_index(seq, pred), 1)
+        self.assertEqual(find_last_index(seq, pred), 3)
+        i = find_index(seq, pred)
+        j = find_last_index(seq, pred)
+        assert i is not None and j is not None
+        self.assertLessEqual(i, j)
+
+    def test_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last_index(123, lambda x: True)
+        with self.assertRaises(TypeError):
+            find_last_index(None, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last_index([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            find_last_index([1, 2, 3], None)

@@ -25,6 +25,8 @@ __all__ = [
     "drop_while",
     "find",
     "find_index",
+    "find_last",
+    "find_last_index",
     "first",
     "flatten",
     "count_duplicates",
@@ -847,6 +849,79 @@ def find_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optiona
         raise TypeError("predicate must be callable")
     for index, item in enumerate(sequence):
         if predicate(item):
+            return index
+    return None
+
+
+def find_last(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[T]:
+    """Return the last element in ``sequence`` satisfying ``predicate``.
+
+    Returns ``None`` when no element satisfies the predicate, including for
+    an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for a matching element.
+
+    Returns:
+        The last matching element, or ``None`` when no match is found.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find_last([1, 2, 3, 4], lambda x: x > 2)
+        4
+        >>> find_last([1, 2, 3, 4], lambda x: x % 2 == 0)
+        4
+        >>> find_last([1, 2, 3], lambda x: x > 5) is None
+        True
+        >>> find_last([], lambda x: True) is None
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for index in range(len(sequence) - 1, -1, -1):
+        if predicate(sequence[index]):
+            return sequence[index]
+    return None
+
+
+def find_last_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[int]:
+    """Return the index of the last element satisfying ``predicate``.
+
+    Returns ``None`` when no element satisfies the predicate, including for
+    an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for a matching element.
+
+    Returns:
+        The 0-based index of the last matching element, or ``None`` when no
+        match is found.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find_last_index([1, 2, 3, 4], lambda x: x > 2)
+        3
+        >>> find_last_index([1, 2, 3, 4], lambda x: x % 2 == 0)
+        3
+        >>> find_last_index([1, 2, 3], lambda x: x > 5) is None
+        True
+        >>> find_last_index([], lambda x: True) is None
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for index in range(len(sequence) - 1, -1, -1):
+        if predicate(sequence[index]):
             return index
     return None
 

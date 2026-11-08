@@ -62942,6 +62942,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - `interval_utils`: added `interval_adjacent(a, b) -> bool` as a boolean predicate reporting whether two intervals touch back-to-back at a single shared endpoint (``a[1] == b[0]`` or ``b[1] == a[0]``) without overlapping interiors, complementing `interval_overlaps`. It accepts typed `Interval` arguments (``(low, high)`` tuples/lists), validates both intervals with `is_valid_interval` raising `ValueError` for invalid input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIntervalAdjacent` (8 tests) to `tests/test_interval_utils.py` covering touching in either direction, overlapping/disjoint/identical intervals, degenerate intervals, float endpoints, and the `ValueError` path; imported `interval_adjacent` to match `__all__`. Updated the `interval_utils` module tree entry and prose section of `README.md`. Synchronized `interval_utils.py`, `tests/test_interval_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `count_where(sequence, predicate) -> int` as the predicate-count companion to `count_occurrences`, and boolean companion `has_where(sequence, predicate) -> bool`. `count_where` returns the number of elements in *sequence* for which *predicate* returns true (empty sequence yields ``0``); `has_where` reports whether at least one element satisfies *predicate*, reusing `count_where` for consistency. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountWhere` (7 tests) and `TestHasWhere` (5 tests) to `tests/test_seq_utils.py` covering basic/no-match/empty/string/tuple/all-match cases, consistency between `has_where` and `count_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `find(sequence, predicate) -> Optional[T]` as the element-returning companion to `find_index`. Returns the first element in *sequence* satisfying *predicate*, or ``None`` when no match is found (including for an empty sequence). Accepts any `Sequence`, validates with `_require_sequence`, requires a callable *predicate*, and raises `TypeError`/`ValueError`-consistent input validation (`TypeError` for non-sequence/non-callable). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestFind` (8 tests) to `tests/test_seq_utils.py` covering basic/first-match/no-match/empty/start/tuple+string cases and `TypeError` paths. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+- `seq_utils`: added `find_last(sequence, predicate) -> Optional[T]` and `find_last_index(sequence, predicate) -> Optional[int]` as the last-match companions to `find`/`find_index`. Both return the last element or 0-based index satisfying *predicate*, or ``None`` when no match is found (including for an empty sequence). Typed APIs accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for non-sequence/non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestFindLast` and `TestFindLastIndex` (19 tests) to `tests/test_seq_utils.py` covering basic/last-match/no-match/empty/start/end/tuple+string cases, consistency with `find`/`find_index`, and `TypeError` paths. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `bytes_utils`: added `has_non_null_bytes(data) -> bool` as the plural alias companion to `has_non_null_byte` (and boolean companion to `count_non_null_bytes`), mirroring the existing `has_null_bytes` alias for `has_null_byte`. Returns ``True`` when *data* contains at least one non-zero byte and ``False`` otherwise (empty input is ``False``), reusing `count_non_null_bytes` for consistency. Accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestCountNonNullBytes`, `TestHasNonNullByte`, and `TestHasNonNullBytes` (22 tests) to `tests/test_bytes_utils.py` covering all/none/mixed/empty/bytearray inputs, consistency with `count_non_null_bytes`, alias parity with `has_non_null_byte`, and `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 ## Unreleased — added count_placeholders to template_utils
@@ -65513,7 +65514,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, find, find_index, index_of, last_index_of)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, find, find_index, find_last, find_last_index, index_of, last_index_of)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -66448,7 +66449,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; and `has_where` reports whether at least one element satisfies a predicate. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -105408,6 +105409,8 @@ __all__ = [
     "drop_while",
     "find",
     "find_index",
+    "find_last",
+    "find_last_index",
     "first",
     "flatten",
     "count_duplicates",
@@ -106234,6 +106237,79 @@ def find_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optiona
     return None
 
 
+def find_last(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[T]:
+    """Return the last element in ``sequence`` satisfying ``predicate``.
+
+    Returns ``None`` when no element satisfies the predicate, including for
+    an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for a matching element.
+
+    Returns:
+        The last matching element, or ``None`` when no match is found.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find_last([1, 2, 3, 4], lambda x: x > 2)
+        4
+        >>> find_last([1, 2, 3, 4], lambda x: x % 2 == 0)
+        4
+        >>> find_last([1, 2, 3], lambda x: x > 5) is None
+        True
+        >>> find_last([], lambda x: True) is None
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for index in range(len(sequence) - 1, -1, -1):
+        if predicate(sequence[index]):
+            return sequence[index]
+    return None
+
+
+def find_last_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[int]:
+    """Return the index of the last element satisfying ``predicate``.
+
+    Returns ``None`` when no element satisfies the predicate, including for
+    an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for a matching element.
+
+    Returns:
+        The 0-based index of the last matching element, or ``None`` when no
+        match is found.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find_last_index([1, 2, 3, 4], lambda x: x > 2)
+        3
+        >>> find_last_index([1, 2, 3, 4], lambda x: x % 2 == 0)
+        3
+        >>> find_last_index([1, 2, 3], lambda x: x > 5) is None
+        True
+        >>> find_last_index([], lambda x: True) is None
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for index in range(len(sequence) - 1, -1, -1):
+        if predicate(sequence[index]):
+            return index
+    return None
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -106255,6 +106331,8 @@ from seq_utils import (
     drop_while,
     find,
     find_index,
+    find_last,
+    find_last_index,
     first,
     flatten,
     has_duplicates,
@@ -106821,6 +106899,98 @@ class TestHasDuplicates(unittest.TestCase):
     def test_non_sequence_raises(self):
         with self.assertRaises(TypeError):
             has_duplicates(123)
+
+
+class TestFindLast(unittest.TestCase):
+    """Test cases for the find_last function."""
+
+    def test_basic_match(self):
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x > 2), 4)
+
+    def test_last_match_returned(self):
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x % 2 == 0), 4)
+
+    def test_no_match(self):
+        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 5))
+
+    def test_empty_sequence(self):
+        self.assertIsNone(find_last([], lambda x: True))
+
+    def test_match_at_start(self):
+        self.assertEqual(find_last([10, 20, 30], lambda x: x == 10), 10)
+
+    def test_tuple_and_string(self):
+        self.assertEqual(find_last((5, 6, 7), lambda x: x < 7), 6)
+        self.assertEqual(find_last("hello", lambda c: c == "l"), "l")
+
+    def test_consistency_with_find(self):
+        seq = [1, 2, 3, 2, 1]
+        pred = lambda x: x == 2
+        self.assertEqual(find(seq, pred), 2)
+        self.assertEqual(find_last(seq, pred), 2)
+        seq2 = [1, 3, 5]
+        self.assertIsNone(find(seq2, lambda x: x % 2 == 0))
+        self.assertIsNone(find_last(seq2, lambda x: x % 2 == 0))
+
+    def test_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last(123, lambda x: True)
+        with self.assertRaises(TypeError):
+            find_last(None, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            find_last([1, 2, 3], None)
+
+
+class TestFindLastIndex(unittest.TestCase):
+    """Test cases for the find_last_index function."""
+
+    def test_basic_match(self):
+        self.assertEqual(find_last_index([1, 2, 3, 4], lambda x: x > 2), 3)
+
+    def test_last_match_returned(self):
+        self.assertEqual(find_last_index([1, 2, 3, 4], lambda x: x % 2 == 0), 3)
+
+    def test_no_match(self):
+        self.assertIsNone(find_last_index([1, 2, 3], lambda x: x > 5))
+
+    def test_empty_sequence(self):
+        self.assertIsNone(find_last_index([], lambda x: True))
+
+    def test_match_at_start(self):
+        self.assertEqual(find_last_index([10, 20, 30], lambda x: x == 10), 0)
+
+    def test_match_at_end(self):
+        self.assertEqual(find_last_index([10, 20, 30], lambda x: x == 30), 2)
+
+    def test_tuple_and_string(self):
+        self.assertEqual(find_last_index((5, 6, 7), lambda x: x < 7), 1)
+        self.assertEqual(find_last_index("hello", lambda c: c == "l"), 3)
+
+    def test_consistency_with_find_index(self):
+        seq = [1, 2, 3, 2, 1]
+        pred = lambda x: x == 2
+        self.assertEqual(find_index(seq, pred), 1)
+        self.assertEqual(find_last_index(seq, pred), 3)
+        i = find_index(seq, pred)
+        j = find_last_index(seq, pred)
+        assert i is not None and j is not None
+        self.assertLessEqual(i, j)
+
+    def test_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last_index(123, lambda x: True)
+        with self.assertRaises(TypeError):
+            find_last_index(None, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find_last_index([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            find_last_index([1, 2, 3], None)
 TEST_SEQ_UTILS
 
 # --- shelve_utils.py ---
