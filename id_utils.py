@@ -8,6 +8,7 @@ import string
 _ALPHABET = string.ascii_letters + string.digits
 __all__ = [
     "generate_id",
+    "generate_ids",
     "is_valid_id",
     "validate_id",
     "new_id",
@@ -33,6 +34,15 @@ def generate_id(length: int = 8) -> str:
     if length <= 0:
         raise ValueError("length must be greater than 0")
     return "".join(secrets.choice(_ALPHABET) for _ in range(length))
+
+
+def generate_ids(count: int = 1, length: int = 8) -> list[str]:
+    """Return a list of ``count`` random identifiers (plural companion)."""
+    if not isinstance(count, int) or isinstance(count, bool):
+        raise TypeError("count must be an integer")
+    if count < 0:
+        raise ValueError("count must be non-negative")
+    return [generate_id(length) for _ in range(count)]
 
 
 def new_id() -> str:
