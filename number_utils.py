@@ -2081,7 +2081,7 @@ def is_disarium_number(value: int) -> bool:
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     if value < 0:
         return False
-    digits = [int(d) for d in str(value)]
+    digits: list[int] = [int(d) for d in str(value)]
     return sum(d ** (i + 1) for i, d in enumerate(digits)) == value
 
 

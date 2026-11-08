@@ -14,14 +14,12 @@ from deque_utils import (
     has_items,
     index_in_deque,
     is_empty,
-    peek_left,
-    peek_right,
     pop_left,
     pop_right,
     remove_from_deque,
     reverse_deque,
-    size,
     rotate_deque,
+    size,
 )
 
 

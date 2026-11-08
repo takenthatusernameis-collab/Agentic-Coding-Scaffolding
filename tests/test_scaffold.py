@@ -5,14 +5,11 @@ verify that the generated project configuration is complete and consistent.
 """
 
 import json
-import os
-import re
 import shutil
 import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 SCAFFOLD = ROOT / "scaffold.sh"

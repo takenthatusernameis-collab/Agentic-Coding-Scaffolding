@@ -127,7 +127,13 @@ def _validate_semver_identifiers(name: str, value: Optional[str]) -> None:
     for part in value.split("."):
         if not part:
             raise ValueError(f"{name} identifiers must not be empty")
-        if name == "prerelease" and part.isascii() and part.isdigit() and len(part) > 1 and part[0] == "0":
+        if (
+            name == "prerelease"
+            and part.isascii()
+            and part.isdigit()
+            and len(part) > 1
+            and part[0] == "0"
+        ):
             raise ValueError("numeric prerelease identifiers must not include leading zeroes")
 
 

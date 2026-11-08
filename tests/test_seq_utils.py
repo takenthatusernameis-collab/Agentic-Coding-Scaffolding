@@ -452,9 +452,11 @@ class TestAllWhere(unittest.TestCase):
 
     def test_all_where_consistency_with_count_where(self):
         seq = [1, 2, 3, 4]
-        pred = lambda x: x < 10
+        def pred(x):
+            return x < 10
         self.assertEqual(all_where(seq, pred), count_where(seq, pred) == len(seq))
-        pred2 = lambda x: x % 2 == 0
+        def pred2(x):
+            return x % 2 == 0
         self.assertEqual(all_where(seq, pred2), count_where(seq, pred2) == len(seq))
 
     def test_all_where_type_error(self):
@@ -490,9 +492,11 @@ class TestNoneWhere(unittest.TestCase):
 
     def test_none_where_consistency_with_has_where(self):
         seq = [1, 2, 3, 4]
-        pred = lambda x: x > 10
+        def pred(x):
+            return x > 10
         self.assertEqual(none_where(seq, pred), not has_where(seq, pred))
-        pred2 = lambda x: x % 2 == 0
+        def pred2(x):
+            return x % 2 == 0
         self.assertEqual(none_where(seq, pred2), not has_where(seq, pred2))
 
     def test_none_where_type_error(self):
@@ -724,7 +728,8 @@ class TestFindLast(unittest.TestCase):
 
     def test_consistency_with_find(self):
         seq = [1, 2, 3, 2, 1]
-        pred = lambda x: x == 2
+        def pred(x):
+            return x == 2
         self.assertEqual(find(seq, pred), 2)
         self.assertEqual(find_last(seq, pred), 2)
         seq2 = [1, 3, 5]
@@ -771,7 +776,8 @@ class TestFindLastIndex(unittest.TestCase):
 
     def test_consistency_with_find_index(self):
         seq = [1, 2, 3, 2, 1]
-        pred = lambda x: x == 2
+        def pred(x):
+            return x == 2
         self.assertEqual(find_index(seq, pred), 1)
         self.assertEqual(find_last_index(seq, pred), 3)
         i = find_index(seq, pred)

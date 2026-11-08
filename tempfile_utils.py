@@ -149,9 +149,9 @@ def NamedTemporaryFile(
         raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
     if newline is not None and not isinstance(newline, str):
         raise TypeError(f"newline must be a str or None, got {type(newline).__name__}")
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     if not isinstance(delete, bool):
         raise TypeError(f"delete must be a bool, got {type(delete).__name__}")
     return tempfile.NamedTemporaryFile(
@@ -159,9 +159,9 @@ def NamedTemporaryFile(
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
         delete=delete,
         **kwargs,
     )
@@ -209,17 +209,17 @@ def TemporaryFile(
         raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
     if newline is not None and not isinstance(newline, str):
         raise TypeError(f"newline must be a str or None, got {type(newline).__name__}")
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     return tempfile.TemporaryFile(
         mode=mode,
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
         **kwargs,
     )
 
@@ -244,17 +244,17 @@ def TemporaryDirectory(
     Raises:
         TypeError: If arguments have invalid types.
     """
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     if not isinstance(ignore_cleanup_errors, bool):
         raise TypeError(
             f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}"
         )  # noqa: E501
     return tempfile.TemporaryDirectory(
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
         ignore_cleanup_errors=ignore_cleanup_errors,
     )
 
@@ -297,16 +297,16 @@ def SpooledTemporaryFile(
         raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
     if newline is not None and not isinstance(newline, str):
         raise TypeError(f"newline must be a str or None, got {type(newline).__name__}")
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     return tempfile.SpooledTemporaryFile(
         max_size=max_size,
         mode=mode,
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
     )

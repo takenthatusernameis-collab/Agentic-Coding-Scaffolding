@@ -17772,8 +17772,8 @@ from strings import (
     first_n,
     has_consonants,
     has_digits,
-    has_lowercase,
     has_letters,
+    has_lowercase,
     has_occurrences,
     has_punctuation,
     has_uppercase,
@@ -17785,7 +17785,6 @@ from strings import (
     is_alphanumeric,
     is_anagram,
     is_ascii,
-
     is_binary,
     is_blank,
     is_decimal,
@@ -17806,6 +17805,7 @@ from strings import (
     is_upper,
     is_whitespace,
     join_lines,
+    keep_digits,
     last_n,
     levenshtein_distance,
     lstrip_chars,
@@ -17816,7 +17816,6 @@ from strings import (
     remove_blank_lines,
     remove_consonants,
     remove_digits,
-    keep_digits,
     remove_punctuation,
     remove_vowels,
     remove_whitespace,
@@ -25905,6 +25904,7 @@ from prompt_utils import (
     count_characters,
     count_consonants,
     count_digits,
+    count_keywords,
     count_leading_newlines,
     count_letters,
     count_lines,
@@ -25926,7 +25926,6 @@ from prompt_utils import (
     count_whitespace,
     count_whitespace_characters,
     count_words,
-    count_keywords,
     dedent_lines,
     ends_with_newline,
     ensure_leading_newline,
@@ -25946,6 +25945,7 @@ from prompt_utils import (
     has_characters,
     has_consonants,
     has_digits,
+    has_keywords,
     has_leading_newline,
     has_leading_newlines,
     has_letters,
@@ -25972,7 +25972,6 @@ from prompt_utils import (
     has_whitespace,
     has_whitespace_characters,
     has_words,
-    has_keywords,
     indent_lines,
     is_blank,
     join_lines,
@@ -31934,9 +31933,9 @@ def NamedTemporaryFile(
         raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
     if newline is not None and not isinstance(newline, str):
         raise TypeError(f"newline must be a str or None, got {type(newline).__name__}")
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     if not isinstance(delete, bool):
         raise TypeError(f"delete must be a bool, got {type(delete).__name__}")
     return tempfile.NamedTemporaryFile(
@@ -31944,9 +31943,9 @@ def NamedTemporaryFile(
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
         delete=delete,
         **kwargs,
     )
@@ -31994,17 +31993,17 @@ def TemporaryFile(
         raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
     if newline is not None and not isinstance(newline, str):
         raise TypeError(f"newline must be a str or None, got {type(newline).__name__}")
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     return tempfile.TemporaryFile(
         mode=mode,
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
         **kwargs,
     )
 
@@ -32029,17 +32028,17 @@ def TemporaryDirectory(
     Raises:
         TypeError: If arguments have invalid types.
     """
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     if not isinstance(ignore_cleanup_errors, bool):
         raise TypeError(
             f"ignore_cleanup_errors must be a bool, got {type(ignore_cleanup_errors).__name__}"
         )  # noqa: E501
     return tempfile.TemporaryDirectory(
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
         ignore_cleanup_errors=ignore_cleanup_errors,
     )
 
@@ -32082,18 +32081,18 @@ def SpooledTemporaryFile(
         raise TypeError(f"encoding must be a str or None, got {type(encoding).__name__}")
     if newline is not None and not isinstance(newline, str):
         raise TypeError(f"newline must be a str or None, got {type(newline).__name__}")
-    suffix = _require_path_or_none(suffix, "suffix")
-    prefix = _require_path_or_none(prefix, "prefix")
-    dir = _require_path_or_none(dir, "dir")
+    suffix_arg = _require_path_or_none(suffix, "suffix")
+    prefix_arg = _require_path_or_none(prefix, "prefix")
+    dir_arg = _require_path_or_none(dir, "dir")
     return tempfile.SpooledTemporaryFile(
         max_size=max_size,
         mode=mode,
         buffering=buffering,
         encoding=encoding,
         newline=newline,
-        suffix=_coerce_path_or_none(suffix) if suffix is not None else "",
-        prefix=_coerce_path_or_none(prefix),
-        dir=_coerce_path_or_none(dir),
+        suffix=_coerce_path_or_none(suffix_arg) if suffix_arg is not None else "",
+        prefix=_coerce_path_or_none(prefix_arg),
+        dir=_coerce_path_or_none(dir_arg),
     )
 TEMPFILEUTILS
 
@@ -33745,13 +33744,24 @@ TESTCRYPTOUTILS
 cat > "$OUTPUT_DIR/list_utils.py" <<'LISTUTILS'
 """Advanced list utility functions for common manipulation tasks."""
 
-from typing import Callable, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, List, Optional, Protocol, Tuple, TypeVar
+
+
+class SupportsRichComparison(Protocol):
+    def __lt__(self, other: Any) -> bool: ...
+    def __le__(self, other: Any) -> bool: ...
+    def __gt__(self, other: Any) -> bool: ...
+    def __ge__(self, other: Any) -> bool: ...
+
 
 T = TypeVar("T")
+CT = TypeVar("CT", bound=SupportsRichComparison)
 K = TypeVar("K")
 
 __all__ = [
+    "CT",
     "K",
+    "SupportsRichComparison",
     "T",
     "chunks",
     "contains",
@@ -34427,7 +34437,7 @@ def has_duplicates(lst: List[T]) -> bool:
     return count_duplicates(lst) > 0
 
 
-def is_sorted(lst: List[T], reverse: bool = False) -> bool:
+def is_sorted(lst: List[CT], reverse: bool = False) -> bool:
     """Return ``True`` when *lst* is sorted in non-descending order.
 
     Args:
@@ -34520,6 +34530,7 @@ import unittest
 from list_utils import (
     chunks,
     contains,
+    count_duplicates,
     drop,
     find,
     find_all,
@@ -34527,17 +34538,14 @@ from list_utils import (
     find_index,
     find_last,
     find_last_index,
-    first_or_default,
     flatten,
     group_by,
     has_duplicates,
     index_of,
-    count_duplicates,
     intersperse,
     is_empty,
     is_sorted,
     last_index_of,
-    last_or_default,
     partition,
     safe_get,
     take,
@@ -52211,9 +52219,8 @@ cat > "$OUTPUT_DIR/tests/test_itertools_utils.py" <<'TESTITERTOOLSUTILS'
 import unittest
 
 from itertools_utils import (
-    first_or_default,
-    last_or_default,
     accumulate_values,
+    all_equal,
     chain_iterables,
     chunk_iterable,
     combinations_of,
@@ -52225,15 +52232,16 @@ from itertools_utils import (
     cycle_take,
     drop,
     drop_while_pred,
+    first_or_default,
     flatten_once,
     group_by_key,
     grouper,
     has_all,
     has_any,
     has_duplicates,
-    all_equal,
     has_none,
     is_empty_iterable,
+    last_or_default,
     pairwise_iterable,
     partition,
     product_of,
@@ -52738,28 +52746,6 @@ class TestIsEmptyIterable(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             is_empty_iterable(None)
-
-
-class TestDropWhilePred(unittest.TestCase):
-    def test_basic(self):
-        self.assertEqual(drop_while_pred([1, 2, 3, 4], lambda x: x < 3), [3, 4])
-
-    def test_no_drop(self):
-        self.assertEqual(drop_while_pred([5, 6, 7], lambda x: x < 3), [5, 6, 7])
-
-    def test_empty(self):
-        self.assertEqual(drop_while_pred([], lambda x: True), [])
-
-    def test_all_dropped(self):
-        self.assertEqual(drop_while_pred([1, 2, 3], lambda x: True), [])
-
-    def test_rejects_non_iterable(self):
-        with self.assertRaises(TypeError):
-            drop_while_pred(42, lambda x: x)
-
-    def test_rejects_non_callable(self):
-        with self.assertRaises(TypeError):
-            drop_while_pred([1, 2, 3], "x")
 
 
 class TestTake(unittest.TestCase):
@@ -54318,6 +54304,8 @@ cat > "$OUTPUT_DIR/bytes_utils.py" <<'BYTES_UTILS'
 """Utilities for working with bytes and binary data."""
 
 from __future__ import annotations
+
+from typing import Literal
 
 __all__: list[str] = [
     "to_hex",
@@ -55913,7 +55901,7 @@ def translate(data: bytes, table: bytes | bytearray) -> bytes:
     return bytes(data).translate(bytes(table))
 
 
-def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
+def to_int(data: bytes, byteorder: Literal["big", "little"] = "big", signed: bool = False) -> int:
     """Interpret *data* as an integer using the given byte order.
 
     The conversion mirrors :func:`int.from_bytes`: *data* is treated as the
@@ -55958,7 +55946,7 @@ def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
     return int.from_bytes(bytes(data), byteorder=byteorder, signed=signed)
 
 
-def from_int(value: int, length: int, byteorder: str = "big", signed: bool = False) -> bytes:
+def from_int(value: int, length: int, byteorder: Literal["big", "little"] = "big", signed: bool = False) -> bytes:
     """Encode the integer *value* into a fixed-length bytes object.
 
     The result is exactly *length* bytes long. If *value* fits in the requested
@@ -56471,8 +56459,8 @@ from bytes_utils import (
     contains,
     count,
     count_digits,
-    count_null_bytes,
     count_non_null_bytes,
+    count_null_bytes,
     decode_ascii,
     encode_ascii,
     ends_with,
@@ -56480,9 +56468,9 @@ from bytes_utils import (
     find,
     from_hex,
     from_int,
-    has_null_byte,
     has_non_null_byte,
     has_non_null_bytes,
+    has_null_byte,
     has_set_bits,
     highest_set_bit,
     index,
@@ -62324,7 +62312,13 @@ def _validate_semver_identifiers(name: str, value: Optional[str]) -> None:
     for part in value.split("."):
         if not part:
             raise ValueError(f"{name} identifiers must not be empty")
-        if name == "prerelease" and part.isascii() and part.isdigit() and len(part) > 1 and part[0] == "0":
+        if (
+            name == "prerelease"
+            and part.isascii()
+            and part.isdigit()
+            and len(part) > 1
+            and part[0] == "0"
+        ):
             raise ValueError("numeric prerelease identifiers must not include leading zeroes")
 
 
@@ -63270,13 +63264,13 @@ from interval_utils import (
     interval_intersection,
     interval_is_degenerate,
     interval_is_subset,
-    intervals_equal,
     interval_length,
     interval_midpoint,
     interval_overlaps,
     interval_shift,
     interval_symmetric_difference,
     interval_union,
+    intervals_equal,
     is_valid_interval,
     merge_intervals,
     normalize_interval,
@@ -88712,7 +88706,7 @@ def is_disarium_number(value: int) -> bool:
         raise TypeError(f"value must be an int, got {type(value).__name__}")
     if value < 0:
         return False
-    digits = [int(d) for d in str(value)]
+    digits: list[int] = [int(d) for d in str(value)]
     return sum(d ** (i + 1) for i, d in enumerate(digits)) == value
 
 
@@ -108034,9 +108028,11 @@ class TestAllWhere(unittest.TestCase):
 
     def test_all_where_consistency_with_count_where(self):
         seq = [1, 2, 3, 4]
-        pred = lambda x: x < 10
+        def pred(x):
+            return x < 10
         self.assertEqual(all_where(seq, pred), count_where(seq, pred) == len(seq))
-        pred2 = lambda x: x % 2 == 0
+        def pred2(x):
+            return x % 2 == 0
         self.assertEqual(all_where(seq, pred2), count_where(seq, pred2) == len(seq))
 
     def test_all_where_type_error(self):
@@ -108072,9 +108068,11 @@ class TestNoneWhere(unittest.TestCase):
 
     def test_none_where_consistency_with_has_where(self):
         seq = [1, 2, 3, 4]
-        pred = lambda x: x > 10
+        def pred(x):
+            return x > 10
         self.assertEqual(none_where(seq, pred), not has_where(seq, pred))
-        pred2 = lambda x: x % 2 == 0
+        def pred2(x):
+            return x % 2 == 0
         self.assertEqual(none_where(seq, pred2), not has_where(seq, pred2))
 
     def test_none_where_type_error(self):
@@ -108306,7 +108304,8 @@ class TestFindLast(unittest.TestCase):
 
     def test_consistency_with_find(self):
         seq = [1, 2, 3, 2, 1]
-        pred = lambda x: x == 2
+        def pred(x):
+            return x == 2
         self.assertEqual(find(seq, pred), 2)
         self.assertEqual(find_last(seq, pred), 2)
         seq2 = [1, 3, 5]
@@ -108353,7 +108352,8 @@ class TestFindLastIndex(unittest.TestCase):
 
     def test_consistency_with_find_index(self):
         seq = [1, 2, 3, 2, 1]
-        pred = lambda x: x == 2
+        def pred(x):
+            return x == 2
         self.assertEqual(find_index(seq, pred), 1)
         self.assertEqual(find_last_index(seq, pred), 3)
         i = find_index(seq, pred)
@@ -151401,14 +151401,12 @@ from deque_utils import (
     has_items,
     index_in_deque,
     is_empty,
-    peek_left,
-    peek_right,
     pop_left,
     pop_right,
     remove_from_deque,
     reverse_deque,
-    size,
     rotate_deque,
+    size,
 )
 
 

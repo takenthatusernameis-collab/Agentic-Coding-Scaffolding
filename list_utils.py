@@ -1,12 +1,23 @@
 """Advanced list utility functions for common manipulation tasks."""
 
-from typing import Callable, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, List, Optional, Protocol, Tuple, TypeVar
+
+
+class SupportsRichComparison(Protocol):
+    def __lt__(self, other: Any) -> bool: ...
+    def __le__(self, other: Any) -> bool: ...
+    def __gt__(self, other: Any) -> bool: ...
+    def __ge__(self, other: Any) -> bool: ...
+
 
 T = TypeVar("T")
+CT = TypeVar("CT", bound=SupportsRichComparison)
 K = TypeVar("K")
 
 __all__ = [
+    "CT",
     "K",
+    "SupportsRichComparison",
     "T",
     "chunks",
     "contains",
@@ -682,7 +693,7 @@ def has_duplicates(lst: List[T]) -> bool:
     return count_duplicates(lst) > 0
 
 
-def is_sorted(lst: List[T], reverse: bool = False) -> bool:
+def is_sorted(lst: List[CT], reverse: bool = False) -> bool:
     """Return ``True`` when *lst* is sorted in non-descending order.
 
     Args:

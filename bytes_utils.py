@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 __all__: list[str] = [
     "to_hex",
     "from_hex",
@@ -1596,7 +1598,7 @@ def translate(data: bytes, table: bytes | bytearray) -> bytes:
     return bytes(data).translate(bytes(table))
 
 
-def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
+def to_int(data: bytes, byteorder: Literal["big", "little"] = "big", signed: bool = False) -> int:
     """Interpret *data* as an integer using the given byte order.
 
     The conversion mirrors :func:`int.from_bytes`: *data* is treated as the
@@ -1641,7 +1643,12 @@ def to_int(data: bytes, byteorder: str = "big", signed: bool = False) -> int:
     return int.from_bytes(bytes(data), byteorder=byteorder, signed=signed)
 
 
-def from_int(value: int, length: int, byteorder: str = "big", signed: bool = False) -> bytes:
+def from_int(
+    value: int,
+    length: int,
+    byteorder: Literal["big", "little"] = "big",
+    signed: bool = False,
+) -> bytes:
     """Encode the integer *value* into a fixed-length bytes object.
 
     The result is exactly *length* bytes long. If *value* fits in the requested

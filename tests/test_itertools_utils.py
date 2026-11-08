@@ -1,9 +1,8 @@
 import unittest
 
 from itertools_utils import (
-    first_or_default,
-    last_or_default,
     accumulate_values,
+    all_equal,
     chain_iterables,
     chunk_iterable,
     combinations_of,
@@ -15,15 +14,16 @@ from itertools_utils import (
     cycle_take,
     drop,
     drop_while_pred,
+    first_or_default,
     flatten_once,
     group_by_key,
     grouper,
     has_all,
     has_any,
     has_duplicates,
-    all_equal,
     has_none,
     is_empty_iterable,
+    last_or_default,
     pairwise_iterable,
     partition,
     product_of,
@@ -528,28 +528,6 @@ class TestIsEmptyIterable(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             is_empty_iterable(None)
-
-
-class TestDropWhilePred(unittest.TestCase):
-    def test_basic(self):
-        self.assertEqual(drop_while_pred([1, 2, 3, 4], lambda x: x < 3), [3, 4])
-
-    def test_no_drop(self):
-        self.assertEqual(drop_while_pred([5, 6, 7], lambda x: x < 3), [5, 6, 7])
-
-    def test_empty(self):
-        self.assertEqual(drop_while_pred([], lambda x: True), [])
-
-    def test_all_dropped(self):
-        self.assertEqual(drop_while_pred([1, 2, 3], lambda x: True), [])
-
-    def test_rejects_non_iterable(self):
-        with self.assertRaises(TypeError):
-            drop_while_pred(42, lambda x: x)
-
-    def test_rejects_non_callable(self):
-        with self.assertRaises(TypeError):
-            drop_while_pred([1, 2, 3], "x")
 
 
 class TestTake(unittest.TestCase):
