@@ -8,6 +8,7 @@ from itertools_utils import (
     chunk_iterable,
     combinations_of,
     combinations_with_replacement_of,
+    count_duplicates,
     count_from,
     count_if,
     cycle_take,
@@ -17,6 +18,7 @@ from itertools_utils import (
     grouper,
     has_all,
     has_any,
+    has_duplicates,
     has_none,
     is_empty_iterable,
     pairwise_iterable,
@@ -683,6 +685,36 @@ class TestHasNone(unittest.TestCase):
     def test_rejects_non_callable(self):
         with self.assertRaises(TypeError):
             has_none([1, 2, 3], "x")
+
+
+class TestCountDuplicates(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_duplicates([1, 2, 2, 3, 1]), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_duplicates([]), 0)
+
+    def test_all_distinct(self):
+        self.assertEqual(count_duplicates([1, 2, 3]), 0)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            count_duplicates(42)
+
+
+class TestHasDuplicates(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(has_duplicates([1, 2, 2, 3]))
+
+    def test_false(self):
+        self.assertFalse(has_duplicates([1, 2, 3]))
+
+    def test_empty(self):
+        self.assertFalse(has_duplicates([]))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            has_duplicates(42)
 
 
 if __name__ == "__main__":

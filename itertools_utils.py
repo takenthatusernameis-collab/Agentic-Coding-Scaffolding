@@ -734,6 +734,72 @@ def has_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
     return True
 
 
+def count_duplicates(iterable: Iterable[Any]) -> int:
+    """Count how many items in *iterable* are duplicates of an earlier item.
+
+    An item is counted as a duplicate when it has already appeared at least
+    once before it in iteration order. The first occurrence of each value is
+    never counted.
+
+    Args:
+        iterable: The iterable to inspect.
+
+    Returns:
+        The number of duplicate occurrences (``0`` for an empty iterable or
+        one with all distinct items).
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> count_duplicates([1, 2, 2, 3, 1])
+        2
+        >>> count_duplicates([])
+        0
+        >>> count_duplicates([1, 2, 3])
+        0
+    """
+    _ensure_iterable(iterable, "iterable")
+    seen: set = set()
+    duplicates = 0
+    for item in iterable:
+        if item in seen:
+            duplicates += 1
+        else:
+            seen.add(item)
+    return duplicates
+
+
+def has_duplicates(iterable: Iterable[Any]) -> bool:
+    """Return ``True`` if *iterable* contains at least one duplicate item.
+
+    Args:
+        iterable: The iterable to inspect.
+
+    Returns:
+        ``True`` when some value occurs more than once, ``False`` otherwise
+        (including for an empty iterable).
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> has_duplicates([1, 2, 2, 3])
+        True
+        >>> has_duplicates([1, 2, 3])
+        False
+        >>> has_duplicates([])
+        False
+    """
+    _ensure_iterable(iterable, "iterable")
+    seen: set = set()
+    for item in iterable:
+        if item in seen:
+            return True
+        seen.add(item)
+    return False
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -776,4 +842,6 @@ __all__ = [
     "has_any",
     "has_all",
     "has_none",
+    "count_duplicates",
+    "has_duplicates",
 ]

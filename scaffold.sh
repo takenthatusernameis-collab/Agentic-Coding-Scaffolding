@@ -25910,9 +25910,11 @@ from prompt_utils import (
     has_lowercase,
     has_paragraphs,
     has_placeholders,
+    has_prefix,
     has_punctuation,
     has_sentences,
     has_spaces,
+    has_suffix,
     has_tabs,
     has_trailing_newline,
     has_unique_words,
@@ -27748,6 +27750,82 @@ class TestEnsureSuffix(unittest.TestCase):
             ensure_suffix("x", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestHasPrefix(unittest.TestCase):
+    def test_has_prefix(self) -> None:
+        self.assertTrue(has_prefix("hello world", "hello"))
+        self.assertTrue(has_prefix("hello world", "hello world"))
+        self.assertTrue(has_prefix("hello", ""))
+
+    def test_no_prefix(self) -> None:
+        self.assertFalse(has_prefix("hello world", "bye"))
+        self.assertFalse(has_prefix("world", "hello"))
+        self.assertFalse(has_prefix("Hello", "hello"))
+
+    def test_empty_text(self) -> None:
+        self.assertFalse(has_prefix("", "hello"))
+        self.assertTrue(has_prefix("", ""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prefix(None, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prefix("x", None)  # type: ignore[arg-type]
+
+    def test_matches_ensure_prefix(self) -> None:
+        for text, prefix in [
+            ("hello world", "hello"),
+            ("hello world", "bye"),
+            ("", "hello"),
+            ("hello", ""),
+        ]:
+            self.assertEqual(
+                has_prefix(text, prefix),
+                ensure_prefix(text, prefix) == text,
+            )
+
+
+class TestHasSuffix(unittest.TestCase):
+    def test_has_suffix(self) -> None:
+        self.assertTrue(has_suffix("hello world", "world"))
+        self.assertTrue(has_suffix("hello world", "hello world"))
+        self.assertTrue(has_suffix("hello", ""))
+
+    def test_no_suffix(self) -> None:
+        self.assertFalse(has_suffix("hello world", "bye"))
+        self.assertFalse(has_suffix("hello", "world"))
+        self.assertFalse(has_suffix("Hello", "hello"))
+
+    def test_empty_text(self) -> None:
+        self.assertFalse(has_suffix("", "hello"))
+        self.assertTrue(has_suffix("", ""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_suffix(None, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_suffix("x", None)  # type: ignore[arg-type]
+
+    def test_matches_ensure_suffix(self) -> None:
+        for text, suffix in [
+            ("hello world", " world"),
+            ("hello world", "bye"),
+            ("", "hello"),
+            ("hello", ""),
+        ]:
+            self.assertEqual(
+                has_suffix(text, suffix),
+                ensure_suffix(text, suffix) == text,
+            )
 
 
 class TestJoinLines(unittest.TestCase):
@@ -39982,8 +40060,10 @@ __all__: List[str] = [
     "strip_lines",
     "ensure_prefix",
     "remove_prefix",
+    "has_prefix",
     "ensure_suffix",
     "remove_suffix",
+    "has_suffix",
     "ensure_leading_newline",
     "ensure_trailing_newline",
     "normalize_line_endings",
@@ -41107,6 +41187,72 @@ def remove_suffix(text: str, suffix: str) -> str:
     if suffix and text.endswith(suffix):
         return text[: -len(suffix)]
     return text
+
+
+def has_prefix(text: str, prefix: str) -> bool:
+    """Return True if *text* starts with *prefix*.
+
+    A boolean companion to :func:`ensure_prefix` and :func:`remove_prefix`
+    that reports whether *text* begins with *prefix*, matching
+    :meth:`str.startswith` semantics. Empty *text* returns False unless
+    *prefix* is also empty (every string starts with the empty prefix).
+
+    Args:
+        text: The text to inspect.
+        prefix: The prefix to look for.
+
+    Returns:
+        ``True`` if *text* starts with *prefix*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> has_prefix("hello world", "hello")
+        True
+        >>> has_prefix("hello world", "bye")
+        False
+        >>> has_prefix("", "hello")
+        False
+        >>> has_prefix("hello", "")
+        True
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    return text.startswith(prefix)
+
+
+def has_suffix(text: str, suffix: str) -> bool:
+    """Return True if *text* ends with *suffix*.
+
+    A boolean companion to :func:`ensure_suffix` and :func:`remove_suffix`
+    that reports whether *text* ends with *suffix*, matching
+    :meth:`str.endswith` semantics. Empty *text* returns False unless
+    *suffix* is also empty (every string ends with the empty suffix).
+
+    Args:
+        text: The text to inspect.
+        suffix: The suffix to look for.
+
+    Returns:
+        ``True`` if *text* ends with *suffix*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> has_suffix("hello world", "world")
+        True
+        >>> has_suffix("hello world", "bye")
+        False
+        >>> has_suffix("", "hello")
+        False
+        >>> has_suffix("hello", "")
+        True
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    return text.endswith(suffix)
 
 
 def ensure_leading_newline(text: str) -> str:
@@ -50360,6 +50506,72 @@ def has_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
     return True
 
 
+def count_duplicates(iterable: Iterable[Any]) -> int:
+    """Count how many items in *iterable* are duplicates of an earlier item.
+
+    An item is counted as a duplicate when it has already appeared at least
+    once before it in iteration order. The first occurrence of each value is
+    never counted.
+
+    Args:
+        iterable: The iterable to inspect.
+
+    Returns:
+        The number of duplicate occurrences (``0`` for an empty iterable or
+        one with all distinct items).
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> count_duplicates([1, 2, 2, 3, 1])
+        2
+        >>> count_duplicates([])
+        0
+        >>> count_duplicates([1, 2, 3])
+        0
+    """
+    _ensure_iterable(iterable, "iterable")
+    seen: set = set()
+    duplicates = 0
+    for item in iterable:
+        if item in seen:
+            duplicates += 1
+        else:
+            seen.add(item)
+    return duplicates
+
+
+def has_duplicates(iterable: Iterable[Any]) -> bool:
+    """Return ``True`` if *iterable* contains at least one duplicate item.
+
+    Args:
+        iterable: The iterable to inspect.
+
+    Returns:
+        ``True`` when some value occurs more than once, ``False`` otherwise
+        (including for an empty iterable).
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> has_duplicates([1, 2, 2, 3])
+        True
+        >>> has_duplicates([1, 2, 3])
+        False
+        >>> has_duplicates([])
+        False
+    """
+    _ensure_iterable(iterable, "iterable")
+    seen: set = set()
+    for item in iterable:
+        if item in seen:
+            return True
+        seen.add(item)
+    return False
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -50402,6 +50614,8 @@ __all__ = [
     "has_any",
     "has_all",
     "has_none",
+    "count_duplicates",
+    "has_duplicates",
 ]
 ITERTOOLS_UTILS
 
@@ -50417,6 +50631,7 @@ from itertools_utils import (
     chunk_iterable,
     combinations_of,
     combinations_with_replacement_of,
+    count_duplicates,
     count_from,
     count_if,
     cycle_take,
@@ -50426,6 +50641,7 @@ from itertools_utils import (
     grouper,
     has_all,
     has_any,
+    has_duplicates,
     has_none,
     is_empty_iterable,
     pairwise_iterable,
@@ -51092,6 +51308,36 @@ class TestHasNone(unittest.TestCase):
     def test_rejects_non_callable(self):
         with self.assertRaises(TypeError):
             has_none([1, 2, 3], "x")
+
+
+class TestCountDuplicates(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_duplicates([1, 2, 2, 3, 1]), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_duplicates([]), 0)
+
+    def test_all_distinct(self):
+        self.assertEqual(count_duplicates([1, 2, 3]), 0)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            count_duplicates(42)
+
+
+class TestHasDuplicates(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(has_duplicates([1, 2, 2, 3]))
+
+    def test_false(self):
+        self.assertFalse(has_duplicates([1, 2, 3]))
+
+    def test_empty(self):
+        self.assertFalse(has_duplicates([]))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            has_duplicates(42)
 
 
 if __name__ == "__main__":
