@@ -111,6 +111,39 @@ def index_in_deque(
     return d.index(value, start, stop)
 
 
+def find_index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> Optional[int]:
+    """Return the index of the first occurrence of value in deque d, or None.
+
+    A non-raising companion to :func:`index_in_deque`.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the first matching element, or None if value is
+        not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> find_index_in_deque(d, 2)
+        1
+        >>> find_index_in_deque(d, 9) is None
+        True
+        >>> find_index_in_deque(d, 2, 2)
+        3
+    """
+    try:
+        return index_in_deque(d, value, start, stop)
+    except ValueError:
+        return None
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -246,6 +279,7 @@ __all__ = [
     "count_in_deque",
     "has_in_deque",
     "index_in_deque",
+    "find_index_in_deque",
     "peek_left",
     "peek_right",
     "remove_from_deque",

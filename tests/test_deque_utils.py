@@ -9,6 +9,7 @@ from deque_utils import (
     deque_to_list,
     extend_left,
     extend_right,
+    find_index_in_deque,
     has_in_deque,
     has_items,
     index_in_deque,
@@ -302,6 +303,42 @@ class TestIndexInDeque(unittest.TestCase):
         d = create_deque([1, 2, 3, 2, 1])
         for v in (1, 2, 3):
             self.assertEqual(index_in_deque(d, v), deque_to_list(d).index(v))
+
+
+class TestFindIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(find_index_in_deque(d, 1), 0)
+        self.assertEqual(find_index_in_deque(d, 2), 1)
+        self.assertEqual(find_index_in_deque(d, 3), 2)
+
+    def test_missing_returns_none(self):
+        d = create_deque([1, 2, 3])
+        self.assertIsNone(find_index_in_deque(d, 9))
+
+    def test_start(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(find_index_in_deque(d, 2, 2), 3)
+
+    def test_start_stop_found(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(find_index_in_deque(d, 2, 2, 4), 3)
+
+    def test_start_stop_missing_returns_none(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertIsNone(find_index_in_deque(d, 1, 1, 4))
+
+    def test_empty_returns_none(self):
+        self.assertIsNone(find_index_in_deque(create_deque(), 1))
+
+    def test_consistent_with_index_in_deque(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        for v in (1, 2, 3, 9):
+            try:
+                expected = index_in_deque(d, v)
+            except ValueError:
+                expected = None
+            self.assertEqual(find_index_in_deque(d, v), expected)
 
 
 if __name__ == "__main__":

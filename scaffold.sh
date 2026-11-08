@@ -65565,6 +65565,10 @@ Completed in this session:
 
 
 
+## Unreleased — added `find_index_in_deque` to `deque_utils`
+
+- Added `find_index_in_deque(d, value, start=0, stop=None)` to `deque_utils.py` as a non-raising companion to `index_in_deque`, returning the 0-based index of the first match or `None` when absent. Typed `Optional[int]` return, `__all__` export, Google-style docstring with ASCII-safe doctests. Added `TestFindIndexInDeque` (7 tests) to `tests/test_deque_utils.py` covering basic, missing, `start`/`stop` bounds, empty, and consistency with `index_in_deque`. Updated `README.md` tree/prose. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, and `CHANGELOG.md` into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils` (67 OK), `python -m doctest deque_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added `count_leading_zeros` and `has_leading_zeros` to `bit_utils`
 
 - Added `count_leading_zeros(value, width)` and boolean companion `has_leading_zeros(value, width)` to `bit_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and validation raising `TypeError`/`ValueError` (including rejection of values that do not fit within *width*). `count_leading_zeros` returns the number of zero bits to the left of the most significant set bit within a fixed *width* (returning *width* for zero). Added `TestCountLeadingZeros` and `TestHasLeadingZeros` to `tests/test_bit_utils.py` covering basic widths, zero/full-width cases, consistency, width-fit/value/type errors, and bool rejection (7 new tests). Updated the `bit_utils` module tree entry and prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (43 tests), `python -m doctest bit_utils.py` (44 doctests), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (OK). No changes to `.github/workflows/**`.
@@ -65726,7 +65730,7 @@ concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessP
 concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
-deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, has_in_deque, remove_from_deque, reverse_deque, size, is_empty)
+deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, has_in_deque, index_in_deque, find_index_in_deque, remove_from_deque, reverse_deque, size, is_empty, has_items)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
@@ -66787,7 +66791,7 @@ The project includes deprecation utilities in `deprecation_utils.py` for marking
 
 ## Deque Utilities Module
 
-The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `index_in_deque` returns the index of the first occurrence with optional `start`/`stop` bounds (raising ``ValueError`` when absent), `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), `is_empty` returns ``True`` when the deque contains no elements, and `has_items` is its boolean companion. `size` returns the number of elements in a deque as an integer companion to `is_empty`. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
+The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `index_in_deque` returns the index of the first occurrence with optional `start`/`stop` bounds (raising ``ValueError`` when absent), `find_index_in_deque` is its non-raising companion returning ``None`` when absent, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), `is_empty` returns ``True`` when the deque contains no elements, and `has_items` is its boolean companion. `size` returns the number of elements in a deque as an integer companion to `is_empty`. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
 
 ## Ring Buffer Utilities Module
 
@@ -150374,6 +150378,39 @@ def index_in_deque(
     return d.index(value, start, stop)
 
 
+def find_index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> Optional[int]:
+    """Return the index of the first occurrence of value in deque d, or None.
+
+    A non-raising companion to :func:`index_in_deque`.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the first matching element, or None if value is
+        not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> find_index_in_deque(d, 2)
+        1
+        >>> find_index_in_deque(d, 9) is None
+        True
+        >>> find_index_in_deque(d, 2, 2)
+        3
+    """
+    try:
+        return index_in_deque(d, value, start, stop)
+    except ValueError:
+        return None
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -150509,6 +150546,7 @@ __all__ = [
     "count_in_deque",
     "has_in_deque",
     "index_in_deque",
+    "find_index_in_deque",
     "peek_left",
     "peek_right",
     "remove_from_deque",
@@ -150532,6 +150570,7 @@ from deque_utils import (
     deque_to_list,
     extend_left,
     extend_right,
+    find_index_in_deque,
     has_in_deque,
     has_items,
     index_in_deque,
@@ -150825,6 +150864,42 @@ class TestIndexInDeque(unittest.TestCase):
         d = create_deque([1, 2, 3, 2, 1])
         for v in (1, 2, 3):
             self.assertEqual(index_in_deque(d, v), deque_to_list(d).index(v))
+
+
+class TestFindIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(find_index_in_deque(d, 1), 0)
+        self.assertEqual(find_index_in_deque(d, 2), 1)
+        self.assertEqual(find_index_in_deque(d, 3), 2)
+
+    def test_missing_returns_none(self):
+        d = create_deque([1, 2, 3])
+        self.assertIsNone(find_index_in_deque(d, 9))
+
+    def test_start(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(find_index_in_deque(d, 2, 2), 3)
+
+    def test_start_stop_found(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(find_index_in_deque(d, 2, 2, 4), 3)
+
+    def test_start_stop_missing_returns_none(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertIsNone(find_index_in_deque(d, 1, 1, 4))
+
+    def test_empty_returns_none(self):
+        self.assertIsNone(find_index_in_deque(create_deque(), 1))
+
+    def test_consistent_with_index_in_deque(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        for v in (1, 2, 3, 9):
+            try:
+                expected = index_in_deque(d, v)
+            except ValueError:
+                expected = None
+            self.assertEqual(find_index_in_deque(d, v), expected)
 
 
 if __name__ == "__main__":
