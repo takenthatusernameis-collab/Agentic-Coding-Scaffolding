@@ -40,8 +40,10 @@ __all__: List[str] = [
     "strip_lines",
     "ensure_prefix",
     "remove_prefix",
+    "has_prefix",
     "ensure_suffix",
     "remove_suffix",
+    "has_suffix",
     "ensure_leading_newline",
     "ensure_trailing_newline",
     "normalize_line_endings",
@@ -1165,6 +1167,72 @@ def remove_suffix(text: str, suffix: str) -> str:
     if suffix and text.endswith(suffix):
         return text[: -len(suffix)]
     return text
+
+
+def has_prefix(text: str, prefix: str) -> bool:
+    """Return True if *text* starts with *prefix*.
+
+    A boolean companion to :func:`ensure_prefix` and :func:`remove_prefix`
+    that reports whether *text* begins with *prefix*, matching
+    :meth:`str.startswith` semantics. Empty *text* returns False unless
+    *prefix* is also empty (every string starts with the empty prefix).
+
+    Args:
+        text: The text to inspect.
+        prefix: The prefix to look for.
+
+    Returns:
+        ``True`` if *text* starts with *prefix*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> has_prefix("hello world", "hello")
+        True
+        >>> has_prefix("hello world", "bye")
+        False
+        >>> has_prefix("", "hello")
+        False
+        >>> has_prefix("hello", "")
+        True
+    """
+    _require_string(text, "text")
+    _require_string(prefix, "prefix")
+    return text.startswith(prefix)
+
+
+def has_suffix(text: str, suffix: str) -> bool:
+    """Return True if *text* ends with *suffix*.
+
+    A boolean companion to :func:`ensure_suffix` and :func:`remove_suffix`
+    that reports whether *text* ends with *suffix*, matching
+    :meth:`str.endswith` semantics. Empty *text* returns False unless
+    *suffix* is also empty (every string ends with the empty suffix).
+
+    Args:
+        text: The text to inspect.
+        suffix: The suffix to look for.
+
+    Returns:
+        ``True`` if *text* ends with *suffix*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a string.
+
+    Examples:
+        >>> has_suffix("hello world", "world")
+        True
+        >>> has_suffix("hello world", "bye")
+        False
+        >>> has_suffix("", "hello")
+        False
+        >>> has_suffix("hello", "")
+        True
+    """
+    _require_string(text, "text")
+    _require_string(suffix, "suffix")
+    return text.endswith(suffix)
 
 
 def ensure_leading_newline(text: str) -> str:

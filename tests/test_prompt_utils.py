@@ -53,9 +53,11 @@ from prompt_utils import (
     has_lowercase,
     has_paragraphs,
     has_placeholders,
+    has_prefix,
     has_punctuation,
     has_sentences,
     has_spaces,
+    has_suffix,
     has_tabs,
     has_trailing_newline,
     has_unique_words,
@@ -1891,6 +1893,82 @@ class TestEnsureSuffix(unittest.TestCase):
             ensure_suffix("x", 123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_suffix("x", None)  # type: ignore[arg-type]
+
+
+class TestHasPrefix(unittest.TestCase):
+    def test_has_prefix(self) -> None:
+        self.assertTrue(has_prefix("hello world", "hello"))
+        self.assertTrue(has_prefix("hello world", "hello world"))
+        self.assertTrue(has_prefix("hello", ""))
+
+    def test_no_prefix(self) -> None:
+        self.assertFalse(has_prefix("hello world", "bye"))
+        self.assertFalse(has_prefix("world", "hello"))
+        self.assertFalse(has_prefix("Hello", "hello"))
+
+    def test_empty_text(self) -> None:
+        self.assertFalse(has_prefix("", "hello"))
+        self.assertTrue(has_prefix("", ""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_prefix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prefix(None, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prefix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prefix("x", None)  # type: ignore[arg-type]
+
+    def test_matches_ensure_prefix(self) -> None:
+        for text, prefix in [
+            ("hello world", "hello"),
+            ("hello world", "bye"),
+            ("", "hello"),
+            ("hello", ""),
+        ]:
+            self.assertEqual(
+                has_prefix(text, prefix),
+                ensure_prefix(text, prefix) == text,
+            )
+
+
+class TestHasSuffix(unittest.TestCase):
+    def test_has_suffix(self) -> None:
+        self.assertTrue(has_suffix("hello world", "world"))
+        self.assertTrue(has_suffix("hello world", "hello world"))
+        self.assertTrue(has_suffix("hello", ""))
+
+    def test_no_suffix(self) -> None:
+        self.assertFalse(has_suffix("hello world", "bye"))
+        self.assertFalse(has_suffix("hello", "world"))
+        self.assertFalse(has_suffix("Hello", "hello"))
+
+    def test_empty_text(self) -> None:
+        self.assertFalse(has_suffix("", "hello"))
+        self.assertTrue(has_suffix("", ""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_suffix(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_suffix(None, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_suffix("x", 123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_suffix("x", None)  # type: ignore[arg-type]
+
+    def test_matches_ensure_suffix(self) -> None:
+        for text, suffix in [
+            ("hello world", " world"),
+            ("hello world", "bye"),
+            ("", "hello"),
+            ("hello", ""),
+        ]:
+            self.assertEqual(
+                has_suffix(text, suffix),
+                ensure_suffix(text, suffix) == text,
+            )
 
 
 class TestJoinLines(unittest.TestCase):
