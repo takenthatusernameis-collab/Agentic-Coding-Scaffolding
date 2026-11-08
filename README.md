@@ -236,7 +236,7 @@ hashlib_utils.py           # Hash utilities wrapping hashlib (MD5, SHA1, SHA256,
 platform_utils.py          # Platform utilities wrapping the standard library platform module
 signal_utils.py            # Signal utilities wrapping the standard library signal module
 http_utils.py              # HTTP status codes and response handling utilities
-id_utils.py                # Identifier generation and validation utilities (generate_id, new_id, is_valid_id, validate_id)
+id_utils.py                # Identifier generation and validation utilities (generate_id, generate_ids, new_id, generate_prefixed_id, is_valid_id, validate_id)
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
@@ -1153,7 +1153,7 @@ The project includes fraction arithmetic utilities in `fractions_utils.py` for e
 
 ## Identifier Utilities Module
 
-The project includes identifier generation and validation utilities in `id_utils.py` for creating short, URL-safe random identifiers: `generate_id` returns a random alphanumeric string of a given length, `new_id` returns a default 8-character identifier, `is_valid_id` checks whether a string is a valid identifier of a given length, and `validate_id` is an alias for `is_valid_id`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_id_utils.py`.
+The project includes identifier generation and validation utilities in `id_utils.py` for creating short, URL-safe random identifiers: `generate_id` returns a random alphanumeric string of a given length, `generate_ids` returns a list of identifiers, `new_id` returns a default 8-character identifier, `generate_prefixed_id` returns a prefixed identifier with a random suffix, `is_valid_id` checks whether a string is a valid identifier of a given length, and `validate_id` is an alias for `is_valid_id`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_id_utils.py`.
 
 ## Inspect Utilities Module
 
