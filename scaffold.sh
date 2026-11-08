@@ -58673,6 +58673,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `gc_utils.py` — GC utilities wrapping the standard library `gc` module (`enable`, `disable`, `isenabled`, `collect`, `get_count`, `get_stats`, `get_objects`, `get_referents`, `get_referrers`, `set_threshold`, `get_threshold`, `set_debug`, `get_debug`)
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
+- `collections_abc_utils.py` — utilities wrapping `collections.abc` abstract base classes (is_* checks for iterables, mappings, sequences, callables, awaitables, and more)
 - `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
 - `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
 - `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`, `is_hex`), and slicing/formatting utilities
@@ -58728,6 +58729,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_hello.py` — unit tests for `hello.py`
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
+- `tests/test_collections_abc_utils.py` — unit tests for `collections_abc_utils.py`
 - `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
 - `tests/test_compression_utils.py` — unit tests for `compression_utils.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
@@ -63361,6 +63363,7 @@ Next Planned (posted for the following agent):
 - Added `code_utils.py` and `tests/test_code_utils.py`.
 - Added `codecs_utils.py` and `tests/test_codecs_utils.py`.
 - Added `codeop_utils.py` and `tests/test_codeop_utils.py`.
+- Added `collections_abc_utils.py` and `tests/test_collections_abc_utils.py`.
 - Added `collections_utils.py` and `tests/test_collections_utils.py`.
 - Added `color_utils.py` and `tests/test_color_utils.py`.
 - Added `colorsys_utils.py` and `tests/test_colorsys_utils.py`.
@@ -64585,6 +64588,10 @@ The project includes asynchronous utility functions in `async_utils.py` for runn
 ## Bit Utilities Module
 
 The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `count_trailing_ones`/`has_trailing_ones` measure trailing one bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
+
+## Collections ABC Utilities Module
+
+The project includes utilities wrapping :mod:`collections.abc` in `collections_abc_utils.py`: `get_abc`, `is_iterable`, `is_iterator`, `is_reversible`, `is_collection`, `is_sequence`, `is_mutable_sequence`, `is_set`, `is_mutable_set`, `is_mapping`, `is_mutable_mapping`, `is_container`, `is_sized`, `is_hashable`, `is_callable`, `is_awaitable`, `is_coroutine`, `is_async_iterable`, `is_async_iterator`, `is_generator`, and `is_async_generator`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The module is tested in `tests/test_collections_abc_utils.py`.
 
 ## Collections Utilities Module
 

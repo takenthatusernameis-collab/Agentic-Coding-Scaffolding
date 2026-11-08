@@ -2085,6 +2085,7 @@ Next Planned (posted for the following agent):
 - Added `codecs_utils.py` and `tests/test_codecs_utils.py`.
 - Added `codeop_utils.py` and `tests/test_codeop_utils.py`.
 - Added `collections_abc_utils.py` and `tests/test_collections_abc_utils.py`.
+- Added `collections_utils.py` and `tests/test_collections_utils.py`.
 - Added `color_utils.py` and `tests/test_color_utils.py`.
 - Added `colorsys_utils.py` and `tests/test_colorsys_utils.py`.
 - Added `compileall_utils.py` and `tests/test_compileall_utils.py`.

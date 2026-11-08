@@ -114,7 +114,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `calculator.py` — simple calculator module with arithmetic operations
 - `config_utils.py` — configuration utilities for JSON file management
 - `collections_abc_utils.py` — utilities wrapping `collections.abc` abstract base classes (is_* checks for iterables, mappings, sequences, callables, awaitables, and more)
-- `collections_abc_utils.py` — utilities wrapping `collections.abc` abstract base classes (is_* checks for iterables, mappings, sequences, callables, awaitables, and more)
+- `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
 - `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
 - `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`, `is_hex`), and slicing/formatting utilities
 - `utils.py` — general utility helper functions
@@ -170,7 +170,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_calculator.py` — unit tests for `calculator.py`
 - `tests/test_config_utils.py` — unit tests for the config utilities module
 - `tests/test_collections_abc_utils.py` — unit tests for `collections_abc_utils.py`
-- `tests/test_collections_abc_utils.py` — unit tests for `collections_abc_utils.py`
+- `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
 - `tests/test_compression_utils.py` — unit tests for `compression_utils.py`
 - `tests/test_shapes.py` — unit tests for `shapes.py`
 - `tests/test_strings.py` — unit tests for `strings.py`
