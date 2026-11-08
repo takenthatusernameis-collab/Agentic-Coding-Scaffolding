@@ -15,6 +15,7 @@ from prompt_utils import (
     count_letters,
     count_lines,
     count_lowercase,
+    count_newline,
     count_newlines,
     count_non_blank_lines,
     count_non_whitespace_characters,
@@ -53,6 +54,8 @@ from prompt_utils import (
     has_leading_newline,
     has_letters,
     has_lowercase,
+    has_newline,
+    has_newlines,
     has_paragraphs,
     has_placeholders,
     has_prefix,
@@ -2397,6 +2400,39 @@ class TestCountNewlines(unittest.TestCase):
             count_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_newlines(None)  # type: ignore[arg-type]
+
+
+class TestCountNewline(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_newline("a\nb\nc"), 2)
+
+    def test_none(self):
+        self.assertEqual(count_newline("abc"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_newline(""), 0)
+
+    def test_consecutive(self):
+        self.assertEqual(count_newline("\n\n\n"), 3)
+
+    def test_single(self):
+        self.assertEqual(count_newline("hello\n"), 1)
+
+    def test_matches_count_newlines(self):
+        for text in ("", "abc", "a\nb\nc", "\n\n\n", "hello\nworld\n\n!"):
+            self.assertEqual(count_newline(text), count_newlines(text))
+
+    def test_consistency_with_has_newline(self):
+        for text in ("", "abc", "a\nb\nc", "\n\n\n", "hello\nworld"):
+            self.assertEqual(count_newline(text) > 0, has_newline(text))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_newline(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_newline(["a", "b"])  # type: ignore[arg-type]
 
 
 class TestTruncateParagraphs(unittest.TestCase):

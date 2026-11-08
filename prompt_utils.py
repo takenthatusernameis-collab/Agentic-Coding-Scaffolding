@@ -111,6 +111,7 @@ __all__: List[str] = [
     "ensure_surrounded_by_newlines",
     "has_surrounded_by_newlines",
     "count_newlines",
+    "count_newline",
     "has_newline",
     "has_newlines",
 ]
@@ -3215,6 +3216,30 @@ def count_newlines(text: str) -> int:
     return text.count("\n")
 
 
+def count_newline(text: str) -> int:
+    """Count the number of newline characters in *text*.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of ``\\n`` characters found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_newline("a\\nb\\nc")
+        2
+        >>> count_newline("hello")
+        0
+        >>> count_newline("")
+        0
+    """
+    _require_string(text, "text")
+    return text.count("\n")
+
+
 def has_newline(text: str) -> bool:
     """Return True if *text* contains at least one newline character.
 
@@ -3235,8 +3260,7 @@ def has_newline(text: str) -> bool:
         >>> has_newline("")
         False
     """
-    _require_string(text, "text")
-    return "\n" in text
+    return count_newline(text) > 0
 
 
 def has_newlines(text: str) -> bool:
