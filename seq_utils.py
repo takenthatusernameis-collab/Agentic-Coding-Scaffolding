@@ -27,6 +27,8 @@ __all__ = [
     "find_index",
     "find_last",
     "find_last_index",
+    "find_all",
+    "find_all_indices",
     "first",
     "flatten",
     "count_duplicates",
