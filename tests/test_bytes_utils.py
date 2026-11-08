@@ -12,13 +12,13 @@ from bytes_utils import (
     count_digits,
     count_non_null_bytes,
     count_null_bytes,
-    decode_ascii,
-    encode_ascii,
+    decode_ascii,    encode_ascii,
     ends_with,
     expandtabs,
     find,
     from_hex,
     from_int,
+    has_digits,
     has_non_null_byte,
     has_non_null_bytes,
     has_null_byte,
@@ -365,6 +365,45 @@ class TestCountDigits(unittest.TestCase):
             count_digits(0)
         with self.assertRaises(TypeError):
             count_digits(None)
+
+
+class TestHasDigits(unittest.TestCase):
+    def test_has_digits(self):
+        self.assertTrue(has_digits(b"123"))
+        self.assertTrue(has_digits(b"0"))
+        self.assertTrue(has_digits(bytearray(b"9")))
+        self.assertTrue(has_digits(b"a1b2c3"))
+
+    def test_no_digits(self):
+        self.assertFalse(has_digits(b"abc"))
+        self.assertFalse(has_digits(b"!@#"))
+        self.assertFalse(has_digits(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_digits(bytearray(b"12")))
+        self.assertFalse(has_digits(bytearray(b"ab")))
+
+    def test_consistency_with_count_digits(self):
+        self.assertEqual(has_digits(b"123"), count_digits(b"123") > 0)
+        self.assertEqual(has_digits(b"abc"), count_digits(b"abc") > 0)
+        self.assertEqual(has_digits(b""), count_digits(b"") > 0)
+
+    def test_consistency_with_isdigit(self):
+        # isdigit requires all bytes to be digits; has_digits requires at least one.
+        self.assertTrue(has_digits(b"123"))
+        self.assertTrue(isdigit(b"123"))
+        self.assertTrue(has_digits(b"12a"))
+        self.assertFalse(isdigit(b"12a"))
+        self.assertFalse(has_digits(b"abc"))
+        self.assertFalse(isdigit(b"abc"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_digits("00")
+        with self.assertRaises(TypeError):
+            has_digits(0)
+        with self.assertRaises(TypeError):
+            has_digits(None)
 
 
 class TestAsciiHelpers(unittest.TestCase):

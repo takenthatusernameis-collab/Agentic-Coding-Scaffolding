@@ -64,6 +64,7 @@ __all__: list[str] = [
     "to_int",
     "from_int",
     "bit_count",
+    "has_digits",
     "has_set_bits",
     "is_power_of_two",
     "is_zero",
@@ -1263,6 +1264,41 @@ def count_digits(data: bytes) -> int:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return sum(1 for b in bytes(data) if 0x30 <= b <= 0x39)
+
+
+def has_digits(data: bytes) -> bool:
+    """Return True if *data* contains at least one ASCII digit byte.
+
+    This is the boolean companion to :func:`count_digits`. It returns
+    ``True`` when *data* contains at least one ASCII digit byte
+    (``0``-``9``) and ``False`` otherwise (empty input is ``False``),
+    reusing :func:`count_digits` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is an ASCII digit, False otherwise (empty input
+        is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_digits(b"123")
+        True
+        >>> has_digits(bytearray(b"0"))
+        True
+        >>> has_digits(b"abc")
+        False
+        >>> has_digits(b"a1b2c3")
+        True
+        >>> has_digits(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_digits(data) > 0
 
 
 def islower(data: bytes) -> bool:
