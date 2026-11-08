@@ -37168,14 +37168,18 @@ __all__ = [
     "K",
     "V",
     "contains_all_keys",
+    "contains_all_values",
     "contains_any_key",
+    "contains_any_value",
     "contains_key",
     "contains_value",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
     "has_all_keys",
+    "has_all_values",
     "has_any_key",
+    "has_any_value",
     "has_key",
     "has_value",
     "invert_dict",
@@ -37633,6 +37637,70 @@ def has_any_key(d: Dict[Any, Any], keys: Any) -> bool:
 def contains_any_key(d: Dict[Any, Any], keys: Any) -> bool:
     """Alias for :func:`has_any_key`."""
     return has_any_key(d, keys)
+
+
+def has_all_values(d: Dict[Any, Any], values: Any) -> bool:
+    """Report whether all of *values* are present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        values: Iterable of values to look for.
+
+    Returns:
+        ``True`` when every value in *values* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_all_values({"a": 1, "b": 2}, [1, 2])
+        True
+        >>> has_all_values({"a": 1, "b": 2}, [1, 3])
+        False
+        >>> has_all_values({}, [])
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    d_values = d.values()
+    return all(v in d_values for v in values)
+
+
+def contains_all_values(d: Dict[Any, Any], values: Any) -> bool:
+    """Alias for :func:`has_all_values`."""
+    return has_all_values(d, values)
+
+
+def has_any_value(d: Dict[Any, Any], values: Any) -> bool:
+    """Report whether at least one of *values* is present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        values: Iterable of values to look for.
+
+    Returns:
+        ``True`` when at least one value in *values* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_any_value({"a": 1, "b": 2}, [1, 3])
+        True
+        >>> has_any_value({"a": 1, "b": 2}, [3, 4])
+        False
+        >>> has_any_value({}, [])
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    d_values = d.values()
+    return any(v in d_values for v in values)
+
+
+def contains_any_value(d: Dict[Any, Any], values: Any) -> bool:
+    """Alias for :func:`has_any_value`."""
+    return has_any_value(d, values)
 DICTUTILS
 # --- json_utils.py ---
 cat > "$OUTPUT_DIR/json_utils.py" <<'JSONUTILS'
@@ -47243,12 +47311,12 @@ from bit_utils import (
     has_leading_ones,
     has_leading_zeros,
     has_set_bits,
-    isolate_lowest_set_bit,
     has_trailing_ones,
     has_trailing_zeros,
     is_even,
     is_odd,
     is_power_of_two,
+    isolate_lowest_set_bit,
     next_power_of_two,
     prev_power_of_two,
     reverse_bits,
@@ -49797,11 +49865,15 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 import unittest
 
 from dict_utils import (
+    contains_all_values,
+    contains_any_value,
     contains_key,
     contains_value,
     deep_merge,
     filter_dict,
     flatten_dict,
+    has_all_values,
+    has_any_value,
     has_key,
     has_value,
     invert_dict,
@@ -50165,6 +50237,68 @@ class TestOmitKeys(unittest.TestCase):
             omit_keys("x", ["a"])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             omit_keys({"a": 1}, "a")  # type: ignore[arg-type]
+
+
+class TestHasAllValues(unittest.TestCase):
+    def test_all_present(self) -> None:
+        self.assertTrue(has_all_values({"a": 1, "b": 2}, [1, 2]))
+
+    def test_one_missing(self) -> None:
+        self.assertFalse(has_all_values({"a": 1, "b": 2}, [1, 3]))
+
+    def test_empty_values(self) -> None:
+        self.assertTrue(has_all_values({}, []))
+        self.assertTrue(has_all_values({"a": 1}, []))
+
+    def test_empty_dict(self) -> None:
+        self.assertFalse(has_all_values({}, [1]))
+
+    def test_falsy_and_none(self) -> None:
+        self.assertTrue(has_all_values({"a": None, "b": 0, "c": False}, [None, 0]))
+
+    def test_duplicates_in_values(self) -> None:
+        self.assertTrue(has_all_values({"a": 1}, [1, 1]))
+
+    def test_matches_contains_alias(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 2], [1, 3], [], [2]):
+            self.assertEqual(contains_all_values(d, vals), has_all_values(d, vals))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_all_values("x", [1])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_all_values(None, [1])  # type: ignore[arg-type]
+
+
+class TestHasAnyValue(unittest.TestCase):
+    def test_one_present(self) -> None:
+        self.assertTrue(has_any_value({"a": 1, "b": 2}, [1, 3]))
+
+    def test_none_present(self) -> None:
+        self.assertFalse(has_any_value({"a": 1, "b": 2}, [3, 4]))
+
+    def test_empty_values(self) -> None:
+        self.assertFalse(has_any_value({}, []))
+        self.assertFalse(has_any_value({"a": 1}, []))
+
+    def test_empty_dict(self) -> None:
+        self.assertFalse(has_any_value({}, [1]))
+
+    def test_falsy_and_none(self) -> None:
+        self.assertTrue(has_any_value({"a": 1}, [None, 0, 1]))
+        self.assertTrue(has_any_value({"a": None}, [None]))
+
+    def test_matches_contains_alias(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 3], [3, 4], [], [2]):
+            self.assertEqual(contains_any_value(d, vals), has_any_value(d, vals))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_any_value("x", [1])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_any_value(None, [1])  # type: ignore[arg-type]
 TESTDICTUTILS
 
 # --- terminal_utils.py ---
@@ -56620,7 +56754,8 @@ from bytes_utils import (
     count_digits,
     count_non_null_bytes,
     count_null_bytes,
-    decode_ascii,    encode_ascii,
+    decode_ascii,
+    encode_ascii,
     ends_with,
     expandtabs,
     find,
@@ -64108,6 +64243,8 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
 
+### Added
+- `has_all_values`, `contains_all_values`, `has_any_value`, `contains_any_value` in `dict_utils.py`: value-predicate companions to `has_value`/`contains_value`, mirroring the `has_all_keys`/`has_any_key` key-predicate pair, with typed `dict` validation raising `TypeError`, `__all__` exports, ASCII-safe doctests, and targeted tests in `tests/test_dict_utils.py`.
 - Added `is_invertible(d)` to `dict_utils.py` as the boolean companion to `invert_dict`, returning ``True`` when all values in *d* are distinct (so the dictionary can be inverted one-to-one) and ``False`` otherwise. It mirrors `invert_dict`'s success condition without raising, accepts a typed `dict` argument, raises `TypeError` for non-dicts, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsInvertible` (6 tests) to `tests/test_dict_utils.py` covering unique/duplicate/empty/single cases, consistency with `invert_dict`, and `TypeError` paths; imported `is_invertible` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 - Added `has_intersection(a, b)` to `set_utils.py` as the boolean companion to `intersection` and the logical negation of `is_disjoint`, returning ``True`` when the two iterables share at least one common element. Accepts any iterables via the module's `_to_set` validation (raising `TypeError` for non-iterables), is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasIntersection` (7 tests) to `tests/test_set_utils.py` covering overlap/no-overlap/empty/duplicates/strings, consistency with `is_disjoint`, and `TypeError` paths; imported `has_intersection` to match `__all__`. Updated the `set_utils` module tree entry and prose section of `README.md`. Synchronized `set_utils.py`, `tests/test_set_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -66699,7 +66836,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (contains_key, contains_value, keys_equal, values_equal, deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, has_key, has_value)
+dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, keys_equal, values_equal)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -67389,7 +67526,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, key-presence checks via `has_key` (or its alias `contains_key`), value-presence checks via `has_value` (or its alias `contains_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 

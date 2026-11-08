@@ -3,11 +3,15 @@
 import unittest
 
 from dict_utils import (
+    contains_all_values,
+    contains_any_value,
     contains_key,
     contains_value,
     deep_merge,
     filter_dict,
     flatten_dict,
+    has_all_values,
+    has_any_value,
     has_key,
     has_value,
     invert_dict,
@@ -371,3 +375,65 @@ class TestOmitKeys(unittest.TestCase):
             omit_keys("x", ["a"])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             omit_keys({"a": 1}, "a")  # type: ignore[arg-type]
+
+
+class TestHasAllValues(unittest.TestCase):
+    def test_all_present(self) -> None:
+        self.assertTrue(has_all_values({"a": 1, "b": 2}, [1, 2]))
+
+    def test_one_missing(self) -> None:
+        self.assertFalse(has_all_values({"a": 1, "b": 2}, [1, 3]))
+
+    def test_empty_values(self) -> None:
+        self.assertTrue(has_all_values({}, []))
+        self.assertTrue(has_all_values({"a": 1}, []))
+
+    def test_empty_dict(self) -> None:
+        self.assertFalse(has_all_values({}, [1]))
+
+    def test_falsy_and_none(self) -> None:
+        self.assertTrue(has_all_values({"a": None, "b": 0, "c": False}, [None, 0]))
+
+    def test_duplicates_in_values(self) -> None:
+        self.assertTrue(has_all_values({"a": 1}, [1, 1]))
+
+    def test_matches_contains_alias(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 2], [1, 3], [], [2]):
+            self.assertEqual(contains_all_values(d, vals), has_all_values(d, vals))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_all_values("x", [1])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_all_values(None, [1])  # type: ignore[arg-type]
+
+
+class TestHasAnyValue(unittest.TestCase):
+    def test_one_present(self) -> None:
+        self.assertTrue(has_any_value({"a": 1, "b": 2}, [1, 3]))
+
+    def test_none_present(self) -> None:
+        self.assertFalse(has_any_value({"a": 1, "b": 2}, [3, 4]))
+
+    def test_empty_values(self) -> None:
+        self.assertFalse(has_any_value({}, []))
+        self.assertFalse(has_any_value({"a": 1}, []))
+
+    def test_empty_dict(self) -> None:
+        self.assertFalse(has_any_value({}, [1]))
+
+    def test_falsy_and_none(self) -> None:
+        self.assertTrue(has_any_value({"a": 1}, [None, 0, 1]))
+        self.assertTrue(has_any_value({"a": None}, [None]))
+
+    def test_matches_contains_alias(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 3], [3, 4], [], [2]):
+            self.assertEqual(contains_any_value(d, vals), has_any_value(d, vals))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_any_value("x", [1])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_any_value(None, [1])  # type: ignore[arg-type]

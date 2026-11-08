@@ -9,14 +9,18 @@ __all__ = [
     "K",
     "V",
     "contains_all_keys",
+    "contains_all_values",
     "contains_any_key",
+    "contains_any_value",
     "contains_key",
     "contains_value",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
     "has_all_keys",
+    "has_all_values",
     "has_any_key",
+    "has_any_value",
     "has_key",
     "has_value",
     "invert_dict",
@@ -474,3 +478,67 @@ def has_any_key(d: Dict[Any, Any], keys: Any) -> bool:
 def contains_any_key(d: Dict[Any, Any], keys: Any) -> bool:
     """Alias for :func:`has_any_key`."""
     return has_any_key(d, keys)
+
+
+def has_all_values(d: Dict[Any, Any], values: Any) -> bool:
+    """Report whether all of *values* are present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        values: Iterable of values to look for.
+
+    Returns:
+        ``True`` when every value in *values* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_all_values({"a": 1, "b": 2}, [1, 2])
+        True
+        >>> has_all_values({"a": 1, "b": 2}, [1, 3])
+        False
+        >>> has_all_values({}, [])
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    d_values = d.values()
+    return all(v in d_values for v in values)
+
+
+def contains_all_values(d: Dict[Any, Any], values: Any) -> bool:
+    """Alias for :func:`has_all_values`."""
+    return has_all_values(d, values)
+
+
+def has_any_value(d: Dict[Any, Any], values: Any) -> bool:
+    """Report whether at least one of *values* is present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        values: Iterable of values to look for.
+
+    Returns:
+        ``True`` when at least one value in *values* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_any_value({"a": 1, "b": 2}, [1, 3])
+        True
+        >>> has_any_value({"a": 1, "b": 2}, [3, 4])
+        False
+        >>> has_any_value({}, [])
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    d_values = d.values()
+    return any(v in d_values for v in values)
+
+
+def contains_any_value(d: Dict[Any, Any], values: Any) -> bool:
+    """Alias for :func:`has_any_value`."""
+    return has_any_value(d, values)
