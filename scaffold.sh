@@ -105173,6 +105173,7 @@ __all__ = [
     "T",
     "adjacent_pairs",
     "chunk",
+    "contains",
     "count_occurrences",
     "distinct",
     "drop_while",
@@ -105702,6 +105703,33 @@ def has_occurrences(sequence: Sequence[T], value: T) -> bool:
         False
     """
     return count_occurrences(sequence, value) > 0
+
+
+def contains(sequence: Sequence[T], value: T) -> bool:
+    """Return ``True`` when ``value`` is a member of ``sequence``.
+
+    This is a membership-predicate companion to :func:`has_occurrences`,
+    reusing it for consistency.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to look for.
+
+    Returns:
+        ``True`` if ``value`` is present in ``sequence``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> contains([1, 2, 3], 2)
+        True
+        >>> contains([1, 2, 3], 4)
+        False
+        >>> contains([], 1)
+        False
+    """
+    return has_occurrences(sequence, value)
 
 
 def index_of(sequence: Sequence[T], value: T) -> Optional[int]:
