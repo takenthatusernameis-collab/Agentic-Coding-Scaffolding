@@ -9,6 +9,7 @@ _ALPHABET = string.ascii_letters + string.digits
 __all__ = [
     "generate_id",
     "is_valid_id",
+    "validate_id",
     "new_id",
     "generate_prefixed_id",
 ]
@@ -72,3 +73,8 @@ def is_valid_id(value: str, length: int = 8) -> bool:
     if not isinstance(length, int) or isinstance(length, bool) or length <= 0:
         return False
     return len(value) == length and all(ch in _ALPHABET for ch in value)
+
+
+def validate_id(value: str, length: int = 8) -> bool:
+    """Alias for :func:`is_valid_id`."""
+    return is_valid_id(value, length)
