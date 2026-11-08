@@ -61365,6 +61365,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — id_utils validate_id alias (tests/docs/scaffold sync)
+
+- Completed the prior `validate_id` alias added to `id_utils.py`: added `validate_id` coverage in `tests/test_id_utils.py` (behavior + parity with `is_valid_id`), updated `README.md` module tree/prose to list `validate_id`, and refreshed embedded copies in `scaffold.sh` with `make refresh-scaffold`. `python -m unittest tests.test_id_utils` (16), `python -m unittest tests.test_public_api`, and `python tools/refresh_scaffold.py --check` (all embedded copies in sync). No `.github/workflows/**` changes.
+
 ## Unreleased — added has_distinct_prime_factors to prime_utils
 
 - Added `has_distinct_prime_factors(n)` to `prime_utils.py` as the boolean companion to `distinct_prime_factors`, reporting whether *n* has at least one distinct prime factor (i.e. ``False`` only when *n* is 1). It reuses `distinct_prime_factors` for consistency, accepts a typed `int` argument, raises `TypeError` for non-ints and `ValueError` for *n* less than 1 (the same contract as `distinct_prime_factors`), is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasDistinctPrimeFactors` (6 tests) to `tests/test_prime_utils.py` covering basic/prime-power/no-factor cases, consistency with `distinct_prime_factors` for n in 1..199, and the `TypeError`/`ValueError` paths; imported `has_distinct_prime_factors` to match `__all__`. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized `prime_utils.py`, `tests/test_prime_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prime_utils`; targeted doctest for `has_distinct_prime_factors`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
