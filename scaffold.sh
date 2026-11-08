@@ -105344,6 +105344,7 @@ __all__ = [
     "find_index",
     "first",
     "flatten",
+    "has_duplicates",
     "has_occurrences",
     "has_where",
     "head",
@@ -105741,6 +105742,38 @@ def unique(sequence: Sequence[T]) -> List[T]:
 distinct = unique
 
 
+def has_duplicates(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when ``sequence`` contains at least one duplicate value.
+
+    This is the boolean companion to :func:`unique`; it reports whether
+    deduplication would change the sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if any value appears more than once, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> has_duplicates([1, 2, 3])
+        False
+        >>> has_duplicates([1, 2, 2, 3])
+        True
+        >>> has_duplicates([])
+        False
+    """
+    _require_sequence(sequence)
+    seen: set = set()
+    for item in sequence:
+        if item in seen:
+            return True
+        seen.add(item)
+    return False
+
+
 def flatten(sequence: Sequence[Any]) -> List[Any]:
     """Flatten one level of nesting in ``sequence``.
 
@@ -106119,6 +106152,7 @@ from seq_utils import (
     find_index,
     first,
     flatten,
+    has_duplicates,
     has_occurrences,
     has_where,
     head,
@@ -106667,6 +106701,21 @@ class TestFindIndex(unittest.TestCase):
             find_index([1, 2, 3], 1)
         with self.assertRaises(TypeError):
             find_index([1, 2, 3], None)
+
+
+class TestHasDuplicates(unittest.TestCase):
+    def test_no_duplicates(self):
+        self.assertFalse(has_duplicates([1, 2, 3]))
+
+    def test_duplicates(self):
+        self.assertTrue(has_duplicates([1, 2, 2, 3]))
+
+    def test_empty(self):
+        self.assertFalse(has_duplicates([]))
+
+    def test_non_sequence_raises(self):
+        with self.assertRaises(TypeError):
+            has_duplicates(123)
 TEST_SEQ_UTILS
 
 # --- shelve_utils.py ---

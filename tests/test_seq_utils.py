@@ -13,6 +13,7 @@ from seq_utils import (
     find_index,
     first,
     flatten,
+    has_duplicates,
     has_occurrences,
     has_where,
     head,
@@ -561,3 +562,18 @@ class TestFindIndex(unittest.TestCase):
             find_index([1, 2, 3], 1)
         with self.assertRaises(TypeError):
             find_index([1, 2, 3], None)
+
+
+class TestHasDuplicates(unittest.TestCase):
+    def test_no_duplicates(self):
+        self.assertFalse(has_duplicates([1, 2, 3]))
+
+    def test_duplicates(self):
+        self.assertTrue(has_duplicates([1, 2, 2, 3]))
+
+    def test_empty(self):
+        self.assertFalse(has_duplicates([]))
+
+    def test_non_sequence_raises(self):
+        with self.assertRaises(TypeError):
+            has_duplicates(123)

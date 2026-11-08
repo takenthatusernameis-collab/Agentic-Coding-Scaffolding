@@ -27,6 +27,7 @@ __all__ = [
     "find_index",
     "first",
     "flatten",
+    "has_duplicates",
     "has_occurrences",
     "has_where",
     "head",
@@ -422,6 +423,38 @@ def unique(sequence: Sequence[T]) -> List[T]:
 
 
 distinct = unique
+
+
+def has_duplicates(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when ``sequence`` contains at least one duplicate value.
+
+    This is the boolean companion to :func:`unique`; it reports whether
+    deduplication would change the sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if any value appears more than once, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> has_duplicates([1, 2, 3])
+        False
+        >>> has_duplicates([1, 2, 2, 3])
+        True
+        >>> has_duplicates([])
+        False
+    """
+    _require_sequence(sequence)
+    seen: set = set()
+    for item in sequence:
+        if item in seen:
+            return True
+        seen.add(item)
+    return False
 
 
 def flatten(sequence: Sequence[Any]) -> List[Any]:
