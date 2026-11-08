@@ -34,6 +34,7 @@ __all__: list[str] = [
     "has_trailing_zeros",
     "count_trailing_ones",
     "has_trailing_ones",
+    "bit_parity",
 ]
 
 
@@ -716,3 +717,30 @@ def has_trailing_ones(value: int) -> bool:
     """
     _validate_nonnegative_int(value)
     return count_trailing_ones(value) > 0
+
+
+def bit_parity(value: int) -> int:
+    """Return the parity of the number of set bits in value.
+
+    Returns 0 if the number of set bits is even, 1 if odd.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        0 or 1 representing the parity.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> bit_parity(0)
+        0
+        >>> bit_parity(5)  # 0b101 -> 2 set bits -> even
+        0
+        >>> bit_parity(7)  # 0b111 -> 3 set bits -> odd
+        1
+    """
+    _validate_nonnegative_int(value)
+    return count_set_bits(value) & 1

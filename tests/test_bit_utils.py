@@ -3,6 +3,7 @@
 import unittest
 
 from bit_utils import (
+    bit_parity,
     clear_bit,
     clear_lowest_set_bit,
     count_leading_zeros,
@@ -361,6 +362,19 @@ class TestHasTrailingOnes(unittest.TestCase):
             has_trailing_ones(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_trailing_ones(-1)
+
+
+class TestBitParity(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(bit_parity(0), 0)
+        self.assertEqual(bit_parity(5), 0)
+        self.assertEqual(bit_parity(7), 1)
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            bit_parity("4")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            bit_parity(-1)
 
 
 if __name__ == "__main__":

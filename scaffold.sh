@@ -45938,6 +45938,7 @@ __all__: list[str] = [
     "has_trailing_zeros",
     "count_trailing_ones",
     "has_trailing_ones",
+    "bit_parity",
 ]
 
 
@@ -46620,6 +46621,33 @@ def has_trailing_ones(value: int) -> bool:
     """
     _validate_nonnegative_int(value)
     return count_trailing_ones(value) > 0
+
+
+def bit_parity(value: int) -> int:
+    """Return the parity of the number of set bits in value.
+
+    Returns 0 if the number of set bits is even, 1 if odd.
+
+    Args:
+        value: A non-negative integer.
+
+    Returns:
+        0 or 1 representing the parity.
+
+    Raises:
+        TypeError: If value is not an integer.
+        ValueError: If value is negative.
+
+    Examples:
+        >>> bit_parity(0)
+        0
+        >>> bit_parity(5)  # 0b101 -> 2 set bits -> even
+        0
+        >>> bit_parity(7)  # 0b111 -> 3 set bits -> odd
+        1
+    """
+    _validate_nonnegative_int(value)
+    return count_set_bits(value) & 1
 BITUTILS
 
 # --- tests/test_bit_utils.py ---
@@ -46629,6 +46657,7 @@ cat > "$OUTPUT_DIR/tests/test_bit_utils.py" <<'TEST_BIT_UTILS'
 import unittest
 
 from bit_utils import (
+    bit_parity,
     clear_bit,
     clear_lowest_set_bit,
     count_leading_zeros,
@@ -46987,6 +47016,19 @@ class TestHasTrailingOnes(unittest.TestCase):
             has_trailing_ones(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_trailing_ones(-1)
+
+
+class TestBitParity(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(bit_parity(0), 0)
+        self.assertEqual(bit_parity(5), 0)
+        self.assertEqual(bit_parity(7), 1)
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            bit_parity("4")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            bit_parity(-1)
 
 
 if __name__ == "__main__":
