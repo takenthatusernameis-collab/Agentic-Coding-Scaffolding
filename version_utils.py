@@ -29,6 +29,8 @@ __all__ = [
     "get_build_metadata",
     "count_build_metadata_identifiers",
     "has_build_metadata_identifiers",
+    "count_prerelease_identifiers",
+    "has_prerelease_identifiers",
     "has_build_metadata",
     "has_metadata",
     "has_prerelease",
@@ -833,6 +835,76 @@ def has_build_metadata_identifiers(version: str) -> bool:
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     return count_build_metadata_identifiers(version) > 0
+
+
+def count_prerelease_identifiers(version: str) -> int:
+    """Count dot-separated identifiers in *version*'s prerelease suffix.
+
+    The prerelease suffix follows the first ``-`` character (for example
+    ``"1.2.3-alpha.beta.1"`` has identifiers ``alpha``, ``beta``, and ``1``).
+    Any build metadata after ``+`` is ignored. Returns ``0`` when no
+    prerelease suffix is present or when the suffix is empty.
+
+    Args:
+        version: A dotted version string, optionally with a prerelease suffix.
+
+    Returns:
+        The number of dot-separated prerelease identifiers.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> count_prerelease_identifiers("1.2.3-alpha.beta.1")
+        3
+        >>> count_prerelease_identifiers("1.2.3-rc1")
+        1
+        >>> count_prerelease_identifiers("1.2.3-rc1+build.123")
+        1
+        >>> count_prerelease_identifiers("1.2.3")
+        0
+        >>> count_prerelease_identifiers("")
+        0
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    prerelease = get_prerelease(version)
+    if prerelease is None or prerelease == "":
+        return 0
+    if "+" in prerelease:
+        prerelease = prerelease.split("+", 1)[0]
+    if prerelease == "":
+        return 0
+    return len(prerelease.split("."))
+
+
+def has_prerelease_identifiers(version: str) -> bool:
+    """Return ``True`` when *version* has at least one prerelease identifier.
+
+    This is the boolean companion to :func:`count_prerelease_identifiers`. It
+    returns ``False`` when no prerelease suffix is present or when the suffix
+    is empty, reusing :func:`count_prerelease_identifiers` for consistency.
+
+    Args:
+        version: A dotted version string, optionally with a prerelease suffix.
+
+    Returns:
+        ``True`` if at least one prerelease identifier is present.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_prerelease_identifiers("1.2.3-rc1")
+        True
+        >>> has_prerelease_identifiers("1.2.3")
+        False
+        >>> has_prerelease_identifiers("1.2.3-")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return count_prerelease_identifiers(version) > 0
 
 
 def has_build_metadata(version: str) -> bool:

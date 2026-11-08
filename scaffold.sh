@@ -61277,6 +61277,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_prerelease_identifiers/has_prerelease_identifiers to version_utils
+
+- Added `count_prerelease_identifiers(version)` and boolean companion `has_prerelease_identifiers(version)` to `version_utils.py`. `count_prerelease_identifiers` returns the number of dot-separated identifiers in a version's prerelease suffix (after `-`), ignoring any build metadata after `+`, or `0` when no prerelease suffix is present or it is empty; `has_prerelease_identifiers` reports whether any identifier is present, reusing the count helper for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountPrereleaseIdentifiers` and `TestHasPrereleaseIdentifiers` (8 tests) to `tests/test_version_utils.py` covering counts, no/empty suffix, prerelease+build metadata, consistency with `count_prerelease_identifiers`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `version_utils` prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_version_utils`; targeted doctest for the new helpers; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
+
 ## Unreleased — added contains_key to dict_utils
 
 - Added `contains_key(d, key)` to `dict_utils.py` as an alias for `has_key`, so the module offers a single `contains_*` naming convention alongside `select_keys` and `omit_keys`. `contains_key` delegates to `has_key`, accepts typed `Dict[K, Any]` and `K` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestContainsKey` (5 tests) to `tests/test_dict_utils.py` covering present, absent, empty dict, consistency with `has_key`, and the `TypeError` path; imported `contains_key` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `contains_key`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
@@ -64756,7 +64760,7 @@ The project includes graph and dependency resolution utilities in `graphlib_util
 
 ## Version Utilities Module
 
-The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `count_components` returns the number of dot-separated components in a version string, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, `count_build_metadata_identifiers` counts dot-separated build metadata identifiers and `has_build_metadata_identifiers` reports whether any are present, and `has_metadata` is a convenience boolean that reports whether a version string carries prerelease or build metadata, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
+The project includes version utility functions in `version_utils.py` for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `count_components` returns the number of dot-separated components in a version string, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, `count_build_metadata_identifiers` counts dot-separated build metadata identifiers and `has_build_metadata_identifiers` reports whether any are present, `count_prerelease_identifiers` counts dot-separated prerelease identifiers and `has_prerelease_identifiers` reports whether any are present (ignoring build metadata), and `has_metadata` is a convenience boolean that reports whether a version string carries prerelease or build metadata, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
 
 ## Text Wrapping Utilities Module
 
@@ -117722,6 +117726,8 @@ __all__ = [
     "get_build_metadata",
     "count_build_metadata_identifiers",
     "has_build_metadata_identifiers",
+    "count_prerelease_identifiers",
+    "has_prerelease_identifiers",
     "has_build_metadata",
     "has_metadata",
     "has_prerelease",
@@ -118528,6 +118534,76 @@ def has_build_metadata_identifiers(version: str) -> bool:
     return count_build_metadata_identifiers(version) > 0
 
 
+def count_prerelease_identifiers(version: str) -> int:
+    """Count dot-separated identifiers in *version*'s prerelease suffix.
+
+    The prerelease suffix follows the first ``-`` character (for example
+    ``"1.2.3-alpha.beta.1"`` has identifiers ``alpha``, ``beta``, and ``1``).
+    Any build metadata after ``+`` is ignored. Returns ``0`` when no
+    prerelease suffix is present or when the suffix is empty.
+
+    Args:
+        version: A dotted version string, optionally with a prerelease suffix.
+
+    Returns:
+        The number of dot-separated prerelease identifiers.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> count_prerelease_identifiers("1.2.3-alpha.beta.1")
+        3
+        >>> count_prerelease_identifiers("1.2.3-rc1")
+        1
+        >>> count_prerelease_identifiers("1.2.3-rc1+build.123")
+        1
+        >>> count_prerelease_identifiers("1.2.3")
+        0
+        >>> count_prerelease_identifiers("")
+        0
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    prerelease = get_prerelease(version)
+    if prerelease is None or prerelease == "":
+        return 0
+    if "+" in prerelease:
+        prerelease = prerelease.split("+", 1)[0]
+    if prerelease == "":
+        return 0
+    return len(prerelease.split("."))
+
+
+def has_prerelease_identifiers(version: str) -> bool:
+    """Return ``True`` when *version* has at least one prerelease identifier.
+
+    This is the boolean companion to :func:`count_prerelease_identifiers`. It
+    returns ``False`` when no prerelease suffix is present or when the suffix
+    is empty, reusing :func:`count_prerelease_identifiers` for consistency.
+
+    Args:
+        version: A dotted version string, optionally with a prerelease suffix.
+
+    Returns:
+        ``True`` if at least one prerelease identifier is present.
+
+    Raises:
+        TypeError: If *version* is not a string.
+
+    Examples:
+        >>> has_prerelease_identifiers("1.2.3-rc1")
+        True
+        >>> has_prerelease_identifiers("1.2.3")
+        False
+        >>> has_prerelease_identifiers("1.2.3-")
+        False
+    """
+    if not isinstance(version, str):
+        raise TypeError("version must be a string")
+    return count_prerelease_identifiers(version) > 0
+
+
 def has_build_metadata(version: str) -> bool:
     """Return True if *version* carries a build metadata suffix.
 
@@ -119068,6 +119144,7 @@ from version_utils import (
     compare_versions,
     count_build_metadata_identifiers,
     count_components,
+    count_prerelease_identifiers,
     dec,
     decrement,
     decrement_major,
@@ -119089,6 +119166,7 @@ from version_utils import (
     has_components,
     has_metadata,
     has_prerelease,
+    has_prerelease_identifiers,
     increment,
     increment_major,
     increment_minor,
@@ -120475,6 +120553,61 @@ class TestHasBuildMetadataIdentifiers(unittest.TestCase):
             has_build_metadata_identifiers(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_build_metadata_identifiers(False)  # type: ignore[arg-type]
+
+
+class TestCountPrereleaseIdentifiers(unittest.TestCase):
+    def test_count_identifiers(self):
+        self.assertEqual(count_prerelease_identifiers("1.2.3-alpha.beta.1"), 3)
+        self.assertEqual(count_prerelease_identifiers("1.2.3-rc1"), 1)
+        self.assertEqual(count_prerelease_identifiers("1.2.3"), 0)
+        self.assertEqual(count_prerelease_identifiers(""), 0)
+
+    def test_ignores_build_metadata(self):
+        self.assertEqual(count_prerelease_identifiers("1.2.3-rc1+build.123"), 1)
+        self.assertEqual(count_prerelease_identifiers("1.2.3-alpha.beta+build"), 2)
+
+    def test_empty_suffix_returns_zero(self):
+        self.assertEqual(count_prerelease_identifiers("1.2.3-"), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_prerelease_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_prerelease_identifiers(None)  # type: ignore[arg-type]
+
+
+class TestHasPrereleaseIdentifiers(unittest.TestCase):
+    def test_has_identifiers(self):
+        self.assertTrue(has_prerelease_identifiers("1.2.3-rc1"))
+        self.assertTrue(has_prerelease_identifiers("1.2.3-alpha.beta.1"))
+
+    def test_no_identifiers(self):
+        self.assertFalse(has_prerelease_identifiers("1.2.3"))
+        self.assertFalse(has_prerelease_identifiers("1.2.3+build"))
+        self.assertFalse(has_prerelease_identifiers(""))
+        self.assertFalse(has_prerelease_identifiers("1.2.3-"))
+
+    def test_consistency_with_count(self):
+        cases = [
+            "1.2.3",
+            "1.2.3-rc1",
+            "1.2.3-alpha.beta",
+            "1.2.3-rc1+build.123",
+            "1.2.3-",
+            "",
+        ]
+        for version in cases:
+            self.assertEqual(
+                has_prerelease_identifiers(version),
+                count_prerelease_identifiers(version) > 0,
+                msg=version,
+            )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_prerelease_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prerelease_identifiers(False)  # type: ignore[arg-type]
 TEST_VERSION_UTILS
 
 # --- warnings_utils.py ---

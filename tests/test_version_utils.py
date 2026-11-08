@@ -17,6 +17,7 @@ from version_utils import (
     compare_versions,
     count_build_metadata_identifiers,
     count_components,
+    count_prerelease_identifiers,
     dec,
     decrement,
     decrement_major,
@@ -38,6 +39,7 @@ from version_utils import (
     has_components,
     has_metadata,
     has_prerelease,
+    has_prerelease_identifiers,
     increment,
     increment_major,
     increment_minor,
@@ -1424,3 +1426,58 @@ class TestHasBuildMetadataIdentifiers(unittest.TestCase):
             has_build_metadata_identifiers(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_build_metadata_identifiers(False)  # type: ignore[arg-type]
+
+
+class TestCountPrereleaseIdentifiers(unittest.TestCase):
+    def test_count_identifiers(self):
+        self.assertEqual(count_prerelease_identifiers("1.2.3-alpha.beta.1"), 3)
+        self.assertEqual(count_prerelease_identifiers("1.2.3-rc1"), 1)
+        self.assertEqual(count_prerelease_identifiers("1.2.3"), 0)
+        self.assertEqual(count_prerelease_identifiers(""), 0)
+
+    def test_ignores_build_metadata(self):
+        self.assertEqual(count_prerelease_identifiers("1.2.3-rc1+build.123"), 1)
+        self.assertEqual(count_prerelease_identifiers("1.2.3-alpha.beta+build"), 2)
+
+    def test_empty_suffix_returns_zero(self):
+        self.assertEqual(count_prerelease_identifiers("1.2.3-"), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_prerelease_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_prerelease_identifiers(None)  # type: ignore[arg-type]
+
+
+class TestHasPrereleaseIdentifiers(unittest.TestCase):
+    def test_has_identifiers(self):
+        self.assertTrue(has_prerelease_identifiers("1.2.3-rc1"))
+        self.assertTrue(has_prerelease_identifiers("1.2.3-alpha.beta.1"))
+
+    def test_no_identifiers(self):
+        self.assertFalse(has_prerelease_identifiers("1.2.3"))
+        self.assertFalse(has_prerelease_identifiers("1.2.3+build"))
+        self.assertFalse(has_prerelease_identifiers(""))
+        self.assertFalse(has_prerelease_identifiers("1.2.3-"))
+
+    def test_consistency_with_count(self):
+        cases = [
+            "1.2.3",
+            "1.2.3-rc1",
+            "1.2.3-alpha.beta",
+            "1.2.3-rc1+build.123",
+            "1.2.3-",
+            "",
+        ]
+        for version in cases:
+            self.assertEqual(
+                has_prerelease_identifiers(version),
+                count_prerelease_identifiers(version) > 0,
+                msg=version,
+            )
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_prerelease_identifiers(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_prerelease_identifiers(False)  # type: ignore[arg-type]
