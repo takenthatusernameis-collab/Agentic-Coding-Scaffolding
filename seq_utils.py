@@ -43,6 +43,7 @@ __all__ = [
     "last_index_of",
     "nth",
     "nth_or_default",
+    "partition",
     "split_at",
     "tail",
     "take_while",
@@ -211,6 +212,45 @@ def tail(sequence: Sequence[T], n: int = 1) -> List[T]:
     if n == 0:
         return []
     return list(sequence[-n:])
+
+
+def partition(
+    sequence: Sequence[T], predicate: Callable[[T], bool]
+) -> Tuple[List[T], List[T]]:
+    """Split ``sequence`` into ``(matching, not_matching)`` by ``predicate``.
+
+    Items for which ``predicate`` returns true go into the first list, the rest
+    into the second. Order is preserved within each list.
+
+    Args:
+        sequence: The sequence to split.
+        predicate: A callable returning true for items to include in the first
+            list.
+
+    Returns:
+        A tuple of ``(matching, not_matching)`` lists.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> partition([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        ([2, 4], [1, 3, 5])
+        >>> partition([], bool)
+        ([], [])
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    matching: List[T] = []
+    not_matching: List[T] = []
+    for item in sequence:
+        if predicate(item):
+            matching.append(item)
+        else:
+            not_matching.append(item)
+    return matching, not_matching
 
 
 def split_at(sequence: Sequence[T], index: int) -> Tuple[List[T], List[T]]:
