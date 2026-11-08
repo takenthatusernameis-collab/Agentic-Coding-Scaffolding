@@ -88,6 +88,7 @@ __all__: List[str] = [
     "count_lowercase",
     "count_uppercase",
     "count_punctuation",
+    "count_alphanumeric",
     "reverse_lines",
     "strip_blank_lines",
     "strip_leading_newlines",
@@ -2494,12 +2495,44 @@ def has_punctuation(text: str) -> bool:
     return any(ch in _PUNCTUATION for ch in text)
 
 
+def count_alphanumeric(text: str) -> int:
+    """Return the number of ASCII alphanumeric characters in *text*.
+
+    Counts every character in *text* that is an ASCII letter (``a``-``z``,
+    ``A``-``Z``) or an ASCII decimal digit (``0``-``9``). Unicode letters or
+    numerals are not counted. Empty text returns zero.
+
+    Args:
+        text: The text to count alphanumeric characters in.
+
+    Returns:
+        The number of ASCII alphanumeric characters in *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_alphanumeric("Hello123")
+        8
+        >>> count_alphanumeric("hello")
+        5
+        >>> count_alphanumeric("123")
+        3
+        >>> count_alphanumeric("!!!")
+        0
+        >>> count_alphanumeric("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ("a" <= ch <= "z") or ("A" <= ch <= "Z") or ("0" <= ch <= "9"))
+
+
 def has_alphanumeric(text: str) -> bool:
     """Return True if *text* contains any alphanumeric character.
 
-    A boolean companion to :func:`count_letters` and :func:`count_digits`
-    that reports whether *text* contains at least one ASCII letter or digit.
-    Empty text returns False.
+    A boolean companion to :func:`count_alphanumeric` that reports whether
+    *text* contains at least one ASCII letter or digit. Empty text returns
+    False.
 
     Args:
         text: The text to inspect.
@@ -2523,8 +2556,7 @@ def has_alphanumeric(text: str) -> bool:
         >>> has_alphanumeric("")
         False
     """
-    _require_string(text, "text")
-    return any(ch.isalnum() for ch in text)
+    return count_alphanumeric(text) > 0
 
 
 def has_vowels(text: str) -> bool:

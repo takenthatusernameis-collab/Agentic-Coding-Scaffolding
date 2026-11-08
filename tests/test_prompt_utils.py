@@ -6,6 +6,7 @@ from prompt_utils import (
     chomp,
     clean_prompt,
     collapse_blank_lines,
+    count_alphanumeric,
     count_blank_lines,
     count_characters,
     count_consonants,
@@ -1742,6 +1743,51 @@ class TestCountPunctuation(unittest.TestCase):
             count_punctuation(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_punctuation([])  # type: ignore[arg-type]
+
+
+class TestCountAlphanumeric(unittest.TestCase):
+    """Tests for count_alphanumeric function."""
+
+    def test_empty_string(self):
+        self.assertEqual(count_alphanumeric(""), 0)
+
+    def test_only_letters(self):
+        self.assertEqual(count_alphanumeric("hello"), 5)
+        self.assertEqual(count_alphanumeric("HELLO"), 5)
+        self.assertEqual(count_alphanumeric("HelloWorld"), 10)
+
+    def test_only_digits(self):
+        self.assertEqual(count_alphanumeric("123"), 3)
+        self.assertEqual(count_alphanumeric("007"), 3)
+
+    def test_letters_and_digits(self):
+        self.assertEqual(count_alphanumeric("Hello123"), 8)
+        self.assertEqual(count_alphanumeric("a1b2c3"), 6)
+
+    def test_no_alphanumeric(self):
+        self.assertEqual(count_alphanumeric("!!!"), 0)
+        self.assertEqual(count_alphanumeric("   "), 0)
+        self.assertEqual(count_alphanumeric("..."), 0)
+
+    def test_mixed_with_whitespace_and_punctuation(self):
+        self.assertEqual(count_alphanumeric("Hello, world! 123"), 13)
+        self.assertEqual(count_alphanumeric("Price: $19.99!"), 9)
+
+    def test_unicode_not_counted(self):
+        self.assertEqual(count_alphanumeric("héllo"), 4)
+        self.assertEqual(count_alphanumeric("٣٤٥"), 0)
+
+    def test_consistency_with_has_alphanumeric(self):
+        for text in ["", "hello", "123", "Hello123", "!!!", "héllo"]:
+            self.assertEqual(count_alphanumeric(text) > 0, has_alphanumeric(text))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_alphanumeric(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_alphanumeric(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_alphanumeric([])  # type: ignore[arg-type]
 
 
 class TestSplitLines(unittest.TestCase):
