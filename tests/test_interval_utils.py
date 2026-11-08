@@ -265,7 +265,7 @@ class TestIntervalAdjacent(unittest.TestCase):
         self.assertTrue(interval_adjacent((1, 5), (5, 8)))
 
     def test_touching_b_before_a(self):
-        self.assertTrue(interval_adjacent((8, 10), (1, 5)))
+        self.assertTrue(interval_adjacent((5, 8), (1, 5)))
 
     def test_overlapping_not_adjacent(self):
         self.assertFalse(interval_adjacent((1, 5), (4, 8)))

@@ -276,7 +276,7 @@ def interval_adjacent(a: Interval, b: Interval) -> bool:
     Examples:
         >>> interval_adjacent((1, 5), (5, 8))
         True
-        >>> interval_adjacent((8, 10), (1, 5))
+        >>> interval_adjacent((5, 8), (1, 5))
         True
         >>> interval_adjacent((1, 5), (4, 8))
         False

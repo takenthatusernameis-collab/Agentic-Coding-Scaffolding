@@ -12,6 +12,7 @@ from list_utils import (
     flatten,
     group_by,
     has_duplicates,
+    count_duplicates,
     intersperse,
     is_empty,
     is_sorted,
@@ -328,6 +329,41 @@ class TestHasDuplicates(unittest.TestCase):
     def test_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             has_duplicates("aa")  # type: ignore[arg-type]
+
+
+class TestCountDuplicates(unittest.TestCase):
+    def test_count_duplicates_basic(self) -> None:
+        self.assertEqual(count_duplicates([1, 2, 2, 3]), 1)
+
+    def test_count_duplicates_none(self) -> None:
+        self.assertEqual(count_duplicates([1, 2, 3]), 0)
+
+    def test_count_duplicates_empty(self) -> None:
+        self.assertEqual(count_duplicates([]), 0)
+
+    def test_count_duplicates_multiple_same_value(self) -> None:
+        self.assertEqual(count_duplicates([1, 2, 2, 2, 3]), 2)
+
+    def test_count_duplicates_multiple_values(self) -> None:
+        self.assertEqual(count_duplicates([1, 1, 2, 2]), 2)
+
+    def test_count_duplicates_all_same(self) -> None:
+        self.assertEqual(count_duplicates([1, 1, 1]), 2)
+
+    def test_count_duplicates_strings(self) -> None:
+        self.assertEqual(count_duplicates(["a", "b", "a"]), 1)
+
+    def test_count_duplicates_unhashable(self) -> None:
+        self.assertEqual(count_duplicates([[1], [2], [1]]), 1)
+        self.assertEqual(count_duplicates([[1], [2]]), 0)
+
+    def test_count_duplicates_consistency_with_has_duplicates(self) -> None:
+        for lst in ([], [1], [1, 2], [1, 1], [1, 2, 2, 3], ["a", "b", "a"]):
+            self.assertEqual(count_duplicates(lst) > 0, has_duplicates(lst))
+
+    def test_count_duplicates_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_duplicates("aa")  # type: ignore[arg-type]
 
 
 class TestIsSorted(unittest.TestCase):

@@ -33583,6 +33583,7 @@ __all__ = [
     "T",
     "chunks",
     "contains",
+    "count_duplicates",
     "drop",
     "find",
     "find_index",
@@ -33992,6 +33993,50 @@ def is_empty(lst: List[T]) -> bool:
     return len(lst) == 0
 
 
+def count_duplicates(lst: List[T]) -> int:
+    """Return the number of duplicate (extra) elements in *lst*.
+
+    The result is ``len(lst)`` minus the number of distinct elements, so a
+    list with no duplicates returns ``0``. Elements are compared by equality;
+    hashable elements use a set for efficiency, and unhashable elements fall
+    back to linear membership checks.
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        The number of elements beyond their first occurrence.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> count_duplicates([1, 2, 2, 3])
+        1
+        >>> count_duplicates([1, 2, 3])
+        0
+        >>> count_duplicates([])
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen: set = set()
+    unhashable: List[T] = []
+    unique = 0
+    for item in lst:
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+            unique += 1
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
+            unique += 1
+    return len(lst) - unique
+
+
 def has_duplicates(lst: List[T]) -> bool:
     """Return ``True`` when *lst* contains any duplicate element.
 
@@ -34017,18 +34062,7 @@ def has_duplicates(lst: List[T]) -> bool:
     """
     if not isinstance(lst, list):
         raise TypeError("lst must be a list")
-    seen: set = set()
-    unhashable: List[T] = []
-    for item in lst:
-        try:
-            if item in seen:
-                return True
-            seen.add(item)
-        except TypeError:
-            if item in unhashable:
-                return True
-            unhashable.append(item)
-    return False
+    return count_duplicates(lst) > 0
 
 
 def is_sorted(lst: List[T], reverse: bool = False) -> bool:
@@ -34131,6 +34165,7 @@ from list_utils import (
     flatten,
     group_by,
     has_duplicates,
+    count_duplicates,
     intersperse,
     is_empty,
     is_sorted,
@@ -34447,6 +34482,41 @@ class TestHasDuplicates(unittest.TestCase):
     def test_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             has_duplicates("aa")  # type: ignore[arg-type]
+
+
+class TestCountDuplicates(unittest.TestCase):
+    def test_count_duplicates_basic(self) -> None:
+        self.assertEqual(count_duplicates([1, 2, 2, 3]), 1)
+
+    def test_count_duplicates_none(self) -> None:
+        self.assertEqual(count_duplicates([1, 2, 3]), 0)
+
+    def test_count_duplicates_empty(self) -> None:
+        self.assertEqual(count_duplicates([]), 0)
+
+    def test_count_duplicates_multiple_same_value(self) -> None:
+        self.assertEqual(count_duplicates([1, 2, 2, 2, 3]), 2)
+
+    def test_count_duplicates_multiple_values(self) -> None:
+        self.assertEqual(count_duplicates([1, 1, 2, 2]), 2)
+
+    def test_count_duplicates_all_same(self) -> None:
+        self.assertEqual(count_duplicates([1, 1, 1]), 2)
+
+    def test_count_duplicates_strings(self) -> None:
+        self.assertEqual(count_duplicates(["a", "b", "a"]), 1)
+
+    def test_count_duplicates_unhashable(self) -> None:
+        self.assertEqual(count_duplicates([[1], [2], [1]]), 1)
+        self.assertEqual(count_duplicates([[1], [2]]), 0)
+
+    def test_count_duplicates_consistency_with_has_duplicates(self) -> None:
+        for lst in ([], [1], [1, 2], [1, 1], [1, 2, 2, 3], ["a", "b", "a"]):
+            self.assertEqual(count_duplicates(lst) > 0, has_duplicates(lst))
+
+    def test_count_duplicates_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_duplicates("aa")  # type: ignore[arg-type]
 
 
 class TestIsSorted(unittest.TestCase):
@@ -62002,7 +62072,7 @@ def interval_adjacent(a: Interval, b: Interval) -> bool:
     Examples:
         >>> interval_adjacent((1, 5), (5, 8))
         True
-        >>> interval_adjacent((8, 10), (1, 5))
+        >>> interval_adjacent((5, 8), (1, 5))
         True
         >>> interval_adjacent((1, 5), (4, 8))
         False
@@ -62432,7 +62502,7 @@ class TestIntervalAdjacent(unittest.TestCase):
         self.assertTrue(interval_adjacent((1, 5), (5, 8)))
 
     def test_touching_b_before_a(self):
-        self.assertTrue(interval_adjacent((8, 10), (1, 5)))
+        self.assertTrue(interval_adjacent((5, 8), (1, 5)))
 
     def test_overlapping_not_adjacent(self):
         self.assertFalse(interval_adjacent((1, 5), (4, 8)))
@@ -62806,6 +62876,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
 ### Added
+- `list_utils`: added `count_duplicates(lst: List[T]) -> int` as the integer companion to `has_duplicates`, returning the number of elements beyond their first occurrence (`len(lst)` minus the number of distinct elements). Hashable elements use a set for efficiency; unhashable elements fall back to linear membership checks. It accepts a typed `List[T]` argument, raises `TypeError` for non-lists, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. `has_duplicates` was refactored to reuse `count_duplicates(lst) > 0`. Added `TestCountDuplicates` (10 tests) to `tests/test_list_utils.py` covering basic/none/empty/multiple-same/multiple-values/all-same/strings/unhashable/consistency-with-`has_duplicates`/`TypeError` paths; imported `count_duplicates` to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `interval_utils`: added `interval_adjacent(a, b) -> bool` as a boolean predicate reporting whether two intervals touch back-to-back at a single shared endpoint (``a[1] == b[0]`` or ``b[1] == a[0]``) without overlapping interiors, complementing `interval_overlaps`. It accepts typed `Interval` arguments (``(low, high)`` tuples/lists), validates both intervals with `is_valid_interval` raising `ValueError` for invalid input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIntervalAdjacent` (8 tests) to `tests/test_interval_utils.py` covering touching in either direction, overlapping/disjoint/identical intervals, degenerate intervals, float endpoints, and the `ValueError` path; imported `interval_adjacent` to match `__all__`. Updated the `interval_utils` module tree entry and prose section of `README.md`. Synchronized `interval_utils.py`, `tests/test_interval_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `count_where(sequence, predicate) -> int` as the predicate-count companion to `count_occurrences`, and boolean companion `has_where(sequence, predicate) -> bool`. `count_where` returns the number of elements in *sequence* for which *predicate* returns true (empty sequence yields ``0``); `has_where` reports whether at least one element satisfies *predicate*, reusing `count_where` for consistency. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountWhere` (7 tests) and `TestHasWhere` (5 tests) to `tests/test_seq_utils.py` covering basic/no-match/empty/string/tuple/all-match cases, consistency between `has_where` and `count_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `find(sequence, predicate) -> Optional[T]` as the element-returning companion to `find_index`. Returns the first element in *sequence* satisfying *predicate*, or ``None`` when no match is found (including for an empty sequence). Accepts any `Sequence`, validates with `_require_sequence`, requires a callable *predicate*, and raises `TypeError`/`ValueError`-consistent input validation (`TypeError` for non-sequence/non-callable). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestFind` (8 tests) to `tests/test_seq_utils.py` covering basic/first-match/no-match/empty/start/tuple+string cases and `TypeError` paths. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -65331,7 +65402,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -65998,7 +66069,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, and `contains`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

@@ -10,6 +10,7 @@ __all__ = [
     "T",
     "chunks",
     "contains",
+    "count_duplicates",
     "drop",
     "find",
     "find_index",
@@ -419,6 +420,50 @@ def is_empty(lst: List[T]) -> bool:
     return len(lst) == 0
 
 
+def count_duplicates(lst: List[T]) -> int:
+    """Return the number of duplicate (extra) elements in *lst*.
+
+    The result is ``len(lst)`` minus the number of distinct elements, so a
+    list with no duplicates returns ``0``. Elements are compared by equality;
+    hashable elements use a set for efficiency, and unhashable elements fall
+    back to linear membership checks.
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        The number of elements beyond their first occurrence.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> count_duplicates([1, 2, 2, 3])
+        1
+        >>> count_duplicates([1, 2, 3])
+        0
+        >>> count_duplicates([])
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen: set = set()
+    unhashable: List[T] = []
+    unique = 0
+    for item in lst:
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+            unique += 1
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
+            unique += 1
+    return len(lst) - unique
+
+
 def has_duplicates(lst: List[T]) -> bool:
     """Return ``True`` when *lst* contains any duplicate element.
 
@@ -444,18 +489,7 @@ def has_duplicates(lst: List[T]) -> bool:
     """
     if not isinstance(lst, list):
         raise TypeError("lst must be a list")
-    seen: set = set()
-    unhashable: List[T] = []
-    for item in lst:
-        try:
-            if item in seen:
-                return True
-            seen.add(item)
-        except TypeError:
-            if item in unhashable:
-                return True
-            unhashable.append(item)
-    return False
+    return count_duplicates(lst) > 0
 
 
 def is_sorted(lst: List[T], reverse: bool = False) -> bool:
