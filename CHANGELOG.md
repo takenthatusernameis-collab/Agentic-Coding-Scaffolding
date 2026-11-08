@@ -2387,9 +2387,11 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
-## Unreleased — added `clear_lowest_set_bit` to `bit_utils`
+## Unreleased — added `take` and `drop` to `itertools_utils`
 
-- Added `clear_lowest_set_bit(value)` to `bit_utils.py` with a typed signature, `__all__` export, Google-style docstring with ASCII-safe doctests, and validation raising `TypeError`/`ValueError`; it clears the lowest set bit via Brian Kernighan's method (`value & (value - 1)`), returning 0 for 0. Added `TestClearLowestSetBit` to `tests/test_bit_utils.py` covering basic values, repeated clearing, bool/type rejection, and negative `ValueError` (2 new tests). Updated the `bit_utils` module prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (45 tests), `python -m doctest bit_utils.py` (48 doctests), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (8888 tests, OK). No changes to `.github/workflows/**`.
+- Added `take(iterable, n)` and `drop(iterable, n)` to `itertools_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and validation raising `TypeError`/`ValueError` (rejecting non-iterables, non-`int`/`bool` *n*, and negative *n*). `take` returns up to the first *n* items and `drop` skips the first *n* items, both accepting any iterable (including generators). Added `TestTake` and `TestDrop` to `tests/test_itertools_utils.py` covering basic/more-than-available/zero/empty/generator cases and the type/value error paths (18 new tests; 197 tests in the module). Updated the `itertools_utils` prose section of `README.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_itertools_utils` (197 OK), `python -m doctest itertools_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
+
 
 ## Unreleased — added `count_leading_zeros` and `has_leading_zeros` to `bit_utils`
 

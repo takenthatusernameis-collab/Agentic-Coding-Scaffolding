@@ -13,6 +13,7 @@ from itertools_utils import (
     count_if,
     count_none,
     cycle_take,
+    drop,
     drop_while_pred,
     flatten_once,
     group_by_key,
@@ -28,6 +29,7 @@ from itertools_utils import (
     product_of,
     repeat_value,
     sliding_window,
+    take,
     take_while_pred,
     unique_everseen,
     unique_justseen,
@@ -526,6 +528,94 @@ class TestIsEmptyIterable(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             is_empty_iterable(None)
+
+
+class TestDropWhilePred(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(drop_while_pred([1, 2, 3, 4], lambda x: x < 3), [3, 4])
+
+    def test_no_drop(self):
+        self.assertEqual(drop_while_pred([5, 6, 7], lambda x: x < 3), [5, 6, 7])
+
+    def test_empty(self):
+        self.assertEqual(drop_while_pred([], lambda x: True), [])
+
+    def test_all_dropped(self):
+        self.assertEqual(drop_while_pred([1, 2, 3], lambda x: True), [])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred(42, lambda x: x)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred([1, 2, 3], "x")
+
+
+class TestTake(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(take([1, 2, 3, 4], 2), [1, 2])
+
+    def test_more_than_available(self):
+        self.assertEqual(take([1, 2], 5), [1, 2])
+
+    def test_zero(self):
+        self.assertEqual(take(range(10), 0), [])
+
+    def test_empty(self):
+        self.assertEqual(take([], 3), [])
+
+    def test_generator(self):
+        self.assertEqual(take((x for x in range(10)), 3), [0, 1, 2])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            take(42, 1)
+
+    def test_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], True)
+
+    def test_rejects_non_int_n(self):
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], "2")
+
+    def test_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -1)
+
+
+class TestDrop(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(drop([1, 2, 3, 4], 2), [3, 4])
+
+    def test_more_than_available(self):
+        self.assertEqual(drop([1, 2], 5), [])
+
+    def test_zero(self):
+        self.assertEqual(drop([1, 2, 3], 0), [1, 2, 3])
+
+    def test_empty(self):
+        self.assertEqual(drop([], 3), [])
+
+    def test_generator(self):
+        self.assertEqual(drop((x for x in range(5)), 2), [2, 3, 4])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            drop(42, 1)
+
+    def test_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], False)
+
+    def test_rejects_non_int_n(self):
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], 2.0)
+
+    def test_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -1)
 
 
 class TestFirstOrDefault(unittest.TestCase):

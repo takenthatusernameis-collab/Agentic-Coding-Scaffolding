@@ -50580,6 +50580,70 @@ def count_from(start: int = 0, step: int = 1) -> List[Any]:
     return list(islice(count(start, step), 1000))
 
 
+def take(iterable: Iterable[Any], n: int) -> List[Any]:
+    """Take the first n items from an iterable.
+
+    Args:
+        iterable: The iterable to take from.
+        n: Number of items to take. Must be a non-negative integer.
+
+    Returns:
+        A list containing up to the first n items.
+
+    Raises:
+        TypeError: If iterable is not iterable, or n is not an int.
+        ValueError: If n is negative.
+
+    Examples:
+        >>> take([1, 2, 3, 4], 2)
+        [1, 2]
+        >>> take([1, 2], 5)
+        [1, 2]
+        >>> take([], 3)
+        []
+        >>> take(range(10), 0)
+        []
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(islice(iterable, n))
+
+
+def drop(iterable: Iterable[Any], n: int) -> List[Any]:
+    """Drop the first n items from an iterable and return the rest.
+
+    Args:
+        iterable: The iterable to drop from.
+        n: Number of items to drop. Must be a non-negative integer.
+
+    Returns:
+        A list containing the remaining items after dropping n.
+
+    Raises:
+        TypeError: If iterable is not iterable, or n is not an int.
+        ValueError: If n is negative.
+
+    Examples:
+        >>> drop([1, 2, 3, 4], 2)
+        [3, 4]
+        >>> drop([1, 2], 5)
+        []
+        >>> drop([1, 2, 3], 0)
+        [1, 2, 3]
+        >>> drop([], 3)
+        []
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(islice(iterable, n, None))
+
+
 def islice_iterable(iterable: Iterable[Any], *args: Any) -> List[Any]:
     """Slice an iterable."""
     _ensure_iterable(iterable, "iterable")
@@ -50944,6 +51008,8 @@ __all__ = [
     "zip_strict_iterables",
     "batched_iterable",
     "drop_while_pred",
+    "take",
+    "drop",
     "tee_iterables",
     "starmap_iterable",
     "count_from",
@@ -50988,6 +51054,7 @@ from itertools_utils import (
     count_if,
     count_none,
     cycle_take,
+    drop,
     drop_while_pred,
     flatten_once,
     group_by_key,
@@ -51003,6 +51070,7 @@ from itertools_utils import (
     product_of,
     repeat_value,
     sliding_window,
+    take,
     take_while_pred,
     unique_everseen,
     unique_justseen,
@@ -51501,6 +51569,94 @@ class TestIsEmptyIterable(unittest.TestCase):
     def test_rejects_none(self):
         with self.assertRaises(TypeError):
             is_empty_iterable(None)
+
+
+class TestDropWhilePred(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(drop_while_pred([1, 2, 3, 4], lambda x: x < 3), [3, 4])
+
+    def test_no_drop(self):
+        self.assertEqual(drop_while_pred([5, 6, 7], lambda x: x < 3), [5, 6, 7])
+
+    def test_empty(self):
+        self.assertEqual(drop_while_pred([], lambda x: True), [])
+
+    def test_all_dropped(self):
+        self.assertEqual(drop_while_pred([1, 2, 3], lambda x: True), [])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred(42, lambda x: x)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            drop_while_pred([1, 2, 3], "x")
+
+
+class TestTake(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(take([1, 2, 3, 4], 2), [1, 2])
+
+    def test_more_than_available(self):
+        self.assertEqual(take([1, 2], 5), [1, 2])
+
+    def test_zero(self):
+        self.assertEqual(take(range(10), 0), [])
+
+    def test_empty(self):
+        self.assertEqual(take([], 3), [])
+
+    def test_generator(self):
+        self.assertEqual(take((x for x in range(10)), 3), [0, 1, 2])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            take(42, 1)
+
+    def test_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], True)
+
+    def test_rejects_non_int_n(self):
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], "2")
+
+    def test_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -1)
+
+
+class TestDrop(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(drop([1, 2, 3, 4], 2), [3, 4])
+
+    def test_more_than_available(self):
+        self.assertEqual(drop([1, 2], 5), [])
+
+    def test_zero(self):
+        self.assertEqual(drop([1, 2, 3], 0), [1, 2, 3])
+
+    def test_empty(self):
+        self.assertEqual(drop([], 3), [])
+
+    def test_generator(self):
+        self.assertEqual(drop((x for x in range(5)), 2), [2, 3, 4])
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            drop(42, 1)
+
+    def test_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], False)
+
+    def test_rejects_non_int_n(self):
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], 2.0)
+
+    def test_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -1)
 
 
 class TestFirstOrDefault(unittest.TestCase):
@@ -64583,9 +64739,11 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
-## Unreleased — added `clear_lowest_set_bit` to `bit_utils`
+## Unreleased — added `take` and `drop` to `itertools_utils`
 
-- Added `clear_lowest_set_bit(value)` to `bit_utils.py` with a typed signature, `__all__` export, Google-style docstring with ASCII-safe doctests, and validation raising `TypeError`/`ValueError`; it clears the lowest set bit via Brian Kernighan's method (`value & (value - 1)`), returning 0 for 0. Added `TestClearLowestSetBit` to `tests/test_bit_utils.py` covering basic values, repeated clearing, bool/type rejection, and negative `ValueError` (2 new tests). Updated the `bit_utils` module prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (45 tests), `python -m doctest bit_utils.py` (48 doctests), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (8888 tests, OK). No changes to `.github/workflows/**`.
+- Added `take(iterable, n)` and `drop(iterable, n)` to `itertools_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and validation raising `TypeError`/`ValueError` (rejecting non-iterables, non-`int`/`bool` *n*, and negative *n*). `take` returns up to the first *n* items and `drop` skips the first *n* items, both accepting any iterable (including generators). Added `TestTake` and `TestDrop` to `tests/test_itertools_utils.py` covering basic/more-than-available/zero/empty/generator cases and the type/value error paths (18 new tests; 197 tests in the module). Updated the `itertools_utils` prose section of `README.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_itertools_utils` (197 OK), `python -m doctest itertools_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
+
 
 ## Unreleased — added `count_leading_zeros` and `has_leading_zeros` to `bit_utils`
 
@@ -65657,7 +65815,7 @@ The project includes bytes and binary utilities in `bytes_utils.py` for working 
 
 ## Itertools Utilities Module
 
-The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. The `grouper` helper collects data into fixed-length chunks, padding the final short chunk with a configurable `fillvalue` (defaulting to `None`) so every emitted tuple has exactly *n* elements; `roundrobin` visits input iterables in a round-robin fashion until each is exhausted; `padnone` yields the sequence elements followed by `None` indefinitely; and `ncycles` repeats a sequence *n* times. `count_from` counts infinitely from a start value with a step, returning the first 1000 values as a list for safety. `count_if` counts items for which a predicate is truthy; `has_any` reports whether any item satisfies a predicate, short-circuiting on the first match. `is_empty_iterable` reports whether an iterable yields no items, working for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
+The project includes iteration helpers in `itertools_utils.py` wrapping the standard library `itertools` module with input validation: `chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`, `permutations_of`, `group_by_key`, `accumulate_values`, `repeat_value`, `cycle_take`, `partition`, `zip_longest_iterables`, `unique_everseen`, `unique_justseen`, `sliding_window`, and `window`. The `grouper` helper collects data into fixed-length chunks, padding the final short chunk with a configurable `fillvalue` (defaulting to `None`) so every emitted tuple has exactly *n* elements; `roundrobin` visits input iterables in a round-robin fashion until each is exhausted; `padnone` yields the sequence elements followed by `None` indefinitely; and `ncycles` repeats a sequence *n* times. `count_from` counts infinitely from a start value with a step, returning the first 1000 values as a list for safety. `count_if` counts items for which a predicate is truthy; `has_any` reports whether any item satisfies a predicate, short-circuiting on the first match. `is_empty_iterable` reports whether an iterable yields no items, working for any iterable — including generators and other one-shot iterators — by consuming elements only until the first item is seen. `take` returns the first *n* items and `drop` skips the first *n* items, both accepting any iterable with validated non-negative integer *n* (bool rejected). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_itertools_utils.py`.
 
 ## Base64 Utilities Module
 

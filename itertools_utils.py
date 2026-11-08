@@ -525,6 +525,70 @@ def count_from(start: int = 0, step: int = 1) -> List[Any]:
     return list(islice(count(start, step), 1000))
 
 
+def take(iterable: Iterable[Any], n: int) -> List[Any]:
+    """Take the first n items from an iterable.
+
+    Args:
+        iterable: The iterable to take from.
+        n: Number of items to take. Must be a non-negative integer.
+
+    Returns:
+        A list containing up to the first n items.
+
+    Raises:
+        TypeError: If iterable is not iterable, or n is not an int.
+        ValueError: If n is negative.
+
+    Examples:
+        >>> take([1, 2, 3, 4], 2)
+        [1, 2]
+        >>> take([1, 2], 5)
+        [1, 2]
+        >>> take([], 3)
+        []
+        >>> take(range(10), 0)
+        []
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(islice(iterable, n))
+
+
+def drop(iterable: Iterable[Any], n: int) -> List[Any]:
+    """Drop the first n items from an iterable and return the rest.
+
+    Args:
+        iterable: The iterable to drop from.
+        n: Number of items to drop. Must be a non-negative integer.
+
+    Returns:
+        A list containing the remaining items after dropping n.
+
+    Raises:
+        TypeError: If iterable is not iterable, or n is not an int.
+        ValueError: If n is negative.
+
+    Examples:
+        >>> drop([1, 2, 3, 4], 2)
+        [3, 4]
+        >>> drop([1, 2], 5)
+        []
+        >>> drop([1, 2, 3], 0)
+        [1, 2, 3]
+        >>> drop([], 3)
+        []
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an int")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    return list(islice(iterable, n, None))
+
+
 def islice_iterable(iterable: Iterable[Any], *args: Any) -> List[Any]:
     """Slice an iterable."""
     _ensure_iterable(iterable, "iterable")
@@ -889,6 +953,8 @@ __all__ = [
     "zip_strict_iterables",
     "batched_iterable",
     "drop_while_pred",
+    "take",
+    "drop",
     "tee_iterables",
     "starmap_iterable",
     "count_from",
