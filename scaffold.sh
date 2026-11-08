@@ -53358,9 +53358,11 @@ __all__: list[str] = [
     "is_zero",
     "is_all_ones",
     "count_null_bytes",
+    "count_null_byte",
     "has_null_byte",
     "has_null_bytes",
     "count_non_null_bytes",
+    "count_non_null_byte",
     "has_non_null_byte",
     "has_non_null_bytes",
     "lowest_set_bit",
@@ -55124,6 +55126,33 @@ def count_null_bytes(data: bytes) -> int:
     return sum(1 for b in bytes(data) if b == 0)
 
 
+def count_null_byte(data: bytes) -> int:
+    """Alias for :func:`count_null_bytes` (singular form).
+
+    Returns the number of zero bytes in *data*.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The count of bytes equal to 0 (empty input returns 0).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_null_byte(from_hex("000000"))
+        3
+        >>> count_null_byte(from_hex("010203"))
+        0
+        >>> count_null_byte(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_null_bytes(data)
+
+
 def has_null_byte(data: bytes) -> bool:
     """Return True if *data* contains at least one zero byte.
 
@@ -55204,6 +55233,33 @@ def count_non_null_bytes(data: bytes) -> int:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return sum(1 for b in bytes(data) if b != 0)
+
+
+def count_non_null_byte(data: bytes) -> int:
+    """Alias for :func:`count_non_null_bytes` (singular form).
+
+    Returns the number of non-zero bytes in *data*.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The count of bytes not equal to 0 (empty input returns 0).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_non_null_byte(from_hex("000000"))
+        0
+        >>> count_non_null_byte(from_hex("010203"))
+        3
+        >>> count_non_null_byte(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_non_null_bytes(data)
 
 
 def has_non_null_byte(data: bytes) -> bool:
