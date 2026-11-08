@@ -5,6 +5,7 @@ import unittest
 from set_utils import (
     cartesian_product,
     difference,
+    has_intersection,
     intersection,
     is_disjoint,
     is_equal,
@@ -64,6 +65,42 @@ class TestIsDisjoint(unittest.TestCase):
             is_disjoint(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_disjoint([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestHasIntersection(unittest.TestCase):
+    def test_has_intersection_true(self) -> None:
+        self.assertTrue(has_intersection([1, 2], [2, 3]))
+
+    def test_has_intersection_false(self) -> None:
+        self.assertFalse(has_intersection([1, 2], [3, 4]))
+
+    def test_has_intersection_empty(self) -> None:
+        self.assertFalse(has_intersection([], [1, 2]))
+        self.assertFalse(has_intersection([1, 2], []))
+        self.assertFalse(has_intersection([], []))
+
+    def test_has_intersection_duplicates(self) -> None:
+        self.assertTrue(has_intersection([1, 1, 2], [2, 2]))
+
+    def test_has_intersection_strings(self) -> None:
+        self.assertTrue(has_intersection("abc", "cd"))
+        self.assertFalse(has_intersection("abc", "de"))
+
+    def test_has_intersection_consistency_with_is_disjoint(self) -> None:
+        cases = [
+            ([1, 2], [3, 4]),
+            ([1, 2], [2, 3]),
+            ([], [1]),
+            ([1, 1], [1]),
+        ]
+        for a, b in cases:
+            self.assertEqual(has_intersection(a, b), not is_disjoint(a, b))
+
+    def test_has_intersection_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_intersection(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_intersection([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIsEqual(unittest.TestCase):

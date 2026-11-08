@@ -3189,3 +3189,19 @@ Next Planned (for the following agent):
 - Audit `set_utils.py` or `dict_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
+
+## Latest Session (2026-11-08) — added `has_intersection` to `set_utils`
+
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Verified clean state (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted tests green). Followed prior "Next Planned": audited `set_utils.py`/`dict_utils.py` for a focused, hermetic helper gap. `set_utils.is_disjoint` and `intersection` existed but lacked a boolean companion for "at least one common element" — `has_intersection` fills that gap (negation of `is_disjoint`, companion to `intersection`) consistently with module style.
+
+**Changes:**
+- Added `has_intersection(a, b)` to `set_utils.py` returning `True` when the iterables share at least one common element (`not is_disjoint(a, b)`), with typed iterable validation via `_to_set`, `__all__` export, Google-style docstring, and ASCII-safe doctests.
+- Added `TestHasIntersection` (7 tests) to `tests/test_set_utils.py` covering overlap/no-overlap/empty/duplicates/strings, consistency with `is_disjoint`, and `TypeError` paths; imported `has_intersection` to match `__all__`.
+- Updated `README.md` tree/prose for `set_utils`. Recorded the change in `CHANGELOG.md` Unreleased. Synchronized `set_utils.py`, `tests/test_set_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` via `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_set_utils` (50 OK); `python -m doctest set_utils.py` (OK); `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
+Next Planned (for the following agent):
+- Audit `dict_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing predicate/counter pair that complements `has_key`/`contains_key`/`select_keys`/`omit_keys`) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
+- Add targeted tests in `tests/test_dict_utils.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
+- Run targeted `python -m unittest tests.test_dict_utils` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.

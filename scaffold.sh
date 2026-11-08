@@ -24028,6 +24028,7 @@ import unittest
 from set_utils import (
     cartesian_product,
     difference,
+    has_intersection,
     intersection,
     is_disjoint,
     is_equal,
@@ -24087,6 +24088,42 @@ class TestIsDisjoint(unittest.TestCase):
             is_disjoint(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_disjoint([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestHasIntersection(unittest.TestCase):
+    def test_has_intersection_true(self) -> None:
+        self.assertTrue(has_intersection([1, 2], [2, 3]))
+
+    def test_has_intersection_false(self) -> None:
+        self.assertFalse(has_intersection([1, 2], [3, 4]))
+
+    def test_has_intersection_empty(self) -> None:
+        self.assertFalse(has_intersection([], [1, 2]))
+        self.assertFalse(has_intersection([1, 2], []))
+        self.assertFalse(has_intersection([], []))
+
+    def test_has_intersection_duplicates(self) -> None:
+        self.assertTrue(has_intersection([1, 1, 2], [2, 2]))
+
+    def test_has_intersection_strings(self) -> None:
+        self.assertTrue(has_intersection("abc", "cd"))
+        self.assertFalse(has_intersection("abc", "de"))
+
+    def test_has_intersection_consistency_with_is_disjoint(self) -> None:
+        cases = [
+            ([1, 2], [3, 4]),
+            ([1, 2], [2, 3]),
+            ([], [1]),
+            ([1, 1], [1]),
+        ]
+        for a, b in cases:
+            self.assertEqual(has_intersection(a, b), not is_disjoint(a, b))
+
+    def test_has_intersection_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_intersection(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_intersection([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIsEqual(unittest.TestCase):
@@ -37381,6 +37418,7 @@ __all__ = [
     "T",
     "cartesian_product",
     "difference",
+    "has_intersection",
     "intersection",
     "is_disjoint",
     "is_equal",
@@ -37454,6 +37492,34 @@ def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return _to_set(a).issuperset(_to_set(b))
+
+
+def has_intersection(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` and ``b`` share at least one common element.
+
+    This is the boolean companion to :func:`intersection` and the logical
+    negation of :func:`is_disjoint`.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` when the intersection of ``a`` and ``b`` is non-empty,
+        otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> has_intersection([1, 2], [2, 3])
+        True
+        >>> has_intersection([1, 2], [3, 4])
+        False
+        >>> has_intersection([], [1, 2])
+        False
+    """
+    return not is_disjoint(a, b)
 
 
 def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
@@ -63323,6 +63389,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
+- Added `has_intersection(a, b)` to `set_utils.py` as the boolean companion to `intersection` and the logical negation of `is_disjoint`, returning ``True`` when the two iterables share at least one common element. Accepts any iterables via the module's `_to_set` validation (raising `TypeError` for non-iterables), is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasIntersection` (7 tests) to `tests/test_set_utils.py` covering overlap/no-overlap/empty/duplicates/strings, consistency with `is_disjoint`, and `TypeError` paths; imported `has_intersection` to match `__all__`. Updated the `set_utils` module tree entry and prose section of `README.md`. Synchronized `set_utils.py`, `tests/test_set_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 - Added `has_all_unique(sequence)` to `seq_utils.py` as the boolean companion to `count_unique`, returning ``True`` when every element in ``sequence`` is distinct and reusing :func:`count_unique` for consistency (an empty sequence yields ``True``). Accepts any ``Sequence``, validates with :func:`_require_sequence`, raises ``TypeError`` for a non-sequence, is exported via ``__all__``, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasAllUnique` (7 tests) to `tests/test_seq_utils.py` covering all-unique/duplicate/empty/single/string/tuple cases, consistency with `count_unique`, and the `TypeError` path; imported `has_all_unique` to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 - Added `find_all(lst, predicate)` and `find_all_indices(lst, predicate)` to `list_utils.py` as multi-match companions to `find`/`find_index`, returning all matching elements or their 0-based indices in order (empty list/no matches yields `[]`). Typed APIs accept a `List[T]` and callable predicate, raise `TypeError` for non-lists or non-callable predicates, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestFindAll` and `TestFindAllIndices` (14 tests) to `tests/test_list_utils.py` covering basic/none-match/empty/preserve-order/all-match/string cases and `TypeError` paths. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -65906,7 +65974,8 @@ dict_utils.py            # Dictionary utilities (contains_key, keys_equal, value
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
-set_utils.py             # Set operation utilities (subset, superset, disjoint, equal, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+set_utils.py             # Set operation utilities (subset, superset, disjoint, has_intersection, is_equal, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
 string_utils.py            # Advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text, is_isogram, is_anagram, reverse_words, split_paragraphs, count_words, has_words, levenshtein_distance, hamming_distance, damerau_levenshtein_distance, is_pangram)
@@ -66603,7 +66672,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `is_equal`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 

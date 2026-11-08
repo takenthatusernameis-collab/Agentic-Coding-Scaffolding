@@ -8,6 +8,7 @@ __all__ = [
     "T",
     "cartesian_product",
     "difference",
+    "has_intersection",
     "intersection",
     "is_disjoint",
     "is_equal",
@@ -81,6 +82,34 @@ def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return _to_set(a).issuperset(_to_set(b))
+
+
+def has_intersection(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` and ``b`` share at least one common element.
+
+    This is the boolean companion to :func:`intersection` and the logical
+    negation of :func:`is_disjoint`.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` when the intersection of ``a`` and ``b`` is non-empty,
+        otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> has_intersection([1, 2], [2, 3])
+        True
+        >>> has_intersection([1, 2], [3, 4])
+        False
+        >>> has_intersection([], [1, 2])
+        False
+    """
+    return not is_disjoint(a, b)
 
 
 def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
