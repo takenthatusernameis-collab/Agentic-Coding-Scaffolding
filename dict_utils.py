@@ -16,6 +16,7 @@ __all__ = [
     "has_key",
     "has_value",
     "invert_dict",
+    "is_invertible","""
     "keys_equal",
     "merge",
     "omit_keys",
