@@ -14,6 +14,8 @@ __all__ = [
     "drop",
     "find",
     "find_index",
+    "find_last",
+    "find_last_index",
     "first_or_default",
     "flatten",
     "group_by",
@@ -170,6 +172,62 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
         raise TypeError(f"Expected a list, got {type(lst).__name__}")
     for i, item in enumerate(lst):
         if predicate(item):
+            return i
+    return None
+
+
+def find_last(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
+    """Find the last element in a list satisfying a predicate.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for the desired element.
+
+    Returns:
+        The last matching element, or None if no match is found.
+
+    Raises:
+        TypeError: If lst is not a list.
+
+    Examples:
+        >>> find_last([1, 2, 3, 4], lambda x: x > 2)
+        4
+        >>> find_last([1, 2, 3, 4], lambda x: x % 2 == 0)
+        4
+        >>> find_last([1, 2, 3], lambda x: x > 10) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for item in reversed(lst):
+        if predicate(item):
+            return item
+    return None
+
+
+def find_last_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
+    """Find the index of the last element in a list satisfying a predicate.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for the desired element.
+
+    Returns:
+        The index of the last matching element, or None if no match is found.
+
+    Raises:
+        TypeError: If lst is not a list.
+
+    Examples:
+        >>> find_last_index([1, 2, 3, 2], lambda x: x == 2)
+        3
+        >>> find_last_index([1, 2, 3], lambda x: x > 10) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for i in range(len(lst) - 1, -1, -1):
+        if predicate(lst[i]):
             return i
     return None
 

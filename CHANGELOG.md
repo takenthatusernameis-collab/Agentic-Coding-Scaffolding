@@ -1,5 +1,7 @@
 ## [Unreleased]
 
+- Added `find_last(lst, predicate)` and `find_last_index(lst, predicate)` to `list_utils.py` as last-match companions to `find`/`find_index`. Both scan from the end of the list and return the last element or 0-based index satisfying *predicate*, or `None` when no match is found (including for an empty list). Typed APIs accept a `List[T]` and callable predicate, raise `TypeError` for non-lists, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestFindLast` and `TestFindLastIndex` (14 tests) to `tests/test_list_utils.py` covering basic/multiple-match/no-match/empty/first-element/string cases and `TypeError` paths; imported the helpers to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 - Added `reverse(sequence)` to `seq_utils.py` returning a new list with elements in reverse order.
 
 ### Added

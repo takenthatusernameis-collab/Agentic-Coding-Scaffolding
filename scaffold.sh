@@ -33587,6 +33587,8 @@ __all__ = [
     "drop",
     "find",
     "find_index",
+    "find_last",
+    "find_last_index",
     "first_or_default",
     "flatten",
     "group_by",
@@ -33743,6 +33745,62 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
         raise TypeError(f"Expected a list, got {type(lst).__name__}")
     for i, item in enumerate(lst):
         if predicate(item):
+            return i
+    return None
+
+
+def find_last(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
+    """Find the last element in a list satisfying a predicate.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for the desired element.
+
+    Returns:
+        The last matching element, or None if no match is found.
+
+    Raises:
+        TypeError: If lst is not a list.
+
+    Examples:
+        >>> find_last([1, 2, 3, 4], lambda x: x > 2)
+        4
+        >>> find_last([1, 2, 3, 4], lambda x: x % 2 == 0)
+        4
+        >>> find_last([1, 2, 3], lambda x: x > 10) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for item in reversed(lst):
+        if predicate(item):
+            return item
+    return None
+
+
+def find_last_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
+    """Find the index of the last element in a list satisfying a predicate.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for the desired element.
+
+    Returns:
+        The index of the last matching element, or None if no match is found.
+
+    Raises:
+        TypeError: If lst is not a list.
+
+    Examples:
+        >>> find_last_index([1, 2, 3, 2], lambda x: x == 2)
+        3
+        >>> find_last_index([1, 2, 3], lambda x: x > 10) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for i in range(len(lst) - 1, -1, -1):
+        if predicate(lst[i]):
             return i
     return None
 
@@ -34161,6 +34219,8 @@ from list_utils import (
     drop,
     find,
     find_index,
+    find_last,
+    find_last_index,
     first_or_default,
     flatten,
     group_by,
@@ -34589,6 +34649,54 @@ class TestFindIndex(unittest.TestCase):
     def test_find_index_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             find_index("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestFindLast(unittest.TestCase):
+    def test_find_last_basic(self) -> None:
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x > 2), 4)
+
+    def test_find_last_multiple_matches(self) -> None:
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x % 2 == 0), 4)
+
+    def test_find_last_no_match(self) -> None:
+        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 10))
+
+    def test_find_last_empty(self) -> None:
+        self.assertIsNone(find_last([], lambda x: True))
+
+    def test_find_last_first_element(self) -> None:
+        self.assertEqual(find_last([10, 20, 30], lambda x: x == 10), 10)
+
+    def test_find_last_strings(self) -> None:
+        self.assertEqual(find_last(["a", "bb", "ccc"], lambda s: len(s) >= 2), "ccc")
+
+    def test_find_last_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_last("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestFindLastIndex(unittest.TestCase):
+    def test_find_last_index_basic(self) -> None:
+        self.assertEqual(find_last_index([1, 2, 3, 2], lambda x: x == 2), 3)
+
+    def test_find_last_index_multiple_matches(self) -> None:
+        self.assertEqual(find_last_index([1, 2, 3, 4], lambda x: x % 2 == 0), 3)
+
+    def test_find_last_index_no_match(self) -> None:
+        self.assertIsNone(find_last_index([1, 2, 3], lambda x: x > 10))
+
+    def test_find_last_index_empty(self) -> None:
+        self.assertIsNone(find_last_index([], lambda x: True))
+
+    def test_find_last_index_first_element(self) -> None:
+        self.assertEqual(find_last_index([10, 20, 30], lambda x: x == 10), 0)
+
+    def test_find_last_index_strings(self) -> None:
+        self.assertEqual(find_last_index(["a", "bb", "ccc", "dd"], lambda s: len(s) == 2), 3)
+
+    def test_find_last_index_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_last_index("not a list", lambda x: True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -62937,6 +63045,10 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
+- Added `find_last(lst, predicate)` and `find_last_index(lst, predicate)` to `list_utils.py` as last-match companions to `find`/`find_index`. Both scan from the end of the list and return the last element or 0-based index satisfying *predicate*, or `None` when no match is found (including for an empty list). Typed APIs accept a `List[T]` and callable predicate, raise `TypeError` for non-lists, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestFindLast` and `TestFindLastIndex` (14 tests) to `tests/test_list_utils.py` covering basic/multiple-match/no-match/empty/first-element/string cases and `TypeError` paths; imported the helpers to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
+- Added `reverse(sequence)` to `seq_utils.py` returning a new list with elements in reverse order.
+
 ### Added
 - `seq_utils`: added `all_where(sequence, predicate) -> bool` and `none_where(sequence, predicate) -> bool` as predicate companions to `has_where`/`count_where`. `all_where` returns `True` when every element satisfies *predicate* (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` returns `True` when no element satisfies *predicate* (including empty sequences), serving as the negation companion to `has_where`. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestAllWhere` (7 tests) and `TestNoneWhere` (7 tests) to `tests/test_seq_utils.py` covering all/some/none/empty/string/tuple cases, consistency with `count_where`/`has_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
@@ -65472,7 +65584,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_last, find_last_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -65517,7 +65629,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition, reverse)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -66139,7 +66251,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 
@@ -66452,7 +66564,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 

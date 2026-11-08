@@ -8,6 +8,8 @@ from list_utils import (
     drop,
     find,
     find_index,
+    find_last,
+    find_last_index,
     first_or_default,
     flatten,
     group_by,
@@ -436,6 +438,54 @@ class TestFindIndex(unittest.TestCase):
     def test_find_index_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             find_index("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestFindLast(unittest.TestCase):
+    def test_find_last_basic(self) -> None:
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x > 2), 4)
+
+    def test_find_last_multiple_matches(self) -> None:
+        self.assertEqual(find_last([1, 2, 3, 4], lambda x: x % 2 == 0), 4)
+
+    def test_find_last_no_match(self) -> None:
+        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 10))
+
+    def test_find_last_empty(self) -> None:
+        self.assertIsNone(find_last([], lambda x: True))
+
+    def test_find_last_first_element(self) -> None:
+        self.assertEqual(find_last([10, 20, 30], lambda x: x == 10), 10)
+
+    def test_find_last_strings(self) -> None:
+        self.assertEqual(find_last(["a", "bb", "ccc"], lambda s: len(s) >= 2), "ccc")
+
+    def test_find_last_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_last("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestFindLastIndex(unittest.TestCase):
+    def test_find_last_index_basic(self) -> None:
+        self.assertEqual(find_last_index([1, 2, 3, 2], lambda x: x == 2), 3)
+
+    def test_find_last_index_multiple_matches(self) -> None:
+        self.assertEqual(find_last_index([1, 2, 3, 4], lambda x: x % 2 == 0), 3)
+
+    def test_find_last_index_no_match(self) -> None:
+        self.assertIsNone(find_last_index([1, 2, 3], lambda x: x > 10))
+
+    def test_find_last_index_empty(self) -> None:
+        self.assertIsNone(find_last_index([], lambda x: True))
+
+    def test_find_last_index_first_element(self) -> None:
+        self.assertEqual(find_last_index([10, 20, 30], lambda x: x == 10), 0)
+
+    def test_find_last_index_strings(self) -> None:
+        self.assertEqual(find_last_index(["a", "bb", "ccc", "dd"], lambda s: len(s) == 2), 3)
+
+    def test_find_last_index_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_last_index("not a list", lambda x: True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
