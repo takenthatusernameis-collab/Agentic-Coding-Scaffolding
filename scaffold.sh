@@ -36970,10 +36970,12 @@ __all__ = [
     "K",
     "V",
     "contains_key",
+    "contains_value",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
     "has_key",
+    "has_value",
     "invert_dict",
     "keys_equal",
     "merge",
@@ -37151,6 +37153,59 @@ def contains_key(d: Dict[K, Any], key: K) -> bool:
         False
     """
     return has_key(d, key)
+
+
+def has_value(d: Dict[Any, V], value: V) -> bool:
+    """Report whether *value* is present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        value: Value to look for.
+
+    Returns:
+        ``True`` when *value* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_value({"a": 1, "b": 2}, 1)
+        True
+        >>> has_value({"a": 1, "b": 2}, 3)
+        False
+        >>> has_value({}, 1)
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    return value in d.values()
+
+
+def contains_value(d: Dict[Any, V], value: V) -> bool:
+    """Report whether *value* is present in *d*.
+
+    This is an alias for :func:`has_value`, mirroring the
+    :func:`contains_key` / :func:`has_key` pair.
+
+    Args:
+        d: Dictionary to search in.
+        value: Value to look for.
+
+    Returns:
+        ``True`` when *value* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> contains_value({"a": 1, "b": 2}, 1)
+        True
+        >>> contains_value({"a": 1, "b": 2}, 3)
+        False
+        >>> contains_value({}, 1)
+        False
+    """
+    return has_value(d, value)
 
 
 def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
@@ -49384,10 +49439,12 @@ import unittest
 
 from dict_utils import (
     contains_key,
+    contains_value,
     deep_merge,
     filter_dict,
     flatten_dict,
     has_key,
+    has_value,
     invert_dict,
     keys_equal,
     merge,
@@ -49593,6 +49650,51 @@ class TestValuesEqual(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             values_equal("not a dict", {})
+
+
+class TestHasValue(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertTrue(has_value({"a": 1, "b": 2}, 1))
+        self.assertTrue(has_value({"a": 1, "b": 2}, 2))
+
+    def test_absent(self) -> None:
+        self.assertFalse(has_value({"a": 1, "b": 2}, 3))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_value({}, 1))
+
+    def test_none_and_falsy(self) -> None:
+        self.assertTrue(has_value({"a": None}, None))
+        self.assertTrue(has_value({"a": 0}, 0))
+        self.assertTrue(has_value({"a": False}, False))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_value("x", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_value(None, 1)  # type: ignore[arg-type]
+
+
+class TestContainsValue(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertTrue(contains_value({"a": 1, "b": 2}, 1))
+
+    def test_absent(self) -> None:
+        self.assertFalse(contains_value({"a": 1, "b": 2}, 3))
+
+    def test_empty(self) -> None:
+        self.assertFalse(contains_value({}, 1))
+
+    def test_matches_has_value(self) -> None:
+        d = {"a": 1, "b": 2}
+        for v in (1, 2, 3, None):
+            self.assertEqual(contains_value(d, v), has_value(d, v))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            contains_value("x", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_value(None, 1)  # type: ignore[arg-type]
 
 class TestInvertDict(unittest.TestCase):
     def test_invert_basic(self) -> None:
@@ -63511,7 +63613,11 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `count_prerelease_identifiers(version)` and boolean companion `has_prerelease_identifiers(version)` to `version_utils.py`. `count_prerelease_identifiers` returns the number of dot-separated identifiers in a version's prerelease suffix (after `-`), ignoring any build metadata after `+`, or `0` when no prerelease suffix is present or it is empty; `has_prerelease_identifiers` reports whether any identifier is present, reusing the count helper for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountPrereleaseIdentifiers` and `TestHasPrereleaseIdentifiers` (8 tests) to `tests/test_version_utils.py` covering counts, no/empty suffix, prerelease+build metadata, consistency with `count_prerelease_identifiers`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `version_utils` prose section of `README.md`. Synchronized `version_utils.py`, `tests/test_version_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_version_utils`; targeted doctest for the new helpers; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
 
-## Unreleased — added contains_key to dict_utils
+## Unreleased — added has_value/contains_value to dict_utils
+
+- Added `has_value(d, value)` and `contains_value(d, value)` to `dict_utils.py` as boolean predicates reporting whether a value is present in a dictionary, mirroring the existing `has_key`/`contains_key` pair. `has_value` accepts typed `Dict[Any, V]` and `V` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests; `contains_value` delegates to `has_value`. Added `TestHasValue` and `TestContainsValue` (10 tests total) to `tests/test_dict_utils.py` covering present, absent, empty, falsy/`None` values, consistency, and `TypeError` paths. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils tests.test_public_api`; `python -m doctest dict_utils.py`. No changes to `.github/workflows/**`.
+
+
 
 - Added `contains_key(d, key)` to `dict_utils.py` as an alias for `has_key`, so the module offers a single `contains_*` naming convention alongside `select_keys` and `omit_keys`. `contains_key` delegates to `has_key`, accepts typed `Dict[K, Any]` and `K` arguments, raises `TypeError` for non-dict *d*, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestContainsKey` (5 tests) to `tests/test_dict_utils.py` covering present, absent, empty dict, consistency with `has_key`, and the `TypeError` path; imported `contains_key` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_dict_utils`; targeted doctest for `contains_key`; `python -m unittest tests.test_public_api`; full suite `python -m unittest discover tests/`. No changes to `.github/workflows/**`.
 
@@ -66037,7 +66143,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (contains_key, keys_equal, values_equal, deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key)
+dict_utils.py            # Dictionary utilities (contains_key, contains_value, keys_equal, values_equal, deep merge, shallow merge, flatten, unflatten, safe get, invert, filter, has_key, has_value)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -66727,7 +66833,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, and key-presence checks via `has_key` (or its alias `contains_key`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, key-presence checks via `has_key` (or its alias `contains_key`), value-presence checks via `has_value` (or its alias `contains_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 

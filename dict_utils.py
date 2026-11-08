@@ -9,10 +9,12 @@ __all__ = [
     "K",
     "V",
     "contains_key",
+    "contains_value",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
     "has_key",
+    "has_value",
     "invert_dict",
     "keys_equal",
     "merge",
@@ -190,6 +192,59 @@ def contains_key(d: Dict[K, Any], key: K) -> bool:
         False
     """
     return has_key(d, key)
+
+
+def has_value(d: Dict[Any, V], value: V) -> bool:
+    """Report whether *value* is present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        value: Value to look for.
+
+    Returns:
+        ``True`` when *value* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_value({"a": 1, "b": 2}, 1)
+        True
+        >>> has_value({"a": 1, "b": 2}, 3)
+        False
+        >>> has_value({}, 1)
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    return value in d.values()
+
+
+def contains_value(d: Dict[Any, V], value: V) -> bool:
+    """Report whether *value* is present in *d*.
+
+    This is an alias for :func:`has_value`, mirroring the
+    :func:`contains_key` / :func:`has_key` pair.
+
+    Args:
+        d: Dictionary to search in.
+        value: Value to look for.
+
+    Returns:
+        ``True`` when *value* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> contains_value({"a": 1, "b": 2}, 1)
+        True
+        >>> contains_value({"a": 1, "b": 2}, 3)
+        False
+        >>> contains_value({}, 1)
+        False
+    """
+    return has_value(d, value)
 
 
 def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:

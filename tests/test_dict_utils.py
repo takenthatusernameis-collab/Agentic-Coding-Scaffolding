@@ -4,10 +4,12 @@ import unittest
 
 from dict_utils import (
     contains_key,
+    contains_value,
     deep_merge,
     filter_dict,
     flatten_dict,
     has_key,
+    has_value,
     invert_dict,
     keys_equal,
     merge,
@@ -213,6 +215,51 @@ class TestValuesEqual(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             values_equal("not a dict", {})
+
+
+class TestHasValue(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertTrue(has_value({"a": 1, "b": 2}, 1))
+        self.assertTrue(has_value({"a": 1, "b": 2}, 2))
+
+    def test_absent(self) -> None:
+        self.assertFalse(has_value({"a": 1, "b": 2}, 3))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_value({}, 1))
+
+    def test_none_and_falsy(self) -> None:
+        self.assertTrue(has_value({"a": None}, None))
+        self.assertTrue(has_value({"a": 0}, 0))
+        self.assertTrue(has_value({"a": False}, False))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_value("x", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_value(None, 1)  # type: ignore[arg-type]
+
+
+class TestContainsValue(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertTrue(contains_value({"a": 1, "b": 2}, 1))
+
+    def test_absent(self) -> None:
+        self.assertFalse(contains_value({"a": 1, "b": 2}, 3))
+
+    def test_empty(self) -> None:
+        self.assertFalse(contains_value({}, 1))
+
+    def test_matches_has_value(self) -> None:
+        d = {"a": 1, "b": 2}
+        for v in (1, 2, 3, None):
+            self.assertEqual(contains_value(d, v), has_value(d, v))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            contains_value("x", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains_value(None, 1)  # type: ignore[arg-type]
 
 class TestInvertDict(unittest.TestCase):
     def test_invert_basic(self) -> None:
