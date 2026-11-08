@@ -7,10 +7,12 @@ from bit_utils import (
     clear_lowest_set_bit,
     count_leading_zeros,
     count_set_bits,
+    count_trailing_ones,
     count_trailing_zeros,
     get_bit,
     has_leading_zeros,
     has_set_bits,
+    has_trailing_ones,
     has_trailing_zeros,
     is_even,
     is_odd,
@@ -315,6 +317,50 @@ class TestClearLowestSetBit(unittest.TestCase):
             clear_lowest_set_bit(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             clear_lowest_set_bit(-1)
+
+
+class TestCountTrailingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_trailing_ones(0), 0)
+        self.assertEqual(count_trailing_ones(1), 1)
+        self.assertEqual(count_trailing_ones(5), 1)  # 0b101
+        self.assertEqual(count_trailing_ones(7), 3)  # 0b111
+        self.assertEqual(count_trailing_ones(8), 0)  # 0b1000
+        self.assertEqual(count_trailing_ones(15), 4)  # 0b1111
+        self.assertEqual(count_trailing_ones(11), 2)  # 0b1011
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            count_trailing_ones("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_trailing_ones(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            count_trailing_ones(-1)
+
+
+class TestHasTrailingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertFalse(has_trailing_ones(0))
+        self.assertTrue(has_trailing_ones(1))
+        self.assertTrue(has_trailing_ones(5))  # 0b101
+        self.assertTrue(has_trailing_ones(7))  # 0b111
+        self.assertFalse(has_trailing_ones(8))  # 0b1000
+        self.assertTrue(has_trailing_ones(15))
+
+    def test_consistency(self):
+        for v in range(0, 200):
+            self.assertEqual(
+                has_trailing_ones(v),
+                count_trailing_ones(v) > 0,
+            )
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_trailing_ones("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_ones(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_trailing_ones(-1)
 
 
 if __name__ == "__main__":

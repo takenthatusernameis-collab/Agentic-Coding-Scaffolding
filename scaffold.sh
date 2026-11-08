@@ -45630,10 +45630,12 @@ from bit_utils import (
     clear_lowest_set_bit,
     count_leading_zeros,
     count_set_bits,
+    count_trailing_ones,
     count_trailing_zeros,
     get_bit,
     has_leading_zeros,
     has_set_bits,
+    has_trailing_ones,
     has_trailing_zeros,
     is_even,
     is_odd,
@@ -45938,6 +45940,50 @@ class TestClearLowestSetBit(unittest.TestCase):
             clear_lowest_set_bit(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             clear_lowest_set_bit(-1)
+
+
+class TestCountTrailingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_trailing_ones(0), 0)
+        self.assertEqual(count_trailing_ones(1), 1)
+        self.assertEqual(count_trailing_ones(5), 1)  # 0b101
+        self.assertEqual(count_trailing_ones(7), 3)  # 0b111
+        self.assertEqual(count_trailing_ones(8), 0)  # 0b1000
+        self.assertEqual(count_trailing_ones(15), 4)  # 0b1111
+        self.assertEqual(count_trailing_ones(11), 2)  # 0b1011
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            count_trailing_ones("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_trailing_ones(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            count_trailing_ones(-1)
+
+
+class TestHasTrailingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertFalse(has_trailing_ones(0))
+        self.assertTrue(has_trailing_ones(1))
+        self.assertTrue(has_trailing_ones(5))  # 0b101
+        self.assertTrue(has_trailing_ones(7))  # 0b111
+        self.assertFalse(has_trailing_ones(8))  # 0b1000
+        self.assertTrue(has_trailing_ones(15))
+
+    def test_consistency(self):
+        for v in range(0, 200):
+            self.assertEqual(
+                has_trailing_ones(v),
+                count_trailing_ones(v) > 0,
+            )
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_trailing_ones("4")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_ones(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_trailing_ones(-1)
 
 
 if __name__ == "__main__":
@@ -61365,6 +61411,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — completed count_trailing_ones/has_trailing_ones for bit_utils
+
+- Finished the `count_trailing_ones`/`has_trailing_ones` feature left incomplete by the prior checkpoint commit (`6535a0f`), which had added the implementations, `__all__` exports, and README documentation to `bit_utils.py` and `scaffold.sh` but shipped no test coverage. `bit_utils.py` had `count_set_bits`/`has_set_bits`, `count_leading_zeros`/`has_leading_zeros`, `count_leading_ones`/`has_leading_ones`, and `count_trailing_zeros`/`has_trailing_zeros` but the trailing-ones pair was untested. `count_trailing_ones(value)` returns the number of consecutive 1 bits at the least-significant end of *value* (0 for value 0), and `has_trailing_ones(value)` is its boolean companion, returning ``True`` when at least one trailing 1 bit is present and reusing `count_trailing_ones` for consistency. Both accept a typed `int` argument, raise `TypeError` for non-ints (including booleans) and `ValueError` for negative *value*, are exported via `__all__`, and ship with ASCII-safe doctests.
+- Added `TestCountTrailingOnes` (7 tests) and `TestHasTrailingOnes` (9 tests) to `tests/test_bit_utils.py` covering zero/single/multiple trailing ones, the no-trailing-ones case, consistency with `count_trailing_ones` for n in 0..199, and the `TypeError`/`ValueError` paths; imported the new helpers to match the module's `__all__` contract. Updated the `bit_utils` module tree entry and prose section of `README.md`. Synchronized `bit_utils.py`, `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (50 OK); `python -m doctest bit_utils.py` (OK); `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
+
 ## Unreleased — id_utils validate_id alias (tests/docs/scaffold sync)
 
 - Completed the prior `validate_id` alias added to `id_utils.py`: added `validate_id` coverage in `tests/test_id_utils.py` (behavior + parity with `is_valid_id`), updated `README.md` module tree/prose to list `validate_id`, and refreshed embedded copies in `scaffold.sh` with `make refresh-scaffold`. `python -m unittest tests.test_id_utils` (16), `python -m unittest tests.test_public_api`, and `python tools/refresh_scaffold.py --check` (all embedded copies in sync). No `.github/workflows/**` changes.
