@@ -106424,6 +106424,28 @@ def find_last_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Op
 
 
 def find_all(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[T]:
+    """Return all elements in ``sequence`` satisfying ``predicate``.
+
+    Order is preserved. An empty sequence (or no matches) yields an empty
+    list.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for matching elements.
+
+    Returns:
+        A list of all matching elements, in original order.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find_all([1, 2, 3, 4], lambda x: x > 2)
+        [3, 4]
+        >>> find_all([], lambda x: True)
+        []
+    """
     _require_sequence(sequence)
     if not callable(predicate):
         raise TypeError("predicate must be callable")
@@ -106431,6 +106453,28 @@ def find_all(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[T]:
 
 
 def find_all_indices(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[int]:
+    """Return the indices of all elements in ``sequence`` satisfying ``predicate``.
+
+    Indices are returned in ascending order. An empty sequence (or no
+    matches) yields an empty list.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for matching elements.
+
+    Returns:
+        A list of 0-based indices of all matching elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find_all_indices([1, 2, 3, 4], lambda x: x > 2)
+        [2, 3]
+        >>> find_all_indices([], lambda x: True)
+        []
+    """
     _require_sequence(sequence)
     if not callable(predicate):
         raise TypeError("predicate must be callable")
