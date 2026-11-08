@@ -105,6 +105,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_blank",
     "ensure_surrounded_by_newlines",
+    "has_surrounded_by_newlines",
     "count_newlines",
     "has_newline",
     "has_newlines",
@@ -2841,6 +2842,40 @@ def ensure_surrounded_by_newlines(text: str) -> str:
     if not text.endswith("\n"):
         text = text + "\n"
     return text
+
+
+def has_surrounded_by_newlines(text: str) -> bool:
+    """Check whether *text* starts and ends with a newline character.
+
+    A boolean companion to :func:`ensure_surrounded_by_newlines`; returns
+    ``True`` when *text* both starts with and ends with ``\\n``, ``False``
+    otherwise. Empty text returns ``False``.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* starts and ends with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_surrounded_by_newlines("\\nhello\\n")
+        True
+        >>> has_surrounded_by_newlines("\\n")
+        True
+        >>> has_surrounded_by_newlines("hello")
+        False
+        >>> has_surrounded_by_newlines("hello\\n")
+        False
+        >>> has_surrounded_by_newlines("\\nhello")
+        False
+        >>> has_surrounded_by_newlines("")
+        False
+    """
+    _require_string(text, "text")
+    return has_leading_newline(text) and has_trailing_newline(text)
 
 
 def join_lines(lines: Any, separator: str = "\n") -> str:

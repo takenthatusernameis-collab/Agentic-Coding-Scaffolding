@@ -59,6 +59,7 @@ from prompt_utils import (
     has_sentences,
     has_spaces,
     has_suffix,
+    has_surrounded_by_newlines,
     has_tabs,
     has_trailing_newline,
     has_unique_words,
@@ -863,6 +864,39 @@ class TestEnsureSurroundedByNewlines(unittest.TestCase):
             ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
+
+
+class TestHasSurroundedByNewlines(unittest.TestCase):
+    def test_both_newlines(self):
+        self.assertTrue(has_surrounded_by_newlines("\nhello\n"))
+        self.assertTrue(has_surrounded_by_newlines("\n"))
+        self.assertTrue(has_surrounded_by_newlines("\n\n"))
+
+    def test_leading_only(self):
+        self.assertFalse(has_surrounded_by_newlines("\nhello"))
+
+    def test_trailing_only(self):
+        self.assertFalse(has_surrounded_by_newlines("hello\n"))
+
+    def test_no_newlines(self):
+        self.assertFalse(has_surrounded_by_newlines("hello"))
+
+    def test_empty(self):
+        self.assertFalse(has_surrounded_by_newlines(""))
+
+    def test_consistency_with_ensure(self):
+        self.assertTrue(has_surrounded_by_newlines("\nhello\n"))
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
+        self.assertFalse(has_surrounded_by_newlines("hello"))
+        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
+        self.assertFalse(has_surrounded_by_newlines(""))
+        self.assertEqual(ensure_surrounded_by_newlines(""), "")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_surrounded_by_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_surrounded_by_newlines(None)  # type: ignore[arg-type]
 
 
 class TestFirstLine(unittest.TestCase):

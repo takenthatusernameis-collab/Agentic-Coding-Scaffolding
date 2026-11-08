@@ -25916,6 +25916,7 @@ from prompt_utils import (
     has_sentences,
     has_spaces,
     has_suffix,
+    has_surrounded_by_newlines,
     has_tabs,
     has_trailing_newline,
     has_unique_words,
@@ -26720,6 +26721,39 @@ class TestEnsureSurroundedByNewlines(unittest.TestCase):
             ensure_surrounded_by_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ensure_surrounded_by_newlines(None)  # type: ignore[arg-type]
+
+
+class TestHasSurroundedByNewlines(unittest.TestCase):
+    def test_both_newlines(self):
+        self.assertTrue(has_surrounded_by_newlines("\nhello\n"))
+        self.assertTrue(has_surrounded_by_newlines("\n"))
+        self.assertTrue(has_surrounded_by_newlines("\n\n"))
+
+    def test_leading_only(self):
+        self.assertFalse(has_surrounded_by_newlines("\nhello"))
+
+    def test_trailing_only(self):
+        self.assertFalse(has_surrounded_by_newlines("hello\n"))
+
+    def test_no_newlines(self):
+        self.assertFalse(has_surrounded_by_newlines("hello"))
+
+    def test_empty(self):
+        self.assertFalse(has_surrounded_by_newlines(""))
+
+    def test_consistency_with_ensure(self):
+        self.assertTrue(has_surrounded_by_newlines("\nhello\n"))
+        self.assertEqual(ensure_surrounded_by_newlines("\nhello\n"), "\nhello\n")
+        self.assertFalse(has_surrounded_by_newlines("hello"))
+        self.assertEqual(ensure_surrounded_by_newlines("hello"), "\nhello\n")
+        self.assertFalse(has_surrounded_by_newlines(""))
+        self.assertEqual(ensure_surrounded_by_newlines(""), "")
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_surrounded_by_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_surrounded_by_newlines(None)  # type: ignore[arg-type]
 
 
 class TestFirstLine(unittest.TestCase):
@@ -40175,6 +40209,7 @@ __all__: List[str] = [
     "normalize_whitespace",
     "is_blank",
     "ensure_surrounded_by_newlines",
+    "has_surrounded_by_newlines",
     "count_newlines",
     "has_newline",
     "has_newlines",
@@ -42911,6 +42946,40 @@ def ensure_surrounded_by_newlines(text: str) -> str:
     if not text.endswith("\n"):
         text = text + "\n"
     return text
+
+
+def has_surrounded_by_newlines(text: str) -> bool:
+    """Check whether *text* starts and ends with a newline character.
+
+    A boolean companion to :func:`ensure_surrounded_by_newlines`; returns
+    ``True`` when *text* both starts with and ends with ``\\n``, ``False``
+    otherwise. Empty text returns ``False``.
+
+    Args:
+        text: The string to inspect.
+
+    Returns:
+        ``True`` if *text* starts and ends with ``\\n``, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> has_surrounded_by_newlines("\\nhello\\n")
+        True
+        >>> has_surrounded_by_newlines("\\n")
+        True
+        >>> has_surrounded_by_newlines("hello")
+        False
+        >>> has_surrounded_by_newlines("hello\\n")
+        False
+        >>> has_surrounded_by_newlines("\\nhello")
+        False
+        >>> has_surrounded_by_newlines("")
+        False
+    """
+    _require_string(text, "text")
+    return has_leading_newline(text) and has_trailing_newline(text)
 
 
 def join_lines(lines: Any, separator: str = "\n") -> str:
@@ -61822,6 +61891,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added has_surrounded_by_newlines to prompt_utils
+
+- Audited `prompt_utils.py` for a remaining focused, hermetic gap in the `ensure_*` family. The module had `ensure_surrounded_by_newlines` (exported, tested, documented) but no boolean `has_*` companion, unlike `ensure_prefix`/`has_prefix`, `ensure_suffix`/`has_suffix`, `ensure_leading_newline`/`has_leading_newline`, and `ensure_trailing_newline`/`has_trailing_newline`. Added `has_surrounded_by_newlines(text)` as the missing boolean companion. It returns ``True`` when *text* starts and ends with a newline character and ``False`` otherwise (empty text returns ``False``), reusing `has_leading_newline` and `has_trailing_newline` for consistency. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests.
+- Added `TestHasSurroundedByNewlines` (7 tests) to `tests/test_prompt_utils.py` covering both-newlines, leading-only, trailing-only, no-newlines, empty, consistency with `ensure_surrounded_by_newlines`, and `TypeError` paths; imported `has_surrounded_by_newlines` to match `__all__`. Updated the prompt_utils prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` (OK); targeted doctest for `has_surrounded_by_newlines` (0 failures); `python -m unittest tests.test_public_api` (exit 0); full suite `python -m unittest discover tests/` (OK). Note: `python -m doctest prompt_utils.py` raises a pre-existing, unrelated `ValueError` in the `wrap_prompt` docstring — not addressed here. No `.github/workflows/**` changes.
+
 ## Unreleased — added count_whitespace to prompt_utils
 
 - Audited `prompt_utils.py` for a remaining focused, hermetic gap consistent with the module's `count_*`/`has_*` pairing convention. Found that `has_whitespace` (exported, tested, documented) had no integer companion, while the sibling `has_whitespace_characters`/`count_whitespace_characters` pair and every other `has_*` predicate in the module had its `count_*` counterpart. Added `count_whitespace(text)` as the missing integer companion. It returns the number of whitespace characters in *text* (as defined by :meth:`str.isspace`), counting spaces, tabs, newlines, and other Unicode whitespace; empty text returns zero. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_whitespace` to reuse `count_whitespace(text) > 0` for consistency with the module's other boolean companions (it previously used a bare `any(c.isspace() for c in text)`).
@@ -65196,7 +65270,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `has_blank_lines`, `count_placeholders`, `count_sentences`, `has_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `has_paragraphs`, `has_words`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `count_alphanumeric`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`. `count_alphanumeric` is the integer companion to `has_alphanumeric`, returning the number of ASCII letters and digits in *text* (Unicode letters and numerals are not counted), and `has_alphanumeric` reuses it for consistency, returning ``True`` when at least one ASCII alphanumeric character is present and ``False`` for empty or symbol-only text. `count_whitespace` is the integer companion to `has_whitespace`, returning the number of whitespace characters in *text* (as defined by :meth:`str.isspace`), and `has_whitespace` reuses it for consistency, returning ``True`` when at least one whitespace character is present and ``False`` for empty or whitespace-free text.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `has_blank_lines`, `count_placeholders`, `count_sentences`, `has_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `has_paragraphs`, `has_words`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `count_alphanumeric`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `has_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`. `has_surrounded_by_newlines` is the boolean companion to `ensure_surrounded_by_newlines`; it returns ``True`` when *text* starts and ends with a newline and ``False`` otherwise, reusing `has_leading_newline` and `has_trailing_newline` for consistency. `count_alphanumeric` is the integer companion to `has_alphanumeric`, returning the number of ASCII letters and digits in *text* (Unicode letters and numerals are not counted), and `has_alphanumeric` reuses it for consistency, returning ``True`` when at least one ASCII alphanumeric character is present and ``False`` for empty or symbol-only text. `count_whitespace` is the integer companion to `has_whitespace`, returning the number of whitespace characters in *text* (as defined by :meth:`str.isspace`), and `has_whitespace` reuses it for consistency, returning ``True`` when at least one whitespace character is present and ``False`` for empty or whitespace-free text.
 
 ## Regex Utilities Module
 
