@@ -52227,6 +52227,7 @@ __all__: list[str] = [
     "is_all_ones",
     "count_null_bytes",
     "has_null_byte",
+    "has_null_bytes",
     "lowest_set_bit",
     "highest_set_bit",
 ]
@@ -54011,6 +54012,33 @@ def has_null_byte(data: bytes) -> bool:
         >>> has_null_byte(from_hex("010203"))
         False
         >>> has_null_byte(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_null_bytes(data) > 0
+
+
+def has_null_bytes(data: bytes) -> bool:
+    """Alias for :func:`has_null_byte` (plural form).
+
+    Returns ``True`` if *data* contains at least one zero byte.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is 0, False otherwise (empty input is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_null_bytes(from_hex("000000"))
+        True
+        >>> has_null_bytes(from_hex("010203"))
+        False
+        >>> has_null_bytes(b"")
         False
     """
     if not isinstance(data, (bytes, bytearray)):
