@@ -18,10 +18,12 @@ __all__ = [
     "T",
     "adjacent_pairs",
     "chunk",
+    "count_occurrences",
     "distinct",
     "drop_while",
     "first",
     "flatten",
+    "has_occurrences",
     "head",
     "interleave",
     "is_sorted",
@@ -486,6 +488,61 @@ def is_sorted(
         if should_precede(mapped[i + 1], mapped[i]):
             return False
     return True
+
+
+def count_occurrences(sequence: Sequence[T], value: T) -> int:
+    """Return the number of times ``value`` appears in ``sequence``.
+
+    Elements are compared with ``==``, so the match is exact and
+    order-independent. An empty sequence yields ``0``.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to count.
+
+    Returns:
+        The number of elements in ``sequence`` equal to ``value``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> count_occurrences([1, 2, 2, 3, 2], 2)
+        3
+        >>> count_occurrences("abracadabra", "a")
+        5
+        >>> count_occurrences([], 1)
+        0
+    """
+    _require_sequence(sequence)
+    return sum(1 for item in sequence if item == value)
+
+
+def has_occurrences(sequence: Sequence[T], value: T) -> bool:
+    """Return ``True`` when ``value`` appears at least once in ``sequence``.
+
+    This is the boolean companion to :func:`count_occurrences`, reusing it
+    for consistency.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to look for.
+
+    Returns:
+        ``True`` if ``value`` is present in ``sequence``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> has_occurrences([1, 2, 3], 2)
+        True
+        >>> has_occurrences([1, 2, 3], 4)
+        False
+        >>> has_occurrences([], 1)
+        False
+    """
+    return count_occurrences(sequence, value) > 0
 
 
 if __name__ == "__main__":
