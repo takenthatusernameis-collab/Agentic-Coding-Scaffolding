@@ -33586,6 +33586,8 @@ __all__ = [
     "count_duplicates",
     "drop",
     "find",
+    "find_all",
+    "find_all_indices",
     "find_index",
     "find_last",
     "find_last_index",
@@ -63321,6 +63323,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
+- Added `has_all_unique(sequence)` to `seq_utils.py` as the boolean companion to `count_unique`, returning ``True`` when every element in ``sequence`` is distinct and reusing :func:`count_unique` for consistency (an empty sequence yields ``True``). Accepts any ``Sequence``, validates with :func:`_require_sequence`, raises ``TypeError`` for a non-sequence, is exported via ``__all__``, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasAllUnique` (7 tests) to `tests/test_seq_utils.py` covering all-unique/duplicate/empty/single/string/tuple cases, consistency with `count_unique`, and the `TypeError` path; imported `has_all_unique` to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 - Added `find_all(lst, predicate)` and `find_all_indices(lst, predicate)` to `list_utils.py` as multi-match companions to `find`/`find_index`, returning all matching elements or their 0-based indices in order (empty list/no matches yields `[]`). Typed APIs accept a `List[T]` and callable predicate, raise `TypeError` for non-lists or non-callable predicates, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestFindAll` and `TestFindAllIndices` (14 tests) to `tests/test_list_utils.py` covering basic/none-match/empty/preserve-order/all-match/string cases and `TypeError` paths. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 - Added `index_in_deque(d, value, start=0, stop=None)` to `deque_utils.py` as a typed companion to `collections.deque.index`, returning the 0-based index of the first matching element with optional `start`/`stop` bounds and raising `ValueError` when absent (stdlib behavior preserved). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestIndexInDeque` to `tests/test_deque_utils.py` covering basic lookup, `start`/`stop` ranges, missing/empty/range-miss `ValueError` paths, and list-consistency. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils` (60 OK), `python -m doctest deque_utils.py`, `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
@@ -65915,7 +65919,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition, reverse)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, count_unique, has_occurrences, has_where, has_all_unique, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition, reverse)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -66850,7 +66854,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -105819,6 +105823,7 @@ __all__ = [
     "flatten",
     "count_duplicates",
     "count_unique",
+    "has_all_unique",
     "has_duplicates",
     "has_occurrences",
     "has_where",
@@ -106393,6 +106398,35 @@ def count_unique(sequence: Sequence[T]) -> int:
     return unique
 
 
+def has_all_unique(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when every element of ``sequence`` is distinct.
+
+    This is the boolean companion to :func:`count_unique`; it reports whether
+    all elements are unique and reuses :func:`count_unique` for consistency.
+    An empty sequence yields ``True`` (vacuously all elements are distinct).
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if all elements in ``sequence`` are distinct, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> has_all_unique([1, 2, 3])
+        True
+        >>> has_all_unique([1, 2, 2, 3])
+        False
+        >>> has_all_unique([])
+        True
+    """
+    _require_sequence(sequence)
+    return count_unique(sequence) == len(sequence)
+
+
 def flatten(sequence: Sequence[Any]) -> List[Any]:
     """Flatten one level of nesting in ``sequence``.
 
@@ -106962,6 +106996,7 @@ from seq_utils import (
     all_where,
     chunk,
     count_occurrences,
+    count_unique,
     count_where,
     distinct,
     drop_while,
@@ -106973,6 +107008,7 @@ from seq_utils import (
     find_last_index,
     first,
     flatten,
+    has_all_unique,
     has_duplicates,
     has_occurrences,
     has_where,
@@ -107616,6 +107652,41 @@ class TestHasDuplicates(unittest.TestCase):
     def test_non_sequence_raises(self):
         with self.assertRaises(TypeError):
             has_duplicates(123)
+
+
+class TestHasAllUnique(unittest.TestCase):
+    def test_all_unique(self):
+        self.assertTrue(has_all_unique([1, 2, 3]))
+        self.assertTrue(has_all_unique("abc"))
+
+    def test_has_duplicates(self):
+        self.assertFalse(has_all_unique([1, 2, 2, 3]))
+        self.assertFalse(has_all_unique("abca"))
+
+    def test_empty(self):
+        self.assertTrue(has_all_unique([]))
+        self.assertTrue(has_all_unique(""))
+        self.assertTrue(has_all_unique(()))
+
+    def test_single_element(self):
+        self.assertTrue(has_all_unique([42]))
+        self.assertTrue(has_all_unique(("only",)))
+
+    def test_tuple(self):
+        self.assertTrue(has_all_unique((1, 2, 3)))
+        self.assertFalse(has_all_unique((1, 2, 1)))
+
+    def test_consistency_with_count_unique(self):
+        seq = [1, 2, 3, 2, 1]
+        self.assertEqual(has_all_unique(seq), count_unique(seq) == len(seq))
+        seq2 = [5, 6, 7]
+        self.assertEqual(has_all_unique(seq2), count_unique(seq2) == len(seq2))
+
+    def test_non_sequence_raises(self):
+        with self.assertRaises(TypeError):
+            has_all_unique(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_all_unique(None)  # type: ignore[arg-type]
 
 
 class TestFindLast(unittest.TestCase):

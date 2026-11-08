@@ -7,6 +7,7 @@ from seq_utils import (
     all_where,
     chunk,
     count_occurrences,
+    count_unique,
     count_where,
     distinct,
     drop_while,
@@ -18,6 +19,7 @@ from seq_utils import (
     find_last_index,
     first,
     flatten,
+    has_all_unique,
     has_duplicates,
     has_occurrences,
     has_where,
@@ -661,6 +663,41 @@ class TestHasDuplicates(unittest.TestCase):
     def test_non_sequence_raises(self):
         with self.assertRaises(TypeError):
             has_duplicates(123)
+
+
+class TestHasAllUnique(unittest.TestCase):
+    def test_all_unique(self):
+        self.assertTrue(has_all_unique([1, 2, 3]))
+        self.assertTrue(has_all_unique("abc"))
+
+    def test_has_duplicates(self):
+        self.assertFalse(has_all_unique([1, 2, 2, 3]))
+        self.assertFalse(has_all_unique("abca"))
+
+    def test_empty(self):
+        self.assertTrue(has_all_unique([]))
+        self.assertTrue(has_all_unique(""))
+        self.assertTrue(has_all_unique(()))
+
+    def test_single_element(self):
+        self.assertTrue(has_all_unique([42]))
+        self.assertTrue(has_all_unique(("only",)))
+
+    def test_tuple(self):
+        self.assertTrue(has_all_unique((1, 2, 3)))
+        self.assertFalse(has_all_unique((1, 2, 1)))
+
+    def test_consistency_with_count_unique(self):
+        seq = [1, 2, 3, 2, 1]
+        self.assertEqual(has_all_unique(seq), count_unique(seq) == len(seq))
+        seq2 = [5, 6, 7]
+        self.assertEqual(has_all_unique(seq2), count_unique(seq2) == len(seq2))
+
+    def test_non_sequence_raises(self):
+        with self.assertRaises(TypeError):
+            has_all_unique(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_all_unique(None)  # type: ignore[arg-type]
 
 
 class TestFindLast(unittest.TestCase):

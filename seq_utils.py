@@ -34,6 +34,7 @@ __all__ = [
     "flatten",
     "count_duplicates",
     "count_unique",
+    "has_all_unique",
     "has_duplicates",
     "has_occurrences",
     "has_where",
@@ -606,6 +607,35 @@ def count_unique(sequence: Sequence[T]) -> int:
             unhashable.append(item)
             unique += 1
     return unique
+
+
+def has_all_unique(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when every element of ``sequence`` is distinct.
+
+    This is the boolean companion to :func:`count_unique`; it reports whether
+    all elements are unique and reuses :func:`count_unique` for consistency.
+    An empty sequence yields ``True`` (vacuously all elements are distinct).
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if all elements in ``sequence`` are distinct, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> has_all_unique([1, 2, 3])
+        True
+        >>> has_all_unique([1, 2, 2, 3])
+        False
+        >>> has_all_unique([])
+        True
+    """
+    _require_sequence(sequence)
+    return count_unique(sequence) == len(sequence)
 
 
 def flatten(sequence: Sequence[Any]) -> List[Any]:

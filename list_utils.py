@@ -13,6 +13,8 @@ __all__ = [
     "count_duplicates",
     "drop",
     "find",
+    "find_all",
+    "find_all_indices",
     "find_index",
     "find_last",
     "find_last_index",
