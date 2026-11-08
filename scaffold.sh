@@ -103820,10 +103820,12 @@ __all__ = [
     "T",
     "adjacent_pairs",
     "chunk",
+    "count_occurrences",
     "distinct",
     "drop_while",
     "first",
     "flatten",
+    "has_occurrences",
     "head",
     "interleave",
     "is_sorted",
@@ -104290,6 +104292,61 @@ def is_sorted(
     return True
 
 
+def count_occurrences(sequence: Sequence[T], value: T) -> int:
+    """Return the number of times ``value`` appears in ``sequence``.
+
+    Elements are compared with ``==``, so the match is exact and
+    order-independent. An empty sequence yields ``0``.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to count.
+
+    Returns:
+        The number of elements in ``sequence`` equal to ``value``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> count_occurrences([1, 2, 2, 3, 2], 2)
+        3
+        >>> count_occurrences("abracadabra", "a")
+        5
+        >>> count_occurrences([], 1)
+        0
+    """
+    _require_sequence(sequence)
+    return sum(1 for item in sequence if item == value)
+
+
+def has_occurrences(sequence: Sequence[T], value: T) -> bool:
+    """Return ``True`` when ``value`` appears at least once in ``sequence``.
+
+    This is the boolean companion to :func:`count_occurrences`, reusing it
+    for consistency.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to look for.
+
+    Returns:
+        ``True`` if ``value`` is present in ``sequence``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> has_occurrences([1, 2, 3], 2)
+        True
+        >>> has_occurrences([1, 2, 3], 4)
+        False
+        >>> has_occurrences([], 1)
+        False
+    """
+    return count_occurrences(sequence, value) > 0
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -104305,10 +104362,12 @@ import unittest
 from seq_utils import (
     adjacent_pairs,
     chunk,
+    count_occurrences,
     distinct,
     drop_while,
     first,
     flatten,
+    has_occurrences,
     head,
     interleave,
     is_sorted,
@@ -104591,6 +104650,56 @@ class TestIsSorted(unittest.TestCase):
             is_sorted(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_sorted([1, 2], key=123)  # type: ignore[arg-type]
+
+
+class TestCountOccurrences(unittest.TestCase):
+    def test_count_occurrences_basic(self):
+        self.assertEqual(count_occurrences([1, 2, 2, 3, 2], 2), 3)
+        self.assertEqual(count_occurrences([1, 2, 3], 4), 0)
+
+    def test_count_occurrences_empty(self):
+        self.assertEqual(count_occurrences([], 1), 0)
+        self.assertEqual(count_occurrences((), 1), 0)
+
+    def test_count_occurrences_string(self):
+        self.assertEqual(count_occurrences("abracadabra", "a"), 5)
+        self.assertEqual(count_occurrences("hello", "z"), 0)
+
+    def test_count_occurrences_tuple(self):
+        self.assertEqual(count_occurrences((1, 1, 2, 1), 1), 3)
+
+    def test_count_occurrences_type_error(self):
+        with self.assertRaises(TypeError):
+            count_occurrences(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_occurrences(None, 1)  # type: ignore[arg-type]
+
+
+class TestHasOccurrences(unittest.TestCase):
+    def test_has_occurrences_present(self):
+        self.assertTrue(has_occurrences([1, 2, 3], 2))
+        self.assertTrue(has_occurrences("abracadabra", "a"))
+
+    def test_has_occurrences_absent(self):
+        self.assertFalse(has_occurrences([1, 2, 3], 4))
+        self.assertFalse(has_occurrences("hello", "z"))
+
+    def test_has_occurrences_empty(self):
+        self.assertFalse(has_occurrences([], 1))
+        self.assertFalse(has_occurrences("", "a"))
+
+    def test_has_occurrences_duplicates(self):
+        self.assertTrue(has_occurrences([1, 1, 1], 1))
+
+    def test_has_occurrences_consistency(self):
+        self.assertEqual(has_occurrences([1, 2, 2, 3], 2), count_occurrences([1, 2, 2, 3], 2) > 0)
+        self.assertEqual(has_occurrences([1, 2, 3], 5), count_occurrences([1, 2, 3], 5) > 0)
+
+    def test_has_occurrences_type_error(self):
+        with self.assertRaises(TypeError):
+            has_occurrences(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_occurrences(None, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
