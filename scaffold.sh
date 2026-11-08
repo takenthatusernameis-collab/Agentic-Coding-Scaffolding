@@ -33749,15 +33749,77 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
     return None
 
 
+def find_all(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
+    """Return all elements in a list satisfying a predicate.
+
+    Matching elements are returned in the order they appear. An empty list
+    (or no matches) yields an empty list.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for desired elements.
+
+    Returns:
+        A list of all matching elements.
+
+    Raises:
+        TypeError: If lst is not a list or predicate is not callable.
+
+    Examples:
+        >>> find_all([1, 2, 3, 4], lambda x: x > 2)
+        [3, 4]
+        >>> find_all([1, 2, 3], lambda x: x > 10)
+        []
+        >>> find_all([], lambda x: True)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [item for item in lst if predicate(item)]
+
+
+def find_all_indices(lst: List[T], predicate: Callable[[T], bool]) -> List[int]:
+    """Return the indices of all elements in a list satisfying a predicate.
+
+    Indices are returned in ascending order. An empty list (or no
+    matches) yields an empty list.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for desired elements.
+
+    Returns:
+        A list of 0-based indices of all matching elements.
+
+    Raises:
+        TypeError: If lst is not a list or predicate is not callable.
+
+    Examples:
+        >>> find_all_indices([1, 2, 3, 4], lambda x: x > 2)
+        [2, 3]
+        >>> find_all_indices([1, 2, 3], lambda x: x > 10)
+        []
+        >>> find_all_indices([], lambda x: True)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [i for i, item in enumerate(lst) if predicate(item)]
+
+
 def find_last(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
-    """Find the last element in a list satisfying a predicate.
+    """Return the last element in a list satisfying a predicate.
 
     Args:
         lst: The list to search.
         predicate: A function that returns True for the desired element.
 
     Returns:
-        The last matching element, or None if no match is found.
+        The last matching element, or None if no element matches.
 
     Raises:
         TypeError: If lst is not a list.
@@ -33765,13 +33827,13 @@ def find_last(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
     Examples:
         >>> find_last([1, 2, 3, 4], lambda x: x > 2)
         4
-        >>> find_last([1, 2, 3, 4], lambda x: x % 2 == 0)
-        4
-        >>> find_last([1, 2, 3], lambda x: x > 10) is None
-        True
+        >>> find_last([1, 2, 3], lambda x: x > 10)
+        >>> find_last([1, 2, 3], lambda x: x % 2 == 0)
+        2
+        >>> find_last([], lambda x: True)
     """
     if not isinstance(lst, list):
-        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+        raise TypeError("lst must be a list")
     for item in reversed(lst):
         if predicate(item):
             return item
@@ -34218,6 +34280,8 @@ from list_utils import (
     contains,
     drop,
     find,
+    find_all,
+    find_all_indices,
     find_index,
     find_last,
     find_last_index,
@@ -34697,6 +34761,56 @@ class TestFindLastIndex(unittest.TestCase):
     def test_find_last_index_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             find_last_index("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestFindAll(unittest.TestCase):
+    def test_find_all_basic(self) -> None:
+        self.assertEqual(find_all([1, 2, 3, 4], lambda x: x > 2), [3, 4])
+
+    def test_find_all_none_match(self) -> None:
+        self.assertEqual(find_all([1, 2, 3], lambda x: x > 10), [])
+
+    def test_find_all_empty(self) -> None:
+        self.assertEqual(find_all([], lambda x: True), [])
+
+    def test_find_all_preserves_order(self) -> None:
+        self.assertEqual(find_all([3, 1, 4, 1, 5], lambda x: x % 2 == 1), [3, 1, 1, 5])
+
+    def test_find_all_strings(self) -> None:
+        self.assertEqual(find_all(["a", "bb", "ccc"], lambda s: len(s) >= 2), ["bb", "ccc"])
+
+    def test_find_all_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all("not a list", lambda x: True)  # type: ignore[arg-type]
+
+    def test_find_all_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all([1, 2, 3], 1)  # type: ignore[arg-type]
+
+
+class TestFindAllIndices(unittest.TestCase):
+    def test_find_all_indices_basic(self) -> None:
+        self.assertEqual(find_all_indices([1, 2, 3, 4], lambda x: x > 2), [2, 3])
+
+    def test_find_all_indices_none_match(self) -> None:
+        self.assertEqual(find_all_indices([1, 2, 3], lambda x: x > 10), [])
+
+    def test_find_all_indices_empty(self) -> None:
+        self.assertEqual(find_all_indices([], lambda x: True), [])
+
+    def test_find_all_indices_all_match(self) -> None:
+        self.assertEqual(find_all_indices([2, 4, 6], lambda x: x % 2 == 0), [0, 1, 2])
+
+    def test_find_all_indices_strings(self) -> None:
+        self.assertEqual(find_all_indices(["a", "bb", "ccc", "d"], lambda s: len(s) == 1), [0, 3])
+
+    def test_find_all_indices_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all_indices("not a list", lambda x: True)  # type: ignore[arg-type]
+
+    def test_find_all_indices_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all_indices([1, 2, 3], 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -63045,6 +63159,8 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
+- Added `find_all(lst, predicate)` and `find_all_indices(lst, predicate)` to `list_utils.py` as multi-match companions to `find`/`find_index`, returning all matching elements or their 0-based indices in order (empty list/no matches yields `[]`). Typed APIs accept a `List[T]` and callable predicate, raise `TypeError` for non-lists or non-callable predicates, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestFindAll` and `TestFindAllIndices` (14 tests) to `tests/test_list_utils.py` covering basic/none-match/empty/preserve-order/all-match/string cases and `TypeError` paths. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 - Added `index_in_deque(d, value, start=0, stop=None)` to `deque_utils.py` as a typed companion to `collections.deque.index`, returning the 0-based index of the first matching element with optional `start`/`stop` bounds and raising `ValueError` when absent (stdlib behavior preserved). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestIndexInDeque` to `tests/test_deque_utils.py` covering basic lookup, `start`/`stop` ranges, missing/empty/range-miss `ValueError` paths, and list-consistency. Updated the `deque_utils` module tree entry and prose section of `README.md`. Synchronized `deque_utils.py`, `tests/test_deque_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_deque_utils` (60 OK), `python -m doctest deque_utils.py`, `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
 
 
@@ -65588,7 +65704,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_last, find_last_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -66255,7 +66371,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed. The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

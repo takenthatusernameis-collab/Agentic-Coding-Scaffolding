@@ -3159,18 +3159,17 @@ Next Planned (for the following agent):
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
 
-## Latest Session (2026-11-08) — added `index_in_deque` to `deque_utils`
+## Latest Session (2026-11-08) — added `find_all` / `find_all_indices` to `list_utils`
 
-**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Verified clean state before starting (`git status` clean, `python tools/refresh_scaffold.py --check` in sync). Executed prior "Next Planned": audited `deque_utils.py` for a focused, hermetic helper gap consistent with existing API style.
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Verified clean state (`git status` clean, `python tools/refresh_scaffold.py --check` in sync). Executed prior "Next Planned": audited `list_utils.py`/`seq_utils.py` for a focused, hermetic helper gap. `find_all`/`find_all_indices` (predicate companions to `find`/`find_index`) existed in `seq_utils.py` but were missing from `list_utils.py` — a clear API-style gap.
 
 **Changes:**
-- Added `index_in_deque(d, value, start=0, stop=None)` to `deque_utils.py` as a typed companion to `collections.deque.index`, returning the 0-based index of the first matching element with optional `start`/`stop` bounds and raising `ValueError` when absent (stdlib behavior preserved). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests.
-- Added `TestIndexInDeque` (8 tests) to `tests/test_deque_utils.py` covering basic lookup, `start`/`stop` ranges, missing/empty/range-miss `ValueError` paths, and list-consistency.
-- Updated the `deque_utils` module tree entry and prose section of `README.md`. Recorded the change in the Unreleased section of `CHANGELOG.md`. Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `find_all(lst, predicate)` and `find_all_indices(lst, predicate)` to `list_utils.py`, returning all matching elements or 0-based indices in order (`[]` when none). Typed `List[T]`/callable API, `TypeError` validation for non-lists and non-callable predicates, exported via `__all__`, Google-style docstrings with ASCII-safe doctests.
+- Added `TestFindAll` and `TestFindAllIndices` (14 tests) to `tests/test_list_utils.py`; updated imports. Updated `README.md` and `CHANGELOG.md`. Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-**Validation:** `python -m unittest tests.test_deque_utils` (60 OK); `python -m doctest deque_utils.py` (OK); `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`. No no-op/timestamp-only commit.
+**Validation:** `python -m unittest tests.test_list_utils` (135 OK); `python -m doctest list_utils.py` (OK); `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
 
 Next Planned (for the following agent):
-- Audit `list_utils.py` or `seq_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
+- Audit `deque_utils.py` or `set_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.

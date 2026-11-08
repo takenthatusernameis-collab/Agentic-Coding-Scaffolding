@@ -7,6 +7,8 @@ from list_utils import (
     contains,
     drop,
     find,
+    find_all,
+    find_all_indices,
     find_index,
     find_last,
     find_last_index,
@@ -486,6 +488,56 @@ class TestFindLastIndex(unittest.TestCase):
     def test_find_last_index_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             find_last_index("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestFindAll(unittest.TestCase):
+    def test_find_all_basic(self) -> None:
+        self.assertEqual(find_all([1, 2, 3, 4], lambda x: x > 2), [3, 4])
+
+    def test_find_all_none_match(self) -> None:
+        self.assertEqual(find_all([1, 2, 3], lambda x: x > 10), [])
+
+    def test_find_all_empty(self) -> None:
+        self.assertEqual(find_all([], lambda x: True), [])
+
+    def test_find_all_preserves_order(self) -> None:
+        self.assertEqual(find_all([3, 1, 4, 1, 5], lambda x: x % 2 == 1), [3, 1, 1, 5])
+
+    def test_find_all_strings(self) -> None:
+        self.assertEqual(find_all(["a", "bb", "ccc"], lambda s: len(s) >= 2), ["bb", "ccc"])
+
+    def test_find_all_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all("not a list", lambda x: True)  # type: ignore[arg-type]
+
+    def test_find_all_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all([1, 2, 3], 1)  # type: ignore[arg-type]
+
+
+class TestFindAllIndices(unittest.TestCase):
+    def test_find_all_indices_basic(self) -> None:
+        self.assertEqual(find_all_indices([1, 2, 3, 4], lambda x: x > 2), [2, 3])
+
+    def test_find_all_indices_none_match(self) -> None:
+        self.assertEqual(find_all_indices([1, 2, 3], lambda x: x > 10), [])
+
+    def test_find_all_indices_empty(self) -> None:
+        self.assertEqual(find_all_indices([], lambda x: True), [])
+
+    def test_find_all_indices_all_match(self) -> None:
+        self.assertEqual(find_all_indices([2, 4, 6], lambda x: x % 2 == 0), [0, 1, 2])
+
+    def test_find_all_indices_strings(self) -> None:
+        self.assertEqual(find_all_indices(["a", "bb", "ccc", "d"], lambda s: len(s) == 1), [0, 3])
+
+    def test_find_all_indices_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all_indices("not a list", lambda x: True)  # type: ignore[arg-type]
+
+    def test_find_all_indices_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            find_all_indices([1, 2, 3], 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

@@ -176,15 +176,77 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
     return None
 
 
+def find_all(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
+    """Return all elements in a list satisfying a predicate.
+
+    Matching elements are returned in the order they appear. An empty list
+    (or no matches) yields an empty list.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for desired elements.
+
+    Returns:
+        A list of all matching elements.
+
+    Raises:
+        TypeError: If lst is not a list or predicate is not callable.
+
+    Examples:
+        >>> find_all([1, 2, 3, 4], lambda x: x > 2)
+        [3, 4]
+        >>> find_all([1, 2, 3], lambda x: x > 10)
+        []
+        >>> find_all([], lambda x: True)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [item for item in lst if predicate(item)]
+
+
+def find_all_indices(lst: List[T], predicate: Callable[[T], bool]) -> List[int]:
+    """Return the indices of all elements in a list satisfying a predicate.
+
+    Indices are returned in ascending order. An empty list (or no
+    matches) yields an empty list.
+
+    Args:
+        lst: The list to search.
+        predicate: A function that returns True for desired elements.
+
+    Returns:
+        A list of 0-based indices of all matching elements.
+
+    Raises:
+        TypeError: If lst is not a list or predicate is not callable.
+
+    Examples:
+        >>> find_all_indices([1, 2, 3, 4], lambda x: x > 2)
+        [2, 3]
+        >>> find_all_indices([1, 2, 3], lambda x: x > 10)
+        []
+        >>> find_all_indices([], lambda x: True)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [i for i, item in enumerate(lst) if predicate(item)]
+
+
 def find_last(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
-    """Find the last element in a list satisfying a predicate.
+    """Return the last element in a list satisfying a predicate.
 
     Args:
         lst: The list to search.
         predicate: A function that returns True for the desired element.
 
     Returns:
-        The last matching element, or None if no match is found.
+        The last matching element, or None if no element matches.
 
     Raises:
         TypeError: If lst is not a list.
@@ -192,13 +254,13 @@ def find_last(lst: List[T], predicate: Callable[[T], bool]) -> Optional[T]:
     Examples:
         >>> find_last([1, 2, 3, 4], lambda x: x > 2)
         4
-        >>> find_last([1, 2, 3, 4], lambda x: x % 2 == 0)
-        4
-        >>> find_last([1, 2, 3], lambda x: x > 10) is None
-        True
+        >>> find_last([1, 2, 3], lambda x: x > 10)
+        >>> find_last([1, 2, 3], lambda x: x % 2 == 0)
+        2
+        >>> find_last([], lambda x: True)
     """
     if not isinstance(lst, list):
-        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+        raise TypeError("lst must be a list")
     for item in reversed(lst):
         if predicate(item):
             return item
