@@ -14,6 +14,7 @@ __all__ = [
     "contains_any_value",
     "contains_key",
     "contains_value",
+    "count_all_values",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
@@ -483,6 +484,10 @@ def contains_any_key(d: Dict[Any, Any], keys: Any) -> bool:
 def has_all_values(d: Dict[Any, Any], values: Any) -> bool:
     """Report whether all of *values* are present in *d*.
 
+    This is the boolean companion to :func:`count_all_values`; it reports
+    whether every value in *values* is present in *d* and reuses
+    :func:`count_all_values` for consistency.
+
     Args:
         d: Dictionary to search in.
         values: Iterable of values to look for.
@@ -501,10 +506,8 @@ def has_all_values(d: Dict[Any, Any], values: Any) -> bool:
         >>> has_all_values({}, [])
         True
     """
-    if not isinstance(d, dict):
-        raise TypeError("d must be a dict")
-    d_values = d.values()
-    return all(v in d_values for v in values)
+    values = list(values)
+    return count_all_values(d, values) == len(values)
 
 
 def contains_all_values(d: Dict[Any, Any], values: Any) -> bool:
@@ -512,8 +515,46 @@ def contains_all_values(d: Dict[Any, Any], values: Any) -> bool:
     return has_all_values(d, values)
 
 
+def count_all_values(d: Dict[Any, Any], values: Any) -> int:
+    """Return the number of values from *values* that are present in *d*.
+
+    Each element of *values* is checked against the dictionary's values;
+    duplicates in *values* are counted separately, so the result can exceed
+    the number of distinct values in *d*. An empty *values* iterable yields
+    ``0``.
+
+    Args:
+        d: Dictionary to search in.
+        values: Iterable of values to look for.
+
+    Returns:
+        The number of elements of *values* that are present in *d*.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> count_all_values({"a": 1, "b": 2}, [1, 2])
+        2
+        >>> count_all_values({"a": 1, "b": 2}, [1, 3])
+        1
+        >>> count_all_values({}, [])
+        0
+        >>> count_all_values({"a": 1, "b": 2}, [1, 1, 2])
+        3
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    d_values = d.values()
+    return sum(1 for v in values if v in d_values)
+
+
 def has_any_value(d: Dict[Any, Any], values: Any) -> bool:
     """Report whether at least one of *values* is present in *d*.
+
+    This is the boolean companion to :func:`count_all_values`; it reports
+    whether any value in *values* is present in *d* and reuses
+    :func:`count_all_values` for consistency.
 
     Args:
         d: Dictionary to search in.
@@ -533,10 +574,7 @@ def has_any_value(d: Dict[Any, Any], values: Any) -> bool:
         >>> has_any_value({}, [])
         False
     """
-    if not isinstance(d, dict):
-        raise TypeError("d must be a dict")
-    d_values = d.values()
-    return any(v in d_values for v in values)
+    return count_all_values(d, values) > 0
 
 
 def contains_any_value(d: Dict[Any, Any], values: Any) -> bool:

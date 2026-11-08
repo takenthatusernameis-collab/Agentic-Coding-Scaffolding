@@ -7,6 +7,7 @@ from dict_utils import (
     contains_any_value,
     contains_key,
     contains_value,
+    count_all_values,
     deep_merge,
     filter_dict,
     flatten_dict,
@@ -437,3 +438,45 @@ class TestHasAnyValue(unittest.TestCase):
             has_any_value("x", [1])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             contains_any_value(None, [1])  # type: ignore[arg-type]
+
+
+class TestCountAllValues(unittest.TestCase):
+    def test_all_present(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [1, 2]), 2)
+
+    def test_one_missing(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [1, 3]), 1)
+
+    def test_none_present(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [3, 4]), 0)
+
+    def test_empty_values(self) -> None:
+        self.assertEqual(count_all_values({}, []), 0)
+        self.assertEqual(count_all_values({"a": 1}, []), 0)
+
+    def test_empty_dict(self) -> None:
+        self.assertEqual(count_all_values({}, [1]), 0)
+
+    def test_duplicates_in_values(self) -> None:
+        self.assertEqual(count_all_values({"a": 1}, [1, 1, 2]), 2)
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [1, 1, 2]), 3)
+
+    def test_falsy_and_none(self) -> None:
+        self.assertEqual(count_all_values({"a": None, "b": 0, "c": False}, [None, 0]), 2)
+
+    def test_generator_values(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, (v for v in [1, 2, 3])), 2)
+
+    def test_matches_has_all_values(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 2], [1, 3], [], [2], [1, 1, 2]):
+            self.assertEqual(has_all_values(d, vals), count_all_values(d, vals) == len(list(vals)))
+
+    def test_matches_has_any_value(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 3], [3, 4], [], [2]):
+            self.assertEqual(has_any_value(d, vals), count_all_values(d, vals) > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_all_values("x", [1])  # type: ignore[arg-type]

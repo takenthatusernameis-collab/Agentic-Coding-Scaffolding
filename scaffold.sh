@@ -37173,6 +37173,7 @@ __all__ = [
     "contains_any_value",
     "contains_key",
     "contains_value",
+    "count_all_values",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
@@ -37642,6 +37643,10 @@ def contains_any_key(d: Dict[Any, Any], keys: Any) -> bool:
 def has_all_values(d: Dict[Any, Any], values: Any) -> bool:
     """Report whether all of *values* are present in *d*.
 
+    This is the boolean companion to :func:`count_all_values`; it reports
+    whether every value in *values* is present in *d* and reuses
+    :func:`count_all_values` for consistency.
+
     Args:
         d: Dictionary to search in.
         values: Iterable of values to look for.
@@ -37660,10 +37665,8 @@ def has_all_values(d: Dict[Any, Any], values: Any) -> bool:
         >>> has_all_values({}, [])
         True
     """
-    if not isinstance(d, dict):
-        raise TypeError("d must be a dict")
-    d_values = d.values()
-    return all(v in d_values for v in values)
+    values = list(values)
+    return count_all_values(d, values) == len(values)
 
 
 def contains_all_values(d: Dict[Any, Any], values: Any) -> bool:
@@ -37671,8 +37674,46 @@ def contains_all_values(d: Dict[Any, Any], values: Any) -> bool:
     return has_all_values(d, values)
 
 
+def count_all_values(d: Dict[Any, Any], values: Any) -> int:
+    """Return the number of values from *values* that are present in *d*.
+
+    Each element of *values* is checked against the dictionary's values;
+    duplicates in *values* are counted separately, so the result can exceed
+    the number of distinct values in *d*. An empty *values* iterable yields
+    ``0``.
+
+    Args:
+        d: Dictionary to search in.
+        values: Iterable of values to look for.
+
+    Returns:
+        The number of elements of *values* that are present in *d*.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> count_all_values({"a": 1, "b": 2}, [1, 2])
+        2
+        >>> count_all_values({"a": 1, "b": 2}, [1, 3])
+        1
+        >>> count_all_values({}, [])
+        0
+        >>> count_all_values({"a": 1, "b": 2}, [1, 1, 2])
+        3
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    d_values = d.values()
+    return sum(1 for v in values if v in d_values)
+
+
 def has_any_value(d: Dict[Any, Any], values: Any) -> bool:
     """Report whether at least one of *values* is present in *d*.
+
+    This is the boolean companion to :func:`count_all_values`; it reports
+    whether any value in *values* is present in *d* and reuses
+    :func:`count_all_values` for consistency.
 
     Args:
         d: Dictionary to search in.
@@ -37692,10 +37733,7 @@ def has_any_value(d: Dict[Any, Any], values: Any) -> bool:
         >>> has_any_value({}, [])
         False
     """
-    if not isinstance(d, dict):
-        raise TypeError("d must be a dict")
-    d_values = d.values()
-    return any(v in d_values for v in values)
+    return count_all_values(d, values) > 0
 
 
 def contains_any_value(d: Dict[Any, Any], values: Any) -> bool:
@@ -49869,6 +49907,7 @@ from dict_utils import (
     contains_any_value,
     contains_key,
     contains_value,
+    count_all_values,
     deep_merge,
     filter_dict,
     flatten_dict,
@@ -50299,6 +50338,48 @@ class TestHasAnyValue(unittest.TestCase):
             has_any_value("x", [1])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             contains_any_value(None, [1])  # type: ignore[arg-type]
+
+
+class TestCountAllValues(unittest.TestCase):
+    def test_all_present(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [1, 2]), 2)
+
+    def test_one_missing(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [1, 3]), 1)
+
+    def test_none_present(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [3, 4]), 0)
+
+    def test_empty_values(self) -> None:
+        self.assertEqual(count_all_values({}, []), 0)
+        self.assertEqual(count_all_values({"a": 1}, []), 0)
+
+    def test_empty_dict(self) -> None:
+        self.assertEqual(count_all_values({}, [1]), 0)
+
+    def test_duplicates_in_values(self) -> None:
+        self.assertEqual(count_all_values({"a": 1}, [1, 1, 2]), 2)
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, [1, 1, 2]), 3)
+
+    def test_falsy_and_none(self) -> None:
+        self.assertEqual(count_all_values({"a": None, "b": 0, "c": False}, [None, 0]), 2)
+
+    def test_generator_values(self) -> None:
+        self.assertEqual(count_all_values({"a": 1, "b": 2}, (v for v in [1, 2, 3])), 2)
+
+    def test_matches_has_all_values(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 2], [1, 3], [], [2], [1, 1, 2]):
+            self.assertEqual(has_all_values(d, vals), count_all_values(d, vals) == len(list(vals)))
+
+    def test_matches_has_any_value(self) -> None:
+        d = {"a": 1, "b": 2}
+        for vals in ([1, 3], [3, 4], [], [2]):
+            self.assertEqual(has_any_value(d, vals), count_all_values(d, vals) > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_all_values("x", [1])  # type: ignore[arg-type]
 TESTDICTUTILS
 
 # --- terminal_utils.py ---
@@ -64224,6 +64305,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_all_values integer companion to dict_utils value predicates
+
+- Added `count_all_values(d, values) -> int` to `dict_utils.py` as the integer companion to `has_all_values`/`has_any_value`, returning the number of elements of *values* that are present in *d* (duplicates in *values* are counted separately, so the result can exceed the number of distinct values in *d*; an empty *values* iterable yields ``0``). It accepts a typed `dict` argument and any iterable of values, raises `TypeError` for non-dicts, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_all_values` to reuse `count_all_values(d, values) == len(list(values))` and `has_any_value` to reuse `count_all_values(d, values) > 0` for consistency with the module's other boolean companions.
+- Added `TestCountAllValues` (11 tests) to `tests/test_dict_utils.py` covering all-present/one-missing/none-present/empty-values/empty-dict/duplicate-values/falsy-and-none/generator-input cases, consistency with `has_all_values` and `has_any_value`, and the `TypeError` path; imported `count_all_values` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — added test coverage for bit_utils.isolate_lowest_set_bit
 
 - Added `TestIsolateLowestSetBit` (6 tests) to `tests/test_bit_utils.py` covering zero/single-bit/multi-bit cases, the `value & -value` identity, the invariant that the isolated result is 0 or a power of two, and `TypeError`/`ValueError` paths (non-int, bool, negative); imported `isolate_lowest_set_bit` to match `__all__`. The helper itself was already exported in `__all__`, documented with ASCII-safe doctests, and listed in `bit_utils.py`, but shipped without test coverage — unlike every other bit-access helper in the module. Updated the `bit_utils` prose section of `README.md` to mention `isolate_lowest_set_bit` (and `bit_parity`, already covered). No `.github/workflows/**` changes.
@@ -66836,7 +66922,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, keys_equal, values_equal)
+dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, count_all_values, keys_equal, values_equal)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -67526,7 +67612,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The integer companion `count_all_values` reports how many values from a candidate iterable are present in the dictionary, and `has_all_values`/`has_any_value` reuse it for consistency. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 
