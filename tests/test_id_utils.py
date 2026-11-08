@@ -1,6 +1,6 @@
 import unittest
 
-from id_utils import generate_id, is_valid_id, new_id
+from id_utils import generate_id, generate_prefixed_id, is_valid_id, new_id
 
 
 class TestIdUtils(unittest.TestCase):
@@ -57,3 +57,23 @@ class TestIdUtils(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestGeneratePrefixedId(unittest.TestCase):
+    def test_basic(self):
+        result = generate_prefixed_id("user")
+        assert result.startswith("user_")
+        assert len(result) == 5 + 8
+
+    def test_custom_length(self):
+        result = generate_prefixed_id("x", 4)
+        assert result.startswith("x_")
+        assert len(result.split("_", 1)[1]) == 4
+
+    def test_empty_prefix_raises(self):
+        with self.assertRaises(ValueError):
+            generate_prefixed_id("")
+
+    def test_non_string_prefix_raises(self):
+        with self.assertRaises(ValueError):
+            generate_prefixed_id(123)

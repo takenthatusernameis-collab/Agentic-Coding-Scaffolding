@@ -10,6 +10,7 @@ __all__ = [
     "generate_id",
     "is_valid_id",
     "new_id",
+    "generate_prefixed_id",
 ]
 
 
@@ -36,6 +37,23 @@ def generate_id(length: int = 8) -> str:
 def new_id() -> str:
     """Return a default-length (8 character) random identifier."""
     return generate_id()
+
+
+
+
+def generate_prefixed_id(prefix: str, length: int = 8) -> str:
+    """Return an identifier prefixed with ``prefix`` and a random suffix.
+
+    Args:
+        prefix: The prefix to prepend, separated by an underscore.
+        length: Length of the random suffix.
+
+    Returns:
+        A string of the form ``"{prefix}_{suffix}"``.
+    """
+    if not isinstance(prefix, str) or not prefix:
+        raise ValueError("prefix must be a non-empty string")
+    return f"{prefix}_{generate_id(length)}"
 
 
 def is_valid_id(value: str, length: int = 8) -> bool:

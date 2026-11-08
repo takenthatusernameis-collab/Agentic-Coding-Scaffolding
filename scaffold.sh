@@ -77539,6 +77539,7 @@ __all__ = [
     "generate_id",
     "is_valid_id",
     "new_id",
+    "generate_prefixed_id",
 ]
 
 
@@ -77567,6 +77568,23 @@ def new_id() -> str:
     return generate_id()
 
 
+
+
+def generate_prefixed_id(prefix: str, length: int = 8) -> str:
+    """Return an identifier prefixed with ``prefix`` and a random suffix.
+
+    Args:
+        prefix: The prefix to prepend, separated by an underscore.
+        length: Length of the random suffix.
+
+    Returns:
+        A string of the form ``"{prefix}_{suffix}"``.
+    """
+    if not isinstance(prefix, str) or not prefix:
+        raise ValueError("prefix must be a non-empty string")
+    return f"{prefix}_{generate_id(length)}"
+
+
 def is_valid_id(value: str, length: int = 8) -> bool:
     """Return True if ``value`` is a valid identifier of the given length.
 
@@ -77589,7 +77607,7 @@ ID_UTILS
 cat > "$OUTPUT_DIR/tests/test_id_utils.py" <<'TEST_ID_UTILS'
 import unittest
 
-from id_utils import generate_id, is_valid_id, new_id
+from id_utils import generate_id, generate_prefixed_id, is_valid_id, new_id
 
 
 class TestIdUtils(unittest.TestCase):
@@ -77646,6 +77664,26 @@ class TestIdUtils(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestGeneratePrefixedId(unittest.TestCase):
+    def test_basic(self):
+        result = generate_prefixed_id("user")
+        assert result.startswith("user_")
+        assert len(result) == 5 + 8
+
+    def test_custom_length(self):
+        result = generate_prefixed_id("x", 4)
+        assert result.startswith("x_")
+        assert len(result.split("_", 1)[1]) == 4
+
+    def test_empty_prefix_raises(self):
+        with self.assertRaises(ValueError):
+            generate_prefixed_id("")
+
+    def test_non_string_prefix_raises(self):
+        with self.assertRaises(ValueError):
+            generate_prefixed_id(123)
 TEST_ID_UTILS
 
 # --- imaplib_utils.py ---
