@@ -19,6 +19,7 @@ from itertools_utils import (
     has_all,
     has_any,
     has_duplicates,
+    all_equal,
     has_none,
     is_empty_iterable,
     pairwise_iterable,
@@ -715,6 +716,26 @@ class TestHasDuplicates(unittest.TestCase):
     def test_rejects_non_iterable(self):
         with self.assertRaises(TypeError):
             has_duplicates(42)
+
+
+
+
+class TestAllEqual(unittest.TestCase):
+    def test_empty(self):
+        self.assertTrue(all_equal([]))
+
+    def test_all_same(self):
+        self.assertTrue(all_equal([1, 1, 1]))
+
+    def test_different(self):
+        self.assertFalse(all_equal([1, 2, 3]))
+
+    def test_single(self):
+        self.assertTrue(all_equal([42]))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            all_equal(42)
 
 
 if __name__ == "__main__":

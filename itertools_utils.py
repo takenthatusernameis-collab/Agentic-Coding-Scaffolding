@@ -800,6 +800,42 @@ def has_duplicates(iterable: Iterable[Any]) -> bool:
     return False
 
 
+def all_equal(iterable: Iterable[Any]) -> bool:
+    """Return ``True`` when all items in *iterable* are equal.
+
+    An empty iterable is considered vacuously equal and returns ``True``.
+    Works for any iterable, including one-shot iterators, by consuming
+    elements only until a differing item is found.
+
+    Args:
+        iterable: The iterable to inspect.
+
+    Returns:
+        ``True`` when every item equals the first (or the iterable is
+        empty), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *iterable* is not iterable.
+
+    Examples:
+        >>> all_equal([])
+        True
+        >>> all_equal([1, 1, 1])
+        True
+        >>> all_equal([1, 2, 3])
+        False
+        >>> all_equal(iter((1, 1)))
+        True
+    """
+    _ensure_iterable(iterable, "iterable")
+    iterator = iter(iterable)
+    try:
+        first = next(iterator)
+    except StopIteration:
+        return True
+    return all(item == first for item in iterator)
+
+
 __all__ = [
     "_ensure_iterable",
     "chain_iterables",
@@ -844,4 +880,5 @@ __all__ = [
     "has_none",
     "count_duplicates",
     "has_duplicates",
+    "all_equal",
 ]
