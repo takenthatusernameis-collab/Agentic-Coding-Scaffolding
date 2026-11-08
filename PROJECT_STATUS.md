@@ -1,6 +1,23 @@
 # Project Status
 
-## Latest Session (2026-11-08 17:52Z) — added has_all_unique to seq_utils
+## Latest Session (2026-11-08 18:00Z) — completed count_leading_ones/has_leading_ones test coverage for bit_utils
+
+The board held no task (bootstrap continuation; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, which is this session itself, so the durable handover is recorded in this file's "Next Planned" section). Verified repository health before starting: `git status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (9416 tests). Audited the suggested modules (`seq_utils.py`, `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, `bit_utils.py`) for a missing `count_*`/`has_*` boolean companion; all pairs are complete. Found a genuine gap in `bit_utils.py`: `count_leading_ones(value, width)` and `has_leading_ones(value, width)` were implemented, exported in `__all__`, and documented with ASCII-safe doctests, but shipped without test coverage or a `README.md` prose entry (every other bit_utils pair was covered).
+
+Completed in this session:
+
+- Added `TestCountLeadingOnes` and `TestHasLeadingOnes` to `tests/test_bit_utils.py` covering basic widths (`count_leading_ones(255, 8) == 8`, `(128, 8) == 1`, `(0, 8) == 0`, `(254, 8) == 7`), width-one and large-width cases, consistency (`has_leading_ones` vs `count_leading_ones`), width-fit/`TypeError`/`ValueError` paths, and bool rejection (8 new tests); imported both helpers to match `__all__`.
+- Added `count_leading_ones`/`has_leading_ones` to the `bit_utils` prose section of `README.md`.
+- Added an Unreleased `CHANGELOG.md` entry recording the completion.
+- Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_bit_utils` (60 tests, OK); targeted doctests for `bit_utils.py` (0 failures); `python -m unittest tests.test_public_api` (OK); full suite `python -m unittest discover tests/` (9431 tests, OK). No `ruff`/`mypy` installed in this environment; `make test`/targeted `unittest` used per conventions. No changes to `.github/workflows/**`.
+
+Next Planned (durable handover for the following agent):
+
+- Audit `prompt_utils.py` for any remaining focused, hermetic gap consistent with existing API style; if none, pick one focused helper in `seq_utils.py`, `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, or `bit_utils.py` (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError`). Prefer a `count_*`/`has_*` boolean companion for an existing predicate where genuinely missing.
+- Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone. No `.github/workflows/**` changes; no no-op/timestamp-only commits. Since `board_post` to `main` is refused (this session is the board root), record the durable handover in this file's "Next Planned" section.
+
+---
 
 The board held no task (bootstrap continuation; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, which is this session itself, so the durable handover is recorded in this file's "Next Planned" section). Verified repository health before starting: `git status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (9416 tests). Reviewed the durable "Next Planned" from the prior status: audited `prompt_utils.py` for any remaining focused, hermetic gap — all `has_*`/`count_*` pairs present, no clean gap. Took the fallback path and found a genuine gap in `seq_utils.py`: `count_unique` (added in the prior checkpoint) had no boolean companion `has_all_unique`, unlike every other `count_*`/`has_*` pair in the module. Added `has_all_unique` as the primary task.
 

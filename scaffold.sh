@@ -46848,11 +46848,13 @@ from bit_utils import (
     bit_parity,
     clear_bit,
     clear_lowest_set_bit,
+    count_leading_ones,
     count_leading_zeros,
     count_set_bits,
     count_trailing_ones,
     count_trailing_zeros,
     get_bit,
+    has_leading_ones,
     has_leading_zeros,
     has_set_bits,
     has_trailing_ones,
@@ -47137,6 +47139,67 @@ class TestHasLeadingZeros(unittest.TestCase):
             has_leading_zeros("1", 8)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_leading_zeros(256, 8)
+
+
+class TestCountLeadingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_leading_ones(255, 8), 8)
+        self.assertEqual(count_leading_ones(128, 8), 1)
+        self.assertEqual(count_leading_ones(0, 8), 0)
+        self.assertEqual(count_leading_ones(254, 8), 7)
+        self.assertEqual(count_leading_ones(0b0100, 4), 0)
+
+    def test_width_one(self):
+        self.assertEqual(count_leading_ones(0, 1), 0)
+        self.assertEqual(count_leading_ones(1, 1), 1)
+
+    def test_large_width(self):
+        self.assertEqual(count_leading_ones(0, 32), 0)
+        self.assertEqual(count_leading_ones(0xFFFFFFFF, 32), 32)
+        self.assertEqual(count_leading_ones(1, 32), 0)
+
+    def test_value_too_wide(self):
+        with self.assertRaises(ValueError):
+            count_leading_ones(256, 8)
+        with self.assertRaises(ValueError):
+            count_leading_ones(16, 4)
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            count_leading_ones("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_ones(1, "8")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_ones(True, 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_ones(1, True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            count_leading_ones(-1, 8)
+        with self.assertRaises(ValueError):
+            count_leading_ones(1, 0)
+        with self.assertRaises(ValueError):
+            count_leading_ones(1, -8)
+
+
+class TestHasLeadingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_leading_ones(255, 8))
+        self.assertFalse(has_leading_ones(0, 8))
+        self.assertTrue(has_leading_ones(128, 8))
+        self.assertFalse(has_leading_ones(0b0111, 4))
+
+    def test_consistency(self):
+        for v, w in [(0, 8), (1, 8), (7, 8), (128, 8), (255, 8), (3, 16), (0xFFFFFFFF, 32)]:
+            self.assertEqual(
+                has_leading_ones(v, w),
+                count_leading_ones(v, w) > 0,
+            )
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_leading_ones("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_leading_ones(256, 8)
 
 
 class TestClearLowestSetBit(unittest.TestCase):
@@ -65793,6 +65856,10 @@ The board held no task (bootstrap context). Verified repository health: all test
 
 Completed in this session:
 
+## Unreleased — added `count_leading_ones` and `has_leading_ones` to `bit_utils`
+
+- Completed the `count_leading_ones(value, width)` and boolean companion `has_leading_ones(value, width)` feature in `bit_utils.py`. The implementations and `__all__` exports were already present but shipped without test coverage or README documentation. `count_leading_ones` returns the number of leading one bits within a fixed bit width (returning `width` when every bit is set), and `has_leading_ones` is its boolean companion reusing `count_leading_ones` for consistency. Both accept typed `int` arguments (rejecting booleans), validate that *value* is non-negative and *width* is positive, raise `ValueError` when *value* does not fit within *width* bits, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountLeadingOnes` and `TestHasLeadingOnes` to `tests/test_bit_utils.py` covering basic widths, width-one/large-width cases, consistency (`has_leading_ones` vs `count_leading_ones`), width-fit/value/type errors, and bool rejection. Updated the `bit_utils` prose section of `README.md`. Synchronized `tests/test_bit_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_bit_utils` (50 tests), `python -m doctest bit_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added `take` and `drop` to `itertools_utils`
 
 - Added `take(iterable, n)` and `drop(iterable, n)` to `itertools_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and validation raising `TypeError`/`ValueError` (rejecting non-iterables, non-`int`/`bool` *n*, and negative *n*). `take` returns up to the first *n* items and `drop` skips the first *n* items, both accepting any iterable (including generators). Added `TestTake` and `TestDrop` to `tests/test_itertools_utils.py` covering basic/more-than-available/zero/empty/generator cases and the type/value error paths (18 new tests; 197 tests in the module). Updated the `itertools_utils` prose section of `README.md`. Synchronized `itertools_utils.py`, `tests/test_itertools_utils.py`, `README.md`, and `CHANGELOG.md` into the embedded copies of `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_itertools_utils` (197 OK), `python -m doctest itertools_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
@@ -66774,7 +66841,7 @@ The project includes asynchronous utility functions in `async_utils.py` for runn
 
 ## Bit Utilities Module
 
-The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` measure leading zeros within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `count_trailing_ones`/`has_trailing_ones` measure trailing one bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
+The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` and `count_leading_ones`/`has_leading_ones` measure leading bits within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `count_trailing_ones`/`has_trailing_ones` measure trailing one bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
 
 ## Collections ABC Utilities Module
 

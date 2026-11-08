@@ -6,11 +6,13 @@ from bit_utils import (
     bit_parity,
     clear_bit,
     clear_lowest_set_bit,
+    count_leading_ones,
     count_leading_zeros,
     count_set_bits,
     count_trailing_ones,
     count_trailing_zeros,
     get_bit,
+    has_leading_ones,
     has_leading_zeros,
     has_set_bits,
     has_trailing_ones,
@@ -295,6 +297,67 @@ class TestHasLeadingZeros(unittest.TestCase):
             has_leading_zeros("1", 8)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             has_leading_zeros(256, 8)
+
+
+class TestCountLeadingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_leading_ones(255, 8), 8)
+        self.assertEqual(count_leading_ones(128, 8), 1)
+        self.assertEqual(count_leading_ones(0, 8), 0)
+        self.assertEqual(count_leading_ones(254, 8), 7)
+        self.assertEqual(count_leading_ones(0b0100, 4), 0)
+
+    def test_width_one(self):
+        self.assertEqual(count_leading_ones(0, 1), 0)
+        self.assertEqual(count_leading_ones(1, 1), 1)
+
+    def test_large_width(self):
+        self.assertEqual(count_leading_ones(0, 32), 0)
+        self.assertEqual(count_leading_ones(0xFFFFFFFF, 32), 32)
+        self.assertEqual(count_leading_ones(1, 32), 0)
+
+    def test_value_too_wide(self):
+        with self.assertRaises(ValueError):
+            count_leading_ones(256, 8)
+        with self.assertRaises(ValueError):
+            count_leading_ones(16, 4)
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            count_leading_ones("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_ones(1, "8")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_ones(True, 8)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_leading_ones(1, True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            count_leading_ones(-1, 8)
+        with self.assertRaises(ValueError):
+            count_leading_ones(1, 0)
+        with self.assertRaises(ValueError):
+            count_leading_ones(1, -8)
+
+
+class TestHasLeadingOnes(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_leading_ones(255, 8))
+        self.assertFalse(has_leading_ones(0, 8))
+        self.assertTrue(has_leading_ones(128, 8))
+        self.assertFalse(has_leading_ones(0b0111, 4))
+
+    def test_consistency(self):
+        for v, w in [(0, 8), (1, 8), (7, 8), (128, 8), (255, 8), (3, 16), (0xFFFFFFFF, 32)]:
+            self.assertEqual(
+                has_leading_ones(v, w),
+                count_leading_ones(v, w) > 0,
+            )
+
+    def test_errors(self):
+        with self.assertRaises(TypeError):
+            has_leading_ones("1", 8)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            has_leading_ones(256, 8)
 
 
 class TestClearLowestSetBit(unittest.TestCase):
