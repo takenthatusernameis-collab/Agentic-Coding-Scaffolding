@@ -25938,8 +25938,10 @@ from prompt_utils import (
     split_lines,
     starts_with_newline,
     strip_blank_lines,
+    strip_leading_newline,
     strip_leading_newlines,
     strip_lines,
+    strip_trailing_newline,
     strip_trailing_newlines,
     truncate_lines,
     truncate_paragraphs,
@@ -27355,6 +27357,35 @@ class TestStripTrailingNewlines(unittest.TestCase):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
 
 
+class TestStripTrailingNewline(unittest.TestCase):
+    def test_removes_single_trailing_newline(self):
+        self.assertEqual(strip_trailing_newline("hello\n"), "hello")
+
+    def test_removes_only_one(self):
+        self.assertEqual(strip_trailing_newline("hello\n\n"), "hello\n")
+
+    def test_no_trailing_newline(self):
+        self.assertEqual(strip_trailing_newline("hello"), "hello")
+
+    def test_empty(self):
+        self.assertEqual(strip_trailing_newline(""), "")
+
+    def test_only_newline(self):
+        self.assertEqual(strip_trailing_newline("\n"), "")
+
+    def test_preserves_crlf(self):
+        self.assertEqual(strip_trailing_newline("hello\r\n"), "hello\r")
+
+    def test_preserves_internal_newlines(self):
+        self.assertEqual(strip_trailing_newline("a\nb\n"), "a\nb")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_trailing_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_trailing_newline(None)  # type: ignore[arg-type]
+
+
 class TestStripLeadingNewlines(unittest.TestCase):
     def test_removes_leading_newlines(self):
         self.assertEqual(strip_leading_newlines("\n\nhello"), "hello")
@@ -27379,6 +27410,35 @@ class TestStripLeadingNewlines(unittest.TestCase):
             strip_leading_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             strip_leading_newlines(None)  # type: ignore[arg-type]
+
+
+class TestStripLeadingNewline(unittest.TestCase):
+    def test_removes_single_leading_newline(self):
+        self.assertEqual(strip_leading_newline("\nhello"), "hello")
+
+    def test_removes_only_one(self):
+        self.assertEqual(strip_leading_newline("\n\nhello"), "\nhello")
+
+    def test_no_leading_newline(self):
+        self.assertEqual(strip_leading_newline("hello"), "hello")
+
+    def test_empty(self):
+        self.assertEqual(strip_leading_newline(""), "")
+
+    def test_only_newline(self):
+        self.assertEqual(strip_leading_newline("\n"), "")
+
+    def test_preserves_other_leading_whitespace(self):
+        self.assertEqual(strip_leading_newline(" \nhello"), " \nhello")
+
+    def test_preserves_internal_newlines(self):
+        self.assertEqual(strip_leading_newline("\na\nb"), "a\nb")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_leading_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_leading_newline(None)  # type: ignore[arg-type]
 
 
 class TestCountNonWhitespaceCharacters(unittest.TestCase):
@@ -40198,7 +40258,9 @@ __all__: List[str] = [
     "count_alphanumeric",
     "reverse_lines",
     "strip_blank_lines",
+    "strip_leading_newline",
     "strip_leading_newlines",
+    "strip_trailing_newline",
     "strip_trailing_newlines",
     "count_unique_words",
     "has_unique_words",
@@ -40479,20 +40541,20 @@ def has_placeholders(template: str) -> bool:
 def wrap_prompt(text: str, width: int = 80) -> str:
     """Wrap prompt text to a specific width.
 
-        Args:
-            text: The text to wrap.
-            width: The maximum line width.
+    Args:
+        text: The text to wrap.
+        width: The maximum line width.
 
-        Returns:
-            Wrapped text.
+    Returns:
+        Wrapped text.
 
-        Raises:
-            TypeError: If *text* is not a string or *width* is not an int.
-            ValueError: If *width* is negative.
+    Raises:
+        TypeError: If *text* is not a string or *width* is not an int.
+        ValueError: If *width* is negative.
 
     Examples:
-            >>> wrap_prompt("This is a long line that should be wrapped", 24)
-            'This is a long line that\nshould be wrapped'
+        >>> wrap_prompt("This is a long line that should be wrapped", 24)
+        'This is a long line that\\nshould be wrapped'
     """
     _require_string(text, "text")
     _require_int(width, "width")
@@ -40510,11 +40572,11 @@ def wrap_prompt(text: str, width: int = 80) -> str:
         else:
             if current_line:
                 lines.append(" ".join(current_line))
-                current_line = [word]
-            else:
-                lines.append(word)
+            current_line = [word]
+
     if current_line:
         lines.append(" ".join(current_line))
+
     return "\n".join(lines)
 
 
@@ -42076,6 +42138,39 @@ def has_unique_words(text: str) -> bool:
     return count_unique_words(text) > 0
 
 
+def strip_trailing_newline(text: str) -> str:
+    """Remove a single trailing newline character from *text*.
+
+    If *text* ends with ``\\n``, exactly one trailing newline is removed.
+    Other line endings (``\\r`` or ``\\r\\n``) and other trailing whitespace
+    are preserved. If *text* does not end with ``\\n``, it is returned
+    unchanged. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with at most one trailing ``\\n`` removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_trailing_newline("hello\\n")
+        'hello'
+        >>> strip_trailing_newline("hello\\n\\n")
+        'hello\\n'
+        >>> strip_trailing_newline("hello")
+        'hello'
+        >>> strip_trailing_newline("")
+        ''
+    """
+    _require_string(text, "text")
+    if text.endswith("\n"):
+        return text[:-1]
+    return text
+
+
 def strip_trailing_newlines(text: str) -> str:
     """Remove all trailing newline characters from *text*.
 
@@ -42106,6 +42201,38 @@ def strip_trailing_newlines(text: str) -> str:
     while i > 0 and text[i - 1] == "\n":
         i -= 1
     return text[:i]
+
+
+def strip_leading_newline(text: str) -> str:
+    """Remove a single leading newline character from *text*.
+
+    If *text* starts with ``\\n``, exactly one leading newline is removed.
+    Other leading whitespace is preserved. If *text* does not start with
+    ``\\n``, it is returned unchanged. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with at most one leading ``\\n`` removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_leading_newline("\\nhello")
+        'hello'
+        >>> strip_leading_newline("\\n\\nhello")
+        '\\nhello'
+        >>> strip_leading_newline("hello")
+        'hello'
+        >>> strip_leading_newline("")
+        ''
+    """
+    _require_string(text, "text")
+    if text.startswith("\n"):
+        return text[1:]
+    return text
 
 
 def strip_leading_newlines(text: str) -> str:
@@ -62006,6 +62133,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added index_of to seq_utils
+
+- Added `index_of(sequence, value)` to `seq_utils.py` with a typed signature, `__all__` export, a Google-style docstring with doctests, and `TypeError` validation; it returns the 0-based index of the first element equal to *value* (by `==`) or `None` when *value* is not present, including for empty sequences. Added `TestIndexOf` to `tests/test_seq_utils.py` covering present/absent/empty/first-match cases, consistency with `has_occurrences`, and the `TypeError` path (6 new tests). Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No changes to `.github/workflows/**`.
+
 ## Unreleased — added has_surrounded_by_newlines to prompt_utils
 
 - Audited `prompt_utils.py` for a remaining focused, hermetic gap in the `ensure_*` family. The module had `ensure_surrounded_by_newlines` (exported, tested, documented) but no boolean `has_*` companion, unlike `ensure_prefix`/`has_prefix`, `ensure_suffix`/`has_suffix`, `ensure_leading_newline`/`has_leading_newline`, and `ensure_trailing_newline`/`has_trailing_newline`. Added `has_surrounded_by_newlines(text)` as the missing boolean companion. It returns ``True`` when *text* starts and ends with a newline character and ``False`` otherwise (empty text returns ``False``), reusing `has_leading_newline` and `has_trailing_newline` for consistency. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests.
@@ -64513,7 +64644,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, has_words, collapse_blank_lines, count_blank_lines, has_blank_lines, count_placeholders, count_sentences, has_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, has_words, count_characters, has_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, count_alphanumeric, has_alphanumeric, has_lowercase, count_whitespace, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, has_words, collapse_blank_lines, count_blank_lines, has_blank_lines, count_placeholders, count_sentences, has_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, has_words, count_characters, has_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, count_alphanumeric, has_alphanumeric, has_lowercase, count_whitespace, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newline, strip_leading_newlines, strip_trailing_newline, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman, normalize_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -64575,7 +64706,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, is_sorted)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, index_of)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -65510,7 +65641,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, and `nth` retrieve elements by position (returning `None` when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; and `is_sorted` checks ascending or descending order with an optional key. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; and `index_of` returns the 0-based index of the first matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -104437,6 +104568,7 @@ __all__ = [
     "flatten",
     "has_occurrences",
     "head",
+    "index_of",
     "interleave",
     "is_sorted",
     "last",
@@ -104957,6 +105089,40 @@ def has_occurrences(sequence: Sequence[T], value: T) -> bool:
     return count_occurrences(sequence, value) > 0
 
 
+def index_of(sequence: Sequence[T], value: T) -> Optional[int]:
+    """Return the index of the first occurrence of ``value`` in ``sequence``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the first matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> index_of([1, 2, 3, 2], 2)
+        1
+        >>> index_of("abracadabra", "c")
+        4
+        >>> index_of([1, 2, 3], 4) is None
+        True
+        >>> index_of([], 1) is None
+        True
+    """
+    _require_sequence(sequence)
+    for index, item in enumerate(sequence):
+        if item == value:
+            return index
+    return None
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -104979,6 +105145,7 @@ from seq_utils import (
     flatten,
     has_occurrences,
     head,
+    index_of,
     interleave,
     is_sorted,
     last,
@@ -105310,6 +105477,35 @@ class TestHasOccurrences(unittest.TestCase):
             has_occurrences(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_occurrences(None, 1)  # type: ignore[arg-type]
+
+
+class TestIndexOf(unittest.TestCase):
+    def test_index_of_present(self):
+        self.assertEqual(index_of([1, 2, 3, 2], 2), 1)
+        self.assertEqual(index_of("abracadabra", "c"), 4)
+        self.assertEqual(index_of((10, 20, 30), 10), 0)
+
+    def test_index_of_absent(self):
+        self.assertIsNone(index_of([1, 2, 3], 4))
+        self.assertIsNone(index_of("hello", "z"))
+
+    def test_index_of_empty(self):
+        self.assertIsNone(index_of([], 1))
+        self.assertIsNone(index_of("", "a"))
+
+    def test_index_of_first_match(self):
+        self.assertEqual(index_of([5, 5, 5], 5), 0)
+
+    def test_index_of_consistency(self):
+        seq = [1, 2, 2, 3]
+        self.assertEqual(index_of(seq, 2) is not None, has_occurrences(seq, 2))
+        self.assertEqual(index_of(seq, 5) is not None, has_occurrences(seq, 5))
+
+    def test_index_of_type_error(self):
+        with self.assertRaises(TypeError):
+            index_of(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            index_of(None, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

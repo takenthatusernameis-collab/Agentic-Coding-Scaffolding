@@ -12,6 +12,7 @@ from seq_utils import (
     flatten,
     has_occurrences,
     head,
+    index_of,
     interleave,
     is_sorted,
     last,
@@ -343,6 +344,35 @@ class TestHasOccurrences(unittest.TestCase):
             has_occurrences(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_occurrences(None, 1)  # type: ignore[arg-type]
+
+
+class TestIndexOf(unittest.TestCase):
+    def test_index_of_present(self):
+        self.assertEqual(index_of([1, 2, 3, 2], 2), 1)
+        self.assertEqual(index_of("abracadabra", "c"), 4)
+        self.assertEqual(index_of((10, 20, 30), 10), 0)
+
+    def test_index_of_absent(self):
+        self.assertIsNone(index_of([1, 2, 3], 4))
+        self.assertIsNone(index_of("hello", "z"))
+
+    def test_index_of_empty(self):
+        self.assertIsNone(index_of([], 1))
+        self.assertIsNone(index_of("", "a"))
+
+    def test_index_of_first_match(self):
+        self.assertEqual(index_of([5, 5, 5], 5), 0)
+
+    def test_index_of_consistency(self):
+        seq = [1, 2, 2, 3]
+        self.assertEqual(index_of(seq, 2) is not None, has_occurrences(seq, 2))
+        self.assertEqual(index_of(seq, 5) is not None, has_occurrences(seq, 5))
+
+    def test_index_of_type_error(self):
+        with self.assertRaises(TypeError):
+            index_of(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            index_of(None, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

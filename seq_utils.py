@@ -25,6 +25,7 @@ __all__ = [
     "flatten",
     "has_occurrences",
     "head",
+    "index_of",
     "interleave",
     "is_sorted",
     "last",
@@ -543,6 +544,40 @@ def has_occurrences(sequence: Sequence[T], value: T) -> bool:
         False
     """
     return count_occurrences(sequence, value) > 0
+
+
+def index_of(sequence: Sequence[T], value: T) -> Optional[int]:
+    """Return the index of the first occurrence of ``value`` in ``sequence``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the first matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> index_of([1, 2, 3, 2], 2)
+        1
+        >>> index_of("abracadabra", "c")
+        4
+        >>> index_of([1, 2, 3], 4) is None
+        True
+        >>> index_of([], 1) is None
+        True
+    """
+    _require_sequence(sequence)
+    for index, item in enumerate(sequence):
+        if item == value:
+            return index
+    return None
 
 
 if __name__ == "__main__":
