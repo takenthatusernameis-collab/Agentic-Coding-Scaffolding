@@ -24032,6 +24032,8 @@ from set_utils import (
     intersection,
     is_disjoint,
     is_equal,
+    is_proper_subset,
+    is_proper_superset,
     is_subset,
     is_superset,
     power_set,
@@ -24296,6 +24298,87 @@ class TestPowerSet(unittest.TestCase):
     def test_power_set_preserves_order(self) -> None:
         result = list(power_set(["a", "b"]))
         self.assertEqual(result, [(), ("a",), ("b",), ("a", "b")])
+
+
+class TestIsProperSubset(unittest.TestCase):
+    def test_proper_subset_true(self) -> None:
+        self.assertTrue(is_proper_subset([1, 2], [1, 2, 3]))
+
+    def test_proper_subset_false_equal(self) -> None:
+        self.assertFalse(is_proper_subset([1, 2], [1, 2]))
+
+    def test_proper_subset_false_not_subset(self) -> None:
+        self.assertFalse(is_proper_subset([1, 4], [1, 2, 3]))
+
+    def test_proper_subset_empty(self) -> None:
+        self.assertTrue(is_proper_subset([], [1, 2, 3]))
+        self.assertFalse(is_proper_subset([], []))
+
+    def test_proper_subset_duplicates_ignored(self) -> None:
+        self.assertTrue(is_proper_subset([1, 1, 2], [1, 2, 3]))
+
+    def test_proper_subset_strings(self) -> None:
+        self.assertTrue(is_proper_subset("ab", "abc"))
+        self.assertFalse(is_proper_subset("abc", "abc"))
+
+    def test_proper_subset_consistency_with_is_subset(self) -> None:
+        cases = [
+            ([1, 2], [1, 2, 3]),
+            ([1, 2], [1, 2]),
+            ([1, 4], [1, 2, 3]),
+            ([], [1, 2, 3]),
+            ([], []),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_proper_subset(a, b), is_subset(a, b) and not is_equal(a, b))
+
+    def test_proper_subset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_proper_subset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_proper_subset([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsProperSuperset(unittest.TestCase):
+    def test_proper_superset_true(self) -> None:
+        self.assertTrue(is_proper_superset([1, 2, 3], [1, 2]))
+
+    def test_proper_superset_false_equal(self) -> None:
+        self.assertFalse(is_proper_superset([1, 2], [1, 2]))
+
+    def test_proper_superset_false_not_superset(self) -> None:
+        self.assertFalse(is_proper_superset([1, 2], [2, 3]))
+
+    def test_proper_superset_empty(self) -> None:
+        self.assertTrue(is_proper_superset([1, 2, 3], []))
+        self.assertFalse(is_proper_superset([], []))
+
+    def test_proper_superset_duplicates_ignored(self) -> None:
+        self.assertTrue(is_proper_superset([1, 2, 2, 3], [1, 2]))
+
+    def test_proper_superset_strings(self) -> None:
+        self.assertTrue(is_proper_superset("abc", "ab"))
+        self.assertFalse(is_proper_superset("abc", "abc"))
+
+    def test_proper_superset_consistency_with_is_superset(self) -> None:
+        cases = [
+            ([1, 2, 3], [1, 2]),
+            ([1, 2], [1, 2]),
+            ([1, 2], [2, 3]),
+            ([1, 2, 3], []),
+            ([], []),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                is_proper_superset(a, b),
+                is_superset(a, b) and not is_equal(a, b),
+            )
+
+    def test_proper_superset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_proper_superset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_proper_superset([1, 2], 123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -64305,6 +64388,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for set_utils.is_proper_subset and is_proper_superset
+
+- Added `TestIsProperSubset` (8 tests) and `TestIsProperSuperset` (9 tests) to `tests/test_set_utils.py`, covering true/false/equal/not-a-subset/empty/duplicate-ignored/string cases, consistency with `is_subset`/`is_superset`/`is_equal`, and `TypeError` paths (non-iterable arguments); imported `is_proper_subset` and `is_proper_superset` to match `__all__`. Both helpers were already exported in `__all__`, documented with ASCII-safe doctests, and listed in the `set_utils` tree entry and prose section of `README.md`, but shipped with no dedicated test class — unlike every other set-operation predicate in the module (`is_subset`, `is_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, `power_set` all have coverage). Updated the `set_utils` module tree entry and prose section of `README.md` to mention the proper-subset/superset pair. No `.github/workflows/**` changes.
+
 ## Unreleased — added count_all_values integer companion to dict_utils value predicates
 
 - Added `count_all_values(d, values) -> int` to `dict_utils.py` as the integer companion to `has_all_values`/`has_any_value`, returning the number of elements of *values* that are present in *d* (duplicates in *values* are counted separately, so the result can exceed the number of distinct values in *d*; an empty *values* iterable yields ``0``). It accepts a typed `dict` argument and any iterable of values, raises `TypeError` for non-dicts, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_all_values` to reuse `count_all_values(d, values) == len(list(values))` and `has_any_value` to reuse `count_all_values(d, values) > 0` for consistency with the module's other boolean companions.
@@ -66926,7 +67013,7 @@ dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flat
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
-set_utils.py             # Set operation utilities (subset, superset, disjoint, has_intersection, is_equal, intersection, count_intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+set_utils.py             # Set operation utilities (subset, superset, proper_subset, proper_superset, disjoint, has_intersection, is_equal, intersection, count_intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
@@ -67624,7 +67711,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 
