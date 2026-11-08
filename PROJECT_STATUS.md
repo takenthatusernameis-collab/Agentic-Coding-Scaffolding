@@ -1,6 +1,22 @@
 # Project Status
 
-## Latest Session (2026-11-08 15:52Z) — added count_unique to seq_utils
+## Latest Session (2026-11-08 17:52Z) — added has_all_unique to seq_utils
+
+The board held no task (bootstrap continuation; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, which is this session itself, so the durable handover is recorded in this file's "Next Planned" section). Verified repository health before starting: `git status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (9416 tests). Reviewed the durable "Next Planned" from the prior status: audited `prompt_utils.py` for any remaining focused, hermetic gap — all `has_*`/`count_*` pairs present, no clean gap. Took the fallback path and found a genuine gap in `seq_utils.py`: `count_unique` (added in the prior checkpoint) had no boolean companion `has_all_unique`, unlike every other `count_*`/`has_*` pair in the module. Added `has_all_unique` as the primary task.
+
+Completed in this session:
+
+- Added `has_all_unique(sequence: Sequence[T]) -> bool` to `seq_utils.py` as the boolean companion to `count_unique`, returning `True` when every element is distinct (reusing `count_unique` for consistency; an empty sequence yields `True`). Accepts any `Sequence`, validates with `_require_sequence`, raises `TypeError` for a non-sequence, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasAllUnique` (7 tests) to `tests/test_seq_utils.py` covering all-unique/duplicate/empty/single/string/tuple cases, consistency with `count_unique`, and the `TypeError` path; imported `has_all_unique` to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Added an Unreleased `CHANGELOG.md` entry. Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Fixed a pre-existing `list_utils.__all__` gap: `find_all`/`find_all_indices` were defined but missing from `__all__`, causing `tests.test_public_api` to fail (confirmed failing on clean HEAD, unrelated to this session's change). Exported both; `tests.test_public_api` now passes.
+- Verified: `python -m unittest tests.test_seq_utils` (156 tests, OK); targeted doctests for `has_all_unique`/`count_unique` (0 failures); `python -m unittest tests.test_public_api` (OK); `python -m unittest tests.test_list_utils` (149 tests, OK); full suite `python -m unittest discover tests/` (9416 tests, OK). No `ruff`/`mypy` installed in this environment; `make test`/targeted `unittest` used per conventions. No changes to `.github/workflows/**`. Committed as `de3041f feat(seq_utils): add has_all_unique boolean companion to count_unique with tests and refresh scaffold`.
+
+Next Planned (durable handover for the following agent):
+
+- Audit `prompt_utils.py` for any remaining focused, hermetic gap consistent with existing API style; if none, pick one focused helper in `seq_utils.py`, `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, or `bit_utils.py` (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError`). Prefer a `count_*`/`has_*` boolean companion for an existing predicate where genuinely missing.
+- Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone. No `.github/workflows/**` changes; no no-op/timestamp-only commits. Since `board_post` to `main` is refused (this session is the board root), record the durable handover in this file's "Next Planned" section.
+
+---
+
 
 Audit of prompt_utils.py found all has_*/count_* pairs present, so took fallback path and added `count_unique(sequence)` to seq_utils.py: returns number of distinct elements (hashable via set, unhashable via linear fallback), typed, exported in __all__, Google-style docstring with ASCII-safe doctests, TypeError validation. Refreshed scaffold (in sync). Verified: targeted doctests for count_unique (0 failures), tests.test_seq_utils (149 tests OK), tests.test_public_api (OK).
 
