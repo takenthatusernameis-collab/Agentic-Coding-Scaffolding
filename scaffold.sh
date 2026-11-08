@@ -33593,9 +33593,11 @@ __all__ = [
     "flatten",
     "group_by",
     "has_duplicates",
+    "index_of",
     "intersperse",
     "is_empty",
     "is_sorted",
+    "last_index_of",
     "last_or_default",
     "partition",
     "safe_get",
@@ -33746,6 +33748,72 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
     for i, item in enumerate(lst):
         if predicate(item):
             return i
+    return None
+
+
+def index_of(lst: List[T], value: T) -> Optional[int]:
+    """Return the index of the first occurrence of ``value`` in ``lst``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty list.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the first matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> index_of([1, 2, 3, 2], 2)
+        1
+        >>> index_of([1, 2, 3], 4) is None
+        True
+        >>> index_of([], 1) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for index, item in enumerate(lst):
+        if item == value:
+            return index
+    return None
+
+
+def last_index_of(lst: List[T], value: T) -> Optional[int]:
+    """Return the index of the last occurrence of ``value`` in ``lst``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty list.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the last matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> last_index_of([1, 2, 3, 2], 2)
+        3
+        >>> last_index_of([1, 2, 3], 4) is None
+        True
+        >>> last_index_of([], 1) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for index in range(len(lst) - 1, -1, -1):
+        if lst[index] == value:
+            return index
     return None
 
 
@@ -34289,10 +34357,12 @@ from list_utils import (
     flatten,
     group_by,
     has_duplicates,
+    index_of,
     count_duplicates,
     intersperse,
     is_empty,
     is_sorted,
+    last_index_of,
     last_or_default,
     partition,
     safe_get,
@@ -34696,10 +34766,10 @@ class TestFindIndex(unittest.TestCase):
         self.assertEqual(find_index([10, 20, 30], lambda x: x == 20), 1)
 
     def test_find_index_first(self) -> None:
-        self.assertEqual(find_index([5, 6, 7], lambda x: x == 5), 0)
+        self.assertEqual(find_index([1, 2, 3], lambda x: x > 0), 0)
 
     def test_find_index_last(self) -> None:
-        self.assertEqual(find_index([5, 6, 7], lambda x: x == 7), 2)
+        self.assertEqual(find_index([1, 2, 3], lambda x: x == 3), 2)
 
     def test_find_index_not_found(self) -> None:
         self.assertIsNone(find_index([1, 2, 3], lambda x: x > 10))
@@ -34708,11 +34778,61 @@ class TestFindIndex(unittest.TestCase):
         self.assertIsNone(find_index([], lambda x: True))
 
     def test_find_index_strings(self) -> None:
-        self.assertEqual(find_index(["a", "bb", "ccc"], lambda s: len(s) == 2), 1)
+        self.assertEqual(find_index(["a", "bb", "ccc"], lambda s: len(s) > 1), 1)
 
     def test_find_index_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             find_index("not a list", lambda x: True)  # type: ignore[arg-type]
+
+
+class TestIndexOf(unittest.TestCase):
+    def test_index_of_basic(self) -> None:
+        self.assertEqual(index_of([1, 2, 3, 2], 2), 1)
+
+    def test_index_of_first(self) -> None:
+        self.assertEqual(index_of([1, 2, 3], 1), 0)
+
+    def test_index_of_last_value(self) -> None:
+        self.assertEqual(index_of([1, 2, 3], 3), 2)
+
+    def test_index_of_not_found(self) -> None:
+        self.assertIsNone(index_of([1, 2, 3], 9))
+
+    def test_index_of_empty(self) -> None:
+        self.assertIsNone(index_of([], 1))
+
+    def test_index_of_strings(self) -> None:
+        self.assertEqual(index_of(["a", "bb", "ccc"], "bb"), 1)
+
+    def test_index_of_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            index_of("not a list", "a")  # type: ignore[arg-type]
+
+    def test_index_of_consistency_with_find_index(self) -> None:
+        lst = [1, 2, 3, 2]
+        for v in (1, 2, 3, 9):
+            self.assertEqual(index_of(lst, v), find_index(lst, lambda x, val=v: x == val))
+
+
+class TestLastIndexOf(unittest.TestCase):
+    def test_last_index_of_basic(self) -> None:
+        self.assertEqual(last_index_of([1, 2, 3, 2], 2), 3)
+
+    def test_last_index_of_single(self) -> None:
+        self.assertEqual(last_index_of([1, 2, 3], 1), 0)
+
+    def test_last_index_of_not_found(self) -> None:
+        self.assertIsNone(last_index_of([1, 2, 3], 9))
+
+    def test_last_index_of_empty(self) -> None:
+        self.assertIsNone(last_index_of([], 1))
+
+    def test_last_index_of_strings(self) -> None:
+        self.assertEqual(last_index_of(["a", "bb", "a"], "a"), 2)
+
+    def test_last_index_of_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            last_index_of("not a list", "a")  # type: ignore[arg-type]
 
 
 class TestFindLast(unittest.TestCase):
@@ -65750,7 +65870,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -66417,7 +66537,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

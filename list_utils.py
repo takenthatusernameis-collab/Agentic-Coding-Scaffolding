@@ -20,9 +20,11 @@ __all__ = [
     "flatten",
     "group_by",
     "has_duplicates",
+    "index_of",
     "intersperse",
     "is_empty",
     "is_sorted",
+    "last_index_of",
     "last_or_default",
     "partition",
     "safe_get",
@@ -173,6 +175,72 @@ def find_index(lst: List[T], predicate: Callable[[T], bool]) -> Optional[int]:
     for i, item in enumerate(lst):
         if predicate(item):
             return i
+    return None
+
+
+def index_of(lst: List[T], value: T) -> Optional[int]:
+    """Return the index of the first occurrence of ``value`` in ``lst``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty list.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the first matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> index_of([1, 2, 3, 2], 2)
+        1
+        >>> index_of([1, 2, 3], 4) is None
+        True
+        >>> index_of([], 1) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for index, item in enumerate(lst):
+        if item == value:
+            return index
+    return None
+
+
+def last_index_of(lst: List[T], value: T) -> Optional[int]:
+    """Return the index of the last occurrence of ``value`` in ``lst``.
+
+    Elements are compared with ``==``. Returns ``None`` when ``value`` is not
+    found, including for an empty list.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to locate.
+
+    Returns:
+        The 0-based index of the last matching element, or ``None`` when
+        ``value`` is not present.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> last_index_of([1, 2, 3, 2], 2)
+        3
+        >>> last_index_of([1, 2, 3], 4) is None
+        True
+        >>> last_index_of([], 1) is None
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    for index in range(len(lst) - 1, -1, -1):
+        if lst[index] == value:
+            return index
     return None
 
 
