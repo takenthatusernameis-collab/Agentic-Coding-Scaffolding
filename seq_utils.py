@@ -20,6 +20,7 @@ __all__ = [
     "chunk",
     "contains",
     "count_occurrences",
+    "count_where",
     "distinct",
     "drop_while",
     "find",
@@ -27,6 +28,7 @@ __all__ = [
     "first",
     "flatten",
     "has_occurrences",
+    "has_where",
     "head",
     "index_of",
     "interleave",
@@ -521,6 +523,69 @@ def count_occurrences(sequence: Sequence[T], value: T) -> int:
     """
     _require_sequence(sequence)
     return sum(1 for item in sequence if item == value)
+
+
+def count_where(sequence: Sequence[T], predicate: Callable[[T], bool]) -> int:
+    """Return the number of elements in ``sequence`` satisfying ``predicate``.
+
+    Elements are counted when ``predicate(item)`` returns true. An empty
+    sequence yields ``0``.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable returning ``True`` for elements to count.
+
+    Returns:
+        The number of elements in ``sequence`` for which ``predicate`` is
+        true.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> count_where([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        2
+        >>> count_where([1, 3, 5], lambda x: x % 2 == 0)
+        0
+        >>> count_where([], lambda x: True)
+        0
+        >>> count_where("abracadabra", lambda c: c == "a")
+        5
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return sum(1 for item in sequence if predicate(item))
+
+
+def has_where(sequence: Sequence[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when at least one element of ``sequence`` satisfies ``predicate``.
+
+    This is the boolean companion to :func:`count_where`; it reports whether
+    any element matches and reuses :func:`count_where` for consistency.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable returning ``True`` for matching elements.
+
+    Returns:
+        ``True`` if at least one element satisfies ``predicate``, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> has_where([1, 3, 5], lambda x: x % 2 == 0)
+        False
+        >>> has_where([1, 2, 3], lambda x: x % 2 == 0)
+        True
+        >>> has_where([], lambda x: True)
+        False
+    """
+    return count_where(sequence, predicate) > 0
 
 
 def has_occurrences(sequence: Sequence[T], value: T) -> bool:

@@ -62740,6 +62740,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
 ### Added
+- `seq_utils`: added `count_where(sequence, predicate) -> int` as the predicate-count companion to `count_occurrences`, and boolean companion `has_where(sequence, predicate) -> bool`. `count_where` returns the number of elements in *sequence* for which *predicate* returns true (empty sequence yields ``0``); `has_where` reports whether at least one element satisfies *predicate*, reusing `count_where` for consistency. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountWhere` (7 tests) and `TestHasWhere` (5 tests) to `tests/test_seq_utils.py` covering basic/no-match/empty/string/tuple/all-match cases, consistency between `has_where` and `count_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `find(sequence, predicate) -> Optional[T]` as the element-returning companion to `find_index`. Returns the first element in *sequence* satisfying *predicate*, or ``None`` when no match is found (including for an empty sequence). Accepts any `Sequence`, validates with `_require_sequence`, requires a callable *predicate*, and raises `TypeError`/`ValueError`-consistent input validation (`TypeError` for non-sequence/non-callable). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestFind` (8 tests) to `tests/test_seq_utils.py` covering basic/first-match/no-match/empty/start/tuple+string cases and `TypeError` paths. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `bytes_utils`: added `has_non_null_bytes(data) -> bool` as the plural alias companion to `has_non_null_byte` (and boolean companion to `count_non_null_bytes`), mirroring the existing `has_null_bytes` alias for `has_null_byte`. Returns ``True`` when *data* contains at least one non-zero byte and ``False`` otherwise (empty input is ``False``), reusing `count_non_null_bytes` for consistency. Accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestCountNonNullBytes`, `TestHasNonNullByte`, and `TestHasNonNullBytes` (22 tests) to `tests/test_bytes_utils.py` covering all/none/mixed/empty/bytearray inputs, consistency with `count_non_null_bytes`, alias parity with `has_non_null_byte`, and `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
@@ -65308,7 +65309,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, find, find_index, index_of, last_index_of)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, has_occurrences, has_where, find, find_index, index_of, last_index_of)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -66243,7 +66244,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; and `has_where` reports whether at least one element satisfies a predicate. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -105175,6 +105176,7 @@ __all__ = [
     "chunk",
     "contains",
     "count_occurrences",
+    "count_where",
     "distinct",
     "drop_while",
     "find",
@@ -105182,6 +105184,7 @@ __all__ = [
     "first",
     "flatten",
     "has_occurrences",
+    "has_where",
     "head",
     "index_of",
     "interleave",
@@ -105678,6 +105681,69 @@ def count_occurrences(sequence: Sequence[T], value: T) -> int:
     return sum(1 for item in sequence if item == value)
 
 
+def count_where(sequence: Sequence[T], predicate: Callable[[T], bool]) -> int:
+    """Return the number of elements in ``sequence`` satisfying ``predicate``.
+
+    Elements are counted when ``predicate(item)`` returns true. An empty
+    sequence yields ``0``.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable returning ``True`` for elements to count.
+
+    Returns:
+        The number of elements in ``sequence`` for which ``predicate`` is
+        true.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> count_where([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        2
+        >>> count_where([1, 3, 5], lambda x: x % 2 == 0)
+        0
+        >>> count_where([], lambda x: True)
+        0
+        >>> count_where("abracadabra", lambda c: c == "a")
+        5
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return sum(1 for item in sequence if predicate(item))
+
+
+def has_where(sequence: Sequence[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when at least one element of ``sequence`` satisfies ``predicate``.
+
+    This is the boolean companion to :func:`count_where`; it reports whether
+    any element matches and reuses :func:`count_where` for consistency.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable returning ``True`` for matching elements.
+
+    Returns:
+        ``True`` if at least one element satisfies ``predicate``, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> has_where([1, 3, 5], lambda x: x % 2 == 0)
+        False
+        >>> has_where([1, 2, 3], lambda x: x % 2 == 0)
+        True
+        >>> has_where([], lambda x: True)
+        False
+    """
+    return count_where(sequence, predicate) > 0
+
+
 def has_occurrences(sequence: Sequence[T], value: T) -> bool:
     """Return ``True`` when ``value`` appears at least once in ``sequence``.
 
@@ -105885,6 +105951,7 @@ from seq_utils import (
     adjacent_pairs,
     chunk,
     count_occurrences,
+    count_where,
     distinct,
     drop_while,
     find,
@@ -105892,6 +105959,7 @@ from seq_utils import (
     first,
     flatten,
     has_occurrences,
+    has_where,
     head,
     index_of,
     interleave,
@@ -106226,6 +106294,74 @@ class TestHasOccurrences(unittest.TestCase):
             has_occurrences(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_occurrences(None, 1)  # type: ignore[arg-type]
+
+
+class TestCountWhere(unittest.TestCase):
+    def test_count_where_basic(self):
+        self.assertEqual(count_where([1, 2, 3, 4, 5], lambda x: x % 2 == 0), 2)
+        self.assertEqual(count_where([1, 2, 3, 4, 5], lambda x: x > 3), 2)
+
+    def test_count_where_no_match(self):
+        self.assertEqual(count_where([1, 3, 5], lambda x: x % 2 == 0), 0)
+        self.assertEqual(count_where([1, 2, 3], lambda x: x < 0), 0)
+
+    def test_count_where_empty(self):
+        self.assertEqual(count_where([], lambda x: True), 0)
+        self.assertEqual(count_where((), lambda x: True), 0)
+
+    def test_count_where_string(self):
+        self.assertEqual(count_where("abracadabra", lambda c: c == "a"), 5)
+        self.assertEqual(count_where("hello", lambda c: c == "z"), 0)
+
+    def test_count_where_tuple(self):
+        self.assertEqual(count_where((1, 2, 2, 3), lambda x: x == 2), 2)
+
+    def test_count_where_all_match(self):
+        self.assertEqual(count_where([2, 4, 6], lambda x: x % 2 == 0), 3)
+
+    def test_count_where_type_error(self):
+        with self.assertRaises(TypeError):
+            count_where(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where(None, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where([1, 2, 3], 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where([1, 2, 3], None)  # type: ignore[arg-type]
+
+
+class TestHasWhere(unittest.TestCase):
+    def test_has_where_present(self):
+        self.assertTrue(has_where([1, 2, 3], lambda x: x % 2 == 0))
+        self.assertTrue(has_where("abracadabra", lambda c: c == "a"))
+
+    def test_has_where_absent(self):
+        self.assertFalse(has_where([1, 3, 5], lambda x: x % 2 == 0))
+        self.assertFalse(has_where("hello", lambda c: c == "z"))
+
+    def test_has_where_empty(self):
+        self.assertFalse(has_where([], lambda x: True))
+        self.assertFalse(has_where("", lambda c: True))
+
+    def test_has_where_consistency(self):
+        self.assertEqual(
+            has_where([1, 2, 3, 4], lambda x: x > 2),
+            count_where([1, 2, 3, 4], lambda x: x > 2) > 0,
+        )
+        self.assertEqual(
+            has_where([1, 3, 5], lambda x: x % 2 == 0),
+            count_where([1, 3, 5], lambda x: x % 2 == 0) > 0,
+        )
+
+    def test_has_where_type_error(self):
+        with self.assertRaises(TypeError):
+            has_where(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where(None, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where([1, 2, 3], 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where([1, 2, 3], None)  # type: ignore[arg-type]
 
 
 class TestIndexOf(unittest.TestCase):

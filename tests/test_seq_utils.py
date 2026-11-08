@@ -6,6 +6,7 @@ from seq_utils import (
     adjacent_pairs,
     chunk,
     count_occurrences,
+    count_where,
     distinct,
     drop_while,
     find,
@@ -13,6 +14,7 @@ from seq_utils import (
     first,
     flatten,
     has_occurrences,
+    has_where,
     head,
     index_of,
     interleave,
@@ -347,6 +349,74 @@ class TestHasOccurrences(unittest.TestCase):
             has_occurrences(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_occurrences(None, 1)  # type: ignore[arg-type]
+
+
+class TestCountWhere(unittest.TestCase):
+    def test_count_where_basic(self):
+        self.assertEqual(count_where([1, 2, 3, 4, 5], lambda x: x % 2 == 0), 2)
+        self.assertEqual(count_where([1, 2, 3, 4, 5], lambda x: x > 3), 2)
+
+    def test_count_where_no_match(self):
+        self.assertEqual(count_where([1, 3, 5], lambda x: x % 2 == 0), 0)
+        self.assertEqual(count_where([1, 2, 3], lambda x: x < 0), 0)
+
+    def test_count_where_empty(self):
+        self.assertEqual(count_where([], lambda x: True), 0)
+        self.assertEqual(count_where((), lambda x: True), 0)
+
+    def test_count_where_string(self):
+        self.assertEqual(count_where("abracadabra", lambda c: c == "a"), 5)
+        self.assertEqual(count_where("hello", lambda c: c == "z"), 0)
+
+    def test_count_where_tuple(self):
+        self.assertEqual(count_where((1, 2, 2, 3), lambda x: x == 2), 2)
+
+    def test_count_where_all_match(self):
+        self.assertEqual(count_where([2, 4, 6], lambda x: x % 2 == 0), 3)
+
+    def test_count_where_type_error(self):
+        with self.assertRaises(TypeError):
+            count_where(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where(None, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where([1, 2, 3], 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where([1, 2, 3], None)  # type: ignore[arg-type]
+
+
+class TestHasWhere(unittest.TestCase):
+    def test_has_where_present(self):
+        self.assertTrue(has_where([1, 2, 3], lambda x: x % 2 == 0))
+        self.assertTrue(has_where("abracadabra", lambda c: c == "a"))
+
+    def test_has_where_absent(self):
+        self.assertFalse(has_where([1, 3, 5], lambda x: x % 2 == 0))
+        self.assertFalse(has_where("hello", lambda c: c == "z"))
+
+    def test_has_where_empty(self):
+        self.assertFalse(has_where([], lambda x: True))
+        self.assertFalse(has_where("", lambda c: True))
+
+    def test_has_where_consistency(self):
+        self.assertEqual(
+            has_where([1, 2, 3, 4], lambda x: x > 2),
+            count_where([1, 2, 3, 4], lambda x: x > 2) > 0,
+        )
+        self.assertEqual(
+            has_where([1, 3, 5], lambda x: x % 2 == 0),
+            count_where([1, 3, 5], lambda x: x % 2 == 0) > 0,
+        )
+
+    def test_has_where_type_error(self):
+        with self.assertRaises(TypeError):
+            has_where(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where(None, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where([1, 2, 3], 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where([1, 2, 3], None)  # type: ignore[arg-type]
 
 
 class TestIndexOf(unittest.TestCase):
