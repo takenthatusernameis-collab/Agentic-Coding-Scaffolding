@@ -2,6 +2,7 @@ import math
 import unittest
 
 from interval_utils import (
+    interval_adjacent,
     interval_clamp,
     interval_contains,
     interval_distance,
@@ -257,6 +258,33 @@ class TestIntervalDistance(unittest.TestCase):
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):
             interval_distance((5, 1), (2, 4))
+
+
+class TestIntervalAdjacent(unittest.TestCase):
+    def test_touching_a_before_b(self):
+        self.assertTrue(interval_adjacent((1, 5), (5, 8)))
+
+    def test_touching_b_before_a(self):
+        self.assertTrue(interval_adjacent((8, 10), (1, 5)))
+
+    def test_overlapping_not_adjacent(self):
+        self.assertFalse(interval_adjacent((1, 5), (4, 8)))
+
+    def test_disjoint_not_adjacent(self):
+        self.assertFalse(interval_adjacent((1, 3), (5, 8)))
+
+    def test_identical_not_adjacent(self):
+        self.assertFalse(interval_adjacent((2, 4), (2, 4)))
+
+    def test_degenerate_touches_endpoint(self):
+        self.assertTrue(interval_adjacent((3, 3), (3, 5)))
+
+    def test_float_endpoints(self):
+        self.assertTrue(interval_adjacent((1.5, 3.0), (3.0, 4.5)))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_adjacent((5, 1), (2, 4))
 
 
 class TestIntervalIsSubset(unittest.TestCase):

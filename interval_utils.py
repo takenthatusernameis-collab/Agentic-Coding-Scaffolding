@@ -25,6 +25,7 @@ __all__ = [
     "interval_length",
     "interval_midpoint",
     "interval_distance",
+    "interval_adjacent",
     "interval_is_subset",
     "intervals_equal",
     "interval_clamp",
@@ -250,6 +251,43 @@ def interval_distance(a: Interval, b: Interval) -> float:
         gap = a[0] - b[1]
         return float(gap)
     return 0.0
+
+
+def interval_adjacent(a: Interval, b: Interval) -> bool:
+    """Return True if intervals *a* and *b* touch back-to-back.
+
+    Two intervals are adjacent when one ends exactly where the other begins
+    (``a[1] == b[0]`` or ``b[1] == a[0]``). They share exactly one endpoint
+    and their interiors do not overlap. This is distinct from
+    :func:`interval_overlaps`, which is also true when the intervals share an
+    interior segment.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        True if the intervals touch at a single shared endpoint, False
+        otherwise.
+
+    Raises:
+        ValueError: If either interval is not valid.
+
+    Examples:
+        >>> interval_adjacent((1, 5), (5, 8))
+        True
+        >>> interval_adjacent((8, 10), (1, 5))
+        True
+        >>> interval_adjacent((1, 5), (4, 8))
+        False
+        >>> interval_adjacent((1, 5), (8, 10))
+        False
+        >>> interval_adjacent((1, 5), (1, 5))
+        False
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    return a[1] == b[0] or b[1] == a[0]
 
 
 def interval_is_subset(a: Interval, b: Interval) -> bool:
