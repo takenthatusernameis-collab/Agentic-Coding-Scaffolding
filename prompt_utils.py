@@ -72,6 +72,7 @@ __all__: List[str] = [
     "count_digits",
     "has_digits",
     "has_lowercase",
+    "count_whitespace",
     "has_whitespace",
     "has_whitespace_characters",
     "has_non_whitespace_characters",
@@ -2685,14 +2686,51 @@ def has_consonants(text: str) -> bool:
     return any(ch.isalpha() and ch.lower() not in "aeiou" for ch in text)
 
 
+def count_whitespace(text: str) -> int:
+    """Return the number of whitespace characters in *text_.
+
+    Counts every character in *text_ that is whitespace (as defined by
+    :meth:`str.isspace`). Whitespace includes spaces, tabs, newlines, and
+    other Unicode whitespace. This is the integer companion to
+    :func:`has_whitespace` and the count counterpart of
+    :func:`count_whitespace_characters`. Empty text returns zero.
+
+    Args:
+        text: The text to count whitespace characters in.
+
+    Returns:
+        The number of whitespace characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_whitespace("Hello world")
+        1
+        >>> count_whitespace("a b\\nc\\td")
+        3
+        >>> count_whitespace("   ")
+        3
+        >>> count_whitespace("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch.isspace())
+
+
 def has_whitespace(text: str) -> bool:
     """Return True if *text* contains at least one whitespace character.
+
+    A boolean companion to :func:`count_whitespace` that reports whether
+    *text* contains at least one whitespace character (as defined by
+    :meth:`str.isspace`). Empty text returns False.
 
     Args:
         text: The text to inspect.
 
     Returns:
-        True if any whitespace character is present, False otherwise.
+        ``True`` if *text* contains at least one whitespace character,
+        ``False`` otherwise.
 
     Raises:
         TypeError: If *text* is not a string.
@@ -2707,8 +2745,7 @@ def has_whitespace(text: str) -> bool:
         >>> has_whitespace("")
         False
     """
-    _require_string(text, "text")
-    return any(c.isspace() for c in text)
+    return count_whitespace(text) > 0
 
 
 def has_spaces(text: str) -> bool:

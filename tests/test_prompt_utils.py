@@ -28,6 +28,7 @@ from prompt_utils import (
     count_unique_words,
     count_uppercase,
     count_vowels,
+    count_whitespace,
     count_whitespace_characters,
     count_words,
     dedent_lines,
@@ -1790,6 +1791,55 @@ class TestCountAlphanumeric(unittest.TestCase):
             count_alphanumeric(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_alphanumeric([])  # type: ignore[arg-type]
+
+
+class TestCountWhitespace(unittest.TestCase):
+    """Tests for count_whitespace function."""
+
+    def test_empty_string(self):
+        self.assertEqual(count_whitespace(""), 0)
+
+    def test_no_whitespace(self):
+        self.assertEqual(count_whitespace("hello"), 0)
+        self.assertEqual(count_whitespace("HelloWorld"), 0)
+
+    def test_single_space(self):
+        self.assertEqual(count_whitespace("hello world"), 1)
+
+    def test_multiple_spaces(self):
+        self.assertEqual(count_whitespace("a  b   c"), 5)
+
+    def test_tabs(self):
+        self.assertEqual(count_whitespace("a\tb"), 1)
+        self.assertEqual(count_whitespace("\t\t\t"), 3)
+
+    def test_newlines(self):
+        self.assertEqual(count_whitespace("a\nb\nc"), 2)
+        self.assertEqual(count_whitespace("\n\n\n"), 3)
+
+    def test_mixed_whitespace(self):
+        self.assertEqual(count_whitespace("a b\nc\td"), 3)
+        self.assertEqual(count_whitespace("   \t\n\r"), 6)
+
+    def test_unicode_whitespace(self):
+        self.assertEqual(count_whitespace("héllo"), 0)
+        self.assertEqual(count_whitespace("\u00a0"), 1)
+
+    def test_consistency_with_count_whitespace_characters(self):
+        for text in ["", "hello", "hello world", "a b\nc\td", "   \t\n\r", "héllo"]:
+            self.assertEqual(count_whitespace(text), count_whitespace_characters(text))
+
+    def test_consistency_with_has_whitespace(self):
+        for text in ["", "hello", "hello world", "a b\nc\td", "   \t\n\r", "héllo"]:
+            self.assertEqual(count_whitespace(text) > 0, has_whitespace(text))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_whitespace(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_whitespace(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_whitespace([])  # type: ignore[arg-type]
 
 
 class TestSplitLines(unittest.TestCase):

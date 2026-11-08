@@ -25885,6 +25885,7 @@ from prompt_utils import (
     count_unique_words,
     count_uppercase,
     count_vowels,
+    count_whitespace,
     count_whitespace_characters,
     count_words,
     dedent_lines,
@@ -27647,6 +27648,55 @@ class TestCountAlphanumeric(unittest.TestCase):
             count_alphanumeric(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_alphanumeric([])  # type: ignore[arg-type]
+
+
+class TestCountWhitespace(unittest.TestCase):
+    """Tests for count_whitespace function."""
+
+    def test_empty_string(self):
+        self.assertEqual(count_whitespace(""), 0)
+
+    def test_no_whitespace(self):
+        self.assertEqual(count_whitespace("hello"), 0)
+        self.assertEqual(count_whitespace("HelloWorld"), 0)
+
+    def test_single_space(self):
+        self.assertEqual(count_whitespace("hello world"), 1)
+
+    def test_multiple_spaces(self):
+        self.assertEqual(count_whitespace("a  b   c"), 5)
+
+    def test_tabs(self):
+        self.assertEqual(count_whitespace("a\tb"), 1)
+        self.assertEqual(count_whitespace("\t\t\t"), 3)
+
+    def test_newlines(self):
+        self.assertEqual(count_whitespace("a\nb\nc"), 2)
+        self.assertEqual(count_whitespace("\n\n\n"), 3)
+
+    def test_mixed_whitespace(self):
+        self.assertEqual(count_whitespace("a b\nc\td"), 3)
+        self.assertEqual(count_whitespace("   \t\n\r"), 6)
+
+    def test_unicode_whitespace(self):
+        self.assertEqual(count_whitespace("héllo"), 0)
+        self.assertEqual(count_whitespace("\u00a0"), 1)
+
+    def test_consistency_with_count_whitespace_characters(self):
+        for text in ["", "hello", "hello world", "a b\nc\td", "   \t\n\r", "héllo"]:
+            self.assertEqual(count_whitespace(text), count_whitespace_characters(text))
+
+    def test_consistency_with_has_whitespace(self):
+        for text in ["", "hello", "hello world", "a b\nc\td", "   \t\n\r", "héllo"]:
+            self.assertEqual(count_whitespace(text) > 0, has_whitespace(text))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_whitespace(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_whitespace(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_whitespace([])  # type: ignore[arg-type]
 
 
 class TestSplitLines(unittest.TestCase):
@@ -40092,6 +40142,7 @@ __all__: List[str] = [
     "count_digits",
     "has_digits",
     "has_lowercase",
+    "count_whitespace",
     "has_whitespace",
     "has_whitespace_characters",
     "has_non_whitespace_characters",
@@ -42705,14 +42756,51 @@ def has_consonants(text: str) -> bool:
     return any(ch.isalpha() and ch.lower() not in "aeiou" for ch in text)
 
 
+def count_whitespace(text: str) -> int:
+    """Return the number of whitespace characters in *text_.
+
+    Counts every character in *text_ that is whitespace (as defined by
+    :meth:`str.isspace`). Whitespace includes spaces, tabs, newlines, and
+    other Unicode whitespace. This is the integer companion to
+    :func:`has_whitespace` and the count counterpart of
+    :func:`count_whitespace_characters`. Empty text returns zero.
+
+    Args:
+        text: The text to count whitespace characters in.
+
+    Returns:
+        The number of whitespace characters in *text_.
+
+    Raises:
+        TypeError: If *text_ is not a string.
+
+    Examples:
+        >>> count_whitespace("Hello world")
+        1
+        >>> count_whitespace("a b\\nc\\td")
+        3
+        >>> count_whitespace("   ")
+        3
+        >>> count_whitespace("")
+        0
+    """
+    _require_string(text, "text")
+    return sum(1 for ch in text if ch.isspace())
+
+
 def has_whitespace(text: str) -> bool:
     """Return True if *text* contains at least one whitespace character.
+
+    A boolean companion to :func:`count_whitespace` that reports whether
+    *text* contains at least one whitespace character (as defined by
+    :meth:`str.isspace`). Empty text returns False.
 
     Args:
         text: The text to inspect.
 
     Returns:
-        True if any whitespace character is present, False otherwise.
+        ``True`` if *text* contains at least one whitespace character,
+        ``False`` otherwise.
 
     Raises:
         TypeError: If *text* is not a string.
@@ -42727,8 +42815,7 @@ def has_whitespace(text: str) -> bool:
         >>> has_whitespace("")
         False
     """
-    _require_string(text, "text")
-    return any(c.isspace() for c in text)
+    return count_whitespace(text) > 0
 
 
 def has_spaces(text: str) -> bool:
@@ -61735,6 +61822,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_whitespace to prompt_utils
+
+- Audited `prompt_utils.py` for a remaining focused, hermetic gap consistent with the module's `count_*`/`has_*` pairing convention. Found that `has_whitespace` (exported, tested, documented) had no integer companion, while the sibling `has_whitespace_characters`/`count_whitespace_characters` pair and every other `has_*` predicate in the module had its `count_*` counterpart. Added `count_whitespace(text)` as the missing integer companion. It returns the number of whitespace characters in *text* (as defined by :meth:`str.isspace`), counting spaces, tabs, newlines, and other Unicode whitespace; empty text returns zero. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_whitespace` to reuse `count_whitespace(text) > 0` for consistency with the module's other boolean companions (it previously used a bare `any(c.isspace() for c in text)`).
+- Added `TestCountWhitespace` (11 tests) to `tests/test_prompt_utils.py` covering empty, no-whitespace, single/multiple spaces, tabs, newlines, mixed whitespace, Unicode-not-counted, consistency with `count_whitespace_characters`, consistency with `has_whitespace`, and `TypeError` paths (int, None, list); imported `count_whitespace` to match `__all__`. Updated the `prompt_utils` module tree entry and prose section of `README.md`. Synchronized `prompt_utils.py`, `tests/test_prompt_utils.py`, `README.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_prompt_utils` (552 tests, OK); targeted doctests for `count_whitespace` and `has_whitespace` (0 failures); `python -m unittest tests.test_public_api` (exit 0); full suite `python -m unittest discover tests/` (9126 tests, exit 0). Note: `python -m doctest prompt_utils.py` raises a pre-existing, unrelated `ValueError` in the `wrap_prompt` docstring (inconsistent leading whitespace) — confirmed present before this session's changes; not addressed here. No `.github/workflows/**` changes.
+
 ## Unreleased — added count_alphanumeric to prompt_utils
 
 - Added `count_alphanumeric(text)` to `prompt_utils.py` as the missing integer companion to `has_alphanumeric`. The module had `has_alphanumeric` (exported in `__all__`, with tests and README documentation) but no `count_*` counterpart, unlike every other `has_*` predicate in the module (`has_digits`/`count_digits`, `has_letters`/`count_letters`, `has_vowels`/`count_vowels`, etc.), so callers could not obtain the actual count. `count_alphanumeric` returns the number of ASCII letters (``a``-``z``, ``A``-``Z``) and ASCII decimal digits (``0``-``9``) in *text*; Unicode letters and numerals are not counted, and empty text returns zero. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with Google-style docstring and ASCII-safe doctests. Refactored `has_alphanumeric` to reuse `count_alphanumeric(text) > 0` for consistency with the module's other boolean companions.
@@ -64232,7 +64324,7 @@ file_utils.py               # File and path utility functions (read_text, write_
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
 uuid_utils.py               # UUID utility functions for generating and validating UUIDs
-prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, has_words, collapse_blank_lines, count_blank_lines, has_blank_lines, count_placeholders, count_sentences, has_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, has_words, count_characters, has_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, count_alphanumeric, has_alphanumeric, has_lowercase, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
+prompt_utils.py             # Prompt utility functions for working with text prompts (truncate_prompt, format_prompt_template, clean_prompt, extract_keywords, extract_sentences, extract_placeholders, has_placeholders, wrap_prompt, estimate_token_count, count_words, has_words, collapse_blank_lines, count_blank_lines, has_blank_lines, count_placeholders, count_sentences, has_sentences, truncate_words, truncate_lines, truncate_paragraphs, indent_lines, is_blank, dedent_lines, remove_blank_lines, rstrip_lines, lstrip_lines, strip_lines, ensure_prefix, ensure_suffix, ensure_leading_newline, starts_with_newline, ends_with_newline, ensure_surrounded_by_newlines, remove_prefix, remove_suffix, ensure_trailing_newline, normalize_line_endings, first_line, last_line, count_lines, count_blank_lines, count_non_blank_lines, count_trailing_newlines, count_leading_newlines, has_leading_newline, has_trailing_newline, count_paragraphs, has_paragraphs, has_words, count_characters, has_characters, count_non_whitespace_characters, count_whitespace_characters, count_spaces, count_tabs, count_digits, has_digits, has_letters, count_alphanumeric, has_alphanumeric, has_lowercase, count_whitespace, has_whitespace, has_uppercase, has_punctuation, count_letters, count_vowels, count_consonants, count_lowercase, count_uppercase, count_punctuation, reverse_lines, strip_blank_lines, strip_leading_newlines, strip_trailing_newlines, count_unique_words, join_lines, split_lines, chomp, escape_placeholders, normalize_whitespace)
 random_utils.py             # Random number generation and sampling utilities
 roman_utils.py              # Roman numeral conversion utilities (to_roman, from_roman, is_valid_roman, normalize_roman)
 re_utils.py                 # Regular expression utilities (compile, match, search, replace, split, escape)
@@ -65104,7 +65196,7 @@ The project includes IP address validation and manipulation utilities in `ip_uti
 
 ## Prompt Utilities Module
 
-The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `has_blank_lines`, `count_placeholders`, `count_sentences`, `has_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `has_paragraphs`, `has_words`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `count_alphanumeric`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`. `count_alphanumeric` is the integer companion to `has_alphanumeric`, returning the number of ASCII letters and digits in *text* (Unicode letters and numerals are not counted), and `has_alphanumeric` reuses it for consistency, returning ``True`` when at least one ASCII alphanumeric character is present and ``False`` for empty or symbol-only text.
+The project includes prompt utility functions in `prompt_utils.py` for working with text prompts: `truncate_prompt`, `format_prompt_template`, `clean_prompt`, `extract_keywords`, `extract_sentences`, `extract_placeholders`, `has_placeholders`, `wrap_prompt`, `estimate_token_count`, `count_words`, `collapse_blank_lines`, `count_blank_lines`, `has_blank_lines`, `count_placeholders`, `count_sentences`, `has_sentences`, `truncate_words`, `truncate_lines`, `truncate_paragraphs`, `indent_lines`, `dedent_lines`, `remove_blank_lines`, `rstrip_lines`, `lstrip_lines`, `strip_lines`, `ensure_prefix`, `remove_prefix`, `ensure_suffix`, `remove_suffix`, `ensure_leading_newline`, `starts_with_newline`, `ends_with_newline`, `ensure_trailing_newline`, `normalize_line_endings`, `first_line`, `last_line`, `count_lines`, `count_non_blank_lines`, `count_trailing_newlines`, `count_paragraphs`, `has_paragraphs`, `has_words`, `count_characters`, `count_non_whitespace_characters`, `count_whitespace_characters`, `count_spaces`, `count_tabs`, `count_digits`, `has_digits`, `has_letters`, `count_alphanumeric`, `has_alphanumeric`, `has_lowercase`, `has_whitespace`, `has_uppercase`, `has_punctuation`, `count_letters`, `count_vowels`, `count_consonants`, `count_lowercase`, `count_uppercase`, `count_punctuation`, `reverse_lines`, `strip_blank_lines`, `ensure_surrounded_by_newlines`, `is_blank`, `join_lines`, `split_lines`, `chomp`, `escape_placeholders`, `normalize_whitespace`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prompt_utils.py`. `count_alphanumeric` is the integer companion to `has_alphanumeric`, returning the number of ASCII letters and digits in *text* (Unicode letters and numerals are not counted), and `has_alphanumeric` reuses it for consistency, returning ``True`` when at least one ASCII alphanumeric character is present and ``False`` for empty or symbol-only text. `count_whitespace` is the integer companion to `has_whitespace`, returning the number of whitespace characters in *text* (as defined by :meth:`str.isspace`), and `has_whitespace` reuses it for consistency, returning ``True`` when at least one whitespace character is present and ``False`` for empty or whitespace-free text.
 
 ## Regex Utilities Module
 
