@@ -25872,6 +25872,7 @@ from prompt_utils import (
     count_letters,
     count_lines,
     count_lowercase,
+    count_newline,
     count_newlines,
     count_non_blank_lines,
     count_non_whitespace_characters,
@@ -25910,6 +25911,8 @@ from prompt_utils import (
     has_leading_newline,
     has_letters,
     has_lowercase,
+    has_newline,
+    has_newlines,
     has_paragraphs,
     has_placeholders,
     has_prefix,
@@ -28254,6 +28257,39 @@ class TestCountNewlines(unittest.TestCase):
             count_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             count_newlines(None)  # type: ignore[arg-type]
+
+
+class TestCountNewline(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_newline("a\nb\nc"), 2)
+
+    def test_none(self):
+        self.assertEqual(count_newline("abc"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_newline(""), 0)
+
+    def test_consecutive(self):
+        self.assertEqual(count_newline("\n\n\n"), 3)
+
+    def test_single(self):
+        self.assertEqual(count_newline("hello\n"), 1)
+
+    def test_matches_count_newlines(self):
+        for text in ("", "abc", "a\nb\nc", "\n\n\n", "hello\nworld\n\n!"):
+            self.assertEqual(count_newline(text), count_newlines(text))
+
+    def test_consistency_with_has_newline(self):
+        for text in ("", "abc", "a\nb\nc", "\n\n\n", "hello\nworld"):
+            self.assertEqual(count_newline(text) > 0, has_newline(text))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_newline(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_newline(["a", "b"])  # type: ignore[arg-type]
 
 
 class TestTruncateParagraphs(unittest.TestCase):
@@ -40351,6 +40387,7 @@ __all__: List[str] = [
     "ensure_surrounded_by_newlines",
     "has_surrounded_by_newlines",
     "count_newlines",
+    "count_newline",
     "has_newline",
     "has_newlines",
 ]
@@ -43455,6 +43492,30 @@ def count_newlines(text: str) -> int:
     return text.count("\n")
 
 
+def count_newline(text: str) -> int:
+    """Count the number of newline characters in *text*.
+
+    Args:
+        text: The text to inspect.
+
+    Returns:
+        The number of ``\\n`` characters found.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> count_newline("a\\nb\\nc")
+        2
+        >>> count_newline("hello")
+        0
+        >>> count_newline("")
+        0
+    """
+    _require_string(text, "text")
+    return text.count("\n")
+
+
 def has_newline(text: str) -> bool:
     """Return True if *text* contains at least one newline character.
 
@@ -43475,8 +43536,7 @@ def has_newline(text: str) -> bool:
         >>> has_newline("")
         False
     """
-    _require_string(text, "text")
-    return "\n" in text
+    return count_newline(text) > 0
 
 
 def has_newlines(text: str) -> bool:
@@ -54987,7 +55047,6 @@ def bit_count(data: bytes) -> int:
 
 def has_set_bits(data: bytes) -> bool:
     """Return True if *data* contains at least one set (1) bit.
-    """
 
     This is the boolean companion to :func:`bit_count`. It returns ``True``
     when any bit in *data* is set and ``False`` otherwise (an empty input
