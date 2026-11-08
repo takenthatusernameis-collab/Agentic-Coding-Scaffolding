@@ -11,6 +11,7 @@ from dict_utils import (
     has_key,
     has_value,
     invert_dict,
+    is_invertible,
     keys_equal,
     merge,
     omit_keys,
@@ -272,6 +273,50 @@ class TestInvertDict(unittest.TestCase):
         d = {"a": 1, "b": 1}
         with self.assertRaises(ValueError):
             invert_dict(d)
+
+
+def _safe_invert(d: dict) -> bool:
+    """Helper mirroring invert_dict's success condition without raising."""
+    try:
+        invert_dict(d)
+        return True
+    except ValueError:
+        return False
+
+
+class TestIsInvertible(unittest.TestCase):
+    def test_invertible_unique_values(self) -> None:
+        self.assertTrue(is_invertible({"a": 1, "b": 2}))
+        self.assertTrue(is_invertible({"a": 1, "b": "x"}))
+
+    def test_not_invertible_duplicate_values(self) -> None:
+        self.assertFalse(is_invertible({"a": 1, "b": 1}))
+        self.assertFalse(is_invertible({"a": 1, "b": 1, "c": 2}))
+
+    def test_empty_is_invertible(self) -> None:
+        self.assertTrue(is_invertible({}))
+
+    def test_single_entry(self) -> None:
+        self.assertTrue(is_invertible({"a": 1}))
+
+    def test_consistency_with_invert_dict(self) -> None:
+        cases = [
+            {"a": 1, "b": 2},
+            {"a": 1, "b": 1},
+            {},
+            {"a": 1, "b": 2, "c": 3},
+            {"a": 1, "b": 2, "c": 1},
+        ]
+        for d in cases:
+            self.assertEqual(is_invertible(d), _safe_invert(d), msg=f"mismatch for {d}")
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_invertible("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_invertible(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_invertible([1, 2])  # type: ignore[arg-type]
 
 
 class TestFilterDict(unittest.TestCase):

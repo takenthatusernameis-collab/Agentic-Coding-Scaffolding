@@ -16,7 +16,7 @@ __all__ = [
     "has_key",
     "has_value",
     "invert_dict",
-    "is_invertible","""
+    "is_invertible",
     "keys_equal",
     "merge",
     "omit_keys",
@@ -323,6 +323,37 @@ def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
     if len(d.values()) != len(set(d.values())):
         raise ValueError("Cannot invert dictionary with duplicate values")
     return {v: k for k, v in d.items()}
+
+
+def is_invertible(d: Dict[K, V]) -> bool:
+    """Report whether *d* can be inverted without losing information.
+
+    A dictionary is invertible when all of its values are distinct, so that
+    swapping keys and values produces a one-to-one mapping. This is the
+    boolean companion to :func:`invert_dict`, which raises ``ValueError``
+    when the dictionary is not invertible.
+
+    Args:
+        d: Dictionary to check.
+
+    Returns:
+        ``True`` when every value in *d* is unique, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> is_invertible({"a": 1, "b": 2})
+        True
+        >>> is_invertible({"a": 1, "b": 1})
+        False
+        >>> is_invertible({})
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    values = list(d.values())
+    return len(values) == len(set(values))
 
 
 def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
