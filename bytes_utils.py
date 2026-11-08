@@ -1695,6 +1695,7 @@ def bit_count(data: bytes) -> int:
 
 def has_set_bits(data: bytes) -> bool:
     """Return True if *data* contains at least one set (1) bit.
+    """
 
     This is the boolean companion to :func:`bit_count`. It returns ``True``
     when any bit in *data* is set and ``False`` otherwise (an empty input
