@@ -24026,6 +24026,7 @@ import unittest
 
 from set_utils import (
     cartesian_product,
+    count_intersection,
     difference,
     has_intersection,
     intersection,
@@ -24169,6 +24170,60 @@ class TestIntersection(unittest.TestCase):
 
     def test_intersection_no_overlap(self) -> None:
         self.assertEqual(intersection([], [1, 2]), set())
+
+
+class TestCountIntersection(unittest.TestCase):
+    def test_count_intersection_basic(self) -> None:
+        self.assertEqual(count_intersection([1, 2, 3], [2, 3, 4]), 2)
+
+    def test_count_intersection_disjoint(self) -> None:
+        self.assertEqual(count_intersection([1, 2], [3, 4]), 0)
+
+    def test_count_intersection_no_overlap(self) -> None:
+        self.assertEqual(count_intersection([], [1, 2]), 0)
+        self.assertEqual(count_intersection([1, 2], []), 0)
+        self.assertEqual(count_intersection([], []), 0)
+
+    def test_count_intersection_duplicates_ignored(self) -> None:
+        # Distinct elements only: duplicates in either input count once.
+        self.assertEqual(count_intersection([1, 1, 2], [2, 2]), 1)
+        self.assertEqual(count_intersection([1, 1, 1], [1, 1]), 1)
+
+    def test_count_intersection_strings(self) -> None:
+        self.assertEqual(count_intersection("abc", "cd"), 1)
+        self.assertEqual(count_intersection("abc", "de"), 0)
+
+    def test_count_intersection_single(self) -> None:
+        self.assertEqual(count_intersection([1], [1]), 1)
+        self.assertEqual(count_intersection([1], [2]), 0)
+
+    def test_count_intersection_consistency_with_intersection(self) -> None:
+        cases = [
+            ([1, 2, 3], [2, 3, 4]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+            ("abc", "cd"),
+            ([1, 2, 3, 4], [4, 3, 2, 1]),
+        ]
+        for a, b in cases:
+            self.assertEqual(count_intersection(a, b), len(intersection(a, b)))
+
+    def test_count_intersection_consistency_with_has_intersection(self) -> None:
+        cases = [
+            ([1, 2], [2, 3]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+        ]
+        for a, b in cases:
+            self.assertEqual(has_intersection(a, b), count_intersection(a, b) > 0)
+
+    def test_count_intersection_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_intersection(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_intersection([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestUnion(unittest.TestCase):
@@ -37714,6 +37769,7 @@ __all__ = [
     "T",
     "cartesian_product",
     "difference",
+    "count_intersection",
     "has_intersection",
     "intersection",
     "is_disjoint",
@@ -37815,7 +37871,7 @@ def has_intersection(a: Iterable[Any], b: Iterable[Any]) -> bool:
         >>> has_intersection([], [1, 2])
         False
     """
-    return not is_disjoint(a, b)
+    return count_intersection(a, b) > 0
 
 
 def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
@@ -37946,6 +38002,40 @@ def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
         {2, 3}
     """
     return _to_set(a) & _to_set(b)
+
+
+def count_intersection(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements common to both ``a`` and ``b``.
+
+    This is the integer companion to :func:`intersection` and the count
+    counterpart of :func:`has_intersection`. Only distinct elements are
+    counted, so duplicate occurrences in either input contribute at most
+    one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the intersection of ``a`` and
+        ``b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_intersection([1, 2, 3], [2, 3, 4])
+        2
+        >>> count_intersection([1, 2], [3, 4])
+        0
+        >>> count_intersection([], [1, 2])
+        0
+        >>> count_intersection([1, 1, 2], [2, 2])
+        1
+        >>> count_intersection("abc", "cd")
+        1
+    """
+    return len(intersection(a, b))
 
 
 def union(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
@@ -55946,7 +56036,12 @@ def to_int(data: bytes, byteorder: Literal["big", "little"] = "big", signed: boo
     return int.from_bytes(bytes(data), byteorder=byteorder, signed=signed)
 
 
-def from_int(value: int, length: int, byteorder: Literal["big", "little"] = "big", signed: bool = False) -> bytes:
+def from_int(
+    value: int,
+    length: int,
+    byteorder: Literal["big", "little"] = "big",
+    signed: bool = False,
+) -> bytes:
     """Encode the integer *value* into a fixed-length bytes object.
 
     The result is exactly *length* bytes long. If *value* fits in the requested
@@ -63891,6 +63986,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_intersection to set_utils
+
+- Added `count_intersection(a, b) -> int` to `set_utils.py` as the integer companion to `intersection`, returning the number of distinct elements common to both iterables. The module already had `intersection` (returning the set of common elements) and `has_intersection` (its boolean companion), but no integer counterpart, so callers could not obtain the actual count without computing `len(intersection(a, b))` themselves. `count_intersection` reuses `intersection` for consistency, accepts any iterables via the module's `_to_set` validation (raising `TypeError` for non-iterables), is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Refactored `has_intersection` to reuse `count_intersection(a, b) > 0` for consistency with the module's other boolean companions.
+- Added `TestCountIntersection` (10 tests) to `tests/test_set_utils.py` covering basic/disjoint/no-overlap/duplicate-ignored/string/single cases, consistency with `intersection`, consistency with `has_intersection`, and `TypeError` paths; imported `count_intersection` to match `__all__`. Updated the `set_utils` module tree entry and prose section of `README.md`. Synchronized `set_utils.py`, `tests/test_set_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_set_utils` (53 tests, OK); targeted doctests for `count_intersection`/`has_intersection` (0 failures); `python -m unittest tests.test_public_api` (OK); full suite `python -m unittest discover tests/` (OK). No `.github/workflows/**` changes.
+
 ## Unreleased
 
 - Added `count_digits(data)` to `bytes_utils.py` as the missing integer companion to `isdigit`. The module had `isdigit` (exported in `__all__`, with tests and README documentation) but no `count_*` counterpart, so callers could not obtain the actual number of digit bytes. `count_digits` returns the count of ASCII digit bytes (``0``-``9``) in *data*; empty input returns zero. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestCountDigits` (8 tests) to `tests/test_bytes_utils.py` covering all-digits/no-digits/mixed/empty/bytearray inputs, consistency with `isdigit`, and `TypeError` paths; imported `count_digits` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -66492,7 +66592,7 @@ dict_utils.py            # Dictionary utilities (contains_key, contains_value, k
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
-set_utils.py             # Set operation utilities (subset, superset, disjoint, has_intersection, is_equal, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+set_utils.py             # Set operation utilities (subset, superset, disjoint, has_intersection, is_equal, intersection, count_intersection, union, difference, symmetric_difference, cartesian_product, power_set)
 
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
@@ -67190,7 +67290,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 

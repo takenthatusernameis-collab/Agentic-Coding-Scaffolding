@@ -8,6 +8,7 @@ __all__ = [
     "T",
     "cartesian_product",
     "difference",
+    "count_intersection",
     "has_intersection",
     "intersection",
     "is_disjoint",
@@ -109,7 +110,7 @@ def has_intersection(a: Iterable[Any], b: Iterable[Any]) -> bool:
         >>> has_intersection([], [1, 2])
         False
     """
-    return not is_disjoint(a, b)
+    return count_intersection(a, b) > 0
 
 
 def is_disjoint(a: Iterable[Any], b: Iterable[Any]) -> bool:
@@ -240,6 +241,40 @@ def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
         {2, 3}
     """
     return _to_set(a) & _to_set(b)
+
+
+def count_intersection(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements common to both ``a`` and ``b``.
+
+    This is the integer companion to :func:`intersection` and the count
+    counterpart of :func:`has_intersection`. Only distinct elements are
+    counted, so duplicate occurrences in either input contribute at most
+    one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the intersection of ``a`` and
+        ``b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_intersection([1, 2, 3], [2, 3, 4])
+        2
+        >>> count_intersection([1, 2], [3, 4])
+        0
+        >>> count_intersection([], [1, 2])
+        0
+        >>> count_intersection([1, 1, 2], [2, 2])
+        1
+        >>> count_intersection("abc", "cd")
+        1
+    """
+    return len(intersection(a, b))
 
 
 def union(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:

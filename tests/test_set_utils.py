@@ -4,6 +4,7 @@ import unittest
 
 from set_utils import (
     cartesian_product,
+    count_intersection,
     difference,
     has_intersection,
     intersection,
@@ -147,6 +148,60 @@ class TestIntersection(unittest.TestCase):
 
     def test_intersection_no_overlap(self) -> None:
         self.assertEqual(intersection([], [1, 2]), set())
+
+
+class TestCountIntersection(unittest.TestCase):
+    def test_count_intersection_basic(self) -> None:
+        self.assertEqual(count_intersection([1, 2, 3], [2, 3, 4]), 2)
+
+    def test_count_intersection_disjoint(self) -> None:
+        self.assertEqual(count_intersection([1, 2], [3, 4]), 0)
+
+    def test_count_intersection_no_overlap(self) -> None:
+        self.assertEqual(count_intersection([], [1, 2]), 0)
+        self.assertEqual(count_intersection([1, 2], []), 0)
+        self.assertEqual(count_intersection([], []), 0)
+
+    def test_count_intersection_duplicates_ignored(self) -> None:
+        # Distinct elements only: duplicates in either input count once.
+        self.assertEqual(count_intersection([1, 1, 2], [2, 2]), 1)
+        self.assertEqual(count_intersection([1, 1, 1], [1, 1]), 1)
+
+    def test_count_intersection_strings(self) -> None:
+        self.assertEqual(count_intersection("abc", "cd"), 1)
+        self.assertEqual(count_intersection("abc", "de"), 0)
+
+    def test_count_intersection_single(self) -> None:
+        self.assertEqual(count_intersection([1], [1]), 1)
+        self.assertEqual(count_intersection([1], [2]), 0)
+
+    def test_count_intersection_consistency_with_intersection(self) -> None:
+        cases = [
+            ([1, 2, 3], [2, 3, 4]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+            ("abc", "cd"),
+            ([1, 2, 3, 4], [4, 3, 2, 1]),
+        ]
+        for a, b in cases:
+            self.assertEqual(count_intersection(a, b), len(intersection(a, b)))
+
+    def test_count_intersection_consistency_with_has_intersection(self) -> None:
+        cases = [
+            ([1, 2], [2, 3]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+        ]
+        for a, b in cases:
+            self.assertEqual(has_intersection(a, b), count_intersection(a, b) > 0)
+
+    def test_count_intersection_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_intersection(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_intersection([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestUnion(unittest.TestCase):
