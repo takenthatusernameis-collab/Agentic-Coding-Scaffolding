@@ -68,7 +68,7 @@ dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple
 datetime_utils.py           # Date and time utility functions
 dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 dumbdbm_utils.py             # Database utilities wrapping stdlib dbm.dumb (open/close, read/write/delete records, key listing)
-template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
+template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, count_placeholders, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions (read_text, write_text, read_json, write_json, ensure_dir, list_files, copy_file, delete_file)
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
@@ -1145,7 +1145,7 @@ The project includes time zone utilities in `timezone_utils.py` for working with
 
 ## Template Utilities Module
 
-The project includes string template utilities in `template_utils.py` for rendering and substituting variables in template strings: `render_template` renders a template using `str.format()` style placeholders, `substitute` renders a template using `string.Template` style placeholders, `safe_substitute` renders a template without raising on missing placeholders, `render_from_dict` renders a template from a mapping of variables, `has_placeholders` checks whether a template contains any placeholders, and `extract_placeholders` returns the placeholder names found in a template. The module supports both `str.format()` style and `string.Template` style placeholders and is tested in `tests/test_template_utils.py`.
+The project includes string template utilities in `template_utils.py` for rendering and substituting variables in template strings: `render_template` renders a template using `str.format()` style placeholders, `substitute` renders a template using `string.Template` style placeholders, `safe_substitute` renders a template without raising on missing placeholders, `render_from_dict` renders a template from a mapping of variables, `has_placeholders` checks whether a template contains any placeholders, `count_placeholders` returns the number of distinct placeholder names, and `extract_placeholders` returns the placeholder names found in a template. The module supports both `str.format()` style and `string.Template` style placeholders and is tested in `tests/test_template_utils.py`.
 
 ## Fractions Utilities Module
 

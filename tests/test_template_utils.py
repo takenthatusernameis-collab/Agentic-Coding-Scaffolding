@@ -3,6 +3,7 @@
 import unittest
 
 from template_utils import (
+    count_placeholders,
     extract_placeholders,
     has_placeholders,
     render_from_dict,
@@ -164,6 +165,50 @@ class TestHasPlaceholders(unittest.TestCase):
     def test_non_string_template(self) -> None:
         with self.assertRaises(TypeError):
             has_placeholders(123)  # type: ignore
+
+
+class TestCountPlaceholders(unittest.TestCase):
+    """Test cases for count_placeholders function."""
+
+    def test_count_format_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("Hello {name}, you are {age}"), 2)
+
+    def test_count_single_format_placeholder(self) -> None:
+        self.assertEqual(count_placeholders("Hello {name}"), 1)
+
+    def test_count_format_with_spec(self) -> None:
+        self.assertEqual(count_placeholders("Value: {num:.2f}, Text: {name}"), 2)
+
+    def test_count_template_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("Hello $name and $age"), 2)
+
+    def test_count_template_braces(self) -> None:
+        self.assertEqual(count_placeholders("Hello ${name}"), 1)
+
+    def test_count_mixed_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("{greeting} $name"), 2)
+
+    def test_count_distinct_names(self) -> None:
+        self.assertEqual(count_placeholders("{name} $name"), 1)
+
+    def test_count_no_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("Hello World"), 0)
+
+    def test_count_empty_string(self) -> None:
+        self.assertEqual(count_placeholders(""), 0)
+
+    def test_count_skip_numeric_indices(self) -> None:
+        self.assertEqual(count_placeholders("Hello {0} and {1}"), 0)
+
+    def test_count_consistency_with_has_placeholders(self) -> None:
+        for template in ("", "Hello World", "{name}", "$age", "{a} {b} {c}"):
+            self.assertEqual(
+                has_placeholders(template), count_placeholders(template) > 0
+            )
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            count_placeholders(123)  # type: ignore
 
 
 class TestExtractPlaceholders(unittest.TestCase):

@@ -60748,6 +60748,7 @@ from string import Template
 from typing import Any, Mapping
 
 __all__ = [
+    "count_placeholders",
     "extract_placeholders",
     "has_placeholders",
     "render_from_dict",
@@ -60904,13 +60905,7 @@ def has_placeholders(template: str) -> bool:
     """
     if not isinstance(template, str):
         raise TypeError("template must be a string")
-    format_pattern = re.compile(r"\{[^}]+\}")
-    if format_pattern.search(template):
-        return True
-    template_pattern = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*|\$\{[^}]+\}")
-    if template_pattern.search(template):
-        return True
-    return False
+    return count_placeholders(template) > 0
 
 
 def extract_placeholders(template: str) -> list[str]:
@@ -60945,6 +60940,28 @@ def extract_placeholders(template: str) -> list[str]:
         if name and name not in placeholders:
             placeholders.append(name)
     return placeholders
+
+
+def count_placeholders(template: str) -> int:
+    """Count the distinct placeholders in a template string.
+
+    Counts placeholder names from both ``str.format()`` style (``{name}`` or
+    ``{name:format}``) and ``string.Template`` style (``$name`` or
+    ``${name}``) placeholders, reusing :func:`extract_placeholders`.
+
+    Args:
+        template: The template string to analyze.
+
+    Returns:
+        The number of distinct placeholder names in *template*, or ``0`` when
+        the template contains no placeholders.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    return len(extract_placeholders(template))
 TEMPLATEUTILS
 
 # --- tests/test_template_utils.py ---
@@ -60954,6 +60971,7 @@ cat > "$OUTPUT_DIR/tests/test_template_utils.py" <<'TEST_TEMPLATE_UTILS'
 import unittest
 
 from template_utils import (
+    count_placeholders,
     extract_placeholders,
     has_placeholders,
     render_from_dict,
@@ -61115,6 +61133,50 @@ class TestHasPlaceholders(unittest.TestCase):
     def test_non_string_template(self) -> None:
         with self.assertRaises(TypeError):
             has_placeholders(123)  # type: ignore
+
+
+class TestCountPlaceholders(unittest.TestCase):
+    """Test cases for count_placeholders function."""
+
+    def test_count_format_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("Hello {name}, you are {age}"), 2)
+
+    def test_count_single_format_placeholder(self) -> None:
+        self.assertEqual(count_placeholders("Hello {name}"), 1)
+
+    def test_count_format_with_spec(self) -> None:
+        self.assertEqual(count_placeholders("Value: {num:.2f}, Text: {name}"), 2)
+
+    def test_count_template_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("Hello $name and $age"), 2)
+
+    def test_count_template_braces(self) -> None:
+        self.assertEqual(count_placeholders("Hello ${name}"), 1)
+
+    def test_count_mixed_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("{greeting} $name"), 2)
+
+    def test_count_distinct_names(self) -> None:
+        self.assertEqual(count_placeholders("{name} $name"), 1)
+
+    def test_count_no_placeholders(self) -> None:
+        self.assertEqual(count_placeholders("Hello World"), 0)
+
+    def test_count_empty_string(self) -> None:
+        self.assertEqual(count_placeholders(""), 0)
+
+    def test_count_skip_numeric_indices(self) -> None:
+        self.assertEqual(count_placeholders("Hello {0} and {1}"), 0)
+
+    def test_count_consistency_with_has_placeholders(self) -> None:
+        for template in ("", "Hello World", "{name}", "$age", "{a} {b} {c}"):
+            self.assertEqual(
+                has_placeholders(template), count_placeholders(template) > 0
+            )
+
+    def test_non_string_template(self) -> None:
+        with self.assertRaises(TypeError):
+            count_placeholders(123)  # type: ignore
 
 
 class TestExtractPlaceholders(unittest.TestCase):
@@ -62881,6 +62943,10 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - `seq_utils`: added `count_where(sequence, predicate) -> int` as the predicate-count companion to `count_occurrences`, and boolean companion `has_where(sequence, predicate) -> bool`. `count_where` returns the number of elements in *sequence* for which *predicate* returns true (empty sequence yields ``0``); `has_where` reports whether at least one element satisfies *predicate*, reusing `count_where` for consistency. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountWhere` (7 tests) and `TestHasWhere` (5 tests) to `tests/test_seq_utils.py` covering basic/no-match/empty/string/tuple/all-match cases, consistency between `has_where` and `count_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `find(sequence, predicate) -> Optional[T]` as the element-returning companion to `find_index`. Returns the first element in *sequence* satisfying *predicate*, or ``None`` when no match is found (including for an empty sequence). Accepts any `Sequence`, validates with `_require_sequence`, requires a callable *predicate*, and raises `TypeError`/`ValueError`-consistent input validation (`TypeError` for non-sequence/non-callable). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestFind` (8 tests) to `tests/test_seq_utils.py` covering basic/first-match/no-match/empty/start/tuple+string cases and `TypeError` paths. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `bytes_utils`: added `has_non_null_bytes(data) -> bool` as the plural alias companion to `has_non_null_byte` (and boolean companion to `count_non_null_bytes`), mirroring the existing `has_null_bytes` alias for `has_null_byte`. Returns ``True`` when *data* contains at least one non-zero byte and ``False`` otherwise (empty input is ``False``), reusing `count_non_null_bytes` for consistency. Accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestCountNonNullBytes`, `TestHasNonNullByte`, and `TestHasNonNullBytes` (22 tests) to `tests/test_bytes_utils.py` covering all/none/mixed/empty/bytearray inputs, consistency with `count_non_null_bytes`, alias parity with `has_non_null_byte`, and `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
+## Unreleased — added count_placeholders to template_utils
+
+- Added `count_placeholders(template: str) -> int` to `template_utils.py` as the integer companion to `has_placeholders`, returning the number of distinct placeholder names in *template* by reusing `extract_placeholders`. `has_placeholders` was refactored to reuse `count_placeholders(template) > 0` for consistency with the module's other boolean companions. It accepts a typed `str` argument, raises `TypeError` for non-strings, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestCountPlaceholders` (11 tests) to `tests/test_template_utils.py` covering format/template/mixed placeholders, distinct-name counting, no-placeholder/empty inputs, numeric-index skipping, consistency with `has_placeholders`, and the `TypeError` path; imported `count_placeholders` to match `__all__`. Updated the `template_utils` module tree entry and prose section of `README.md`. Synchronized `template_utils.py`, `tests/test_template_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 ## Unreleased — added count_alphanumeric to prompt_utils
 
@@ -65380,7 +65446,7 @@ dataclasses_utils.py         # Dataclass utilities (is_dataclass, asdict/astuple
 datetime_utils.py           # Date and time utility functions
 dbm_utils.py                 # Database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
 dumbdbm_utils.py             # Database utilities wrapping stdlib dbm.dumb (open/close, read/write/delete records, key listing)
-template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, has_placeholders, extract_placeholders)
+template_utils.py           # String template rendering utilities (render_template, substitute, safe_substitute, render_from_dict, count_placeholders, has_placeholders, extract_placeholders)
 file_utils.py               # File and path utility functions (read_text, write_text, read_json, write_json, ensure_dir, list_files, copy_file, delete_file)
 url_utils.py                # URL and web utility functions
 urllib_utils.py             # URL parsing utilities wrapping stdlib urllib.parse
@@ -66457,7 +66523,7 @@ The project includes time zone utilities in `timezone_utils.py` for working with
 
 ## Template Utilities Module
 
-The project includes string template utilities in `template_utils.py` for rendering and substituting variables in template strings: `render_template` renders a template using `str.format()` style placeholders, `substitute` renders a template using `string.Template` style placeholders, `safe_substitute` renders a template without raising on missing placeholders, `render_from_dict` renders a template from a mapping of variables, `has_placeholders` checks whether a template contains any placeholders, and `extract_placeholders` returns the placeholder names found in a template. The module supports both `str.format()` style and `string.Template` style placeholders and is tested in `tests/test_template_utils.py`.
+The project includes string template utilities in `template_utils.py` for rendering and substituting variables in template strings: `render_template` renders a template using `str.format()` style placeholders, `substitute` renders a template using `string.Template` style placeholders, `safe_substitute` renders a template without raising on missing placeholders, `render_from_dict` renders a template from a mapping of variables, `has_placeholders` checks whether a template contains any placeholders, `count_placeholders` returns the number of distinct placeholder names, and `extract_placeholders` returns the placeholder names found in a template. The module supports both `str.format()` style and `string.Template` style placeholders and is tested in `tests/test_template_utils.py`.
 
 ## Fractions Utilities Module
 

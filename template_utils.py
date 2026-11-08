@@ -12,6 +12,7 @@ from string import Template
 from typing import Any, Mapping
 
 __all__ = [
+    "count_placeholders",
     "extract_placeholders",
     "has_placeholders",
     "render_from_dict",
@@ -168,13 +169,7 @@ def has_placeholders(template: str) -> bool:
     """
     if not isinstance(template, str):
         raise TypeError("template must be a string")
-    format_pattern = re.compile(r"\{[^}]+\}")
-    if format_pattern.search(template):
-        return True
-    template_pattern = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*|\$\{[^}]+\}")
-    if template_pattern.search(template):
-        return True
-    return False
+    return count_placeholders(template) > 0
 
 
 def extract_placeholders(template: str) -> list[str]:
@@ -209,3 +204,25 @@ def extract_placeholders(template: str) -> list[str]:
         if name and name not in placeholders:
             placeholders.append(name)
     return placeholders
+
+
+def count_placeholders(template: str) -> int:
+    """Count the distinct placeholders in a template string.
+
+    Counts placeholder names from both ``str.format()`` style (``{name}`` or
+    ``{name:format}``) and ``string.Template`` style (``$name`` or
+    ``${name}``) placeholders, reusing :func:`extract_placeholders`.
+
+    Args:
+        template: The template string to analyze.
+
+    Returns:
+        The number of distinct placeholder names in *template*, or ``0`` when
+        the template contains no placeholders.
+
+    Raises:
+        TypeError: If ``template`` is not a string.
+    """
+    if not isinstance(template, str):
+        raise TypeError("template must be a string")
+    return len(extract_placeholders(template))
