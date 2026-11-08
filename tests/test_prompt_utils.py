@@ -52,6 +52,7 @@ from prompt_utils import (
     has_characters,
     has_digits,
     has_leading_newline,
+    has_leading_newlines,
     has_letters,
     has_lowercase,
     has_newline,
@@ -66,6 +67,7 @@ from prompt_utils import (
     has_surrounded_by_newlines,
     has_tabs,
     has_trailing_newline,
+    has_trailing_newlines,
     has_unique_words,
     has_uppercase,
     has_whitespace,
@@ -1177,6 +1179,35 @@ class TestHasTrailingNewline(unittest.TestCase):
             has_trailing_newline(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_trailing_newline(None)  # type: ignore[arg-type]
+
+class TestHasLeadingNewlines(unittest.TestCase):
+    def test_has_leading_newlines(self):
+        self.assertTrue(has_leading_newlines("\nhello"))
+        self.assertTrue(has_leading_newlines("\n\nhello"))
+        self.assertFalse(has_leading_newlines("hello"))
+        self.assertFalse(has_leading_newlines(""))
+        self.assertFalse(has_leading_newlines(" \nhello"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_leading_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_leading_newlines(None)  # type: ignore[arg-type]
+
+
+class TestHasTrailingNewlines(unittest.TestCase):
+    def test_has_trailing_newlines(self):
+        self.assertTrue(has_trailing_newlines("hello\n"))
+        self.assertTrue(has_trailing_newlines("hello\n\n"))
+        self.assertFalse(has_trailing_newlines("hello"))
+        self.assertFalse(has_trailing_newlines(""))
+        self.assertTrue(has_trailing_newlines("hello \n"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_trailing_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountTrailingNewlines(unittest.TestCase):

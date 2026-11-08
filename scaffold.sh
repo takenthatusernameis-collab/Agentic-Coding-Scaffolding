@@ -25946,6 +25946,7 @@ from prompt_utils import (
     has_characters,
     has_digits,
     has_leading_newline,
+    has_leading_newlines,
     has_letters,
     has_lowercase,
     has_newline,
@@ -25960,6 +25961,7 @@ from prompt_utils import (
     has_surrounded_by_newlines,
     has_tabs,
     has_trailing_newline,
+    has_trailing_newlines,
     has_unique_words,
     has_uppercase,
     has_whitespace,
@@ -27071,6 +27073,35 @@ class TestHasTrailingNewline(unittest.TestCase):
             has_trailing_newline(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_trailing_newline(None)  # type: ignore[arg-type]
+
+class TestHasLeadingNewlines(unittest.TestCase):
+    def test_has_leading_newlines(self):
+        self.assertTrue(has_leading_newlines("\nhello"))
+        self.assertTrue(has_leading_newlines("\n\nhello"))
+        self.assertFalse(has_leading_newlines("hello"))
+        self.assertFalse(has_leading_newlines(""))
+        self.assertFalse(has_leading_newlines(" \nhello"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_leading_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_leading_newlines(None)  # type: ignore[arg-type]
+
+
+class TestHasTrailingNewlines(unittest.TestCase):
+    def test_has_trailing_newlines(self):
+        self.assertTrue(has_trailing_newlines("hello\n"))
+        self.assertTrue(has_trailing_newlines("hello\n\n"))
+        self.assertFalse(has_trailing_newlines("hello"))
+        self.assertFalse(has_trailing_newlines(""))
+        self.assertTrue(has_trailing_newlines("hello \n"))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_trailing_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_trailing_newlines(None)  # type: ignore[arg-type]
 
 
 class TestCountTrailingNewlines(unittest.TestCase):
@@ -63695,6 +63726,9 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased
+
+- Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
 
 - Added `is_invertible(d)` to `dict_utils.py` as the boolean companion to `invert_dict`, returning ``True`` when all values in *d* are distinct (so the dictionary can be inverted one-to-one) and ``False`` otherwise. It mirrors `invert_dict`'s success condition without raising, accepts a typed `dict` argument, raises `TypeError` for non-dicts, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsInvertible` (6 tests) to `tests/test_dict_utils.py` covering unique/duplicate/empty/single cases, consistency with `invert_dict`, and `TypeError` paths; imported `is_invertible` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.

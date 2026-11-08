@@ -16,6 +16,7 @@ Completed in this session:
 
 Next Planned (durable handover for the following agent):
 
+- Completed audit of `prompt_utils.py`: added test coverage for `has_leading_newlines` and `has_trailing_newlines` (previously implemented/exported but untested). Remaining candidates: `has_whitespace_characters`, `has_non_whitespace_characters`, `has_vowels`, `has_consonants`, `has_newline`, `has_newlines`, `has_lines`, `has_non_blank_lines`, `truncate_prompt`.
 - Audit `prompt_utils.py` for any remaining focused, hermetic gap consistent with existing API style; if none, pick one focused helper in `seq_utils.py`, `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, or `bit_utils.py` (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError`). Prefer a `count_*`/`has_*` boolean companion for an existing predicate where genuinely missing.
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone. No `.github/workflows/**` changes; no no-op/timestamp-only commits. Since `board_post` to `main` is refused (this session is the board root), record the durable handover in this file's "Next Planned" section.
 
