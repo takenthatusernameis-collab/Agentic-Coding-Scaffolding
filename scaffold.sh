@@ -52872,6 +52872,8 @@ __all__: list[str] = [
     "count_null_bytes",
     "has_null_byte",
     "has_null_bytes",
+    "count_non_null_bytes",
+    "has_non_null_byte",
     "lowest_set_bit",
     "highest_set_bit",
 ]
@@ -54688,6 +54690,61 @@ def has_null_bytes(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return count_null_bytes(data) > 0
+
+
+def count_non_null_bytes(data: bytes) -> int:
+    """Return the number of non-zero bytes in *data*.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The count of bytes not equal to 0 (empty input returns 0).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_non_null_bytes(from_hex("000000"))
+        0
+        >>> count_non_null_bytes(from_hex("010203"))
+        3
+        >>> count_non_null_bytes(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if b != 0)
+
+
+def has_non_null_byte(data: bytes) -> bool:
+    """Return True if *data* contains at least one non-zero byte.
+
+    This is the boolean companion to :func:`count_non_null_bytes`. It returns
+    ``True`` when *data* contains at least one byte that is not zero and
+    ``False`` otherwise (empty input is ``False``), reusing
+    :func:`count_non_null_bytes` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is non-zero, False otherwise (empty input is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_non_null_byte(from_hex("000000"))
+        False
+        >>> has_non_null_byte(from_hex("010203"))
+        True
+        >>> has_non_null_byte(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_non_null_bytes(data) > 0
 
 
 def lowest_set_bit(data: bytes) -> int:
