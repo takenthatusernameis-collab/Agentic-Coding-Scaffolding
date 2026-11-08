@@ -1,5 +1,15 @@
 # Project Status
 
+## Latest Session (2026-11-08 15:52Z) — added count_unique to seq_utils
+
+Audit of prompt_utils.py found all has_*/count_* pairs present, so took fallback path and added `count_unique(sequence)` to seq_utils.py: returns number of distinct elements (hashable via set, unhashable via linear fallback), typed, exported in __all__, Google-style docstring with ASCII-safe doctests, TypeError validation. Refreshed scaffold (in sync). Verified: targeted doctests for count_unique (0 failures), tests.test_seq_utils (149 tests OK), tests.test_public_api (OK).
+
+Next Planned (durable handover):
+
+- Audit prompt_utils.py for any remaining focused, hermetic gap; if none, pick one focused helper in seq_utils.py, set_utils.py, deque_utils.py, bytes_utils.py, version_utils.py, numbers_utils.py, prime_utils.py, stats.py, interval_utils.py, or bit_utils.py (typed API, __all__, Google-style docstring, TypeError/ValueError). Prefer a count_*/has_* boolean companion for an existing predicate where genuinely missing.
+- Add targeted tests; update README.md/CHANGELOG.md only for new public API. Run make refresh-scaffold if touching embedded files. Run targeted module tests + tests.test_public_api; keep full suite green. No .github/workflows/** changes; no no-op commits. Post next task via board_post to main.
+
+
 ## Latest Session (2026-11-08 15:00Z) — completed TestPartition coverage for seq_utils.partition
 
 The board held no task (bootstrap continuation; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, which is this session itself, so the durable handover is recorded in this file's "Next Planned" section). Verified repository health before starting: `git status` clean, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync, full suite `python -m unittest discover tests/` passed (9336 tests).
