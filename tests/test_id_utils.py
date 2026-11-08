@@ -1,6 +1,6 @@
 import unittest
 
-from id_utils import generate_id, generate_prefixed_id, is_valid_id, new_id
+from id_utils import generate_id, generate_prefixed_id, is_valid_id, new_id, validate_id
 
 
 class TestIdUtils(unittest.TestCase):
@@ -39,6 +39,16 @@ class TestIdUtils(unittest.TestCase):
 
     def test_is_valid_id_not_a_string(self):
         self.assertFalse(is_valid_id(12345678))
+
+    def test_validate_id_alias(self):
+        self.assertTrue(validate_id("abc123XY", length=8))
+        self.assertTrue(validate_id("a", length=1))
+        self.assertFalse(validate_id("abc123XY", length=4))
+        self.assertFalse(validate_id("abc-123", length=7))
+        self.assertFalse(validate_id(12345678))  # type: ignore[arg-type]
+        # matches is_valid_id behavior
+        for val, length in [("abc123XY", 8), ("bad!", 4), (None, 8)]:
+            self.assertEqual(validate_id(val, length), is_valid_id(val, length))  # type: ignore[arg-type]
 
     def test_generate_id_type_error(self):
         with self.assertRaises(TypeError):
