@@ -24,6 +24,7 @@ __all__: list[str] = [
     "rsplit",
     "replace",
     "count",
+    "count_digits",
     "decode_utf8",
     "encode_utf8",
     "rstrip",
@@ -1230,6 +1231,36 @@ def isdigit(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isdigit()
+
+
+def count_digits(data: bytes) -> int:
+    """Return the number of ASCII digit bytes (``0``-``9``) in *data*.
+
+    Counts every byte whose value is in the ASCII digit range ``0x30``-``0x39``.
+    An empty input has no digit bytes and returns zero.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        The number of ASCII digit bytes as a non-negative integer.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_digits(b"123")
+        3
+        >>> count_digits(b"abc")
+        0
+        >>> count_digits(b"a1b2c3")
+        3
+        >>> count_digits(b"")
+        0
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if 0x30 <= b <= 0x39)
 
 
 def islower(data: bytes) -> bool:

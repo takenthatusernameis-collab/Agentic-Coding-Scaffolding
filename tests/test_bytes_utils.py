@@ -9,6 +9,7 @@ from bytes_utils import (
     concat,
     contains,
     count,
+    count_digits,
     count_null_bytes,
     count_non_null_bytes,
     decode_ascii,
@@ -329,6 +330,41 @@ class TestPredicates(unittest.TestCase):
                 fn("abc")
             with self.assertRaises(TypeError):
                 fn(123)
+
+
+class TestCountDigits(unittest.TestCase):
+    def test_all_digits(self):
+        self.assertEqual(count_digits(b"123"), 3)
+        self.assertEqual(count_digits(b"0"), 1)
+        self.assertEqual(count_digits(b"999"), 3)
+
+    def test_no_digits(self):
+        self.assertEqual(count_digits(b"abc"), 0)
+        self.assertEqual(count_digits(b"!@#"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_digits(b"a1b2c3"), 3)
+        self.assertEqual(count_digits(b"1.5"), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_digits(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_digits(bytearray(b"12")), 2)
+        self.assertEqual(count_digits(bytearray(b"ab")), 0)
+
+    def test_consistency_with_isdigit(self):
+        self.assertEqual(count_digits(b"123") == len(b"123") and len(b"123") > 0, isdigit(b"123"))
+        self.assertEqual(count_digits(b"12a") == len(b"12a") and len(b"12a") > 0, isdigit(b"12a"))
+        self.assertFalse(isdigit(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_digits("00")
+        with self.assertRaises(TypeError):
+            count_digits(0)
+        with self.assertRaises(TypeError):
+            count_digits(None)
 
 
 class TestAsciiHelpers(unittest.TestCase):
