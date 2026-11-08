@@ -4,6 +4,7 @@ import unittest
 
 from seq_utils import (
     adjacent_pairs,
+    all_where,
     chunk,
     count_occurrences,
     count_where,
@@ -26,6 +27,7 @@ from seq_utils import (
     is_sorted,
     last,
     last_index_of,
+    none_where,
     nth,
     nth_or_default,
     partition,
@@ -423,6 +425,83 @@ class TestHasWhere(unittest.TestCase):
             has_where([1, 2, 3], 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_where([1, 2, 3], None)  # type: ignore[arg-type]
+
+
+class TestAllWhere(unittest.TestCase):
+    def test_all_where_all_match(self):
+        self.assertTrue(all_where([2, 4, 6], lambda x: x % 2 == 0))
+        self.assertTrue(all_where([1, 2, 3], lambda x: x > 0))
+
+    def test_all_where_some_fail(self):
+        self.assertFalse(all_where([2, 3, 6], lambda x: x % 2 == 0))
+        self.assertFalse(all_where([1, -1, 2], lambda x: x > 0))
+
+    def test_all_where_empty_vacuous_true(self):
+        self.assertTrue(all_where([], lambda x: False))
+        self.assertTrue(all_where((), lambda x: False))
+        self.assertTrue(all_where("", lambda c: False))
+
+    def test_all_where_string(self):
+        self.assertTrue(all_where("abc", lambda c: c.isalpha()))
+        self.assertFalse(all_where("ab1", lambda c: c.isalpha()))
+
+    def test_all_where_tuple(self):
+        self.assertTrue(all_where((2, 4), lambda x: x % 2 == 0))
+
+    def test_all_where_consistency_with_count_where(self):
+        seq = [1, 2, 3, 4]
+        pred = lambda x: x < 10
+        self.assertEqual(all_where(seq, pred), count_where(seq, pred) == len(seq))
+        pred2 = lambda x: x % 2 == 0
+        self.assertEqual(all_where(seq, pred2), count_where(seq, pred2) == len(seq))
+
+    def test_all_where_type_error(self):
+        with self.assertRaises(TypeError):
+            all_where(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            all_where(None, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            all_where([1, 2, 3], 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            all_where([1, 2, 3], None)  # type: ignore[arg-type]
+
+
+class TestNoneWhere(unittest.TestCase):
+    def test_none_where_no_match(self):
+        self.assertTrue(none_where([1, 3, 5], lambda x: x % 2 == 0))
+        self.assertTrue(none_where("hello", lambda c: c == "z"))
+
+    def test_none_where_some_match(self):
+        self.assertFalse(none_where([1, 2, 3], lambda x: x % 2 == 0))
+        self.assertFalse(none_where("hello", lambda c: c == "l"))
+
+    def test_none_where_empty(self):
+        self.assertTrue(none_where([], lambda x: True))
+        self.assertTrue(none_where((), lambda x: True))
+        self.assertTrue(none_where("", lambda c: True))
+
+    def test_none_where_string(self):
+        self.assertTrue(none_where("123", lambda c: c.isalpha()))
+
+    def test_none_where_tuple(self):
+        self.assertTrue(none_where((1, 3), lambda x: x % 2 == 0))
+
+    def test_none_where_consistency_with_has_where(self):
+        seq = [1, 2, 3, 4]
+        pred = lambda x: x > 10
+        self.assertEqual(none_where(seq, pred), not has_where(seq, pred))
+        pred2 = lambda x: x % 2 == 0
+        self.assertEqual(none_where(seq, pred2), not has_where(seq, pred2))
+
+    def test_none_where_type_error(self):
+        with self.assertRaises(TypeError):
+            none_where(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            none_where(None, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            none_where([1, 2, 3], 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            none_where([1, 2, 3], None)  # type: ignore[arg-type]
 
 
 class TestIndexOf(unittest.TestCase):

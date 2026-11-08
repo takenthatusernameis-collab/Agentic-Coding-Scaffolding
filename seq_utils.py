@@ -17,6 +17,7 @@ T = TypeVar("T")
 __all__ = [
     "T",
     "adjacent_pairs",
+    "all_where",
     "chunk",
     "contains",
     "count_occurrences",
@@ -41,6 +42,7 @@ __all__ = [
     "is_sorted",
     "last",
     "last_index_of",
+    "none_where",
     "nth",
     "nth_or_default",
     "partition",
@@ -702,6 +704,72 @@ def has_where(sequence: Sequence[T], predicate: Callable[[T], bool]) -> bool:
         False
     """
     return count_where(sequence, predicate) > 0
+
+
+def all_where(sequence: Sequence[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when every element of ``sequence`` satisfies ``predicate``.
+
+    An empty sequence yields ``True`` (vacuous truth), matching Python's
+    :func:`all` semantics.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable returning ``True`` for matching elements.
+
+    Returns:
+        ``True`` if all elements satisfy ``predicate`` or the sequence is
+        empty, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> all_where([2, 4, 6], lambda x: x % 2 == 0)
+        True
+        >>> all_where([2, 3, 6], lambda x: x % 2 == 0)
+        False
+        >>> all_where([], lambda x: False)
+        True
+        >>> all_where("abc", lambda c: c.isalpha())
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return all(predicate(item) for item in sequence)
+
+
+def none_where(sequence: Sequence[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when no element of ``sequence`` satisfies ``predicate``.
+
+    This is the negation companion to :func:`has_where`. An empty sequence
+    yields ``True``.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable returning ``True`` for matching elements.
+
+    Returns:
+        ``True`` if no element satisfies ``predicate`` (including when the
+        sequence is empty), otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> none_where([1, 3, 5], lambda x: x % 2 == 0)
+        True
+        >>> none_where([1, 2, 3], lambda x: x % 2 == 0)
+        False
+        >>> none_where([], lambda x: True)
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return not any(predicate(item) for item in sequence)
 
 
 def has_occurrences(sequence: Sequence[T], value: T) -> bool:
