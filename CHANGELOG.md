@@ -1,7 +1,7 @@
 ## [Unreleased]
 
 ### Added
-- `seq_utils`: added `last_index_of(sequence, value) -> Optional[int]` returning the 0-based index of the last occurrence of a value (or `None` when absent), the companion to `index_of`. Exported via `__all__` with Google-style docstring/doctests and `TypeError` validation. Added `TestLastIndexOf` (7 tests) in `tests/test_seq_utils.py` covering present/absent/empty cases, single/all matches, consistency with `index_of`/`has_occurrences`, and type errors.
+- `bytes_utils`: added `has_non_null_bytes(data) -> bool` as the plural alias companion to `has_non_null_byte` (and boolean companion to `count_non_null_bytes`), mirroring the existing `has_null_bytes` alias for `has_null_byte`. Returns ``True`` when *data* contains at least one non-zero byte and ``False`` otherwise (empty input is ``False``), reusing `count_non_null_bytes` for consistency. Accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestCountNonNullBytes`, `TestHasNonNullByte`, and `TestHasNonNullBytes` (22 tests) to `tests/test_bytes_utils.py` covering all/none/mixed/empty/bytearray inputs, consistency with `count_non_null_bytes`, alias parity with `has_non_null_byte`, and `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 ## Unreleased — added count_alphanumeric to prompt_utils
 
