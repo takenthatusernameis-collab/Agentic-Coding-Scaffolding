@@ -36969,11 +36969,15 @@ V = TypeVar("V")
 __all__ = [
     "K",
     "V",
+    "contains_all_keys",
+    "contains_any_key",
     "contains_key",
     "contains_value",
     "deep_merge",
     "filter_dict",
     "flatten_dict",
+    "has_all_keys",
+    "has_any_key",
     "has_key",
     "has_value",
     "invert_dict",
@@ -37369,6 +37373,68 @@ def omit_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
         raise TypeError("keys must be a list")
     key_set = set(keys)
     return {k: v for k, v in d.items() if k not in key_set}
+
+
+def has_all_keys(d: Dict[Any, Any], keys: Any) -> bool:
+    """Report whether all of *keys* are present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        keys: Iterable of keys to look for.
+
+    Returns:
+        ``True`` when every key in *keys* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_all_keys({"a": 1, "b": 2}, ["a", "b"])
+        True
+        >>> has_all_keys({"a": 1, "b": 2}, ["a", "c"])
+        False
+        >>> has_all_keys({}, [])
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    return all(k in d for k in keys)
+
+
+def contains_all_keys(d: Dict[Any, Any], keys: Any) -> bool:
+    """Alias for :func:`has_all_keys`."""
+    return has_all_keys(d, keys)
+
+
+def has_any_key(d: Dict[Any, Any], keys: Any) -> bool:
+    """Report whether at least one of *keys* is present in *d*.
+
+    Args:
+        d: Dictionary to search in.
+        keys: Iterable of keys to look for.
+
+    Returns:
+        ``True`` when at least one key in *keys* is present in *d*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> has_any_key({"a": 1, "b": 2}, ["a", "c"])
+        True
+        >>> has_any_key({"a": 1, "b": 2}, ["c", "d"])
+        False
+        >>> has_any_key({}, [])
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    return any(k in d for k in keys)
+
+
+def contains_any_key(d: Dict[Any, Any], keys: Any) -> bool:
+    """Alias for :func:`has_any_key`."""
+    return has_any_key(d, keys)
 DICTUTILS
 # --- json_utils.py ---
 cat > "$OUTPUT_DIR/json_utils.py" <<'JSONUTILS'
