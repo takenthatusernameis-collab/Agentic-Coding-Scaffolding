@@ -10,6 +10,8 @@ from seq_utils import (
     distinct,
     drop_while,
     find,
+    find_all,
+    find_all_indices,
     find_index,
     find_last,
     find_last_index,
@@ -671,3 +673,11 @@ class TestFindLastIndex(unittest.TestCase):
             find_last_index([1, 2, 3], 1)
         with self.assertRaises(TypeError):
             find_last_index([1, 2, 3], None)
+
+
+class TestFindAll(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(find_all([1, 2, 3, 4], lambda x: x > 2), [3, 4])
+        self.assertEqual(find_all_indices([1, 2, 3, 4], lambda x: x > 2), [2, 3])
+        self.assertEqual(find_all([], lambda x: True), [])
+        self.assertEqual(find_all_indices([], lambda x: True), [])

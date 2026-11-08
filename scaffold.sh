@@ -106310,6 +106310,20 @@ def find_last_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Op
     return None
 
 
+def find_all(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[T]:
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [item for item in sequence if predicate(item)]
+
+
+def find_all_indices(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[int]:
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [i for i, item in enumerate(sequence) if predicate(item)]
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -106330,6 +106344,8 @@ from seq_utils import (
     distinct,
     drop_while,
     find,
+    find_all,
+    find_all_indices,
     find_index,
     find_last,
     find_last_index,
@@ -106991,6 +107007,14 @@ class TestFindLastIndex(unittest.TestCase):
             find_last_index([1, 2, 3], 1)
         with self.assertRaises(TypeError):
             find_last_index([1, 2, 3], None)
+
+
+class TestFindAll(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(find_all([1, 2, 3, 4], lambda x: x > 2), [3, 4])
+        self.assertEqual(find_all_indices([1, 2, 3, 4], lambda x: x > 2), [2, 3])
+        self.assertEqual(find_all([], lambda x: True), [])
+        self.assertEqual(find_all_indices([], lambda x: True), [])
 TEST_SEQ_UTILS
 
 # --- shelve_utils.py ---

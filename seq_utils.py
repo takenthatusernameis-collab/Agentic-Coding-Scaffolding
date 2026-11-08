@@ -926,6 +926,20 @@ def find_last_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Op
     return None
 
 
+def find_all(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[T]:
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [item for item in sequence if predicate(item)]
+
+
+def find_all_indices(sequence: Sequence[T], predicate: Callable[[T], bool]) -> List[int]:
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return [i for i, item in enumerate(sequence) if predicate(item)]
+
+
 if __name__ == "__main__":
     import doctest
 
