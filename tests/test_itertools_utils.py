@@ -11,6 +11,7 @@ from itertools_utils import (
     count_duplicates,
     count_from,
     count_if,
+    count_none,
     cycle_take,
     drop_while_pred,
     flatten_once,
@@ -597,6 +598,34 @@ class TestCountIf(unittest.TestCase):
     def test_rejects_non_callable(self):
         with self.assertRaises(TypeError):
             count_if([1, 2, 3], 123)
+
+
+class TestCountNone(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_none([1, 2, 3, 4, 5], lambda x: x % 2 == 0), 3)
+
+    def test_empty(self):
+        self.assertEqual(count_none([], bool), 0)
+
+    def test_all_match(self):
+        self.assertEqual(count_none([2, 4, 6], lambda x: x % 2 == 0), 0)
+
+    def test_none_match(self):
+        self.assertEqual(count_none([1, 3, 5], lambda x: x % 2 == 0), 3)
+
+    def test_generator(self):
+        self.assertEqual(count_none((x for x in range(5)), lambda x: x > 2), 3)
+
+    def test_truthiness(self):
+        self.assertEqual(count_none([0, 1, "", "a", None, []], bool), 4)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            count_none(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            count_none([1, 2, 3], 123)
 
 
 class TestHasAny(unittest.TestCase):

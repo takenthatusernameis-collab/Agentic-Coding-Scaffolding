@@ -734,6 +734,37 @@ def has_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
     return True
 
 
+def count_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> int:
+    """Count items in *iterable* for which *predicate* is falsy.
+
+    Args:
+        iterable: The iterable to inspect.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        The number of items where *predicate(item)* is falsy.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *predicate* is not callable.
+
+    Examples:
+        >>> count_none([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        3
+        >>> count_none([], bool)
+        0
+        >>> count_none([0, 1, 2], bool)
+        1
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    total = 0
+    for item in iterable:
+        if not predicate(item):
+            total += 1
+    return total
+
+
 def count_duplicates(iterable: Iterable[Any]) -> int:
     """Count how many items in *iterable* are duplicates of an earlier item.
 
@@ -875,6 +906,7 @@ __all__ = [
     "padnone",
     "ncycles",
     "count_if",
+    "count_none",
     "has_any",
     "has_all",
     "has_none",

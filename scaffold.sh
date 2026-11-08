@@ -50789,6 +50789,37 @@ def has_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> bool:
     return True
 
 
+def count_none(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -> int:
+    """Count items in *iterable* for which *predicate* is falsy.
+
+    Args:
+        iterable: The iterable to inspect.
+        predicate: A callable returning a truthy/falsy value per item.
+
+    Returns:
+        The number of items where *predicate(item)* is falsy.
+
+    Raises:
+        TypeError: If *iterable* is not iterable or *predicate* is not callable.
+
+    Examples:
+        >>> count_none([1, 2, 3, 4, 5], lambda x: x % 2 == 0)
+        3
+        >>> count_none([], bool)
+        0
+        >>> count_none([0, 1, 2], bool)
+        1
+    """
+    _ensure_iterable(iterable, "iterable")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    total = 0
+    for item in iterable:
+        if not predicate(item):
+            total += 1
+    return total
+
+
 def count_duplicates(iterable: Iterable[Any]) -> int:
     """Count how many items in *iterable* are duplicates of an earlier item.
 
@@ -50930,6 +50961,7 @@ __all__ = [
     "padnone",
     "ncycles",
     "count_if",
+    "count_none",
     "has_any",
     "has_all",
     "has_none",
@@ -50954,6 +50986,7 @@ from itertools_utils import (
     count_duplicates,
     count_from,
     count_if,
+    count_none,
     cycle_take,
     drop_while_pred,
     flatten_once,
@@ -51540,6 +51573,34 @@ class TestCountIf(unittest.TestCase):
     def test_rejects_non_callable(self):
         with self.assertRaises(TypeError):
             count_if([1, 2, 3], 123)
+
+
+class TestCountNone(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_none([1, 2, 3, 4, 5], lambda x: x % 2 == 0), 3)
+
+    def test_empty(self):
+        self.assertEqual(count_none([], bool), 0)
+
+    def test_all_match(self):
+        self.assertEqual(count_none([2, 4, 6], lambda x: x % 2 == 0), 0)
+
+    def test_none_match(self):
+        self.assertEqual(count_none([1, 3, 5], lambda x: x % 2 == 0), 3)
+
+    def test_generator(self):
+        self.assertEqual(count_none((x for x in range(5)), lambda x: x > 2), 3)
+
+    def test_truthiness(self):
+        self.assertEqual(count_none([0, 1, "", "a", None, []], bool), 4)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            count_none(42, bool)
+
+    def test_rejects_non_callable(self):
+        with self.assertRaises(TypeError):
+            count_none([1, 2, 3], 123)
 
 
 class TestHasAny(unittest.TestCase):
