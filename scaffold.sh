@@ -61751,6 +61751,7 @@ __all__ = [
     "interval_length",
     "interval_midpoint",
     "interval_distance",
+    "interval_adjacent",
     "interval_is_subset",
     "intervals_equal",
     "interval_clamp",
@@ -61978,6 +61979,43 @@ def interval_distance(a: Interval, b: Interval) -> float:
     return 0.0
 
 
+def interval_adjacent(a: Interval, b: Interval) -> bool:
+    """Return True if intervals *a* and *b* touch back-to-back.
+
+    Two intervals are adjacent when one ends exactly where the other begins
+    (``a[1] == b[0]`` or ``b[1] == a[0]``). They share exactly one endpoint
+    and their interiors do not overlap. This is distinct from
+    :func:`interval_overlaps`, which is also true when the intervals share an
+    interior segment.
+
+    Args:
+        a: A ``(low, high)`` interval.
+        b: A ``(low, high)`` interval.
+
+    Returns:
+        True if the intervals touch at a single shared endpoint, False
+        otherwise.
+
+    Raises:
+        ValueError: If either interval is not valid.
+
+    Examples:
+        >>> interval_adjacent((1, 5), (5, 8))
+        True
+        >>> interval_adjacent((8, 10), (1, 5))
+        True
+        >>> interval_adjacent((1, 5), (4, 8))
+        False
+        >>> interval_adjacent((1, 5), (8, 10))
+        False
+        >>> interval_adjacent((1, 5), (1, 5))
+        False
+    """
+    if not is_valid_interval(a) or not is_valid_interval(b):
+        raise ValueError(f"invalid interval: {a!r} or {b!r}")
+    return a[1] == b[0] or b[1] == a[0]
+
+
 def interval_is_subset(a: Interval, b: Interval) -> bool:
     """Return True if *a* is entirely contained within *b*.
 
@@ -62131,6 +62169,7 @@ import math
 import unittest
 
 from interval_utils import (
+    interval_adjacent,
     interval_clamp,
     interval_contains,
     interval_distance,
@@ -62386,6 +62425,33 @@ class TestIntervalDistance(unittest.TestCase):
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):
             interval_distance((5, 1), (2, 4))
+
+
+class TestIntervalAdjacent(unittest.TestCase):
+    def test_touching_a_before_b(self):
+        self.assertTrue(interval_adjacent((1, 5), (5, 8)))
+
+    def test_touching_b_before_a(self):
+        self.assertTrue(interval_adjacent((8, 10), (1, 5)))
+
+    def test_overlapping_not_adjacent(self):
+        self.assertFalse(interval_adjacent((1, 5), (4, 8)))
+
+    def test_disjoint_not_adjacent(self):
+        self.assertFalse(interval_adjacent((1, 3), (5, 8)))
+
+    def test_identical_not_adjacent(self):
+        self.assertFalse(interval_adjacent((2, 4), (2, 4)))
+
+    def test_degenerate_touches_endpoint(self):
+        self.assertTrue(interval_adjacent((3, 3), (3, 5)))
+
+    def test_float_endpoints(self):
+        self.assertTrue(interval_adjacent((1.5, 3.0), (3.0, 4.5)))
+
+    def test_invalid_interval_raises(self):
+        with self.assertRaises(ValueError):
+            interval_adjacent((5, 1), (2, 4))
 
 
 class TestIntervalIsSubset(unittest.TestCase):
@@ -62740,6 +62806,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
 ### Added
+- `interval_utils`: added `interval_adjacent(a, b) -> bool` as a boolean predicate reporting whether two intervals touch back-to-back at a single shared endpoint (``a[1] == b[0]`` or ``b[1] == a[0]``) without overlapping interiors, complementing `interval_overlaps`. It accepts typed `Interval` arguments (``(low, high)`` tuples/lists), validates both intervals with `is_valid_interval` raising `ValueError` for invalid input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIntervalAdjacent` (8 tests) to `tests/test_interval_utils.py` covering touching in either direction, overlapping/disjoint/identical intervals, degenerate intervals, float endpoints, and the `ValueError` path; imported `interval_adjacent` to match `__all__`. Updated the `interval_utils` module tree entry and prose section of `README.md`. Synchronized `interval_utils.py`, `tests/test_interval_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `count_where(sequence, predicate) -> int` as the predicate-count companion to `count_occurrences`, and boolean companion `has_where(sequence, predicate) -> bool`. `count_where` returns the number of elements in *sequence* for which *predicate* returns true (empty sequence yields ``0``); `has_where` reports whether at least one element satisfies *predicate*, reusing `count_where` for consistency. Both accept any `Sequence`, validate with `_require_sequence`, require a callable *predicate* (raising `TypeError` for a non-sequence or non-callable), are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountWhere` (7 tests) and `TestHasWhere` (5 tests) to `tests/test_seq_utils.py` covering basic/no-match/empty/string/tuple/all-match cases, consistency between `has_where` and `count_where`, and `TypeError` paths; imported the helpers to match `__all__`. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `seq_utils`: added `find(sequence, predicate) -> Optional[T]` as the element-returning companion to `find_index`. Returns the first element in *sequence* satisfying *predicate*, or ``None`` when no match is found (including for an empty sequence). Accepts any `Sequence`, validates with `_require_sequence`, requires a callable *predicate*, and raises `TypeError`/`ValueError`-consistent input validation (`TypeError` for non-sequence/non-callable). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestFind` (8 tests) to `tests/test_seq_utils.py` covering basic/first-match/no-match/empty/start/tuple+string cases and `TypeError` paths. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `bytes_utils`: added `has_non_null_bytes(data) -> bool` as the plural alias companion to `has_non_null_byte` (and boolean companion to `count_non_null_bytes`), mirroring the existing `has_null_bytes` alias for `has_null_byte`. Returns ``True`` when *data* contains at least one non-zero byte and ``False`` otherwise (empty input is ``False``), reusing `count_non_null_bytes` for consistency. Accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestCountNonNullBytes`, `TestHasNonNullByte`, and `TestHasNonNullBytes` (22 tests) to `tests/test_bytes_utils.py` covering all/none/mixed/empty/bytearray inputs, consistency with `count_non_null_bytes`, alias parity with `has_non_null_byte`, and `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -65392,7 +65459,7 @@ lzma_utils.py              # LZMA compression utilities wrapping stdlib lzma (lz
 gc_utils.py                # GC utilities wrapping stdlib gc (enable, disable, isenabled, collect, get_count, get_stats, get_objects, get_referents, get_referrers, set_threshold, get_threshold, set_debug, get_debug, is_tracked, is_finalized)
 gettext_utils.py           # Internationalization utilities wrapping stdlib gettext (gettext, dgettext, ngettext, dngettext, textdomain, bindtextdomain, install)
 inspect_utils.py           # Callable and object introspection utilities (name, signature, parameters, has_parameters, source)
-interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, subset, shift, symmetric_difference)
+interval_utils.py          # Interval utilities (normalization, containment, overlap, intersection, union, merge, length, midpoint, distance, adjacency, subset, shift, symmetric_difference)
 textwrap_utils.py          # Text wrapping utilities (wrap_text, shorten_text, dedent_text, indent_text, fill_text)
 prime_utils.py             # Prime number utilities (is_prime, is_composite, prime_factors, nth_prime, primes_up_to, is_coprime, coprime, is_circular_prime, is_chen_prime, is_perfect_square, is_power_of_two, is_semiprime, is_squarefree, is_prime_power, is_emirp, is_twin_prime, is_palindromic_prime, is_mersenne_prime, is_sophie_germain_prime, is_safe_prime, sum_of_proper_divisors, is_perfect_number, is_abundant_number, is_deficient_number, is_cousin_prime, is_pythagorean_prime, is_sexy_prime, is_automorphic, is_truncatable_prime, is_wilson_prime, is_carmichael_number, is_korselt_number, is_giuga_number, is_fermat_pseudoprime, is_amicable, is_perfect_power, is_powerful_number, is_fermat_number, is_strong_prime, is_balanced_prime, is_weak_prime, is_cuban_prime, is_proth_prime, is_super_prime, is_ugly_number, is_happy_prime, radical, prime_count, prime_gap, primorial, primes_between, total_prime_factors, has_prime_factors, distinct_prime_factors, has_distinct_prime_factors, largest_prime_factor)
 
@@ -66591,7 +66658,7 @@ The project includes import utilities in `importlib_utils.py` wrapping the stand
 
 ## Interval Utilities Module
 
-The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, `interval_length` measures the span, `interval_midpoint` returns the center of an interval, `interval_distance` reports the gap between two intervals, `interval_is_subset` tests whether one interval lies within another, `interval_shift` translates an interval by a constant, and `interval_symmetric_difference` returns the portions of two intervals that are not shared. The module is tested in `tests/test_interval_utils.py`.
+The project includes interval utilities in `interval_utils.py`: `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, `interval_length` measures the span, `interval_midpoint` returns the center of an interval, `interval_distance` reports the gap between two intervals, `interval_adjacent` reports whether two intervals touch back-to-back at a single shared endpoint, `interval_is_subset` tests whether one interval lies within another, `interval_shift` translates an interval by a constant, and `interval_symmetric_difference` returns the portions of two intervals that are not shared. The module is tested in `tests/test_interval_utils.py`.
 
 ## Line Cache Utilities Module
 
