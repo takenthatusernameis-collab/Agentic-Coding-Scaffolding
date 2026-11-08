@@ -502,7 +502,7 @@ def nth_or_default(iterable: Iterable[Any], n: int, default: Any = None) -> Any:
         >>> nth_or_default([1, 2, 3], 5)
         >>> nth_or_default([1, 2, 3], 5, default="none")
         'none'
-        >>> nth_or_default(x for x in range(5), 3)
+        >>> nth_or_default((x for x in range(5)), 3)
         3
     """
     _ensure_iterable(iterable, "iterable")
