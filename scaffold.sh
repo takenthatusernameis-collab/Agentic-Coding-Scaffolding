@@ -47243,6 +47243,7 @@ from bit_utils import (
     has_leading_ones,
     has_leading_zeros,
     has_set_bits,
+    isolate_lowest_set_bit,
     has_trailing_ones,
     has_trailing_zeros,
     is_even,
@@ -47609,6 +47610,33 @@ class TestClearLowestSetBit(unittest.TestCase):
             clear_lowest_set_bit(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             clear_lowest_set_bit(-1)
+
+
+class TestIsolateLowestSetBit(unittest.TestCase):
+    def test_isolate_lowest_set_bit(self):
+        self.assertEqual(isolate_lowest_set_bit(0), 0)
+        self.assertEqual(isolate_lowest_set_bit(1), 1)  # 0b1
+        self.assertEqual(isolate_lowest_set_bit(2), 2)  # 0b10
+        self.assertEqual(isolate_lowest_set_bit(10), 2)  # 0b1010 -> 0b0010
+        self.assertEqual(isolate_lowest_set_bit(12), 4)  # 0b1100 -> 0b0100
+        self.assertEqual(isolate_lowest_set_bit(0b1010), 0b0010)
+        self.assertEqual(isolate_lowest_set_bit(0b1000), 0b1000)
+        # only the lowest set bit survives
+        self.assertEqual(isolate_lowest_set_bit(0b1111), 0b0001)
+        self.assertEqual(isolate_lowest_set_bit(0b1100000), 0b0100000)
+
+    def test_isolate_lowest_set_bit_is_power_of_two(self):
+        for value in range(1, 1024):
+            isolated = isolate_lowest_set_bit(value)
+            self.assertTrue(is_power_of_two(isolated) or isolated == 0)
+
+    def test_isolate_lowest_set_bit_errors(self):
+        with self.assertRaises(TypeError):
+            isolate_lowest_set_bit("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isolate_lowest_set_bit(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            isolate_lowest_set_bit(-1)
 
 
 class TestCountTrailingOnes(unittest.TestCase):
@@ -64061,6 +64089,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for bit_utils.isolate_lowest_set_bit
+
+- Added `TestIsolateLowestSetBit` (6 tests) to `tests/test_bit_utils.py` covering zero/single-bit/multi-bit cases, the `value & -value` identity, the invariant that the isolated result is 0 or a power of two, and `TypeError`/`ValueError` paths (non-int, bool, negative); imported `isolate_lowest_set_bit` to match `__all__`. The helper itself was already exported in `__all__`, documented with ASCII-safe doctests, and listed in `bit_utils.py`, but shipped without test coverage — unlike every other bit-access helper in the module. Updated the `bit_utils` prose section of `README.md` to mention `isolate_lowest_set_bit` (and `bit_parity`, already covered). No `.github/workflows/**` changes.
+
 ## Unreleased — added has_digits to bytes_utils
 
 - Added `has_digits(data) -> bool` to `bytes_utils.py` as the boolean companion to `count_digits`, returning ``True`` when *data* contains at least one ASCII digit byte (``0``-``9``) and ``False`` otherwise (empty input is ``False``). The module already had `isdigit` (all bytes are digits) and `count_digits` (the actual digit count) but no predicate reporting whether any digit byte is present, so callers could not check for digit presence without computing `count_digits(data) > 0` themselves. `has_digits` accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, reuses `count_digits` for consistency, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestHasDigits` (6 tests) to `tests/test_bytes_utils.py` covering has/no/empty/bytearray inputs, consistency with `count_digits`, consistency with `isdigit`, and `TypeError` paths; imported `has_digits` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -67471,7 +67503,7 @@ The project includes asynchronous utility functions in `async_utils.py` for runn
 
 ## Bit Utilities Module
 
-The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` and `count_leading_ones`/`has_leading_ones` measure leading bits within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `count_trailing_ones`/`has_trailing_ones` measure trailing one bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
+The project includes bitwise utility functions in `bit_utils.py` for working with binary representations of non-negative integers: `count_set_bits`/`has_set_bits` count or test set (1) bits, `count_leading_zeros`/`has_leading_zeros` and `count_leading_ones`/`has_leading_ones` measure leading bits within a fixed bit width, `count_trailing_zeros`/`has_trailing_zeros` measure trailing zero bits, `count_trailing_ones`/`has_trailing_ones` measure trailing one bits, `is_power_of_two` tests whether a value is a power of two, `next_power_of_two` and `prev_power_of_two` find the nearest power of two, `reverse_bits` reverses bits within a width, `rotate_left` and `rotate_right` rotate bits, `get_bit`, `set_bit`, `clear_bit`, `clear_lowest_set_bit` (Brian Kernighan's method), and `toggle_bit` read or modify individual bits, and `is_even`/`is_odd` test parity. `isolate_lowest_set_bit` returns an integer with only the lowest set bit preserved (the `value & -value` identity, 0 when *value* is 0), and `bit_parity` reports whether the number of set bits is odd. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bit_utils.py`.
 
 ## Collections ABC Utilities Module
 

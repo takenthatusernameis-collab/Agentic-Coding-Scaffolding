@@ -15,6 +15,7 @@ from bit_utils import (
     has_leading_ones,
     has_leading_zeros,
     has_set_bits,
+    isolate_lowest_set_bit,
     has_trailing_ones,
     has_trailing_zeros,
     is_even,
@@ -381,6 +382,33 @@ class TestClearLowestSetBit(unittest.TestCase):
             clear_lowest_set_bit(True)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             clear_lowest_set_bit(-1)
+
+
+class TestIsolateLowestSetBit(unittest.TestCase):
+    def test_isolate_lowest_set_bit(self):
+        self.assertEqual(isolate_lowest_set_bit(0), 0)
+        self.assertEqual(isolate_lowest_set_bit(1), 1)  # 0b1
+        self.assertEqual(isolate_lowest_set_bit(2), 2)  # 0b10
+        self.assertEqual(isolate_lowest_set_bit(10), 2)  # 0b1010 -> 0b0010
+        self.assertEqual(isolate_lowest_set_bit(12), 4)  # 0b1100 -> 0b0100
+        self.assertEqual(isolate_lowest_set_bit(0b1010), 0b0010)
+        self.assertEqual(isolate_lowest_set_bit(0b1000), 0b1000)
+        # only the lowest set bit survives
+        self.assertEqual(isolate_lowest_set_bit(0b1111), 0b0001)
+        self.assertEqual(isolate_lowest_set_bit(0b1100000), 0b0100000)
+
+    def test_isolate_lowest_set_bit_is_power_of_two(self):
+        for value in range(1, 1024):
+            isolated = isolate_lowest_set_bit(value)
+            self.assertTrue(is_power_of_two(isolated) or isolated == 0)
+
+    def test_isolate_lowest_set_bit_errors(self):
+        with self.assertRaises(TypeError):
+            isolate_lowest_set_bit("1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            isolate_lowest_set_bit(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            isolate_lowest_set_bit(-1)
 
 
 class TestCountTrailingOnes(unittest.TestCase):
