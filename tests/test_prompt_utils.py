@@ -81,8 +81,10 @@ from prompt_utils import (
     split_lines,
     starts_with_newline,
     strip_blank_lines,
+    strip_leading_newline,
     strip_leading_newlines,
     strip_lines,
+    strip_trailing_newline,
     strip_trailing_newlines,
     truncate_lines,
     truncate_paragraphs,
@@ -1498,6 +1500,35 @@ class TestStripTrailingNewlines(unittest.TestCase):
             strip_trailing_newlines(123)  # type: ignore[arg-type]
 
 
+class TestStripTrailingNewline(unittest.TestCase):
+    def test_removes_single_trailing_newline(self):
+        self.assertEqual(strip_trailing_newline("hello\n"), "hello")
+
+    def test_removes_only_one(self):
+        self.assertEqual(strip_trailing_newline("hello\n\n"), "hello\n")
+
+    def test_no_trailing_newline(self):
+        self.assertEqual(strip_trailing_newline("hello"), "hello")
+
+    def test_empty(self):
+        self.assertEqual(strip_trailing_newline(""), "")
+
+    def test_only_newline(self):
+        self.assertEqual(strip_trailing_newline("\n"), "")
+
+    def test_preserves_crlf(self):
+        self.assertEqual(strip_trailing_newline("hello\r\n"), "hello\r")
+
+    def test_preserves_internal_newlines(self):
+        self.assertEqual(strip_trailing_newline("a\nb\n"), "a\nb")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_trailing_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_trailing_newline(None)  # type: ignore[arg-type]
+
+
 class TestStripLeadingNewlines(unittest.TestCase):
     def test_removes_leading_newlines(self):
         self.assertEqual(strip_leading_newlines("\n\nhello"), "hello")
@@ -1522,6 +1553,35 @@ class TestStripLeadingNewlines(unittest.TestCase):
             strip_leading_newlines(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             strip_leading_newlines(None)  # type: ignore[arg-type]
+
+
+class TestStripLeadingNewline(unittest.TestCase):
+    def test_removes_single_leading_newline(self):
+        self.assertEqual(strip_leading_newline("\nhello"), "hello")
+
+    def test_removes_only_one(self):
+        self.assertEqual(strip_leading_newline("\n\nhello"), "\nhello")
+
+    def test_no_leading_newline(self):
+        self.assertEqual(strip_leading_newline("hello"), "hello")
+
+    def test_empty(self):
+        self.assertEqual(strip_leading_newline(""), "")
+
+    def test_only_newline(self):
+        self.assertEqual(strip_leading_newline("\n"), "")
+
+    def test_preserves_other_leading_whitespace(self):
+        self.assertEqual(strip_leading_newline(" \nhello"), " \nhello")
+
+    def test_preserves_internal_newlines(self):
+        self.assertEqual(strip_leading_newline("\na\nb"), "a\nb")
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            strip_leading_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strip_leading_newline(None)  # type: ignore[arg-type]
 
 
 class TestCountNonWhitespaceCharacters(unittest.TestCase):

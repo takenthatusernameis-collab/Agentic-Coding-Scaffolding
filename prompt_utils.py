@@ -94,7 +94,9 @@ __all__: List[str] = [
     "count_alphanumeric",
     "reverse_lines",
     "strip_blank_lines",
+    "strip_leading_newline",
     "strip_leading_newlines",
+    "strip_trailing_newline",
     "strip_trailing_newlines",
     "count_unique_words",
     "has_unique_words",
@@ -375,20 +377,20 @@ def has_placeholders(template: str) -> bool:
 def wrap_prompt(text: str, width: int = 80) -> str:
     """Wrap prompt text to a specific width.
 
-        Args:
-            text: The text to wrap.
-            width: The maximum line width.
+    Args:
+        text: The text to wrap.
+        width: The maximum line width.
 
-        Returns:
-            Wrapped text.
+    Returns:
+        Wrapped text.
 
-        Raises:
-            TypeError: If *text* is not a string or *width* is not an int.
-            ValueError: If *width* is negative.
+    Raises:
+        TypeError: If *text* is not a string or *width* is not an int.
+        ValueError: If *width* is negative.
 
     Examples:
-            >>> wrap_prompt("This is a long line that should be wrapped", 24)
-            'This is a long line that\nshould be wrapped'
+        >>> wrap_prompt("This is a long line that should be wrapped", 24)
+        'This is a long line that\\nshould be wrapped'
     """
     _require_string(text, "text")
     _require_int(width, "width")
@@ -406,11 +408,11 @@ def wrap_prompt(text: str, width: int = 80) -> str:
         else:
             if current_line:
                 lines.append(" ".join(current_line))
-                current_line = [word]
-            else:
-                lines.append(word)
+            current_line = [word]
+
     if current_line:
         lines.append(" ".join(current_line))
+
     return "\n".join(lines)
 
 
@@ -1972,6 +1974,39 @@ def has_unique_words(text: str) -> bool:
     return count_unique_words(text) > 0
 
 
+def strip_trailing_newline(text: str) -> str:
+    """Remove a single trailing newline character from *text*.
+
+    If *text* ends with ``\\n``, exactly one trailing newline is removed.
+    Other line endings (``\\r`` or ``\\r\\n``) and other trailing whitespace
+    are preserved. If *text* does not end with ``\\n``, it is returned
+    unchanged. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with at most one trailing ``\\n`` removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_trailing_newline("hello\\n")
+        'hello'
+        >>> strip_trailing_newline("hello\\n\\n")
+        'hello\\n'
+        >>> strip_trailing_newline("hello")
+        'hello'
+        >>> strip_trailing_newline("")
+        ''
+    """
+    _require_string(text, "text")
+    if text.endswith("\n"):
+        return text[:-1]
+    return text
+
+
 def strip_trailing_newlines(text: str) -> str:
     """Remove all trailing newline characters from *text*.
 
@@ -2002,6 +2037,38 @@ def strip_trailing_newlines(text: str) -> str:
     while i > 0 and text[i - 1] == "\n":
         i -= 1
     return text[:i]
+
+
+def strip_leading_newline(text: str) -> str:
+    """Remove a single leading newline character from *text*.
+
+    If *text* starts with ``\\n``, exactly one leading newline is removed.
+    Other leading whitespace is preserved. If *text* does not start with
+    ``\\n``, it is returned unchanged. Empty text is returned unchanged.
+
+    Args:
+        text: The text to process.
+
+    Returns:
+        *text* with at most one leading ``\\n`` removed.
+
+    Raises:
+        TypeError: If *text* is not a string.
+
+    Examples:
+        >>> strip_leading_newline("\\nhello")
+        'hello'
+        >>> strip_leading_newline("\\n\\nhello")
+        '\\nhello'
+        >>> strip_leading_newline("hello")
+        'hello'
+        >>> strip_leading_newline("")
+        ''
+    """
+    _require_string(text, "text")
+    if text.startswith("\n"):
+        return text[1:]
+    return text
 
 
 def strip_leading_newlines(text: str) -> str:
