@@ -44,6 +44,7 @@ __all__: List[str] = [
     "total_prime_factors",
     "has_prime_factors",
     "distinct_prime_factors",
+    "has_distinct_prime_factors",
     "largest_prime_factor",
     "is_automorphic",
     "is_truncatable_prime",
@@ -1025,6 +1026,36 @@ def distinct_prime_factors(n: int) -> int:
     if remaining > 1:
         count += 1
     return count
+
+
+def has_distinct_prime_factors(n: int) -> bool:
+    """Return True if *n* has at least one distinct prime factor.
+
+    This is the boolean companion to :func:`distinct_prime_factors`; it
+    returns ``True`` when *n* has one or more distinct prime factors and
+    ``False`` otherwise (i.e. when *n* is 1), reusing
+    :func:`distinct_prime_factors` for consistency.
+
+    Args:
+        n: The integer to analyze.
+
+    Returns:
+        ``True`` if *n* has at least one distinct prime factor,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *n* is not an int.
+        ValueError: If *n* is less than 1.
+
+    Examples:
+        >>> has_distinct_prime_factors(12)
+        True
+        >>> has_distinct_prime_factors(1)
+        False
+        >>> has_distinct_prime_factors(2)
+        True
+    """
+    return distinct_prime_factors(n) > 0
 
 
 def largest_prime_factor(n: int) -> int:

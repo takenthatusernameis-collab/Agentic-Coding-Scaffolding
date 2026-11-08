@@ -5,6 +5,7 @@ import unittest
 from prime_utils import (
     coprime,
     distinct_prime_factors,
+    has_distinct_prime_factors,
     has_prime_factors,
     is_abundant_number,
     is_amicable,
@@ -1171,6 +1172,38 @@ class TestDistinctPrimeFactors(unittest.TestCase):
             distinct_prime_factors(0)
         with self.assertRaises(ValueError):
             distinct_prime_factors(-1)
+
+
+class TestHasDistinctPrimeFactors(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_distinct_prime_factors(2))
+        self.assertTrue(has_distinct_prime_factors(12))
+        self.assertTrue(has_distinct_prime_factors(30))
+
+    def test_prime_power(self):
+        self.assertTrue(has_distinct_prime_factors(8))
+        self.assertTrue(has_distinct_prime_factors(27))
+
+    def test_no_distinct_prime_factors(self):
+        self.assertFalse(has_distinct_prime_factors(1))
+
+    def test_consistency_with_distinct_prime_factors(self):
+        for n in range(1, 200):
+            self.assertEqual(
+                has_distinct_prime_factors(n), distinct_prime_factors(n) > 0
+            )
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_distinct_prime_factors(5.0)
+        with self.assertRaises(TypeError):
+            has_distinct_prime_factors(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            has_distinct_prime_factors(0)
+        with self.assertRaises(ValueError):
+            has_distinct_prime_factors(-1)
 
 
 class TestLargestPrimeFactor(unittest.TestCase):
