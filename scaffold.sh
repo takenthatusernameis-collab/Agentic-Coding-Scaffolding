@@ -62740,6 +62740,7 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## [Unreleased]
 
 ### Added
+- `seq_utils`: added `find(sequence, predicate) -> Optional[T]` as the element-returning companion to `find_index`. Returns the first element in *sequence* satisfying *predicate*, or ``None`` when no match is found (including for an empty sequence). Accepts any `Sequence`, validates with `_require_sequence`, requires a callable *predicate*, and raises `TypeError`/`ValueError`-consistent input validation (`TypeError` for non-sequence/non-callable). Exported via `__all__` with a Google-style docstring and ASCII-safe doctests. Added `TestFind` (8 tests) to `tests/test_seq_utils.py` covering basic/first-match/no-match/empty/start/tuple+string cases and `TypeError` paths. Updated the `seq_utils` module tree entry and prose section of `README.md`. Synchronized `seq_utils.py`, `tests/test_seq_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - `bytes_utils`: added `has_non_null_bytes(data) -> bool` as the plural alias companion to `has_non_null_byte` (and boolean companion to `count_non_null_bytes`), mirroring the existing `has_null_bytes` alias for `has_null_byte`. Returns ``True`` when *data* contains at least one non-zero byte and ``False`` otherwise (empty input is ``False``), reusing `count_non_null_bytes` for consistency. Accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with ASCII-safe doctests. Added `TestCountNonNullBytes`, `TestHasNonNullByte`, and `TestHasNonNullBytes` (22 tests) to `tests/test_bytes_utils.py` covering all/none/mixed/empty/bytearray inputs, consistency with `count_non_null_bytes`, alias parity with `has_non_null_byte`, and `TypeError` paths. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 ## Unreleased — added count_alphanumeric to prompt_utils
@@ -65307,7 +65308,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, find_index, index_of, last_index_of)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, has_occurrences, find, find_index, index_of, last_index_of)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -66242,7 +66243,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_occurrences` reports whether a value appears at least once; `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -105175,6 +105176,7 @@ __all__ = [
     "count_occurrences",
     "distinct",
     "drop_while",
+    "find",
     "find_index",
     "first",
     "flatten",
@@ -105770,6 +105772,40 @@ def last_index_of(sequence: Sequence[T], value: T) -> Optional[int]:
     return None
 
 
+def find(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[T]:
+    """Return the first element in ``sequence`` satisfying ``predicate``.
+
+    Returns ``None`` when no element satisfies the predicate, including for
+    an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for a matching element.
+
+    Returns:
+        The first matching element, or ``None`` when no match is found.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find([1, 2, 3, 4], lambda x: x > 2)
+        3
+        >>> find([1, 2, 3], lambda x: x > 5) is None
+        True
+        >>> find([], lambda x: True) is None
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in sequence:
+        if predicate(item):
+            return item
+    return None
+
+
 def find_index(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[int]:
     """Return the index of the first element satisfying ``predicate``.
 
@@ -105823,6 +105859,7 @@ from seq_utils import (
     count_occurrences,
     distinct,
     drop_while,
+    find,
     find_index,
     first,
     flatten,
@@ -106232,6 +106269,41 @@ class TestLastIndexOf(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFind(unittest.TestCase):
+    """Test cases for the find function."""
+
+    def test_basic_match(self):
+        self.assertEqual(find([1, 2, 3, 4], lambda x: x > 2), 3)
+
+    def test_first_match_returned(self):
+        self.assertEqual(find([1, 2, 3, 4], lambda x: x % 2 == 0), 2)
+
+    def test_no_match(self):
+        self.assertIsNone(find([1, 2, 3], lambda x: x > 5))
+
+    def test_empty_sequence(self):
+        self.assertIsNone(find([], lambda x: True))
+
+    def test_match_at_start(self):
+        self.assertEqual(find([10, 20, 30], lambda x: x == 10), 10)
+
+    def test_tuple_and_string(self):
+        self.assertEqual(find((5, 6, 7), lambda x: x == 6), 6)
+        self.assertEqual(find("hello", lambda c: c == "l"), "l")
+
+    def test_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find(123, lambda x: True)
+        with self.assertRaises(TypeError):
+            find(None, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            find([1, 2, 3], None)
 
 
 class TestFindIndex(unittest.TestCase):

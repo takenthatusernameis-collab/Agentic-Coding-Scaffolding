@@ -21,6 +21,7 @@ __all__ = [
     "count_occurrences",
     "distinct",
     "drop_while",
+    "find",
     "find_index",
     "first",
     "flatten",
@@ -613,6 +614,40 @@ def last_index_of(sequence: Sequence[T], value: T) -> Optional[int]:
     for index in range(len(sequence) - 1, -1, -1):
         if sequence[index] == value:
             return index
+    return None
+
+
+def find(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[T]:
+    """Return the first element in ``sequence`` satisfying ``predicate``.
+
+    Returns ``None`` when no element satisfies the predicate, including for
+    an empty sequence.
+
+    Args:
+        sequence: The sequence to inspect.
+        predicate: A callable that returns ``True`` for a matching element.
+
+    Returns:
+        The first matching element, or ``None`` when no match is found.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``predicate`` is not
+            callable.
+
+    Examples:
+        >>> find([1, 2, 3, 4], lambda x: x > 2)
+        3
+        >>> find([1, 2, 3], lambda x: x > 5) is None
+        True
+        >>> find([], lambda x: True) is None
+        True
+    """
+    _require_sequence(sequence)
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for item in sequence:
+        if predicate(item):
+            return item
     return None
 
 

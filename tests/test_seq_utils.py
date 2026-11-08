@@ -8,6 +8,7 @@ from seq_utils import (
     count_occurrences,
     distinct,
     drop_while,
+    find,
     find_index,
     first,
     flatten,
@@ -417,6 +418,41 @@ class TestLastIndexOf(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFind(unittest.TestCase):
+    """Test cases for the find function."""
+
+    def test_basic_match(self):
+        self.assertEqual(find([1, 2, 3, 4], lambda x: x > 2), 3)
+
+    def test_first_match_returned(self):
+        self.assertEqual(find([1, 2, 3, 4], lambda x: x % 2 == 0), 2)
+
+    def test_no_match(self):
+        self.assertIsNone(find([1, 2, 3], lambda x: x > 5))
+
+    def test_empty_sequence(self):
+        self.assertIsNone(find([], lambda x: True))
+
+    def test_match_at_start(self):
+        self.assertEqual(find([10, 20, 30], lambda x: x == 10), 10)
+
+    def test_tuple_and_string(self):
+        self.assertEqual(find((5, 6, 7), lambda x: x == 6), 6)
+        self.assertEqual(find("hello", lambda c: c == "l"), "l")
+
+    def test_non_sequence_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find(123, lambda x: True)
+        with self.assertRaises(TypeError):
+            find(None, lambda x: True)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            find([1, 2, 3], 1)
+        with self.assertRaises(TypeError):
+            find([1, 2, 3], None)
 
 
 class TestFindIndex(unittest.TestCase):
