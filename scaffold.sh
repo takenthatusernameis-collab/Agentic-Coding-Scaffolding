@@ -54862,6 +54862,8 @@ __all__: list[str] = [
     "count_space",
     "has_space",
     "istitle",
+    "count_title",
+    "has_title",
     "isupper",
     "count_upper",
     "has_upper",
@@ -56532,6 +56534,89 @@ def istitle(data: bytes) -> bool:
     return bytes(data).istitle()
 
 
+def count_title(data: bytes) -> int:
+    """Return the number of titlecase bytes in *data*.
+
+    A titlecase byte is an uppercase ASCII letter (``A``-``Z``) that appears at a
+    word boundary (start of data or after a non-alphabetic byte) and is followed
+    by a lowercase letter, a non-alphabetic byte, or the end of the data. This
+    mirrors the uppercase positions in a titlecased string (as produced by
+    :meth:`bytes.title`). Empty input returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of titlecase bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_title(b"Hello World")
+        2
+        >>> count_title(b"Hello")
+        1
+        >>> count_title(b"hello world")
+        0
+        >>> count_title(b"HelloWorld")
+        1
+        >>> count_title(b"")
+        0
+        >>> count_title(bytearray(b"Hi There"))
+        2
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    raw = bytes(data)
+    count = 0
+    n = len(raw)
+    for i, b in enumerate(raw):
+        if 0x41 <= b <= 0x5A:  # 'A'-'Z'
+            # Check if at word boundary: position 0 or previous is non-alphabetic
+            at_boundary = i == 0 or not (0x41 <= raw[i - 1] <= 0x5A or 0x61 <= raw[i - 1] <= 0x7A)
+            if at_boundary:
+                # Check if followed by lowercase, non-alphabetic, or end of data
+                if i + 1 == n:
+                    count += 1
+                else:
+                    next_b = raw[i + 1]
+                    if not (0x41 <= next_b <= 0x5A):  # not uppercase
+                        count += 1
+    return count
+
+
+def has_title(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one titlecase byte.
+
+    This is the boolean companion to :func:`count_title`. It returns ``True``
+    when at least one byte is a titlecase byte and ``False`` otherwise (empty
+    input is ``False``), reusing :func:`count_title` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if *data* contains a titlecase byte.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_title(b"Hello World")
+        True
+        >>> has_title(b"hello world")
+        False
+        >>> has_title(bytearray(b"Hi"))
+        True
+        >>> has_title(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_title(data) > 0
+
+
 def isupper(data: bytes) -> bool:
     """Return ``True`` if there is at least one cased byte and all cased bytes are uppercase.
 
@@ -57495,6 +57580,7 @@ from bytes_utils import (
     count_null_bytes,
     count_printable,
     count_space,
+    count_title,
     count_upper,
     decode_ascii,
     encode_ascii,
@@ -57512,8 +57598,9 @@ from bytes_utils import (
     has_non_null_bytes,
     has_null_byte,
     has_printable,
-    has_space,
     has_set_bits,
+    has_space,
+    has_title,
     has_upper,
     highest_set_bit,
     index,
@@ -58373,6 +58460,94 @@ class TestHasUpper(unittest.TestCase):
             has_upper(123)
         with self.assertRaises(TypeError):
             has_upper(None)
+
+
+class TestCountTitle(unittest.TestCase):
+    def test_all_title(self):
+        self.assertEqual(count_title(b"Hello World"), 2)
+        self.assertEqual(count_title(b"Hello"), 1)
+        self.assertEqual(count_title(b"Hi There"), 2)
+        self.assertEqual(count_title(b"Test"), 1)
+
+    def test_no_title(self):
+        self.assertEqual(count_title(b"hello world"), 0)
+        self.assertEqual(count_title(b"HELLO WORLD"), 0)
+        self.assertEqual(count_title(b"123"), 0)
+        self.assertEqual(count_title(b"!@#"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_title(b"HelloWorld"), 1)
+        self.assertEqual(count_title(b"hello World"), 1)
+        self.assertEqual(count_title(b"Hi there"), 1)
+        self.assertEqual(count_title(b"a B c"), 1)
+        self.assertEqual(count_title(b"Hello World Again"), 3)
+
+    def test_empty(self):
+        self.assertEqual(count_title(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_title(bytearray(b"Hello World")), 2)
+        self.assertEqual(count_title(bytearray(b"hello world")), 0)
+
+    def test_consistency_with_istitle(self):
+        # istitle is true only when all cased bytes are titlecased and there's at least one cased byte
+        self.assertTrue(istitle(b"Hello World"))
+        self.assertEqual(count_title(b"Hello World"), 2)
+        self.assertFalse(istitle(b"hello world"))
+        self.assertEqual(count_title(b"hello world"), 0)
+        self.assertFalse(istitle(b"HelloWorld"))  # W is not titlecased (follows a letter)
+        self.assertEqual(count_title(b"HelloWorld"), 1)  # Only H is titlecased
+        self.assertFalse(istitle(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_title("Hello")
+        with self.assertRaises(TypeError):
+            count_title(123)
+        with self.assertRaises(TypeError):
+            count_title(None)
+
+
+class TestHasTitle(unittest.TestCase):
+    def test_has_title(self):
+        self.assertTrue(has_title(b"Hello World"))
+        self.assertTrue(has_title(b"Hello"))
+        self.assertTrue(has_title(bytearray(b"Hi There")))
+        self.assertTrue(has_title(b"HelloWorld"))
+        self.assertTrue(has_title(b"hello World"))
+
+    def test_no_title(self):
+        self.assertFalse(has_title(b"hello world"))
+        self.assertFalse(has_title(b"HELLO WORLD"))
+        self.assertFalse(has_title(b"123"))
+        self.assertFalse(has_title(b"!@#"))
+        self.assertFalse(has_title(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_title(bytearray(b"Hello")))
+        self.assertFalse(has_title(bytearray(b"hello")))
+
+    def test_consistency_with_count_title(self):
+        self.assertEqual(has_title(b"Hello World"), count_title(b"Hello World") > 0)
+        self.assertEqual(has_title(b"hello world"), count_title(b"hello world") > 0)
+        self.assertEqual(has_title(b""), count_title(b"") > 0)
+
+    def test_consistency_with_istitle(self):
+        # istitle requires all cased bytes to be titlecased; has_title needs any.
+        self.assertTrue(has_title(b"Hello World"))
+        self.assertTrue(istitle(b"Hello World"))
+        self.assertTrue(has_title(b"HelloWorld"))
+        self.assertFalse(istitle(b"HelloWorld"))
+        self.assertFalse(has_title(b"hello world"))
+        self.assertFalse(istitle(b"hello world"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_title("Hello")
+        with self.assertRaises(TypeError):
+            has_title(123)
+        with self.assertRaises(TypeError):
+            has_title(None)
 
 
 class TestCountPrintable(unittest.TestCase):
@@ -65490,6 +65665,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_title/has_title companions to bytes_utils.istitle
+
+- Added `count_title(data) -> int` and `has_title(data) -> bool` to `bytes_utils.py` as the integer/boolean companions to `istitle`. The module already had `istitle` (exported in `__all__`, with tests and README documentation) but no `count_*`/`has_*` counterparts. `count_title` returns the count of titlecase bytes (uppercase ASCII letters at word boundaries: start of data or after a non-alphabetic byte) in *data* (empty input returns ``0``). `has_title` returns ``True`` when at least one titlecase byte is present and ``False`` otherwise (empty input is ``False``), reusing `count_title` for consistency. Both accept typed `bytes`/`bytearray` arguments, raise `TypeError` for non-bytes-like input, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountTitle` (7 tests) and `TestHasTitle` (6 tests) to `tests/test_bytes_utils.py` covering all/no/mixed/empty/bytearray inputs, consistency with `istitle` and with each other, and `TypeError` paths; imported `count_title`/`has_title` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — added count_/has_ companions to bytes_utils.islower, isspace, isupper, isprintable
 
 - Added `count_lower(data) -> int` and `has_lower(data) -> bool` to `bytes_utils.py` as the integer/boolean companions to `islower`. The module already had `islower` (exported in `__all__`, with tests and README documentation) but no `count_*`/`has_*` counterparts, so callers could not obtain the actual number of lowercase bytes or test for lowercase presence without computing it themselves. `count_lower` returns the count of ASCII lowercase bytes (``a``-``z``) in *data* (empty input returns ``0``). `has_lower` returns ``True`` when at least one lowercase byte is present and ``False`` otherwise (empty input is ``False``), reusing `count_lower` for consistency. Both accept typed `bytes`/`bytearray` arguments, raise `TypeError` for non-bytes-like input, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountLower` (7 tests) and `TestHasLower` (6 tests) to `tests/test_bytes_utils.py` covering all/no/mixed/empty/bytearray inputs, consistency with `count_lower`/`has_lower` and `islower`, and `TypeError` paths; imported `count_lower`/`has_lower` to match `__all__`.
@@ -68261,7 +68440,7 @@ id_utils.py                # Identifier generation and validation utilities (gen
 html_utils.py              # HTML escaping, unescaping, and tag-stripping utilities
 html_entities_utils.py    # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 html_parser_utils.py      # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, HTMLStripper, strip_html_tags, extract_tags, is_available)
-bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, count_alnum, has_alnum, isalpha, count_alpha, has_alpha, isascii, count_ascii, has_ascii, isdigit, count_digits, has_digits, islower, count_lower, has_lower, isspace, count_space, has_space, istitle, isupper, count_upper, has_upper, isprintable, count_printable, has_printable, isidentifier, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, has_set_bits, is_power_of_two, is_zero, lowest_set_bit, highest_set_bit, count_null_bytes, has_null_byte, has_null_bytes, count_non_null_bytes, has_non_null_byte, has_non_null_bytes)
+bytes_utils.py             # Bytes and binary utilities (to_hex, from_hex, xor, chunk, concat, repeat, reverse, contains, index, index_of, partition, rfind, rindex, rpartition, starts_with, ends_with, removeprefix, removesuffix, upper, lower, capitalize, title, swapcase, casefold, join, expandtabs, isalnum, count_alnum, has_alnum, isalpha, count_alpha, has_alpha, isascii, count_ascii, has_ascii, isdigit, count_digits, has_digits, islower, count_lower, has_lower, isspace, count_space, has_space, istitle, count_title, has_title, isupper, count_upper, has_upper, isprintable, count_printable, has_printable, isidentifier, decode_ascii, encode_ascii, maketrans, translate, to_int, from_int, bit_count, has_set_bits, is_power_of_two, is_zero, lowest_set_bit, highest_set_bit, count_null_bytes, has_null_byte, has_null_bytes, count_non_null_bytes, has_non_null_byte, has_non_null_bytes)
 circuit_breaker_utils.py   # Circuit breaker resilience utilities (CircuitBreaker, CircuitOpenError) with thread-safe state transitions
 array_utils.py             # Array utility functions wrapping the standard library array module
 base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
@@ -69042,7 +69221,7 @@ The project includes HTML entities utilities in `html_entities_utils.py` wrappin
 
 ## Bytes Utilities Module
 
-The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`count_alnum`/`has_alnum`/`isalpha`/`count_alpha`/`has_alpha`/`isascii`/`count_ascii`/`has_ascii`/`isdigit`/`count_digits`/`has_digits`/`islower`/`count_lower`/`has_lower`/`isspace`/`count_space`/`has_space`/`istitle`/`isupper`/`count_upper`/`has_upper`/`isprintable`/`count_printable`/`has_printable` are predicates and their integer/boolean companions, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits and `has_set_bits` reports whether any bit is set, `is_power_of_two` tests whether exactly one bit is set, `is_zero` tests whether all bytes are zero, and `lowest_set_bit` returns the position of the least significant set bit (or -1 when none is set), and `highest_set_bit` returns the position of the most significant set bit (or -1 when none is set), `count_null_bytes` counts the number of zero bytes, and `has_null_byte`/`has_null_bytes` report whether any zero byte is present, `count_non_null_bytes` counts the number of non-zero bytes, and `has_non_null_byte`/`has_non_null_bytes` report whether any non-zero byte is present. `count_alpha` counts ASCII alphabetic bytes and `has_alpha` reports whether any is present; `count_digits` counts the number of ASCII digit bytes, and `has_digits` reports whether any digit byte is present. `isprintable` tests whether every byte is in the ASCII printable range (0x20-0x7E, False for empty), and `isidentifier` tests whether the ASCII-decoded bytes form a valid Python identifier. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
+The project includes bytes and binary utilities in `bytes_utils.py` for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`count_alnum`/`has_alnum`/`isalpha`/`count_alpha`/`has_alpha`/`isascii`/`count_ascii`/`has_ascii`/`isdigit`/`count_digits`/`has_digits`/`islower`/`count_lower`/`has_lower`/`isspace`/`count_space`/`has_space`/`istitle`/`count_title`/`has_title`/`isupper`/`count_upper`/`has_upper`/`isprintable`/`count_printable`/`has_printable` are predicates and their integer/boolean companions, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits and `has_set_bits` reports whether any bit is set, `is_power_of_two` tests whether exactly one bit is set, `is_zero` tests whether all bytes are zero, and `lowest_set_bit` returns the position of the least significant set bit (or -1 when none is set), and `highest_set_bit` returns the position of the most significant set bit (or -1 when none is set), `count_null_bytes` counts the number of zero bytes, and `has_null_byte`/`has_null_bytes` report whether any zero byte is present, `count_non_null_bytes` counts the number of non-zero bytes, and `has_non_null_byte`/`has_non_null_bytes` report whether any non-zero byte is present. `count_alpha` counts ASCII alphabetic bytes and `has_alpha` reports whether any is present; `count_digits` counts the number of ASCII digit bytes, and `has_digits` reports whether any digit byte is present. `isprintable` tests whether every byte is in the ASCII printable range (0x20-0x7E, False for empty), and `isidentifier` tests whether the ASCII-decoded bytes form a valid Python identifier. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
 
 ## Itertools Utilities Module
 

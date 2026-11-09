@@ -18,6 +18,7 @@ from bytes_utils import (
     count_null_bytes,
     count_printable,
     count_space,
+    count_title,
     count_upper,
     decode_ascii,
     encode_ascii,
@@ -37,6 +38,7 @@ from bytes_utils import (
     has_printable,
     has_set_bits,
     has_space,
+    has_title,
     has_upper,
     highest_set_bit,
     index,
@@ -896,6 +898,94 @@ class TestHasUpper(unittest.TestCase):
             has_upper(123)
         with self.assertRaises(TypeError):
             has_upper(None)
+
+
+class TestCountTitle(unittest.TestCase):
+    def test_all_title(self):
+        self.assertEqual(count_title(b"Hello World"), 2)
+        self.assertEqual(count_title(b"Hello"), 1)
+        self.assertEqual(count_title(b"Hi There"), 2)
+        self.assertEqual(count_title(b"Test"), 1)
+
+    def test_no_title(self):
+        self.assertEqual(count_title(b"hello world"), 0)
+        self.assertEqual(count_title(b"HELLO WORLD"), 0)
+        self.assertEqual(count_title(b"123"), 0)
+        self.assertEqual(count_title(b"!@#"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_title(b"HelloWorld"), 1)
+        self.assertEqual(count_title(b"hello World"), 1)
+        self.assertEqual(count_title(b"Hi there"), 1)
+        self.assertEqual(count_title(b"a B c"), 1)
+        self.assertEqual(count_title(b"Hello World Again"), 3)
+
+    def test_empty(self):
+        self.assertEqual(count_title(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_title(bytearray(b"Hello World")), 2)
+        self.assertEqual(count_title(bytearray(b"hello world")), 0)
+
+    def test_consistency_with_istitle(self):
+        # istitle is true only when all cased bytes are titlecased and there's at least one cased byte
+        self.assertTrue(istitle(b"Hello World"))
+        self.assertEqual(count_title(b"Hello World"), 2)
+        self.assertFalse(istitle(b"hello world"))
+        self.assertEqual(count_title(b"hello world"), 0)
+        self.assertFalse(istitle(b"HelloWorld"))  # W is not titlecased (follows a letter)
+        self.assertEqual(count_title(b"HelloWorld"), 1)  # Only H is titlecased
+        self.assertFalse(istitle(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_title("Hello")
+        with self.assertRaises(TypeError):
+            count_title(123)
+        with self.assertRaises(TypeError):
+            count_title(None)
+
+
+class TestHasTitle(unittest.TestCase):
+    def test_has_title(self):
+        self.assertTrue(has_title(b"Hello World"))
+        self.assertTrue(has_title(b"Hello"))
+        self.assertTrue(has_title(bytearray(b"Hi There")))
+        self.assertTrue(has_title(b"HelloWorld"))
+        self.assertTrue(has_title(b"hello World"))
+
+    def test_no_title(self):
+        self.assertFalse(has_title(b"hello world"))
+        self.assertFalse(has_title(b"HELLO WORLD"))
+        self.assertFalse(has_title(b"123"))
+        self.assertFalse(has_title(b"!@#"))
+        self.assertFalse(has_title(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_title(bytearray(b"Hello")))
+        self.assertFalse(has_title(bytearray(b"hello")))
+
+    def test_consistency_with_count_title(self):
+        self.assertEqual(has_title(b"Hello World"), count_title(b"Hello World") > 0)
+        self.assertEqual(has_title(b"hello world"), count_title(b"hello world") > 0)
+        self.assertEqual(has_title(b""), count_title(b"") > 0)
+
+    def test_consistency_with_istitle(self):
+        # istitle requires all cased bytes to be titlecased; has_title needs any.
+        self.assertTrue(has_title(b"Hello World"))
+        self.assertTrue(istitle(b"Hello World"))
+        self.assertTrue(has_title(b"HelloWorld"))
+        self.assertFalse(istitle(b"HelloWorld"))
+        self.assertFalse(has_title(b"hello world"))
+        self.assertFalse(istitle(b"hello world"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_title("Hello")
+        with self.assertRaises(TypeError):
+            has_title(123)
+        with self.assertRaises(TypeError):
+            has_title(None)
 
 
 class TestCountPrintable(unittest.TestCase):

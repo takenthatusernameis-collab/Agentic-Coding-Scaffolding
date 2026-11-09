@@ -62,6 +62,8 @@ __all__: list[str] = [
     "count_space",
     "has_space",
     "istitle",
+    "count_title",
+    "has_title",
     "isupper",
     "count_upper",
     "has_upper",
@@ -1730,6 +1732,89 @@ def istitle(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).istitle()
+
+
+def count_title(data: bytes) -> int:
+    """Return the number of titlecase bytes in *data*.
+
+    A titlecase byte is an uppercase ASCII letter (``A``-``Z``) that appears at a
+    word boundary (start of data or after a non-alphabetic byte) and is followed
+    by a lowercase letter, a non-alphabetic byte, or the end of the data. This
+    mirrors the uppercase positions in a titlecased string (as produced by
+    :meth:`bytes.title`). Empty input returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of titlecase bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_title(b"Hello World")
+        2
+        >>> count_title(b"Hello")
+        1
+        >>> count_title(b"hello world")
+        0
+        >>> count_title(b"HelloWorld")
+        1
+        >>> count_title(b"")
+        0
+        >>> count_title(bytearray(b"Hi There"))
+        2
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    raw = bytes(data)
+    count = 0
+    n = len(raw)
+    for i, b in enumerate(raw):
+        if 0x41 <= b <= 0x5A:  # 'A'-'Z'
+            # Check if at word boundary: position 0 or previous is non-alphabetic
+            at_boundary = i == 0 or not (0x41 <= raw[i - 1] <= 0x5A or 0x61 <= raw[i - 1] <= 0x7A)
+            if at_boundary:
+                # Check if followed by lowercase, non-alphabetic, or end of data
+                if i + 1 == n:
+                    count += 1
+                else:
+                    next_b = raw[i + 1]
+                    if not (0x41 <= next_b <= 0x5A):  # not uppercase
+                        count += 1
+    return count
+
+
+def has_title(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one titlecase byte.
+
+    This is the boolean companion to :func:`count_title`. It returns ``True``
+    when at least one byte is a titlecase byte and ``False`` otherwise (empty
+    input is ``False``), reusing :func:`count_title` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if *data* contains a titlecase byte.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_title(b"Hello World")
+        True
+        >>> has_title(b"hello world")
+        False
+        >>> has_title(bytearray(b"Hi"))
+        True
+        >>> has_title(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_title(data) > 0
 
 
 def isupper(data: bytes) -> bool:
