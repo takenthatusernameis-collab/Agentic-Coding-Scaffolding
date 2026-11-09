@@ -9,6 +9,7 @@ from bytes_utils import (
     concat,
     contains,
     count,
+    count_alpha,
     count_digits,
     count_non_null_bytes,
     count_null_bytes,
@@ -19,6 +20,7 @@ from bytes_utils import (
     find,
     from_hex,
     from_int,
+    has_alpha,
     has_digits,
     has_non_null_byte,
     has_non_null_bytes,
@@ -407,7 +409,86 @@ class TestHasDigits(unittest.TestCase):
             has_digits(None)
 
 
-class TestAsciiHelpers(unittest.TestCase):
+class TestCountAlpha(unittest.TestCase):
+    def test_all_alpha(self):
+        self.assertEqual(count_alpha(b"abc"), 3)
+        self.assertEqual(count_alpha(b"ABC"), 3)
+        self.assertEqual(count_alpha(b"AbC"), 3)
+
+    def test_no_alpha(self):
+        self.assertEqual(count_alpha(b"123"), 0)
+        self.assertEqual(count_alpha(b"!@#"), 0)
+        self.assertEqual(count_alpha(b" "), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_alpha(b"abc123"), 3)
+        self.assertEqual(count_alpha(b"a1b2c3"), 3)
+        self.assertEqual(count_alpha(b"  ab "), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_alpha(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_alpha(bytearray(b"abc")), 3)
+        self.assertEqual(count_alpha(bytearray(b"123")), 0)
+
+    def test_consistency_with_isalpha(self):
+        # isalpha is true only when all bytes are alpha and non-empty
+        self.assertTrue(isalpha(b"abc"))
+        self.assertEqual(count_alpha(b"abc"), len(b"abc"))
+        self.assertFalse(isalpha(b"abc123"))
+        self.assertNotEqual(count_alpha(b"abc123"), len(b"abc123"))
+        self.assertFalse(isalpha(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_alpha("abc")
+        with self.assertRaises(TypeError):
+            count_alpha(123)
+        with self.assertRaises(TypeError):
+            count_alpha(None)
+
+
+class TestHasAlpha(unittest.TestCase):
+    def test_has_alpha(self):
+        self.assertTrue(has_alpha(b"abc"))
+        self.assertTrue(has_alpha(b"ABC"))
+        self.assertTrue(has_alpha(bytearray(b"a1b2")))
+        self.assertTrue(has_alpha(b"123x"))
+
+    def test_no_alpha(self):
+        self.assertFalse(has_alpha(b"123"))
+        self.assertFalse(has_alpha(b"!@#"))
+        self.assertFalse(has_alpha(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_alpha(bytearray(b"abc")))
+        self.assertFalse(has_alpha(bytearray(b"123")))
+
+    def test_consistency_with_count_alpha(self):
+        self.assertEqual(has_alpha(b"abc"), count_alpha(b"abc") > 0)
+        self.assertEqual(has_alpha(b"123"), count_alpha(b"123") > 0)
+        self.assertEqual(has_alpha(b""), count_alpha(b"") > 0)
+
+    def test_consistency_with_isalpha(self):
+        # isalpha requires all alpha; has_alpha requires at least one.
+        self.assertTrue(has_alpha(b"abc"))
+        self.assertTrue(isalpha(b"abc"))
+        self.assertTrue(has_alpha(b"abc123"))
+        self.assertFalse(isalpha(b"abc123"))
+        self.assertFalse(has_alpha(b"123"))
+        self.assertFalse(isalpha(b"123"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_alpha("abc")
+        with self.assertRaises(TypeError):
+            has_alpha(123)
+        with self.assertRaises(TypeError):
+            has_alpha(None)
+
+
+
     def test_decode_ascii(self):
         self.assertEqual(decode_ascii(b"abc"), "abc")
         self.assertEqual(decode_ascii(bytearray(b"hi")), "hi")

@@ -47,6 +47,8 @@ __all__: list[str] = [
     "casefold",
     "isalnum",
     "isalpha",
+    "count_alpha",
+    "has_alpha",
     "isascii",
     "isdigit",
     "islower",
@@ -1180,6 +1182,72 @@ def isalpha(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isalpha()
+
+
+def count_alpha(data: bytes) -> int:
+    """Return the number of ASCII alphabetic bytes in *data*.
+
+    This is the integer companion to :func:`isalpha`. An alphabetic byte is
+    any byte that passes :meth:`bytes.isalpha` (ASCII letters ``a``-``z`` and
+    ``A``-``Z``). Empty input returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of alphabetic bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_alpha(b"abc")
+        3
+        >>> count_alpha(b"ABC")
+        3
+        >>> count_alpha(b"abc123")
+        3
+        >>> count_alpha(b"123")
+        0
+        >>> count_alpha(b"")
+        0
+        >>> count_alpha(bytearray(b"a1b2"))
+        2
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if bytes([b]).isalpha())
+
+
+def has_alpha(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one ASCII alphabetic byte.
+
+    This is the boolean companion to :func:`count_alpha`. It returns ``True``
+    when at least one byte is alphabetic and ``False`` otherwise (empty input
+    is ``False``), reusing :func:`count_alpha` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if *data* contains an alphabetic byte.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_alpha(b"abc")
+        True
+        >>> has_alpha(b"123")
+        False
+        >>> has_alpha(b"a1b2")
+        True
+        >>> has_alpha(bytearray(b"ABC"))
+        True
+        >>> has_alpha(b"")
+        False
+    """
+    return count_alpha(data) > 0
 
 
 def isascii(data: bytes) -> bool:
