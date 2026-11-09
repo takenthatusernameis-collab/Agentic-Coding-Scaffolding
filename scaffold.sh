@@ -66752,6 +66752,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added first_or_default/last_or_default companions to `seq_utils`
+
+- Added `first_or_default(sequence, default=None)` and `last_or_default(sequence, default=None)` to `seq_utils.py` as companions to `first`/`last` and `nth_or_default`, matching the `list_utils.first_or_default`/`last_or_default` style. Both accept any `Sequence`, validate with `_require_sequence`, raise `TypeError` for non-sequences, return the boundary element or the supplied default for an empty sequence, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests.
+- Added `TestFirstOrDefault` and `TestLastOrDefault` (8 tests) to `tests/test_seq_utils.py` covering non-empty, empty/default, and `TypeError` paths; imported the new names to match `__all__`. Updated `README.md` (`seq_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_seq_utils` (241 OK), targeted doctests for the new helpers pass, `python -m unittest tests.test_public_api` (OK). Pre-existing `seq_utils.flatten` doctest quote-style failure remains (unrelated). No changes to `.github/workflows/**`.
+
 ## Unreleased — added TestSetNested coverage for data_utils nested-path helper
 
 - Added `TestSetNested` (11 tests) to `tests/test_data_utils.py` for `set_nested`, which is exported in `__all__`, typed, documented with Google-style docstrings and ASCII-safe doctests, and shipped with no dedicated test class (unlike its siblings `get_nested`, `del_nested`, `pick`, `omit`, `flatten_dict`, `invert_dict`, `merge_dicts`, and `deep_copy`). Coverage includes basic/deep/intermediate-creation/overwrite/top-level/custom-separator/empty-dict cases, consistency with the returned-dict identity, and `TypeError`/`ValueError` paths. Fixed a latent bug in `data_utils.set_nested`: the empty-path guard used `not segments or segments == [""]`, which does not catch the `"."`-only path (or any all-empty-segment path) that `del_nested` rejects, so it now uses the same `not path or not any(segments)` check as `del_nested`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_data_utils` (55 OK; +11 new), `python -m doctest data_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check data_utils.py tests/test_data_utils.py` clean, `python -m mypy tests/test_data_utils.py` clean. No `.github/workflows/**` changes.
@@ -69486,7 +69491,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, take, take_last, drop, drop_last, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, count_unique, has_occurrences, has_where, has_all_unique, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition, reverse)
+seq_utils.py               # Sequence utilities (first, first_or_default, last, last_or_default, nth, nth_or_default, head, tail, take, take_last, drop, drop_last, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, count_unique, has_occurrences, has_where, has_all_unique, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition, reverse)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -70421,7 +70426,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `take` and `drop` return or skip the first `n` elements; `take_last` and `drop_last` return or skip the last `n` elements (companions to `take`/`drop`); `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order; `is_empty`/`is_not_empty` report whether a sequence has no/any elements. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `first_or_default`, `last_or_default`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `take` and `drop` return or skip the first `n` elements; `take_last` and `drop_last` return or skip the last `n` elements (companions to `take`/`drop`); `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order; `is_empty`/`is_not_empty` report whether a sequence has no/any elements. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -109550,6 +109555,7 @@ __all__ = [
     "find_all",
     "find_all_indices",
     "first",
+    "first_or_default",
     "flatten",
     "count_duplicates",
     "count_unique",
@@ -109566,6 +109572,7 @@ __all__ = [
     "is_sorted",
     "last",
     "last_index_of",
+    "last_or_default",
     "none_where",
     "nth",
     "nth_or_default",
@@ -109626,6 +109633,56 @@ def last(sequence: Sequence[T]) -> Optional[T]:
     """
     _require_sequence(sequence)
     return sequence[-1] if sequence else None
+
+
+def first_or_default(sequence: Sequence[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the first element of ``sequence``, or ``default`` if it is empty.
+
+    Args:
+        sequence: The sequence to inspect.
+        default: The value to return when the sequence is empty. Defaults to
+            ``None``.
+
+    Returns:
+        The first element, or ``default`` when the sequence has no elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> first_or_default([1, 2, 3])
+        1
+        >>> first_or_default([], 0)
+        0
+        >>> first_or_default([])
+    """
+    _require_sequence(sequence)
+    return sequence[0] if sequence else default
+
+
+def last_or_default(sequence: Sequence[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the last element of ``sequence``, or ``default`` if it is empty.
+
+    Args:
+        sequence: The sequence to inspect.
+        default: The value to return when the sequence is empty. Defaults to
+            ``None``.
+
+    Returns:
+        The last element, or ``default`` when the sequence has no elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> last_or_default([1, 2, 3])
+        3
+        >>> last_or_default([], 0)
+        0
+        >>> last_or_default([])
+    """
+    _require_sequence(sequence)
+    return sequence[-1] if sequence else default
 
 
 def nth(sequence: Sequence[T], n: int) -> Optional[T]:
@@ -110973,6 +111030,7 @@ from seq_utils import (
     find_last,
     find_last_index,
     first,
+    first_or_default,
     flatten,
     has_all_unique,
     has_duplicates,
@@ -110985,6 +111043,7 @@ from seq_utils import (
     is_sorted,
     last,
     last_index_of,
+    last_or_default,
     none_where,
     nth,
     nth_or_default,
@@ -111025,6 +111084,37 @@ class TestLast(unittest.TestCase):
     def test_last_type_error(self):
         with self.assertRaises(TypeError):
             last(None)  # type: ignore[arg-type]
+
+
+class TestFirstOrDefault(unittest.TestCase):
+    def test_first_or_default_non_empty(self):
+        self.assertEqual(first_or_default([1, 2, 3]), 1)
+        self.assertEqual(first_or_default(("a", "b")), "a")
+        self.assertEqual(first_or_default("xyz"), "x")
+
+    def test_first_or_default_empty(self):
+        self.assertIsNone(first_or_default([]))
+        self.assertEqual(first_or_default([], 0), 0)
+        self.assertEqual(first_or_default([], "x"), "x")
+
+    def test_first_or_default_type_error(self):
+        with self.assertRaises(TypeError):
+            first_or_default(123)  # type: ignore[arg-type]
+
+
+class TestLastOrDefault(unittest.TestCase):
+    def test_last_or_default_non_empty(self):
+        self.assertEqual(last_or_default([1, 2, 3]), 3)
+        self.assertEqual(last_or_default(("a", "b")), "b")
+
+    def test_last_or_default_empty(self):
+        self.assertIsNone(last_or_default([]))
+        self.assertEqual(last_or_default([], 0), 0)
+        self.assertEqual(last_or_default([], "x"), "x")
+
+    def test_last_or_default_type_error(self):
+        with self.assertRaises(TypeError):
+            last_or_default(None)  # type: ignore[arg-type]
 
 
 class TestNth(unittest.TestCase):

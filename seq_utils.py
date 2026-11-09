@@ -33,6 +33,7 @@ __all__ = [
     "find_all",
     "find_all_indices",
     "first",
+    "first_or_default",
     "flatten",
     "count_duplicates",
     "count_unique",
@@ -49,6 +50,7 @@ __all__ = [
     "is_sorted",
     "last",
     "last_index_of",
+    "last_or_default",
     "none_where",
     "nth",
     "nth_or_default",
@@ -109,6 +111,56 @@ def last(sequence: Sequence[T]) -> Optional[T]:
     """
     _require_sequence(sequence)
     return sequence[-1] if sequence else None
+
+
+def first_or_default(sequence: Sequence[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the first element of ``sequence``, or ``default`` if it is empty.
+
+    Args:
+        sequence: The sequence to inspect.
+        default: The value to return when the sequence is empty. Defaults to
+            ``None``.
+
+    Returns:
+        The first element, or ``default`` when the sequence has no elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> first_or_default([1, 2, 3])
+        1
+        >>> first_or_default([], 0)
+        0
+        >>> first_or_default([])
+    """
+    _require_sequence(sequence)
+    return sequence[0] if sequence else default
+
+
+def last_or_default(sequence: Sequence[T], default: Optional[T] = None) -> Optional[T]:
+    """Return the last element of ``sequence``, or ``default`` if it is empty.
+
+    Args:
+        sequence: The sequence to inspect.
+        default: The value to return when the sequence is empty. Defaults to
+            ``None``.
+
+    Returns:
+        The last element, or ``default`` when the sequence has no elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> last_or_default([1, 2, 3])
+        3
+        >>> last_or_default([], 0)
+        0
+        >>> last_or_default([])
+    """
+    _require_sequence(sequence)
+    return sequence[-1] if sequence else default
 
 
 def nth(sequence: Sequence[T], n: int) -> Optional[T]:

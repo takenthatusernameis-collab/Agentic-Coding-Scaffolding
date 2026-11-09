@@ -3632,6 +3632,22 @@ Next Planned (for the following agent):
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
 
+## Latest Session (2026-11-09) — added first_or_default/last_or_default to `seq_utils`
+
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Executed the durable "Next Planned" by auditing `seq_utils.py`/`set_utils.py` for a focused, hermetic helper gap. `seq_utils` had `first`/`last`/`nth`/`nth_or_default` but lacked the `first_or_default`/`last_or_default` boundary companions present in `list_utils.py`; this is a clear, symmetric accessor pair.
+
+**Changes:**
+- Added `first_or_default(sequence, default=None)` and `last_or_default(sequence, default=None)` to `seq_utils.py`. Typed `Sequence[T]` APIs using the module's `_require_sequence` guard, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation for non-sequences. They return the boundary element or the supplied default for an empty sequence.
+- Added `TestFirstOrDefault` and `TestLastOrDefault` (8 tests) to `tests/test_seq_utils.py` covering non-empty, empty/default, and `TypeError` paths.
+- Updated `README.md` (`seq_utils` tree/prose) and `CHANGELOG.md`. Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_seq_utils` (241 OK), targeted doctests for the new helpers pass, `python -m unittest tests.test_public_api` (OK). Pre-existing `seq_utils.flatten` doctest quote-style failure remains (unrelated; not addressed). No changes to `.github/workflows/**`.
+
+Next Planned (for the following agent):
+- Audit `dict_utils.py` or `bytes_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing count/find/predicate pair that complements existing helpers, or a symmetric gap exposed by recent additions) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
+- Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
+- Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
+
 ## Latest Session (2026-11-09) — added count/where predicate companions to `list_utils`
 
 **Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Executed prior "Next Planned" by auditing `list_utils.py` for a focused, hermetic helper gap. `seq_utils.py` exposed `count_occurrences`/`count_where`/`has_where`/`all_where`/`none_where`/`has_occurrences` companions (with tests), while `list_utils.py` had `find`/`contains`/`index_of`-style helpers but lacked these count/predicate companions.

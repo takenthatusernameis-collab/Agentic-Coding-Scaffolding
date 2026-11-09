@@ -24,6 +24,7 @@ from seq_utils import (
     find_last,
     find_last_index,
     first,
+    first_or_default,
     flatten,
     has_all_unique,
     has_duplicates,
@@ -36,6 +37,7 @@ from seq_utils import (
     is_sorted,
     last,
     last_index_of,
+    last_or_default,
     none_where,
     nth,
     nth_or_default,
@@ -76,6 +78,37 @@ class TestLast(unittest.TestCase):
     def test_last_type_error(self):
         with self.assertRaises(TypeError):
             last(None)  # type: ignore[arg-type]
+
+
+class TestFirstOrDefault(unittest.TestCase):
+    def test_first_or_default_non_empty(self):
+        self.assertEqual(first_or_default([1, 2, 3]), 1)
+        self.assertEqual(first_or_default(("a", "b")), "a")
+        self.assertEqual(first_or_default("xyz"), "x")
+
+    def test_first_or_default_empty(self):
+        self.assertIsNone(first_or_default([]))
+        self.assertEqual(first_or_default([], 0), 0)
+        self.assertEqual(first_or_default([], "x"), "x")
+
+    def test_first_or_default_type_error(self):
+        with self.assertRaises(TypeError):
+            first_or_default(123)  # type: ignore[arg-type]
+
+
+class TestLastOrDefault(unittest.TestCase):
+    def test_last_or_default_non_empty(self):
+        self.assertEqual(last_or_default([1, 2, 3]), 3)
+        self.assertEqual(last_or_default(("a", "b")), "b")
+
+    def test_last_or_default_empty(self):
+        self.assertIsNone(last_or_default([]))
+        self.assertEqual(last_or_default([], 0), 0)
+        self.assertEqual(last_or_default([], "x"), "x")
+
+    def test_last_or_default_type_error(self):
+        with self.assertRaises(TypeError):
+            last_or_default(None)  # type: ignore[arg-type]
 
 
 class TestNth(unittest.TestCase):
