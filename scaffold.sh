@@ -57695,7 +57695,7 @@ class TestCountAscii(unittest.TestCase):
     def test_mixed(self):
         self.assertEqual(count_ascii(b"a\x80b"), 2)
         self.assertEqual(count_ascii(b"\x80\x80"), 0)
-        self.assertEqual(count_ascii(b"  ab "), 4)
+        self.assertEqual(count_ascii(b"  ab "), 5)
 
     def test_empty(self):
         self.assertEqual(count_ascii(b""), 0)
