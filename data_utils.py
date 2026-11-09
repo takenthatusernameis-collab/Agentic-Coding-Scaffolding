@@ -166,7 +166,7 @@ def set_nested(d: Dict[str, Any], path: str, value: Any, sep: str = ".") -> Dict
     if not isinstance(path, str):
         raise TypeError(f"path must be a string, got {type(path).__name__}")
     segments = path.split(sep)
-    if not segments or segments == [""]:
+    if not path or not any(segments):
         raise ValueError("path must not be empty")
     current: Dict[str, Any] = d
     for segment in segments[:-1]:

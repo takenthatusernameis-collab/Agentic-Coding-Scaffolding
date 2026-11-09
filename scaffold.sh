@@ -23687,7 +23687,7 @@ def set_nested(d: Dict[str, Any], path: str, value: Any, sep: str = ".") -> Dict
     if not isinstance(path, str):
         raise TypeError(f"path must be a string, got {type(path).__name__}")
     segments = path.split(sep)
-    if not segments or segments == [""]:
+    if not path or not any(segments):
         raise ValueError("path must not be empty")
     current: Dict[str, Any] = d
     for segment in segments[:-1]:
@@ -30283,6 +30283,7 @@ from data_utils import (
     merge_dicts,
     omit,
     pick,
+    set_nested,
 )
 
 
@@ -30457,6 +30458,68 @@ class TestGetNested(unittest.TestCase):
     def test_get_nested_rejects_non_string_path(self) -> None:
         with self.assertRaises(TypeError):
             get_nested({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestSetNested(unittest.TestCase):
+    def test_set_nested_basic(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a.b.c", 1)
+        self.assertEqual(d, {"a": {"b": {"c": 1}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_deep(self) -> None:
+        d = {"a": {"b": {"c": 1}}}
+        result = set_nested(d, "a.b.d", 2)
+        self.assertEqual(d, {"a": {"b": {"c": 1, "d": 2}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_creates_intermediate(self) -> None:
+        d: dict = {"a": {}}
+        result = set_nested(d, "a.b.c", 5)
+        self.assertEqual(d, {"a": {"b": {"c": 5}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_overwrites_intermediate(self) -> None:
+        d = {"a": 1}
+        result = set_nested(d, "a.b.c", 9)
+        self.assertEqual(d, {"a": {"b": {"c": 9}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_top_level(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a", 42)
+        self.assertEqual(d, {"a": 42})
+        self.assertIs(result, d)
+
+    def test_set_nested_custom_separator(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a/b/c", 7, sep="/")
+        self.assertEqual(d, {"a": {"b": {"c": 7}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_empty_dict(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a.b", 1)
+        self.assertEqual(d, {"a": {"b": 1}})
+        self.assertIs(result, d)
+
+    def test_set_nested_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            set_nested(["a", "b"], "a.b", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            set_nested("ab", "a.b", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            set_nested(None, "a.b", 1)  # type: ignore[arg-type]
+
+    def test_set_nested_rejects_non_string_path(self) -> None:
+        with self.assertRaises(TypeError):
+            set_nested({"a": 1}, 1, 1)  # type: ignore[arg-type]
+
+    def test_set_nested_rejects_empty_path(self) -> None:
+        with self.assertRaises(ValueError):
+            set_nested({"a": 1}, "", 1)
+        with self.assertRaises(ValueError):
+            set_nested({"a": 1}, ".", 1)
 
 
 class TestDelNested(unittest.TestCase):
@@ -66689,6 +66752,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added TestSetNested coverage for data_utils nested-path helper
+
+- Added `TestSetNested` (11 tests) to `tests/test_data_utils.py` for `set_nested`, which is exported in `__all__`, typed, documented with Google-style docstrings and ASCII-safe doctests, and shipped with no dedicated test class (unlike its siblings `get_nested`, `del_nested`, `pick`, `omit`, `flatten_dict`, `invert_dict`, `merge_dicts`, and `deep_copy`). Coverage includes basic/deep/intermediate-creation/overwrite/top-level/custom-separator/empty-dict cases, consistency with the returned-dict identity, and `TypeError`/`ValueError` paths. Fixed a latent bug in `data_utils.set_nested`: the empty-path guard used `not segments or segments == [""]`, which does not catch the `"."`-only path (or any all-empty-segment path) that `del_nested` rejects, so it now uses the same `not path or not any(segments)` check as `del_nested`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_data_utils` (55 OK; +11 new), `python -m doctest data_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check data_utils.py tests/test_data_utils.py` clean, `python -m mypy tests/test_data_utils.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added TestCountBy/TestHasBy coverage for utils predicate companions
 
 - Added `TestCountBy` (6 tests) and `TestHasBy` (5 tests) to `tests/test_utils.py` for `count_by` and `has_by`, which are exported in `__all__`, typed, and documented with Google-style docstrings and ASCII-safe doctests, but shipped with no dedicated test class. Coverage includes basic/none/all/empty cases, consistency between `count_by` and `has_by`, and `TypeError` paths for non-callable predicates. The implementation in `utils.py` was unchanged. Verified: `python -m unittest tests.test_utils` (43 OK; +11 new), `python -m doctest utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check tests/test_utils.py` clean, `python -m mypy tests/test_utils.py` clean. `utils.py`/`tests/test_utils.py` are not embedded in `scaffold.sh`, so no refresh was needed. No `.github/workflows/**` changes.

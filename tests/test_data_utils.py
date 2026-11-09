@@ -11,6 +11,7 @@ from data_utils import (
     merge_dicts,
     omit,
     pick,
+    set_nested,
 )
 
 
@@ -185,6 +186,68 @@ class TestGetNested(unittest.TestCase):
     def test_get_nested_rejects_non_string_path(self) -> None:
         with self.assertRaises(TypeError):
             get_nested({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestSetNested(unittest.TestCase):
+    def test_set_nested_basic(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a.b.c", 1)
+        self.assertEqual(d, {"a": {"b": {"c": 1}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_deep(self) -> None:
+        d = {"a": {"b": {"c": 1}}}
+        result = set_nested(d, "a.b.d", 2)
+        self.assertEqual(d, {"a": {"b": {"c": 1, "d": 2}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_creates_intermediate(self) -> None:
+        d: dict = {"a": {}}
+        result = set_nested(d, "a.b.c", 5)
+        self.assertEqual(d, {"a": {"b": {"c": 5}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_overwrites_intermediate(self) -> None:
+        d = {"a": 1}
+        result = set_nested(d, "a.b.c", 9)
+        self.assertEqual(d, {"a": {"b": {"c": 9}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_top_level(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a", 42)
+        self.assertEqual(d, {"a": 42})
+        self.assertIs(result, d)
+
+    def test_set_nested_custom_separator(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a/b/c", 7, sep="/")
+        self.assertEqual(d, {"a": {"b": {"c": 7}}})
+        self.assertIs(result, d)
+
+    def test_set_nested_empty_dict(self) -> None:
+        d: dict = {}
+        result = set_nested(d, "a.b", 1)
+        self.assertEqual(d, {"a": {"b": 1}})
+        self.assertIs(result, d)
+
+    def test_set_nested_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            set_nested(["a", "b"], "a.b", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            set_nested("ab", "a.b", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            set_nested(None, "a.b", 1)  # type: ignore[arg-type]
+
+    def test_set_nested_rejects_non_string_path(self) -> None:
+        with self.assertRaises(TypeError):
+            set_nested({"a": 1}, 1, 1)  # type: ignore[arg-type]
+
+    def test_set_nested_rejects_empty_path(self) -> None:
+        with self.assertRaises(ValueError):
+            set_nested({"a": 1}, "", 1)
+        with self.assertRaises(ValueError):
+            set_nested({"a": 1}, ".", 1)
 
 
 class TestDelNested(unittest.TestCase):
