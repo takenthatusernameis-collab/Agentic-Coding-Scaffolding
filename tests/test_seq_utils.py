@@ -6,6 +6,7 @@ from seq_utils import (
     adjacent_pairs,
     all_where,
     chunk,
+    contains,
     count_occurrences,
     count_unique,
     count_where,
@@ -243,6 +244,46 @@ class TestChunk(unittest.TestCase):
             chunk([1, 2], 0)
         with self.assertRaises(ValueError):
             chunk([1, 2], -1)
+
+
+class TestContains(unittest.TestCase):
+    def test_contains_present(self):
+        self.assertTrue(contains([1, 2, 3], 2))
+        self.assertTrue(contains("abracadabra", "a"))
+        self.assertTrue(contains((10, 20, 30), 20))
+
+    def test_contains_absent(self):
+        self.assertFalse(contains([1, 2, 3], 4))
+        self.assertFalse(contains("hello", "z"))
+        self.assertFalse(contains((10, 20, 30), 99))
+
+    def test_contains_empty(self):
+        self.assertFalse(contains([], 1))
+        self.assertFalse(contains((), 1))
+        self.assertFalse(contains("", "a"))
+
+    def test_contains_first_last(self):
+        self.assertTrue(contains([1, 2, 3], 1))
+        self.assertTrue(contains([1, 2, 3], 3))
+
+    def test_contains_duplicates(self):
+        self.assertTrue(contains([1, 1, 1], 1))
+        self.assertFalse(contains([1, 1, 1], 2))
+
+    def test_contains_none_value(self):
+        self.assertTrue(contains([None, 1, 2], None))
+        self.assertFalse(contains([1, 2], None))
+
+    def test_contains_consistency(self):
+        seq = [1, 2, 2, 3]
+        self.assertEqual(contains(seq, 2), has_occurrences(seq, 2))
+        self.assertEqual(contains(seq, 5), has_occurrences(seq, 5))
+
+    def test_contains_type_error(self):
+        with self.assertRaises(TypeError):
+            contains(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            contains(None, 1)  # type: ignore[arg-type]
 
 
 class TestUnique(unittest.TestCase):
