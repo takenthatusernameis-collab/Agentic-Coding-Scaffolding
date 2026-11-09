@@ -1,5 +1,17 @@
 # Project Status
 
+## Latest Session (2026-11-09 09:41Z) — bootstrap verification; foundation solid, no changes needed
+
+The board held no task (`board_read` empty; bootstrap session). Verified repository health: `git status` clean on `main` at `7220a22`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full test suite `python -m pytest tests/` — **10020 tests, 4167 subtests, OK** (91s). `make lint` (ruff) passes. `make typecheck` (mypy) reports pre-existing errors across multiple source and test files (stricter than the baseline version) — not introduced by this session. `tests.test_public_api` OK. Foundation remains solid; no code/API/test changes made.
+
+Bounded gap search outside the audited candidates (`seq_utils`, `set_utils`, `deque_utils`, `bytes_utils`, `list_utils`, `version_utils`, `numbers_utils`, `prime_utils`, `stats.py`, `interval_utils.py`, `bit_utils.py`): checked `prompt_utils`, `inspect_utils`, `ini_utils`, `opcode_utils`, `config_utils`, `configparser_utils`, `context_utils`, `pathlib_utils`, `tarfile_utils`, `sqlite3_utils`, `wave_utils`, `mailbox_utils` for a `count_*`/`has_*` companion pair. Findings: `prompt_utils` helpers are already paired (`count_*`/`has_*`); `inspect_utils`, `ini_utils`, `opcode_utils` were previously judged non-idiomatic for `count_*` companions; the rest have no `has_*` predicate. No clear, hermetic, convention-consistent gap identified that warrants a new public API or test-only change.
+
+Next Planned (durable handover for the following agent):
+
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap **outside** the audited candidates, with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-09 08:40Z) — bootstrap verification; foundation solid, no changes needed
 
 The board held no task (`board_read` empty; bootstrap session). Verified repository health: `git status` clean on `main`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full test suite `python -m unittest discover tests/` — **9756 tests, OK** (55.4s). `tests.test_public_api` OK. `make lint` (ruff) passes. `make typecheck` (mypy) reports 88 pre-existing errors in 16 test files (intentional wrong-type/annotation cases) — not introduced by this session. Foundation remains solid; no code/API/test changes made.
