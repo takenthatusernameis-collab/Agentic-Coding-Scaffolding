@@ -3,8 +3,6 @@
 import unittest
 
 from seq_utils import (
-    is_empty,
-    is_not_empty,
     adjacent_pairs,
     all_where,
     chunk,
@@ -34,6 +32,8 @@ from seq_utils import (
     index_of,
     indices_of,
     interleave,
+    is_empty,
+    is_not_empty,
     is_sorted,
     last,
     last_index_of,
