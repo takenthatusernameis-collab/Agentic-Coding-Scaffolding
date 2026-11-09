@@ -7,8 +7,11 @@ T = TypeVar("T")
 __all__ = [
     "T",
     "cartesian_product",
-    "difference",
+    "count_difference",
     "count_intersection",
+    "count_symmetric_difference",
+    "count_union",
+    "difference",
     "has_intersection",
     "intersection",
     "is_disjoint",
@@ -297,6 +300,38 @@ def union(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     return _to_set(a) | _to_set(b)
 
 
+def count_union(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements present in either ``a`` or ``b``.
+
+    This is the integer companion to :func:`union`. Only distinct elements
+    are counted, so duplicate occurrences in either input contribute at most
+    one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the union of ``a`` and ``b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_union([1, 2], [2, 3])
+        3
+        >>> count_union([1, 2], [3, 4])
+        4
+        >>> count_union([], [])
+        0
+        >>> count_union([1, 1, 2], [2, 2])
+        2
+        >>> count_union("abc", "cd")
+        4
+    """
+    return len(union(a, b))
+
+
 def difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     """Return elements in ``a`` that are not in ``b``.
 
@@ -317,6 +352,38 @@ def difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     return _to_set(a) - _to_set(b)
 
 
+def count_difference(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements in ``a`` that are not in ``b``.
+
+    This is the integer companion to :func:`difference`. Only distinct
+    elements are counted, so duplicate occurrences in ``a`` contribute at
+    most one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the difference ``a - b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_difference([1, 2, 3], [2])
+        2
+        >>> count_difference([1, 2], [3, 4])
+        2
+        >>> count_difference([], [1, 2])
+        0
+        >>> count_difference([1, 1, 2], [2])
+        1
+        >>> count_difference("abc", "cd")
+        2
+    """
+    return len(difference(a, b))
+
+
 def symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     """Return elements in either ``a`` or ``b`` but not both.
 
@@ -335,6 +402,39 @@ def symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
         {1, 4}
     """
     return _to_set(a) ^ _to_set(b)
+
+
+def count_symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements in either ``a`` or ``b`` but not both.
+
+    This is the integer companion to :func:`symmetric_difference`. Only
+    distinct elements are counted, so duplicate occurrences in either input
+    contribute at most one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the symmetric difference of ``a``
+        and ``b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_symmetric_difference([1, 2, 3], [2, 3, 4])
+        2
+        >>> count_symmetric_difference([1, 2], [3, 4])
+        4
+        >>> count_symmetric_difference([1, 2], [1, 2])
+        0
+        >>> count_symmetric_difference([1, 1, 2], [2, 2])
+        1
+        >>> count_symmetric_difference("abc", "cd")
+        3
+    """
+    return len(symmetric_difference(a, b))
 
 
 def cartesian_product(a: Sequence[Any], b: Sequence[Any]) -> Iterator[Tuple[Any, Any]]:

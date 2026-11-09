@@ -4,7 +4,10 @@ import unittest
 
 from set_utils import (
     cartesian_product,
+    count_difference,
     count_intersection,
+    count_symmetric_difference,
+    count_union,
     difference,
     has_intersection,
     intersection,
@@ -217,6 +220,45 @@ class TestUnion(unittest.TestCase):
         self.assertEqual(union([], []), set())
 
 
+class TestCountUnion(unittest.TestCase):
+    def test_count_union_basic(self) -> None:
+        self.assertEqual(count_union([1, 2], [2, 3]), 3)
+
+    def test_count_union_disjoint(self) -> None:
+        self.assertEqual(count_union([1, 2], [3, 4]), 4)
+
+    def test_count_union_empty(self) -> None:
+        self.assertEqual(count_union([], []), 0)
+        self.assertEqual(count_union([], [1, 2]), 2)
+        self.assertEqual(count_union([1, 2], []), 2)
+
+    def test_count_union_duplicates_ignored(self) -> None:
+        self.assertEqual(count_union([1, 1, 2], [2, 2]), 2)
+        self.assertEqual(count_union([1, 1, 1], [1, 1]), 1)
+
+    def test_count_union_strings(self) -> None:
+        self.assertEqual(count_union("abc", "cd"), 4)
+        self.assertEqual(count_union("abc", "abc"), 3)
+
+    def test_count_union_consistency_with_union(self) -> None:
+        cases = [
+            ([1, 2], [2, 3]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+            ("abc", "cd"),
+            ([1, 2, 3], [3, 2, 1]),
+        ]
+        for a, b in cases:
+            self.assertEqual(count_union(a, b), len(union(a, b)))
+
+    def test_count_union_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_union(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_union([1, 2], 123)  # type: ignore[arg-type]
+
+
 class TestDifference(unittest.TestCase):
     def test_difference_basic(self) -> None:
         self.assertEqual(difference([1, 2, 3], [2]), {1, 3})
@@ -228,6 +270,48 @@ class TestDifference(unittest.TestCase):
         self.assertEqual(difference([], [1, 2]), set())
 
 
+class TestCountDifference(unittest.TestCase):
+    def test_count_difference_basic(self) -> None:
+        self.assertEqual(count_difference([1, 2, 3], [2]), 2)
+
+    def test_count_difference_no_overlap(self) -> None:
+        self.assertEqual(count_difference([1, 2], [3, 4]), 2)
+
+    def test_count_difference_empty(self) -> None:
+        self.assertEqual(count_difference([], [1, 2]), 0)
+        self.assertEqual(count_difference([1, 2], []), 2)
+        self.assertEqual(count_difference([], []), 0)
+
+    def test_count_difference_duplicates_ignored(self) -> None:
+        self.assertEqual(count_difference([1, 1, 2], [2]), 1)
+        self.assertEqual(count_difference([1, 1, 1], [1]), 0)
+
+    def test_count_difference_strings(self) -> None:
+        self.assertEqual(count_difference("abc", "cd"), 2)
+        self.assertEqual(count_difference("abc", "abc"), 0)
+
+    def test_count_difference_all_removed(self) -> None:
+        self.assertEqual(count_difference([1, 2], [1, 2, 3]), 0)
+
+    def test_count_difference_consistency_with_difference(self) -> None:
+        cases = [
+            ([1, 2, 3], [2]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2]),
+            ("abc", "cd"),
+            ([1, 2], [1, 2, 3]),
+        ]
+        for a, b in cases:
+            self.assertEqual(count_difference(a, b), len(difference(a, b)))
+
+    def test_count_difference_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_difference(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_difference([1, 2], 123)  # type: ignore[arg-type]
+
+
 class TestSymmetricDifference(unittest.TestCase):
     def test_symmetric_difference_basic(self) -> None:
         self.assertEqual(symmetric_difference([1, 2, 3], [2, 3, 4]), {1, 4})
@@ -237,6 +321,51 @@ class TestSymmetricDifference(unittest.TestCase):
 
     def test_symmetric_difference_equal(self) -> None:
         self.assertEqual(symmetric_difference([1, 2], [1, 2]), set())
+
+
+class TestCountSymmetricDifference(unittest.TestCase):
+    def test_count_symmetric_difference_basic(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 2, 3], [2, 3, 4]), 2)
+
+    def test_count_symmetric_difference_disjoint(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 2], [3, 4]), 4)
+
+    def test_count_symmetric_difference_equal(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 2], [1, 2]), 0)
+
+    def test_count_symmetric_difference_empty(self) -> None:
+        self.assertEqual(count_symmetric_difference([], []), 0)
+        self.assertEqual(count_symmetric_difference([], [1, 2]), 2)
+        self.assertEqual(count_symmetric_difference([1, 2], []), 2)
+
+    def test_count_symmetric_difference_duplicates_ignored(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 1, 2], [2, 2]), 1)
+        self.assertEqual(count_symmetric_difference([1, 1, 1], [1, 1]), 0)
+
+    def test_count_symmetric_difference_strings(self) -> None:
+        self.assertEqual(count_symmetric_difference("abc", "cd"), 3)
+        self.assertEqual(count_symmetric_difference("abc", "abc"), 0)
+
+    def test_count_symmetric_difference_consistency(self) -> None:
+        cases = [
+            ([1, 2, 3], [2, 3, 4]),
+            ([1, 2], [3, 4]),
+            ([1, 2], [1, 2]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+            ("abc", "cd"),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                count_symmetric_difference(a, b),
+                len(symmetric_difference(a, b)),
+            )
+
+    def test_count_symmetric_difference_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_symmetric_difference(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_symmetric_difference([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestCartesianProduct(unittest.TestCase):

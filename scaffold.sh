@@ -24153,7 +24153,10 @@ import unittest
 
 from set_utils import (
     cartesian_product,
+    count_difference,
     count_intersection,
+    count_symmetric_difference,
+    count_union,
     difference,
     has_intersection,
     intersection,
@@ -24366,6 +24369,45 @@ class TestUnion(unittest.TestCase):
         self.assertEqual(union([], []), set())
 
 
+class TestCountUnion(unittest.TestCase):
+    def test_count_union_basic(self) -> None:
+        self.assertEqual(count_union([1, 2], [2, 3]), 3)
+
+    def test_count_union_disjoint(self) -> None:
+        self.assertEqual(count_union([1, 2], [3, 4]), 4)
+
+    def test_count_union_empty(self) -> None:
+        self.assertEqual(count_union([], []), 0)
+        self.assertEqual(count_union([], [1, 2]), 2)
+        self.assertEqual(count_union([1, 2], []), 2)
+
+    def test_count_union_duplicates_ignored(self) -> None:
+        self.assertEqual(count_union([1, 1, 2], [2, 2]), 2)
+        self.assertEqual(count_union([1, 1, 1], [1, 1]), 1)
+
+    def test_count_union_strings(self) -> None:
+        self.assertEqual(count_union("abc", "cd"), 4)
+        self.assertEqual(count_union("abc", "abc"), 3)
+
+    def test_count_union_consistency_with_union(self) -> None:
+        cases = [
+            ([1, 2], [2, 3]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+            ("abc", "cd"),
+            ([1, 2, 3], [3, 2, 1]),
+        ]
+        for a, b in cases:
+            self.assertEqual(count_union(a, b), len(union(a, b)))
+
+    def test_count_union_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_union(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_union([1, 2], 123)  # type: ignore[arg-type]
+
+
 class TestDifference(unittest.TestCase):
     def test_difference_basic(self) -> None:
         self.assertEqual(difference([1, 2, 3], [2]), {1, 3})
@@ -24377,6 +24419,48 @@ class TestDifference(unittest.TestCase):
         self.assertEqual(difference([], [1, 2]), set())
 
 
+class TestCountDifference(unittest.TestCase):
+    def test_count_difference_basic(self) -> None:
+        self.assertEqual(count_difference([1, 2, 3], [2]), 2)
+
+    def test_count_difference_no_overlap(self) -> None:
+        self.assertEqual(count_difference([1, 2], [3, 4]), 2)
+
+    def test_count_difference_empty(self) -> None:
+        self.assertEqual(count_difference([], [1, 2]), 0)
+        self.assertEqual(count_difference([1, 2], []), 2)
+        self.assertEqual(count_difference([], []), 0)
+
+    def test_count_difference_duplicates_ignored(self) -> None:
+        self.assertEqual(count_difference([1, 1, 2], [2]), 1)
+        self.assertEqual(count_difference([1, 1, 1], [1]), 0)
+
+    def test_count_difference_strings(self) -> None:
+        self.assertEqual(count_difference("abc", "cd"), 2)
+        self.assertEqual(count_difference("abc", "abc"), 0)
+
+    def test_count_difference_all_removed(self) -> None:
+        self.assertEqual(count_difference([1, 2], [1, 2, 3]), 0)
+
+    def test_count_difference_consistency_with_difference(self) -> None:
+        cases = [
+            ([1, 2, 3], [2]),
+            ([1, 2], [3, 4]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2]),
+            ("abc", "cd"),
+            ([1, 2], [1, 2, 3]),
+        ]
+        for a, b in cases:
+            self.assertEqual(count_difference(a, b), len(difference(a, b)))
+
+    def test_count_difference_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_difference(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_difference([1, 2], 123)  # type: ignore[arg-type]
+
+
 class TestSymmetricDifference(unittest.TestCase):
     def test_symmetric_difference_basic(self) -> None:
         self.assertEqual(symmetric_difference([1, 2, 3], [2, 3, 4]), {1, 4})
@@ -24386,6 +24470,51 @@ class TestSymmetricDifference(unittest.TestCase):
 
     def test_symmetric_difference_equal(self) -> None:
         self.assertEqual(symmetric_difference([1, 2], [1, 2]), set())
+
+
+class TestCountSymmetricDifference(unittest.TestCase):
+    def test_count_symmetric_difference_basic(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 2, 3], [2, 3, 4]), 2)
+
+    def test_count_symmetric_difference_disjoint(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 2], [3, 4]), 4)
+
+    def test_count_symmetric_difference_equal(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 2], [1, 2]), 0)
+
+    def test_count_symmetric_difference_empty(self) -> None:
+        self.assertEqual(count_symmetric_difference([], []), 0)
+        self.assertEqual(count_symmetric_difference([], [1, 2]), 2)
+        self.assertEqual(count_symmetric_difference([1, 2], []), 2)
+
+    def test_count_symmetric_difference_duplicates_ignored(self) -> None:
+        self.assertEqual(count_symmetric_difference([1, 1, 2], [2, 2]), 1)
+        self.assertEqual(count_symmetric_difference([1, 1, 1], [1, 1]), 0)
+
+    def test_count_symmetric_difference_strings(self) -> None:
+        self.assertEqual(count_symmetric_difference("abc", "cd"), 3)
+        self.assertEqual(count_symmetric_difference("abc", "abc"), 0)
+
+    def test_count_symmetric_difference_consistency(self) -> None:
+        cases = [
+            ([1, 2, 3], [2, 3, 4]),
+            ([1, 2], [3, 4]),
+            ([1, 2], [1, 2]),
+            ([], [1, 2]),
+            ([1, 1, 2], [2, 2]),
+            ("abc", "cd"),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                count_symmetric_difference(a, b),
+                len(symmetric_difference(a, b)),
+            )
+
+    def test_count_symmetric_difference_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_symmetric_difference(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_symmetric_difference([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestCartesianProduct(unittest.TestCase):
@@ -38618,8 +38747,11 @@ T = TypeVar("T")
 __all__ = [
     "T",
     "cartesian_product",
-    "difference",
+    "count_difference",
     "count_intersection",
+    "count_symmetric_difference",
+    "count_union",
+    "difference",
     "has_intersection",
     "intersection",
     "is_disjoint",
@@ -38908,6 +39040,38 @@ def union(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     return _to_set(a) | _to_set(b)
 
 
+def count_union(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements present in either ``a`` or ``b``.
+
+    This is the integer companion to :func:`union`. Only distinct elements
+    are counted, so duplicate occurrences in either input contribute at most
+    one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the union of ``a`` and ``b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_union([1, 2], [2, 3])
+        3
+        >>> count_union([1, 2], [3, 4])
+        4
+        >>> count_union([], [])
+        0
+        >>> count_union([1, 1, 2], [2, 2])
+        2
+        >>> count_union("abc", "cd")
+        4
+    """
+    return len(union(a, b))
+
+
 def difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     """Return elements in ``a`` that are not in ``b``.
 
@@ -38928,6 +39092,38 @@ def difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     return _to_set(a) - _to_set(b)
 
 
+def count_difference(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements in ``a`` that are not in ``b``.
+
+    This is the integer companion to :func:`difference`. Only distinct
+    elements are counted, so duplicate occurrences in ``a`` contribute at
+    most one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the difference ``a - b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_difference([1, 2, 3], [2])
+        2
+        >>> count_difference([1, 2], [3, 4])
+        2
+        >>> count_difference([], [1, 2])
+        0
+        >>> count_difference([1, 1, 2], [2])
+        1
+        >>> count_difference("abc", "cd")
+        2
+    """
+    return len(difference(a, b))
+
+
 def symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
     """Return elements in either ``a`` or ``b`` but not both.
 
@@ -38946,6 +39142,39 @@ def symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
         {1, 4}
     """
     return _to_set(a) ^ _to_set(b)
+
+
+def count_symmetric_difference(a: Iterable[Any], b: Iterable[Any]) -> int:
+    """Return the number of distinct elements in either ``a`` or ``b`` but not both.
+
+    This is the integer companion to :func:`symmetric_difference`. Only
+    distinct elements are counted, so duplicate occurrences in either input
+    contribute at most one to the result.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        The number of distinct elements in the symmetric difference of ``a``
+        and ``b``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> count_symmetric_difference([1, 2, 3], [2, 3, 4])
+        2
+        >>> count_symmetric_difference([1, 2], [3, 4])
+        4
+        >>> count_symmetric_difference([1, 2], [1, 2])
+        0
+        >>> count_symmetric_difference([1, 1, 2], [2, 2])
+        1
+        >>> count_symmetric_difference("abc", "cd")
+        3
+    """
+    return len(symmetric_difference(a, b))
 
 
 def cartesian_product(a: Sequence[Any], b: Sequence[Any]) -> Iterator[Tuple[Any, Any]]:
@@ -66288,6 +66517,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_union/count_difference/count_symmetric_difference to `set_utils`
+
+- Added `count_union(a, b)`, `count_difference(a, b)`, and `count_symmetric_difference(a, b)` to `set_utils.py` as integer companions to `union`/`difference`/`symmetric_difference`, matching the existing `count_intersection`/`has_intersection` style. Each returns the number of distinct elements in the corresponding set operation (duplicates in inputs contribute at most once), accepts any iterable of hashable elements, raises `TypeError` for non-iterables, is exported via `__all__`, and ships with Google-style docstrings and ASCII-safe doctests. Added `TestCountUnion`, `TestCountDifference`, and `TestCountSymmetricDifference` (24 tests) to `tests/test_set_utils.py` covering basic/empty/duplicate/string cases, consistency with the set-returning helpers, and `TypeError` paths. Updated `README.md` (tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_set_utils` (98 OK), `python -m doctest set_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_unique/has_all_unique companions to `list_utils`
 
 - Added `count_unique(lst)` and `has_all_unique(lst)` to `list_utils.py` as companions to `count_duplicates`/`has_duplicates`/`unique_preserve_order`, matching `seq_utils` style. Both accept a typed `List[T]`, raise `TypeError` for non-lists, handle unhashable elements via linear membership checks, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. `count_unique` returns the number of distinct elements; `has_all_unique` reports whether all elements are distinct (empty list vacuously `True`). Added `TestCountUnique` and `TestHasAllUnique` (15 tests) to `tests/test_list_utils.py`. Updated `README.md` (`list_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` (202 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
@@ -68961,7 +69194,7 @@ dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flat
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
-set_utils.py             # Set operation utilities (subset, superset, proper_subset, proper_superset, disjoint, has_intersection, is_equal, intersection, count_intersection, union, difference, symmetric_difference, cartesian_product, power_set)
+set_utils.py             # Set operation utilities (subset, superset, proper_subset, proper_superset, disjoint, has_intersection, is_equal, intersection, count_intersection, union, count_union, difference, count_difference, symmetric_difference, count_symmetric_difference, cartesian_product, power_set)
 
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
@@ -69659,7 +69892,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `difference`, `symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `count_union`, `difference`, `count_difference`, `symmetric_difference`, `count_symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 
