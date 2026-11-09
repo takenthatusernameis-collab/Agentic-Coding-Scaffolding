@@ -1,6 +1,6 @@
 """Dictionary utility functions."""
 
-from typing import Any, Dict, List, TypeVar
+from typing import Any, Callable, Dict, List, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -16,8 +16,10 @@ __all__ = [
     "contains_value",
     "count_all_keys",
     "count_all_values",
+    "count_where",
     "deep_merge",
     "filter_dict",
+    "all_where",
     "flatten_dict",
     "has_all_keys",
     "has_all_values",
@@ -25,10 +27,12 @@ __all__ = [
     "has_any_value",
     "has_key",
     "has_value",
+    "has_where",
     "invert_dict",
     "is_invertible",
     "keys_equal",
     "merge",
+    "none_where",
     "omit_keys",
     "safe_get",
     "select_keys",
@@ -387,6 +391,125 @@ def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
         Filtered dictionary.
     """
     return {k: v for k, v in d.items() if predicate(k, v)}
+
+def count_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> int:
+    """Count items in *d* for which *predicate(key, value)* returns ``True``.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        The number of items matching *predicate*.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> count_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v % 2 == 1)
+        2
+        >>> count_where({"a": 1, "b": 2}, lambda k, v: v > 10)
+        0
+        >>> count_where({}, lambda k, v: True)
+        0
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return sum(1 for k, v in d.items() if predicate(k, v))
+
+
+def has_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
+    """Report whether any item in *d* satisfies *predicate(key, value)*.
+
+    This is the boolean companion to :func:`count_where`.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        ``True`` when at least one item matches, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> has_where({"a": 1, "b": 2}, lambda k, v: v > 1)
+        True
+        >>> has_where({"a": 1, "b": 2}, lambda k, v: v > 10)
+        False
+        >>> has_where({}, lambda k, v: True)
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return any(predicate(k, v) for k, v in d.items())
+
+
+def all_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
+    """Report whether every item in *d* satisfies *predicate(key, value)*.
+
+    Vacuously ``True`` for an empty dictionary, matching Python ``all`` semantics.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        ``True`` when all items match (or *d* is empty), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> all_where({"a": 2, "b": 4}, lambda k, v: v % 2 == 0)
+        True
+        >>> all_where({"a": 2, "b": 3}, lambda k, v: v % 2 == 0)
+        False
+        >>> all_where({}, lambda k, v: False)
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return all(predicate(k, v) for k, v in d.items())
+
+
+def none_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
+    """Report whether no item in *d* satisfies *predicate(key, value)*.
+
+    This is the negation companion to :func:`has_where`. An empty dictionary
+    returns ``True``.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        ``True`` when no items match (or *d* is empty), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> none_where({"a": 1, "b": 3}, lambda k, v: v % 2 == 0)
+        True
+        >>> none_where({"a": 1, "b": 2}, lambda k, v: v % 2 == 0)
+        False
+        >>> none_where({}, lambda k, v: True)
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return not any(predicate(k, v) for k, v in d.items())
+
 
 
 def select_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:

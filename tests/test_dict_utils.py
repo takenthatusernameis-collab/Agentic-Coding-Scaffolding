@@ -3,6 +3,7 @@
 import unittest
 
 from dict_utils import (
+    all_where,
     contains_all_keys,
     contains_all_values,
     contains_any_key,
@@ -11,6 +12,7 @@ from dict_utils import (
     contains_value,
     count_all_keys,
     count_all_values,
+    count_where,
     deep_merge,
     filter_dict,
     flatten_dict,
@@ -20,10 +22,12 @@ from dict_utils import (
     has_any_value,
     has_key,
     has_value,
+    has_where,
     invert_dict,
     is_invertible,
     keys_equal,
     merge,
+    none_where,
     omit_keys,
     safe_get,
     select_keys,
@@ -631,3 +635,103 @@ class TestCountAllValues(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             count_all_values("x", [1])  # type: ignore[arg-type]
+
+class TestCountWhere(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v % 2 == 1), 2)
+        self.assertEqual(count_where({"a": 1, "b": 2}, lambda k, v: k == "a"), 1)
+
+    def test_no_match(self) -> None:
+        self.assertEqual(count_where({"a": 1, "b": 2}, lambda k, v: v > 10), 0)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_where({}, lambda k, v: True), 0)
+
+    def test_all_match(self) -> None:
+        self.assertEqual(count_where({"a": 2, "b": 4}, lambda k, v: v % 2 == 0), 2)
+
+    def test_key_predicate(self) -> None:
+        self.assertEqual(count_where({"aa": 1, "b": 2, "cc": 3}, lambda k, v: len(k) == 2), 2)
+
+    def test_falsy_values(self) -> None:
+        self.assertEqual(count_where({"a": 0, "b": None, "c": 1}, lambda k, v: v is None), 1)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestHasWhere(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertTrue(has_where({"a": 1, "b": 2}, lambda k, v: v > 1))
+        self.assertTrue(has_where({"a": 1}, lambda k, v: k == "a"))
+
+    def test_absent(self) -> None:
+        self.assertFalse(has_where({"a": 1, "b": 2}, lambda k, v: v > 10))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_where({}, lambda k, v: True))
+
+    def test_consistency(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        def pred(k, v): return v % 2 == 0
+        self.assertEqual(has_where(d, pred), count_where(d, pred) > 0)
+        def pred2(k, v): return v > 10
+        self.assertEqual(has_where(d, pred2), count_where(d, pred2) > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where({"a": 1}, None)  # type: ignore[arg-type]
+
+
+class TestAllWhere(unittest.TestCase):
+    def test_all_match(self) -> None:
+        self.assertTrue(all_where({"a": 2, "b": 4}, lambda k, v: v % 2 == 0))
+
+    def test_some_fail(self) -> None:
+        self.assertFalse(all_where({"a": 2, "b": 3}, lambda k, v: v % 2 == 0))
+
+    def test_empty_vacuous_true(self) -> None:
+        self.assertTrue(all_where({}, lambda k, v: False))
+
+    def test_consistency(self) -> None:
+        d = {"a": 1, "b": 2}
+        def pred(k, v): return v > 0
+        self.assertEqual(all_where(d, pred), count_where(d, pred) == len(d))
+        def pred2(k, v): return v > 1
+        self.assertEqual(all_where(d, pred2), count_where(d, pred2) == len(d))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            all_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            all_where({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestNoneWhere(unittest.TestCase):
+    def test_no_match(self) -> None:
+        self.assertTrue(none_where({"a": 1, "b": 3}, lambda k, v: v % 2 == 0))
+
+    def test_some_match(self) -> None:
+        self.assertFalse(none_where({"a": 1, "b": 2}, lambda k, v: v % 2 == 0))
+
+    def test_empty(self) -> None:
+        self.assertTrue(none_where({}, lambda k, v: True))
+
+    def test_consistency(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        def pred(k, v): return v % 2 == 0
+        self.assertEqual(none_where(d, pred), not has_where(d, pred))
+        def pred2(k, v): return v > 10
+        self.assertEqual(none_where(d, pred2), not has_where(d, pred2))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            none_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            none_where({"a": 1}, None)  # type: ignore[arg-type]
+

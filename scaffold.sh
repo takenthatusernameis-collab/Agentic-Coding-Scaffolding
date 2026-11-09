@@ -38101,7 +38101,7 @@ TEST_PRIORITY_QUEUE_UTILS
 cat > "$OUTPUT_DIR/dict_utils.py" <<'DICTUTILS'
 """Dictionary utility functions."""
 
-from typing import Any, Dict, List, TypeVar
+from typing import Any, Callable, Dict, List, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -38117,8 +38117,10 @@ __all__ = [
     "contains_value",
     "count_all_keys",
     "count_all_values",
+    "count_where",
     "deep_merge",
     "filter_dict",
+    "all_where",
     "flatten_dict",
     "has_all_keys",
     "has_all_values",
@@ -38126,10 +38128,12 @@ __all__ = [
     "has_any_value",
     "has_key",
     "has_value",
+    "has_where",
     "invert_dict",
     "is_invertible",
     "keys_equal",
     "merge",
+    "none_where",
     "omit_keys",
     "safe_get",
     "select_keys",
@@ -38488,6 +38492,125 @@ def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
         Filtered dictionary.
     """
     return {k: v for k, v in d.items() if predicate(k, v)}
+
+def count_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> int:
+    """Count items in *d* for which *predicate(key, value)* returns ``True``.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        The number of items matching *predicate*.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> count_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v % 2 == 1)
+        2
+        >>> count_where({"a": 1, "b": 2}, lambda k, v: v > 10)
+        0
+        >>> count_where({}, lambda k, v: True)
+        0
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return sum(1 for k, v in d.items() if predicate(k, v))
+
+
+def has_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
+    """Report whether any item in *d* satisfies *predicate(key, value)*.
+
+    This is the boolean companion to :func:`count_where`.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        ``True`` when at least one item matches, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> has_where({"a": 1, "b": 2}, lambda k, v: v > 1)
+        True
+        >>> has_where({"a": 1, "b": 2}, lambda k, v: v > 10)
+        False
+        >>> has_where({}, lambda k, v: True)
+        False
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return any(predicate(k, v) for k, v in d.items())
+
+
+def all_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
+    """Report whether every item in *d* satisfies *predicate(key, value)*.
+
+    Vacuously ``True`` for an empty dictionary, matching Python ``all`` semantics.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        ``True`` when all items match (or *d* is empty), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> all_where({"a": 2, "b": 4}, lambda k, v: v % 2 == 0)
+        True
+        >>> all_where({"a": 2, "b": 3}, lambda k, v: v % 2 == 0)
+        False
+        >>> all_where({}, lambda k, v: False)
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return all(predicate(k, v) for k, v in d.items())
+
+
+def none_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
+    """Report whether no item in *d* satisfies *predicate(key, value)*.
+
+    This is the negation companion to :func:`has_where`. An empty dictionary
+    returns ``True``.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        ``True`` when no items match (or *d* is empty), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> none_where({"a": 1, "b": 3}, lambda k, v: v % 2 == 0)
+        True
+        >>> none_where({"a": 1, "b": 2}, lambda k, v: v % 2 == 0)
+        False
+        >>> none_where({}, lambda k, v: True)
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return not any(predicate(k, v) for k, v in d.items())
+
 
 
 def select_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
@@ -51002,6 +51125,7 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 import unittest
 
 from dict_utils import (
+    all_where,
     contains_all_keys,
     contains_all_values,
     contains_any_key,
@@ -51010,6 +51134,7 @@ from dict_utils import (
     contains_value,
     count_all_keys,
     count_all_values,
+    count_where,
     deep_merge,
     filter_dict,
     flatten_dict,
@@ -51019,10 +51144,12 @@ from dict_utils import (
     has_any_value,
     has_key,
     has_value,
+    has_where,
     invert_dict,
     is_invertible,
     keys_equal,
     merge,
+    none_where,
     omit_keys,
     safe_get,
     select_keys,
@@ -51630,6 +51757,105 @@ class TestCountAllValues(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             count_all_values("x", [1])  # type: ignore[arg-type]
+
+class TestCountWhere(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v % 2 == 1), 2)
+        self.assertEqual(count_where({"a": 1, "b": 2}, lambda k, v: k == "a"), 1)
+
+    def test_no_match(self) -> None:
+        self.assertEqual(count_where({"a": 1, "b": 2}, lambda k, v: v > 10), 0)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_where({}, lambda k, v: True), 0)
+
+    def test_all_match(self) -> None:
+        self.assertEqual(count_where({"a": 2, "b": 4}, lambda k, v: v % 2 == 0), 2)
+
+    def test_key_predicate(self) -> None:
+        self.assertEqual(count_where({"aa": 1, "b": 2, "cc": 3}, lambda k, v: len(k) == 2), 2)
+
+    def test_falsy_values(self) -> None:
+        self.assertEqual(count_where({"a": 0, "b": None, "c": 1}, lambda k, v: v is None), 1)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_where({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestHasWhere(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertTrue(has_where({"a": 1, "b": 2}, lambda k, v: v > 1))
+        self.assertTrue(has_where({"a": 1}, lambda k, v: k == "a"))
+
+    def test_absent(self) -> None:
+        self.assertFalse(has_where({"a": 1, "b": 2}, lambda k, v: v > 10))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_where({}, lambda k, v: True))
+
+    def test_consistency(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        def pred(k, v): return v % 2 == 0
+        self.assertEqual(has_where(d, pred), count_where(d, pred) > 0)
+        def pred2(k, v): return v > 10
+        self.assertEqual(has_where(d, pred2), count_where(d, pred2) > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_where({"a": 1}, None)  # type: ignore[arg-type]
+
+
+class TestAllWhere(unittest.TestCase):
+    def test_all_match(self) -> None:
+        self.assertTrue(all_where({"a": 2, "b": 4}, lambda k, v: v % 2 == 0))
+
+    def test_some_fail(self) -> None:
+        self.assertFalse(all_where({"a": 2, "b": 3}, lambda k, v: v % 2 == 0))
+
+    def test_empty_vacuous_true(self) -> None:
+        self.assertTrue(all_where({}, lambda k, v: False))
+
+    def test_consistency(self) -> None:
+        d = {"a": 1, "b": 2}
+        def pred(k, v): return v > 0
+        self.assertEqual(all_where(d, pred), count_where(d, pred) == len(d))
+        def pred2(k, v): return v > 1
+        self.assertEqual(all_where(d, pred2), count_where(d, pred2) == len(d))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            all_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            all_where({"a": 1}, 1)  # type: ignore[arg-type]
+
+
+class TestNoneWhere(unittest.TestCase):
+    def test_no_match(self) -> None:
+        self.assertTrue(none_where({"a": 1, "b": 3}, lambda k, v: v % 2 == 0))
+
+    def test_some_match(self) -> None:
+        self.assertFalse(none_where({"a": 1, "b": 2}, lambda k, v: v % 2 == 0))
+
+    def test_empty(self) -> None:
+        self.assertTrue(none_where({}, lambda k, v: True))
+
+    def test_consistency(self) -> None:
+        d = {"a": 1, "b": 2, "c": 3}
+        def pred(k, v): return v % 2 == 0
+        self.assertEqual(none_where(d, pred), not has_where(d, pred))
+        def pred2(k, v): return v > 10
+        self.assertEqual(none_where(d, pred2), not has_where(d, pred2))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            none_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            none_where({"a": 1}, None)  # type: ignore[arg-type]
 TESTDICTUTILS
 
 # --- terminal_utils.py ---
@@ -66752,6 +66978,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_where/has_where/all_where/none_where companions to `dict_utils`
+
+- Added `count_where(d, predicate)`, `has_where(d, predicate)`, `all_where(d, predicate)`, and `none_where(d, predicate)` to `dict_utils.py` as item-predicate companions matching the `seq_utils`/`list_utils` style (predicates take `(key, value)`). `count_where` returns the number of matching items; `has_where` reports any match (short-circuits); `all_where` reports every match (vacuously `True` for an empty dict, matching Python `all` semantics); `none_where` reports no match (negation of `has_where`, `True` for an empty dict). Typed APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation for non-dict *d* and non-callable predicates.
+- Added `TestCountWhere`, `TestHasWhere`, `TestAllWhere`, and `TestNoneWhere` (22 tests) to `tests/test_dict_utils.py` covering basic/no-match/empty/all-match/key/falsy-value cases, consistency between companions, and `TypeError` paths.
+- Updated `README.md` (`dict_utils` tree/prose). `dict_utils.py`/`tests/test_dict_utils.py` are not embedded in `scaffold.sh`, so no scaffold refresh was needed. Verified: `python -m unittest tests.test_dict_utils` (144 OK; +22 new), `python -m doctest dict_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check dict_utils.py tests/test_dict_utils.py` clean, `python -m mypy dict_utils.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added first_or_default/last_or_default companions to `seq_utils`
 
 - Added `first_or_default(sequence, default=None)` and `last_or_default(sequence, default=None)` to `seq_utils.py` as companions to `first`/`last` and `nth_or_default`, matching the `list_utils.first_or_default`/`last_or_default` style. Both accept any `Sequence`, validate with `_require_sequence`, raise `TypeError` for non-sequences, return the boundary element or the supplied default for an empty sequence, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests.
@@ -69473,7 +69705,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, count_all_keys, count_all_values, keys_equal, values_equal)
+dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, count_where, has_where, all_where, none_where, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, count_all_keys, count_all_values, keys_equal, values_equal)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -70163,7 +70395,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The integer companion `count_all_keys` reports how many keys from a candidate iterable are present in the dictionary, and `has_all_keys`/`has_any_key` reuse it for consistency. The integer companion `count_all_values` reports how many values from a candidate iterable are present in the dictionary, and `has_all_values`/`has_any_value` reuse it for consistency. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, item predicate companions `count_where`/`has_where`/`all_where`/`none_where` (predicates take `(key, value)`), key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The integer companion `count_all_keys` reports how many keys from a candidate iterable are present in the dictionary, and `has_all_keys`/`has_any_key` reuse it for consistency. The integer companion `count_all_values` reports how many values from a candidate iterable are present in the dictionary, and `has_all_values`/`has_any_value` reuse it for consistency. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 
