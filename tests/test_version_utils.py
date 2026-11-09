@@ -52,8 +52,10 @@ from version_utils import (
     is_dev_version,
     is_equal,
     is_greater,
+    is_greater_equal,
     is_initial_release,
     is_less,
+    is_less_equal,
     is_newer,
     is_older,
     is_prerelease,
@@ -147,6 +149,88 @@ class TestBooleanComparisons(unittest.TestCase):
     def test_is_equal(self):
         self.assertTrue(is_equal("1.2.3", "1.2.3"))
         self.assertFalse(is_equal("1.2.3", "1.2.4"))
+
+
+class TestIsGreaterEqual(unittest.TestCase):
+    def test_greater_equal_true(self):
+        self.assertTrue(is_greater_equal("2.0.0", "1.0.0"))
+
+    def test_greater_equal_equal(self):
+        self.assertTrue(is_greater_equal("1.0.0", "1.0.0"))
+
+    def test_greater_equal_false(self):
+        self.assertFalse(is_greater_equal("0.9", "1.0"))
+
+    def test_greater_equal_different_lengths(self):
+        self.assertTrue(is_greater_equal("1.2.0", "1.2"))
+        self.assertFalse(is_greater_equal("1.2", "1.2.0"))
+
+    def test_greater_equal_consistency_with_is_greater(self):
+        cases = [
+            ("2.0.0", "1.0.0"),
+            ("1.0.0", "1.0.0"),
+            ("0.9", "1.0"),
+            ("1.2", "1.2.0"),
+            ("10.0.0", "2.0.0"),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                is_greater_equal(a, b),
+                is_greater(a, b) or is_equal(a, b),
+            )
+
+    def test_greater_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_greater_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_greater_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_greater_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            is_greater_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            is_greater_equal("1.2.a", "1.2.3")
+
+
+class TestIsLessEqual(unittest.TestCase):
+    def test_less_equal_true(self):
+        self.assertTrue(is_less_equal("0.9", "1.0"))
+
+    def test_less_equal_equal(self):
+        self.assertTrue(is_less_equal("1.0.0", "1.0.0"))
+
+    def test_less_equal_false(self):
+        self.assertFalse(is_less_equal("2.0", "1.9"))
+
+    def test_less_equal_different_lengths(self):
+        self.assertTrue(is_less_equal("1.2", "1.2.0"))
+        self.assertFalse(is_less_equal("1.2.0", "1.2"))
+
+    def test_less_equal_consistency_with_is_less(self):
+        cases = [
+            ("1.0.0", "2.0.0"),
+            ("1.0.0", "1.0.0"),
+            ("2.0", "1.9"),
+            ("1.2.0", "1.2"),
+            ("2.0.0", "10.0.0"),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                is_less_equal(a, b),
+                is_less(a, b) or is_equal(a, b),
+            )
+
+    def test_less_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_less_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_less_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_less_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            is_less_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            is_less_equal("1.2.a", "1.2.3")
 
 
 class TestNormalizeVersion(unittest.TestCase):

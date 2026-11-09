@@ -66517,6 +66517,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for version_utils relational companions
+
+- Added `TestIsGreaterEqual` (7 tests) and `TestIsLessEqual` (7 tests) to `tests/test_version_utils.py` for `is_greater_equal` and `is_less_equal`, which were exported in `__all__` and documented with ASCII-safe doctests but shipped with no dedicated test class. Coverage includes greater/less/equal/strict cases, different-length versions, consistency with `is_greater`/`is_less`/`is_equal`, and `TypeError`/`ValueError` paths; imported the two names to match the module's `__all__` contract. The implementation in `version_utils.py` was unchanged. Updated the `version_utils` module tree entry of `README.md` to list the new names. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_version_utils` (292 OK), `python -m doctest version_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_union/count_difference/count_symmetric_difference to `set_utils`
 
 - Added `count_union(a, b)`, `count_difference(a, b)`, and `count_symmetric_difference(a, b)` to `set_utils.py` as integer companions to `union`/`difference`/`symmetric_difference`, matching the existing `count_intersection`/`has_intersection` style. Each returns the number of distinct elements in the corresponding set operation (duplicates in inputs contribute at most once), accepts any iterable of hashable elements, raises `TypeError` for non-iterables, is exported via `__all__`, and ships with Google-style docstrings and ASCII-safe doctests. Added `TestCountUnion`, `TestCountDifference`, and `TestCountSymmetricDifference` (24 tests) to `tests/test_set_utils.py` covering basic/empty/duplicate/string cases, consistency with the set-returning helpers, and `TypeError` paths. Updated `README.md` (tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_set_utils` (98 OK), `python -m doctest set_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
@@ -69233,7 +69237,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, is_beta, has_prerelease, has_build_metadata, count_build_metadata_identifiers, has_build_metadata_identifiers, has_metadata)
+version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, is_beta, has_prerelease, has_build_metadata, count_build_metadata_identifiers, has_build_metadata_identifiers, has_metadata, is_greater_equal, is_less_equal)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
@@ -126378,8 +126382,10 @@ from version_utils import (
     is_dev_version,
     is_equal,
     is_greater,
+    is_greater_equal,
     is_initial_release,
     is_less,
+    is_less_equal,
     is_newer,
     is_older,
     is_prerelease,
@@ -126473,6 +126479,88 @@ class TestBooleanComparisons(unittest.TestCase):
     def test_is_equal(self):
         self.assertTrue(is_equal("1.2.3", "1.2.3"))
         self.assertFalse(is_equal("1.2.3", "1.2.4"))
+
+
+class TestIsGreaterEqual(unittest.TestCase):
+    def test_greater_equal_true(self):
+        self.assertTrue(is_greater_equal("2.0.0", "1.0.0"))
+
+    def test_greater_equal_equal(self):
+        self.assertTrue(is_greater_equal("1.0.0", "1.0.0"))
+
+    def test_greater_equal_false(self):
+        self.assertFalse(is_greater_equal("0.9", "1.0"))
+
+    def test_greater_equal_different_lengths(self):
+        self.assertTrue(is_greater_equal("1.2.0", "1.2"))
+        self.assertFalse(is_greater_equal("1.2", "1.2.0"))
+
+    def test_greater_equal_consistency_with_is_greater(self):
+        cases = [
+            ("2.0.0", "1.0.0"),
+            ("1.0.0", "1.0.0"),
+            ("0.9", "1.0"),
+            ("1.2", "1.2.0"),
+            ("10.0.0", "2.0.0"),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                is_greater_equal(a, b),
+                is_greater(a, b) or is_equal(a, b),
+            )
+
+    def test_greater_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_greater_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_greater_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_greater_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            is_greater_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            is_greater_equal("1.2.a", "1.2.3")
+
+
+class TestIsLessEqual(unittest.TestCase):
+    def test_less_equal_true(self):
+        self.assertTrue(is_less_equal("0.9", "1.0"))
+
+    def test_less_equal_equal(self):
+        self.assertTrue(is_less_equal("1.0.0", "1.0.0"))
+
+    def test_less_equal_false(self):
+        self.assertFalse(is_less_equal("2.0", "1.9"))
+
+    def test_less_equal_different_lengths(self):
+        self.assertTrue(is_less_equal("1.2", "1.2.0"))
+        self.assertFalse(is_less_equal("1.2.0", "1.2"))
+
+    def test_less_equal_consistency_with_is_less(self):
+        cases = [
+            ("1.0.0", "2.0.0"),
+            ("1.0.0", "1.0.0"),
+            ("2.0", "1.9"),
+            ("1.2.0", "1.2"),
+            ("2.0.0", "10.0.0"),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                is_less_equal(a, b),
+                is_less(a, b) or is_equal(a, b),
+            )
+
+    def test_less_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            is_less_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_less_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_less_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            is_less_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            is_less_equal("1.2.a", "1.2.3")
 
 
 class TestNormalizeVersion(unittest.TestCase):

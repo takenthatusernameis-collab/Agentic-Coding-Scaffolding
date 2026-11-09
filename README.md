@@ -161,7 +161,7 @@ graphlib_utils.py          # Graph and dependency resolution utilities (topologi
 greeting_utils.py          # Greeting utilities (format_greeting, format_names, format_farewell, format_encouragement)
 glob_utils.py              # Utilities for pathname pattern expansion wrapping the standard library glob module
 keyword_utils.py            # Python keyword classification utilities wrapping the standard library keyword module
-version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, is_beta, has_prerelease, has_build_metadata, count_build_metadata_identifiers, has_build_metadata_identifiers, has_metadata)
+version_utils.py           # Version utility functions (parse, compare, count_components, normalize, sort_versions, bump_version, decrement_version, is_version_at_least, is_version_at_most, is_version_between, is_dev_version, is_beta, has_prerelease, has_build_metadata, count_build_metadata_identifiers, has_build_metadata_identifiers, has_metadata, is_greater_equal, is_less_equal)
 semver_utils.py            # Semantic versioning utilities
 shutil_utils.py            # High-level file operations (copy, move, remove, archive, disk usage)
 socketserver_utils.py           # Socketserver utilities wrapping the standard library socketserver module
