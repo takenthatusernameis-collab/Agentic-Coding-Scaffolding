@@ -40,7 +40,7 @@ exclude = [
 ]
 
 [tool.setuptools]
-py_modules = [
+py-modules = [
     "hello",
     "calculator",
     "backoff_utils",
