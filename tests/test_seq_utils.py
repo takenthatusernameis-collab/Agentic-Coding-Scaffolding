@@ -13,6 +13,7 @@ from seq_utils import (
     count_where,
     distinct,
     drop,
+    drop_last,
     drop_while,
     find,
     find_all,
@@ -41,6 +42,7 @@ from seq_utils import (
     split_at,
     tail,
     take,
+    take_last,
     take_while,
     unique,
 )
@@ -1161,3 +1163,58 @@ class TestPartition(unittest.TestCase):
             partition([1, 2, 3], 1)
         with self.assertRaises(TypeError):
             partition([1, 2, 3], None)
+
+
+class TestTakeLast(unittest.TestCase):
+    def test_take_last_normal(self):
+        self.assertEqual(take_last([1, 2, 3, 4, 5], 2), [4, 5])
+        self.assertEqual(take_last(("a", "b", "c"), 2), ["b", "c"])
+        self.assertEqual(take_last("hello", 2), ["l", "o"])
+
+    def test_take_last_zero(self):
+        self.assertEqual(take_last([1, 2, 3], 0), [])
+        self.assertEqual(take_last((), 0), [])
+        self.assertEqual(take_last("", 0), [])
+
+    def test_take_last_exceeds_length(self):
+        self.assertEqual(take_last([1, 2], 5), [1, 2])
+        self.assertEqual(take_last([], 3), [])
+
+    def test_take_last_negative_raises(self):
+        with self.assertRaises(ValueError):
+            take_last([1, 2, 3], -1)
+
+    def test_take_last_type_error(self):
+        with self.assertRaises(TypeError):
+            take_last(123, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            take_last([1, 2, 3], "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            take_last([1, 2, 3], 1.5)  # type: ignore[arg-type]
+
+
+class TestDropLast(unittest.TestCase):
+    def test_drop_last_normal(self):
+        self.assertEqual(drop_last([1, 2, 3, 4, 5], 2), [1, 2, 3])
+        self.assertEqual(drop_last(("a", "b", "c"), 1), ["a", "b"])
+        self.assertEqual(drop_last("hello", 2), ["h", "e", "l"])
+
+    def test_drop_last_zero(self):
+        self.assertEqual(drop_last([1, 2, 3], 0), [1, 2, 3])
+        self.assertEqual(drop_last([], 0), [])
+
+    def test_drop_last_exceeds_length(self):
+        self.assertEqual(drop_last([1, 2], 5), [])
+        self.assertEqual(drop_last([], 3), [])
+
+    def test_drop_last_negative_raises(self):
+        with self.assertRaises(ValueError):
+            drop_last([1, 2, 3], -1)
+
+    def test_drop_last_type_error(self):
+        with self.assertRaises(TypeError):
+            drop_last(123, 2)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            drop_last([1, 2, 3], "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            drop_last([1, 2, 3], True)
