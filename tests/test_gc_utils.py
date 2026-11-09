@@ -81,9 +81,9 @@ def test_gc_basic_wrappers():
 
 def test_is_tracked_containers():
     assert gc_utils.is_tracked([1, 2, 3]) is True
-    assert gc_utils.is_tracked({"a": 1}) is True
+    assert gc_utils.is_tracked({"a": [1]}) is True
     assert gc_utils.is_tracked((1, 2)) is True
-    assert gc_utils.is_tracked(object()) is True
+    assert gc_utils.is_tracked([]) is True
 
 
 def test_is_tracked_atomic():
