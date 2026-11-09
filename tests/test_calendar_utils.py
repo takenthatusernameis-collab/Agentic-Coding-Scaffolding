@@ -71,3 +71,68 @@ def test_type_errors():
         pass
     else:
         raise AssertionError("expected TypeError")
+
+
+class TestMonthCalendar(unittest.TestCase):
+    def test_basic_grid(self):
+        self.assertEqual(
+            m.month_calendar(2024, 2),
+            calendar.monthcalendar(2024, 2),
+        )
+
+    def test_matches_stdlib(self):
+        for year, month in [(2024, 1), (2023, 2), (2025, 12)]:
+            self.assertEqual(m.month_calendar(year, month), calendar.monthcalendar(year, month))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            m.month_calendar("2024", 1)  # type: ignore[arg-type]
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            m.month_calendar(2024, 13)
+
+
+class TestWeekdaysInMonth(unittest.TestCase):
+    def test_full_weekday_month(self):
+        # January 2024: 1st is Monday, 31 days -> 23 weekdays
+        self.assertEqual(m.weekdays_in_month(2024, 1), 23)
+
+    def test_matches_manual_count(self):
+        cal = calendar.monthcalendar(2024, 3)
+        expected = sum(1 for week in cal for day in week[:5] if day != 0)
+        self.assertEqual(m.weekdays_in_month(2024, 3), expected)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            m.weekdays_in_month(2024, "1")  # type: ignore[arg-type]
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            m.weekdays_in_month(2024, 0)
+
+
+class TestWeekendDaysInMonth(unittest.TestCase):
+    def test_full_weekend_month(self):
+        # January 2024: 31 days, 23 weekdays -> 8 weekend days
+        self.assertEqual(m.weekend_days_in_month(2024, 1), 8)
+
+    def test_matches_manual_count(self):
+        cal = calendar.monthcalendar(2024, 3)
+        expected = sum(1 for week in cal for day in week[5:] if day != 0)
+        self.assertEqual(m.weekend_days_in_month(2024, 3), expected)
+
+    def test_sum_equals_days_in_month(self):
+        for month in range(1, 13):
+            self.assertEqual(
+                m.weekdays_in_month(2024, month) + m.weekend_days_in_month(2024, month),
+                m.days_in_month(2024, month),
+            )
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            m.weekend_days_in_month(2024, "1")  # type: ignore[arg-type]
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            m.weekend_days_in_month(2024, 13)

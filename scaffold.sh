@@ -66644,7 +66644,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
-## Unreleased — added test coverage for version_utils relational companions
+## Unreleased — added test coverage for calendar_utils month-grid helpers
+
+- Added `TestMonthCalendar` (4 tests), `TestWeekdaysInMonth` (4 tests), and `TestWeekendDaysInMonth` (5 tests) to `tests/test_calendar_utils.py` for `month_calendar`, `weekdays_in_month`, and `weekend_days_in_month`, which were exported in `__all__`, documented in the `calendar_utils` prose section of `README.md`, but shipped with no dedicated test class. Coverage includes basic grid rendering, consistency with `calendar.monthcalendar`, weekday/weekend counts for a full month, the invariant `weekdays + weekend_days == days_in_month`, and `TypeError`/`ValueError` paths. Updated the `calendar_utils` module tree entry of `README.md` to list every exported name (`month_calendar`, `first_day_of_month`, `is_weekend`, `weekdays_in_month`, `weekend_days_in_month`). Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_calendar_utils` (OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
+
+## Unreleased — added last_index_in_deque/find_last_index_in_deque to deque_utils
 
 - Added `last_index_in_deque(d, value, start=0, stop=None)` and `find_last_index_in_deque(d, value, start=0, stop=None)` to `deque_utils.py` as last-occurrence companions to `index_in_deque`/`find_index_in_deque`. `last_index_in_deque` returns the 0-based index of the last match over `start`/`stop` bounds and raises `ValueError` when absent; `find_last_index_in_deque` is its non-raising companion returning `None`. Typed APIs, `__all__` exports, and Google-style docstrings with ASCII-safe doctests. Added `TestLastIndexInDeque` and `TestFindLastIndexInDeque` (13 tests) to `tests/test_deque_utils.py` covering basic, duplicates, single occurrence, `start`/`stop`, missing, empty, list-consistency, and cross-consistency paths. Updated `README.md` deque_utils tree/prose. Synchronized embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
@@ -69203,6 +69207,11 @@ Next Planned (posted for the following agent):
 
 - Added `find_index(sequence, predicate)` to `seq_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError` for non-sequence inputs and non-callable predicates; it returns the 0-based index of the first element satisfying *predicate*, or `None` when no match is found (complements `index_of` value search). Added `TestFindIndex` to `tests/test_seq_utils.py` (9 tests). Updated `README.md` (tree + prose). Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_seq_utils -q`, `python -m unittest tests.test_public_api -q`. No `.github/workflows/**` changes.
 
+## Unreleased — dict_utils deep_merge strict validation
+
+- `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
+- `tests/test_dict_utils.py`: added mutation-safety and type-error coverage for `deep_merge`. Verification: `python -m unittest tests.test_dict_utils` (122 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
@@ -69466,7 +69475,7 @@ base64_utils.py            # Base64 and hexadecimal encoding/decoding utilities
 bisect_utils.py            # Bisect utility functions for binary search on sorted sequences
 case_utils.py             # Case conversion utilities (kebab, pascal, constant case) with input validation, plus a convert_case dispatcher
 trace_utils.py            # Execution tracing utilities wrapping stdlib trace (new_tracer, run_traced, run_script_traced, counted_lines, line_counts, called_functions, call_relationships, is_ignored_filename, merge_results, write_coverage_report, summarize_coverage, format_coverage_summary, clear_counts)
-calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, month_name, day_name, add_months, days_between)
+calendar_utils.py            # Calendar utilities for date and month calculations (is_leap_year, days_in_month, first_day_of_month, month_name, day_name, month_calendar, weekdays_in_month, weekend_days_in_month, is_weekend, add_months, days_between)
 chunk_utils.py               # IFF chunk utilities wrapping stdlib chunk (build_chunk, chunk_name, is_available, iter_chunks, open_chunk, peek_chunk, read_chunk, read_chunks, skip_chunk, write_chunk) with input validation
 cgi_utils.py                 # CGI utilities wrapping the standard library cgi module (FieldStorage, MiniFieldStorage, escape, parse, parse_header, parse_multipart, parse_qs, parse_qsl, is_available) with input validation
 cgitb_utils.py              # Cgitb utilities wrapping the standard library cgitb module (enable, disable, reset, lookup, scanvars, handler, text, html, small, strong, grey, pink, blue, is_available) with input validation
@@ -71911,6 +71920,71 @@ def test_type_errors():
         pass
     else:
         raise AssertionError("expected TypeError")
+
+
+class TestMonthCalendar(unittest.TestCase):
+    def test_basic_grid(self):
+        self.assertEqual(
+            m.month_calendar(2024, 2),
+            calendar.monthcalendar(2024, 2),
+        )
+
+    def test_matches_stdlib(self):
+        for year, month in [(2024, 1), (2023, 2), (2025, 12)]:
+            self.assertEqual(m.month_calendar(year, month), calendar.monthcalendar(year, month))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            m.month_calendar("2024", 1)  # type: ignore[arg-type]
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            m.month_calendar(2024, 13)
+
+
+class TestWeekdaysInMonth(unittest.TestCase):
+    def test_full_weekday_month(self):
+        # January 2024: 1st is Monday, 31 days -> 23 weekdays
+        self.assertEqual(m.weekdays_in_month(2024, 1), 23)
+
+    def test_matches_manual_count(self):
+        cal = calendar.monthcalendar(2024, 3)
+        expected = sum(1 for week in cal for day in week[:5] if day != 0)
+        self.assertEqual(m.weekdays_in_month(2024, 3), expected)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            m.weekdays_in_month(2024, "1")  # type: ignore[arg-type]
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            m.weekdays_in_month(2024, 0)
+
+
+class TestWeekendDaysInMonth(unittest.TestCase):
+    def test_full_weekend_month(self):
+        # January 2024: 31 days, 23 weekdays -> 8 weekend days
+        self.assertEqual(m.weekend_days_in_month(2024, 1), 8)
+
+    def test_matches_manual_count(self):
+        cal = calendar.monthcalendar(2024, 3)
+        expected = sum(1 for week in cal for day in week[5:] if day != 0)
+        self.assertEqual(m.weekend_days_in_month(2024, 3), expected)
+
+    def test_sum_equals_days_in_month(self):
+        for month in range(1, 13):
+            self.assertEqual(
+                m.weekdays_in_month(2024, month) + m.weekend_days_in_month(2024, month),
+                m.days_in_month(2024, month),
+            )
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            m.weekend_days_in_month(2024, "1")  # type: ignore[arg-type]
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            m.weekend_days_in_month(2024, 13)
 TEST_CALENDAR_UTILS
 
 # --- call_once_utils.py ---
