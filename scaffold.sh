@@ -33916,6 +33916,7 @@ __all__ = [
     "group_by",
     "has_duplicates",
     "index_of",
+    "indices_of",
     "intersperse",
     "is_empty",
     "is_sorted",
@@ -34137,6 +34138,37 @@ def last_index_of(lst: List[T], value: T) -> Optional[int]:
         if lst[index] == value:
             return index
     return None
+
+
+def indices_of(lst: List[T], value: T) -> List[int]:
+    """Return the indices of all occurrences of ``value`` in ``lst``.
+
+    Elements are compared with ``==``. Indices are returned in ascending
+    order. An empty list (or no matches) yields an empty list.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to locate.
+
+    Returns:
+        A list of 0-based indices of all matching elements.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> indices_of([1, 2, 3, 2], 2)
+        [1, 3]
+        >>> indices_of(["a", "b", "a"], "a")
+        [0, 2]
+        >>> indices_of([1, 2, 3], 4)
+        []
+        >>> indices_of([], 1)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    return [index for index, item in enumerate(lst) if item == value]
 
 
 def find_all(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
@@ -34680,6 +34712,7 @@ from list_utils import (
     group_by,
     has_duplicates,
     index_of,
+    indices_of,
     intersperse,
     is_empty,
     is_sorted,
@@ -35251,6 +35284,37 @@ class TestFindAllIndices(unittest.TestCase):
     def test_find_all_indices_non_callable_raises(self) -> None:
         with self.assertRaises(TypeError):
             find_all_indices([1, 2, 3], 1)  # type: ignore[arg-type]
+
+
+class TestIndicesOf(unittest.TestCase):
+    def test_indices_of_basic(self) -> None:
+        self.assertEqual(indices_of([1, 2, 3, 2], 2), [1, 3])
+
+    def test_indices_of_none_match(self) -> None:
+        self.assertEqual(indices_of([1, 2, 3], 4), [])
+
+    def test_indices_of_empty(self) -> None:
+        self.assertEqual(indices_of([], 1), [])
+
+    def test_indices_of_all_match(self) -> None:
+        self.assertEqual(indices_of(["a", "a", "a"], "a"), [0, 1, 2])
+
+    def test_indices_of_single(self) -> None:
+        self.assertEqual(indices_of([1, 2, 3], 2), [1])
+
+    def test_indices_of_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            indices_of("not a list", "a")  # type: ignore[arg-type]
+
+    def test_indices_of_consistent_with_index_of(self) -> None:
+        values = [1, 2, 3, 2, 1]
+        for value in (1, 2, 3, 4):
+            idxs = indices_of(values, value)
+            first = index_of(values, value)
+            if first is None:
+                self.assertEqual(idxs, [])
+            else:
+                self.assertEqual(idxs[0], first)
 
 
 if __name__ == "__main__":
@@ -65670,6 +65734,10 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `count_title(data) -> int` and `has_title(data) -> bool` to `bytes_utils.py` as the integer/boolean companions to `istitle`. The module already had `istitle` (exported in `__all__`, with tests and README documentation) but no `count_*`/`has_*` counterparts. `count_title` returns the count of titlecase bytes (uppercase ASCII letters at word boundaries: start of data or after a non-alphabetic byte) in *data* (empty input returns ``0``). `has_title` returns ``True`` when at least one titlecase byte is present and ``False`` otherwise (empty input is ``False``), reusing `count_title` for consistency. Both accept typed `bytes`/`bytearray` arguments, raise `TypeError` for non-bytes-like input, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountTitle` (7 tests) and `TestHasTitle` (6 tests) to `tests/test_bytes_utils.py` covering all/no/mixed/empty/bytearray inputs, consistency with `istitle` and with each other, and `TypeError` paths; imported `count_title`/`has_title` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
+## Unreleased — added `indices_of` to `list_utils`
+
+- Added `indices_of(lst, value)` to `list_utils.py` returning the 0-based indices of all occurrences of *value* in ascending order (empty list/no matches yield `[]`). It is the all-occurrences companion to `index_of`/`last_index_of`, matching `seq_utils.indices_of` style. Typed API, `__all__` export, Google-style docstring with ASCII-safe doctests, and `TypeError` validation for non-list *lst*. Added `TestIndicesOf` (7 tests) to `tests/test_list_utils.py` covering basic/no-match/empty/all-match/single cases, the `TypeError` path, and consistency with `index_of`; imported `indices_of` to match `__all__`. Updated the `list_utils` module tree entry and prose section of `README.md`. Synchronized `list_utils.py`, `tests/test_list_utils.py`, `README.md`, and `CHANGELOG.md` into `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` (OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_prime_factors/count_distinct_prime_factors companions to prime_utils factor predicates
 
 - Added `count_prime_factors(n) -> int` and `count_distinct_prime_factors(n) -> int` to `prime_utils.py` as the `count_*`-named integer companions to `has_prime_factors`/`has_distinct_prime_factors`. The module already had `total_prime_factors` (Ω(n)) and `distinct_prime_factors` (ω(n)) with boolean `has_*` companions, but no `count_*`-named counterparts consistent with the repository's common `count_*`/`has_*` API pattern. `count_prime_factors` implements Ω(n) (factors with multiplicity); `total_prime_factors` remains as a backward-compatible alias. `count_distinct_prime_factors` implements ω(n); `distinct_prime_factors` remains as a backward-compatible alias. `has_prime_factors` and `has_distinct_prime_factors` now reuse the `count_*` implementations for consistency. All accept typed `int` arguments (rejecting `bool`), validate `n >= 1`, raise `TypeError`/`ValueError`, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountPrimeFactors` and `TestCountDistinctPrimeFactors` to `tests/test_prime_utils.py`, extended `has_*` consistency checks to cover `count_*`, and imported the new names. Updated the `prime_utils` module tree entry and prose section of `README.md`. Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -68295,7 +68363,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, indices_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -68963,7 +69031,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `indices_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 
