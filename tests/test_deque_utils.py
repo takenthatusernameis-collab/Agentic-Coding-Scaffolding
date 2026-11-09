@@ -10,10 +10,12 @@ from deque_utils import (
     extend_left,
     extend_right,
     find_index_in_deque,
+    find_last_index_in_deque,
     has_in_deque,
     has_items,
     index_in_deque,
     is_empty,
+    last_index_in_deque,
     peek_left,
     peek_right,
     pop_left,
@@ -420,3 +422,76 @@ class TestPeekRight(unittest.TestCase):
     def test_consistency_with_indexing(self):
         d = create_deque([5, 6, 7])
         self.assertEqual(peek_right(d), d[-1])
+
+
+class TestLastIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(last_index_in_deque(d, 1), 0)
+        self.assertEqual(last_index_in_deque(d, 2), 3)
+        self.assertEqual(last_index_in_deque(d, 3), 2)
+
+    def test_single_occurrence(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(last_index_in_deque(d, 2), 1)
+
+    def test_duplicates(self):
+        d = create_deque([2, 2, 2])
+        self.assertEqual(last_index_in_deque(d, 2), 2)
+
+    def test_start_stop(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(last_index_in_deque(d, 2, 0, 3), 1)
+        with self.assertRaises(ValueError):
+            last_index_in_deque(d, 1, 1, 4)
+
+    def test_start_stop_missing_raises(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        with self.assertRaises(ValueError):
+            last_index_in_deque(d, 1, 1, 4)
+
+    def test_missing_raises(self):
+        d = create_deque([1, 2, 3])
+        with self.assertRaises(ValueError):
+            last_index_in_deque(d, 9)
+
+    def test_empty_raises(self):
+        with self.assertRaises(ValueError):
+            last_index_in_deque(create_deque(), 1)
+
+    def test_consistency_with_list(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        items = deque_to_list(d)
+        for v in (1, 2, 3):
+            # compute expected last index
+            expected = len(items) - 1 - items[::-1].index(v)
+            self.assertEqual(last_index_in_deque(d, v), expected)
+
+
+class TestFindLastIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(find_last_index_in_deque(d, 1), 0)
+        self.assertEqual(find_last_index_in_deque(d, 2), 3)
+        self.assertEqual(find_last_index_in_deque(d, 3), 2)
+
+    def test_missing_returns_none(self):
+        d = create_deque([1, 2, 3])
+        self.assertIsNone(find_last_index_in_deque(d, 9))
+
+    def test_start_stop(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(find_last_index_in_deque(d, 2, 0, 3), 1)
+        self.assertIsNone(find_last_index_in_deque(d, 1, 1, 4))
+
+    def test_empty_returns_none(self):
+        self.assertIsNone(find_last_index_in_deque(create_deque(), 1))
+
+    def test_consistent_with_last_index_in_deque(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        for v in (1, 2, 3, 9):
+            try:
+                expected = last_index_in_deque(d, v)
+            except ValueError:
+                expected = None
+            self.assertEqual(find_last_index_in_deque(d, v), expected)

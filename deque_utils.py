@@ -144,6 +144,76 @@ def find_index_in_deque(
         return None
 
 
+def last_index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> int:
+    """Return the index of the last occurrence of value in deque d.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the last matching element.
+
+    Raises:
+        ValueError: If value is not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> last_index_in_deque(d, 2)
+        3
+        >>> last_index_in_deque(d, 2, 0, 3)
+        1
+    """
+    seq = list(d)
+    end = len(seq) if stop is None else stop
+    if start < 0:
+        start = max(start + len(seq), 0)
+    if end < 0:
+        end = max(end + len(seq), 0)
+    for i in range(min(end, len(seq)) - 1, start - 1, -1):
+        if seq[i] == value:
+            return i
+    raise ValueError(f"{value!r} is not in deque")
+
+
+def find_last_index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> Optional[int]:
+    """Return the index of the last occurrence of value in deque d, or None.
+
+    A non-raising companion to :func:`last_index_in_deque`.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the last matching element, or None if value is
+        not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> find_last_index_in_deque(d, 2)
+        3
+        >>> find_last_index_in_deque(d, 9) is None
+        True
+        >>> find_last_index_in_deque(d, 2, 0, 3)
+        1
+    """
+    try:
+        return last_index_in_deque(d, value, start, stop)
+    except ValueError:
+        return None
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -280,6 +350,8 @@ __all__ = [
     "has_in_deque",
     "index_in_deque",
     "find_index_in_deque",
+    "last_index_in_deque",
+    "find_last_index_in_deque",
     "peek_left",
     "peek_right",
     "remove_from_deque",

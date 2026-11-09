@@ -66611,6 +66611,10 @@ TEST_INTERVAL_UTILS
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 ## Unreleased — added test coverage for version_utils relational companions
 
+- Added `last_index_in_deque(d, value, start=0, stop=None)` and `find_last_index_in_deque(d, value, start=0, stop=None)` to `deque_utils.py` as last-occurrence companions to `index_in_deque`/`find_index_in_deque`. `last_index_in_deque` returns the 0-based index of the last match over `start`/`stop` bounds and raises `ValueError` when absent; `find_last_index_in_deque` is its non-raising companion returning `None`. Typed APIs, `__all__` exports, and Google-style docstrings with ASCII-safe doctests. Added `TestLastIndexInDeque` and `TestFindLastIndexInDeque` (13 tests) to `tests/test_deque_utils.py` covering basic, duplicates, single occurrence, `start`/`stop`, missing, empty, list-consistency, and cross-consistency paths. Updated `README.md` deque_utils tree/prose. Synchronized embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
+## Unreleased — added test coverage for version_utils relational companions
+
 - Added `TestIsGreaterEqual` (7 tests) and `TestIsLessEqual` (7 tests) to `tests/test_version_utils.py` for `is_greater_equal` and `is_less_equal`, which were exported in `__all__` and documented with ASCII-safe doctests but shipped with no dedicated test class. Coverage includes greater/less/equal/strict cases, different-length versions, consistency with `is_greater`/`is_less`/`is_equal`, and `TypeError`/`ValueError` paths; imported the two names to match the module's `__all__` contract. The implementation in `version_utils.py` was unchanged. Updated the `version_utils` module tree entry of `README.md` to list the new names. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_version_utils` (292 OK), `python -m doctest version_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
 
 ## Unreleased — added count_union/count_difference/count_symmetric_difference to `set_utils`
@@ -69287,7 +69291,7 @@ concurrent_utils.py       # Concurrent execution utilities (ThreadPool, ProcessP
 concurrent_futures_utils.py # concurrent.futures wrappers with validation
 priority_queue_utils.py   # Heap-based priority queue implementation
 queue_utils.py            # FIFO queue helpers (enqueue, dequeue, peek, size, is_empty)
-deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, has_in_deque, index_in_deque, find_index_in_deque, remove_from_deque, reverse_deque, size, is_empty, has_items)
+deque_utils.py            # Double-ended queue utilities wrapping collections.deque (create_deque, append_left, append_right, pop_left, pop_right, extend_left, extend_right, rotate_deque, clear_deque, deque_to_list, count_in_deque, has_in_deque, index_in_deque, find_index_in_deque, last_index_in_deque, find_last_index_in_deque, remove_from_deque, reverse_deque, size, is_empty, has_items)
 rate_limiter_utils.py     # Rate limiting utilities (token bucket algorithm)
 retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
@@ -70349,7 +70353,7 @@ The project includes deprecation utilities in `deprecation_utils.py` for marking
 
 ## Deque Utilities Module
 
-The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `index_in_deque` returns the index of the first occurrence with optional `start`/`stop` bounds (raising ``ValueError`` when absent), `find_index_in_deque` is its non-raising companion returning ``None`` when absent, `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), `is_empty` returns ``True`` when the deque contains no elements, and `has_items` is its boolean companion. `size` returns the number of elements in a deque as an integer companion to `is_empty`. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
+The project includes deque utilities in `deque_utils.py` wrapping the standard library `collections.deque`: `create_deque` creates a double-ended queue from an optional iterable with an optional max length, `append_left` and `append_right` add elements to the ends, `pop_left` and `pop_right` remove and return elements from the ends, `extend_left` and `extend_right` extend from iterables, `rotate_deque` rotates the deque by an optional number of steps, `clear_deque` empties it, `count_in_deque` counts occurrences of a value, `has_in_deque` returns ``True`` when a value occurs at least once, `index_in_deque` returns the index of the first occurrence with optional `start`/`stop` bounds (raising ``ValueError`` when absent), `find_index_in_deque` is its non-raising companion returning ``None`` when absent, `last_index_in_deque` returns the index of the last occurrence with the same `start`/`stop` semantics (raising ``ValueError`` when absent), and `find_last_index_in_deque` is its non-raising companion returning ``None`` when absent. `remove_from_deque` removes the first occurrence, `reverse_deque` reverses the deque in place, `peek_left` and `peek_right` return the end elements without removing them (raising ``IndexError`` on an empty deque), `is_empty` returns ``True`` when the deque contains no elements, and `has_items` is its boolean companion. `size` returns the number of elements in a deque as an integer companion to `is_empty`. All functions operate on standard library `deque` objects, so the module is pure computation and works on every platform without touching the filesystem or network. The module is tested in `tests/test_deque_utils.py`, which covers happy paths, empty/single-element boundaries, `maxlen` eviction, and the `IndexError`/`ValueError` paths.
 
 ## Ring Buffer Utilities Module
 
@@ -154635,6 +154639,76 @@ def find_index_in_deque(
         return None
 
 
+def last_index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> int:
+    """Return the index of the last occurrence of value in deque d.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the last matching element.
+
+    Raises:
+        ValueError: If value is not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> last_index_in_deque(d, 2)
+        3
+        >>> last_index_in_deque(d, 2, 0, 3)
+        1
+    """
+    seq = list(d)
+    end = len(seq) if stop is None else stop
+    if start < 0:
+        start = max(start + len(seq), 0)
+    if end < 0:
+        end = max(end + len(seq), 0)
+    for i in range(min(end, len(seq)) - 1, start - 1, -1):
+        if seq[i] == value:
+            return i
+    raise ValueError(f"{value!r} is not in deque")
+
+
+def find_last_index_in_deque(
+    d: deque, value: Any, start: int = 0, stop: Optional[int] = None
+) -> Optional[int]:
+    """Return the index of the last occurrence of value in deque d, or None.
+
+    A non-raising companion to :func:`last_index_in_deque`.
+
+    Args:
+        d: A deque to search.
+        value: The value to locate.
+        start: Index to start searching from (inclusive). Defaults to 0.
+        stop: Index to stop searching before (exclusive). Defaults to the
+            length of the deque.
+
+    Returns:
+        The 0-based index of the last matching element, or None if value is
+        not found in the specified range.
+
+    Examples:
+        >>> d = create_deque([1, 2, 3, 2])
+        >>> find_last_index_in_deque(d, 2)
+        3
+        >>> find_last_index_in_deque(d, 9) is None
+        True
+        >>> find_last_index_in_deque(d, 2, 0, 3)
+        1
+    """
+    try:
+        return last_index_in_deque(d, value, start, stop)
+    except ValueError:
+        return None
+
+
 def remove_from_deque(d: deque, value: Any) -> None:
     """Remove first occurrence of value."""
     d.remove(value)
@@ -154771,6 +154845,8 @@ __all__ = [
     "has_in_deque",
     "index_in_deque",
     "find_index_in_deque",
+    "last_index_in_deque",
+    "find_last_index_in_deque",
     "peek_left",
     "peek_right",
     "remove_from_deque",
@@ -154795,10 +154871,12 @@ from deque_utils import (
     extend_left,
     extend_right,
     find_index_in_deque,
+    find_last_index_in_deque,
     has_in_deque,
     has_items,
     index_in_deque,
     is_empty,
+    last_index_in_deque,
     peek_left,
     peek_right,
     pop_left,
@@ -155205,6 +155283,79 @@ class TestPeekRight(unittest.TestCase):
     def test_consistency_with_indexing(self):
         d = create_deque([5, 6, 7])
         self.assertEqual(peek_right(d), d[-1])
+
+
+class TestLastIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(last_index_in_deque(d, 1), 0)
+        self.assertEqual(last_index_in_deque(d, 2), 3)
+        self.assertEqual(last_index_in_deque(d, 3), 2)
+
+    def test_single_occurrence(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(last_index_in_deque(d, 2), 1)
+
+    def test_duplicates(self):
+        d = create_deque([2, 2, 2])
+        self.assertEqual(last_index_in_deque(d, 2), 2)
+
+    def test_start_stop(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(last_index_in_deque(d, 2, 0, 3), 1)
+        with self.assertRaises(ValueError):
+            last_index_in_deque(d, 1, 1, 4)
+
+    def test_start_stop_missing_raises(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        with self.assertRaises(ValueError):
+            last_index_in_deque(d, 1, 1, 4)
+
+    def test_missing_raises(self):
+        d = create_deque([1, 2, 3])
+        with self.assertRaises(ValueError):
+            last_index_in_deque(d, 9)
+
+    def test_empty_raises(self):
+        with self.assertRaises(ValueError):
+            last_index_in_deque(create_deque(), 1)
+
+    def test_consistency_with_list(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        items = deque_to_list(d)
+        for v in (1, 2, 3):
+            # compute expected last index
+            expected = len(items) - 1 - items[::-1].index(v)
+            self.assertEqual(last_index_in_deque(d, v), expected)
+
+
+class TestFindLastIndexInDeque(unittest.TestCase):
+    def test_basic(self):
+        d = create_deque([1, 2, 3, 2])
+        self.assertEqual(find_last_index_in_deque(d, 1), 0)
+        self.assertEqual(find_last_index_in_deque(d, 2), 3)
+        self.assertEqual(find_last_index_in_deque(d, 3), 2)
+
+    def test_missing_returns_none(self):
+        d = create_deque([1, 2, 3])
+        self.assertIsNone(find_last_index_in_deque(d, 9))
+
+    def test_start_stop(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        self.assertEqual(find_last_index_in_deque(d, 2, 0, 3), 1)
+        self.assertIsNone(find_last_index_in_deque(d, 1, 1, 4))
+
+    def test_empty_returns_none(self):
+        self.assertIsNone(find_last_index_in_deque(create_deque(), 1))
+
+    def test_consistent_with_last_index_in_deque(self):
+        d = create_deque([1, 2, 3, 2, 1])
+        for v in (1, 2, 3, 9):
+            try:
+                expected = last_index_in_deque(d, v)
+            except ValueError:
+                expected = None
+            self.assertEqual(find_last_index_in_deque(d, v), expected)
 TEST_DEQUE_UTILS
 
 # --- dumbdbm_utils.py ---
