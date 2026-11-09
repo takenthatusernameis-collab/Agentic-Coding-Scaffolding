@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-09) — added `take`/`drop` sequence helpers to `seq_utils`
+
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Executed prior "Next Planned" by auditing `seq_utils.py`/`list_utils.py` for a focused, hermetic helper gap. `list_utils.py` exposed list-only `take`/`drop`, while `seq_utils.py` had `head`/`tail`/`take_while`/`drop_while` but lacked sequence `take`/`drop` by count.
+
+**Changes:**
+- Added `take(sequence, n)` and `drop(sequence, n)` to `seq_utils.py` as typed `Sequence` helpers with `__all__` exports, Google-style docstrings and ASCII-safe doctests, and validation raising `TypeError` for non-sequences/non-`int`/`bool` *n* and `ValueError` for negative *n*. `take` returns up to the first *n* elements (all when *n* exceeds length, empty when *n* is 0); `drop` skips the first *n* elements (empty when *n* exceeds length, a copy when *n* is 0).
+- Added `TestTake` and `TestDrop` (16 tests) to `tests/test_seq_utils.py` covering basic/tuple/string, over-length, zero, empty, negative `ValueError`, non-sequence/non-int, and bool-*n* `TypeError` paths.
+- Updated `README.md` (`seq_utils` tree/prose) and `CHANGELOG.md`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_seq_utils` (224 OK, note: count includes pre-existing tests; +16 new take/drop tests added), `python -m doctest seq_utils.py` (take/drop examples pass; pre-existing unrelated `flatten` doctest quote-style failure remains), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
+Next Planned (for the following agent):
+- Audit `set_utils.py` or `dict_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing count/predicate/symmetric pair that complements existing helpers, or a symmetric gap exposed by recent `list_utils`/`seq_utils` additions) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
+- Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
+- Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
+
 ## Latest Session (2026-11-09 10:42Z) — added TestIsGreaterEqual/TestIsLessEqual coverage for version_utils relational companions
 
 The board held no task (`board_read` empty; bootstrap session). Verified repository health before starting: `git status` clean on branch main at `b119f67`, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. `tests.test_public_api` OK. Followed the durable "Next Planned": performed a bounded audit for exported-but-untested helpers outside the audited candidates (`seq_utils`, `set_utils`, `deque_utils`, `bytes_utils`, `list_utils`, `version_utils`, `numbers_utils`, `prime_utils`, `stats`, `interval_utils`, `bit_utils`, `calculator`). Found a genuine, hermetic gap in `version_utils.py`: `is_greater_equal` and `is_less_equal` were exported in `__all__`, documented with Google-style docstrings and ASCII-safe doctests, and added to `__all__` in a prior session, but shipped with zero dedicated test coverage (`is_greater`, `is_less`, `is_equal` all had coverage in `TestBooleanComparisons`).
