@@ -7,11 +7,14 @@ from dict_utils import (
     contains_any_value,
     contains_key,
     contains_value,
+    count_all_keys,
     count_all_values,
     deep_merge,
     filter_dict,
     flatten_dict,
+    has_all_keys,
     has_all_values,
+    has_any_key,
     has_any_value,
     has_key,
     has_value,
@@ -25,6 +28,7 @@ from dict_utils import (
     unflatten_dict,
     values_equal,
 )
+
 
 
 class TestDeepMerge(unittest.TestCase):
@@ -438,6 +442,47 @@ class TestHasAnyValue(unittest.TestCase):
             has_any_value("x", [1])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             contains_any_value(None, [1])  # type: ignore[arg-type]
+
+
+class TestCountAllKeys(unittest.TestCase):
+    def test_all_present(self) -> None:
+        self.assertEqual(count_all_keys({"a": 1, "b": 2}, ["a", "b"]), 2)
+
+    def test_one_missing(self) -> None:
+        self.assertEqual(count_all_keys({"a": 1, "b": 2}, ["a", "c"]), 1)
+
+    def test_none_present(self) -> None:
+        self.assertEqual(count_all_keys({"a": 1, "b": 2}, ["c", "d"]), 0)
+
+    def test_empty_keys(self) -> None:
+        self.assertEqual(count_all_keys({}, []), 0)
+        self.assertEqual(count_all_keys({"a": 1}, []), 0)
+
+    def test_empty_dict(self) -> None:
+        self.assertEqual(count_all_keys({}, ["a"]), 0)
+
+    def test_duplicates_in_keys(self) -> None:
+        self.assertEqual(count_all_keys({"a": 1}, ["a", "a", "b"]), 2)
+        self.assertEqual(count_all_keys({"a": 1, "b": 2}, ["a", "a", "b"]), 3)
+
+    def test_generator_keys(self) -> None:
+        self.assertEqual(count_all_keys({"a": 1, "b": 2}, (k for k in ["a", "b", "c"])), 2)
+
+    def test_matches_has_all_keys(self) -> None:
+        from dict_utils import has_all_keys
+        d = {"a": 1, "b": 2}
+        for keys in (["a", "b"], ["a", "c"], [], ["b"], ["a", "a", "b"]):
+            self.assertEqual(has_all_keys(d, keys), count_all_keys(d, keys) == len(list(keys)))
+
+    def test_matches_has_any_key(self) -> None:
+        from dict_utils import has_any_key
+        d = {"a": 1, "b": 2}
+        for keys in (["a", "c"], ["c", "d"], [], ["b"]):
+            self.assertEqual(has_any_key(d, keys), count_all_keys(d, keys) > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            count_all_keys("x", ["a"])  # type: ignore[arg-type]
 
 
 class TestCountAllValues(unittest.TestCase):

@@ -14,6 +14,7 @@ __all__ = [
     "contains_any_value",
     "contains_key",
     "contains_value",
+    "count_all_keys",
     "count_all_values",
     "deep_merge",
     "filter_dict",
@@ -422,6 +423,10 @@ def omit_keys(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
 def has_all_keys(d: Dict[Any, Any], keys: Any) -> bool:
     """Report whether all of *keys* are present in *d*.
 
+    This is the boolean companion to :func:`count_all_keys`; it reports
+    whether every key in *keys* is present in *d* and reuses
+    :func:`count_all_keys` for consistency.
+
     Args:
         d: Dictionary to search in.
         keys: Iterable of keys to look for.
@@ -440,9 +445,8 @@ def has_all_keys(d: Dict[Any, Any], keys: Any) -> bool:
         >>> has_all_keys({}, [])
         True
     """
-    if not isinstance(d, dict):
-        raise TypeError("d must be a dict")
-    return all(k in d for k in keys)
+    keys = list(keys)
+    return count_all_keys(d, keys) == len(keys)
 
 
 def contains_all_keys(d: Dict[Any, Any], keys: Any) -> bool:
@@ -450,8 +454,45 @@ def contains_all_keys(d: Dict[Any, Any], keys: Any) -> bool:
     return has_all_keys(d, keys)
 
 
+def count_all_keys(d: Dict[Any, Any], keys: Any) -> int:
+    """Return the number of keys from *keys* that are present in *d*.
+
+    This is the integer companion to :func:`has_all_keys` and
+    :func:`has_any_key`; it reports how many of the given *keys* are present
+    in *d*. Keys that appear more than once in *keys* are counted once per
+    occurrence.
+
+    Args:
+        d: Dictionary to search in.
+        keys: Iterable of keys to look for.
+
+    Returns:
+        The count of keys from *keys* that are present in *d*.
+
+    Raises:
+        TypeError: If *d* is not a dict.
+
+    Examples:
+        >>> count_all_keys({"a": 1, "b": 2}, ["a", "b"])
+        2
+        >>> count_all_keys({"a": 1, "b": 2}, ["a", "c"])
+        1
+        >>> count_all_keys({}, [])
+        0
+        >>> count_all_keys({"a": 1, "b": 2}, ["a", "a", "b"])
+        3
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    return sum(1 for k in keys if k in d)
+
+
 def has_any_key(d: Dict[Any, Any], keys: Any) -> bool:
     """Report whether at least one of *keys* is present in *d*.
+
+    This is the boolean companion to :func:`count_all_keys`; it reports
+    whether at least one key in *keys* is present in *d* and reuses
+    :func:`count_all_keys` for consistency.
 
     Args:
         d: Dictionary to search in.
@@ -471,9 +512,7 @@ def has_any_key(d: Dict[Any, Any], keys: Any) -> bool:
         >>> has_any_key({}, [])
         False
     """
-    if not isinstance(d, dict):
-        raise TypeError("d must be a dict")
-    return any(k in d for k in keys)
+    return count_all_keys(d, keys) > 0
 
 
 def contains_any_key(d: Dict[Any, Any], keys: Any) -> bool:
