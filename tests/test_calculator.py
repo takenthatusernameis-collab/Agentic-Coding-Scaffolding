@@ -6,22 +6,25 @@ from calculator import (
     add,
     average_of_two,
     clamp,
+    combination,
     distance,
     divide,
     factorial,
+    floor_divide,
     gcd,
     hypotenuse,
     is_coprime,
     is_even,
     is_odd,
     is_perfect_square,
+    is_power_of_two,
     is_prime,
     lcm,
     mod_pow,
+    modulo,
     multiply,
     negate,
     percentage,
-    permutation,
     power,
     reciprocal,
     round_to,
@@ -499,18 +502,138 @@ class TestIsCoprime(unittest.TestCase):
             is_coprime(2, -3)
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestModulo(unittest.TestCase):
+    def test_modulo_basic(self):
+        self.assertEqual(modulo(10, 3), 1)
+        self.assertEqual(modulo(10, 5), 0)
+        self.assertEqual(modulo(-10, 3), 2)
+        self.assertEqual(modulo(10, -3), -2)
+        self.assertEqual(modulo(0, 5), 0)
 
-    def test_permutation_rejects_negative(self):
+    def test_modulo_by_zero(self):
         with self.assertRaises(ValueError):
-            permutation(-1, 2)
-        with self.assertRaises(ValueError):
-            permutation(1, -1)
+            modulo(5, 0)
 
-    def test_permutation_rejects_k_greater_than_n(self):
+    def test_modulo_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            modulo("10", 3)
+        with self.assertRaises(TypeError):
+            modulo(10, "3")
+        with self.assertRaises(TypeError):
+            modulo(None, 3)
+
+    def test_modulo_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            modulo(True, 3)
+        with self.assertRaises(TypeError):
+            modulo(10, False)
+
+
+class TestFloorDivide(unittest.TestCase):
+    def test_floor_divide_basic(self):
+        self.assertEqual(floor_divide(10, 3), 3)
+        self.assertEqual(floor_divide(10, 5), 2)
+        self.assertEqual(floor_divide(-10, 3), -4)
+        self.assertEqual(floor_divide(0, 5), 0)
+
+    def test_floor_divide_by_zero(self):
         with self.assertRaises(ValueError):
-            permutation(2, 3)
+            floor_divide(5, 0)
+
+    def test_floor_divide_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            floor_divide("10", 3)
+        with self.assertRaises(TypeError):
+            floor_divide(10, "3")
+        with self.assertRaises(TypeError):
+            floor_divide(None, 3)
+
+    def test_floor_divide_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            floor_divide(True, 3)
+        with self.assertRaises(TypeError):
+            floor_divide(10, False)
+
+
+class TestCombination(unittest.TestCase):
+    def test_combination_basic(self):
+        self.assertEqual(combination(5, 2), 10)
+        self.assertEqual(combination(5, 0), 1)
+        self.assertEqual(combination(5, 5), 1)
+        self.assertEqual(combination(0, 0), 1)
+        self.assertEqual(combination(10, 3), 120)
+
+    def test_combination_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            combination(5.0, 2)
+        with self.assertRaises(TypeError):
+            combination(5, "2")
+        with self.assertRaises(TypeError):
+            combination(None, 2)
+
+    def test_combination_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            combination(True, 2)
+        with self.assertRaises(TypeError):
+            combination(5, False)
+
+    def test_combination_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            combination(-1, 2)
+        with self.assertRaises(ValueError):
+            combination(5, -1)
+
+    def test_combination_rejects_k_greater_than_n(self):
+        with self.assertRaises(ValueError):
+            combination(2, 3)
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_is_power_of_two_basic(self):
+        self.assertTrue(is_power_of_two(1))
+        self.assertTrue(is_power_of_two(2))
+        self.assertTrue(is_power_of_two(4))
+        self.assertTrue(is_power_of_two(8))
+        self.assertTrue(is_power_of_two(1024))
+        self.assertFalse(is_power_of_two(0))
+        self.assertFalse(is_power_of_two(3))
+        self.assertFalse(is_power_of_two(5))
+        self.assertFalse(is_power_of_two(6))
+        self.assertFalse(is_power_of_two(1023))
+
+    def test_is_power_of_two_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(4.0)
+        with self.assertRaises(TypeError):
+            is_power_of_two("4")
+
+    def test_is_power_of_two_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_power_of_two(True)
+        with self.assertRaises(TypeError):
+            is_power_of_two(False)
+
+
+class TestPower(unittest.TestCase):
+    def test_power_basic(self):
+        self.assertEqual(power(2, 3), 8.0)
+        self.assertEqual(power(5, 0), 1.0)
+        self.assertEqual(power(4, 0.5), 2.0)
+        self.assertEqual(power(2, -1), 0.5)
+
+    def test_power_rejects_non_numeric(self):
+        with self.assertRaises(TypeError):
+            power("2", 3)
+        with self.assertRaises(TypeError):
+            power(2, "3")
+        with self.assertRaises(TypeError):
+            power(None, 3)
+
+    def test_power_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            power(True, 3)
+        with self.assertRaises(TypeError):
+            power(2, False)
 
 
 class TestIsPrime(unittest.TestCase):
@@ -644,3 +767,7 @@ class TestDistance(unittest.TestCase):
             distance(True, 0, 3, 4)
         with self.assertRaises(TypeError):
             distance(0, False, 3, 4)
+
+
+if __name__ == "__main__":
+    unittest.main()
