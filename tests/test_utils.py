@@ -10,6 +10,7 @@ from utils import (
     flatten,
     has_by,
     is_empty,
+    is_not_empty,
     last,
     remove_none,
     second,
@@ -179,3 +180,30 @@ class TestHasBy(unittest.TestCase):
     def test_has_by_non_callable_raises(self) -> None:
         with self.assertRaises(TypeError):
             has_by([1, 2, 3], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotEmpty(unittest.TestCase):
+    def test_is_not_empty_none(self) -> None:
+        self.assertFalse(is_not_empty(None))
+
+    def test_is_not_empty_empty_values(self) -> None:
+        self.assertFalse(is_not_empty(""))
+        self.assertFalse(is_not_empty([]))
+        self.assertFalse(is_not_empty(()))
+        self.assertFalse(is_not_empty(set()))
+        self.assertFalse(is_not_empty({}))
+
+    def test_is_not_empty_non_empty(self) -> None:
+        self.assertTrue(is_not_empty("hello"))
+        self.assertTrue(is_not_empty([1]))
+        self.assertTrue(is_not_empty({"a": 1}))
+        self.assertTrue(is_not_empty((1,)))
+
+    def test_is_not_empty_numbers_and_bools(self) -> None:
+        self.assertTrue(is_not_empty(0))
+        self.assertTrue(is_not_empty(False))
+        self.assertTrue(is_not_empty(5))
+
+    def test_consistency_with_is_empty(self) -> None:
+        for value in [None, "", [], [1], 0, False, "x", {}, {"a": 1}]:
+            self.assertEqual(is_not_empty(value), not is_empty(value))

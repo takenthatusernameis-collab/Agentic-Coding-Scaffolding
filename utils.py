@@ -37,6 +37,7 @@ __all__ = [
     "initial",
     "intersection",
     "is_empty",
+    "is_not_empty",
     "items",
     "keys",
     "last",
@@ -114,12 +115,46 @@ def dedupe(lst: List[T]) -> List[T]:
 
 
 def is_empty(value: Any) -> bool:
-    """Check if a value is considered empty."""
+    """Check if a value is considered empty.
+
+    Returns ``True`` for ``None`` and for empty strings, lists, tuples, sets,
+    and dicts. Other values (including numbers and booleans) are not empty.
+
+    Examples:
+        >>> is_empty([])
+        True
+        >>> is_empty([1])
+        False
+        >>> is_empty(None)
+        True
+    """
     if value is None:
         return True
     if isinstance(value, (str, list, tuple, set, dict)):
         return len(value) == 0
     return False
+
+
+def is_not_empty(value: Any) -> bool:
+    """Return ``True`` when *value* is not considered empty.
+
+    Boolean negation companion to :func:`is_empty`.
+
+    Args:
+        value: Any value to test.
+
+    Returns:
+        ``True`` if :func:`is_empty` would return ``False``.
+
+    Examples:
+        >>> is_not_empty([1])
+        True
+        >>> is_not_empty([])
+        False
+        >>> is_not_empty("hello")
+        True
+    """
+    return not is_empty(value)
 
 
 def remove_none(lst: List[Any]) -> List[Any]:
