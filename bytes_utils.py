@@ -52,6 +52,8 @@ __all__: list[str] = [
     "count_alpha",
     "has_alpha",
     "isascii",
+    "count_ascii",
+    "has_ascii",
     "isdigit",
     "islower",
     "isspace",
@@ -1343,6 +1345,71 @@ def isascii(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isascii()
+
+
+def count_ascii(data: bytes) -> int:
+    """Return the number of ASCII bytes (``0x00``-``0x7F``) in *data*.
+
+    This is the integer companion to :func:`isascii`. An ASCII byte is any
+    byte whose value is in the ASCII range ``0x00``-``0x7F``. Empty input
+    returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of ASCII bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_ascii(b"abc")
+        3
+        >>> count_ascii(b"\\x80")
+        0
+        >>> count_ascii(b"a\\x80b")
+        2
+        >>> count_ascii(b"")
+        0
+        >>> count_ascii(bytearray(b"ABC"))
+        3
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if 0x00 <= b <= 0x7F)
+
+
+def has_ascii(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one ASCII byte.
+
+    This is the boolean companion to :func:`count_ascii`. It returns ``True``
+    when at least one byte is in the ASCII range ``0x00``-``0x7F`` and
+    ``False`` otherwise (empty input is ``False``), reusing
+    :func:`count_ascii` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        ``True`` if *data* contains an ASCII byte.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_ascii(b"abc")
+        True
+        >>> has_ascii(b"\\x80\\x9f")
+        False
+        >>> has_ascii(b"a\\x80")
+        True
+        >>> has_ascii(bytearray(b"ABC"))
+        True
+        >>> has_ascii(b"")
+        False
+    """
+    return count_ascii(data) > 0
 
 
 def isdigit(data: bytes) -> bool:

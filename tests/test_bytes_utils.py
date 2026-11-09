@@ -11,6 +11,7 @@ from bytes_utils import (
     count,
     count_alnum,
     count_alpha,
+    count_ascii,
     count_digits,
     count_non_null_bytes,
     count_null_bytes,
@@ -23,6 +24,7 @@ from bytes_utils import (
     from_int,
     has_alnum,
     has_alpha,
+    has_ascii,
     has_digits,
     has_non_null_byte,
     has_non_null_bytes,
@@ -488,6 +490,84 @@ class TestHasAlpha(unittest.TestCase):
             has_alpha(123)
         with self.assertRaises(TypeError):
             has_alpha(None)
+
+
+class TestCountAscii(unittest.TestCase):
+    def test_all_ascii(self):
+        self.assertEqual(count_ascii(b"abc"), 3)
+        self.assertEqual(count_ascii(b"ABC"), 3)
+        self.assertEqual(count_ascii(b"a1!"), 3)
+
+    def test_no_ascii(self):
+        self.assertEqual(count_ascii(b"\x80\x9f"), 0)
+        self.assertEqual(count_ascii(b"\xff\xfe"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_ascii(b"a\x80b"), 2)
+        self.assertEqual(count_ascii(b"\x80\x80"), 0)
+        self.assertEqual(count_ascii(b"  ab "), 5)
+
+    def test_empty(self):
+        self.assertEqual(count_ascii(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_ascii(bytearray(b"abc")), 3)
+        self.assertEqual(count_ascii(bytearray(b"\x80\x9f")), 0)
+
+    def test_consistency_with_isascii(self):
+        # isascii is true only when all bytes are ASCII (or empty)
+        self.assertTrue(isascii(b"abc"))
+        self.assertEqual(count_ascii(b"abc"), len(b"abc"))
+        self.assertFalse(isascii(b"\x80"))
+        self.assertEqual(count_ascii(b"\x80"), 0)
+        self.assertTrue(isascii(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_ascii("abc")
+        with self.assertRaises(TypeError):
+            count_ascii(123)
+        with self.assertRaises(TypeError):
+            count_ascii(None)
+
+
+class TestHasAscii(unittest.TestCase):
+    def test_has_ascii(self):
+        self.assertTrue(has_ascii(b"abc"))
+        self.assertTrue(has_ascii(b"ABC"))
+        self.assertTrue(has_ascii(bytearray(b"a\x80b")))
+        self.assertTrue(has_ascii(b"\x80x"))
+
+    def test_no_ascii(self):
+        self.assertFalse(has_ascii(b"\x80\x9f"))
+        self.assertFalse(has_ascii(b"\xff\xfe"))
+        self.assertFalse(has_ascii(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_ascii(bytearray(b"abc")))
+        self.assertFalse(has_ascii(bytearray(b"\x80\x9f")))
+
+    def test_consistency_with_count_ascii(self):
+        self.assertEqual(has_ascii(b"abc"), count_ascii(b"abc") > 0)
+        self.assertEqual(has_ascii(b"\x80"), count_ascii(b"\x80") > 0)
+        self.assertEqual(has_ascii(b""), count_ascii(b"") > 0)
+
+    def test_consistency_with_isascii(self):
+        # isascii requires all ASCII (or empty); has_ascii requires at least one.
+        self.assertTrue(has_ascii(b"abc"))
+        self.assertTrue(isascii(b"abc"))
+        self.assertTrue(has_ascii(b"a\x80"))
+        self.assertFalse(isascii(b"a\x80"))
+        self.assertFalse(has_ascii(b"\x80"))
+        self.assertFalse(isascii(b"\x80"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_ascii("abc")
+        with self.assertRaises(TypeError):
+            has_ascii(123)
+        with self.assertRaises(TypeError):
+            has_ascii(None)
 
 
 class TestCountAlnum(unittest.TestCase):
