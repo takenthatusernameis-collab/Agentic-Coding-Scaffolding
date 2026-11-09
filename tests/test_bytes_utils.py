@@ -13,8 +13,12 @@ from bytes_utils import (
     count_alpha,
     count_ascii,
     count_digits,
+    count_lower,
     count_non_null_bytes,
     count_null_bytes,
+    count_printable,
+    count_space,
+    count_upper,
     decode_ascii,
     encode_ascii,
     ends_with,
@@ -26,10 +30,14 @@ from bytes_utils import (
     has_alpha,
     has_ascii,
     has_digits,
+    has_lower,
     has_non_null_byte,
     has_non_null_bytes,
     has_null_byte,
+    has_printable,
+    has_space,
     has_set_bits,
+    has_upper,
     highest_set_bit,
     index,
     index_of,
@@ -674,6 +682,287 @@ class TestHasAlnum(unittest.TestCase):
             encode_ascii(b"abc")
         with self.assertRaises(TypeError):
             encode_ascii("abc", errors=123)
+
+
+class TestCountLower(unittest.TestCase):
+    def test_all_lower(self):
+        self.assertEqual(count_lower(b"abc"), 3)
+        self.assertEqual(count_lower(b"xyz"), 3)
+        self.assertEqual(count_lower(b"abcxyz"), 6)
+
+    def test_no_lower(self):
+        self.assertEqual(count_lower(b"ABC"), 0)
+        self.assertEqual(count_lower(b"123"), 0)
+        self.assertEqual(count_lower(b"!@#"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_lower(b"AbC"), 1)
+        self.assertEqual(count_lower(b"a1b2c3"), 3)
+        self.assertEqual(count_lower(b"Hello World"), 8)
+
+    def test_empty(self):
+        self.assertEqual(count_lower(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_lower(bytearray(b"abc")), 3)
+        self.assertEqual(count_lower(bytearray(b"ABC")), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_lower("abc")
+        with self.assertRaises(TypeError):
+            count_lower(123)
+        with self.assertRaises(TypeError):
+            count_lower(None)
+
+
+class TestHasLower(unittest.TestCase):
+    def test_has_lower(self):
+        self.assertTrue(has_lower(b"abc"))
+        self.assertTrue(has_lower(b"a"))
+        self.assertTrue(has_lower(bytearray(b"1a")))
+        self.assertTrue(has_lower(b"a1b2c3"))
+
+    def test_no_lower(self):
+        self.assertFalse(has_lower(b"ABC"))
+        self.assertFalse(has_lower(b"123"))
+        self.assertFalse(has_lower(b"!@#"))
+        self.assertFalse(has_lower(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_lower(bytearray(b"abc")))
+        self.assertFalse(has_lower(bytearray(b"ABC")))
+
+    def test_consistency_with_count_lower(self):
+        self.assertEqual(has_lower(b"abc"), count_lower(b"abc") > 0)
+        self.assertEqual(has_lower(b"ABC"), count_lower(b"ABC") > 0)
+        self.assertEqual(has_lower(b""), count_lower(b"") > 0)
+
+    def test_consistency_with_islower(self):
+        # islower requires all cased bytes to be lowercase; has_lower needs any.
+        self.assertTrue(has_lower(b"abc"))
+        self.assertTrue(islower(b"abc"))
+        self.assertTrue(has_lower(b"Abc"))
+        self.assertFalse(islower(b"Abc"))
+        self.assertFalse(has_lower(b"ABC"))
+        self.assertFalse(islower(b"ABC"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_lower("abc")
+        with self.assertRaises(TypeError):
+            has_lower(123)
+        with self.assertRaises(TypeError):
+            has_lower(None)
+
+
+class TestCountSpace(unittest.TestCase):
+    def test_all_space(self):
+        self.assertEqual(count_space(b"   "), 3)
+        self.assertEqual(count_space(b"\t\n"), 2)
+        self.assertEqual(count_space(b" \t\n\r"), 4)
+
+    def test_no_space(self):
+        self.assertEqual(count_space(b"abc"), 0)
+        self.assertEqual(count_space(b"!@#"), 0)
+        self.assertEqual(count_space(b""), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_space(b"a b"), 1)
+        self.assertEqual(count_space(b"x\ty"), 1)
+        self.assertEqual(count_space(b"a b c"), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_space(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_space(bytearray(b"a b")), 1)
+        self.assertEqual(count_space(bytearray(b"ab")), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_space("a b")
+        with self.assertRaises(TypeError):
+            count_space(123)
+        with self.assertRaises(TypeError):
+            count_space(None)
+
+
+class TestHasSpace(unittest.TestCase):
+    def test_has_space(self):
+        self.assertTrue(has_space(b"   "))
+        self.assertTrue(has_space(b"\t"))
+        self.assertTrue(has_space(bytearray(b"x y")))
+        self.assertTrue(has_space(b"a b c"))
+
+    def test_no_space(self):
+        self.assertFalse(has_space(b"abc"))
+        self.assertFalse(has_space(b"!@#"))
+        self.assertFalse(has_space(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_space(bytearray(b"a b")))
+        self.assertFalse(has_space(bytearray(b"ab")))
+
+    def test_consistency_with_count_space(self):
+        self.assertEqual(has_space(b"   "), count_space(b"   ") > 0)
+        self.assertEqual(has_space(b"abc"), count_space(b"abc") > 0)
+        self.assertEqual(has_space(b""), count_space(b"") > 0)
+
+    def test_consistency_with_isspace(self):
+        # isspace requires all bytes to be whitespace; has_space needs any.
+        self.assertTrue(has_space(b"   "))
+        self.assertTrue(isspace(b"   "))
+        self.assertTrue(has_space(b" a"))
+        self.assertFalse(isspace(b" a"))
+        self.assertFalse(has_space(b"abc"))
+        self.assertFalse(isspace(b"abc"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_space("a b")
+        with self.assertRaises(TypeError):
+            has_space(123)
+        with self.assertRaises(TypeError):
+            has_space(None)
+
+
+class TestCountUpper(unittest.TestCase):
+    def test_all_upper(self):
+        self.assertEqual(count_upper(b"ABC"), 3)
+        self.assertEqual(count_upper(b"XYZ"), 3)
+
+    def test_no_upper(self):
+        self.assertEqual(count_upper(b"abc"), 0)
+        self.assertEqual(count_upper(b"123"), 0)
+        self.assertEqual(count_upper(b"!@#"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_upper(b"AbC"), 2)
+        self.assertEqual(count_upper(b"a1B2"), 1)
+        self.assertEqual(count_upper(b"Hello World"), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_upper(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_upper(bytearray(b"ABC")), 3)
+        self.assertEqual(count_upper(bytearray(b"abc")), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_upper("ABC")
+        with self.assertRaises(TypeError):
+            count_upper(123)
+        with self.assertRaises(TypeError):
+            count_upper(None)
+
+
+class TestHasUpper(unittest.TestCase):
+    def test_has_upper(self):
+        self.assertTrue(has_upper(b"ABC"))
+        self.assertTrue(has_upper(b"A"))
+        self.assertTrue(has_upper(bytearray(b"1A")))
+        self.assertTrue(has_upper(b"aBc"))
+
+    def test_no_upper(self):
+        self.assertFalse(has_upper(b"abc"))
+        self.assertFalse(has_upper(b"123"))
+        self.assertFalse(has_upper(b"!@#"))
+        self.assertFalse(has_upper(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_upper(bytearray(b"ABC")))
+        self.assertFalse(has_upper(bytearray(b"abc")))
+
+    def test_consistency_with_count_upper(self):
+        self.assertEqual(has_upper(b"ABC"), count_upper(b"ABC") > 0)
+        self.assertEqual(has_upper(b"abc"), count_upper(b"abc") > 0)
+        self.assertEqual(has_upper(b""), count_upper(b"") > 0)
+
+    def test_consistency_with_isupper(self):
+        # isupper requires all cased bytes to be uppercase; has_upper needs any.
+        self.assertTrue(has_upper(b"ABC"))
+        self.assertTrue(isupper(b"ABC"))
+        self.assertTrue(has_upper(b"Abc"))
+        self.assertFalse(isupper(b"Abc"))
+        self.assertFalse(has_upper(b"abc"))
+        self.assertFalse(isupper(b"abc"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_upper("ABC")
+        with self.assertRaises(TypeError):
+            has_upper(123)
+        with self.assertRaises(TypeError):
+            has_upper(None)
+
+
+class TestCountPrintable(unittest.TestCase):
+    def test_all_printable(self):
+        self.assertEqual(count_printable(b"hello"), 5)
+        self.assertEqual(count_printable(b"hi there"), 8)
+
+    def test_no_printable(self):
+        self.assertEqual(count_printable(b"\x00\x01"), 0)
+        self.assertEqual(count_printable(b"\x1b\x7f"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_printable(b"no\ttabs"), 6)
+        self.assertEqual(count_printable(b"A1!\x00"), 3)
+
+    def test_empty(self):
+        self.assertEqual(count_printable(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_printable(bytearray(b"hello")), 5)
+        self.assertEqual(count_printable(bytearray(b"\x00\x01")), 0)
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_printable("hello")
+        with self.assertRaises(TypeError):
+            count_printable(123)
+        with self.assertRaises(TypeError):
+            count_printable(None)
+
+
+class TestHasPrintable(unittest.TestCase):
+    def test_has_printable(self):
+        self.assertTrue(has_printable(b"hello"))
+        self.assertTrue(has_printable(bytearray(b"A1!")))
+        self.assertTrue(has_printable(b"  "))
+
+    def test_no_printable(self):
+        self.assertFalse(has_printable(b"\x00\x01"))
+        self.assertFalse(has_printable(b"\x1b\x7f"))
+        self.assertFalse(has_printable(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_printable(bytearray(b"hello")))
+        self.assertFalse(has_printable(bytearray(b"\x00\x01")))
+
+    def test_consistency_with_count_printable(self):
+        self.assertEqual(has_printable(b"hello"), count_printable(b"hello") > 0)
+        self.assertEqual(has_printable(b"\x00\x01"), count_printable(b"\x00\x01") > 0)
+        self.assertEqual(has_printable(b""), count_printable(b"") > 0)
+
+    def test_consistency_with_isprintable(self):
+        # isprintable is True for empty input; has_printable is False.
+        self.assertTrue(has_printable(b"hello"))
+        self.assertTrue(isprintable(b"hello"))
+        self.assertFalse(has_printable(b"\x1b\x01"))
+        self.assertFalse(isprintable(b"\x1b\x01"))
+        self.assertFalse(has_printable(b""))
+        self.assertTrue(isprintable(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_printable("hello")
+        with self.assertRaises(TypeError):
+            has_printable(123)
+        with self.assertRaises(TypeError):
+            has_printable(None)
 
 
 class TestIndexOf(unittest.TestCase):

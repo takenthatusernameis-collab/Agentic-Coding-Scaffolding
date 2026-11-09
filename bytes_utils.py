@@ -56,10 +56,18 @@ __all__: list[str] = [
     "has_ascii",
     "isdigit",
     "islower",
+    "count_lower",
+    "has_lower",
     "isspace",
+    "count_space",
+    "has_space",
     "istitle",
     "isupper",
+    "count_upper",
+    "has_upper",
     "isprintable",
+    "count_printable",
+    "has_printable",
     "isidentifier",
     "join",
     "expandtabs",
@@ -1531,6 +1539,75 @@ def islower(data: bytes) -> bool:
     return bytes(data).islower()
 
 
+def count_lower(data: bytes) -> int:
+    """Return the number of ASCII lowercase bytes (``a``-``z``) in *data*.
+
+    This is the integer companion to :func:`islower`. A lowercase byte is any
+    byte for which :meth:`bytes.islower` is true. Empty input returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of lowercase bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_lower(b"abc")
+        3
+        >>> count_lower(b"ABC")
+        0
+        >>> count_lower(b"AbC")
+        1
+        >>> count_lower(b"123")
+        0
+        >>> count_lower(b"")
+        0
+        >>> count_lower(bytearray(b"a1b2"))
+        2
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if bytes([b]).islower())
+
+
+def has_lower(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one ASCII lowercase byte.
+
+    This is the boolean companion to :func:`count_lower`. It returns ``True``
+    when at least one byte is lowercase and ``False`` otherwise (empty input
+    is ``False``), reusing :func:`count_lower` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is a lowercase ASCII letter, False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_lower(b"abc")
+        True
+        >>> has_lower(b"ABC")
+        False
+        >>> has_lower(bytearray(b"1a"))
+        True
+        >>> has_lower(b"123")
+        False
+        >>> has_lower(b"a1b2c3")
+        True
+        >>> has_lower(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_lower(data) > 0
+
+
 def isspace(data: bytes) -> bool:
     """Return ``True`` if all bytes are whitespace and there is at least one.
 
@@ -1556,6 +1633,76 @@ def isspace(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return bytes(data).isspace()
+
+
+def count_space(data: bytes) -> int:
+    """Return the number of ASCII whitespace bytes in *data*.
+
+    This is the integer companion to :func:`isspace`. A whitespace byte is any
+    byte for which :meth:`bytes.isspace` is true (space, tab, newline,
+    carriage return, form feed, vertical tab). Empty input returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of whitespace bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_space(b"   ")
+        3
+        >>> count_space(b"\\t\\n")
+        2
+        >>> count_space(b"a b")
+        1
+        >>> count_space(b"abc")
+        0
+        >>> count_space(b"")
+        0
+        >>> count_space(bytearray(b"x\\ty"))
+        1
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if bytes([b]).isspace())
+
+
+def has_space(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one ASCII whitespace byte.
+
+    This is the boolean companion to :func:`count_space`. It returns ``True``
+    when at least one byte is whitespace and ``False`` otherwise (empty input
+    is ``False``), reusing :func:`count_space` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is an ASCII whitespace byte, False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_space(b"   ")
+        True
+        >>> has_space(b"\\t")
+        True
+        >>> has_space(bytearray(b"x y"))
+        True
+        >>> has_space(b"abc")
+        False
+        >>> has_space(b"a b c")
+        True
+        >>> has_space(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_space(data) > 0
 
 
 def istitle(data: bytes) -> bool:
@@ -1612,6 +1759,75 @@ def isupper(data: bytes) -> bool:
     return bytes(data).isupper()
 
 
+def count_upper(data: bytes) -> int:
+    """Return the number of ASCII uppercase bytes (``A``-``Z``) in *data*.
+
+    This is the integer companion to :func:`isupper`. An uppercase byte is any
+    byte for which :meth:`bytes.isupper` is true. Empty input returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of uppercase bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_upper(b"ABC")
+        3
+        >>> count_upper(b"abc")
+        0
+        >>> count_upper(b"AbC")
+        2
+        >>> count_upper(b"123")
+        0
+        >>> count_upper(b"")
+        0
+        >>> count_upper(bytearray(b"A1B2"))
+        2
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if bytes([b]).isupper())
+
+
+def has_upper(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one ASCII uppercase byte.
+
+    This is the boolean companion to :func:`count_upper`. It returns ``True``
+    when at least one byte is uppercase and ``False`` otherwise (empty input
+    is ``False``), reusing :func:`count_upper` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is an uppercase ASCII letter, False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_upper(b"ABC")
+        True
+        >>> has_upper(b"abc")
+        False
+        >>> has_upper(bytearray(b"1A"))
+        True
+        >>> has_upper(b"123")
+        False
+        >>> has_upper(b"aBc")
+        True
+        >>> has_upper(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_upper(data) > 0
+
+
 def isprintable(data: bytes) -> bool:
     """Return True if *data* contains only printable bytes.
 
@@ -1643,6 +1859,77 @@ def isprintable(data: bytes) -> bool:
         raise TypeError("data must be bytes or bytearray")
     raw = bytes(data)
     return all(0x20 <= b <= 0x7E for b in raw)
+
+
+def count_printable(data: bytes) -> int:
+    """Return the number of ASCII printable bytes in *data*.
+
+    This is the integer companion to :func:`isprintable`. A printable byte is
+    any byte in the ASCII printable range ``0x20``-``0x7E`` (including the
+    space). Empty input returns ``0``.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        Count of printable bytes in *data*.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> count_printable(b"hello")
+        5
+        >>> count_printable(b"hi there")
+        8
+        >>> count_printable(b"")
+        0
+        >>> count_printable(b"no\\ttabs")
+        6
+        >>> count_printable(b"\\x1b\\x01")
+        0
+        >>> count_printable(bytearray(b"A1!"))
+        3
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return sum(1 for b in bytes(data) if 0x20 <= b <= 0x7E)
+
+
+def has_printable(data: bytes) -> bool:
+    """Return ``True`` if *data* contains at least one ASCII printable byte.
+
+    This is the boolean companion to :func:`count_printable`. It returns
+    ``True`` when at least one byte is printable and ``False`` otherwise
+    (empty input is ``False``), reusing :func:`count_printable` for
+    consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is ASCII printable, False otherwise.
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> has_printable(b"hello")
+        True
+        >>> has_printable(b"\\x1b\\x01")
+        False
+        >>> has_printable(bytearray(b"A1!"))
+        True
+        >>> has_printable(b"")
+        False
+        >>> has_printable(b"  ")
+        True
+        >>> has_printable(b"\\x7f")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return count_printable(data) > 0
 
 
 def isidentifier(data: bytes) -> bool:
