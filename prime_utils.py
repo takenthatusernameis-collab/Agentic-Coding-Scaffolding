@@ -41,8 +41,10 @@ __all__: List[str] = [
     "prime_gap",
     "primorial",
     "primes_between",
+    "count_prime_factors",
     "total_prime_factors",
     "has_prime_factors",
+    "count_distinct_prime_factors",
     "distinct_prime_factors",
     "has_distinct_prime_factors",
     "largest_prime_factor",
@@ -924,11 +926,12 @@ def primorial(n: int) -> int:
     return result
 
 
-def total_prime_factors(n: int) -> int:
+def count_prime_factors(n: int) -> int:
     """Return the total number of prime factors of *n* with multiplicity.
 
-    This is the arithmetic function ``Omega(n)``: for example,
-    ``total_prime_factors(12) == 3`` because ``12 = 2 * 2 * 3``.
+    This is the arithmetic function ``Omega(n)`` and is the
+    ``count_*``-named integer companion to :func:`has_prime_factors`. For
+    example, ``count_prime_factors(12) == 3`` because ``12 = 2 * 2 * 3``.
 
     Args:
         n: The integer to analyze.
@@ -939,6 +942,13 @@ def total_prime_factors(n: int) -> int:
     Raises:
         TypeError: If *n* is not an int.
         ValueError: If *n* is less than 1.
+
+    >>> count_prime_factors(1)
+    0
+    >>> count_prime_factors(2)
+    1
+    >>> count_prime_factors(12)
+    3
     """
     _require_int(n, "n")
     if n < 1:
@@ -962,12 +972,17 @@ def total_prime_factors(n: int) -> int:
     return count
 
 
+def total_prime_factors(n: int) -> int:
+    """Alias for :func:`count_prime_factors` (the arithmetic ``Omega(n)``)."""
+    return count_prime_factors(n)
+
+
 def has_prime_factors(n: int) -> bool:
     """Return True if *n* has at least one prime factor.
 
-    This is a boolean companion to :func:`total_prime_factors`; it returns
-    ``True`` when *n* has one or more prime factors and ``False`` otherwise
-    (i.e. when *n* is 1).
+    This is the boolean companion to :func:`count_prime_factors` (alias
+    :func:`total_prime_factors`); it returns ``True`` when *n* has one or
+    more prime factors and ``False`` otherwise (i.e. when *n* is 1).
 
     Args:
         n: The integer to analyze.
@@ -986,14 +1001,16 @@ def has_prime_factors(n: int) -> bool:
     >>> has_prime_factors(2)
     True
     """
-    return total_prime_factors(n) > 0
+    return count_prime_factors(n) > 0
 
 
-def distinct_prime_factors(n: int) -> int:
+def count_distinct_prime_factors(n: int) -> int:
     """Return the number of distinct prime factors of *n*.
 
-    This is the arithmetic function ``omega(n)``: for example,
-    ``distinct_prime_factors(12) == 2`` because ``12 = 2 * 2 * 3``.
+    This is the arithmetic function ``omega(n)`` and is the
+    ``count_*``-named integer companion to
+    :func:`has_distinct_prime_factors`. For example,
+    ``count_distinct_prime_factors(12) == 2`` because ``12 = 2 * 2 * 3``.
 
     Args:
         n: The integer to analyze.
@@ -1004,6 +1021,15 @@ def distinct_prime_factors(n: int) -> int:
     Raises:
         TypeError: If *n* is not an int.
         ValueError: If *n* is less than 1.
+
+    >>> count_distinct_prime_factors(1)
+    0
+    >>> count_distinct_prime_factors(2)
+    1
+    >>> count_distinct_prime_factors(12)
+    2
+    >>> count_distinct_prime_factors(30)
+    3
     """
     _require_int(n, "n")
     if n < 1:
@@ -1028,13 +1054,19 @@ def distinct_prime_factors(n: int) -> int:
     return count
 
 
+def distinct_prime_factors(n: int) -> int:
+    """Alias for :func:`count_distinct_prime_factors` (arithmetic ``omega(n)``)."""
+    return count_distinct_prime_factors(n)
+
+
 def has_distinct_prime_factors(n: int) -> bool:
     """Return True if *n* has at least one distinct prime factor.
 
-    This is the boolean companion to :func:`distinct_prime_factors`; it
-    returns ``True`` when *n* has one or more distinct prime factors and
-    ``False`` otherwise (i.e. when *n* is 1), reusing
-    :func:`distinct_prime_factors` for consistency.
+    This is the boolean companion to :func:`count_distinct_prime_factors`
+    (alias :func:`distinct_prime_factors`); it returns ``True`` when *n*
+    has one or more distinct prime factors and ``False`` otherwise (i.e.
+    when *n* is 1), reusing :func:`count_distinct_prime_factors` for
+    consistency.
 
     Args:
         n: The integer to analyze.
@@ -1055,7 +1087,7 @@ def has_distinct_prime_factors(n: int) -> bool:
         >>> has_distinct_prime_factors(2)
         True
     """
-    return distinct_prime_factors(n) > 0
+    return count_distinct_prime_factors(n) > 0
 
 
 def largest_prime_factor(n: int) -> int:

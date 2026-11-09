@@ -4,6 +4,8 @@ import unittest
 
 from prime_utils import (
     coprime,
+    count_distinct_prime_factors,
+    count_prime_factors,
     distinct_prime_factors,
     has_distinct_prime_factors,
     has_prime_factors,
@@ -1120,6 +1122,34 @@ class TestTotalPrimeFactors(unittest.TestCase):
             total_prime_factors(-1)
 
 
+class TestCountPrimeFactors(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_prime_factors(1), 0)
+        self.assertEqual(count_prime_factors(2), 1)
+        self.assertEqual(count_prime_factors(12), 3)
+        self.assertEqual(count_prime_factors(30), 3)
+
+    def test_prime_power(self):
+        self.assertEqual(count_prime_factors(8), 3)
+        self.assertEqual(count_prime_factors(27), 3)
+
+    def test_alias_matches_total(self):
+        for n in range(1, 120):
+            self.assertEqual(count_prime_factors(n), total_prime_factors(n))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_prime_factors(5.0)
+        with self.assertRaises(TypeError):
+            count_prime_factors(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            count_prime_factors(0)
+        with self.assertRaises(ValueError):
+            count_prime_factors(-1)
+
+
 class TestHasPrimeFactors(unittest.TestCase):
     def test_basic(self):
         self.assertTrue(has_prime_factors(2))
@@ -1136,6 +1166,7 @@ class TestHasPrimeFactors(unittest.TestCase):
     def test_consistency_with_total_prime_factors(self):
         for n in range(1, 200):
             self.assertEqual(has_prime_factors(n), total_prime_factors(n) > 0)
+            self.assertEqual(has_prime_factors(n), count_prime_factors(n) > 0)
 
     def test_type_error(self):
         with self.assertRaises(TypeError):
@@ -1174,6 +1205,36 @@ class TestDistinctPrimeFactors(unittest.TestCase):
             distinct_prime_factors(-1)
 
 
+class TestCountDistinctPrimeFactors(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_distinct_prime_factors(1), 0)
+        self.assertEqual(count_distinct_prime_factors(2), 1)
+        self.assertEqual(count_distinct_prime_factors(12), 2)
+        self.assertEqual(count_distinct_prime_factors(30), 3)
+
+    def test_prime_power(self):
+        self.assertEqual(count_distinct_prime_factors(8), 1)
+        self.assertEqual(count_distinct_prime_factors(27), 1)
+
+    def test_alias_matches_distinct(self):
+        for n in range(1, 120):
+            self.assertEqual(
+                count_distinct_prime_factors(n), distinct_prime_factors(n)
+            )
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_distinct_prime_factors(5.0)
+        with self.assertRaises(TypeError):
+            count_distinct_prime_factors(True)
+
+    def test_value_error(self):
+        with self.assertRaises(ValueError):
+            count_distinct_prime_factors(0)
+        with self.assertRaises(ValueError):
+            count_distinct_prime_factors(-1)
+
+
 class TestHasDistinctPrimeFactors(unittest.TestCase):
     def test_basic(self):
         self.assertTrue(has_distinct_prime_factors(2))
@@ -1191,6 +1252,9 @@ class TestHasDistinctPrimeFactors(unittest.TestCase):
         for n in range(1, 200):
             self.assertEqual(
                 has_distinct_prime_factors(n), distinct_prime_factors(n) > 0
+            )
+            self.assertEqual(
+                has_distinct_prime_factors(n), count_distinct_prime_factors(n) > 0
             )
 
     def test_type_error(self):
