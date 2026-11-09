@@ -33906,6 +33906,7 @@ __all__ = [
     "contains",
     "count_duplicates",
     "count_occurrences",
+    "count_unique",
     "count_where",
     "drop",
     "find",
@@ -33917,6 +33918,7 @@ __all__ = [
     "first_or_default",
     "flatten",
     "group_by",
+    "has_all_unique",
     "has_duplicates",
     "has_occurrences",
     "has_where",
@@ -34613,6 +34615,78 @@ def has_duplicates(lst: List[T]) -> bool:
     return count_duplicates(lst) > 0
 
 
+def count_unique(lst: List[T]) -> int:
+    """Return the number of distinct elements in *lst*.
+
+    Elements are compared by equality; hashable elements use a set for
+    efficiency, and unhashable elements fall back to linear membership
+    checks.
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        The number of distinct elements.
+
+    Raises:
+        TypeError: If *lst* is not a list.
+
+    Examples:
+        >>> count_unique([1, 2, 2, 3])
+        3
+        >>> count_unique([1, 2, 3])
+        3
+        >>> count_unique([])
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen: set = set()
+    unhashable: List[T] = []
+    unique_count = 0
+    for item in lst:
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+            unique_count += 1
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
+            unique_count += 1
+    return unique_count
+
+
+def has_all_unique(lst: List[T]) -> bool:
+    """Return ``True`` when every element of ``lst`` is distinct.
+
+    This is the boolean companion to :func:`count_unique`; it reports whether
+    all elements are unique. An empty list yields ``True`` (vacuously all
+    elements are distinct).
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        ``True`` if all elements in ``lst`` are distinct, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> has_all_unique([1, 2, 3])
+        True
+        >>> has_all_unique([1, 2, 2, 3])
+        False
+        >>> has_all_unique([])
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return count_unique(lst) == len(lst)
+
+
 def count_occurrences(lst: List[T], value: T) -> int:
     """Return how many times *value* appears in *lst*.
 
@@ -34883,6 +34957,7 @@ from list_utils import (
     contains,
     count_duplicates,
     count_occurrences,
+    count_unique,
     count_where,
     drop,
     find,
@@ -34893,6 +34968,7 @@ from list_utils import (
     find_last_index,
     flatten,
     group_by,
+    has_all_unique,
     has_duplicates,
     has_occurrences,
     has_where,
@@ -35503,8 +35579,61 @@ class TestIndicesOf(unittest.TestCase):
                 self.assertEqual(idxs[0], first)
 
 
-if __name__ == "__main__":
-    unittest.main()
+
+class TestCountUnique(unittest.TestCase):
+    def test_basic_counting(self) -> None:
+        self.assertEqual(count_unique([1, 2, 2, 3]), 3)
+        self.assertEqual(count_unique([1, 1, 2, 2, 3, 3]), 3)
+
+    def test_all_unique(self) -> None:
+        self.assertEqual(count_unique([1, 2, 3]), 3)
+        self.assertEqual(count_unique(["a", "b", "c"]), 3)
+
+    def test_all_duplicates(self) -> None:
+        self.assertEqual(count_unique([1, 1, 1]), 1)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_unique([]), 0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(count_unique([42]), 1)
+
+    def test_unhashable_elements(self) -> None:
+        self.assertEqual(count_unique([[1], [2], [1]]), 2)
+
+    def test_consistency_with_has_all_unique(self) -> None:
+        for lst in ([1, 2, 3], [1, 2, 2, 3], [], ["a", "b", "a"]):
+            self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_unique("abc")  # type: ignore[arg-type]
+
+
+class TestHasAllUnique(unittest.TestCase):
+    def test_all_unique(self) -> None:
+        self.assertTrue(has_all_unique([1, 2, 3]))
+
+    def test_duplicates(self) -> None:
+        self.assertFalse(has_all_unique([1, 2, 2, 3]))
+
+    def test_empty(self) -> None:
+        self.assertTrue(has_all_unique([]))
+
+    def test_single_element(self) -> None:
+        self.assertTrue(has_all_unique([42]))
+
+    def test_unhashable_elements(self) -> None:
+        self.assertTrue(has_all_unique([[1], [2], [3]]))
+        self.assertFalse(has_all_unique([[1], [2], [1]]))
+
+    def test_consistency_with_count_unique(self) -> None:
+        lst = [1, 2, 2, 3]
+        self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_all_unique("abc")  # type: ignore[arg-type]
 
 class TestCountOccurrences(unittest.TestCase):
     def test_basic(self) -> None:
@@ -66032,6 +66161,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count_unique/has_all_unique companions to `list_utils`
+
+- Added `count_unique(lst)` and `has_all_unique(lst)` to `list_utils.py` as companions to `count_duplicates`/`has_duplicates`/`unique_preserve_order`, matching `seq_utils` style. Both accept a typed `List[T]`, raise `TypeError` for non-lists, handle unhashable elements via linear membership checks, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. `count_unique` returns the number of distinct elements; `has_all_unique` reports whether all elements are distinct (empty list vacuously `True`). Added `TestCountUnique` and `TestHasAllUnique` (15 tests) to `tests/test_list_utils.py`. Updated `README.md` (`list_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` (202 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added count/where predicate companions to `list_utils`
 
 - Added `count_occurrences(lst, value)`, `count_where(lst, predicate)`, `has_where(lst, predicate)`, `all_where(lst, predicate)`, `none_where(lst, predicate)`, and `has_occurrences(lst, value)` to `list_utils.py` as companions to existing `find`/`contains` helpers, matching `seq_utils` style. Typed APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation for non-list *lst* (and non-callable predicates where applicable). Added `TestCountOccurrences`, `TestCountWhere`, `TestHasWhere`, `TestAllWhere`, `TestNoneWhere`, and `TestHasOccurrences` (31 tests) to `tests/test_list_utils.py`. Updated `README.md` (`list_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` (187 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
@@ -68669,7 +68802,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, indices_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates, count_occurrences, count_where, has_where, all_where, none_where, has_occurrences)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, indices_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, count_unique, has_all_unique, has_duplicates, count_occurrences, count_where, has_where, all_where, none_where, has_occurrences)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -69337,7 +69470,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `indices_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, `has_duplicates`, `count_occurrences`, `count_where`, `has_where`, `all_where`, `none_where`, and `has_occurrences`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `indices_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, `count_unique`, `has_all_unique`, `has_duplicates`, `count_occurrences`, `count_where`, `has_where`, `all_where`, `none_where`, and `has_occurrences`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

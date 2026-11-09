@@ -8,6 +8,7 @@ from list_utils import (
     contains,
     count_duplicates,
     count_occurrences,
+    count_unique,
     count_where,
     drop,
     find,
@@ -18,6 +19,7 @@ from list_utils import (
     find_last_index,
     flatten,
     group_by,
+    has_all_unique,
     has_duplicates,
     has_occurrences,
     has_where,
@@ -628,8 +630,61 @@ class TestIndicesOf(unittest.TestCase):
                 self.assertEqual(idxs[0], first)
 
 
-if __name__ == "__main__":
-    unittest.main()
+
+class TestCountUnique(unittest.TestCase):
+    def test_basic_counting(self) -> None:
+        self.assertEqual(count_unique([1, 2, 2, 3]), 3)
+        self.assertEqual(count_unique([1, 1, 2, 2, 3, 3]), 3)
+
+    def test_all_unique(self) -> None:
+        self.assertEqual(count_unique([1, 2, 3]), 3)
+        self.assertEqual(count_unique(["a", "b", "c"]), 3)
+
+    def test_all_duplicates(self) -> None:
+        self.assertEqual(count_unique([1, 1, 1]), 1)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_unique([]), 0)
+
+    def test_single_element(self) -> None:
+        self.assertEqual(count_unique([42]), 1)
+
+    def test_unhashable_elements(self) -> None:
+        self.assertEqual(count_unique([[1], [2], [1]]), 2)
+
+    def test_consistency_with_has_all_unique(self) -> None:
+        for lst in ([1, 2, 3], [1, 2, 2, 3], [], ["a", "b", "a"]):
+            self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_unique("abc")  # type: ignore[arg-type]
+
+
+class TestHasAllUnique(unittest.TestCase):
+    def test_all_unique(self) -> None:
+        self.assertTrue(has_all_unique([1, 2, 3]))
+
+    def test_duplicates(self) -> None:
+        self.assertFalse(has_all_unique([1, 2, 2, 3]))
+
+    def test_empty(self) -> None:
+        self.assertTrue(has_all_unique([]))
+
+    def test_single_element(self) -> None:
+        self.assertTrue(has_all_unique([42]))
+
+    def test_unhashable_elements(self) -> None:
+        self.assertTrue(has_all_unique([[1], [2], [3]]))
+        self.assertFalse(has_all_unique([[1], [2], [1]]))
+
+    def test_consistency_with_count_unique(self) -> None:
+        lst = [1, 2, 2, 3]
+        self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_all_unique("abc")  # type: ignore[arg-type]
 
 class TestCountOccurrences(unittest.TestCase):
     def test_basic(self) -> None:

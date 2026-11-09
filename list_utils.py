@@ -24,6 +24,7 @@ __all__ = [
     "contains",
     "count_duplicates",
     "count_occurrences",
+    "count_unique",
     "count_where",
     "drop",
     "find",
@@ -35,6 +36,7 @@ __all__ = [
     "first_or_default",
     "flatten",
     "group_by",
+    "has_all_unique",
     "has_duplicates",
     "has_occurrences",
     "has_where",
@@ -729,6 +731,78 @@ def has_duplicates(lst: List[T]) -> bool:
     if not isinstance(lst, list):
         raise TypeError("lst must be a list")
     return count_duplicates(lst) > 0
+
+
+def count_unique(lst: List[T]) -> int:
+    """Return the number of distinct elements in *lst*.
+
+    Elements are compared by equality; hashable elements use a set for
+    efficiency, and unhashable elements fall back to linear membership
+    checks.
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        The number of distinct elements.
+
+    Raises:
+        TypeError: If *lst* is not a list.
+
+    Examples:
+        >>> count_unique([1, 2, 2, 3])
+        3
+        >>> count_unique([1, 2, 3])
+        3
+        >>> count_unique([])
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    seen: set = set()
+    unhashable: List[T] = []
+    unique_count = 0
+    for item in lst:
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+            unique_count += 1
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
+            unique_count += 1
+    return unique_count
+
+
+def has_all_unique(lst: List[T]) -> bool:
+    """Return ``True`` when every element of ``lst`` is distinct.
+
+    This is the boolean companion to :func:`count_unique`; it reports whether
+    all elements are unique. An empty list yields ``True`` (vacuously all
+    elements are distinct).
+
+    Args:
+        lst: The list to inspect.
+
+    Returns:
+        ``True`` if all elements in ``lst`` are distinct, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> has_all_unique([1, 2, 3])
+        True
+        >>> has_all_unique([1, 2, 2, 3])
+        False
+        >>> has_all_unique([])
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return count_unique(lst) == len(lst)
 
 
 def count_occurrences(lst: List[T], value: T) -> int:

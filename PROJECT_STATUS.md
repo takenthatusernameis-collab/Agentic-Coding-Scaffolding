@@ -3472,6 +3472,22 @@ Next Planned (for the following agent):
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
 
+## Latest Session (2026-11-09) — added count_unique/has_all_unique to `list_utils`
+
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Audited `list_utils.py`/`seq_utils.py` for a focused, hermetic helper gap: `seq_utils` exposed `count_unique`/`has_all_unique` companions, while `list_utils` had `count_duplicates`/`has_duplicates`/`unique_preserve_order` but lacked the distinct-count/all-unique pair.
+
+**Changes:**
+- Added `count_unique(lst)` and `has_all_unique(lst)` to `list_utils.py`. Typed `List[T]` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, `TypeError` for non-lists, unhashable-element handling via linear membership checks (matching module style).
+- Added `TestCountUnique` and `TestHasAllUnique` (15 tests) to `tests/test_list_utils.py`.
+- Updated `README.md` (`list_utils` tree/prose) and `CHANGELOG.md`. Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_list_utils` (202 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
+Next Planned (for the following agent):
+- Audit `set_utils.py` or `seq_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing count/predicate/comparison pair that complements existing helpers, or a symmetric gap exposed by recent `list_utils` additions) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
+- Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
+- Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
+
 ## Latest Session (2026-11-09) — added count/where predicate companions to `list_utils`
 
 **Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Executed prior "Next Planned" by auditing `list_utils.py` for a focused, hermetic helper gap. `seq_utils.py` exposed `count_occurrences`/`count_where`/`has_where`/`all_where`/`none_where`/`has_occurrences` companions (with tests), while `list_utils.py` had `find`/`contains`/`index_of`-style helpers but lacked these count/predicate companions.
