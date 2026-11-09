@@ -50876,7 +50876,9 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 import unittest
 
 from dict_utils import (
+    contains_all_keys,
     contains_all_values,
+    contains_any_key,
     contains_any_value,
     contains_key,
     contains_value,
@@ -50885,7 +50887,9 @@ from dict_utils import (
     deep_merge,
     filter_dict,
     flatten_dict,
+    has_all_keys,
     has_all_values,
+    has_any_key,
     has_any_value,
     has_key,
     has_value,
@@ -51065,6 +51069,94 @@ class TestContainsKey(unittest.TestCase):
             contains_key("x", "a")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             contains_key(None, "a")  # type: ignore[arg-type]
+
+
+class TestHasAllKeys(unittest.TestCase):
+    def test_all_present(self) -> None:
+        self.assertTrue(has_all_keys({"a": 1, "b": 2}, ["a", "b"]))
+
+    def test_one_missing(self) -> None:
+        self.assertFalse(has_all_keys({"a": 1, "b": 2}, ["a", "c"]))
+
+    def test_none_present(self) -> None:
+        self.assertFalse(has_all_keys({"a": 1, "b": 2}, ["c", "d"]))
+
+    def test_empty_keys(self) -> None:
+        self.assertTrue(has_all_keys({}, []))
+        self.assertTrue(has_all_keys({"a": 1}, []))
+
+    def test_empty_dict(self) -> None:
+        self.assertFalse(has_all_keys({}, ["a"]))
+
+    def test_duplicates_in_keys(self) -> None:
+        # Duplicates in keys are counted per occurrence, so all must be present.
+        self.assertTrue(has_all_keys({"a": 1}, ["a", "a"]))
+        self.assertFalse(has_all_keys({"a": 1}, ["a", "a", "b"]))
+
+    def test_generator_keys(self) -> None:
+        self.assertTrue(has_all_keys({"a": 1, "b": 2}, (k for k in ["a", "b"])))
+        self.assertFalse(has_all_keys({"a": 1}, (k for k in ["a", "b"])))
+
+    def test_falsy_and_none_keys(self) -> None:
+        self.assertTrue(has_all_keys({None: 1, 0: 2, "": 3}, [None, 0, ""]))
+
+    def test_matches_contains_alias(self) -> None:
+        d = {"a": 1, "b": 2}
+        for keys in (["a", "b"], ["a", "c"], [], ["b"], ["a", "a", "b"]):
+            self.assertEqual(contains_all_keys(d, keys), has_all_keys(d, keys))
+
+    def test_consistency_with_count_all_keys(self) -> None:
+        d = {"a": 1, "b": 2}
+        for keys in (["a", "b"], ["a", "c"], [], ["b"], ["a", "a", "b"]):
+            self.assertEqual(
+                has_all_keys(d, keys),
+                count_all_keys(d, keys) == len(list(keys)),
+            )
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_all_keys("x", ["a"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_all_keys(None, ["a"])  # type: ignore[arg-type]
+
+
+class TestHasAnyKey(unittest.TestCase):
+    def test_one_present(self) -> None:
+        self.assertTrue(has_any_key({"a": 1, "b": 2}, ["a", "c"]))
+
+    def test_none_present(self) -> None:
+        self.assertFalse(has_any_key({"a": 1, "b": 2}, ["c", "d"]))
+
+    def test_empty_keys(self) -> None:
+        self.assertFalse(has_any_key({}, []))
+        self.assertFalse(has_any_key({"a": 1}, []))
+
+    def test_empty_dict(self) -> None:
+        self.assertFalse(has_any_key({}, ["a"]))
+
+    def test_falsy_and_none_keys(self) -> None:
+        self.assertTrue(has_any_key({None: 1, 0: 2}, [None, 0]))
+        self.assertFalse(has_any_key({"a": 1}, [None]))
+
+    def test_generator_keys(self) -> None:
+        self.assertTrue(has_any_key({"a": 1, "b": 2}, (k for k in ["a", "c"])))
+        self.assertFalse(has_any_key({"a": 1}, (k for k in ["b", "c"])))
+
+    def test_matches_contains_alias(self) -> None:
+        d = {"a": 1, "b": 2}
+        for keys in (["a", "c"], ["c", "d"], [], ["b"]):
+            self.assertEqual(contains_any_key(d, keys), has_any_key(d, keys))
+
+    def test_consistency_with_count_all_keys(self) -> None:
+        d = {"a": 1, "b": 2}
+        for keys in (["a", "c"], ["c", "d"], [], ["b"]):
+            self.assertEqual(has_any_key(d, keys), count_all_keys(d, keys) > 0)
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            has_any_key("x", ["a"])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_any_key(None, ["a"])  # type: ignore[arg-type]
 
 
 class TestKeysEqual(unittest.TestCase):

@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-09) — added TestHasAllKeys/TestHasAnyKey coverage for dict_utils key-predicate companions
+
+The board held no task (`board_read` empty; bootstrap session). Verified repository health before starting: `git status` clean on branch main at `cc5f61f`, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Followed the durable "Next Planned": audited `set_utils.py` and `dict_utils.py` for a focused, hermetic helper gap. `set_utils.py` is fully covered (every `__all__` name has a dedicated test class). Found a genuine, hermetic gap in `dict_utils.py`: `has_all_keys`, `has_any_key`, and their alias `contains_all_keys` are exported in `__all__`, typed, validated, and documented with Google-style docstrings and ASCII-safe doctests, but shipped with zero dedicated test coverage — their value-side counterparts (`has_all_values`, `has_any_value`, `contains_all_values`, `contains_any_value`) all have dedicated test classes, and the key-side trio was only exercised incidentally via local imports inside `TestCountAllKeys` consistency tests.
+
+Completed in this session:
+
+- Added `TestHasAllKeys` (10 tests) and `TestHasAnyKey` (10 tests) to `tests/test_dict_utils.py` covering all-present/one-missing/none-present, empty-keys, empty-dict, duplicates-in-keys, generator keys, falsy-and-None keys, consistency with `count_all_keys`, matches-`contains_*`-alias, and `TypeError` paths. Imported `contains_all_keys`/`contains_any_key` to match the module's `__all__` contract. The implementation in `dict_utils.py` was unchanged. Fixed a ruff duplicate-key-literal finding (`0`/`False` collide as dict keys) by using `""` for the third falsy key.
+- Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (1 embedded copy refreshed: `tests/test_dict_utils.py`).
+- Verified: `python -m unittest tests.test_dict_utils` (120 tests, OK; +20 new); `python -m doctest dict_utils.py` (OK); `python -m unittest tests.test_public_api` (OK); full suite `python -m unittest discover tests/` (**9857 tests, OK**, 56.1s); `python -m ruff check tests/test_dict_utils.py` clean; `python -m mypy tests/test_dict_utils.py` reports only 3 pre-existing intentional wrong-type errors at lines 301/355 in untouched `TestKeysEqual`/`TestContainsValue` classes — not introduced by this session. No new public API was added, so `README.md`/`CHANGELOG.md` were not modified.
+
+Next Planned (durable handover for the following agent):
+
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap **outside** the now-audited candidates (`seq_utils`, `set_utils`, `deque_utils`, `bytes_utils`, `list_utils`, `version_utils`, `numbers_utils`, `prime_utils`, `stats`, `interval_utils`, `bit_utils`, `calculator`, `dict_utils`), with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-09) — added `take`/`drop` sequence helpers to `seq_utils`
 
 **Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Executed prior "Next Planned" by auditing `seq_utils.py`/`list_utils.py` for a focused, hermetic helper gap. `list_utils.py` exposed list-only `take`/`drop`, while `seq_utils.py` had `head`/`tail`/`take_while`/`drop_while` but lacked sequence `take`/`drop` by count.
