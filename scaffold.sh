@@ -109976,6 +109976,53 @@ class TestCountDuplicates(unittest.TestCase):
             count_duplicates(None)  # type: ignore[arg-type]
 
 
+class TestCountUnique(unittest.TestCase):
+    def test_basic_counting(self):
+        self.assertEqual(count_unique([1, 2, 2, 3]), 3)
+        self.assertEqual(count_unique([1, 1, 2, 2, 3, 3]), 3)
+
+    def test_all_unique(self):
+        self.assertEqual(count_unique([1, 2, 3]), 3)
+        self.assertEqual(count_unique("abc"), 3)
+        self.assertEqual(count_unique((1, 2, 3)), 3)
+
+    def test_all_duplicates(self):
+        self.assertEqual(count_unique([1, 1, 1]), 1)
+        self.assertEqual(count_unique("aaaa"), 1)
+        self.assertEqual(count_unique((2, 2, 2, 2)), 1)
+
+    def test_empty(self):
+        self.assertEqual(count_unique([]), 0)
+        self.assertEqual(count_unique(""), 0)
+        self.assertEqual(count_unique(()), 0)
+
+    def test_single_element(self):
+        self.assertEqual(count_unique([42]), 1)
+        self.assertEqual(count_unique(("only",)), 1)
+
+    def test_string(self):
+        self.assertEqual(count_unique("abca"), 3)
+        self.assertEqual(count_unique("banana"), 3)
+
+    def test_tuple(self):
+        self.assertEqual(count_unique((1, 2, 2, 3)), 3)
+        self.assertEqual(count_unique((1, 2, 3)), 3)
+
+    def test_unhashable_elements(self):
+        self.assertEqual(count_unique([[1], [2], [1]]), 2)
+        self.assertEqual(count_unique([[1], [2], [3]]), 3)
+
+    def test_consistency_with_has_all_unique(self):
+        for seq in ([1, 2, 3], [1, 2, 2, 3], [], "abc", (1, 2, 1)):
+            self.assertEqual(has_all_unique(seq), count_unique(seq) == len(seq))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_unique(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_unique(None)  # type: ignore[arg-type]
+
+
 class TestUnique(unittest.TestCase):
     def test_unique_preserves_order(self):
         self.assertEqual(unique([1, 2, 2, 3, 1]), [1, 2, 3])

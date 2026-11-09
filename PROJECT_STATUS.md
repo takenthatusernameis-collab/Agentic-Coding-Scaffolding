@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-09 06:51Z) — added TestCountUnique coverage for seq_utils.count_unique
+
+The board held no task (bootstrap continuation; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, so the durable handover is recorded in this file's "Next Planned" section). Verified repository health before starting: `git status` clean on branch main, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Followed the durable "Next Planned": audited `seq_utils.py` for exported-but-untested helpers. `count_unique` was exported in `__all__`, documented with ASCII-safe doctests, and imported in the test file, but had no dedicated test class — only exercised incidentally inside `TestCountDuplicates` and `TestHasAllUnique`. Added targeted `TestCountUnique` coverage as the primary task.
+
+Completed in this session:
+
+- Added `TestCountUnique` (11 tests) to `tests/test_seq_utils.py` covering basic counting, all-unique, all-duplicates, empty, single element, tuple, string, unhashable elements, consistency with `has_all_unique`, and the `TypeError` paths (non-sequence, None); imported `count_unique` to match the module's `__all__` contract. The implementation in `seq_utils.py` was unchanged.
+- Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (1 embedded copy refreshed: `tests/test_seq_utils.py`).
+- Verified: `python -m unittest tests.test_seq_utils` (208 tests, OK); `python -m unittest tests.test_public_api` (OK); full suite `python -m unittest discover tests/` (9725 tests, OK); `python -m ruff check` clean on changed files; `python -m mypy` clean on changed files. No changes to `.github/workflows/**`. Committed as `feat(seq_utils): add TestCountUnique coverage for count_unique with tests and refresh scaffold`.
+
+Next Planned (durable handover for the following agent):
+
+- Continue the fallback audit for a focused, hermetic gap consistent with existing API style. `seq_utils.count_unique` now has test coverage; remaining candidate modules include `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, `bit_utils.py` (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a `count_*`/`has_*` companion for an existing predicate where genuinely missing, or targeted test coverage for an exported-but-untested helper.
+- Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone. No `.github/workflows/**` changes; no no-op/timestamp-only commits. Since `board_post` to `main` is refused (this session is the board root), record the durable handover in this file's "Next Planned" section.
+
+
 ## Latest Session (2026-11-09 06:40Z) — added TestFindAllIndices coverage for seq_utils.find_all_indices
 
 The board held no task (bootstrap continuation; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, so the durable handover is recorded in this file's "Next Planned" section). Verified repository health before starting: `git status` clean on branch main, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Followed the durable "Next Planned": audited `seq_utils.py` for exported-but-untested helpers. `find_all_indices` was exported in `__all__`, documented with ASCII-safe doctests, and imported in the test file, but had no dedicated test class — only exercised incidentally inside `TestFindAll`. Added targeted `TestFindAllIndices` coverage as the primary task.
