@@ -23,6 +23,7 @@ __all__ = [
     "count_occurrences",
     "count_where",
     "distinct",
+    "drop",
     "drop_while",
     "find",
     "find_index",
@@ -52,6 +53,7 @@ __all__ = [
     "reverse",
     "split_at",
     "tail",
+    "take",
     "take_while",
     "unique",
 ]

@@ -109208,6 +109208,7 @@ __all__ = [
     "count_occurrences",
     "count_where",
     "distinct",
+    "drop",
     "drop_while",
     "find",
     "find_index",
@@ -109237,6 +109238,7 @@ __all__ = [
     "reverse",
     "split_at",
     "tail",
+    "take",
     "take_while",
     "unique",
 ]
@@ -110499,7 +110501,6 @@ from seq_utils import (
     count_where,
     distinct,
     drop,
-    drop,
     drop_while,
     find,
     find_all,
@@ -110633,6 +110634,54 @@ class TestTail(unittest.TestCase):
             tail([1, 2, 3], -1)
         with self.assertRaises(TypeError):
             tail(123, 1)  # type: ignore[arg-type]
+
+
+class TestTake(unittest.TestCase):
+    def test_take_basic(self):
+        self.assertEqual(take([1, 2, 3, 4, 5], 3), [1, 2, 3])
+        self.assertEqual(take([1, 2], 5), [1, 2])
+        self.assertEqual(take([1, 2, 3], 0), [])
+
+    def test_take_string(self):
+        self.assertEqual(take("abcde", 3), ["a", "b", "c"])
+        self.assertEqual(take("ab", 5), ["a", "b"])
+
+    def test_take_tuple(self):
+        self.assertEqual(take((1, 2, 3, 4), 2), [1, 2])
+
+    def test_take_negative_raises(self):
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -1)
+
+    def test_take_type_error(self):
+        with self.assertRaises(TypeError):
+            take(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], "2")  # type: ignore[arg-type]
+
+
+class TestDrop(unittest.TestCase):
+    def test_drop_basic(self):
+        self.assertEqual(drop([1, 2, 3, 4, 5], 2), [3, 4, 5])
+        self.assertEqual(drop([1, 2], 5), [])
+        self.assertEqual(drop([1, 2, 3], 0), [1, 2, 3])
+
+    def test_drop_string(self):
+        self.assertEqual(drop("abcde", 2), ["c", "d", "e"])
+        self.assertEqual(drop("ab", 5), [])
+
+    def test_drop_tuple(self):
+        self.assertEqual(drop((1, 2, 3, 4), 1), [2, 3, 4])
+
+    def test_drop_negative_raises(self):
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -1)
+
+    def test_drop_type_error(self):
+        with self.assertRaises(TypeError):
+            drop(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], "2")  # type: ignore[arg-type]
 
 
 class TestSplitAt(unittest.TestCase):
