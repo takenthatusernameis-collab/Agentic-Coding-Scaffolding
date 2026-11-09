@@ -20719,8 +20719,10 @@ import unittest
 from utils import (
     chunk,
     compact,
+    count_by,
     first,
     flatten,
+    has_by,
     is_empty,
     last,
     remove_none,
@@ -20848,6 +20850,49 @@ class TestCompact(unittest.TestCase):
 
     def test_compact_empty(self) -> None:
         self.assertEqual(compact([]), [])
+
+
+class TestCountBy(unittest.TestCase):
+    def test_count_by_basic(self) -> None:
+        self.assertEqual(count_by([1, 2, 3, 4], lambda x: x % 2 == 0), 2)
+
+    def test_count_by_none(self) -> None:
+        self.assertEqual(count_by([1, 3, 5], lambda x: x % 2 == 0), 0)
+
+    def test_count_by_all(self) -> None:
+        self.assertEqual(count_by([2, 4, 6], lambda x: x % 2 == 0), 3)
+
+    def test_count_by_empty(self) -> None:
+        self.assertEqual(count_by([], lambda x: True), 0)
+
+    def test_count_by_consistency_with_has_by(self) -> None:
+        lst = [1, 2, 3, 4, 5]
+        predicate = lambda x: x > 2  # noqa: E731
+        self.assertEqual(count_by(lst, predicate) > 0, has_by(lst, predicate))
+
+    def test_count_by_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_by([1, 2, 3], "not callable")  # type: ignore[arg-type]
+
+
+class TestHasBy(unittest.TestCase):
+    def test_has_by_true(self) -> None:
+        self.assertTrue(has_by([1, 2, 3], lambda x: x == 2))
+
+    def test_has_by_false(self) -> None:
+        self.assertFalse(has_by([1, 3, 5], lambda x: x % 2 == 0))
+
+    def test_has_by_empty(self) -> None:
+        self.assertFalse(has_by([], lambda x: True))
+
+    def test_has_by_consistency_with_count_by(self) -> None:
+        lst = [10, 20, 30]
+        predicate = lambda x: x > 15  # noqa: E731
+        self.assertEqual(has_by(lst, predicate), count_by(lst, predicate) > 0)
+
+    def test_has_by_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_by([1, 2, 3], 123)  # type: ignore[arg-type]
 TESTUTILS
 
 # --- tests/test_stats.py ---
@@ -66644,6 +66689,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added TestCountBy/TestHasBy coverage for utils predicate companions
+
+- Added `TestCountBy` (6 tests) and `TestHasBy` (5 tests) to `tests/test_utils.py` for `count_by` and `has_by`, which are exported in `__all__`, typed, and documented with Google-style docstrings and ASCII-safe doctests, but shipped with no dedicated test class. Coverage includes basic/none/all/empty cases, consistency between `count_by` and `has_by`, and `TypeError` paths for non-callable predicates. The implementation in `utils.py` was unchanged. Verified: `python -m unittest tests.test_utils` (43 OK; +11 new), `python -m doctest utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check tests/test_utils.py` clean, `python -m mypy tests/test_utils.py` clean. `utils.py`/`tests/test_utils.py` are not embedded in `scaffold.sh`, so no refresh was needed. No `.github/workflows/**` changes.
+
 ## Unreleased — added test coverage for calendar_utils month-grid helpers
 
 - Added `TestMonthCalendar` (4 tests), `TestWeekdaysInMonth` (4 tests), and `TestWeekendDaysInMonth` (5 tests) to `tests/test_calendar_utils.py` for `month_calendar`, `weekdays_in_month`, and `weekend_days_in_month`, which were exported in `__all__`, documented in the `calendar_utils` prose section of `README.md`, but shipped with no dedicated test class. Coverage includes basic grid rendering, consistency with `calendar.monthcalendar`, weekday/weekend counts for a full month, the invariant `weekdays + weekend_days == days_in_month`, and `TypeError`/`ValueError` paths. Updated the `calendar_utils` module tree entry of `README.md` to list every exported name (`month_calendar`, `first_day_of_month`, `is_weekend`, `weekdays_in_month`, `weekend_days_in_month`). Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_calendar_utils` (OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.

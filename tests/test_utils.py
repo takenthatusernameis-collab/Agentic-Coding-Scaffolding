@@ -5,8 +5,10 @@ import unittest
 from utils import (
     chunk,
     compact,
+    count_by,
     first,
     flatten,
+    has_by,
     is_empty,
     last,
     remove_none,
@@ -134,3 +136,46 @@ class TestCompact(unittest.TestCase):
 
     def test_compact_empty(self) -> None:
         self.assertEqual(compact([]), [])
+
+
+class TestCountBy(unittest.TestCase):
+    def test_count_by_basic(self) -> None:
+        self.assertEqual(count_by([1, 2, 3, 4], lambda x: x % 2 == 0), 2)
+
+    def test_count_by_none(self) -> None:
+        self.assertEqual(count_by([1, 3, 5], lambda x: x % 2 == 0), 0)
+
+    def test_count_by_all(self) -> None:
+        self.assertEqual(count_by([2, 4, 6], lambda x: x % 2 == 0), 3)
+
+    def test_count_by_empty(self) -> None:
+        self.assertEqual(count_by([], lambda x: True), 0)
+
+    def test_count_by_consistency_with_has_by(self) -> None:
+        lst = [1, 2, 3, 4, 5]
+        predicate = lambda x: x > 2  # noqa: E731
+        self.assertEqual(count_by(lst, predicate) > 0, has_by(lst, predicate))
+
+    def test_count_by_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_by([1, 2, 3], "not callable")  # type: ignore[arg-type]
+
+
+class TestHasBy(unittest.TestCase):
+    def test_has_by_true(self) -> None:
+        self.assertTrue(has_by([1, 2, 3], lambda x: x == 2))
+
+    def test_has_by_false(self) -> None:
+        self.assertFalse(has_by([1, 3, 5], lambda x: x % 2 == 0))
+
+    def test_has_by_empty(self) -> None:
+        self.assertFalse(has_by([], lambda x: True))
+
+    def test_has_by_consistency_with_count_by(self) -> None:
+        lst = [10, 20, 30]
+        predicate = lambda x: x > 15  # noqa: E731
+        self.assertEqual(has_by(lst, predicate), count_by(lst, predicate) > 0)
+
+    def test_has_by_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_by([1, 2, 3], 123)  # type: ignore[arg-type]

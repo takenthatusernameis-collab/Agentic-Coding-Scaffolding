@@ -1,6 +1,19 @@
 # Project Status
 
-## Latest Session (2026-11-09) — added test coverage for calendar_utils month-grid helpers
+## Latest Session (2026-11-09) — added TestCountBy/TestHasBy coverage for utils predicate companions
+
+The board held no task (`board_read` empty; bootstrap session). Verified repository health before starting: `git status` clean on branch `main` at `15832a1`, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Followed the durable "Next Planned": performed an AST-based exported-but-untested scan across all non-audited modules. Filtered out TypeVars, constants, and re-exports to surface only real untested helper functions. Found a genuine, hermetic gap in `utils.py`: `count_by` and `has_by` are exported in `__all__`, typed, and `has_by` ships with a Google-style docstring and ASCII-safe doctests, but neither had any dedicated test coverage — `has_by` is even a documented boolean companion to `count_by` (returns `count_by(...) > 0`), matching the established `count_*`/`has_*` companion convention used throughout `list_utils`/`seq_utils`/`set_utils`.
+
+Completed in this session:
+- Added `TestCountBy` (6 tests) and `TestHasBy` (5 tests) to `tests/test_utils.py` covering basic/none/all/empty cases, consistency between `count_by` and `has_by`, and `TypeError` paths for non-callable predicates. Imported `count_by`/`has_by` to match the module's `__all__` contract. The implementation in `utils.py` was unchanged.
+- Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (2 embedded copies refreshed: `tests/test_utils.py`, `CHANGELOG.md`).
+- Verified: `python -m unittest tests.test_utils` (43 tests, OK; +11 new), `python -m doctest utils.py` (OK), `python -m unittest tests.test_public_api` (OK), full suite `python -m unittest discover tests/` (**9906 tests, OK**, 55.8s), `python -m ruff check tests/test_utils.py` clean, `python -m mypy tests/test_utils.py` clean. No new public API was added, so `README.md` was not modified. No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap **outside** the now-audited candidates (`seq_utils`, `set_utils`, `deque_utils`, `bytes_utils`, `list_utils`, `version_utils`, `numbers_utils`, `prime_utils`, `stats`, `interval_utils`, `bit_utils`, `calculator`, `dict_utils`, `calendar_utils`, `utils`), with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). The AST-based exported-but-untested scan (filter out TypeVars/constants/re-exports, keep only real `FunctionDef`s) is a fast, reliable way to find such gaps — reuse it. Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
 
 The board held no task (`board_read` empty; bootstrap session). Verified repository health before starting: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reported CHANGELOG.md stale (1 embedded copy out of sync) — refreshed with `make refresh-scaffold`, now all in sync. Full suite `python -m unittest discover tests/` — **9882 tests, OK** (56.6s); `tests.test_public_api` (OK).
 
