@@ -66717,7 +66717,14 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 
 - Added `count_unique(lst)` and `has_all_unique(lst)` to `list_utils.py` as companions to `count_duplicates`/`has_duplicates`/`unique_preserve_order`, matching `seq_utils` style. Both accept a typed `List[T]`, raise `TypeError` for non-lists, handle unhashable elements via linear membership checks, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. `count_unique` returns the number of distinct elements; `has_all_unique` reports whether all elements are distinct (empty list vacuously `True`). Added `TestCountUnique` and `TestHasAllUnique` (15 tests) to `tests/test_list_utils.py`. Updated `README.md` (`list_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` (202 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
 
-## Unreleased — added count/where predicate companions to `list_utils`
+## Unreleased — seq_utils is_empty/is_not_empty emptiness predicates
+
+- Added `is_empty(sequence)` and `is_not_empty(sequence)` to `seq_utils.py` with typed signatures, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation via the module's existing sequence guard. `is_empty` returns `True` when a sequence has no elements; `is_not_empty` is its boolean negation companion (mirroring the emptiness pair pattern used elsewhere, e.g. `list_utils.is_empty`).
+- Added `TestIsEmpty` and `TestIsNotEmpty` (10 tests) to `tests/test_seq_utils.py` covering list/tuple/str/bytes empty and non-empty cases, cross-consistency, and `TypeError` paths.
+- Updated `README.md` (`seq_utils` tree entry and prose). Synchronized embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Targeted verification: `python -m unittest tests.test_seq_utils` (235 OK), targeted doctests for `is_empty`/`is_not_empty` (8 examples OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
+
 
 - Added `count_occurrences(lst, value)`, `count_where(lst, predicate)`, `has_where(lst, predicate)`, `all_where(lst, predicate)`, `none_where(lst, predicate)`, and `has_occurrences(lst, value)` to `list_utils.py` as companions to existing `find`/`contains` helpers, matching `seq_utils` style. Typed APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation for non-list *lst* (and non-callable predicates where applicable). Added `TestCountOccurrences`, `TestCountWhere`, `TestHasWhere`, `TestAllWhere`, `TestNoneWhere`, and `TestHasOccurrences` (31 tests) to `tests/test_list_utils.py`. Updated `README.md` (`list_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` (187 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
 
@@ -70347,7 +70354,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `take` and `drop` return or skip the first `n` elements; `take_last` and `drop_last` return or skip the last `n` elements (companions to `take`/`drop`); `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `take` and `drop` return or skip the first `n` elements; `take_last` and `drop_last` return or skip the last `n` elements (companions to `take`/`drop`); `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order; `is_empty`/`is_not_empty` report whether a sequence has no/any elements. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -109487,6 +109494,8 @@ __all__ = [
     "index_of",
     "indices_of",
     "interleave",
+    "is_empty",
+    "is_not_empty",
     "is_sorted",
     "last",
     "last_index_of",
@@ -110085,6 +110094,61 @@ def reverse(sequence: Sequence[T]) -> List[T]:
     """
     _require_sequence(sequence)
     return list(reversed(sequence))
+def is_empty(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when ``sequence`` has no elements.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if ``sequence`` contains no elements, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> is_empty([])
+        True
+        >>> is_empty([1, 2])
+        False
+        >>> is_empty(())
+        True
+        >>> is_empty("")
+        True
+    """
+    _require_sequence(sequence)
+    return len(sequence) == 0
+
+
+def is_not_empty(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when ``sequence`` has at least one element.
+
+    This is the boolean negation companion to :func:`is_empty`.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if ``sequence`` contains at least one element, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> is_not_empty([1, 2])
+        True
+        >>> is_not_empty([])
+        False
+        >>> is_not_empty("a")
+        True
+        >>> is_not_empty("")
+        False
+    """
+    _require_sequence(sequence)
+    return len(sequence) > 0
+
+
 def count_duplicates(sequence: Sequence[T]) -> int:
     """Return the number of duplicate (extra) elements in *sequence*.
 
@@ -110821,6 +110885,8 @@ cat > "$OUTPUT_DIR/tests/test_seq_utils.py" <<'TEST_SEQ_UTILS'
 import unittest
 
 from seq_utils import (
+    is_empty,
+    is_not_empty,
     adjacent_pairs,
     all_where,
     chunk,
@@ -112036,6 +112102,50 @@ class TestDropLast(unittest.TestCase):
             drop_last([1, 2, 3], "1")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             drop_last([1, 2, 3], True)
+
+
+class TestIsEmpty(unittest.TestCase):
+    def test_empty_sequences(self):
+        self.assertTrue(is_empty([]))
+        self.assertTrue(is_empty(()))
+        self.assertTrue(is_empty(""))
+        self.assertTrue(is_empty(b""))
+
+    def test_non_empty_sequences(self):
+        self.assertFalse(is_empty([1]))
+        self.assertFalse(is_empty((0,)))
+        self.assertFalse(is_empty("a"))
+        self.assertFalse(is_empty(b"x"))
+
+    def test_consistency_with_is_not_empty(self):
+        for seq in ([], [1], (), (1, 2), "", "ab", b"", b"x"):
+            self.assertEqual(is_empty(seq), not is_not_empty(seq))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_empty(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_empty(None)  # type: ignore[arg-type]
+
+
+class TestIsNotEmpty(unittest.TestCase):
+    def test_non_empty_sequences(self):
+        self.assertTrue(is_not_empty([1]))
+        self.assertTrue(is_not_empty((0,)))
+        self.assertTrue(is_not_empty("a"))
+        self.assertTrue(is_not_empty(b"x"))
+
+    def test_empty_sequences(self):
+        self.assertFalse(is_not_empty([]))
+        self.assertFalse(is_not_empty(()))
+        self.assertFalse(is_not_empty(""))
+        self.assertFalse(is_not_empty(b""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_not_empty(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_empty(None)  # type: ignore[arg-type]
 TEST_SEQ_UTILS
 
 # --- shelve_utils.py ---

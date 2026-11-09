@@ -44,6 +44,8 @@ __all__ = [
     "index_of",
     "indices_of",
     "interleave",
+    "is_empty",
+    "is_not_empty",
     "is_sorted",
     "last",
     "last_index_of",
@@ -642,6 +644,61 @@ def reverse(sequence: Sequence[T]) -> List[T]:
     """
     _require_sequence(sequence)
     return list(reversed(sequence))
+def is_empty(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when ``sequence`` has no elements.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if ``sequence`` contains no elements, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> is_empty([])
+        True
+        >>> is_empty([1, 2])
+        False
+        >>> is_empty(())
+        True
+        >>> is_empty("")
+        True
+    """
+    _require_sequence(sequence)
+    return len(sequence) == 0
+
+
+def is_not_empty(sequence: Sequence[T]) -> bool:
+    """Return ``True`` when ``sequence`` has at least one element.
+
+    This is the boolean negation companion to :func:`is_empty`.
+
+    Args:
+        sequence: The sequence to inspect.
+
+    Returns:
+        ``True`` if ``sequence`` contains at least one element, otherwise
+        ``False``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> is_not_empty([1, 2])
+        True
+        >>> is_not_empty([])
+        False
+        >>> is_not_empty("a")
+        True
+        >>> is_not_empty("")
+        False
+    """
+    _require_sequence(sequence)
+    return len(sequence) > 0
+
+
 def count_duplicates(sequence: Sequence[T]) -> int:
     """Return the number of duplicate (extra) elements in *sequence*.
 

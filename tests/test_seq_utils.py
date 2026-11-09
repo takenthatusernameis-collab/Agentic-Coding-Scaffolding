@@ -3,6 +3,8 @@
 import unittest
 
 from seq_utils import (
+    is_empty,
+    is_not_empty,
     adjacent_pairs,
     all_where,
     chunk,
@@ -1218,3 +1220,47 @@ class TestDropLast(unittest.TestCase):
             drop_last([1, 2, 3], "1")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             drop_last([1, 2, 3], True)
+
+
+class TestIsEmpty(unittest.TestCase):
+    def test_empty_sequences(self):
+        self.assertTrue(is_empty([]))
+        self.assertTrue(is_empty(()))
+        self.assertTrue(is_empty(""))
+        self.assertTrue(is_empty(b""))
+
+    def test_non_empty_sequences(self):
+        self.assertFalse(is_empty([1]))
+        self.assertFalse(is_empty((0,)))
+        self.assertFalse(is_empty("a"))
+        self.assertFalse(is_empty(b"x"))
+
+    def test_consistency_with_is_not_empty(self):
+        for seq in ([], [1], (), (1, 2), "", "ab", b"", b"x"):
+            self.assertEqual(is_empty(seq), not is_not_empty(seq))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_empty(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_empty(None)  # type: ignore[arg-type]
+
+
+class TestIsNotEmpty(unittest.TestCase):
+    def test_non_empty_sequences(self):
+        self.assertTrue(is_not_empty([1]))
+        self.assertTrue(is_not_empty((0,)))
+        self.assertTrue(is_not_empty("a"))
+        self.assertTrue(is_not_empty(b"x"))
+
+    def test_empty_sequences(self):
+        self.assertFalse(is_not_empty([]))
+        self.assertFalse(is_not_empty(()))
+        self.assertFalse(is_not_empty(""))
+        self.assertFalse(is_not_empty(b""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            is_not_empty(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_empty(None)  # type: ignore[arg-type]
