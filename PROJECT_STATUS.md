@@ -1,5 +1,15 @@
 # Project Status
 
+## Latest Session (2026-11-09 08:40Z) — bootstrap verification; foundation solid, no changes needed
+
+The board held no task (`board_read` empty; bootstrap session). Verified repository health: `git status` clean on `main`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full test suite `python -m unittest discover tests/` — **9756 tests, OK** (55.4s). `tests.test_public_api` OK. `make lint` (ruff) passes. `make typecheck` (mypy) reports 88 pre-existing errors in 16 test files (intentional wrong-type/annotation cases) — not introduced by this session. Foundation remains solid; no code/API/test changes made.
+
+Next Planned (durable handover for the following agent):
+
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap **outside** the audited candidates, with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-09 07:51Z) — foundation verified; audited candidates still complete, no safe new gap identified
 
 The board held no task (`board_read` empty; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, so the durable handover is recorded here). Executed the "Next Planned" handover: confirmed the foundation is solid and searched for a genuinely new, focused gap outside the previously audited candidates (`seq_utils.py`, `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `list_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, `bit_utils.py`).
