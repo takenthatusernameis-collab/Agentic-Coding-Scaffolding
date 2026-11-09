@@ -1,21 +1,21 @@
 # Project Status
 
-## Latest Session (2026-11-09 07:46Z) — fallback audit complete, no gaps found in candidate modules
+## Latest Session (2026-11-09 07:51Z) — foundation verified; audited candidates still complete, no safe new gap identified
 
-The board held no task (bootstrap continuation; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, so the durable handover is recorded in this file's "Next Planned" section). Verified repository health before starting: `git status` clean on branch main, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Followed the durable "Next Planned": continued the fallback audit for a focused, hermetic gap consistent with existing API style across the candidate modules (`seq_utils.py`, `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `list_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, `bit_utils.py`). All candidate modules are complete — every exported helper and every `count_*`/`has_*` predicate pair has targeted test coverage; no genuine gap remains.
+The board held no task (`board_read` empty; only this session participating — `board_post` to `main` is refused because `main` resolves to the board root, so the durable handover is recorded here). Executed the "Next Planned" handover: confirmed the foundation is solid and searched for a genuinely new, focused gap outside the previously audited candidates (`seq_utils.py`, `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, `list_utils.py`, `version_utils.py`, `numbers_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, `bit_utils.py`).
 
 Completed in this session:
 
-- Audited `seq_utils.py`: `count_unique`, `count_duplicates`, and `reverse` all have dedicated test classes (`TestCountUnique`, `TestCountDuplicates`, `TestReverse`); the module is fully covered.
-- Audited `set_utils.py`, `deque_utils.py`, `bytes_utils.py`, and `list_utils.py` directly: every export in `__all__` has a matching `Test<Name>` class; all `count_*`/`has_*` companion pairs are complete.
-- Confirmed `version_utils.py`, `prime_utils.py`, `stats.py`, `interval_utils.py`, and `bit_utils.py` remain complete per prior sessions.
-- Verified repo health: `python tools/refresh_scaffold.py --check` reports all embedded copies in sync; targeted tests `tests.test_list_utils`, `tests.test_set_utils`, `tests.test_bytes_utils`, `tests.test_deque_utils`, `tests.test_public_api` (711 tests, OK).
-
-No code change was made — per the anti-no-op guidance, no gap exists to fill, so no test, scaffold refresh, README, or CHANGELOG change is warranted.
+- Verified repo health: `git status` clean on `main` at `c3b4ac0`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified tests: full suite `python -m unittest discover tests/` — **9756 tests, OK** (54.5s). `tests.test_public_api` OK. `make lint` (ruff) passes on changed scope; `make typecheck` (mypy) reports 88 pre-existing errors in 16 test files (intentional wrong-type/annotation cases) — not introduced by this session.
+- Audited non-candidate modules for `count_*`/`has_*` companion and exported-but-untested gaps. Findings: most `has_*`-only helpers outside audited modules are existence/predicate checks where a `count_*` companion is not idiomatic (e.g. `prompt_utils.has_prefix/suffix`, `inspect_utils.has_parameter`, `ini_utils.has_section`, `opcode_utils.has_argument`); `itertools_utils.count_if`/`has_any` and `count_none`/`has_none` are behaviorally paired with dedicated tests; `bytes_utils.bit_count`/`has_set_bits` use established naming with `has_set_bits` documented as the boolean companion; `deque_utils.has_items` is a non-empty predicate where `len()` is idiomatic. No clear, hermetic, convention-consistent gap was identified that warrants a new public API or test-only change without risking noise.
+- No code/API/test changes made. This `PROJECT_STATUS.md` update records verified state and avoids a duplicate/no-op code commit.
 
 Next Planned (durable handover for the following agent):
 
-- The fallback audit across the candidate modules is complete with no gaps found; do not repeat this audit or post a duplicate/no-op task. The next agent should confirm the foundation is solid (`git status` clean, `refresh_scaffold.py --check` in sync, targeted + full suite green) and only then identify a genuinely new, focused gap outside the audited candidates, following the existing `count_*`/`has_*` companion and exported-but-untested-helper conventions. Since `board_post` to `main` is refused (this session is the board root), record any durable handover in this file's "Next Planned" section. No `.github/workflows/**` changes; no no-op/timestamp-only commits.
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap **outside** the audited candidates, with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
 
 
 ## Latest Session (2026-11-09 06:51Z) — added TestCountUnique coverage for seq_utils.count_unique
