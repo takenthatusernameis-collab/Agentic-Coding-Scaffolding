@@ -34,6 +34,7 @@ __all__ = [
     "group_by",
     "has_duplicates",
     "index_of",
+    "indices_of",
     "intersperse",
     "is_empty",
     "is_sorted",
@@ -255,6 +256,37 @@ def last_index_of(lst: List[T], value: T) -> Optional[int]:
         if lst[index] == value:
             return index
     return None
+
+
+def indices_of(lst: List[T], value: T) -> List[int]:
+    """Return the indices of all occurrences of ``value`` in ``lst``.
+
+    Elements are compared with ``==``. Indices are returned in ascending
+    order. An empty list (or no matches) yields an empty list.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to locate.
+
+    Returns:
+        A list of 0-based indices of all matching elements.
+
+    Raises:
+        TypeError: If ``lst`` is not a list.
+
+    Examples:
+        >>> indices_of([1, 2, 3, 2], 2)
+        [1, 3]
+        >>> indices_of(["a", "b", "a"], "a")
+        [0, 2]
+        >>> indices_of([1, 2, 3], 4)
+        []
+        >>> indices_of([], 1)
+        []
+    """
+    if not isinstance(lst, list):
+        raise TypeError(f"Expected a list, got {type(lst).__name__}")
+    return [index for index, item in enumerate(lst) if item == value]
 
 
 def find_all(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:

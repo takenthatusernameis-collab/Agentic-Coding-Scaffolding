@@ -17,6 +17,7 @@ from list_utils import (
     group_by,
     has_duplicates,
     index_of,
+    indices_of,
     intersperse,
     is_empty,
     is_sorted,
@@ -588,6 +589,37 @@ class TestFindAllIndices(unittest.TestCase):
     def test_find_all_indices_non_callable_raises(self) -> None:
         with self.assertRaises(TypeError):
             find_all_indices([1, 2, 3], 1)  # type: ignore[arg-type]
+
+
+class TestIndicesOf(unittest.TestCase):
+    def test_indices_of_basic(self) -> None:
+        self.assertEqual(indices_of([1, 2, 3, 2], 2), [1, 3])
+
+    def test_indices_of_none_match(self) -> None:
+        self.assertEqual(indices_of([1, 2, 3], 4), [])
+
+    def test_indices_of_empty(self) -> None:
+        self.assertEqual(indices_of([], 1), [])
+
+    def test_indices_of_all_match(self) -> None:
+        self.assertEqual(indices_of(["a", "a", "a"], "a"), [0, 1, 2])
+
+    def test_indices_of_single(self) -> None:
+        self.assertEqual(indices_of([1, 2, 3], 2), [1])
+
+    def test_indices_of_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            indices_of("not a list", "a")  # type: ignore[arg-type]
+
+    def test_indices_of_consistent_with_index_of(self) -> None:
+        values = [1, 2, 3, 2, 1]
+        for value in (1, 2, 3, 4):
+            idxs = indices_of(values, value)
+            first = index_of(values, value)
+            if first is None:
+                self.assertEqual(idxs, [])
+            else:
+                self.assertEqual(idxs[0], first)
 
 
 if __name__ == "__main__":
