@@ -9,6 +9,7 @@ from bytes_utils import (
     concat,
     contains,
     count,
+    count_alnum,
     count_alpha,
     count_digits,
     count_non_null_bytes,
@@ -20,6 +21,7 @@ from bytes_utils import (
     find,
     from_hex,
     from_int,
+    has_alnum,
     has_alpha,
     has_digits,
     has_non_null_byte,
@@ -486,6 +488,85 @@ class TestHasAlpha(unittest.TestCase):
             has_alpha(123)
         with self.assertRaises(TypeError):
             has_alpha(None)
+
+
+class TestCountAlnum(unittest.TestCase):
+    def test_all_alnum(self):
+        self.assertEqual(count_alnum(b"abc123"), 6)
+        self.assertEqual(count_alnum(b"ABC"), 3)
+        self.assertEqual(count_alnum(b"AbC1"), 4)
+
+    def test_no_alnum(self):
+        self.assertEqual(count_alnum(b"!@#"), 0)
+        self.assertEqual(count_alnum(b"   "), 0)
+        self.assertEqual(count_alnum(b"\t\n"), 0)
+
+    def test_mixed(self):
+        self.assertEqual(count_alnum(b"abc 123"), 6)
+        self.assertEqual(count_alnum(b"a1!b2"), 4)
+        self.assertEqual(count_alnum(b"  ab "), 2)
+
+    def test_empty(self):
+        self.assertEqual(count_alnum(b""), 0)
+
+    def test_bytearray(self):
+        self.assertEqual(count_alnum(bytearray(b"abc123")), 6)
+        self.assertEqual(count_alnum(bytearray(b"!@#")), 0)
+
+    def test_consistency_with_isalnum(self):
+        # isalnum is true only when all bytes are alnum and non-empty
+        self.assertTrue(isalnum(b"abc123"))
+        self.assertEqual(count_alnum(b"abc123"), len(b"abc123"))
+        self.assertFalse(isalnum(b"abc 123"))
+        self.assertNotEqual(count_alnum(b"abc 123"), len(b"abc 123"))
+        self.assertFalse(isalnum(b""))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_alnum("abc")
+        with self.assertRaises(TypeError):
+            count_alnum(123)
+        with self.assertRaises(TypeError):
+            count_alnum(None)
+
+
+class TestHasAlnum(unittest.TestCase):
+    def test_has_alnum(self):
+        self.assertTrue(has_alnum(b"abc123"))
+        self.assertTrue(has_alnum(b"ABC"))
+        self.assertTrue(has_alnum(bytearray(b"a1b2")))
+        self.assertTrue(has_alnum(b"!1@"))
+
+    def test_no_alnum(self):
+        self.assertFalse(has_alnum(b"!@#"))
+        self.assertFalse(has_alnum(b"   "))
+        self.assertFalse(has_alnum(b""))
+
+    def test_bytearray(self):
+        self.assertTrue(has_alnum(bytearray(b"abc")))
+        self.assertFalse(has_alnum(bytearray(b"!@#")))
+
+    def test_consistency_with_count_alnum(self):
+        self.assertEqual(has_alnum(b"abc123"), count_alnum(b"abc123") > 0)
+        self.assertEqual(has_alnum(b"!@#"), count_alnum(b"!@#") > 0)
+        self.assertEqual(has_alnum(b""), count_alnum(b"") > 0)
+
+    def test_consistency_with_isalnum(self):
+        # isalnum requires all bytes to be alnum; has_alnum requires at least one.
+        self.assertTrue(has_alnum(b"abc123"))
+        self.assertTrue(isalnum(b"abc123"))
+        self.assertTrue(has_alnum(b"abc 123"))
+        self.assertFalse(isalnum(b"abc 123"))
+        self.assertFalse(has_alnum(b"!@#"))
+        self.assertFalse(isalnum(b"!@#"))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_alnum("abc")
+        with self.assertRaises(TypeError):
+            has_alnum(123)
+        with self.assertRaises(TypeError):
+            has_alnum(None)
 
 
 
