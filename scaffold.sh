@@ -38213,7 +38213,7 @@ TEST_PRIORITY_QUEUE_UTILS
 cat > "$OUTPUT_DIR/dict_utils.py" <<'DICTUTILS'
 """Dictionary utility functions."""
 
-from typing import Any, Callable, Dict, List, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -38233,6 +38233,7 @@ __all__ = [
     "deep_merge",
     "filter_dict",
     "all_where",
+    "find_where",
     "flatten_dict",
     "has_all_keys",
     "has_all_values",
@@ -38661,6 +38662,42 @@ def has_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
     if not callable(predicate):
         raise TypeError("predicate must be callable")
     return any(predicate(k, v) for k, v in d.items())
+
+
+def find_where(
+    d: Dict[K, V], predicate: Callable[[K, V], bool]
+) -> Optional[Tuple[K, V]]:
+    """Find the first item in *d* satisfying *predicate(key, value)*.
+
+    Iteration follows the dictionary's insertion order.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        The first matching ``(key, value)`` tuple, or ``None`` if no item
+        matches.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> find_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v > 1)
+        ('b', 2)
+        >>> find_where({"a": 1, "b": 2}, lambda k, v: v > 10) is None
+        True
+        >>> find_where({}, lambda k, v: True) is None
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for k, v in d.items():
+        if predicate(k, v):
+            return (k, v)
+    return None
 
 
 def all_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
@@ -51281,6 +51318,7 @@ from dict_utils import (
     count_where,
     deep_merge,
     filter_dict,
+    find_where,
     flatten_dict,
     has_all_keys,
     has_all_values,
@@ -52000,6 +52038,59 @@ class TestNoneWhere(unittest.TestCase):
             none_where("x", lambda k, v: True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             none_where({"a": 1}, None)  # type: ignore[arg-type]
+
+
+
+class TestFindWhere(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertEqual(
+            find_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v > 1),
+            ("b", 2),
+        )
+
+    def test_absent(self) -> None:
+        self.assertIsNone(find_where({"a": 1, "b": 2}, lambda k, v: v > 10))
+
+    def test_empty(self) -> None:
+        self.assertIsNone(find_where({}, lambda k, v: True))
+
+    def test_first_match(self) -> None:
+        self.assertEqual(
+            find_where({"a": 2, "b": 4, "c": 6}, lambda k, v: v % 2 == 0),
+            ("a", 2),
+        )
+
+    def test_key_predicate(self) -> None:
+        self.assertEqual(
+            find_where({"x": 1, "target": 9, "y": 2}, lambda k, v: k == "target"),
+            ("target", 9),
+        )
+
+    def test_returns_tuple(self) -> None:
+        result = find_where({"a": 1}, lambda k, v: True)
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+
+    def test_consistency_with_has_where(self) -> None:
+        cases = [
+            ({"a": 1, "b": 2, "c": 3}, lambda k, v: v > 1),
+            ({"a": 1, "b": 2}, lambda k, v: v > 10),
+            ({}, lambda k, v: True),
+        ]
+        for d, pred in cases:
+            self.assertEqual(find_where(d, pred) is not None, has_where(d, pred))
+
+    def test_falsy_values(self) -> None:
+        self.assertEqual(
+            find_where({"a": 0, "b": "", "c": None}, lambda k, v: v is None),
+            ("c", None),
+        )
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            find_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find_where({"a": 1}, None)  # type: ignore[arg-type]
 TESTDICTUTILS
 
 # --- terminal_utils.py ---
@@ -67319,6 +67410,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added `find_where` to `dict_utils`
+
+- Added `find_where(d, predicate)` to `dict_utils.py` (typed `Dict[K, V]`/`(K, V) -> bool` API, `__all__` export, Google-style docstring with ASCII-safe doctests, `TypeError` validation for non-dict/non-callable). Returns the first matching `(key, value)` tuple in insertion order, or `None`, complementing the existing predicate helpers `count_where`/`has_where`/`all_where`/`none_where` and matching the `list_utils.find`/`seq_utils.find` companion pattern.
+- Added `TestFindWhere` (9 tests) to `tests/test_dict_utils.py` covering present/absent/empty/first-match/key-predicate/tuple shape/has_where consistency/falsy-value and `TypeError` paths.
+- Updated `README.md` (`dict_utils` tree/prose). `dict_utils.py`/`tests/test_dict_utils.py` are not individually listed as extra embed sources beyond the scaffold manifest entries refreshed by `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` confirms sync after refresh.
+- Validated: `python -m unittest tests.test_dict_utils` (153 OK; +9), `python -m doctest dict_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check dict_utils.py tests/test_dict_utils.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added test coverage for array_utils byte/file/unicode conversion helpers
 
 - Added `TestArrayBytes` (9 tests), `TestArrayFile` (6 tests), `TestArrayUnicode` (8 tests), and `TestArrayItemsize` (3 tests) to `tests/test_array_utils.py` for the `array_tobytes`/`array_to_bytes`, `array_frombytes`/`array_from_bytes`, `array_tofile`/`array_to_file`, `array_fromfile`/`array_from_file`, `array_tounicode`/`array_to_unicode`, `array_fromunicode`/`array_from_unicode`, and `array_itemsize` helpers. These were exported in `__all__`, typed, and documented with Google-style docstrings and ASCII-safe doctests, but shipped with zero dedicated test coverage — unlike every other array helper (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_clear`, `array_count`, `array_index`, `array_to_list`, `array_from_list`, `array_extend_from_list`, `array_remove_first`, `array_concat`, `array_repeat`, `array_buffer_info`, `array_byteswap`, `array_typecode`).
@@ -70063,7 +70161,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, count_where, has_where, all_where, none_where, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, count_all_keys, count_all_values, keys_equal, values_equal)
+dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, count_where, has_where, find_where, all_where, none_where, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, count_all_keys, count_all_values, keys_equal, values_equal)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -70753,7 +70851,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, item predicate companions `count_where`/`has_where`/`all_where`/`none_where` (predicates take `(key, value)`), key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The integer companion `count_all_keys` reports how many keys from a candidate iterable are present in the dictionary, and `has_all_keys`/`has_any_key` reuse it for consistency. The integer companion `count_all_values` reports how many values from a candidate iterable are present in the dictionary, and `has_all_values`/`has_any_value` reuse it for consistency. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, item predicate companions `count_where`/`has_where`/`find_where`/`all_where`/`none_where` (predicates take `(key, value)`, `find_where` returns the first matching `(key, value)` pair), key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The integer companion `count_all_keys` reports how many keys from a candidate iterable are present in the dictionary, and `has_all_keys`/`has_any_key` reuse it for consistency. The integer companion `count_all_values` reports how many values from a candidate iterable are present in the dictionary, and `has_all_values`/`has_any_value` reuse it for consistency. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 

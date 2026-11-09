@@ -15,6 +15,7 @@ from dict_utils import (
     count_where,
     deep_merge,
     filter_dict,
+    find_where,
     flatten_dict,
     has_all_keys,
     has_all_values,
@@ -735,3 +736,55 @@ class TestNoneWhere(unittest.TestCase):
         with self.assertRaises(TypeError):
             none_where({"a": 1}, None)  # type: ignore[arg-type]
 
+
+
+class TestFindWhere(unittest.TestCase):
+    def test_present(self) -> None:
+        self.assertEqual(
+            find_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v > 1),
+            ("b", 2),
+        )
+
+    def test_absent(self) -> None:
+        self.assertIsNone(find_where({"a": 1, "b": 2}, lambda k, v: v > 10))
+
+    def test_empty(self) -> None:
+        self.assertIsNone(find_where({}, lambda k, v: True))
+
+    def test_first_match(self) -> None:
+        self.assertEqual(
+            find_where({"a": 2, "b": 4, "c": 6}, lambda k, v: v % 2 == 0),
+            ("a", 2),
+        )
+
+    def test_key_predicate(self) -> None:
+        self.assertEqual(
+            find_where({"x": 1, "target": 9, "y": 2}, lambda k, v: k == "target"),
+            ("target", 9),
+        )
+
+    def test_returns_tuple(self) -> None:
+        result = find_where({"a": 1}, lambda k, v: True)
+        self.assertIsInstance(result, tuple)
+        self.assertEqual(len(result), 2)
+
+    def test_consistency_with_has_where(self) -> None:
+        cases = [
+            ({"a": 1, "b": 2, "c": 3}, lambda k, v: v > 1),
+            ({"a": 1, "b": 2}, lambda k, v: v > 10),
+            ({}, lambda k, v: True),
+        ]
+        for d, pred in cases:
+            self.assertEqual(find_where(d, pred) is not None, has_where(d, pred))
+
+    def test_falsy_values(self) -> None:
+        self.assertEqual(
+            find_where({"a": 0, "b": "", "c": None}, lambda k, v: v is None),
+            ("c", None),
+        )
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            find_where("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find_where({"a": 1}, None)  # type: ignore[arg-type]

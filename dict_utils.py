@@ -1,6 +1,6 @@
 """Dictionary utility functions."""
 
-from typing import Any, Callable, Dict, List, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar
 
 K = TypeVar("K")
 V = TypeVar("V")
@@ -20,6 +20,7 @@ __all__ = [
     "deep_merge",
     "filter_dict",
     "all_where",
+    "find_where",
     "flatten_dict",
     "has_all_keys",
     "has_all_values",
@@ -448,6 +449,42 @@ def has_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
     if not callable(predicate):
         raise TypeError("predicate must be callable")
     return any(predicate(k, v) for k, v in d.items())
+
+
+def find_where(
+    d: Dict[K, V], predicate: Callable[[K, V], bool]
+) -> Optional[Tuple[K, V]]:
+    """Find the first item in *d* satisfying *predicate(key, value)*.
+
+    Iteration follows the dictionary's insertion order.
+
+    Args:
+        d: Dictionary to inspect.
+        predicate: Function that takes ``(key, value)`` and returns ``bool``.
+
+    Returns:
+        The first matching ``(key, value)`` tuple, or ``None`` if no item
+        matches.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
+
+    Examples:
+        >>> find_where({"a": 1, "b": 2, "c": 3}, lambda k, v: v > 1)
+        ('b', 2)
+        >>> find_where({"a": 1, "b": 2}, lambda k, v: v > 10) is None
+        True
+        >>> find_where({}, lambda k, v: True) is None
+        True
+    """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    for k, v in d.items():
+        if predicate(k, v):
+            return (k, v)
+    return None
 
 
 def all_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> bool:
