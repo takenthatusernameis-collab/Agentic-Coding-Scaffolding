@@ -928,7 +928,8 @@ class TestCountTitle(unittest.TestCase):
         self.assertEqual(count_title(bytearray(b"hello world")), 0)
 
     def test_consistency_with_istitle(self):
-        # istitle is true only when all cased bytes are titlecased and there's at least one cased byte
+        # istitle is true only when all cased bytes are titlecased
+        # and there's at least one cased byte
         self.assertTrue(istitle(b"Hello World"))
         self.assertEqual(count_title(b"Hello World"), 2)
         self.assertFalse(istitle(b"hello world"))
