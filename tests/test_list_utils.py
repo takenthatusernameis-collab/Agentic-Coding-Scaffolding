@@ -3,9 +3,12 @@
 import unittest
 
 from list_utils import (
+    all_where,
     chunks,
     contains,
     count_duplicates,
+    count_occurrences,
+    count_where,
     drop,
     find,
     find_all,
@@ -16,12 +19,15 @@ from list_utils import (
     flatten,
     group_by,
     has_duplicates,
+    has_occurrences,
+    has_where,
     index_of,
     indices_of,
     intersperse,
     is_empty,
     is_sorted,
     last_index_of,
+    none_where,
     partition,
     safe_get,
     take,
@@ -624,3 +630,119 @@ class TestIndicesOf(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestCountOccurrences(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_occurrences([1, 2, 1, 3, 1], 1), 3)
+
+    def test_no_match(self) -> None:
+        self.assertEqual(count_occurrences([1, 2, 3], 9), 0)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_occurrences([], 1), 0)
+
+    def test_strings(self) -> None:
+        self.assertEqual(count_occurrences(["a", "b", "a"], "a"), 2)
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_occurrences("aba", "a")  # type: ignore[arg-type]
+
+    def test_consistency_with_has_occurrences(self) -> None:
+        values = [1, 2, 2, 3]
+        for value in (1, 2, 9):
+            self.assertEqual(has_occurrences(values, value), count_occurrences(values, value) > 0)
+
+
+class TestCountWhere(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_where([1, 2, 3, 4], lambda x: x % 2 == 0), 2)
+
+    def test_none_match(self) -> None:
+        self.assertEqual(count_where([1, 3, 5], lambda x: x % 2 == 0), 0)
+
+    def test_all_match(self) -> None:
+        self.assertEqual(count_where([2, 4], lambda x: x % 2 == 0), 2)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_where([], lambda x: True), 0)
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_where("abc", lambda x: x == "a")  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestHasWhere(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(has_where([1, 2, 3], lambda x: x > 2))
+
+    def test_false(self) -> None:
+        self.assertFalse(has_where([1, 2, 3], lambda x: x > 10))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_where([], lambda x: True))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_where("abc", lambda x: x == "a")  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestAllWhere(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(all_where([2, 4, 6], lambda x: x % 2 == 0))
+
+    def test_false(self) -> None:
+        self.assertFalse(all_where([2, 3, 6], lambda x: x % 2 == 0))
+
+    def test_empty_vacuous(self) -> None:
+        self.assertTrue(all_where([], lambda x: False))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            all_where("abc", lambda x: True)  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            all_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestNoneWhere(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(none_where([1, 3, 5], lambda x: x % 2 == 0))
+
+    def test_false(self) -> None:
+        self.assertFalse(none_where([1, 2, 3], lambda x: x % 2 == 0))
+
+    def test_empty(self) -> None:
+        self.assertTrue(none_where([], lambda x: True))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            none_where("abc", lambda x: True)  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            none_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestHasOccurrences(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(has_occurrences([1, 2, 3], 2))
+
+    def test_false(self) -> None:
+        self.assertFalse(has_occurrences([1, 2, 3], 4))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_occurrences([], 1))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_occurrences("aba", "a")  # type: ignore[arg-type]

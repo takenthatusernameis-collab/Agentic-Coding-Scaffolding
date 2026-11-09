@@ -3444,20 +3444,19 @@ Next Planned (for the following agent):
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
 
-## Latest Session (2026-11-09) — added `count_all_keys` to `dict_utils`
+## Latest Session (2026-11-09) — added count/where predicate companions to `list_utils`
 
-**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Executed prior "Next Planned" by auditing `dict_utils.py` for a focused, hermetic helper gap. `has_all_keys`/`has_any_key` existed but lacked the integer companion `count_all_keys` (the value side already had `count_all_values`/`has_all_values`/`has_any_value`).
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Executed prior "Next Planned" by auditing `list_utils.py` for a focused, hermetic helper gap. `seq_utils.py` exposed `count_occurrences`/`count_where`/`has_where`/`all_where`/`none_where`/`has_occurrences` companions (with tests), while `list_utils.py` had `find`/`contains`/`index_of`-style helpers but lacked these count/predicate companions.
 
 **Changes:**
-- Added `count_all_keys(d, keys)` to `dict_utils.py` returning how many keys from *keys* are present in *d* (duplicate key queries counted once per occurrence). Refactored `has_all_keys` and `has_any_key` to reuse `count_all_keys` for consistency.
-- Typed API, `__all__` export, Google-style docstring with ASCII-safe doctests, `TypeError` validation for non-dict *d*.
-- Added `TestCountAllKeys` (10 tests) to `tests/test_dict_utils.py` covering all-present/partial/missing/empty/duplicate/generator cases, consistency with `has_all_keys`/`has_any_key`, and the `TypeError` path.
-- Updated `README.md` (tree + prose) and `CHANGELOG.md`. Refreshed embedded copies via `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `count_occurrences(lst, value)`, `count_where(lst, predicate)`, `has_where(lst, predicate)`, `all_where(lst, predicate)`, `none_where(lst, predicate)`, and `has_occurrences(lst, value)` to `list_utils.py`. Typed APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation for non-list *lst* (and non-callable predicates where applicable).
+- Added `TestCountOccurrences`, `TestCountWhere`, `TestHasWhere`, `TestAllWhere`, `TestNoneWhere`, and `TestHasOccurrences` (31 tests) to `tests/test_list_utils.py`.
+- Updated `README.md` (`list_utils` tree/prose) and `CHANGELOG.md`. Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-**Validation:** `python -m unittest tests.test_dict_utils` (100 OK), `python -m doctest dict_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+**Validation:** `python -m unittest tests.test_list_utils` (187 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
 
 Next Planned (for the following agent):
-- Audit `list_utils.py` or `seq_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing count/find predicate pair that complements existing helpers) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
+- Audit `seq_utils.py` or `set_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing count/find/predicate pair that complements existing helpers, or a symmetric gap exposed by recent `list_utils`/`dict_utils` additions) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
 

@@ -19,9 +19,12 @@ __all__ = [
     "K",
     "SupportsRichComparison",
     "T",
+    "all_where",
     "chunks",
     "contains",
     "count_duplicates",
+    "count_occurrences",
+    "count_where",
     "drop",
     "find",
     "find_all",
@@ -33,6 +36,8 @@ __all__ = [
     "flatten",
     "group_by",
     "has_duplicates",
+    "has_occurrences",
+    "has_where",
     "index_of",
     "indices_of",
     "intersperse",
@@ -40,6 +45,7 @@ __all__ = [
     "is_sorted",
     "last_index_of",
     "last_or_default",
+    "none_where",
     "partition",
     "safe_get",
     "take",
@@ -723,6 +729,180 @@ def has_duplicates(lst: List[T]) -> bool:
     if not isinstance(lst, list):
         raise TypeError("lst must be a list")
     return count_duplicates(lst) > 0
+
+
+def count_occurrences(lst: List[T], value: T) -> int:
+    """Return how many times *value* appears in *lst*.
+
+    Args:
+        lst: The list to search.
+        value: The value to count.
+
+    Returns:
+        The number of elements equal to *value*.
+
+    Raises:
+        TypeError: If *lst* is not a list.
+
+    Examples:
+        >>> count_occurrences([1, 2, 1, 3, 1], 1)
+        3
+        >>> count_occurrences(["a", "b", "a"], "a")
+        2
+        >>> count_occurrences([1, 2, 3], 9)
+        0
+        >>> count_occurrences([], 1)
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return sum(1 for item in lst if item == value)
+
+
+def count_where(lst: List[T], predicate: Callable[[T], bool]) -> int:
+    """Return how many elements in *lst* satisfy *predicate*.
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for elements to count.
+
+    Returns:
+        The number of elements for which *predicate* returns ``True``.
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> count_where([1, 2, 3, 4], lambda x: x % 2 == 0)
+        2
+        >>> count_where([], lambda x: True)
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return sum(1 for item in lst if predicate(item))
+
+
+def has_where(lst: List[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when any element in *lst* satisfies *predicate*.
+
+    Short-circuits on the first match.
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for a matching element.
+
+    Returns:
+        ``True`` if at least one element satisfies *predicate*, ``False``
+        otherwise (including when *lst* is empty).
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> has_where([1, 2, 3], lambda x: x > 2)
+        True
+        >>> has_where([1, 2, 3], lambda x: x > 10)
+        False
+        >>> has_where([], lambda x: True)
+        False
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return any(predicate(item) for item in lst)
+
+
+def all_where(lst: List[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when every element in *lst* satisfies *predicate*.
+
+    Short-circuits on the first failing element. An empty list returns
+    ``True`` (vacuous truth).
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for a valid element.
+
+    Returns:
+        ``True`` if all elements satisfy *predicate* or *lst* is empty,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> all_where([2, 4, 6], lambda x: x % 2 == 0)
+        True
+        >>> all_where([2, 3, 6], lambda x: x % 2 == 0)
+        False
+        >>> all_where([], lambda x: False)
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return all(predicate(item) for item in lst)
+
+
+def none_where(lst: List[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when no element in *lst* satisfies *predicate*.
+
+    Short-circuits on the first match. An empty list returns ``True``.
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for a matching element.
+
+    Returns:
+        ``True`` if no element satisfies *predicate* (including when *lst* is
+        empty), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> none_where([1, 3, 5], lambda x: x % 2 == 0)
+        True
+        >>> none_where([1, 2, 3], lambda x: x % 2 == 0)
+        False
+        >>> none_where([], lambda x: True)
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return not any(predicate(item) for item in lst)
+
+
+def has_occurrences(lst: List[T], value: T) -> bool:
+    """Return ``True`` when *value* appears at least once in *lst*.
+
+    This is the boolean companion to :func:`count_occurrences`.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to look for.
+
+    Returns:
+        ``True`` if *value* is present in *lst*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *lst* is not a list.
+
+    Examples:
+        >>> has_occurrences([1, 2, 3], 2)
+        True
+        >>> has_occurrences([1, 2, 3], 4)
+        False
+        >>> has_occurrences([], 1)
+        False
+    """
+    return count_occurrences(lst, value) > 0
 
 
 def is_sorted(lst: List[CT], reverse: bool = False) -> bool:

@@ -33901,9 +33901,12 @@ __all__ = [
     "K",
     "SupportsRichComparison",
     "T",
+    "all_where",
     "chunks",
     "contains",
     "count_duplicates",
+    "count_occurrences",
+    "count_where",
     "drop",
     "find",
     "find_all",
@@ -33915,6 +33918,8 @@ __all__ = [
     "flatten",
     "group_by",
     "has_duplicates",
+    "has_occurrences",
+    "has_where",
     "index_of",
     "indices_of",
     "intersperse",
@@ -33922,6 +33927,7 @@ __all__ = [
     "is_sorted",
     "last_index_of",
     "last_or_default",
+    "none_where",
     "partition",
     "safe_get",
     "take",
@@ -34607,6 +34613,180 @@ def has_duplicates(lst: List[T]) -> bool:
     return count_duplicates(lst) > 0
 
 
+def count_occurrences(lst: List[T], value: T) -> int:
+    """Return how many times *value* appears in *lst*.
+
+    Args:
+        lst: The list to search.
+        value: The value to count.
+
+    Returns:
+        The number of elements equal to *value*.
+
+    Raises:
+        TypeError: If *lst* is not a list.
+
+    Examples:
+        >>> count_occurrences([1, 2, 1, 3, 1], 1)
+        3
+        >>> count_occurrences(["a", "b", "a"], "a")
+        2
+        >>> count_occurrences([1, 2, 3], 9)
+        0
+        >>> count_occurrences([], 1)
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    return sum(1 for item in lst if item == value)
+
+
+def count_where(lst: List[T], predicate: Callable[[T], bool]) -> int:
+    """Return how many elements in *lst* satisfy *predicate*.
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for elements to count.
+
+    Returns:
+        The number of elements for which *predicate* returns ``True``.
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> count_where([1, 2, 3, 4], lambda x: x % 2 == 0)
+        2
+        >>> count_where([], lambda x: True)
+        0
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return sum(1 for item in lst if predicate(item))
+
+
+def has_where(lst: List[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when any element in *lst* satisfies *predicate*.
+
+    Short-circuits on the first match.
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for a matching element.
+
+    Returns:
+        ``True`` if at least one element satisfies *predicate*, ``False``
+        otherwise (including when *lst* is empty).
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> has_where([1, 2, 3], lambda x: x > 2)
+        True
+        >>> has_where([1, 2, 3], lambda x: x > 10)
+        False
+        >>> has_where([], lambda x: True)
+        False
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return any(predicate(item) for item in lst)
+
+
+def all_where(lst: List[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when every element in *lst* satisfies *predicate*.
+
+    Short-circuits on the first failing element. An empty list returns
+    ``True`` (vacuous truth).
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for a valid element.
+
+    Returns:
+        ``True`` if all elements satisfy *predicate* or *lst* is empty,
+        ``False`` otherwise.
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> all_where([2, 4, 6], lambda x: x % 2 == 0)
+        True
+        >>> all_where([2, 3, 6], lambda x: x % 2 == 0)
+        False
+        >>> all_where([], lambda x: False)
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return all(predicate(item) for item in lst)
+
+
+def none_where(lst: List[T], predicate: Callable[[T], bool]) -> bool:
+    """Return ``True`` when no element in *lst* satisfies *predicate*.
+
+    Short-circuits on the first match. An empty list returns ``True``.
+
+    Args:
+        lst: The list to inspect.
+        predicate: A function that returns ``True`` for a matching element.
+
+    Returns:
+        ``True`` if no element satisfies *predicate* (including when *lst* is
+        empty), ``False`` otherwise.
+
+    Raises:
+        TypeError: If *lst* is not a list or *predicate* is not callable.
+
+    Examples:
+        >>> none_where([1, 3, 5], lambda x: x % 2 == 0)
+        True
+        >>> none_where([1, 2, 3], lambda x: x % 2 == 0)
+        False
+        >>> none_where([], lambda x: True)
+        True
+    """
+    if not isinstance(lst, list):
+        raise TypeError("lst must be a list")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
+    return not any(predicate(item) for item in lst)
+
+
+def has_occurrences(lst: List[T], value: T) -> bool:
+    """Return ``True`` when *value* appears at least once in *lst*.
+
+    This is the boolean companion to :func:`count_occurrences`.
+
+    Args:
+        lst: The list to inspect.
+        value: The value to look for.
+
+    Returns:
+        ``True`` if *value* is present in *lst*, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *lst* is not a list.
+
+    Examples:
+        >>> has_occurrences([1, 2, 3], 2)
+        True
+        >>> has_occurrences([1, 2, 3], 4)
+        False
+        >>> has_occurrences([], 1)
+        False
+    """
+    return count_occurrences(lst, value) > 0
+
+
 def is_sorted(lst: List[CT], reverse: bool = False) -> bool:
     """Return ``True`` when *lst* is sorted in non-descending order.
 
@@ -34698,9 +34878,12 @@ cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
 import unittest
 
 from list_utils import (
+    all_where,
     chunks,
     contains,
     count_duplicates,
+    count_occurrences,
+    count_where,
     drop,
     find,
     find_all,
@@ -34711,12 +34894,15 @@ from list_utils import (
     flatten,
     group_by,
     has_duplicates,
+    has_occurrences,
+    has_where,
     index_of,
     indices_of,
     intersperse,
     is_empty,
     is_sorted,
     last_index_of,
+    none_where,
     partition,
     safe_get,
     take,
@@ -35319,6 +35505,122 @@ class TestIndicesOf(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class TestCountOccurrences(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_occurrences([1, 2, 1, 3, 1], 1), 3)
+
+    def test_no_match(self) -> None:
+        self.assertEqual(count_occurrences([1, 2, 3], 9), 0)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_occurrences([], 1), 0)
+
+    def test_strings(self) -> None:
+        self.assertEqual(count_occurrences(["a", "b", "a"], "a"), 2)
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_occurrences("aba", "a")  # type: ignore[arg-type]
+
+    def test_consistency_with_has_occurrences(self) -> None:
+        values = [1, 2, 2, 3]
+        for value in (1, 2, 9):
+            self.assertEqual(has_occurrences(values, value), count_occurrences(values, value) > 0)
+
+
+class TestCountWhere(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(count_where([1, 2, 3, 4], lambda x: x % 2 == 0), 2)
+
+    def test_none_match(self) -> None:
+        self.assertEqual(count_where([1, 3, 5], lambda x: x % 2 == 0), 0)
+
+    def test_all_match(self) -> None:
+        self.assertEqual(count_where([2, 4], lambda x: x % 2 == 0), 2)
+
+    def test_empty(self) -> None:
+        self.assertEqual(count_where([], lambda x: True), 0)
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_where("abc", lambda x: x == "a")  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            count_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestHasWhere(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(has_where([1, 2, 3], lambda x: x > 2))
+
+    def test_false(self) -> None:
+        self.assertFalse(has_where([1, 2, 3], lambda x: x > 10))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_where([], lambda x: True))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_where("abc", lambda x: x == "a")  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestAllWhere(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(all_where([2, 4, 6], lambda x: x % 2 == 0))
+
+    def test_false(self) -> None:
+        self.assertFalse(all_where([2, 3, 6], lambda x: x % 2 == 0))
+
+    def test_empty_vacuous(self) -> None:
+        self.assertTrue(all_where([], lambda x: False))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            all_where("abc", lambda x: True)  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            all_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestNoneWhere(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(none_where([1, 3, 5], lambda x: x % 2 == 0))
+
+    def test_false(self) -> None:
+        self.assertFalse(none_where([1, 2, 3], lambda x: x % 2 == 0))
+
+    def test_empty(self) -> None:
+        self.assertTrue(none_where([], lambda x: True))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            none_where("abc", lambda x: True)  # type: ignore[arg-type]
+
+    def test_non_callable_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            none_where([1, 2], 1)  # type: ignore[arg-type]
+
+
+class TestHasOccurrences(unittest.TestCase):
+    def test_true(self) -> None:
+        self.assertTrue(has_occurrences([1, 2, 3], 2))
+
+    def test_false(self) -> None:
+        self.assertFalse(has_occurrences([1, 2, 3], 4))
+
+    def test_empty(self) -> None:
+        self.assertFalse(has_occurrences([], 1))
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            has_occurrences("aba", "a")  # type: ignore[arg-type]
 TESTLISTUTILS
 
 # --- locale_utils.py ---
@@ -65730,6 +66032,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added count/where predicate companions to `list_utils`
+
+- Added `count_occurrences(lst, value)`, `count_where(lst, predicate)`, `has_where(lst, predicate)`, `all_where(lst, predicate)`, `none_where(lst, predicate)`, and `has_occurrences(lst, value)` to `list_utils.py` as companions to existing `find`/`contains` helpers, matching `seq_utils` style. Typed APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation for non-list *lst* (and non-callable predicates where applicable). Added `TestCountOccurrences`, `TestCountWhere`, `TestHasWhere`, `TestAllWhere`, `TestNoneWhere`, and `TestHasOccurrences` (31 tests) to `tests/test_list_utils.py`. Updated `README.md` (`list_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_list_utils` (187 OK), `python -m doctest list_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
+
 ## Unreleased — added count_title/has_title companions to bytes_utils.istitle
 
 - Added `count_title(data) -> int` and `has_title(data) -> bool` to `bytes_utils.py` as the integer/boolean companions to `istitle`. The module already had `istitle` (exported in `__all__`, with tests and README documentation) but no `count_*`/`has_*` counterparts. `count_title` returns the count of titlecase bytes (uppercase ASCII letters at word boundaries: start of data or after a non-alphabetic byte) in *data* (empty input returns ``0``). `has_title` returns ``True`` when at least one titlecase byte is present and ``False`` otherwise (empty input is ``False``), reusing `count_title` for consistency. Both accept typed `bytes`/`bytearray` arguments, raise `TypeError` for non-bytes-like input, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountTitle` (7 tests) and `TestHasTitle` (6 tests) to `tests/test_bytes_utils.py` covering all/no/mixed/empty/bytearray inputs, consistency with `istitle` and with each other, and `TypeError` paths; imported `count_title`/`has_title` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -68363,7 +68669,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, indices_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, indices_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, has_duplicates, count_occurrences, count_where, has_where, all_where, none_where, has_occurrences)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -69031,7 +69337,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `indices_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, and `has_duplicates`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `indices_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, `has_duplicates`, `count_occurrences`, `count_where`, `has_where`, `all_where`, `none_where`, and `has_occurrences`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 
