@@ -7,6 +7,7 @@ from seq_utils import (
     all_where,
     chunk,
     contains,
+    count_duplicates,
     count_occurrences,
     count_unique,
     count_where,
@@ -34,6 +35,7 @@ from seq_utils import (
     nth,
     nth_or_default,
     partition,
+    reverse,
     split_at,
     tail,
     take_while,
@@ -284,6 +286,87 @@ class TestContains(unittest.TestCase):
             contains(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             contains(None, 1)  # type: ignore[arg-type]
+
+
+class TestReverse(unittest.TestCase):
+    def test_reverse_non_empty(self):
+        self.assertEqual(reverse([1, 2, 3]), [3, 2, 1])
+        self.assertEqual(reverse(("a", "b", "c")), ["c", "b", "a"])
+        self.assertEqual(reverse("abc"), ["c", "b", "a"])
+
+    def test_reverse_empty(self):
+        self.assertEqual(reverse([]), [])
+        self.assertEqual(reverse(()), [])
+        self.assertEqual(reverse(""), [])
+
+    def test_reverse_single_element(self):
+        self.assertEqual(reverse([42]), [42])
+        self.assertEqual(reverse(("only",)), ["only"])
+        self.assertEqual(reverse("z"), ["z"])
+
+    def test_reverse_palindrome(self):
+        self.assertEqual(reverse([1, 2, 1]), [1, 2, 1])
+        self.assertEqual(reverse("aba"), ["a", "b", "a"])
+
+    def test_reverse_is_new_list(self):
+        seq = [1, 2, 3]
+        result = reverse(seq)
+        self.assertIsInstance(result, list)
+        self.assertIsNot(result, seq)
+        self.assertEqual(seq, [1, 2, 3])
+
+    def test_reverse_consistency_with_builtin(self):
+        for seq in ([1, 2, 3, 4], ("x", "y"), "hello", [], ()):
+            self.assertEqual(reverse(seq), list(reversed(seq)))
+
+    def test_reverse_type_error(self):
+        with self.assertRaises(TypeError):
+            reverse(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            reverse(None)  # type: ignore[arg-type]
+
+
+class TestCountDuplicates(unittest.TestCase):
+    def test_no_duplicates(self):
+        self.assertEqual(count_duplicates([1, 2, 3]), 0)
+        self.assertEqual(count_duplicates("abc"), 0)
+        self.assertEqual(count_duplicates((1, 2, 3)), 0)
+
+    def test_duplicates(self):
+        self.assertEqual(count_duplicates([1, 2, 2, 3]), 1)
+        self.assertEqual(count_duplicates([1, 1, 1]), 2)
+        self.assertEqual(count_duplicates([1, 2, 2, 3, 3, 3]), 3)
+
+    def test_empty(self):
+        self.assertEqual(count_duplicates([]), 0)
+        self.assertEqual(count_duplicates(()), 0)
+        self.assertEqual(count_duplicates(""), 0)
+
+    def test_single_element(self):
+        self.assertEqual(count_duplicates([42]), 0)
+        self.assertEqual(count_duplicates(("only",)), 0)
+
+    def test_tuple(self):
+        self.assertEqual(count_duplicates((1, 2, 2, 3)), 1)
+        self.assertEqual(count_duplicates((1, 2, 3)), 0)
+
+    def test_unhashable_elements(self):
+        self.assertEqual(count_duplicates([[1], [2], [1]]), 1)
+        self.assertEqual(count_duplicates([[1], [2], [3]]), 0)
+
+    def test_consistency_with_has_duplicates(self):
+        for seq in ([1, 2, 3], [1, 2, 2, 3], [], "abca", (1, 1, 2)):
+            self.assertEqual(count_duplicates(seq) > 0, has_duplicates(seq))
+
+    def test_consistency_with_count_unique(self):
+        for seq in ([1, 2, 2, 3], [1, 1, 1], [], "abc", (1, 2, 1)):
+            self.assertEqual(count_duplicates(seq), len(seq) - count_unique(seq))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_duplicates(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_duplicates(None)  # type: ignore[arg-type]
 
 
 class TestUnique(unittest.TestCase):
