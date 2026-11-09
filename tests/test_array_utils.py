@@ -13,17 +13,29 @@ from array_utils import (
     array_create,
     array_extend,
     array_extend_from_list,
+    array_from_bytes,
     array_from_list,
+    array_from_unicode,
+    array_frombytes,
+    array_fromfile,
     array_fromlist,
+    array_fromunicode,
     array_index,
     array_insert,
+    array_itemsize,
     array_pop,
     array_remove,
     array_remove_first,
     array_repeat,
     array_reverse,
+    array_to_bytes,
+    array_to_file,
     array_to_list,
+    array_to_unicode,
+    array_tobytes,
+    array_tofile,
     array_tolist,
+    array_tounicode,
     array_typecode,
 )
 
@@ -298,6 +310,138 @@ class TestArrayUtils(unittest.TestCase):
             array_repeat(array("i", [1]), 1.5)
         with self.assertRaises(TypeError):
             array_repeat(array("i", [1]), True)
+
+
+class TestArrayBytes(unittest.TestCase):
+
+    def test_array_tobytes(self):
+        a = array("i", [1, 2, 3])
+        assert array_tobytes(a) == a.tobytes()
+        assert isinstance(array_tobytes(a), bytes)
+
+    def test_array_to_bytes_alias(self):
+        a = array("i", [1, 2, 3])
+        assert array_to_bytes(a) == array_tobytes(a)
+
+    def test_array_tobytes_empty(self):
+        assert array_tobytes(array("i")) == b""
+
+    def test_array_tobytes_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_tobytes([1, 2, 3])
+
+    def test_array_frombytes(self):
+        a = array("i")
+        array_frombytes(a, array("i", [1, 2, 3]).tobytes())
+        assert a.tolist() == [1, 2, 3]
+
+    def test_array_from_bytes_alias(self):
+        a = array("i")
+        array_from_bytes(a, array("i", [4, 5]).tobytes())
+        assert a.tolist() == [4, 5]
+
+    def test_array_frombytes_empty(self):
+        a = array("i", [1, 2])
+        array_frombytes(a, b"")
+        assert a.tolist() == [1, 2]
+
+    def test_array_frombytes_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_frombytes([1], b"")
+
+    def test_array_frombytes_rejects_non_bytes(self):
+        with self.assertRaises(TypeError):
+            array_frombytes(array("i"), "abc")  # type: ignore[arg-type]
+
+
+class TestArrayFile(unittest.TestCase):
+
+    def test_array_tofile_and_fromfile_roundtrip(self):
+        import io
+        a = array("i", [1, 2, 3])
+        buf = io.BytesIO()
+        array_tofile(a, buf)
+        buf.seek(0)
+        b = array("i")
+        array_fromfile(b, buf, 3)
+        assert b.tolist() == [1, 2, 3]
+
+    def test_array_to_file_alias(self):
+        import io
+        a = array("i", [7, 8])
+        buf = io.BytesIO()
+        array_to_file(a, buf)
+        assert buf.getvalue() == a.tobytes()
+
+    def test_array_tofile_rejects_non_array(self):
+        import io
+        with self.assertRaises(TypeError):
+            array_tofile([1, 2], io.BytesIO())
+
+    def test_array_fromfile_rejects_non_array(self):
+        import io
+        with self.assertRaises(TypeError):
+            array_fromfile([], io.BytesIO(), 1)
+
+    def test_array_fromfile_rejects_bad_n(self):
+        import io
+        with self.assertRaises(TypeError):
+            array_fromfile(array("i"), io.BytesIO(), 1.5)
+        with self.assertRaises(TypeError):
+            array_fromfile(array("i"), io.BytesIO(), True)
+
+
+class TestArrayUnicode(unittest.TestCase):
+
+    def test_array_tounicode(self):
+        a = array("u", "abc")
+        assert array_tounicode(a) == "abc"
+        assert isinstance(array_tounicode(a), str)
+
+    def test_array_to_unicode_alias(self):
+        a = array("u", "xyz")
+        assert array_to_unicode(a) == array_tounicode(a)
+
+    def test_array_tounicode_empty(self):
+        assert array_tounicode(array("u")) == ""
+
+    def test_array_tounicode_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_tounicode("abc")  # type: ignore[arg-type]
+
+    def test_array_fromunicode(self):
+        a = array("u")
+        array_fromunicode(a, "hello")
+        assert a.tolist() == list("hello")
+
+    def test_array_from_unicode_alias(self):
+        a = array("u")
+        array_from_unicode(a, "world")
+        assert a.tounicode() == "world"
+
+    def test_array_fromunicode_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_fromunicode([], "x")  # type: ignore[arg-type]
+
+    def test_array_fromunicode_rejects_non_str(self):
+        with self.assertRaises(TypeError):
+            array_fromunicode(array("u"), 123)  # type: ignore[arg-type]
+
+
+class TestArrayItemsize(unittest.TestCase):
+
+    def test_array_itemsize(self):
+        assert array_itemsize(array("i", [1])) == array("i", [1]).itemsize
+
+    def test_array_itemsize_charcode_sizes(self):
+        # 'b' (signed char) is 1 byte, 'i' (signed int) is at least 2
+        assert array_itemsize(array("b", [0])) == 1
+        assert array_itemsize(array("i", [0])) >= 2
+
+    def test_array_itemsize_rejects_non_array(self):
+        with self.assertRaises(TypeError):
+            array_itemsize([1, 2, 3])
+
 
 if __name__ == "__main__":
     unittest.main()
