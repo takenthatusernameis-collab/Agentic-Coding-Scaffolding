@@ -26,6 +26,7 @@ from itertools_utils import (
     last_or_default,
     pairwise_iterable,
     partition,
+    permutations_of,
     product_of,
     repeat_value,
     sliding_window,
@@ -833,6 +834,58 @@ class TestAllEqual(unittest.TestCase):
     def test_rejects_non_iterable(self):
         with self.assertRaises(TypeError):
             all_equal(42)
+
+
+class TestPermutationsOf(unittest.TestCase):
+    def test_all_permutations(self):
+        self.assertEqual(
+            permutations_of([1, 2, 3]),
+            [(1, 2, 3), (1, 3, 2), (2, 1, 3), (2, 3, 1), (3, 1, 2), (3, 2, 1)],
+        )
+
+    def test_with_r(self):
+        self.assertEqual(
+            permutations_of([1, 2, 3], 2),
+            [(1, 2), (1, 3), (2, 1), (2, 3), (3, 1), (3, 2)],
+        )
+
+    def test_r_zero(self):
+        self.assertEqual(permutations_of([1, 2, 3], 0), [()])
+
+    def test_r_one(self):
+        self.assertEqual(permutations_of([1, 2, 3], 1), [(1,), (2,), (3,)])
+
+    def test_empty_iterable(self):
+        self.assertEqual(permutations_of([]), [()])
+        self.assertEqual(permutations_of([], 0), [()])
+        self.assertEqual(permutations_of([], 1), [])
+
+    def test_single_element(self):
+        self.assertEqual(permutations_of([5]), [(5,)])
+
+    def test_tuple_input(self):
+        self.assertEqual(permutations_of((1, 2)), [(1, 2), (2, 1)])
+
+    def test_consistency_with_itertools(self):
+        for r in (None, 0, 1, 2, 3):
+            expected = list(__import__("itertools").permutations([1, 2, 3], r))
+            self.assertEqual(permutations_of([1, 2, 3], r), expected)
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            permutations_of(42)
+
+    def test_rejects_non_iterable_none(self):
+        with self.assertRaises(TypeError):
+            permutations_of(None)
+
+    def test_rejects_non_int_r(self):
+        with self.assertRaises(TypeError):
+            permutations_of([1, 2, 3], "2")
+
+    def test_rejects_negative_r(self):
+        with self.assertRaises(ValueError):
+            permutations_of([1, 2, 3], -1)
 
 
 if __name__ == "__main__":
