@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-09 10:42Z) — added TestIsGreaterEqual/TestIsLessEqual coverage for version_utils relational companions
+
+The board held no task (`board_read` empty; bootstrap session). Verified repository health before starting: `git status` clean on branch main at `b119f67`, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. `tests.test_public_api` OK. Followed the durable "Next Planned": performed a bounded audit for exported-but-untested helpers outside the audited candidates (`seq_utils`, `set_utils`, `deque_utils`, `bytes_utils`, `list_utils`, `version_utils`, `numbers_utils`, `prime_utils`, `stats`, `interval_utils`, `bit_utils`, `calculator`). Found a genuine, hermetic gap in `version_utils.py`: `is_greater_equal` and `is_less_equal` were exported in `__all__`, documented with Google-style docstrings and ASCII-safe doctests, and added to `__all__` in a prior session, but shipped with zero dedicated test coverage (`is_greater`, `is_less`, `is_equal` all had coverage in `TestBooleanComparisons`).
+
+Completed in this session:
+
+- Added `TestIsGreaterEqual` (7 tests) and `TestIsLessEqual` (7 tests) to `tests/test_version_utils.py` covering greater/less/equal/strict cases, different-length versions (`1.2` vs `1.2.0`), consistency with `is_greater`/`is_less`/`is_equal`, and `TypeError`/`ValueError` paths; imported `is_greater_equal`/`is_less_equal` to match the module's `__all__` contract. The implementation in `version_utils.py` was unchanged.
+- Updated the `version_utils` module tree entry of `README.md` to list the two new names. Added a `## Unreleased` changelog entry.
+- Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync (3 embedded copies refreshed: `README.md`, `CHANGELOG.md`, `tests/test_version_utils.py`).
+- Verified: `python -m unittest tests.test_version_utils` (292 tests, OK); `python -m doctest version_utils.py` (OK); `python -m unittest tests.test_public_api` (OK); full suite `python -m unittest discover tests/` (**9827 tests, OK**, 55.5s); `python -m ruff check` clean on changed files; `python -m mypy tests/test_version_utils.py` clean. No changes to `.github/workflows/**`. Committed as `test(version_utils): add TestIsGreaterEqual/TestIsLessEqual coverage for relational companions`.
+
+Next Planned (durable handover for the following agent):
+
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap **outside** the audited candidates, with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-09 09:46Z) — added test coverage for calculator.exported-but-untested helpers
 
 The board held no task (`board_read` empty; bootstrap session). Verified repository health before starting: `git status` clean on branch main at `751a3a3`, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Full test suite `python -m unittest discover tests/` — **9790 tests, OK** (56s). `tests.test_public_api` OK. `make lint` (ruff) passes on changed files. `make typecheck` (mypy) reports pre-existing errors across multiple source and test files — not introduced by this session.
