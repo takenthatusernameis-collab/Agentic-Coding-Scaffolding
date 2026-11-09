@@ -16,6 +16,7 @@ __all__ = [
     "intersection",
     "is_disjoint",
     "is_equal",
+    "is_not_equal",
     "is_proper_subset",
     "is_proper_superset",
     "is_subset",
@@ -224,6 +225,37 @@ def is_equal(a: Iterable[Any], b: Iterable[Any]) -> bool:
         True
     """
     return _to_set(a) == _to_set(b)
+
+
+def is_not_equal(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether two iterables contain different sets of elements.
+
+    This is the boolean companion to :func:`is_equal`. Order, multiplicity,
+    and the concrete iterable type of the inputs do not matter; only the
+    distinct elements they yield are compared.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` when *a* and *b* do not represent the same set, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not iterable.
+
+    Examples:
+        >>> is_not_equal([1, 2], [1, 2, 3])
+        True
+        >>> is_not_equal([1, 2, 3], [3, 2, 1])
+        False
+        >>> is_not_equal([1, 2, 2, 3], [1, 2, 3])
+        False
+        >>> is_not_equal([], [1])
+        True
+    """
+    return not is_equal(a, b)
 
 
 def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:

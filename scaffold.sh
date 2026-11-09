@@ -15680,6 +15680,7 @@ __all__ = [
     "initial",
     "intersection",
     "is_empty",
+    "is_not_empty",
     "items",
     "keys",
     "last",
@@ -15757,12 +15758,46 @@ def dedupe(lst: List[T]) -> List[T]:
 
 
 def is_empty(value: Any) -> bool:
-    """Check if a value is considered empty."""
+    """Check if a value is considered empty.
+
+    Returns ``True`` for ``None`` and for empty strings, lists, tuples, sets,
+    and dicts. Other values (including numbers and booleans) are not empty.
+
+    Examples:
+        >>> is_empty([])
+        True
+        >>> is_empty([1])
+        False
+        >>> is_empty(None)
+        True
+    """
     if value is None:
         return True
     if isinstance(value, (str, list, tuple, set, dict)):
         return len(value) == 0
     return False
+
+
+def is_not_empty(value: Any) -> bool:
+    """Return ``True`` when *value* is not considered empty.
+
+    Boolean negation companion to :func:`is_empty`.
+
+    Args:
+        value: Any value to test.
+
+    Returns:
+        ``True`` if :func:`is_empty` would return ``False``.
+
+    Examples:
+        >>> is_not_empty([1])
+        True
+        >>> is_not_empty([])
+        False
+        >>> is_not_empty("hello")
+        True
+    """
+    return not is_empty(value)
 
 
 def remove_none(lst: List[Any]) -> List[Any]:
@@ -20724,6 +20759,7 @@ from utils import (
     flatten,
     has_by,
     is_empty,
+    is_not_empty,
     last,
     remove_none,
     second,
@@ -20893,6 +20929,33 @@ class TestHasBy(unittest.TestCase):
     def test_has_by_non_callable_raises(self) -> None:
         with self.assertRaises(TypeError):
             has_by([1, 2, 3], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotEmpty(unittest.TestCase):
+    def test_is_not_empty_none(self) -> None:
+        self.assertFalse(is_not_empty(None))
+
+    def test_is_not_empty_empty_values(self) -> None:
+        self.assertFalse(is_not_empty(""))
+        self.assertFalse(is_not_empty([]))
+        self.assertFalse(is_not_empty(()))
+        self.assertFalse(is_not_empty(set()))
+        self.assertFalse(is_not_empty({}))
+
+    def test_is_not_empty_non_empty(self) -> None:
+        self.assertTrue(is_not_empty("hello"))
+        self.assertTrue(is_not_empty([1]))
+        self.assertTrue(is_not_empty({"a": 1}))
+        self.assertTrue(is_not_empty((1,)))
+
+    def test_is_not_empty_numbers_and_bools(self) -> None:
+        self.assertTrue(is_not_empty(0))
+        self.assertTrue(is_not_empty(False))
+        self.assertTrue(is_not_empty(5))
+
+    def test_consistency_with_is_empty(self) -> None:
+        for value in [None, "", [], [1], 0, False, "x", {}, {"a": 1}]:
+            self.assertEqual(is_not_empty(value), not is_empty(value))
 TESTUTILS
 
 # --- tests/test_stats.py ---
@@ -24207,6 +24270,7 @@ from set_utils import (
     intersection,
     is_disjoint,
     is_equal,
+    is_not_equal,
     is_proper_subset,
     is_proper_superset,
     is_subset,
@@ -24336,6 +24400,54 @@ class TestIsEqual(unittest.TestCase):
             is_equal(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_equal([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotEqual(unittest.TestCase):
+    def test_is_not_equal_different(self):
+        self.assertTrue(is_not_equal([1, 2], [1, 2, 3]))
+
+    def test_is_not_equal_same_order(self):
+        self.assertFalse(is_not_equal([1, 2, 3], [1, 2, 3]))
+
+    def test_is_not_equal_different_order(self):
+        self.assertFalse(is_not_equal([1, 2, 3], [3, 2, 1]))
+
+    def test_is_not_equal_duplicates_ignored(self):
+        self.assertFalse(is_not_equal([1, 2, 2, 3], [1, 2, 3]))
+
+    def test_is_not_equal_empty(self):
+        self.assertFalse(is_not_equal([], []))
+
+    def test_is_not_equal_one_empty(self):
+        self.assertTrue(is_not_equal([1, 2], []))
+        self.assertTrue(is_not_equal([], [1, 2]))
+
+    def test_is_not_equal_disjoint(self):
+        self.assertTrue(is_not_equal([1, 2], [3, 4]))
+
+    def test_is_not_equal_strings(self):
+        self.assertFalse(is_not_equal("abc", "cba"))
+        self.assertTrue(is_not_equal("abc", "ab"))
+
+    def test_is_not_equal_consistency_with_is_equal(self):
+        cases = [
+            ([1, 2, 3], [1, 2, 3]),
+            ([1, 2, 3], [3, 2, 1]),
+            ([1, 2, 2, 3], [1, 2, 3]),
+            ([1, 2], [1, 2, 3]),
+            ([], []),
+            ([1, 2], []),
+            ([1, 2], [3, 4]),
+            ("abc", "cba"),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_not_equal(a, b), not is_equal(a, b))
+
+    def test_is_not_equal_type_error(self):
+        with self.assertRaises(TypeError):
+            is_not_equal(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_equal([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIntersection(unittest.TestCase):
@@ -39005,6 +39117,7 @@ __all__ = [
     "intersection",
     "is_disjoint",
     "is_equal",
+    "is_not_equal",
     "is_proper_subset",
     "is_proper_superset",
     "is_subset",
@@ -39213,6 +39326,37 @@ def is_equal(a: Iterable[Any], b: Iterable[Any]) -> bool:
         True
     """
     return _to_set(a) == _to_set(b)
+
+
+def is_not_equal(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether two iterables contain different sets of elements.
+
+    This is the boolean companion to :func:`is_equal`. Order, multiplicity,
+    and the concrete iterable type of the inputs do not matter; only the
+    distinct elements they yield are compared.
+
+    Args:
+        a: First iterable.
+        b: Second iterable.
+
+    Returns:
+        ``True`` when *a* and *b* do not represent the same set, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *a* or *b* is not iterable.
+
+    Examples:
+        >>> is_not_equal([1, 2], [1, 2, 3])
+        True
+        >>> is_not_equal([1, 2, 3], [3, 2, 1])
+        False
+        >>> is_not_equal([1, 2, 2, 3], [1, 2, 3])
+        False
+        >>> is_not_equal([], [1])
+        True
+    """
+    return not is_equal(a, b)
 
 
 def intersection(a: Iterable[Any], b: Iterable[Any]) -> Set[Any]:
@@ -66984,6 +67128,11 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - Added `TestCountWhere`, `TestHasWhere`, `TestAllWhere`, and `TestNoneWhere` (22 tests) to `tests/test_dict_utils.py` covering basic/no-match/empty/all-match/key/falsy-value cases, consistency between companions, and `TypeError` paths.
 - Updated `README.md` (`dict_utils` tree/prose). `dict_utils.py`/`tests/test_dict_utils.py` are not embedded in `scaffold.sh`, so no scaffold refresh was needed. Verified: `python -m unittest tests.test_dict_utils` (144 OK; +22 new), `python -m doctest dict_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check dict_utils.py tests/test_dict_utils.py` clean, `python -m mypy dict_utils.py` clean. No `.github/workflows/**` changes.
 
+## Unreleased — added is_not_empty companion to `utils.is_empty`
+
+- Added `is_not_empty(value)` to `utils.py` as the boolean negation companion to `is_empty`, resolving the previously noted `is_empty`/`is_not_empty` export/test coherence gap. It returns `True` when `is_empty` would return `False`, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests (consistent with the module's general value-emptiness semantics: `None` and empty `str`/`list`/`tuple`/`set`/`dict` are empty). Added `TestIsNotEmpty` (5 tests) to `tests/test_utils.py` covering `None`, empty containers, non-empty values, numeric/bool edge cases (`0`/`False` are not considered empty, matching `is_empty`), and consistency with `is_empty`. `utils.py`/`tests/test_utils.py` are not embedded in `scaffold.sh`, so no refresh was needed. Verified: `python -m unittest tests.test_utils` (48 OK; +5 new), `python -m doctest utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check utils.py tests/test_utils.py` clean. No `.github/workflows/**` changes.
+
+
 ## Unreleased — added first_or_default/last_or_default companions to `seq_utils`
 
 - Added `first_or_default(sequence, default=None)` and `last_or_default(sequence, default=None)` to `seq_utils.py` as companions to `first`/`last` and `nth_or_default`, matching the `list_utils.first_or_default`/`last_or_default` style. Both accept any `Sequence`, validate with `_require_sequence`, raise `TypeError` for non-sequences, return the boundary element or the supplied default for an empty sequence, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests.
@@ -69572,6 +69721,12 @@ Next Planned (posted for the following agent):
 - `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
 - `tests/test_dict_utils.py`: added mutation-safety and type-error coverage for `deep_merge`. Verification: `python -m unittest tests.test_dict_utils` (122 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
+## Unreleased — set_utils `is_not_equal` companion
+
+- Added `is_not_equal(a, b)` to `set_utils.py` as the boolean companion to `is_equal`, returning `True` when two iterables do not represent the same set (order/duplicates/type ignored). Typed `Iterable[Any] -> bool` API, `__all__` export, Google-style docstring with ASCII-safe doctests, and `TypeError` validation consistent with module conventions.
+- Added `TestIsNotEqual` to `tests/test_set_utils.py` covering basic cases, order/duplicate-insensitive equality, empty inputs, strings, consistency with `is_equal`, and type errors.
+- Updated `README.md` (`set_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
@@ -70407,7 +70562,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `count_union`, `difference`, `count_difference`, `symmetric_difference`, `count_symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `is_not_equal`, `intersection`, `count_intersection`, `union`, `count_union`, `difference`, `count_difference`, `symmetric_difference`, `count_symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 

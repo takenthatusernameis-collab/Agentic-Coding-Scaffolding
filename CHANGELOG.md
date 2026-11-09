@@ -2597,6 +2597,12 @@ Next Planned (posted for the following agent):
 - `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
 - `tests/test_dict_utils.py`: added mutation-safety and type-error coverage for `deep_merge`. Verification: `python -m unittest tests.test_dict_utils` (122 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
+## Unreleased — set_utils `is_not_equal` companion
+
+- Added `is_not_equal(a, b)` to `set_utils.py` as the boolean companion to `is_equal`, returning `True` when two iterables do not represent the same set (order/duplicates/type ignored). Typed `Iterable[Any] -> bool` API, `__all__` export, Google-style docstring with ASCII-safe doctests, and `TypeError` validation consistent with module conventions.
+- Added `TestIsNotEqual` to `tests/test_set_utils.py` covering basic cases, order/duplicate-insensitive equality, empty inputs, strings, consistency with `is_equal`, and type errors.
+- Updated `README.md` (`set_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).

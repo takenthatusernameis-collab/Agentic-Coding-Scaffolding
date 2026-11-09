@@ -13,6 +13,7 @@ from set_utils import (
     intersection,
     is_disjoint,
     is_equal,
+    is_not_equal,
     is_proper_subset,
     is_proper_superset,
     is_subset,
@@ -142,6 +143,54 @@ class TestIsEqual(unittest.TestCase):
             is_equal(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_equal([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotEqual(unittest.TestCase):
+    def test_is_not_equal_different(self):
+        self.assertTrue(is_not_equal([1, 2], [1, 2, 3]))
+
+    def test_is_not_equal_same_order(self):
+        self.assertFalse(is_not_equal([1, 2, 3], [1, 2, 3]))
+
+    def test_is_not_equal_different_order(self):
+        self.assertFalse(is_not_equal([1, 2, 3], [3, 2, 1]))
+
+    def test_is_not_equal_duplicates_ignored(self):
+        self.assertFalse(is_not_equal([1, 2, 2, 3], [1, 2, 3]))
+
+    def test_is_not_equal_empty(self):
+        self.assertFalse(is_not_equal([], []))
+
+    def test_is_not_equal_one_empty(self):
+        self.assertTrue(is_not_equal([1, 2], []))
+        self.assertTrue(is_not_equal([], [1, 2]))
+
+    def test_is_not_equal_disjoint(self):
+        self.assertTrue(is_not_equal([1, 2], [3, 4]))
+
+    def test_is_not_equal_strings(self):
+        self.assertFalse(is_not_equal("abc", "cba"))
+        self.assertTrue(is_not_equal("abc", "ab"))
+
+    def test_is_not_equal_consistency_with_is_equal(self):
+        cases = [
+            ([1, 2, 3], [1, 2, 3]),
+            ([1, 2, 3], [3, 2, 1]),
+            ([1, 2, 2, 3], [1, 2, 3]),
+            ([1, 2], [1, 2, 3]),
+            ([], []),
+            ([1, 2], []),
+            ([1, 2], [3, 4]),
+            ("abc", "cba"),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_not_equal(a, b), not is_equal(a, b))
+
+    def test_is_not_equal_type_error(self):
+        with self.assertRaises(TypeError):
+            is_not_equal(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_equal([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIntersection(unittest.TestCase):

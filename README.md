@@ -820,7 +820,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `intersection`, `count_intersection`, `union`, `count_union`, `difference`, `count_difference`, `symmetric_difference`, `count_symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `is_not_equal`, `intersection`, `count_intersection`, `union`, `count_union`, `difference`, `count_difference`, `symmetric_difference`, `count_symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 
