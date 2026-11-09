@@ -27,6 +27,7 @@ from seq_utils import (
     has_where,
     head,
     index_of,
+    indices_of,
     interleave,
     is_sorted,
     last,
@@ -699,6 +700,53 @@ class TestLastIndexOf(unittest.TestCase):
             last_index_of(123, 1)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             last_index_of(None, 1)  # type: ignore[arg-type]
+
+
+class TestIndicesOf(unittest.TestCase):
+    def test_indices_of_present(self):
+        self.assertEqual(indices_of([1, 2, 3, 2], 2), [1, 3])
+        self.assertEqual(indices_of("abracadabra", "a"), [0, 3, 5, 7, 10])
+        self.assertEqual(indices_of((10, 20, 30), 10), [0])
+
+    def test_indices_of_absent(self):
+        self.assertEqual(indices_of([1, 2, 3], 4), [])
+        self.assertEqual(indices_of("hello", "z"), [])
+
+    def test_indices_of_empty(self):
+        self.assertEqual(indices_of([], 1), [])
+        self.assertEqual(indices_of("", "a"), [])
+
+    def test_indices_of_all_match(self):
+        self.assertEqual(indices_of([5, 5, 5], 5), [0, 1, 2])
+
+    def test_indices_of_first_last_match(self):
+        self.assertEqual(indices_of([5, 1, 5], 5), [0, 2])
+
+    def test_indices_of_single_occurrence(self):
+        self.assertEqual(indices_of([1, 2, 3], 2), [1])
+
+    def test_indices_of_none_value(self):
+        self.assertEqual(indices_of([None, 1, None, 2], None), [0, 2])
+        self.assertEqual(indices_of([1, 2], None), [])
+
+    def test_indices_of_consistency(self):
+        seq = [1, 2, 2, 3]
+        self.assertEqual(bool(indices_of(seq, 2)), has_occurrences(seq, 2))
+        self.assertEqual(indices_of(seq, 2), [1, 2])
+        self.assertEqual(indices_of(seq, 5), [])
+        first = index_of(seq, 2)
+        last = last_index_of(seq, 2)
+        idxs = indices_of(seq, 2)
+        assert first is not None and last is not None
+        self.assertEqual(idxs[0], first)
+        self.assertEqual(idxs[-1], last)
+        self.assertEqual(len(idxs), count_occurrences(seq, 2))
+
+    def test_indices_of_type_error(self):
+        with self.assertRaises(TypeError):
+            indices_of(123, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            indices_of(None, 1)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

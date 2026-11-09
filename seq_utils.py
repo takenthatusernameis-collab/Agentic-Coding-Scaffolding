@@ -40,6 +40,7 @@ __all__ = [
     "has_where",
     "head",
     "index_of",
+    "indices_of",
     "interleave",
     "is_sorted",
     "last",
@@ -988,6 +989,36 @@ def last_index_of(sequence: Sequence[T], value: T) -> Optional[int]:
         if sequence[index] == value:
             return index
     return None
+
+
+def indices_of(sequence: Sequence[T], value: T) -> List[int]:
+    """Return the indices of all occurrences of ``value`` in ``sequence``.
+
+    Elements are compared with ``==``. Indices are returned in ascending
+    order. An empty sequence (or no matches) yields an empty list.
+
+    Args:
+        sequence: The sequence to inspect.
+        value: The value to locate.
+
+    Returns:
+        A list of 0-based indices of all matching elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence.
+
+    Examples:
+        >>> indices_of([1, 2, 3, 2], 2)
+        [1, 3]
+        >>> indices_of("abracadabra", "a")
+        [0, 3, 5, 7, 10]
+        >>> indices_of([1, 2, 3], 4)
+        []
+        >>> indices_of([], 1)
+        []
+    """
+    _require_sequence(sequence)
+    return [index for index, item in enumerate(sequence) if item == value]
 
 
 def find(sequence: Sequence[T], predicate: Callable[[T], bool]) -> Optional[T]:
