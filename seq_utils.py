@@ -220,6 +220,76 @@ def tail(sequence: Sequence[T], n: int = 1) -> List[T]:
     return list(sequence[-n:])
 
 
+def take(sequence: Sequence[T], n: int) -> List[T]:
+    """Return the first ``n`` elements of ``sequence``.
+
+    If ``n`` is greater than the length of ``sequence``, returns all
+    elements. If ``n`` is 0, returns an empty list.
+
+    Args:
+        sequence: The sequence to take from.
+        n: The number of elements to take.
+
+    Returns:
+        A list containing up to the first ``n`` elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> take([1, 2, 3, 4, 5], 3)
+        [1, 2, 3]
+        >>> take([1, 2], 5)
+        [1, 2]
+        >>> take([1, 2, 3], 0)
+        []
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
+        return []
+    return list(sequence[:n])
+
+
+def drop(sequence: Sequence[T], n: int) -> List[T]:
+    """Return ``sequence`` without its first ``n`` elements.
+
+    If ``n`` is greater than the length of ``sequence``, returns an
+    empty list. If ``n`` is 0, returns a copy of ``sequence``.
+
+    Args:
+        sequence: The sequence to drop from.
+        n: The number of elements to skip.
+
+    Returns:
+        A list containing the elements after the first ``n``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> drop([1, 2, 3, 4, 5], 2)
+        [3, 4, 5]
+        >>> drop([1, 2], 5)
+        []
+        >>> drop([1, 2, 3], 0)
+        [1, 2, 3]
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
+        return list(sequence)
+    return list(sequence[n:])
+
+
 def partition(
     sequence: Sequence[T], predicate: Callable[[T], bool]
 ) -> Tuple[List[T], List[T]]:

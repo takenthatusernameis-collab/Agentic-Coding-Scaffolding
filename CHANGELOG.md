@@ -83,6 +83,13 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 ## [Unreleased]
 
 ### Added
+- Added `take` and `drop` to `seq_utils.py` for sequence slicing by count with
+  typed `Sequence` inputs, `__all__` exports, ASCII-safe doctests, and
+  `TypeError`/`ValueError` validation (including bool-*n* rejection). Added
+  `TestTake` and `TestDrop` coverage in `tests/test_seq_utils.py`, updated
+  `README.md`, and refreshed embedded scaffold copies.
+
+### Added
 - `has_all_values`, `contains_all_values`, `has_any_value`, `contains_any_value` in `dict_utils.py`: value-predicate companions to `has_value`/`contains_value`, mirroring the `has_all_keys`/`has_any_key` key-predicate pair, with typed `dict` validation raising `TypeError`, `__all__` exports, ASCII-safe doctests, and targeted tests in `tests/test_dict_utils.py`.
 - Added `is_invertible(d)` to `dict_utils.py` as the boolean companion to `invert_dict`, returning ``True`` when all values in *d* are distinct (so the dictionary can be inverted one-to-one) and ``False`` otherwise. It mirrors `invert_dict`'s success condition without raising, accepts a typed `dict` argument, raises `TypeError` for non-dicts, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsInvertible` (6 tests) to `tests/test_dict_utils.py` covering unique/duplicate/empty/single cases, consistency with `invert_dict`, and `TypeError` paths; imported `is_invertible` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 

@@ -12,6 +12,8 @@ from seq_utils import (
     count_unique,
     count_where,
     distinct,
+    drop,
+    drop,
     drop_while,
     find,
     find_all,
@@ -39,6 +41,7 @@ from seq_utils import (
     reverse,
     split_at,
     tail,
+    take,
     take_while,
     unique,
 )

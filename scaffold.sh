@@ -66602,6 +66602,13 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 ## [Unreleased]
 
 ### Added
+- Added `take` and `drop` to `seq_utils.py` for sequence slicing by count with
+  typed `Sequence` inputs, `__all__` exports, ASCII-safe doctests, and
+  `TypeError`/`ValueError` validation (including bool-*n* rejection). Added
+  `TestTake` and `TestDrop` coverage in `tests/test_seq_utils.py`, updated
+  `README.md`, and refreshed embedded scaffold copies.
+
+### Added
 - `has_all_values`, `contains_all_values`, `has_any_value`, `contains_any_value` in `dict_utils.py`: value-predicate companions to `has_value`/`contains_value`, mirroring the `has_all_keys`/`has_any_key` key-predicate pair, with typed `dict` validation raising `TypeError`, `__all__` exports, ASCII-safe doctests, and targeted tests in `tests/test_dict_utils.py`.
 - Added `is_invertible(d)` to `dict_utils.py` as the boolean companion to `invert_dict`, returning ``True`` when all values in *d* are distinct (so the dictionary can be inverted one-to-one) and ``False`` otherwise. It mirrors `invert_dict`'s success condition without raising, accepts a typed `dict` argument, raises `TypeError` for non-dicts, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestIsInvertible` (6 tests) to `tests/test_dict_utils.py` covering unique/duplicate/empty/single cases, consistency with `invert_dict`, and `TypeError` paths; imported `is_invertible` to match `__all__`. Updated the `dict_utils` module tree entry and prose section of `README.md`. Synchronized `dict_utils.py`, `tests/test_dict_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
@@ -69212,7 +69219,7 @@ colorsys_utils.py          # Colorsys utilities wrapping the standard library co
 duration_utils.py          # Time duration utilities (parse, format, convert between units)
 temp_utils.py              # Temporary file and directory management utilities
 xml_utils.py               # XML parsing and generation utilities
-seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, count_unique, has_occurrences, has_where, has_all_unique, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition, reverse)
+seq_utils.py               # Sequence utilities (first, last, nth, nth_or_default, head, tail, take, drop, split_at, take_while, drop_while, flatten, interleave, adjacent_pairs, chunk, unique/distinct, is_sorted, count_occurrences, count_where, count_unique, has_occurrences, has_where, has_all_unique, all_where, none_where, find, find_index, find_last, find_last_index, find_all, find_all_indices, index_of, last_index_of, partition, reverse)
 number_utils.py            # Number utility functions (clamp, round_to, round_half_up, is_integer, format_number, percentage, lerp, map_range, remap, sign, is_even, is_odd, is_negative, is_positive, is_zero, is_non_negative, is_non_positive, is_between, is_close, in_range, is_finite, is_infinite, is_nan, safe_divide, is_perfect_cube, is_perfect_square, is_power_of, is_power_of_two, is_powerful_number, is_prime, is_mersenne_number, is_mersenne_prime, is_perfect_power, is_palindromic_number, gcd, lcm, ceil_div, is_divisible_by, is_multiple_of, divides,     is_coprime, aliquot_sum, digit_sum, digit_count, digit_product, digital_root, is_triangular_number, is_pentagonal_number, is_hexagonal_number, is_perfect_number, is_automorphic_number, is_happy_number, is_armstrong_number, is_harshad_number, is_kaprekar_number, is_neon_number, is_strong_number, is_fibonacci_number, is_lucas_number, is_pronic_number, is_abundant_number, is_deficient_number, is_disarium_number, is_spy_number, is_ugly_number, is_squarefree_number)
 os_utils.py                # Operating system utilities (platform info, CPU count, disk usage, user info, executable lookup)
 sort_utils.py              # Sorting utility functions (is_sorted, bubble_sort, insertion_sort, merge_sort, selection_sort, nth_largest, top_n)
@@ -70147,7 +70154,7 @@ The project includes XML parsing and generation utilities in `xml_utils.py` for 
 
 ## Sequence Utilities Module
 
-The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
+The project includes sequence utilities in `seq_utils.py` for common sequence operations: `first`, `last`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `take` and `drop` return or skip the first `n` elements; `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
 
 ## Number Utilities Module
 
@@ -109398,6 +109405,76 @@ def tail(sequence: Sequence[T], n: int = 1) -> List[T]:
     return list(sequence[-n:])
 
 
+def take(sequence: Sequence[T], n: int) -> List[T]:
+    """Return the first ``n`` elements of ``sequence``.
+
+    If ``n`` is greater than the length of ``sequence``, returns all
+    elements. If ``n`` is 0, returns an empty list.
+
+    Args:
+        sequence: The sequence to take from.
+        n: The number of elements to take.
+
+    Returns:
+        A list containing up to the first ``n`` elements.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> take([1, 2, 3, 4, 5], 3)
+        [1, 2, 3]
+        >>> take([1, 2], 5)
+        [1, 2]
+        >>> take([1, 2, 3], 0)
+        []
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
+        return []
+    return list(sequence[:n])
+
+
+def drop(sequence: Sequence[T], n: int) -> List[T]:
+    """Return ``sequence`` without its first ``n`` elements.
+
+    If ``n`` is greater than the length of ``sequence``, returns an
+    empty list. If ``n`` is 0, returns a copy of ``sequence``.
+
+    Args:
+        sequence: The sequence to drop from.
+        n: The number of elements to skip.
+
+    Returns:
+        A list containing the elements after the first ``n``.
+
+    Raises:
+        TypeError: If ``sequence`` is not a sequence or ``n`` is not an int.
+        ValueError: If ``n`` is negative.
+
+    Examples:
+        >>> drop([1, 2, 3, 4, 5], 2)
+        [3, 4, 5]
+        >>> drop([1, 2], 5)
+        []
+        >>> drop([1, 2, 3], 0)
+        [1, 2, 3]
+    """
+    _require_sequence(sequence)
+    if not isinstance(n, int) or isinstance(n, bool):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
+        return list(sequence)
+    return list(sequence[n:])
+
+
 def partition(
     sequence: Sequence[T], predicate: Callable[[T], bool]
 ) -> Tuple[List[T], List[T]]:
@@ -110421,6 +110498,8 @@ from seq_utils import (
     count_unique,
     count_where,
     distinct,
+    drop,
+    drop,
     drop_while,
     find,
     find_all,
@@ -110448,6 +110527,7 @@ from seq_utils import (
     reverse,
     split_at,
     tail,
+    take,
     take_while,
     unique,
 )
