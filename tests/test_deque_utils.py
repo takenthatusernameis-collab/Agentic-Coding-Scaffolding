@@ -14,6 +14,8 @@ from deque_utils import (
     has_items,
     index_in_deque,
     is_empty,
+    peek_left,
+    peek_right,
     pop_left,
     pop_right,
     remove_from_deque,
@@ -364,3 +366,57 @@ class TestHasItems(unittest.TestCase):
         d = create_deque()
         self.assertEqual(has_items(d), size(d) > 0)
         self.assertEqual(has_items(d), not is_empty(d))
+
+
+class TestPeekLeft(unittest.TestCase):
+    def test_non_empty(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(peek_left(d), 1)
+
+    def test_single_element(self):
+        d = create_deque([42])
+        self.assertEqual(peek_left(d), 42)
+
+    def test_string_elements(self):
+        d = create_deque(["a", "b", "c"])
+        self.assertEqual(peek_left(d), "a")
+
+    def test_empty_raises(self):
+        with self.assertRaises(IndexError):
+            peek_left(create_deque())
+
+    def test_does_not_remove(self):
+        d = create_deque([1, 2, 3])
+        peek_left(d)
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_consistency_with_indexing(self):
+        d = create_deque([5, 6, 7])
+        self.assertEqual(peek_left(d), d[0])
+
+
+class TestPeekRight(unittest.TestCase):
+    def test_non_empty(self):
+        d = create_deque([1, 2, 3])
+        self.assertEqual(peek_right(d), 3)
+
+    def test_single_element(self):
+        d = create_deque([42])
+        self.assertEqual(peek_right(d), 42)
+
+    def test_string_elements(self):
+        d = create_deque(["a", "b", "c"])
+        self.assertEqual(peek_right(d), "c")
+
+    def test_empty_raises(self):
+        with self.assertRaises(IndexError):
+            peek_right(create_deque())
+
+    def test_does_not_remove(self):
+        d = create_deque([1, 2, 3])
+        peek_right(d)
+        self.assertEqual(deque_to_list(d), [1, 2, 3])
+
+    def test_consistency_with_indexing(self):
+        d = create_deque([5, 6, 7])
+        self.assertEqual(peek_right(d), d[-1])
