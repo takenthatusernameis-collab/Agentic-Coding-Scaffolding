@@ -40,13 +40,23 @@ __all__ = [
 def deep_merge(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> Dict[Any, Any]:
     """Recursively merge two dictionaries.
 
+    Unlike :func:`merge`, this recurses into nested dictionaries when both
+    sides have a ``dict`` value for the same key.
+
     Args:
         d1: Base dictionary.
         d2: Dictionary to merge into d1.
 
     Returns:
         Merged dictionary.
+
+    Raises:
+        TypeError: If either argument is not a dict.
     """
+    if not isinstance(d1, dict):
+        raise TypeError("d1 must be a dict")
+    if not isinstance(d2, dict):
+        raise TypeError("d2 must be a dict")
     result = d1.copy()
     for key, value in d2.items():
         if key in result and isinstance(result[key], dict) and isinstance(value, dict):

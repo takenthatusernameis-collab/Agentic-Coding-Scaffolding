@@ -55,6 +55,23 @@ class TestDeepMerge(unittest.TestCase):
         self.assertEqual(result["a"]["b"], 3)
         self.assertEqual(result["a"]["c"], 2)
 
+    def test_deep_merge_does_not_mutate_inputs(self) -> None:
+        d1 = {"a": {"b": 1}}
+        d2 = {"a": {"c": 2}}
+        result = deep_merge(d1, d2)
+        self.assertEqual(d1, {"a": {"b": 1}})
+        self.assertEqual(d2, {"a": {"c": 2}})
+        result["a"]["b"] = 99
+        self.assertEqual(d1, {"a": {"b": 1}})
+
+    def test_deep_merge_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            deep_merge("x", {"a": 1})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deep_merge({"a": 1}, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deep_merge(None, None)  # type: ignore[arg-type]
+
 
 class TestMerge(unittest.TestCase):
     def test_merge_basic(self) -> None:
