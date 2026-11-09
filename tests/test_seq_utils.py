@@ -978,6 +978,47 @@ class TestFindAll(unittest.TestCase):
         self.assertEqual(find_all_indices([], lambda x: True), [])
 
 
+class TestFindAllIndices(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(find_all_indices([1, 2, 3, 4], lambda x: x > 2), [2, 3])
+        self.assertEqual(find_all_indices("abracadabra", lambda c: c == "a"), [0, 3, 5, 7, 10])
+
+    def test_no_matches(self):
+        self.assertEqual(find_all_indices([1, 2, 3], lambda x: x > 5), [])
+        self.assertEqual(find_all_indices("hello", lambda c: c == "z"), [])
+
+    def test_empty_sequence(self):
+        self.assertEqual(find_all_indices([], lambda x: True), [])
+        self.assertEqual(find_all_indices("", lambda c: True), [])
+        self.assertEqual(find_all_indices((), lambda x: True), [])
+
+    def test_all_match(self):
+        self.assertEqual(find_all_indices([5, 5, 5], lambda x: x == 5), [0, 1, 2])
+        self.assertEqual(find_all_indices("aaa", lambda c: c == "a"), [0, 1, 2])
+
+    def test_ascending_order(self):
+        self.assertEqual(find_all_indices([3, 1, 4, 1, 5], lambda x: x == 1), [1, 3])
+
+    def test_single_occurrence(self):
+        self.assertEqual(find_all_indices([1, 2, 3], lambda x: x == 2), [1])
+
+    def test_consistency_with_find_all(self):
+        seq = [1, 2, 3, 2, 4]
+        indices = find_all_indices(seq, lambda x: x % 2 == 0)
+        self.assertEqual([seq[i] for i in indices], find_all(seq, lambda x: x % 2 == 0))
+        self.assertEqual(indices, [i for i, x in enumerate(seq) if x % 2 == 0])
+
+    def test_type_error_non_sequence(self):
+        with self.assertRaises(TypeError):
+            find_all_indices(123, lambda x: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            find_all_indices(None, lambda x: True)
+
+    def test_type_error_non_callable_predicate(self):
+        with self.assertRaises(TypeError):
+            find_all_indices([1, 2, 3], 42)  # type: ignore[arg-type]
+
+
 class TestPartition(unittest.TestCase):
     def test_partition_even_odd(self):
         matching, non_matching = partition([1, 2, 3, 4], lambda x: x % 2 == 0)
