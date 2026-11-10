@@ -236,7 +236,7 @@ def is_dataclass(value: object) -> bool:
     return dataclasses.is_dataclass(value)
 
 
-def is_instance(value: object, cls: type) -> bool:
+def is_instance(value: object, cls: type | tuple[type, ...]) -> bool:
     """Return True if value is an instance of cls."""
     return isinstance(value, cls)
 

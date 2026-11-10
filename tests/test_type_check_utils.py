@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import unittest
-from typing import Literal, Protocol, TypedDict, runtime_checkable
+from typing import AsyncGenerator, Generator, Literal, Protocol, TypedDict, runtime_checkable
 
 import type_check_utils
 
@@ -610,7 +610,7 @@ class TestUntestedPredicates(unittest.TestCase):
         self.assertFalse(type_check_utils.is_type(None))
 
     def test_is_generator(self) -> None:
-        def gen() -> object:
+        def gen() -> Generator[int, None, None]:
             yield 1
             yield 2
 
@@ -637,14 +637,11 @@ class TestUntestedPredicates(unittest.TestCase):
         self.assertFalse(type_check_utils.is_coroutine(None))
 
     def test_is_async_generator(self) -> None:
-        async def agen() -> object:
+        async def agen() -> AsyncGenerator[int, None]:
             yield 1
 
         ag = agen()
-        try:
-            self.assertTrue(type_check_utils.is_async_generator(ag))
-        finally:
-            ag.aclose()
+        self.assertTrue(type_check_utils.is_async_generator(ag))
         self.assertFalse(type_check_utils.is_async_generator(42))
         self.assertFalse(type_check_utils.is_async_generator("hello"))
         self.assertFalse(type_check_utils.is_async_generator(None))

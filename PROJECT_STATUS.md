@@ -1,5 +1,25 @@
 # Project Status
 
+## Latest Session (2026-11-10 14:26Z) — bootstrap; fixed mypy regression in test_type_check_utils, foundation solid, no new gap found
+
+The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `66ce4d7`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted baseline: `python -m unittest tests.test_type_check_utils tests.test_public_api` — **85 OK**.
+
+Found a real regression: `make typecheck` was failing with 4 errors in `tests/test_type_check_utils.py` (added at HEAD `66ce4d7`): `is_instance` rejected `tuple[type, ...]` arguments, and `gen()`/`agen()` return annotations plus an unawaited `AsyncGenerator.aclose()` in a sync test were untyped. Fixed by widening `is_instance` to `cls: type | tuple[type, ...]` (matches `isinstance`/`ensure_type`), annotating `gen() -> Generator[int, None, None]` and `agen() -> AsyncGenerator[int, None]`, and dropping the unawaitable `aclose()` from the sync `test_is_async_generator`. Ran `make refresh-scaffold` to re-embed `type_check_utils.py` and `tests/test_type_check_utils.py` in `scaffold.sh`.
+
+Re-ran the alias-aware AST-based exported-but-untested scan across the unaudited candidates; this duplicates work already completed in sessions `05:41`/`05:52`/`06:49`/`13:28` with no new gap, and the only new module (`type_check_utils`) is now fully tested (`TestUntestedPredicates`). No genuine, hermetic, convention-consistent gap remains outside the audited candidates, so no new public API or test was added (avoids a no-op/duplicate commit).
+
+Completed in this session:
+- Verified repo health: `git status` clean, refresh scaffold in sync (`python tools/refresh_scaffold.py --check` OK), full suite `10138 tests OK`, `tests.test_public_api` OK, `python -m ruff check .` clean, `python -m mypy .` clean (555 source files).
+- Fixed real regression: `make typecheck` was failing on 4 errors in `tests/test_type_check_utils.py`; now clean.
+- Refreshed `type_check_utils.py` and `tests/test_type_check_utils.py` embedded copies in `scaffold.sh`; sync check OK.
+- Bounded gap audit: no new exported-but-untested gap found (scan exhausted across audited candidates; `test_type_check_utils` complete).
+- No `.github/workflows/**` changes. No duplicate board task or timestamp-only no-op commit; durable handover recorded here since `board_post` to `main` is refused.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). The exported-but-untested gap audit is complete across the audited candidates; do not re-run it as a no-op unless a new module is added.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 13:28Z) — bootstrap; fixed strings.has_consonants missing from __all__
 
 The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `3de3fc9`, but `python tools/refresh_scaffold.py --check` reported `tests/test_strings.py` stale (1 embedded copy out of sync — the source file itself was unchanged; only `scaffold.sh`'s embedded copy drifted by 1 line). Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync. Full suite `python -m unittest discover tests/` — baseline had **1 failure**: `test_public_api.TestPublicAPI.test_every_public_attribute_is_exported` asserted `['strings.has_consonants (function) is public but missing from __all__']`. `tests.test_public_api` OK otherwise; `python -m ruff check .` — All checks passed; `python -m mypy .` — clean (555 source files).
