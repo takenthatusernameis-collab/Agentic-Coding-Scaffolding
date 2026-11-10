@@ -123,7 +123,7 @@ def test_even_chunks_one():
 
 
 def test_even_chunks_type_error():
-    import pytest
+    import pytest  # type: ignore[import-not-found]
 
     with pytest.raises(TypeError):
         even_chunks([1, 2], True)

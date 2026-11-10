@@ -914,7 +914,7 @@ class TestMapRange(unittest.TestCase):
     def test_type_error_all_args(self) -> None:
         for i in range(5):
             args = [5, 0, 10, 0, 100]
-            args[i] = "x"
+            args[i] = "x"  # type: ignore[call-overload]
             with self.assertRaises(TypeError):
                 map_range(*args)  # type: ignore[arg-type]
 

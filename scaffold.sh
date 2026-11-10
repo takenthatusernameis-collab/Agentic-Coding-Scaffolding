@@ -22301,7 +22301,7 @@ class TestQuartile(unittest.TestCase):
     def test_rejects_non_numeric(self) -> None:
 
         with self.assertRaises(TypeError):
-            quartile([1, 2, "a"], 1)  # type: ignore[type-var]
+            quartile([1, 2, "a"], 1)  # type: ignore[list-item]
 
     def test_rejects_bool(self) -> None:
 
@@ -22889,7 +22889,7 @@ class TestFirstQuartile(unittest.TestCase):
 
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
-            first_quartile([1, 2, "a"])  # type: ignore[type-var]
+            first_quartile([1, 2, "a"])  # type: ignore[list-item]
 
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
@@ -22922,7 +22922,7 @@ class TestThirdQuartile(unittest.TestCase):
 
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
-            third_quartile([1, 2, "a"])  # type: ignore[type-var]
+            third_quartile([1, 2, "a"])  # type: ignore[list-item]
 
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
@@ -29597,31 +29597,31 @@ class TestPathUtilsBoundary(unittest.TestCase):
 
     def test_join_path_type_errors(self) -> None:
         with self.assertRaises(TypeError):
-            join_path(123)
+            join_path(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            join_path("a", None)
+            join_path("a", None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            join_path(Path("a"), 5)
+            join_path(Path("a"), 5)  # type: ignore[arg-type]
 
     def test_normalize_path_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            normalize_path(123)
+            normalize_path(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            normalize_path(None)
+            normalize_path(None)  # type: ignore[arg-type]
 
     def test_get_absolute_path_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            get_absolute_path(None)
+            get_absolute_path(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_absolute_path(123)
+            get_absolute_path(123)  # type: ignore[arg-type]
 
     def test_get_relative_path_type_errors(self) -> None:
         with self.assertRaises(TypeError):
-            get_relative_path(None, "/usr")
+            get_relative_path(None, "/usr")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_relative_path("/usr/local", None)
+            get_relative_path("/usr/local", None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_relative_path("/usr/local/bin", 5)
+            get_relative_path("/usr/local/bin", 5)  # type: ignore[arg-type]
 
     def test_get_relative_path_not_relative(self) -> None:
         with self.assertRaises(ValueError):
@@ -29629,37 +29629,37 @@ class TestPathUtilsBoundary(unittest.TestCase):
 
     def test_get_parent_dir_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            get_parent_dir(None)
+            get_parent_dir(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_parent_dir(123)
+            get_parent_dir(123)  # type: ignore[arg-type]
 
     def test_get_file_name_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            get_file_name(None)
+            get_file_name(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_file_name(123)
+            get_file_name(123)  # type: ignore[arg-type]
 
     def test_get_file_stem_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            get_file_stem(None)
+            get_file_stem(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_file_stem(123)
+            get_file_stem(123)  # type: ignore[arg-type]
 
     def test_get_file_extension_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            get_file_extension(None)
+            get_file_extension(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_file_extension(123)
+            get_file_extension(123)  # type: ignore[arg-type]
 
     def test_change_extension_type_errors(self) -> None:
         with self.assertRaises(TypeError):
-            change_extension(None, ".txt")
+            change_extension(None, ".txt")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            change_extension("a.txt", None)
+            change_extension("a.txt", None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            change_extension("a.txt", 5)
+            change_extension("a.txt", 5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            change_extension(123, ".txt")
+            change_extension(123, ".txt")  # type: ignore[arg-type]
 
     def test_change_extension_empty_extension(self) -> None:
         with self.assertRaises(ValueError):
@@ -29667,23 +29667,23 @@ class TestPathUtilsBoundary(unittest.TestCase):
 
     def test_is_absolute_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            is_absolute(None)
+            is_absolute(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            is_absolute(123)
+            is_absolute(123)  # type: ignore[arg-type]
 
     def test_get_path_components_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            get_path_components(None)
+            get_path_components(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_path_components(123)
+            get_path_components(123)  # type: ignore[arg-type]
 
     def test_get_common_path_type_errors(self) -> None:
         with self.assertRaises(TypeError):
-            get_common_path(None, "/a/b")
+            get_common_path(None, "/a/b")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_common_path("/a/b", None)
+            get_common_path("/a/b", None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            get_common_path("/a/b", 5)
+            get_common_path("/a/b", 5)  # type: ignore[arg-type]
 
     def test_get_common_path_requires_two_paths(self) -> None:
         with self.assertRaises(ValueError):
@@ -29691,13 +29691,13 @@ class TestPathUtilsBoundary(unittest.TestCase):
 
     def test_ensure_extension_type_errors(self) -> None:
         with self.assertRaises(TypeError):
-            ensure_extension(None, ".txt")
+            ensure_extension(None, ".txt")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            ensure_extension("a.txt", None)
+            ensure_extension("a.txt", None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            ensure_extension("a.txt", 5)
+            ensure_extension("a.txt", 5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            ensure_extension(123, ".txt")
+            ensure_extension(123, ".txt")  # type: ignore[arg-type]
 
     def test_ensure_extension_empty_extension(self) -> None:
         with self.assertRaises(ValueError):
@@ -30848,11 +30848,11 @@ class TestAddWeeks(unittest.TestCase):
 
     def test_add_rejects_non_int_weeks(self) -> None:
         with self.assertRaises(TypeError):
-            add_weeks("2024-01-01", 1.5)
+            add_weeks("2024-01-01", 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             add_weeks("2024-01-01", True)
         with self.assertRaises(TypeError):
-            add_weeks("2024-01-01", "1")
+            add_weeks("2024-01-01", "1")  # type: ignore[arg-type]
 
 
 class TestAddHours(unittest.TestCase):
@@ -30883,11 +30883,11 @@ class TestAddHours(unittest.TestCase):
 
     def test_add_rejects_non_int_hours(self) -> None:
         with self.assertRaises(TypeError):
-            add_hours("2024-01-01", 1.5)
+            add_hours("2024-01-01", 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             add_hours("2024-01-01", True)
         with self.assertRaises(TypeError):
-            add_hours("2024-01-01", "1")
+            add_hours("2024-01-01", "1")  # type: ignore[arg-type]
 
 
 class TestAddMinutes(unittest.TestCase):
@@ -30918,11 +30918,11 @@ class TestAddMinutes(unittest.TestCase):
 
     def test_add_rejects_non_int_minutes(self) -> None:
         with self.assertRaises(TypeError):
-            add_minutes("2024-01-01", 1.5)
+            add_minutes("2024-01-01", 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             add_minutes("2024-01-01", True)
         with self.assertRaises(TypeError):
-            add_minutes("2024-01-01", "1")
+            add_minutes("2024-01-01", "1")  # type: ignore[arg-type]
 
 
 class TestGetWeekdayName(unittest.TestCase):
@@ -35732,7 +35732,7 @@ class TestFlatten(unittest.TestCase):
 
     def test_flatten_non_list_element_raises(self) -> None:
         with self.assertRaises(TypeError):
-            flatten([[1, 2], 3])  # type: ignore[list-item]
+            flatten([[1, 2], 3])  # type: ignore[arg-type]
 
 
 class TestIsEmpty(unittest.TestCase):
@@ -35797,7 +35797,7 @@ class TestCountDuplicates(unittest.TestCase):
 
     def test_count_duplicates_consistency_with_has_duplicates(self) -> None:
         for lst in ([], [1], [1, 2], [1, 1], [1, 2, 2, 3], ["a", "b", "a"]):
-            self.assertEqual(count_duplicates(lst) > 0, has_duplicates(lst))
+            self.assertEqual(count_duplicates(lst) > 0, has_duplicates(lst))  # type: ignore[misc]
 
     def test_count_duplicates_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
@@ -35902,7 +35902,7 @@ class TestIndexOf(unittest.TestCase):
     def test_index_of_consistency_with_find_index(self) -> None:
         lst = [1, 2, 3, 2]
         for v in (1, 2, 3, 9):
-            self.assertEqual(index_of(lst, v), find_index(lst, lambda x, val=v: x == val))
+            self.assertEqual(index_of(lst, v), find_index(lst, lambda x, val=v: x == val))  # type: ignore[misc]
 
 
 class TestLastIndexOf(unittest.TestCase):
@@ -35934,7 +35934,7 @@ class TestFindLast(unittest.TestCase):
         self.assertEqual(find_last([1, 2, 3, 4], lambda x: x % 2 == 0), 4)
 
     def test_find_last_no_match(self) -> None:
-        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 10))
+        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 10))  # type: ignore[operator]
 
     def test_find_last_empty(self) -> None:
         self.assertIsNone(find_last([], lambda x: True))
@@ -36079,7 +36079,7 @@ class TestCountUnique(unittest.TestCase):
 
     def test_consistency_with_has_all_unique(self) -> None:
         for lst in ([1, 2, 3], [1, 2, 2, 3], [], ["a", "b", "a"]):
-            self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))
+            self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))  # type: ignore[misc]
 
     def test_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
@@ -93880,7 +93880,7 @@ class TestMapRange(unittest.TestCase):
     def test_type_error_all_args(self) -> None:
         for i in range(5):
             args = [5, 0, 10, 0, 100]
-            args[i] = "x"
+            args[i] = "x"  # type: ignore[call-overload]
             with self.assertRaises(TypeError):
                 map_range(*args)  # type: ignore[arg-type]
 
@@ -121780,11 +121780,11 @@ class TestTarfileUtilsBoundary(unittest.TestCase):
         with self.assertRaises(TypeError):
             tarfile_create(self.archive, "x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            tarfile_create(self.archive, [123])  # type: ignore[arg-type]
+            tarfile_create(self.archive, [123])  # type: ignore[list-item]
         with self.assertRaises(TypeError):
             tarfile_create(self.archive, [self.src], arcnames="x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            tarfile_create(self.archive, [self.src], arcnames=[123])  # type: ignore[arg-type]
+            tarfile_create(self.archive, [self.src], arcnames=[123])  # type: ignore[list-item]
         with self.assertRaises(TypeError):
             tarfile_create(self.archive, [self.src], base_dir=123)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
@@ -150233,7 +150233,7 @@ def test_even_chunks_one():
 
 
 def test_even_chunks_type_error():
-    import pytest
+    import pytest  # type: ignore[import-not-found]
 
     with pytest.raises(TypeError):
         even_chunks([1, 2], True)
@@ -152548,7 +152548,7 @@ class TestSlugifyMany:
         assert slugify_many(["Hello World", "Foo Bar"]) == ["hello-world", "foo-bar"]
 
     def test_type_error(self):
-        import pytest
+        import pytest  # type: ignore[import-not-found]
 
         from slugify_utils import slugify_many
 

@@ -154,11 +154,11 @@ class TestAddWeeks(unittest.TestCase):
 
     def test_add_rejects_non_int_weeks(self) -> None:
         with self.assertRaises(TypeError):
-            add_weeks("2024-01-01", 1.5)
+            add_weeks("2024-01-01", 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             add_weeks("2024-01-01", True)
         with self.assertRaises(TypeError):
-            add_weeks("2024-01-01", "1")
+            add_weeks("2024-01-01", "1")  # type: ignore[arg-type]
 
 
 class TestAddHours(unittest.TestCase):
@@ -189,11 +189,11 @@ class TestAddHours(unittest.TestCase):
 
     def test_add_rejects_non_int_hours(self) -> None:
         with self.assertRaises(TypeError):
-            add_hours("2024-01-01", 1.5)
+            add_hours("2024-01-01", 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             add_hours("2024-01-01", True)
         with self.assertRaises(TypeError):
-            add_hours("2024-01-01", "1")
+            add_hours("2024-01-01", "1")  # type: ignore[arg-type]
 
 
 class TestAddMinutes(unittest.TestCase):
@@ -224,11 +224,11 @@ class TestAddMinutes(unittest.TestCase):
 
     def test_add_rejects_non_int_minutes(self) -> None:
         with self.assertRaises(TypeError):
-            add_minutes("2024-01-01", 1.5)
+            add_minutes("2024-01-01", 1.5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             add_minutes("2024-01-01", True)
         with self.assertRaises(TypeError):
-            add_minutes("2024-01-01", "1")
+            add_minutes("2024-01-01", "1")  # type: ignore[arg-type]
 
 
 class TestGetWeekdayName(unittest.TestCase):

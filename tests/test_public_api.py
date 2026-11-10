@@ -53,6 +53,8 @@ def _iter_wrapper_modules():
 class TestPublicAPI(unittest.TestCase):
     """Every public attribute of a top-level module must appear in ``__all__``."""
 
+    modules: list[str]
+
     @classmethod
     def setUpClass(cls) -> None:
         cls.modules = _iter_wrapper_modules()

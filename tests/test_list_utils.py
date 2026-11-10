@@ -307,7 +307,7 @@ class TestFlatten(unittest.TestCase):
 
     def test_flatten_non_list_element_raises(self) -> None:
         with self.assertRaises(TypeError):
-            flatten([[1, 2], 3])  # type: ignore[list-item]
+            flatten([[1, 2], 3])  # type: ignore[arg-type]
 
 
 class TestIsEmpty(unittest.TestCase):
@@ -372,7 +372,7 @@ class TestCountDuplicates(unittest.TestCase):
 
     def test_count_duplicates_consistency_with_has_duplicates(self) -> None:
         for lst in ([], [1], [1, 2], [1, 1], [1, 2, 2, 3], ["a", "b", "a"]):
-            self.assertEqual(count_duplicates(lst) > 0, has_duplicates(lst))
+            self.assertEqual(count_duplicates(lst) > 0, has_duplicates(lst))  # type: ignore[misc]
 
     def test_count_duplicates_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
@@ -477,7 +477,7 @@ class TestIndexOf(unittest.TestCase):
     def test_index_of_consistency_with_find_index(self) -> None:
         lst = [1, 2, 3, 2]
         for v in (1, 2, 3, 9):
-            self.assertEqual(index_of(lst, v), find_index(lst, lambda x, val=v: x == val))
+            self.assertEqual(index_of(lst, v), find_index(lst, lambda x, val=v: x == val))  # type: ignore[misc]
 
 
 class TestLastIndexOf(unittest.TestCase):
@@ -509,7 +509,7 @@ class TestFindLast(unittest.TestCase):
         self.assertEqual(find_last([1, 2, 3, 4], lambda x: x % 2 == 0), 4)
 
     def test_find_last_no_match(self) -> None:
-        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 10))
+        self.assertIsNone(find_last([1, 2, 3], lambda x: x > 10))  # type: ignore[operator]
 
     def test_find_last_empty(self) -> None:
         self.assertIsNone(find_last([], lambda x: True))
@@ -654,7 +654,7 @@ class TestCountUnique(unittest.TestCase):
 
     def test_consistency_with_has_all_unique(self) -> None:
         for lst in ([1, 2, 3], [1, 2, 2, 3], [], ["a", "b", "a"]):
-            self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))
+            self.assertEqual(has_all_unique(lst), count_unique(lst) == len(lst))  # type: ignore[misc]
 
     def test_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):

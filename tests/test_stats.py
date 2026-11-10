@@ -1339,7 +1339,7 @@ class TestQuartile(unittest.TestCase):
     def test_rejects_non_numeric(self) -> None:
 
         with self.assertRaises(TypeError):
-            quartile([1, 2, "a"], 1)  # type: ignore[type-var]
+            quartile([1, 2, "a"], 1)  # type: ignore[list-item]
 
     def test_rejects_bool(self) -> None:
 
@@ -1927,7 +1927,7 @@ class TestFirstQuartile(unittest.TestCase):
 
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
-            first_quartile([1, 2, "a"])  # type: ignore[type-var]
+            first_quartile([1, 2, "a"])  # type: ignore[list-item]
 
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):
@@ -1960,7 +1960,7 @@ class TestThirdQuartile(unittest.TestCase):
 
     def test_rejects_non_numeric(self) -> None:
         with self.assertRaises(TypeError):
-            third_quartile([1, 2, "a"])  # type: ignore[type-var]
+            third_quartile([1, 2, "a"])  # type: ignore[list-item]
 
     def test_rejects_bool(self) -> None:
         with self.assertRaises(TypeError):

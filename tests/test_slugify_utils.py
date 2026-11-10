@@ -81,7 +81,7 @@ class TestSlugifyMany:
         assert slugify_many(["Hello World", "Foo Bar"]) == ["hello-world", "foo-bar"]
 
     def test_type_error(self):
-        import pytest
+        import pytest  # type: ignore[import-not-found]
 
         from slugify_utils import slugify_many
 

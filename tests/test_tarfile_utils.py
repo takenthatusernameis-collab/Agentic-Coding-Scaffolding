@@ -135,11 +135,11 @@ class TestTarfileUtilsBoundary(unittest.TestCase):
         with self.assertRaises(TypeError):
             tarfile_create(self.archive, "x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            tarfile_create(self.archive, [123])  # type: ignore[arg-type]
+            tarfile_create(self.archive, [123])  # type: ignore[list-item]
         with self.assertRaises(TypeError):
             tarfile_create(self.archive, [self.src], arcnames="x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
-            tarfile_create(self.archive, [self.src], arcnames=[123])  # type: ignore[arg-type]
+            tarfile_create(self.archive, [self.src], arcnames=[123])  # type: ignore[list-item]
         with self.assertRaises(TypeError):
             tarfile_create(self.archive, [self.src], base_dir=123)  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
