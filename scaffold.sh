@@ -37518,15 +37518,18 @@ def retry(
         Decorated function that retries on specified exceptions.
 
     Examples:
-        >>> @retry(max_attempts=3, delay=0.1, backoff=2.0)
+        >>> attempts = []
+        >>> @retry(max_attempts=3, delay=0.01, backoff=2.0)
         ... def unreliable_function():
-        ...     import random
-        ...
-        ...     if random.random() < 0.7:
+        ...     attempts.append(1)
+        ...     if len(attempts) < 2:
         ...         raise ValueError("Random failure")
         ...     return "success"
-        >>> # May succeed after retries
         >>> result = unreliable_function()
+        >>> result
+        'success'
+        >>> len(attempts)
+        2
     """
 
     def decorator(func: Callable) -> Callable:
@@ -37570,15 +37573,19 @@ def retry_with_backoff(
         Decorated function that retries with exponential backoff.
 
     Examples:
-        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.1, backoff_factor=2.0)
+        >>> attempts = []
+        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.01,
+        ...                     backoff_factor=2.0, jitter=False)
         ... def unreliable_function():
-        ...     import random
-        ...
-        ...     if random.random() < 0.7:
+        ...     attempts.append(1)
+        ...     if len(attempts) < 2:
         ...         raise ValueError("Random failure")
         ...     return "success"
-        >>> # May succeed after retries with increasing delays
         >>> result = unreliable_function()
+        >>> result
+        'success'
+        >>> len(attempts)
+        2
     """
 
     def decorator(func: Callable) -> Callable:
@@ -37625,20 +37632,20 @@ def retry_count(
         is the number of retries that occurred (0 if no retries needed).
 
     Examples:
-        >>> @retry_count(max_attempts=3, delay=0.1)
+        >>> attempts = []
+        >>> @retry_count(max_attempts=3, delay=0.01)
         ... def unreliable_function():
-        ...     import random
-        ...
-        ...     if random.random() < 0.8:
+        ...     attempts.append(1)
+        ...     if len(attempts) < 2:
         ...         raise ValueError("Random failure")
         ...     return "success"
-        >>> result, count = unreliable_function()  # count is number of retries
-        >>> isinstance(result, str)
-        True
-        >>> isinstance(count, int)
-        True
-        >>> count >= 0
-        True
+        >>> result, count = unreliable_function()
+        >>> result
+        'success'
+        >>> count
+        1
+        >>> len(attempts)
+        2
     """
 
     def decorator(func: Callable) -> Callable:
@@ -39759,9 +39766,9 @@ def median_even(numbers: List[T | float]) -> Tuple[float, float]:
 
     Examples:
         >>> median_even([1, 2, 3, 4])
-        (2, 3)
+        (2.0, 3.0)
         >>> median_even([1, 2, 3])
-        (2, 2)
+        (2.0, 2.0)
     """
     if not numbers:
         raise ValueError("Cannot calculate median_even of empty list")
@@ -46960,7 +46967,7 @@ def adjust_brightness(hex_color: str, factor: float) -> str:
 
     Examples:
         >>> adjust_brightness("#ff5733", 0.5)
-        '#7f2b19'
+        '#802c1a'
         >>> adjust_brightness("#000000", 2.0)
         '#000000'
     """
@@ -47000,7 +47007,7 @@ def blend_colors(color1: _Color, color2: _Color, weight: float = 0.5) -> str:
 
     Examples:
         >>> blend_colors("#000000", "#ffffff", 0.5)
-        '#7f7f7f'
+        '#808080'
         >>> blend_colors("#ff0000", "#0000ff", 0.0)
         '#ff0000'
     """
@@ -52733,7 +52740,7 @@ def format_good_luck(name: str, wish: str = "Good luck") -> str:
 
     Examples:
         >>> format_good_luck("Alice")
-        "Good luck, Alice!"
+        'Good luck, Alice!'
         >>> format_good_luck("Bob", "Best of luck")
         'Best of luck, Bob!'
     """
@@ -55196,8 +55203,8 @@ def compile_pattern(pattern: str, flags: int = 0) -> Pattern[str]:
         ValueError: If the pattern is not a valid regular expression.
 
     Examples:
-        >>> compile_pattern(r"\\d+")
-        re.compile(r'\\d+')
+        >>> compile_pattern(r"\d+")
+        re.compile('\\d+')
     """
     try:
         return re.compile(pattern, flags)
@@ -56224,7 +56231,7 @@ def escape_html(text: Union[str, None]) -> str:
 
     Examples:
         >>> escape_html("<script>alert('xss')</script>")
-        '&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;'
+        '&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;'
     """
     if text is None:
         return ""
@@ -85556,7 +85563,7 @@ def get_signature(func: Any) -> inspect.Signature:
     Examples:
         >>> def example(a: int, b: str = "x"): ...
         >>> str(get_signature(example))
-        "(a: int, b: str = 'x')"
+        "(a: 'int', b: 'str' = 'x')"
     """
     if not callable(func):
         raise TypeError(f"expected a callable, got {type(func).__name__}")
@@ -111200,7 +111207,7 @@ def flatten(sequence: Sequence[Any]) -> List[Any]:
         >>> flatten([[1, 2], [3, 4], [5]])
         [1, 2, 3, 4, 5]
         >>> flatten([1, [2, 3], "ab"])
-        [1, 2, 3, "ab"]
+        [1, 2, 3, 'ab']
         >>> flatten([])
         []
     """

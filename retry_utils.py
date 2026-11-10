@@ -87,7 +87,8 @@ def retry_with_backoff(
 
     Examples:
         >>> attempts = []
-        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=False)
+        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.01,
+        ...                     backoff_factor=2.0, jitter=False)
         ... def unreliable_function():
         ...     attempts.append(1)
         ...     if len(attempts) < 2:
