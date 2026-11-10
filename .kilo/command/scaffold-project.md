@@ -493,6 +493,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_weakref_utils.py` — unit tests for `weakref_utils.py`
 - `argparse_utils.py` — argument parsing utilities (`make_parser`, `add_flag`, `add_option`, `add_positional`, `add_subparsers`, `parse_args`, `int_positive`, `float_range`)
 - `tests/test_argparse_utils.py` — unit tests for `argparse_utils.py`
+- `argcomplete_utils.py` — shell tab completion utilities (`autocomplete`, `get_completer`, `get_files_completer`, `is_available`) wrapping stdlib `argcomplete` with input validation
+- `tests/test_argcomplete_utils.py` — unit tests for `argcomplete_utils.py`
 - `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation
 - `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
 - `selectors_utils.py` — selectors utilities wrapping the standard library `selectors` module (`create_default_selector`, `register`, `unregister`, `select`, `get_key`, `get_map`, `close_selector`, `EVENT_READ`, `EVENT_WRITE`) for I/O multiplexing with input validation

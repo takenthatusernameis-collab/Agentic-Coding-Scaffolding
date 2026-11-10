@@ -66168,6 +66168,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_weakref_utils.py` — unit tests for `weakref_utils.py`
 - `argparse_utils.py` — argument parsing utilities (`make_parser`, `add_flag`, `add_option`, `add_positional`, `add_subparsers`, `parse_args`, `int_positive`, `float_range`)
 - `tests/test_argparse_utils.py` — unit tests for `argparse_utils.py`
+- `argcomplete_utils.py` — shell tab completion utilities (`autocomplete`, `get_completer`, `get_files_completer`, `is_available`) wrapping stdlib `argcomplete` with input validation
+- `tests/test_argcomplete_utils.py` — unit tests for `argcomplete_utils.py`
 - `warnings_utils.py` — utilities wrapping the standard library `warnings` module (`warn`, `simplefilter`, `catch_warnings`, `filterwarnings`, `resetwarnings`) with input validation
 - `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
 - `selectors_utils.py` — selectors utilities wrapping the standard library `selectors` module (`create_default_selector`, `register`, `unregister`, `select`, `get_key`, `get_map`, `close_selector`, `EVENT_READ`, `EVENT_WRITE`) for I/O multiplexing with input validation
@@ -68526,6 +68528,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added `argcomplete_utils.py` wrapping stdlib `argcomplete`
+
+- Added `argcomplete_utils.py` wrapping the standard library `argcomplete` module with input validation: `autocomplete(parser, always_complete_options=True, exit_method=sys.exit, print_errors=True)` enables shell tab completion for an argparse parser; `get_completer(choices)` creates a `ChoicesCompleter` for static option lists; `get_files_completer(directories=True, filter_func=None)` creates a file system completer; `is_available()` reports whether argcomplete is installed. All helpers raise `TypeError` for invalid arguments and `ImportError` when argcomplete is not installed. The module degrades gracefully when argcomplete is absent. Added `tests/test_argcomplete_utils.py` with 13 tests covering availability checks, module contract, `autocomplete`, `get_completer`, and `get_files_completer`, including mocked integration tests and validation error paths. Registered `argcomplete_utils` in `pyproject.toml` `py_modules`. Updated `README.md` (architecture tree, test list, and module prose), `.kilo/command/scaffold-project.md` (manifest entries). Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m pytest tests/test_argcomplete_utils.py` (10 passed, 3 skipped), `python -m pytest tests/test_public_api.py` (passed), `python -m ruff check argcomplete_utils.py tests/test_argcomplete_utils.py` clean, `python -m mypy argcomplete_utils.py tests/test_argcomplete_utils.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added `count_binary`/`has_binary` companions to `strings.is_binary`
 
 - Added `count_binary(s) -> int` and `has_binary(s) -> bool` to `strings.py` as the integer/boolean companions to `is_binary`, closing the `is*`/`count_*`/`has_*` companion gap for the binary-digit predicate. `count_binary` returns the number of binary characters (`0` or `1`) in *s* (empty input returns ``0``). `has_binary` returns ``True`` when at least one binary character is present and ``False`` otherwise (empty input is ``False``), reusing `count_binary` for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountBinary` and `TestHasBinary` to `tests/test_strings.py` covering all/mixed/none/empty cases, consistency between `count_binary` and `has_binary`, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree/prose entries in `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings`, targeted doctests for `count_binary`/`has_binary`, `python -m unittest tests.test_public_api`, `python -m ruff check strings.py tests/test_strings.py`, `python -m mypy strings.py`. No `.github/workflows/**` changes.
@@ -71488,6 +71494,7 @@ io_utils.py                # Line-oriented and atomic input/output utilities (re
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
 argparse_utils.py           # Argument parsing utilities
+argcomplete_utils.py        # Shell tab completion utilities wrapping stdlib argcomplete
 warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
@@ -71751,6 +71758,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_gc_utils.py            # Tests for gc_utils.py
     test_zlib_utils.py          # Tests for zlib_utils.py
     test_argparse_utils.py      # Tests for argparse_utils.py
+    test_argcomplete_utils.py   # Tests for argcomplete_utils.py
     test_call_once_utils.py     # Tests for call_once_utils.py
     test_codecs_utils.py        # Tests for codecs_utils.py
     test_contextlib_utils.py    # Tests for contextlib_utils.py
@@ -72390,6 +72398,10 @@ The project includes copy utilities in `copy_utils.py` for duplicating Python ob
 ## Warnings Utilities Module
 
 The project includes argument parsing utilities in `argparse_utils.py` wrapping the standard library `argparse` module: `make_parser` creates an `ArgumentParser` with common defaults, `add_flag` adds a boolean store_true flag, `add_option` adds a single-value option, `add_positional` adds a positional argument, `add_subparsers` adds subcommands support, `parse_args` parses arguments, `int_positive` validates positive integers, and `float_range` creates a float range validator. The module is tested in `tests/test_argparse_utils.py`.
+
+## Argcomplete Utilities Module
+
+The project includes shell tab completion utilities in `argcomplete_utils.py` wrapping the standard library `argcomplete` module: `autocomplete` enables shell tab completion for an argparse parser, `get_completer` creates a choices completer for static options, `get_files_completer` creates a file system completer, and `is_available` reports whether argcomplete is installed. All functions validate their inputs and raise `TypeError` or `ImportError` on invalid arguments. The module is tested in `tests/test_argcomplete_utils.py`.
 
 The project includes warnings utilities in `warnings_utils.py` wrapping the standard library `warnings` module: `warn` emits a warning message with an optional category and stacklevel, `simplefilter` sets the global warning filter action, `catch_warnings` is a context manager that captures warnings emitted within its scope, `filterwarnings` adds a warning filter entry, and `resetwarnings` clears all warning filters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_warnings_utils.py`.
 
@@ -159401,6 +159413,280 @@ class TestPredicates(unittest.TestCase):
 if __name__ == "__main__":
     unittest.main()
 TEST_COLLECTIONS_ABC_UTILS
+
+# --- argcomplete_utils.py ---
+cat > "$OUTPUT_DIR/argcomplete_utils.py" <<'ARGCOMPLETE_UTILS'
+"""Shell tab completion utilities wrapping the standard library `argcomplete` module.
+
+This module provides input validation and safe access to argcomplete functionality.
+"""
+
+from __future__ import annotations
+
+import sys
+from typing import Any
+
+try:
+    import argcomplete
+    from argcomplete.completers import ChoicesCompleter
+except ImportError:  # pragma: no cover - optional dependency
+    argcomplete = None  # type: ignore[assignment]
+    ChoicesCompleter = None  # type: ignore[assignment]
+
+
+def _check_argcomplete_available() -> None:
+    """Raise ImportError if argcomplete is not installed."""
+    if argcomplete is None:
+        raise ImportError(
+            "argcomplete is not installed. Install with: pip install argcomplete"
+        )
+
+
+def is_available() -> bool:
+    """Return True if argcomplete is installed and importable."""
+    return argcomplete is not None
+
+
+def autocomplete(
+    parser: Any,
+    always_complete_options: bool = True,
+    exit_method: Any = sys.exit,
+    print_errors: bool = True,
+) -> None:
+    """Enable shell tab completion for an argparse parser.
+
+    Args:
+        parser: An argparse.ArgumentParser instance.
+        always_complete_options: Complete options even when the cursor is not at the start.
+        exit_method: Callable to exit after completion (default: sys.exit).
+        print_errors: Print errors to stderr.
+
+    Raises:
+        ImportError: If argcomplete is not installed.
+        TypeError: If parser is not an argparse.ArgumentParser instance.
+    """
+    _check_argcomplete_available()
+    import argparse
+
+    if not isinstance(parser, argparse.ArgumentParser):
+        raise TypeError(f"Expected argparse.ArgumentParser, got {type(parser).__name__}")
+
+    argcomplete.autocomplete(
+        parser,
+        always_complete_options=always_complete_options,
+        exit_method=exit_method,
+        print_errors=print_errors,
+    )
+
+
+def get_completer(choices: list[str] | tuple[str, ...]) -> Any:
+    """Create a choices completer for static options.
+
+    Args:
+        choices: List or tuple of string choices to complete.
+
+    Returns:
+        A ChoicesCompleter instance.
+
+    Raises:
+        ImportError: If argcomplete is not installed.
+        TypeError: If choices is not a list or tuple of strings.
+    """
+    _check_argcomplete_available()
+    if not isinstance(choices, (list, tuple)):
+        raise TypeError(f"choices must be list or tuple, got {type(choices).__name__}")
+    if not all(isinstance(c, str) for c in choices):
+        raise TypeError("all choices must be strings")
+
+    return ChoicesCompleter(choices)
+
+
+def get_files_completer(
+    directories: bool = True,
+    filter_func: Any = None,
+) -> Any:
+    """Create a file system completer.
+
+    Args:
+        directories: Include directories in completions.
+        filter_func: Optional callable to filter completions.
+
+    Returns:
+        A completer function.
+
+    Raises:
+        ImportError: If argcomplete is not installed.
+    """
+    _check_argcomplete_available()
+    from argcomplete.completers import FilesCompleter
+
+    return FilesCompleter(directories=directories, filter_func=filter_func)
+
+
+__all__ = [
+    "autocomplete",
+    "get_completer",
+    "get_files_completer",
+    "is_available",
+]
+ARGCOMPLETE_UTILS
+
+# --- tests/test_argcomplete_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_argcomplete_utils.py" <<'TEST_ARGCOMPLETE_UTILS'
+"""Unit tests for argcomplete_utils.py."""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+try:
+    import argcomplete_utils
+except ImportError:
+    argcomplete_utils = None
+
+
+class TestAvailability:
+    """Tests for module availability checking."""
+
+    def test_is_available_returns_bool(self):
+        """is_available should return a boolean."""
+        result = argcomplete_utils.is_available()
+        assert isinstance(result, bool)
+
+
+class TestModuleContract:
+    """Tests for module-level contract."""
+
+    def test_all_is_sorted_and_unique(self):
+        """__all__ should be sorted and contain unique entries."""
+        all_list = argcomplete_utils.__all__
+        assert all_list == sorted(all_list)
+        assert len(all_list) == len(set(all_list))
+
+    def test_every_name_exists(self):
+        """Every name in __all__ should exist in the module."""
+        for name in argcomplete_utils.__all__:
+            assert hasattr(argcomplete_utils, name)
+
+    def test_standard_library_not_imported_at_module_level(self):
+        """argcomplete should not be imported at module level if not available."""
+        if argcomplete_utils.is_available():
+            import argcomplete
+
+            assert argcomplete_utils.argcomplete is argcomplete
+        else:
+            assert argcomplete_utils.argcomplete is None
+
+
+class TestAutocomplete:
+    """Tests for autocomplete function."""
+
+    def test_autocomplete_raises_import_error_when_unavailable(self):
+        """autocomplete should raise ImportError when argcomplete is unavailable."""
+        if argcomplete_utils.is_available():
+            pytest.skip("argcomplete is available")
+
+        parser = argparse.ArgumentParser()
+        with pytest.raises(ImportError, match="argcomplete is not installed"):
+            argcomplete_utils.autocomplete(parser)
+
+    def test_autocomplete_raises_type_error_for_invalid_parser(self):
+        """autocomplete should raise TypeError for non-ArgumentParser."""
+        if not argcomplete_utils.is_available():
+            pytest.skip("argcomplete not available")
+
+        with pytest.raises(TypeError, match="Expected argparse.ArgumentParser"):
+            argcomplete_utils.autocomplete("not a parser")
+
+    @patch("argcomplete.autocomplete")
+    def test_autocomplete_calls_argcomplete(self, mock_autocomplete):
+        """autocomplete should delegate to argcomplete.autocomplete."""
+        if not argcomplete_utils.is_available():
+            pytest.skip("argcomplete not available")
+
+        parser = argparse.ArgumentParser()
+        argcomplete_utils.autocomplete(parser, always_complete_options=False)
+
+        mock_autocomplete.assert_called_once_with(
+            parser, always_complete_options=False, exit_method=sys.exit, print_errors=True
+        )
+
+
+class TestGetCompleter:
+    """Tests for get_completer function."""
+
+    def test_get_completer_raises_import_error_when_unavailable(self):
+        """get_completer should raise ImportError when argcomplete is unavailable."""
+        if argcomplete_utils.is_available():
+            pytest.skip("argcomplete is available")
+
+        with pytest.raises(ImportError, match="argcomplete is not installed"):
+            argcomplete_utils.get_completer(["a", "b"])
+
+    def test_get_completer_raises_type_error_for_non_list_tuple(self):
+        """get_completer should raise TypeError for non-list/tuple choices."""
+        if not argcomplete_utils.is_available():
+            pytest.skip("argcomplete not available")
+
+        with pytest.raises(TypeError, match="choices must be list or tuple"):
+            argcomplete_utils.get_completer("not a list")
+
+    def test_get_completer_raises_type_error_for_non_string_choices(self):
+        """get_completer should raise TypeError for non-string choices."""
+        if not argcomplete_utils.is_available():
+            pytest.skip("argcomplete not available")
+
+        with pytest.raises(TypeError, match="all choices must be strings"):
+            argcomplete_utils.get_completer(["a", 1])
+
+    @patch("argcomplete_utils.ChoicesCompleter")
+    def test_get_completer_returns_completer(self, mock_choices_completer):
+        """get_completer should return a ChoicesCompleter instance."""
+        if not argcomplete_utils.is_available():
+            pytest.skip("argcomplete not available")
+
+        mock_instance = MagicMock()
+        mock_choices_completer.return_value = mock_instance
+
+        result = argcomplete_utils.get_completer(["option1", "option2"])
+
+        mock_choices_completer.assert_called_once_with(["option1", "option2"])
+        assert result is mock_instance
+
+
+class TestGetFilesCompleter:
+    """Tests for get_files_completer function."""
+
+    def test_get_files_completer_raises_import_error_when_unavailable(self):
+        """get_files_completer should raise ImportError when argcomplete is unavailable."""
+        if argcomplete_utils.is_available():
+            pytest.skip("argcomplete is available")
+
+        with pytest.raises(ImportError, match="argcomplete is not installed"):
+            argcomplete_utils.get_files_completer()
+
+    @patch("argcomplete.completers.FilesCompleter")
+    def test_get_files_completer_returns_completer(self, mock_files_completer):
+        """get_files_completer should return a FilesCompleter instance."""
+        if not argcomplete_utils.is_available():
+            pytest.skip("argcomplete not available")
+
+        mock_instance = MagicMock()
+        mock_files_completer.return_value = mock_instance
+
+        result = argcomplete_utils.get_files_completer(directories=False)
+
+        mock_files_completer.assert_called_once_with(directories=False, filter_func=None)
+        assert result is mock_instance
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
+TEST_ARGCOMPLETE_UTILS
 
 
 

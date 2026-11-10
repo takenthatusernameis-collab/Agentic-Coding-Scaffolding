@@ -109,6 +109,7 @@ py-modules = [
     "async_utils",
     "asyncio_utils",
     "argparse_utils",
+    "argcomplete_utils",
     "concurrent_utils",
     "concurrent_futures_utils",
     "threading_utils",

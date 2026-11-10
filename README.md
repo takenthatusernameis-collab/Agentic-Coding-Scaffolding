@@ -285,6 +285,7 @@ io_utils.py                # Line-oriented and atomic input/output utilities (re
 ini_utils.py                 # INI configuration file utilities (load, save, get, set, merge sections)
 weakref_utils.py            # Weak reference utilities for managing weak references to objects
 argparse_utils.py           # Argument parsing utilities
+argcomplete_utils.py        # Shell tab completion utilities wrapping stdlib argcomplete
 warnings_utils.py           # Utilities wrapping the standard library warnings module
 compression_utils.py       # Compression and decompression utilities (gzip, bz2, zip, tar)
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
@@ -548,6 +549,7 @@ test_lzma_utils.py          # Tests for lzma_utils.py
     test_gc_utils.py            # Tests for gc_utils.py
     test_zlib_utils.py          # Tests for zlib_utils.py
     test_argparse_utils.py      # Tests for argparse_utils.py
+    test_argcomplete_utils.py   # Tests for argcomplete_utils.py
     test_call_once_utils.py     # Tests for call_once_utils.py
     test_codecs_utils.py        # Tests for codecs_utils.py
     test_contextlib_utils.py    # Tests for contextlib_utils.py
@@ -1187,6 +1189,10 @@ The project includes copy utilities in `copy_utils.py` for duplicating Python ob
 ## Warnings Utilities Module
 
 The project includes argument parsing utilities in `argparse_utils.py` wrapping the standard library `argparse` module: `make_parser` creates an `ArgumentParser` with common defaults, `add_flag` adds a boolean store_true flag, `add_option` adds a single-value option, `add_positional` adds a positional argument, `add_subparsers` adds subcommands support, `parse_args` parses arguments, `int_positive` validates positive integers, and `float_range` creates a float range validator. The module is tested in `tests/test_argparse_utils.py`.
+
+## Argcomplete Utilities Module
+
+The project includes shell tab completion utilities in `argcomplete_utils.py` wrapping the standard library `argcomplete` module: `autocomplete` enables shell tab completion for an argparse parser, `get_completer` creates a choices completer for static options, `get_files_completer` creates a file system completer, and `is_available` reports whether argcomplete is installed. All functions validate their inputs and raise `TypeError` or `ImportError` on invalid arguments. The module is tested in `tests/test_argcomplete_utils.py`.
 
 The project includes warnings utilities in `warnings_utils.py` wrapping the standard library `warnings` module: `warn` emits a warning message with an optional category and stacklevel, `simplefilter` sets the global warning filter action, `catch_warnings` is a context manager that captures warnings emitted within its scope, `filterwarnings` adds a warning filter entry, and `resetwarnings` clears all warning filters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_warnings_utils.py`.
 
