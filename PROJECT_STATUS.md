@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-10 06:49Z) — bootstrap; foundation solid, no gap found
+
+The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `cb56d7d`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full suite `python -m unittest discover tests/` — **10017 tests, OK**; `tests.test_public_api` OK; `python -m ruff check .` — only the pre-existing `regex_utils.py:40` W605 remains (false positive on doctest raw-string lines, left as pre-existing); `python -m mypy .` — clean (555 source files).
+
+Followed the durable "Next Planned": confirmed foundation remains solid (`git status` clean, refresh scaffold in sync, targeted + full suite green). Reused the alias-aware AST-based exported-but-untested scan across all non-audited modules (handles `__all__` list literals; filters out TypeVars/constants/re-exports/stdlib-aliases/classes/entry points; keeps only real `FunctionDef`s in `__all__`; detects `module.func`/bare-name test references). All flagged names resolved to stdlib re-exports or thin pass-through wrappers / entry points (`abc_utils` `ABC`/`ABCMeta`/`abstract*` delegating to `_abc.*`, `code_utils.interact`, `copyreg_utils.dispatch_table`, `curses_utils.termname`, `getpass_utils.getpass`, `linecache_utils.lazycache`, `ossaudiodev_utils.is_available`, `profile_utils.main`, `pydoc_utils.*` stdlib aliases, `this_utils.print_zen`, `traceback_utils.extract_stack`/`format_exc`/`format_stack`, `tty_utils.setcbreak`/`setraw`) — no clean, hermetic, convention-consistent gap outside the audited candidates warrants a new public API or test-only change without risking noise.
+
+Completed in this session:
+- Verified repo health: `git status` clean, refresh scaffold in sync, full suite 10017 tests OK, `tests.test_public_api` OK, mypy clean, ruff only pre-existing W605.
+- Bounded gap audit completed outside the audited candidates; no genuine gap found.
+- No code/API/test changes made; this entry records verified state and avoids a duplicate/no-op code commit.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap outside the audited candidates, with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). Reuse the alias-aware AST-based exported-but-untested scan. Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 05:52Z) — bootstrap; foundation solid, no gap found
 
 The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `cb56d7d`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full suite `python -m unittest discover tests/` — **10017 tests, OK**; `tests.test_public_api` OK; `python -m ruff check .` — only the pre-existing `regex_utils.py:40` W605 remains (false positive on doctest raw-string lines, left as pre-existing); `python -m mypy .` — clean (555 source files).
