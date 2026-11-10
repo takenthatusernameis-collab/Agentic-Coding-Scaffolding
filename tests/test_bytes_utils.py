@@ -60,6 +60,7 @@ from bytes_utils import (
     lower,
     lowest_set_bit,
     maketrans,
+    not_contains,
     partition,
     removeprefix,
     removesuffix,
@@ -188,6 +189,19 @@ class TestBytesUtils(unittest.TestCase):
     def test_contains(self):
         self.assertTrue(contains(b"hello", b"ll"))
         self.assertFalse(contains(b"hello", b"world"))
+
+    def test_not_contains(self):
+        self.assertTrue(not_contains(b"hello", b"world"))
+        self.assertFalse(not_contains(b"hello", b"ll"))
+        self.assertTrue(not_contains(bytearray(b"hello"), b"x"))
+        self.assertFalse(not_contains(bytearray(b"hello"), bytearray(b"he")))
+        self.assertEqual(not_contains(b"abc", b"a"), not contains(b"abc", b"a"))
+        with self.assertRaises(TypeError):
+            not_contains("hello", b"ll")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            not_contains(b"hello", "ll")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            not_contains(None, b"ll")  # type: ignore[arg-type]
 
     def test_starts_ends(self):
         self.assertTrue(starts_with(b"hello", b"he"))

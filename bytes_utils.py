@@ -13,6 +13,7 @@ __all__: list[str] = [
     "repeat",
     "reverse",
     "contains",
+    "not_contains",
     "index",
     "index_of",
     "partition",
@@ -278,6 +279,30 @@ def contains(data: bytes, sub: bytes) -> bool:
     if not isinstance(sub, (bytes, bytearray)):
         raise TypeError("sub must be bytes or bytearray")
     return bytes(sub) in bytes(data)
+
+
+def not_contains(data: bytes, sub: bytes) -> bool:
+    """Return True if *sub* is not contained within *data*.
+
+    This is the boolean negation companion to :func:`contains`.
+
+    Args:
+        data: Bytes or bytearray to search in.
+        sub: Bytes or bytearray to search for.
+
+    Returns:
+        True if *sub* is not contained in *data*.
+
+    Raises:
+        TypeError: If *data* or *sub* is not bytes or bytearray.
+
+    Examples:
+        >>> not_contains(b"hello", b"world")
+        True
+        >>> not_contains(b"hello", b"ll")
+        False
+    """
+    return not contains(data, sub)
 
 
 def index_of(data: bytes, sub: bytes) -> int:
