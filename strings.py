@@ -54,7 +54,9 @@ __all__: List[str] = [
     "has_alpha",
     "is_alphanumeric",
     "count_alphanumeric",
+    "count_ascii",
     "has_alphanumeric",
+    "has_ascii",
     "is_binary",
     "is_octal",
     "is_digit",
@@ -1240,6 +1242,72 @@ def is_ascii(s: str) -> bool:
     if not s:
         return False
     return all(ord(ch) < 128 for ch in s)
+
+
+def count_ascii(s: str) -> int:
+    """Return the number of ASCII characters in *s*.
+
+    This is the integer companion to :func:`is_ascii`. An ASCII character
+    is any character whose Unicode code point is below 128. Empty input
+    returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of ASCII characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_ascii("hello")
+        5
+        >>> count_ascii("HelloWorld")
+        10
+        >>> count_ascii("hello123")
+        8
+        >>> count_ascii("123")
+        3
+        >>> count_ascii("héllo")
+        4
+        >>> count_ascii("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isascii())
+
+
+def has_ascii(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one ASCII character.
+
+    This is the boolean companion to :func:`count_ascii`. It returns ``True``
+    when at least one character is ASCII and ``False`` otherwise (empty input
+    is ``False``), reusing :func:`count_ascii` for consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains an ASCII character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_ascii("hello")
+        True
+        >>> has_ascii("123")
+        True
+        >>> has_ascii("é")
+        False
+        >>> has_ascii("")
+        False
+        >>> has_ascii("héllo")
+        True
+    """
+    _require_string(s, "s")
+    return count_ascii(s) > 0
 
 
 def is_whitespace(s: str) -> bool:

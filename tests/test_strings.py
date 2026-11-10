@@ -15,6 +15,7 @@ from strings import (
     contains_any,
     count_alpha,
     count_alphanumeric,
+    count_ascii,
     count_consonants,
     count_digits,
     count_letters,
@@ -36,6 +37,7 @@ from strings import (
     first_n,
     has_alpha,
     has_alphanumeric,
+    has_ascii,
     has_consonants,
     has_digits,
     has_letters,
@@ -1057,6 +1059,56 @@ class TestHasAlphanumeric(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             has_alphanumeric(123)  # type: ignore[arg-type]
+
+
+class TestCountAscii(unittest.TestCase):
+    def test_ascii_all(self):
+        self.assertEqual(count_ascii("hello"), 5)
+        self.assertEqual(count_ascii("HelloWorld"), 10)
+
+    def test_ascii_mixed(self):
+        self.assertEqual(count_ascii("hello123"), 8)
+        self.assertEqual(count_ascii("a1b2c3"), 6)
+
+    def test_ascii_none(self):
+        self.assertEqual(count_ascii("é"), 0)
+        self.assertEqual(count_ascii("日本語"), 0)
+
+    def test_ascii_empty(self):
+        self.assertEqual(count_ascii(""), 0)
+
+    def test_ascii_unicode(self):
+        self.assertEqual(count_ascii("héllo"), 4)
+
+    def test_consistency_with_has_ascii(self):
+        for s in ("hello", "HelloWorld", "hello123", "123", "", "é", " "):
+            self.assertEqual(count_ascii(s) > 0, has_ascii(s))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_ascii(123)  # type: ignore[arg-type]
+
+
+class TestHasAscii(unittest.TestCase):
+    def test_has_ascii_true(self):
+        self.assertTrue(has_ascii("hello"))
+        self.assertTrue(has_ascii("a1"))
+        self.assertTrue(has_ascii("123"))
+
+    def test_has_ascii_false(self):
+        self.assertFalse(has_ascii("é"))
+        self.assertFalse(has_ascii("日本語"))
+
+    def test_has_ascii_empty(self):
+        self.assertFalse(has_ascii(""))
+
+    def test_consistency_with_count_ascii(self):
+        for s in ("hello", "HelloWorld", "hello123", "123", "", "é", " "):
+            self.assertEqual(has_ascii(s), count_ascii(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_ascii(123)  # type: ignore[arg-type]
 
 
 class TestIsDigit(unittest.TestCase):
