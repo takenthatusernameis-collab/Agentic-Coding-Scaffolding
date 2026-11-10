@@ -14,6 +14,7 @@ from array_utils import (
     array_extend,
     array_extend_from_list,
     array_from_bytes,
+    array_from_file,
     array_from_list,
     array_from_unicode,
     array_frombytes,
@@ -389,6 +390,25 @@ class TestArrayFile(unittest.TestCase):
             array_fromfile(array("i"), io.BytesIO(), 1.5)
         with self.assertRaises(TypeError):
             array_fromfile(array("i"), io.BytesIO(), True)
+
+    def test_array_from_file_roundtrip(self):
+        import io
+        a = array("i")
+        buf = io.BytesIO(array("i", [1, 2, 3]).tobytes())
+        array_from_file(a, buf, 3)
+        assert a.tolist() == [1, 2, 3]
+
+    def test_array_from_file_rejects_non_array(self):
+        import io
+        with self.assertRaises(TypeError):
+            array_from_file([], io.BytesIO(), 1)
+
+    def test_array_from_file_rejects_bad_n(self):
+        import io
+        with self.assertRaises(TypeError):
+            array_from_file(array("i"), io.BytesIO(), 1.5)
+        with self.assertRaises(TypeError):
+            array_from_file(array("i"), io.BytesIO(), True)
 
 
 class TestArrayUnicode(unittest.TestCase):
