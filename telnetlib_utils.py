@@ -84,7 +84,9 @@ else:
             raise RuntimeError("telnetlib module is not available")
 
     _cmd = bytes([255])
-    IAC = DONT = DO = WONT = WILL = SE = NOP = DM = BRK = IP = AO = AYT = EC = EL = GA = SB = theNULL = _cmd
+    IAC = DONT = DO = WONT = WILL = SE = NOP = DM = BRK = IP = AO = AYT = EC = EL = GA = SB = (
+        theNULL
+    ) = _cmd
 
 
 def create_telnet(host: str | None = None, port: int = 23, timeout: float | None = None) -> Telnet:
