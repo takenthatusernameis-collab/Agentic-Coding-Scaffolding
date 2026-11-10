@@ -14,6 +14,7 @@ __all__: List[str] = [
     "count_vowels",
     "has_vowels",
     "count_consonants",
+    "has_consonants",
     "count_lowercase",
     "count_uppercase",
     "has_lowercase",
