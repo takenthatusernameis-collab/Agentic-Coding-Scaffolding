@@ -38369,12 +38369,14 @@ __all__ = [
     "invert_dict",
     "is_invertible",
     "keys_equal",
+    "keys_not_equal",
     "merge",
     "none_where",
     "omit_keys",
     "safe_get",
     "select_keys",
     "values_equal",
+    "values_not_equal",
     "unflatten_dict",
 ]
 
@@ -38640,6 +38642,34 @@ def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     return set(d1) == set(d2)
 
 
+def keys_not_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
+    """Report whether two dictionaries have different sets of keys.
+
+    This is the boolean negation companion to :func:`keys_equal`.
+
+    Only the keys are compared; values and key order are ignored.
+
+    Args:
+        d1: First dictionary.
+        d2: Second dictionary.
+
+    Returns:
+        ``True`` when *d1* and *d2* do not contain the same keys, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> keys_not_equal({"a": 1}, {"a": 1, "b": 2})
+        True
+        >>> keys_not_equal({"a": 1, "b": 2}, {"a": 3, "b": 4})
+        False
+        >>> keys_not_equal({}, {})
+        False
+    """
+    return not keys_equal(d1, d2)
+
+
 def values_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     """Report whether two dictionaries have the same set of values.
 
@@ -38668,6 +38698,34 @@ def values_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     if not isinstance(d2, dict):
         raise TypeError("d2 must be a dict")
     return set(d1.values()) == set(d2.values())
+
+
+def values_not_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
+    """Report whether two dictionaries have different sets of values.
+
+    This is the boolean negation companion to :func:`values_equal`.
+
+    Only the values are compared; keys and value order are ignored.
+
+    Args:
+        d1: First dictionary.
+        d2: Second dictionary.
+
+    Returns:
+        ``True`` when *d1* and *d2* do not contain the same values, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> values_not_equal({"a": 1}, {"a": 1, "b": 2})
+        True
+        >>> values_not_equal({"a": 1, "b": 2}, {"c": 2, "d": 1})
+        False
+        >>> values_not_equal({}, {})
+        False
+    """
+    return not values_equal(d1, d2)
 
 
 def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
@@ -51454,6 +51512,7 @@ from dict_utils import (
     invert_dict,
     is_invertible,
     keys_equal,
+    keys_not_equal,
     merge,
     none_where,
     omit_keys,
@@ -51461,6 +51520,7 @@ from dict_utils import (
     select_keys,
     unflatten_dict,
     values_equal,
+    values_not_equal,
 )
 
 
@@ -51750,6 +51810,33 @@ class TestKeysEqual(unittest.TestCase):
             keys_equal("not a dict", {})  # type: ignore[arg-type]
 
 
+class TestKeysNotEqual(unittest.TestCase):
+    def test_different_keys(self) -> None:
+        self.assertTrue(keys_not_equal({"a": 1}, {"a": 1, "b": 2}))
+
+    def test_same_keys(self) -> None:
+        self.assertFalse(keys_not_equal({"a": 1, "b": 2}, {"a": 3, "b": 4}))
+
+    def test_empty(self) -> None:
+        self.assertFalse(keys_not_equal({}, {}))
+
+    def test_consistency_with_keys_equal(self) -> None:
+        cases = [
+            ({"a": 1}, {"a": 1, "b": 2}),
+            ({"a": 1, "b": 2}, {"a": 3, "b": 4}),
+            ({}, {}),
+            ({}, {"x": 1}),
+        ]
+        for d1, d2 in cases:
+            self.assertEqual(keys_not_equal(d1, d2), not keys_equal(d1, d2))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            keys_not_equal("not a dict", {})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            keys_not_equal({}, "not a dict")  # type: ignore[arg-type]
+
+
 class TestValuesEqual(unittest.TestCase):
     def test_same_values(self):
         self.assertTrue(values_equal({"a": 1, "b": 2}, {"c": 2, "d": 1}))
@@ -51763,6 +51850,33 @@ class TestValuesEqual(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             values_equal("not a dict", {})
+
+
+class TestValuesNotEqual(unittest.TestCase):
+    def test_different_values(self) -> None:
+        self.assertTrue(values_not_equal({"a": 1}, {"a": 1, "b": 2}))
+
+    def test_same_values(self) -> None:
+        self.assertFalse(values_not_equal({"a": 1, "b": 2}, {"c": 2, "d": 1}))
+
+    def test_empty(self) -> None:
+        self.assertFalse(values_not_equal({}, {}))
+
+    def test_consistency_with_values_equal(self) -> None:
+        cases = [
+            ({"a": 1}, {"a": 1, "b": 2}),
+            ({"a": 1, "b": 2}, {"c": 2, "d": 1}),
+            ({}, {}),
+            ({}, {"x": 1}),
+        ]
+        for d1, d2 in cases:
+            self.assertEqual(values_not_equal(d1, d2), not values_equal(d1, d2))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            values_not_equal("not a dict", {})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            values_not_equal({}, "not a dict")  # type: ignore[arg-type]
 
 
 class TestHasValue(unittest.TestCase):
@@ -67574,6 +67688,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added keys_not_equal/values_not_equal companions to `dict_utils`
+
+- Added `keys_not_equal(d1, d2)` and `values_not_equal(d1, d2)` to `dict_utils.py` as boolean negation companions to `keys_equal`/`values_equal`, matching the `set_utils.is_equal`/`is_not_equal` pattern. Typed `Dict[Any, Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation consistent with the existing equality helpers (delegated). Added `TestKeysNotEqual` and `TestValuesNotEqual` (10 tests) to `tests/test_dict_utils.py` covering basic cases, empty inputs, consistency with `keys_equal`/`values_equal`, and `TypeError` paths. Updated `README.md` (`dict_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_dict_utils -q`, `python -m doctest dict_utils.py -q`, `python -m unittest tests.test_public_api -q`, `python -m ruff check dict_utils.py tests/test_dict_utils.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added `count_alpha`/`has_alpha` companions to `strings.is_alpha`
 
 - Added `count_alpha(s) -> int` and `has_alpha(s) -> bool` to `strings.py` as the integer/boolean companions to `is_alpha`, resolving the same `is*`/`count_*`/`has_*` companion gap that `bytes_utils` closed for `isalpha`/`count_alpha`/`has_alpha`. `count_alpha` returns the number of alphabetic characters (any character that passes :meth:`str.isalpha`) in *s* (empty input returns ``0``). `has_alpha` returns ``True`` when at least one alphabetic character is present and ``False`` otherwise (empty input is ``False``), reusing `count_alpha` for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountAlpha` (7 tests) and `TestHasAlpha` (5 tests) to `tests/test_strings.py` covering all/mixed/none/empty/unicode cases, consistency between `count_alpha` and `has_alpha`, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings` (524 OK), targeted doctests for `count_alpha`/`has_alpha`, `python -m unittest tests.test_public_api`, `python -m ruff check strings.py tests/test_strings.py` clean. No `.github/workflows/**` changes.
@@ -70338,7 +70456,7 @@ retry_utils.py            # Retry utilities with exponential backoff and jitter
 ring_buffer_utils.py     # Fixed-size circular (ring) buffer utilities
 secrets_utils.py           # Cryptographically secure secrets and token utilities (token_bytes, token_hex, token_urlsafe, compare_digest, randbelow, randbits, choice)
 selectors_utils.py           # Selectors utilities wrapping the standard library selectors module (create_default_selector, register, unregister, select, get_key, get_map, close_selector)
-dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, count_where, has_where, find_where, all_where, none_where, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, count_all_keys, count_all_values, keys_equal, values_equal)
+dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flatten, unflatten, safe get, invert, is_invertible, filter, count_where, has_where, find_where, all_where, none_where, has_key/has_all_keys/has_any_key/contains_key, has_value/has_all_values/has_any_value/contains_value, count_all_keys, count_all_values, keys_equal/keys_not_equal, values_equal/values_not_equal)
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
@@ -71028,7 +71146,7 @@ The project includes a retry utilities module in `retry_utils.py` with decorator
 
 ## Dictionary Utilities Module
 
-The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, item predicate companions `count_where`/`has_where`/`find_where`/`all_where`/`none_where` (predicates take `(key, value)`, `find_where` returns the first matching `(key, value)` pair), key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal` and `values_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The integer companion `count_all_keys` reports how many keys from a candidate iterable are present in the dictionary, and `has_all_keys`/`has_any_key` reuse it for consistency. The integer companion `count_all_values` reports how many values from a candidate iterable are present in the dictionary, and `has_all_values`/`has_any_value` reuse it for consistency. The module is tested in `tests/test_dict_utils.py`.
+The project includes a dictionary utilities module in `dict_utils.py` with functions for deep merging, shallow merging, flattening/unflattening nested dictionaries, safe nested gets, dictionary inversion, predicate-based filtering, item predicate companions `count_where`/`has_where`/`find_where`/`all_where`/`none_where` (predicates take `(key, value)`, `find_where` returns the first matching `(key, value)` pair), key-presence checks via `has_key`/`has_all_keys`/`has_any_key` (and aliases `contains_key`/`contains_all_keys`/`contains_any_key`), value-presence checks via `has_value`/`has_all_values`/`has_any_value` (and aliases `contains_value`/`contains_all_values`/`contains_any_value`), plus `keys_equal`/`keys_not_equal` and `values_equal`/`values_not_equal` for comparing key/value sets across dictionaries. The boolean companion `is_invertible` reports whether a dictionary can be inverted without losing information (all values distinct), mirroring `invert_dict`'s success condition. The integer companion `count_all_keys` reports how many keys from a candidate iterable are present in the dictionary, and `has_all_keys`/`has_any_key` reuse it for consistency. The integer companion `count_all_values` reports how many values from a candidate iterable are present in the dictionary, and `has_all_values`/`has_any_value` reuse it for consistency. The module is tested in `tests/test_dict_utils.py`.
 
 ## JSON Utilities Module
 

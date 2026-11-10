@@ -27,6 +27,7 @@ from dict_utils import (
     invert_dict,
     is_invertible,
     keys_equal,
+    keys_not_equal,
     merge,
     none_where,
     omit_keys,
@@ -34,6 +35,7 @@ from dict_utils import (
     select_keys,
     unflatten_dict,
     values_equal,
+    values_not_equal,
 )
 
 
@@ -323,6 +325,33 @@ class TestKeysEqual(unittest.TestCase):
             keys_equal("not a dict", {})  # type: ignore[arg-type]
 
 
+class TestKeysNotEqual(unittest.TestCase):
+    def test_different_keys(self) -> None:
+        self.assertTrue(keys_not_equal({"a": 1}, {"a": 1, "b": 2}))
+
+    def test_same_keys(self) -> None:
+        self.assertFalse(keys_not_equal({"a": 1, "b": 2}, {"a": 3, "b": 4}))
+
+    def test_empty(self) -> None:
+        self.assertFalse(keys_not_equal({}, {}))
+
+    def test_consistency_with_keys_equal(self) -> None:
+        cases = [
+            ({"a": 1}, {"a": 1, "b": 2}),
+            ({"a": 1, "b": 2}, {"a": 3, "b": 4}),
+            ({}, {}),
+            ({}, {"x": 1}),
+        ]
+        for d1, d2 in cases:
+            self.assertEqual(keys_not_equal(d1, d2), not keys_equal(d1, d2))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            keys_not_equal("not a dict", {})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            keys_not_equal({}, "not a dict")  # type: ignore[arg-type]
+
+
 class TestValuesEqual(unittest.TestCase):
     def test_same_values(self):
         self.assertTrue(values_equal({"a": 1, "b": 2}, {"c": 2, "d": 1}))
@@ -336,6 +365,33 @@ class TestValuesEqual(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             values_equal("not a dict", {})
+
+
+class TestValuesNotEqual(unittest.TestCase):
+    def test_different_values(self) -> None:
+        self.assertTrue(values_not_equal({"a": 1}, {"a": 1, "b": 2}))
+
+    def test_same_values(self) -> None:
+        self.assertFalse(values_not_equal({"a": 1, "b": 2}, {"c": 2, "d": 1}))
+
+    def test_empty(self) -> None:
+        self.assertFalse(values_not_equal({}, {}))
+
+    def test_consistency_with_values_equal(self) -> None:
+        cases = [
+            ({"a": 1}, {"a": 1, "b": 2}),
+            ({"a": 1, "b": 2}, {"c": 2, "d": 1}),
+            ({}, {}),
+            ({}, {"x": 1}),
+        ]
+        for d1, d2 in cases:
+            self.assertEqual(values_not_equal(d1, d2), not values_equal(d1, d2))
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            values_not_equal("not a dict", {})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            values_not_equal({}, "not a dict")  # type: ignore[arg-type]
 
 
 class TestHasValue(unittest.TestCase):

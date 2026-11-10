@@ -32,12 +32,14 @@ __all__ = [
     "invert_dict",
     "is_invertible",
     "keys_equal",
+    "keys_not_equal",
     "merge",
     "none_where",
     "omit_keys",
     "safe_get",
     "select_keys",
     "values_equal",
+    "values_not_equal",
     "unflatten_dict",
 ]
 
@@ -303,6 +305,34 @@ def keys_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     return set(d1) == set(d2)
 
 
+def keys_not_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
+    """Report whether two dictionaries have different sets of keys.
+
+    This is the boolean negation companion to :func:`keys_equal`.
+
+    Only the keys are compared; values and key order are ignored.
+
+    Args:
+        d1: First dictionary.
+        d2: Second dictionary.
+
+    Returns:
+        ``True`` when *d1* and *d2* do not contain the same keys, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> keys_not_equal({"a": 1}, {"a": 1, "b": 2})
+        True
+        >>> keys_not_equal({"a": 1, "b": 2}, {"a": 3, "b": 4})
+        False
+        >>> keys_not_equal({}, {})
+        False
+    """
+    return not keys_equal(d1, d2)
+
+
 def values_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     """Report whether two dictionaries have the same set of values.
 
@@ -331,6 +361,34 @@ def values_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
     if not isinstance(d2, dict):
         raise TypeError("d2 must be a dict")
     return set(d1.values()) == set(d2.values())
+
+
+def values_not_equal(d1: Dict[Any, Any], d2: Dict[Any, Any]) -> bool:
+    """Report whether two dictionaries have different sets of values.
+
+    This is the boolean negation companion to :func:`values_equal`.
+
+    Only the values are compared; keys and value order are ignored.
+
+    Args:
+        d1: First dictionary.
+        d2: Second dictionary.
+
+    Returns:
+        ``True`` when *d1* and *d2* do not contain the same values, ``False`` otherwise.
+
+    Raises:
+        TypeError: If either argument is not a dict.
+
+    Examples:
+        >>> values_not_equal({"a": 1}, {"a": 1, "b": 2})
+        True
+        >>> values_not_equal({"a": 1, "b": 2}, {"c": 2, "d": 1})
+        False
+        >>> values_not_equal({}, {})
+        False
+    """
+    return not values_equal(d1, d2)
 
 
 def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
