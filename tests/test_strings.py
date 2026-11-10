@@ -22,6 +22,7 @@ from strings import (
     count_letters,
     count_lowercase,
     count_occurrences,
+    count_printable,
     count_punctuation,
     count_uppercase,
     count_vowels,
