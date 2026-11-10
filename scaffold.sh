@@ -51623,7 +51623,7 @@ class TestKeysEqual(unittest.TestCase):
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            keys_equal("not a dict", {})
+            keys_equal("not a dict", {})  # type: ignore[arg-type]
 
 
 class TestValuesEqual(unittest.TestCase):
@@ -51675,7 +51675,7 @@ class TestContainsValue(unittest.TestCase):
         self.assertFalse(contains_value({}, 1))
 
     def test_matches_has_value(self) -> None:
-        d = {"a": 1, "b": 2}
+        d: dict[str, int | None] = {"a": 1, "b": 2}
         for v in (1, 2, 3, None):
             self.assertEqual(contains_value(d, v), has_value(d, v))
 
@@ -52069,6 +52069,7 @@ class TestFindWhere(unittest.TestCase):
     def test_returns_tuple(self) -> None:
         result = find_where({"a": 1}, lambda k, v: True)
         self.assertIsInstance(result, tuple)
+        assert result is not None
         self.assertEqual(len(result), 2)
 
     def test_consistency_with_has_where(self) -> None:
@@ -109198,6 +109199,61 @@ def test_queue():
     s = sched_utils.scheduler()
     sched_utils.enter(s, 0, 1, lambda: None)
     assert len(sched_utils.queue(s)) == 1
+
+
+def test_enterabs_schedules_event():
+    s = sched_utils.scheduler()
+    event = sched_utils.enterabs(s, 100, 1, lambda: None)
+    assert isinstance(event, sched.Event)
+    assert not sched_utils.empty(s)
+
+
+def test_enterabs_runs_action_at_absolute_time():
+    results = []
+    s = sched_utils.scheduler(
+        timefunc=lambda: 0.0, delayfunc=lambda _: None
+    )
+    sched_utils.enterabs(s, 0, 1, results.append, 42)
+    sched_utils.run(s)
+    assert results == [42]
+
+
+def test_enterabs_passes_argument_and_kwargs():
+    received = []
+
+    def action(value, *, flag=False):
+        received.append((value, flag))
+
+    s = sched_utils.scheduler(
+        timefunc=lambda: 0.0, delayfunc=lambda _: None
+    )
+    sched_utils.enterabs(s, 0, 1, action, 7, flag=True)
+    sched_utils.run(s)
+    assert received == [(7, True)]
+
+
+def test_enterabs_cancel_leaves_queue_empty():
+    s = sched_utils.scheduler()
+    event = sched_utils.enterabs(s, 100, 1, lambda: None)
+    sched_utils.cancel(s, event)
+    assert sched_utils.empty(s)
+
+
+def test_enterabs_future_time_event_is_queued():
+    """An ``enterabs`` event scheduled in the future is queued but not run yet."""
+    clock = [0.0]
+    results = []
+    s = sched_utils.scheduler(
+        timefunc=lambda: clock[0], delayfunc=lambda _: None
+    )
+    sched_utils.enterabs(s, 100, 1, results.append, "late")
+    assert not sched_utils.empty(s)
+    # The event has not fired yet.
+    assert results == []
+    # Advance the clock to the scheduled time and run.
+    clock[0] = 100
+    sched_utils.run(s)
+    assert results == ["late"]
 TEST_SCHED_UTILS
 
 # --- secrets_utils.py ---
@@ -118061,7 +118117,7 @@ SSL_UTILS
 cat > "$OUTPUT_DIR/tests/test_ssl_utils.py" <<'TEST_SSL_UTILS'
 import ssl
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 
 import ssl_utils
 
@@ -118175,7 +118231,7 @@ class TestSSLUtils(unittest.TestCase):
             ssl_utils.get_cert_san("bad")
 
     def test_cert_is_valid_at_time(self):
-        now = datetime.utcnow().replace(tzinfo=None)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         not_before = (now.replace(year=now.year - 1)).strftime("%Y%m%d%H%M%S") + "Z"
         not_after = (now.replace(year=now.year + 1)).strftime("%Y%m%d%H%M%S") + "Z"
         cert = {"notBefore": not_before, "notAfter": not_after}
