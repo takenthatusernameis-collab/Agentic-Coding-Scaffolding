@@ -13154,6 +13154,8 @@ __all__: List[str] = [
     "is_integer",
     "is_decimal",
     "is_printable",
+    "count_printable",
+    "has_printable",
     "is_identifier",
     "is_pangram",
     "is_rotation",
@@ -14736,6 +14738,68 @@ def is_printable(s: str) -> bool:
     if not s:
         return False
     return all(ch.isprintable() for ch in s)
+
+
+def count_printable(s: str) -> int:
+    """Return the number of printable characters in *s*.
+
+    A character is printable when ``str.isprintable()`` returns True for it;
+    whitespace characters other than the space character are not printable.
+    Empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of printable characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_printable("hello world!")
+        12
+        >>> count_printable("hello\\tworld")
+        10
+        >>> count_printable("abc\\n")
+        3
+        >>> count_printable("\\t\\n")
+        0
+        >>> count_printable("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isprintable())
+
+
+def has_printable(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one printable character.
+
+    This is the boolean companion to :func:`count_printable`. It returns
+    ``True`` when at least one character is printable and ``False`` otherwise
+    (empty input is ``False``), reusing :func:`count_printable` for consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains a printable character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_printable("hello world!")
+        True
+        >>> has_printable("\\t\\n")
+        False
+        >>> has_printable("")
+        False
+        >>> has_printable("abc\\n")
+        True
+    """
+    _require_string(s, "s")
+    return count_printable(s) > 0
 
 
 def is_identifier(s: str) -> bool:
@@ -18186,6 +18250,7 @@ from strings import (
     count_letters,
     count_lowercase,
     count_occurrences,
+    count_printable,
     count_punctuation,
     count_uppercase,
     count_vowels,
