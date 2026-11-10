@@ -13,6 +13,7 @@ from strings import (
     common_suffix,
     contains_all,
     contains_any,
+    count_alpha,
     count_consonants,
     count_digits,
     count_letters,
@@ -32,6 +33,7 @@ from strings import (
     ensure_trailing_newline,
     find,
     first_n,
+    has_alpha,
     has_consonants,
     has_digits,
     has_letters,
@@ -933,6 +935,55 @@ class TestIsAlpha(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_alpha(123)  # type: ignore[arg-type]
+
+
+class TestCountAlpha(unittest.TestCase):
+    def test_alpha_all(self):
+        self.assertEqual(count_alpha("hello"), 5)
+        self.assertEqual(count_alpha("HelloWorld"), 10)
+
+    def test_alpha_mixed(self):
+        self.assertEqual(count_alpha("hello123"), 5)
+        self.assertEqual(count_alpha("a1b2c3"), 3)
+
+    def test_alpha_none(self):
+        self.assertEqual(count_alpha("123"), 0)
+        self.assertEqual(count_alpha("!@#"), 0)
+
+    def test_alpha_empty(self):
+        self.assertEqual(count_alpha(""), 0)
+
+    def test_alpha_unicode(self):
+        self.assertEqual(count_alpha("héllo"), 5)
+
+    def test_consistency_with_has_alpha(self):
+        for s in ("hello", "HelloWorld", "hello123", "123", "", "!"):
+            self.assertEqual(count_alpha(s) > 0, has_alpha(s))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_alpha(123)  # type: ignore[arg-type]
+
+
+class TestHasAlpha(unittest.TestCase):
+    def test_has_alpha_true(self):
+        self.assertTrue(has_alpha("hello"))
+        self.assertTrue(has_alpha("a1"))
+
+    def test_has_alpha_false(self):
+        self.assertFalse(has_alpha("123"))
+        self.assertFalse(has_alpha("!@#"))
+
+    def test_has_alpha_empty(self):
+        self.assertFalse(has_alpha(""))
+
+    def test_consistency_with_count_alpha(self):
+        for s in ("hello", "HelloWorld", "hello123", "123", "", "!"):
+            self.assertEqual(has_alpha(s), count_alpha(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_alpha(123)  # type: ignore[arg-type]
 
 
 class TestIsAlphanumeric(unittest.TestCase):

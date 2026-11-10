@@ -50,6 +50,8 @@ __all__: List[str] = [
     "is_whitespace",
     "is_space",
     "is_alpha",
+    "count_alpha",
+    "has_alpha",
     "is_alphanumeric",
     "is_binary",
     "is_octal",
@@ -1056,6 +1058,70 @@ def is_alpha(s: str) -> bool:
     if not s:
         return False
     return all(ch.isalpha() for ch in s)
+
+
+def count_alpha(s: str) -> int:
+    """Return the number of alphabetic characters in *s*.
+
+    This is the integer companion to :func:`is_alpha`. An alphabetic
+    character is any character that passes :meth:`str.isalpha`. Empty input
+    returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of alphabetic characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_alpha("hello")
+        5
+        >>> count_alpha("HelloWorld")
+        10
+        >>> count_alpha("hello123")
+        5
+        >>> count_alpha("123")
+        0
+        >>> count_alpha("")
+        0
+        >>> count_alpha("a1b2c3")
+        3
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isalpha())
+
+
+def has_alpha(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one alphabetic character.
+
+    This is the boolean companion to :func:`count_alpha`. It returns ``True``
+    when at least one character is alphabetic and ``False`` otherwise (empty
+    input is ``False``), reusing :func:`count_alpha` for consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains an alphabetic character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_alpha("hello")
+        True
+        >>> has_alpha("123")
+        False
+        >>> has_alpha("")
+        False
+        >>> has_alpha("héllo")
+        True
+    """
+    _require_string(s, "s")
+    return count_alpha(s) > 0
 
 
 def is_alphanumeric(s: str) -> bool:
