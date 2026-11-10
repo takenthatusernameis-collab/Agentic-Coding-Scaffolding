@@ -61,6 +61,8 @@ __all__: List[str] = [
     "is_octal",
     "is_digit",
     "is_hex",
+    "count_hex",
+    "has_hex",
     "is_integer",
     "is_decimal",
     "is_printable",
@@ -1406,6 +1408,68 @@ def is_hex(s: str) -> bool:
     if not s:
         return False
     return all(ch in "0123456789abcdefABCDEF" for ch in s)
+
+
+def count_hex(s: str) -> int:
+    """Return the number of hexadecimal characters in *s*.
+
+    A hexadecimal character is any character that passes the hex check
+    (0-9, a-f, A-F). Empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of hexadecimal characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_hex("1a2f")
+        4
+        >>> count_hex("1A2F")
+        4
+        >>> count_hex("hello123")
+        3
+        >>> count_hex("xyz")
+        0
+        >>> count_hex("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch in "0123456789abcdefABCDEF")
+
+
+def has_hex(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one hexadecimal character.
+
+    This is the boolean companion to :func:`count_hex`. It returns ``True``
+    when at least one character is a hexadecimal digit and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_hex` for
+    consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains a hexadecimal character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_hex("1a2f")
+        True
+        >>> has_hex("hello")
+        False
+        >>> has_hex("")
+        False
+        >>> has_hex("abc123")
+        True
+    """
+    _require_string(s, "s")
+    return count_hex(s) > 0
 
 
 def is_binary(s: str) -> bool:

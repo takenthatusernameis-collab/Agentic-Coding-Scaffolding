@@ -13149,6 +13149,8 @@ __all__: List[str] = [
     "is_octal",
     "is_digit",
     "is_hex",
+    "count_hex",
+    "has_hex",
     "is_integer",
     "is_decimal",
     "is_printable",
@@ -14494,6 +14496,68 @@ def is_hex(s: str) -> bool:
     if not s:
         return False
     return all(ch in "0123456789abcdefABCDEF" for ch in s)
+
+
+def count_hex(s: str) -> int:
+    """Return the number of hexadecimal characters in *s*.
+
+    A hexadecimal character is any character that passes the hex check
+    (0-9, a-f, A-F). Empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of hexadecimal characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_hex("1a2f")
+        4
+        >>> count_hex("1A2F")
+        4
+        >>> count_hex("hello123")
+        3
+        >>> count_hex("xyz")
+        0
+        >>> count_hex("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch in "0123456789abcdefABCDEF")
+
+
+def has_hex(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one hexadecimal character.
+
+    This is the boolean companion to :func:`count_hex`. It returns ``True``
+    when at least one character is a hexadecimal digit and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_hex` for
+    consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains a hexadecimal character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_hex("1a2f")
+        True
+        >>> has_hex("hello")
+        False
+        >>> has_hex("")
+        False
+        >>> has_hex("abc123")
+        True
+    """
+    _require_string(s, "s")
+    return count_hex(s) > 0
 
 
 def is_binary(s: str) -> bool:
@@ -18118,6 +18182,7 @@ from strings import (
     count_ascii,
     count_consonants,
     count_digits,
+    count_hex,
     count_letters,
     count_lowercase,
     count_occurrences,
@@ -18140,6 +18205,7 @@ from strings import (
     has_ascii,
     has_consonants,
     has_digits,
+    has_hex,
     has_letters,
     has_lowercase,
     has_occurrences,
@@ -19270,6 +19336,59 @@ class TestIsHex(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_hex(123)  # type: ignore[arg-type]
+
+
+class TestCountHex(unittest.TestCase):
+    def test_count_hex_all(self):
+        self.assertEqual(count_hex("1a2f"), 4)
+        self.assertEqual(count_hex("1A2F"), 4)
+        self.assertEqual(count_hex("deadbeef"), 8)
+        self.assertEqual(count_hex("DEADBEEF"), 8)
+
+    def test_count_hex_mixed(self):
+        self.assertEqual(count_hex("hello123"), 4)  # e, 1, 2, 3
+        self.assertEqual(count_hex("abcDEF"), 6)
+        self.assertEqual(count_hex("a1b2c3"), 6)
+        self.assertEqual(count_hex("1g3"), 2)
+
+    def test_count_hex_none(self):
+        self.assertEqual(count_hex("xyz"), 0)
+        self.assertEqual(count_hex("hello"), 1)  # 'e' is hex
+        self.assertEqual(count_hex("!@#"), 0)
+
+    def test_count_hex_empty(self):
+        self.assertEqual(count_hex(""), 0)
+
+    def test_consistency_with_has_hex(self):
+        for s in ("1a2f", "hello123", "xyz", "", "abcDEF"):
+            self.assertEqual(count_hex(s) > 0, has_hex(s))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_hex(123)  # type: ignore[arg-type]
+
+
+class TestHasHex(unittest.TestCase):
+    def test_has_hex_true(self):
+        self.assertTrue(has_hex("1a2f"))
+        self.assertTrue(has_hex("a1"))
+        self.assertTrue(has_hex("123"))
+        self.assertTrue(has_hex("ABC"))
+
+    def test_has_hex_false(self):
+        self.assertFalse(has_hex("xyz"))
+        self.assertFalse(has_hex("!@#"))
+
+    def test_has_hex_empty(self):
+        self.assertFalse(has_hex(""))
+
+    def test_consistency_with_count_hex(self):
+        for s in ("1a2f", "hello123", "xyz", "", "ABC"):
+            self.assertEqual(has_hex(s), count_hex(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_hex(123)  # type: ignore[arg-type]
 
 
 class TestIsBinary(unittest.TestCase):
@@ -68060,6 +68179,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added `count_hex`/`has_hex` companions to `strings.is_hex`
+
+- Added `count_hex(s) -> int` and `has_hex(s) -> bool` to `strings.py` as the integer/boolean companions to `is_hex`, closing the `is*`/`count_*`/`has_*` companion gap for the hexadecimal-digit predicate. `count_hex` returns the number of hexadecimal characters (0-9, a-f, A-F) in *s* (empty input returns ``0``). `has_hex` returns ``True`` when at least one hexadecimal character is present and ``False`` otherwise (empty input is ``False``), reusing `count_hex` for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountHex` (6 tests) and `TestHasHex` (5 tests) to `tests/test_strings.py` covering all/mixed/none/empty cases, consistency between `count_hex` and `has_hex`, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree entry in `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings` OK, targeted doctests for `count_hex`/`has_hex`, `python -m unittest tests.test_public_api`, `python -m ruff check strings.py tests/test_strings.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added `count_ascii`/`has_ascii` companions to `strings.is_ascii`
 
 - Added `count_ascii(s) -> int` and `has_ascii(s) -> bool` to `strings.py` as the integer/boolean companions to `is_ascii`, closing the `is*`/`count_*`/`has_*` companion gap for the ASCII predicate. `count_ascii` returns the number of ASCII characters (any character whose Unicode code point is below 128) in *s* (empty input returns ``0``). `has_ascii` returns ``True`` when at least one ASCII character is present and ``False`` otherwise (empty input is ``False``), reusing `count_ascii` for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountAscii` (7 tests) and `TestHasAscii` (6 tests) to `tests/test_strings.py` covering all/mixed/none/empty/unicode cases, consistency between `count_ascii` and `has_ascii`, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings` OK, targeted doctests for `count_ascii`/`has_ascii`, `python -m unittest tests.test_public_api`, `python -m ruff check strings.py tests/test_strings.py` clean. No `.github/workflows/**` changes.
@@ -70783,7 +70906,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters (point_distance, midpoint, point_in_circle, point_in_rectangle)
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, has_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, count_alpha, has_alpha, is_alphanumeric, count_alphanumeric, count_ascii, has_alphanumeric, has_ascii, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, has_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, has_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, count_alpha, has_alpha, is_alphanumeric, count_alphanumeric, count_ascii, has_alphanumeric, has_ascii, is_binary, is_ascii, is_digit, is_hex, count_hex, has_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, has_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, is_coprime, lcm, is_prime, is_composite, is_square, clamp, is_even, combination, permutation)

@@ -18,6 +18,7 @@ from strings import (
     count_ascii,
     count_consonants,
     count_digits,
+    count_hex,
     count_letters,
     count_lowercase,
     count_occurrences,
@@ -40,6 +41,7 @@ from strings import (
     has_ascii,
     has_consonants,
     has_digits,
+    has_hex,
     has_letters,
     has_lowercase,
     has_occurrences,
@@ -1170,6 +1172,59 @@ class TestIsHex(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_hex(123)  # type: ignore[arg-type]
+
+
+class TestCountHex(unittest.TestCase):
+    def test_count_hex_all(self):
+        self.assertEqual(count_hex("1a2f"), 4)
+        self.assertEqual(count_hex("1A2F"), 4)
+        self.assertEqual(count_hex("deadbeef"), 8)
+        self.assertEqual(count_hex("DEADBEEF"), 8)
+
+    def test_count_hex_mixed(self):
+        self.assertEqual(count_hex("hello123"), 4)  # e, 1, 2, 3
+        self.assertEqual(count_hex("abcDEF"), 6)
+        self.assertEqual(count_hex("a1b2c3"), 6)
+        self.assertEqual(count_hex("1g3"), 2)
+
+    def test_count_hex_none(self):
+        self.assertEqual(count_hex("xyz"), 0)
+        self.assertEqual(count_hex("hello"), 1)  # 'e' is hex
+        self.assertEqual(count_hex("!@#"), 0)
+
+    def test_count_hex_empty(self):
+        self.assertEqual(count_hex(""), 0)
+
+    def test_consistency_with_has_hex(self):
+        for s in ("1a2f", "hello123", "xyz", "", "abcDEF"):
+            self.assertEqual(count_hex(s) > 0, has_hex(s))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_hex(123)  # type: ignore[arg-type]
+
+
+class TestHasHex(unittest.TestCase):
+    def test_has_hex_true(self):
+        self.assertTrue(has_hex("1a2f"))
+        self.assertTrue(has_hex("a1"))
+        self.assertTrue(has_hex("123"))
+        self.assertTrue(has_hex("ABC"))
+
+    def test_has_hex_false(self):
+        self.assertFalse(has_hex("xyz"))
+        self.assertFalse(has_hex("!@#"))
+
+    def test_has_hex_empty(self):
+        self.assertFalse(has_hex(""))
+
+    def test_consistency_with_count_hex(self):
+        for s in ("1a2f", "hello123", "xyz", "", "ABC"):
+            self.assertEqual(has_hex(s), count_hex(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_hex(123)  # type: ignore[arg-type]
 
 
 class TestIsBinary(unittest.TestCase):
