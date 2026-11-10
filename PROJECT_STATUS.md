@@ -1,5 +1,23 @@
 # Project Status
 
+## Latest Session (2026-11-10 19:08Z) — bootstrap; found and closed a real gap: `calculator.permutation` was untested
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` is refused because this session is the board root, so this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `56f8de7` (up to date with `origin/main`), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran the AST-based exported-but-untested scan across all 164 `__all__`-bearing modules (every module has a test file, so the scan focused on exports with no name reference inside their test file). Filtered out type vars, constants, and stdlib re-exports; surfaced one genuine functional gap: `calculator.permutation` (calculator.py:434) — a fully typed, validated, documented function exported in `__all__`, sibling `combination` fully tested, but `permutation` had zero test coverage.
+
+Completed in this session:
+- Verified repo health: `git status` clean, refresh scaffold in sync, `tests.test_public_api` OK.
+- Ran exported-but-untested scan; identified `calculator.permutation` as the single genuine, hermetic, convention-consistent gap.
+- Added `TestPermutation` to `tests/test_calculator.py` with 5 test methods (basic values incl. base cases `P(5,0)=1`, `P(5,5)=120`, `P(0,0)=1`; rejects non-int; rejects bool; rejects negative; rejects `k > n`) — mirroring the existing `TestCombination` convention.
+- Imported `permutation` into the test module's import block.
+- Refreshed embedded copy: `make refresh-scaffold` (refreshed `tests/test_calculator.py`); `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_public_api tests.test_calculator tests.test_scaffold_sync tests.test_refresh_scaffold tests.test_scaffold` — **170 tests, OK**; `python -m ruff check tests/test_calculator.py calculator.py` — All checks passed; `python -m mypy tests/test_calculator.py calculator.py` — Success, no issues.
+- No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). Re-run the AST exported-but-untested scan only if a new module is added; the `calculator.permutation` gap is now closed.
+- If another real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 19:05Z) — bootstrap; verified foundation solid, no new gap found
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` is refused because this session is the board root, so this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `19c8443` (up to date with `origin/main`), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, nothing changed since the last verified checkpoint (17:58Z). Reused the alias-aware exported-but-untested AST scan; flagged names in `code_utils`, `curses_utils`, `linecache_utils`, `ossaudiodev_utils`, `profile_utils`, `pydoc_utils`, `this_utils`, `traceback_utils` resolve to stdlib re-exports / thin pass-through wrappers / entry points already audited in prior sessions — no clean, hermetic, convention-consistent gap outside the audited candidates warrants a new public API or test-only change without risking noise.

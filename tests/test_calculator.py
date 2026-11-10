@@ -25,6 +25,7 @@ from calculator import (
     multiply,
     negate,
     percentage,
+    permutation,
     power,
     reciprocal,
     round_to,
@@ -586,6 +587,41 @@ class TestCombination(unittest.TestCase):
     def test_combination_rejects_k_greater_than_n(self):
         with self.assertRaises(ValueError):
             combination(2, 3)
+
+
+class TestPermutation(unittest.TestCase):
+    def test_permutation_basic(self):
+        self.assertEqual(permutation(5, 2), 20)
+        self.assertEqual(permutation(5, 0), 1)
+        self.assertEqual(permutation(5, 5), 120)
+        self.assertEqual(permutation(0, 0), 1)
+        self.assertEqual(permutation(10, 3), 720)
+        self.assertEqual(permutation(4, 1), 4)
+        self.assertEqual(permutation(6, 6), 720)
+
+    def test_permutation_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            permutation(5.0, 2)
+        with self.assertRaises(TypeError):
+            permutation(5, "2")
+        with self.assertRaises(TypeError):
+            permutation(None, 2)
+
+    def test_permutation_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            permutation(True, 2)
+        with self.assertRaises(TypeError):
+            permutation(5, False)
+
+    def test_permutation_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            permutation(-1, 2)
+        with self.assertRaises(ValueError):
+            permutation(5, -1)
+
+    def test_permutation_rejects_k_greater_than_n(self):
+        with self.assertRaises(ValueError):
+            permutation(2, 3)
 
 
 class TestIsPowerOfTwo(unittest.TestCase):
