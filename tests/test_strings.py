@@ -22,6 +22,7 @@ from strings import (
     count_letters,
     count_lowercase,
     count_occurrences,
+    count_printable,
     count_punctuation,
     count_uppercase,
     count_vowels,
@@ -45,6 +46,7 @@ from strings import (
     has_letters,
     has_lowercase,
     has_occurrences,
+    has_printable,
     has_punctuation,
     has_uppercase,
     has_vowels,
@@ -1225,6 +1227,59 @@ class TestHasHex(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             has_hex(123)  # type: ignore[arg-type]
+
+
+class TestCountPrintable(unittest.TestCase):
+    def test_count_printable_all(self):
+        self.assertEqual(count_printable("hello world!"), 12)
+        self.assertEqual(count_printable("Hello World!"), 12)
+        self.assertEqual(count_printable("abc123"), 6)
+
+    def test_count_printable_mixed(self):
+        self.assertEqual(count_printable("hello\tworld"), 10)
+        self.assertEqual(count_printable("abc\n"), 3)
+        self.assertEqual(count_printable("a b c"), 5)
+
+    def test_count_printable_none(self):
+        self.assertEqual(count_printable("\t\n"), 0)
+        self.assertEqual(count_printable("\r\f\v"), 0)
+
+    def test_count_printable_empty(self):
+        self.assertEqual(count_printable(""), 0)
+
+    def test_consistency_with_has_printable(self):
+        for s in ("hello world!", "hello\tworld", "\t\n", "", "abc123"):
+            self.assertEqual(count_printable(s) > 0, has_printable(s))
+
+    def test_count_printable_unicode(self):
+        self.assertEqual(count_printable("héllo"), 5)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_printable(123)  # type: ignore[arg-type]
+
+
+class TestHasPrintable(unittest.TestCase):
+    def test_has_printable_true(self):
+        self.assertTrue(has_printable("hello world!"))
+        self.assertTrue(has_printable("a"))
+        self.assertTrue(has_printable(" "))
+        self.assertTrue(has_printable("ABC123"))
+
+    def test_has_printable_false(self):
+        self.assertFalse(has_printable("\t\n"))
+        self.assertFalse(has_printable("\r\f\v"))
+
+    def test_has_printable_empty(self):
+        self.assertFalse(has_printable(""))
+
+    def test_consistency_with_count_printable(self):
+        for s in ("hello world!", "hello\tworld", "\t\n", "", "abc123"):
+            self.assertEqual(has_printable(s), count_printable(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_printable(123)  # type: ignore[arg-type]
 
 
 class TestIsBinary(unittest.TestCase):
