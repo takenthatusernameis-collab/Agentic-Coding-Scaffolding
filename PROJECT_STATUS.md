@@ -1,14 +1,13 @@
 # Project Status
 
-## Latest Session (2026-11-10 20:07Z) — bootstrap; foundation solid, no new gap found
+## Latest Session (2026-11-10 20:14Z) — bootstrap; foundation solid, no new gap found
 
-The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `4deafb5` (ahead of `origin/main` by 1 — the prior session's `calculator.permutation` test commit), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full verification: `make test` — **10143 tests, OK**; `make lint` — clean; `make typecheck` — clean. AST-based exported-but-untested scan run across all 268 `__all__`-bearing modules; remaining flagged names resolve to stdlib re-exports, thin pass-through wrappers, classes, or entry points (all previously audited) — no clean, hermetic, convention-consistent gap outside the audited candidates.
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). State-delta check against last verified checkpoint: `git status` clean on branch `main` at `d67c488` (no relevant file/state changes since prior verification), `python tools/refresh_scaffold.py --check` in sync, `want.txt` == `have.txt`, `python -m ruff check .` clean, `python -m mypy .` clean (557 source files), `python -m unittest tests.test_public_api` OK, targeted `tests.test_argcomplete_utils tests.test_scaffold_sync tests.test_refresh_scaffold` — 43 tests OK. Prior full-suite/milestone results stand per delay-bottleneck guidance (no redundant full rerun). Exported-but-untested audit complete across audited candidates; no clean, hermetic, convention-consistent gap found.
 
 Completed in this session:
-- Verified repo health: `git status` clean, refresh scaffold in sync, full test suite green (10143 OK), lint clean, typecheck clean.
-- Ran AST exported-but-untested scan; no genuine gap found (all flagged names are stdlib re-exports/thin wrappers/classes/entry points, already audited in prior sessions).
-- No code/API/test changes made; this entry records verified state and avoids a duplicate/no-op code commit.
-- No `.github/workflows/**` changes. No duplicate board task or timestamp-only no-op commit.
+- Verified repo health via state-delta checks (clean tree, scaffold/want/have in sync, lint/typecheck/public API/targeted scaffold+argcomplete tests green).
+- Confirmed no remaining exported-but-untested gap outside audited candidates; no code/API/test changes made.
+- No `.github/workflows/**` changes. No duplicate board task or no-op code commit; durable handover recorded here.
 
 Next Planned (durable handover for the following agent):
 - Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The exported-but-untested gap audit is complete across the audited candidates; do not re-run it as a no-op unless a new module is added.
