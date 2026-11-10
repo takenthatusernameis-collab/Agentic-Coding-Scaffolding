@@ -3910,18 +3910,18 @@ Next Planned (for the following agent):
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new/changed public API or meaningful bug fixes. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.
 
-## Latest Session (2026-11-10) — added keys_not_equal/values_not_equal to `dict_utils`
+## Latest Session (2026-11-10) — added is_not_subset/is_not_superset to `set_utils`
 
-**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Verified clean starting state (`git status` clean, `python tools/refresh_scaffold.py --check` in sync). Executed prior "Next Planned" by auditing `dict_utils.py`/`set_utils.py` for a focused, hermetic helper gap: `dict_utils` exposed `keys_equal`/`values_equal` but lacked boolean negation companions, while `set_utils` provides `is_equal`/`is_not_equal`.
+**Assigned task:** Board held no task (bootstrap continuation; only participant was this session). Verified clean starting state and `python tools/refresh_scaffold.py --check` in sync. Executed prior "Next Planned" by auditing `set_utils.py`/`bytes_utils.py` for a focused, hermetic helper gap: `set_utils` exposed `is_subset`/`is_superset` but lacked boolean negation companions, while the module already provides `is_equal`/`is_not_equal` and `is_disjoint`/`has_intersection`.
 
 **Changes:**
-- Added `keys_not_equal(d1, d2)` and `values_not_equal(d1, d2)` to `dict_utils.py` as negation companions to `keys_equal`/`values_equal`. Typed `Dict[Any, Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation consistent with existing helpers.
-- Added `TestKeysNotEqual` and `TestValuesNotEqual` (10 tests) to `tests/test_dict_utils.py` covering basic/empty cases, consistency with equality helpers, and `TypeError` paths.
-- Updated `README.md` (`dict_utils` tree/prose) and `CHANGELOG.md`. Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Added `is_not_subset(a, b)` and `is_not_superset(a, b)` to `set_utils.py` as negation companions to `is_subset`/`is_superset`. Typed `Iterable[Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation consistent with module guards.
+- Added `TestIsNotSubset` and `TestIsNotSuperset` (16 tests) to `tests/test_set_utils.py` covering basic/empty/equal/duplicate/string cases, consistency with positive predicates, and `TypeError` paths.
+- Updated `README.md` (`set_utils` tree/prose) and `CHANGELOG.md`. Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
-**Validation:** `python -m unittest tests.test_dict_utils` (163 OK), `python -m doctest dict_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check dict_utils.py tests/test_dict_utils.py` clean. No changes to `.github/workflows/**`.
+**Validation:** `python -m unittest tests.test_set_utils` (124 OK), `python -m doctest set_utils.py` (OK), `python -m unittest tests.test_public_api` (OK). No changes to `.github/workflows/**`.
 
 Next Planned (for the following agent):
-- Audit `set_utils.py` or `bytes_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing count/find/predicate/negation pair that complements existing helpers) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
+- Audit `bytes_utils.py` or `dict_utils.py` for a small, focused, hermetic helper gap consistent with existing API style (typed API, `__all__`, Google-style docstring with ASCII-safe doctests, `TypeError`/`ValueError` validation). Prefer a clear companion/helper (e.g. a missing count/find/predicate/negation pair that complements existing helpers) over broad refactors; avoid duplicating stdlib names unnecessarily and avoid no-op work if no clean gap exists.
 - Add targeted tests in the matching `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching files embedded in `scaffold.sh`, run `python tools/refresh_scaffold.py` and verify `python tools/refresh_scaffold.py --check`.
 - Run targeted `python -m unittest tests.test_<module>` + `tests.test_public_api` first; keep the full suite green at a coherent milestone where supported. No changes to `.github/workflows/**`. No no-op/timestamp-only commits.

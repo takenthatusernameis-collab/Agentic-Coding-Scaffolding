@@ -14,6 +14,8 @@ from set_utils import (
     is_disjoint,
     is_equal,
     is_not_equal,
+    is_not_subset,
+    is_not_superset,
     is_proper_subset,
     is_proper_superset,
     is_subset,
@@ -47,6 +49,84 @@ class TestIsSuperset(unittest.TestCase):
 
     def test_is_superset_equal(self) -> None:
         self.assertTrue(is_superset([1, 2], [1, 2]))
+
+
+class TestIsNotSubset(unittest.TestCase):
+    def test_not_subset_true(self) -> None:
+        self.assertTrue(is_not_subset([1, 4], [1, 2, 3]))
+
+    def test_not_subset_false_subset(self) -> None:
+        self.assertFalse(is_not_subset([1, 2], [1, 2, 3]))
+
+    def test_not_subset_equal(self) -> None:
+        self.assertFalse(is_not_subset([1, 2], [1, 2]))
+
+    def test_not_subset_empty(self) -> None:
+        self.assertFalse(is_not_subset([], [1, 2, 3]))
+
+    def test_not_subset_duplicates_ignored(self) -> None:
+        self.assertTrue(is_not_subset([1, 1, 4], [1, 2, 3]))
+        self.assertFalse(is_not_subset([1, 1, 2], [1, 2, 3]))
+
+    def test_not_subset_strings(self) -> None:
+        self.assertTrue(is_not_subset("ad", "abc"))
+        self.assertFalse(is_not_subset("ab", "abc"))
+
+    def test_not_subset_consistency_with_is_subset(self) -> None:
+        cases = [
+            ([1, 2], [1, 2, 3]),
+            ([1, 4], [1, 2, 3]),
+            ([1, 2], [1, 2]),
+            ([], [1, 2, 3]),
+            ("ab", "abc"),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_not_subset(a, b), not is_subset(a, b))
+
+    def test_not_subset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_not_subset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_subset([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotSuperset(unittest.TestCase):
+    def test_not_superset_true(self) -> None:
+        self.assertTrue(is_not_superset([1, 2], [2, 3]))
+
+    def test_not_superset_false_superset(self) -> None:
+        self.assertFalse(is_not_superset([1, 2, 3], [2]))
+
+    def test_not_superset_equal(self) -> None:
+        self.assertFalse(is_not_superset([1, 2], [1, 2]))
+
+    def test_not_superset_empty_subset(self) -> None:
+        self.assertFalse(is_not_superset([1, 2, 3], []))
+
+    def test_not_superset_duplicates_ignored(self) -> None:
+        self.assertTrue(is_not_superset([1, 1, 2], [2, 3]))
+        self.assertFalse(is_not_superset([1, 1, 2, 3], [2, 3]))
+
+    def test_not_superset_strings(self) -> None:
+        self.assertTrue(is_not_superset("ab", "bc"))
+        self.assertFalse(is_not_superset("abc", "ab"))
+
+    def test_not_superset_consistency_with_is_superset(self) -> None:
+        cases = [
+            ([1, 2, 3], [2]),
+            ([1, 2], [2, 3]),
+            ([1, 2], [1, 2]),
+            ([1, 2, 3], []),
+            ("abc", "ab"),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_not_superset(a, b), not is_superset(a, b))
+
+    def test_not_superset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_not_superset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_superset([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIsDisjoint(unittest.TestCase):

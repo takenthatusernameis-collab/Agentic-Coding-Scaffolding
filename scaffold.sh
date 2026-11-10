@@ -24388,6 +24388,8 @@ from set_utils import (
     is_disjoint,
     is_equal,
     is_not_equal,
+    is_not_subset,
+    is_not_superset,
     is_proper_subset,
     is_proper_superset,
     is_subset,
@@ -24421,6 +24423,84 @@ class TestIsSuperset(unittest.TestCase):
 
     def test_is_superset_equal(self) -> None:
         self.assertTrue(is_superset([1, 2], [1, 2]))
+
+
+class TestIsNotSubset(unittest.TestCase):
+    def test_not_subset_true(self) -> None:
+        self.assertTrue(is_not_subset([1, 4], [1, 2, 3]))
+
+    def test_not_subset_false_subset(self) -> None:
+        self.assertFalse(is_not_subset([1, 2], [1, 2, 3]))
+
+    def test_not_subset_equal(self) -> None:
+        self.assertFalse(is_not_subset([1, 2], [1, 2]))
+
+    def test_not_subset_empty(self) -> None:
+        self.assertFalse(is_not_subset([], [1, 2, 3]))
+
+    def test_not_subset_duplicates_ignored(self) -> None:
+        self.assertTrue(is_not_subset([1, 1, 4], [1, 2, 3]))
+        self.assertFalse(is_not_subset([1, 1, 2], [1, 2, 3]))
+
+    def test_not_subset_strings(self) -> None:
+        self.assertTrue(is_not_subset("ad", "abc"))
+        self.assertFalse(is_not_subset("ab", "abc"))
+
+    def test_not_subset_consistency_with_is_subset(self) -> None:
+        cases = [
+            ([1, 2], [1, 2, 3]),
+            ([1, 4], [1, 2, 3]),
+            ([1, 2], [1, 2]),
+            ([], [1, 2, 3]),
+            ("ab", "abc"),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_not_subset(a, b), not is_subset(a, b))
+
+    def test_not_subset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_not_subset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_subset([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotSuperset(unittest.TestCase):
+    def test_not_superset_true(self) -> None:
+        self.assertTrue(is_not_superset([1, 2], [2, 3]))
+
+    def test_not_superset_false_superset(self) -> None:
+        self.assertFalse(is_not_superset([1, 2, 3], [2]))
+
+    def test_not_superset_equal(self) -> None:
+        self.assertFalse(is_not_superset([1, 2], [1, 2]))
+
+    def test_not_superset_empty_subset(self) -> None:
+        self.assertFalse(is_not_superset([1, 2, 3], []))
+
+    def test_not_superset_duplicates_ignored(self) -> None:
+        self.assertTrue(is_not_superset([1, 1, 2], [2, 3]))
+        self.assertFalse(is_not_superset([1, 1, 2, 3], [2, 3]))
+
+    def test_not_superset_strings(self) -> None:
+        self.assertTrue(is_not_superset("ab", "bc"))
+        self.assertFalse(is_not_superset("abc", "ab"))
+
+    def test_not_superset_consistency_with_is_superset(self) -> None:
+        cases = [
+            ([1, 2, 3], [2]),
+            ([1, 2], [2, 3]),
+            ([1, 2], [1, 2]),
+            ([1, 2, 3], []),
+            ("abc", "ab"),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_not_superset(a, b), not is_superset(a, b))
+
+    def test_not_superset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_not_superset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_superset([1, 2], 123)  # type: ignore[arg-type]
 
 
 class TestIsDisjoint(unittest.TestCase):
@@ -39337,6 +39417,8 @@ __all__ = [
     "is_disjoint",
     "is_equal",
     "is_not_equal",
+    "is_not_subset",
+    "is_not_superset",
     "is_proper_subset",
     "is_proper_superset",
     "is_subset",
@@ -39387,6 +39469,32 @@ def is_subset(a: Iterable[Any], b: Iterable[Any]) -> bool:
     return _to_set(a).issubset(_to_set(b))
 
 
+def is_not_subset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` contains any element not present in ``b``.
+
+    This is the boolean companion to :func:`is_subset`.
+
+    Args:
+        a: Candidate subset iterable.
+        b: Superset iterable.
+
+    Returns:
+        ``True`` when ``a`` is not a subset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_not_subset([1, 4], [1, 2, 3])
+        True
+        >>> is_not_subset([1, 2], [1, 2, 3])
+        False
+        >>> is_not_subset([], [1, 2])
+        False
+    """
+    return not is_subset(a, b)
+
+
 def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
     """Check whether ``a`` contains every element of ``b``.
 
@@ -39407,6 +39515,32 @@ def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return _to_set(a).issuperset(_to_set(b))
+
+
+def is_not_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` is missing any element present in ``b``.
+
+    This is the boolean companion to :func:`is_superset`.
+
+    Args:
+        a: Candidate superset iterable.
+        b: Subset iterable.
+
+    Returns:
+        ``True`` when ``a`` is not a superset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_not_superset([1, 2], [2, 3])
+        True
+        >>> is_not_superset([1, 2, 3], [2])
+        False
+        >>> is_not_superset([1, 2], [])
+        False
+    """
+    return not is_superset(a, b)
 
 
 def has_intersection(a: Iterable[Any], b: Iterable[Any]) -> bool:
@@ -70317,6 +70451,13 @@ Next Planned (posted for the following agent):
 - `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
 - `tests/test_dict_utils.py`: added mutation-safety and type-error coverage for `deep_merge`. Verification: `python -m unittest tests.test_dict_utils` (122 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
+## Unreleased — set_utils is_not_subset/is_not_superset companions
+
+- Added `is_not_subset(a, b)` and `is_not_superset(a, b)` to `set_utils.py` as boolean companions to `is_subset`/`is_superset` (negation predicates consistent with existing `is_equal`/`is_not_equal` and `is_disjoint`/`has_intersection` pairs). Typed `Iterable[Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation via existing iterable guards.
+- Added `TestIsNotSubset` and `TestIsNotSuperset` to `tests/test_set_utils.py` covering basic/empty/equal/duplicate/consistency-with-positive-predicate and `TypeError` cases.
+- Updated `README.md` (`set_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Validation: `python -m unittest tests.test_set_utils` (OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
+
 ## Unreleased — set_utils `is_not_equal` companion
 
 - Added `is_not_equal(a, b)` to `set_utils.py` as the boolean companion to `is_equal`, returning `True` when two iterables do not represent the same set (order/duplicates/type ignored). Typed `Iterable[Any] -> bool` API, `__all__` export, Google-style docstring with ASCII-safe doctests, and `TypeError` validation consistent with module conventions.
@@ -70460,7 +70601,7 @@ dict_utils.py            # Dictionary utilities (deep merge, shallow merge, flat
 json_utils.py            # JSON utility functions (read/write/parse/dump/validate)
 collections_utils.py     # Collection utilities (chunk, flatten, frequency, merge_dicts, uniq, and more)
 csv_utils.py             # CSV utility functions (read/write/append as dicts or lists)
-set_utils.py             # Set operation utilities (subset, superset, proper_subset, proper_superset, disjoint, has_intersection, is_equal, intersection, count_intersection, union, count_union, difference, count_difference, symmetric_difference, count_symmetric_difference, cartesian_product, power_set)
+set_utils.py             # Set operation utilities (subset, not_subset, superset, not_superset, proper_subset, proper_superset, disjoint, has_intersection, is_equal, is_not_equal, intersection, count_intersection, union, count_union, difference, count_difference, symmetric_difference, count_symmetric_difference, cartesian_product, power_set)
 
 stat_utils.py        # Stat file type/mode utilities wrapping stdlib stat
 statistics_utils.py        # Statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
@@ -71158,7 +71299,7 @@ The project includes a CSV utilities module in `csv_utils.py` with functions for
 
 ## Set Utilities Module
 
-The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `is_not_equal`, `intersection`, `count_intersection`, `union`, `count_union`, `difference`, `count_difference`, `symmetric_difference`, `count_symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
+The project includes a set operation utilities module in `set_utils.py` with functions for common set-theoretic and combinatorial operations: `is_subset`, `is_not_subset`, `is_superset`, `is_not_superset`, `is_proper_subset`, `is_proper_superset`, `is_disjoint`, `has_intersection`, `is_equal`, `is_not_equal`, `intersection`, `count_intersection`, `union`, `count_union`, `difference`, `count_difference`, `symmetric_difference`, `count_symmetric_difference`, `cartesian_product`, and `power_set`. The module is tested in `tests/test_set_utils.py`.
 
 ## Stat Utilities Module
 

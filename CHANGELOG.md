@@ -2627,6 +2627,13 @@ Next Planned (posted for the following agent):
 - `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
 - `tests/test_dict_utils.py`: added mutation-safety and type-error coverage for `deep_merge`. Verification: `python -m unittest tests.test_dict_utils` (122 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
+## Unreleased — set_utils is_not_subset/is_not_superset companions
+
+- Added `is_not_subset(a, b)` and `is_not_superset(a, b)` to `set_utils.py` as boolean companions to `is_subset`/`is_superset` (negation predicates consistent with existing `is_equal`/`is_not_equal` and `is_disjoint`/`has_intersection` pairs). Typed `Iterable[Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation via existing iterable guards.
+- Added `TestIsNotSubset` and `TestIsNotSuperset` to `tests/test_set_utils.py` covering basic/empty/equal/duplicate/consistency-with-positive-predicate and `TypeError` cases.
+- Updated `README.md` (`set_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Validation: `python -m unittest tests.test_set_utils` (OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
+
 ## Unreleased — set_utils `is_not_equal` companion
 
 - Added `is_not_equal(a, b)` to `set_utils.py` as the boolean companion to `is_equal`, returning `True` when two iterables do not represent the same set (order/duplicates/type ignored). Typed `Iterable[Any] -> bool` API, `__all__` export, Google-style docstring with ASCII-safe doctests, and `TypeError` validation consistent with module conventions.

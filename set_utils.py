@@ -17,6 +17,8 @@ __all__ = [
     "is_disjoint",
     "is_equal",
     "is_not_equal",
+    "is_not_subset",
+    "is_not_superset",
     "is_proper_subset",
     "is_proper_superset",
     "is_subset",
@@ -67,6 +69,32 @@ def is_subset(a: Iterable[Any], b: Iterable[Any]) -> bool:
     return _to_set(a).issubset(_to_set(b))
 
 
+def is_not_subset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` contains any element not present in ``b``.
+
+    This is the boolean companion to :func:`is_subset`.
+
+    Args:
+        a: Candidate subset iterable.
+        b: Superset iterable.
+
+    Returns:
+        ``True`` when ``a`` is not a subset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_not_subset([1, 4], [1, 2, 3])
+        True
+        >>> is_not_subset([1, 2], [1, 2, 3])
+        False
+        >>> is_not_subset([], [1, 2])
+        False
+    """
+    return not is_subset(a, b)
+
+
 def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
     """Check whether ``a`` contains every element of ``b``.
 
@@ -87,6 +115,32 @@ def is_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
         False
     """
     return _to_set(a).issuperset(_to_set(b))
+
+
+def is_not_superset(a: Iterable[Any], b: Iterable[Any]) -> bool:
+    """Check whether ``a`` is missing any element present in ``b``.
+
+    This is the boolean companion to :func:`is_superset`.
+
+    Args:
+        a: Candidate superset iterable.
+        b: Subset iterable.
+
+    Returns:
+        ``True`` when ``a`` is not a superset of ``b``, otherwise ``False``.
+
+    Raises:
+        TypeError: If ``a`` or ``b`` is not iterable.
+
+    Examples:
+        >>> is_not_superset([1, 2], [2, 3])
+        True
+        >>> is_not_superset([1, 2, 3], [2])
+        False
+        >>> is_not_superset([1, 2], [])
+        False
+    """
+    return not is_superset(a, b)
 
 
 def has_intersection(a: Iterable[Any], b: Iterable[Any]) -> bool:
