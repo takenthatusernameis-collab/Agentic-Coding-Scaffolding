@@ -53,6 +53,8 @@ __all__: List[str] = [
     "count_alpha",
     "has_alpha",
     "is_alphanumeric",
+    "count_alphanumeric",
+    "has_alphanumeric",
     "is_binary",
     "is_octal",
     "is_digit",
@@ -1149,6 +1151,70 @@ def is_alphanumeric(s: str) -> bool:
     if not s:
         return False
     return all(ch.isalnum() for ch in s)
+
+
+def count_alphanumeric(s: str) -> int:
+    """Return the number of alphanumeric characters in *s*.
+
+    An alphanumeric character is any character that passes
+    :meth:`str.isalnum` (letters or digits). Empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of alphanumeric characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_alphanumeric("hello123")
+        9
+        >>> count_alphanumeric("HelloWorld")
+        10
+        >>> count_alphanumeric("hello world")
+        10
+        >>> count_alphanumeric("123")
+        3
+        >>> count_alphanumeric("hello!")
+        5
+        >>> count_alphanumeric("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isalnum())
+
+
+def has_alphanumeric(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one alphanumeric character.
+
+    This is the boolean companion to :func:`count_alphanumeric`. It returns
+    ``True`` when at least one character is alphanumeric (a letter or digit)
+    and ``False`` otherwise (empty input is ``False``), reusing
+    :func:`count_alphanumeric` for consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains an alphanumeric character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_alphanumeric("hello123")
+        True
+        >>> has_alphanumeric("!!!")
+        False
+        >>> has_alphanumeric("")
+        False
+        >>> has_alphanumeric("héllo123")
+        True
+    """
+    _require_string(s, "s")
+    return count_alphanumeric(s) > 0
 
 
 def is_ascii(s: str) -> bool:

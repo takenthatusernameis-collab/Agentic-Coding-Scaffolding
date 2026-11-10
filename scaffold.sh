@@ -13141,6 +13141,8 @@ __all__: List[str] = [
     "count_alpha",
     "has_alpha",
     "is_alphanumeric",
+    "count_alphanumeric",
+    "has_alphanumeric",
     "is_binary",
     "is_octal",
     "is_digit",
@@ -14237,6 +14239,70 @@ def is_alphanumeric(s: str) -> bool:
     if not s:
         return False
     return all(ch.isalnum() for ch in s)
+
+
+def count_alphanumeric(s: str) -> int:
+    """Return the number of alphanumeric characters in *s*.
+
+    An alphanumeric character is any character that passes
+    :meth:`str.isalnum` (letters or digits). Empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of alphanumeric characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_alphanumeric("hello123")
+        9
+        >>> count_alphanumeric("HelloWorld")
+        10
+        >>> count_alphanumeric("hello world")
+        10
+        >>> count_alphanumeric("123")
+        3
+        >>> count_alphanumeric("hello!")
+        5
+        >>> count_alphanumeric("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isalnum())
+
+
+def has_alphanumeric(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one alphanumeric character.
+
+    This is the boolean companion to :func:`count_alphanumeric`. It returns
+    ``True`` when at least one character is alphanumeric (a letter or digit)
+    and ``False`` otherwise (empty input is ``False``), reusing
+    :func:`count_alphanumeric` for consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains an alphanumeric character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_alphanumeric("hello123")
+        True
+        >>> has_alphanumeric("!!!")
+        False
+        >>> has_alphanumeric("")
+        False
+        >>> has_alphanumeric("héllo123")
+        True
+    """
+    _require_string(s, "s")
+    return count_alphanumeric(s) > 0
 
 
 def is_ascii(s: str) -> bool:
@@ -17980,6 +18046,7 @@ from strings import (
     contains_all,
     contains_any,
     count_alpha,
+    count_alphanumeric,
     count_consonants,
     count_digits,
     count_letters,
@@ -18000,6 +18067,7 @@ from strings import (
     find,
     first_n,
     has_alpha,
+    has_alphanumeric,
     has_consonants,
     has_digits,
     has_letters,
@@ -18971,6 +19039,56 @@ class TestIsAlphanumeric(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_alphanumeric(123)  # type: ignore[arg-type]
+
+
+class TestCountAlphanumeric(unittest.TestCase):
+    def test_alphanumeric_all(self):
+        self.assertEqual(count_alphanumeric("hello123"), 8)
+        self.assertEqual(count_alphanumeric("HelloWorld"), 10)
+
+    def test_alphanumeric_mixed(self):
+        self.assertEqual(count_alphanumeric("hello world"), 10)
+        self.assertEqual(count_alphanumeric("a1b2 c3!"), 6)
+
+    def test_alphanumeric_none(self):
+        self.assertEqual(count_alphanumeric("!@#"), 0)
+        self.assertEqual(count_alphanumeric("   "), 0)
+
+    def test_alphanumeric_empty(self):
+        self.assertEqual(count_alphanumeric(""), 0)
+
+    def test_alphanumeric_unicode(self):
+        self.assertEqual(count_alphanumeric("héllo123"), 8)
+
+    def test_consistency_with_has_alphanumeric(self):
+        for s in ("hello123", "HelloWorld", "hello world", "123", "!@#", "", " "):
+            self.assertEqual(count_alphanumeric(s) > 0, has_alphanumeric(s))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_alphanumeric(123)  # type: ignore[arg-type]
+
+
+class TestHasAlphanumeric(unittest.TestCase):
+    def test_has_alphanumeric_true(self):
+        self.assertTrue(has_alphanumeric("hello123"))
+        self.assertTrue(has_alphanumeric("a1"))
+        self.assertTrue(has_alphanumeric("123"))
+
+    def test_has_alphanumeric_false(self):
+        self.assertFalse(has_alphanumeric("!@#"))
+        self.assertFalse(has_alphanumeric("   "))
+
+    def test_has_alphanumeric_empty(self):
+        self.assertFalse(has_alphanumeric(""))
+
+    def test_consistency_with_count_alphanumeric(self):
+        for s in ("hello123", "HelloWorld", "hello world", "123", "!@#", "", " "):
+            self.assertEqual(has_alphanumeric(s), count_alphanumeric(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_alphanumeric(123)  # type: ignore[arg-type]
 
 
 class TestIsDigit(unittest.TestCase):
@@ -67822,6 +67940,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added `count_alphanumeric`/`has_alphanumeric` companions to `strings.is_alphanumeric`
+
+- Added `count_alphanumeric(s) -> int` and `has_alphanumeric(s) -> bool` to `strings.py` as the integer/boolean companions to `is_alphanumeric`, closing the same `is*`/`count_*`/`has_*` companion gap that `count_alpha`/`has_alpha` closed for `is_alpha` and that `bytes_utils` closed for `isalnum`/`count_alnum`/`has_alnum`. `count_alphanumeric` returns the number of alphanumeric characters (any character that passes :meth:`str.isalnum`) in *s* (empty input returns ``0``). `has_alphanumeric` returns ``True`` when at least one alphanumeric character is present and ``False`` otherwise (empty input is ``False``), reusing `count_alphanumeric` for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountAlphanumeric` (7 tests) and `TestHasAlphanumeric` (5 tests) to `tests/test_strings.py` covering all/mixed/none/empty/unicode cases, consistency between `count_alphanumeric` and `has_alphanumeric`, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree entry and prose section of `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings` (536 OK), targeted doctests for `count_alphanumeric`/`has_alphanumeric`, `python -m unittest tests.test_public_api`, `python -m ruff check strings.py tests/test_strings.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added keys_not_equal/values_not_equal companions to `dict_utils`
 
 - Added `keys_not_equal(d1, d2)` and `values_not_equal(d1, d2)` to `dict_utils.py` as boolean negation companions to `keys_equal`/`values_equal`, matching the `set_utils.is_equal`/`is_not_equal` pattern. Typed `Dict[Any, Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation consistent with the existing equality helpers (delegated). Added `TestKeysNotEqual` and `TestValuesNotEqual` (10 tests) to `tests/test_dict_utils.py` covering basic cases, empty inputs, consistency with `keys_equal`/`values_equal`, and `TypeError` paths. Updated `README.md` (`dict_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_dict_utils -q`, `python -m doctest dict_utils.py -q`, `python -m unittest tests.test_public_api -q`, `python -m ruff check dict_utils.py tests/test_dict_utils.py` clean. No `.github/workflows/**` changes.
@@ -70537,7 +70659,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters (point_distance, midpoint, point_in_circle, point_in_rectangle)
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, has_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, count_alpha, has_alpha, is_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, has_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, has_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, count_alpha, has_alpha, is_alphanumeric, count_alphanumeric, has_alphanumeric, is_binary, is_ascii, is_digit, is_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, has_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, is_coprime, lcm, is_prime, is_composite, is_square, clamp, is_even, combination, permutation)

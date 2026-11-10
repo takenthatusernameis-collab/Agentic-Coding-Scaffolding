@@ -14,6 +14,7 @@ from strings import (
     contains_all,
     contains_any,
     count_alpha,
+    count_alphanumeric,
     count_consonants,
     count_digits,
     count_letters,
@@ -34,6 +35,7 @@ from strings import (
     find,
     first_n,
     has_alpha,
+    has_alphanumeric,
     has_consonants,
     has_digits,
     has_letters,
@@ -1005,6 +1007,56 @@ class TestIsAlphanumeric(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_alphanumeric(123)  # type: ignore[arg-type]
+
+
+class TestCountAlphanumeric(unittest.TestCase):
+    def test_alphanumeric_all(self):
+        self.assertEqual(count_alphanumeric("hello123"), 8)
+        self.assertEqual(count_alphanumeric("HelloWorld"), 10)
+
+    def test_alphanumeric_mixed(self):
+        self.assertEqual(count_alphanumeric("hello world"), 10)
+        self.assertEqual(count_alphanumeric("a1b2 c3!"), 6)
+
+    def test_alphanumeric_none(self):
+        self.assertEqual(count_alphanumeric("!@#"), 0)
+        self.assertEqual(count_alphanumeric("   "), 0)
+
+    def test_alphanumeric_empty(self):
+        self.assertEqual(count_alphanumeric(""), 0)
+
+    def test_alphanumeric_unicode(self):
+        self.assertEqual(count_alphanumeric("héllo123"), 8)
+
+    def test_consistency_with_has_alphanumeric(self):
+        for s in ("hello123", "HelloWorld", "hello world", "123", "!@#", "", " "):
+            self.assertEqual(count_alphanumeric(s) > 0, has_alphanumeric(s))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_alphanumeric(123)  # type: ignore[arg-type]
+
+
+class TestHasAlphanumeric(unittest.TestCase):
+    def test_has_alphanumeric_true(self):
+        self.assertTrue(has_alphanumeric("hello123"))
+        self.assertTrue(has_alphanumeric("a1"))
+        self.assertTrue(has_alphanumeric("123"))
+
+    def test_has_alphanumeric_false(self):
+        self.assertFalse(has_alphanumeric("!@#"))
+        self.assertFalse(has_alphanumeric("   "))
+
+    def test_has_alphanumeric_empty(self):
+        self.assertFalse(has_alphanumeric(""))
+
+    def test_consistency_with_count_alphanumeric(self):
+        for s in ("hello123", "HelloWorld", "hello world", "123", "!@#", "", " "):
+            self.assertEqual(has_alphanumeric(s), count_alphanumeric(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_alphanumeric(123)  # type: ignore[arg-type]
 
 
 class TestIsDigit(unittest.TestCase):
