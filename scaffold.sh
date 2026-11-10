@@ -159467,12 +159467,21 @@ from __future__ import annotations
 import sys
 from typing import Any
 
+# These are set at runtime; mypy will see them as Any due to the conditional import
+argcomplete: Any = None
+ChoicesCompleter: Any = None
+FilesCompleter: Any = None
+
 try:
-    import argcomplete
-    from argcomplete.completers import ChoicesCompleter
+    import argcomplete as _argcomplete
+    from argcomplete.completers import ChoicesCompleter as _ChoicesCompleter
+    from argcomplete.completers import FilesCompleter as _FilesCompleter
+
+    argcomplete = _argcomplete
+    ChoicesCompleter = _ChoicesCompleter
+    FilesCompleter = _FilesCompleter
 except ImportError:  # pragma: no cover - optional dependency
-    argcomplete = None  # type: ignore[assignment]
-    ChoicesCompleter = None  # type: ignore[assignment]
+    pass
 
 
 def _check_argcomplete_available() -> None:
@@ -159490,9 +159499,9 @@ def is_available() -> bool:
 
 def autocomplete(
     parser: Any,
-    always_complete_options: bool = True,
+    always_complete_options: bool | str = True,
     exit_method: Any = sys.exit,
-    print_errors: bool = True,
+    print_suppressed: bool = False,
 ) -> None:
     """Enable shell tab completion for an argparse parser.
 
@@ -159500,7 +159509,7 @@ def autocomplete(
         parser: An argparse.ArgumentParser instance.
         always_complete_options: Complete options even when the cursor is not at the start.
         exit_method: Callable to exit after completion (default: sys.exit).
-        print_errors: Print errors to stderr.
+        print_suppressed: Print suppressed options to stderr.
 
     Raises:
         ImportError: If argcomplete is not installed.
@@ -159516,41 +159525,41 @@ def autocomplete(
         parser,
         always_complete_options=always_complete_options,
         exit_method=exit_method,
-        print_errors=print_errors,
+        print_suppressed=print_suppressed,
     )
 
 
-def get_completer(choices: list[str] | tuple[str, ...]) -> Any:
+def get_completer(choices: dict[str, str]) -> Any:
     """Create a choices completer for static options.
 
     Args:
-        choices: List or tuple of string choices to complete.
+        choices: Mapping of string choices to their completions.
 
     Returns:
         A ChoicesCompleter instance.
 
     Raises:
         ImportError: If argcomplete is not installed.
-        TypeError: If choices is not a list or tuple of strings.
+        TypeError: If choices is not a dict of strings.
     """
     _check_argcomplete_available()
-    if not isinstance(choices, (list, tuple)):
-        raise TypeError(f"choices must be list or tuple, got {type(choices).__name__}")
-    if not all(isinstance(c, str) for c in choices):
-        raise TypeError("all choices must be strings")
+    if not isinstance(choices, dict):
+        raise TypeError(f"choices must be dict, got {type(choices).__name__}")
+    if not all(isinstance(k, str) and isinstance(v, str) for k, v in choices.items()):
+        raise TypeError("all choices keys and values must be strings")
 
     return ChoicesCompleter(choices)
 
 
 def get_files_completer(
+    allowednames: list[str] | tuple[str, ...] = (),
     directories: bool = True,
-    filter_func: Any = None,
 ) -> Any:
     """Create a file system completer.
 
     Args:
+        allowednames: Allowed file names or extensions.
         directories: Include directories in completions.
-        filter_func: Optional callable to filter completions.
 
     Returns:
         A completer function.
@@ -159559,9 +159568,8 @@ def get_files_completer(
         ImportError: If argcomplete is not installed.
     """
     _check_argcomplete_available()
-    from argcomplete.completers import FilesCompleter
 
-    return FilesCompleter(directories=directories, filter_func=filter_func)
+    return FilesCompleter(allowednames=allowednames, directories=directories)
 
 
 __all__ = [
@@ -159587,7 +159595,7 @@ import pytest
 try:
     import argcomplete_utils
 except ImportError:
-    argcomplete_utils = None
+    argcomplete_utils = None  # type: ignore[assignment]
 
 
 class TestAvailability:
@@ -159653,7 +159661,7 @@ class TestAutocomplete:
         argcomplete_utils.autocomplete(parser, always_complete_options=False)
 
         mock_autocomplete.assert_called_once_with(
-            parser, always_complete_options=False, exit_method=sys.exit, print_errors=True
+            parser, always_complete_options=False, exit_method=sys.exit, print_suppressed=False
         )
 
 
@@ -159666,23 +159674,23 @@ class TestGetCompleter:
             pytest.skip("argcomplete is available")
 
         with pytest.raises(ImportError, match="argcomplete is not installed"):
-            argcomplete_utils.get_completer(["a", "b"])
+            argcomplete_utils.get_completer({"a": "a", "b": "b"})
 
-    def test_get_completer_raises_type_error_for_non_list_tuple(self):
-        """get_completer should raise TypeError for non-list/tuple choices."""
+    def test_get_completer_raises_type_error_for_non_dict(self):
+        """get_completer should raise TypeError for non-dict choices."""
         if not argcomplete_utils.is_available():
             pytest.skip("argcomplete not available")
 
-        with pytest.raises(TypeError, match="choices must be list or tuple"):
-            argcomplete_utils.get_completer("not a list")
+        with pytest.raises(TypeError, match="choices must be dict"):
+            argcomplete_utils.get_completer("not a dict")
 
     def test_get_completer_raises_type_error_for_non_string_choices(self):
         """get_completer should raise TypeError for non-string choices."""
         if not argcomplete_utils.is_available():
             pytest.skip("argcomplete not available")
 
-        with pytest.raises(TypeError, match="all choices must be strings"):
-            argcomplete_utils.get_completer(["a", 1])
+        with pytest.raises(TypeError, match="all choices keys and values must be strings"):
+            argcomplete_utils.get_completer({"a": 1})
 
     @patch("argcomplete_utils.ChoicesCompleter")
     def test_get_completer_returns_completer(self, mock_choices_completer):
@@ -159693,9 +159701,9 @@ class TestGetCompleter:
         mock_instance = MagicMock()
         mock_choices_completer.return_value = mock_instance
 
-        result = argcomplete_utils.get_completer(["option1", "option2"])
+        result = argcomplete_utils.get_completer({"option1": "option1", "option2": "option2"})
 
-        mock_choices_completer.assert_called_once_with(["option1", "option2"])
+        mock_choices_completer.assert_called_once_with({"option1": "option1", "option2": "option2"})
         assert result is mock_instance
 
 
@@ -159721,7 +159729,7 @@ class TestGetFilesCompleter:
 
         result = argcomplete_utils.get_files_completer(directories=False)
 
-        mock_files_completer.assert_called_once_with(directories=False, filter_func=None)
+        mock_files_completer.assert_called_once_with(allowednames=(), directories=False)
         assert result is mock_instance
 
 

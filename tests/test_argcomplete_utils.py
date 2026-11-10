@@ -11,7 +11,7 @@ import pytest
 try:
     import argcomplete_utils
 except ImportError:
-    argcomplete_utils = None
+    argcomplete_utils = None  # type: ignore[assignment]
 
 
 class TestAvailability:
@@ -77,7 +77,7 @@ class TestAutocomplete:
         argcomplete_utils.autocomplete(parser, always_complete_options=False)
 
         mock_autocomplete.assert_called_once_with(
-            parser, always_complete_options=False, exit_method=sys.exit, print_errors=True
+            parser, always_complete_options=False, exit_method=sys.exit, print_suppressed=False
         )
 
 
@@ -90,23 +90,23 @@ class TestGetCompleter:
             pytest.skip("argcomplete is available")
 
         with pytest.raises(ImportError, match="argcomplete is not installed"):
-            argcomplete_utils.get_completer(["a", "b"])
+            argcomplete_utils.get_completer({"a": "a", "b": "b"})
 
-    def test_get_completer_raises_type_error_for_non_list_tuple(self):
-        """get_completer should raise TypeError for non-list/tuple choices."""
+    def test_get_completer_raises_type_error_for_non_dict(self):
+        """get_completer should raise TypeError for non-dict choices."""
         if not argcomplete_utils.is_available():
             pytest.skip("argcomplete not available")
 
-        with pytest.raises(TypeError, match="choices must be list or tuple"):
-            argcomplete_utils.get_completer("not a list")
+        with pytest.raises(TypeError, match="choices must be dict"):
+            argcomplete_utils.get_completer("not a dict")
 
     def test_get_completer_raises_type_error_for_non_string_choices(self):
         """get_completer should raise TypeError for non-string choices."""
         if not argcomplete_utils.is_available():
             pytest.skip("argcomplete not available")
 
-        with pytest.raises(TypeError, match="all choices must be strings"):
-            argcomplete_utils.get_completer(["a", 1])
+        with pytest.raises(TypeError, match="all choices keys and values must be strings"):
+            argcomplete_utils.get_completer({"a": 1})
 
     @patch("argcomplete_utils.ChoicesCompleter")
     def test_get_completer_returns_completer(self, mock_choices_completer):
@@ -117,9 +117,9 @@ class TestGetCompleter:
         mock_instance = MagicMock()
         mock_choices_completer.return_value = mock_instance
 
-        result = argcomplete_utils.get_completer(["option1", "option2"])
+        result = argcomplete_utils.get_completer({"option1": "option1", "option2": "option2"})
 
-        mock_choices_completer.assert_called_once_with(["option1", "option2"])
+        mock_choices_completer.assert_called_once_with({"option1": "option1", "option2": "option2"})
         assert result is mock_instance
 
 
@@ -145,7 +145,7 @@ class TestGetFilesCompleter:
 
         result = argcomplete_utils.get_files_completer(directories=False)
 
-        mock_files_completer.assert_called_once_with(directories=False, filter_func=None)
+        mock_files_completer.assert_called_once_with(allowednames=(), directories=False)
         assert result is mock_instance
 
 

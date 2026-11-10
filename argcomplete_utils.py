@@ -8,12 +8,21 @@ from __future__ import annotations
 import sys
 from typing import Any
 
+# These are set at runtime; mypy will see them as Any due to the conditional import
+argcomplete: Any = None
+ChoicesCompleter: Any = None
+FilesCompleter: Any = None
+
 try:
-    import argcomplete
-    from argcomplete.completers import ChoicesCompleter
+    import argcomplete as _argcomplete
+    from argcomplete.completers import ChoicesCompleter as _ChoicesCompleter
+    from argcomplete.completers import FilesCompleter as _FilesCompleter
+
+    argcomplete = _argcomplete
+    ChoicesCompleter = _ChoicesCompleter
+    FilesCompleter = _FilesCompleter
 except ImportError:  # pragma: no cover - optional dependency
-    argcomplete = None  # type: ignore[assignment]
-    ChoicesCompleter = None  # type: ignore[assignment]
+    pass
 
 
 def _check_argcomplete_available() -> None:
@@ -31,9 +40,9 @@ def is_available() -> bool:
 
 def autocomplete(
     parser: Any,
-    always_complete_options: bool = True,
+    always_complete_options: bool | str = True,
     exit_method: Any = sys.exit,
-    print_errors: bool = True,
+    print_suppressed: bool = False,
 ) -> None:
     """Enable shell tab completion for an argparse parser.
 
@@ -41,7 +50,7 @@ def autocomplete(
         parser: An argparse.ArgumentParser instance.
         always_complete_options: Complete options even when the cursor is not at the start.
         exit_method: Callable to exit after completion (default: sys.exit).
-        print_errors: Print errors to stderr.
+        print_suppressed: Print suppressed options to stderr.
 
     Raises:
         ImportError: If argcomplete is not installed.
@@ -57,41 +66,41 @@ def autocomplete(
         parser,
         always_complete_options=always_complete_options,
         exit_method=exit_method,
-        print_errors=print_errors,
+        print_suppressed=print_suppressed,
     )
 
 
-def get_completer(choices: list[str] | tuple[str, ...]) -> Any:
+def get_completer(choices: dict[str, str]) -> Any:
     """Create a choices completer for static options.
 
     Args:
-        choices: List or tuple of string choices to complete.
+        choices: Mapping of string choices to their completions.
 
     Returns:
         A ChoicesCompleter instance.
 
     Raises:
         ImportError: If argcomplete is not installed.
-        TypeError: If choices is not a list or tuple of strings.
+        TypeError: If choices is not a dict of strings.
     """
     _check_argcomplete_available()
-    if not isinstance(choices, (list, tuple)):
-        raise TypeError(f"choices must be list or tuple, got {type(choices).__name__}")
-    if not all(isinstance(c, str) for c in choices):
-        raise TypeError("all choices must be strings")
+    if not isinstance(choices, dict):
+        raise TypeError(f"choices must be dict, got {type(choices).__name__}")
+    if not all(isinstance(k, str) and isinstance(v, str) for k, v in choices.items()):
+        raise TypeError("all choices keys and values must be strings")
 
     return ChoicesCompleter(choices)
 
 
 def get_files_completer(
+    allowednames: list[str] | tuple[str, ...] = (),
     directories: bool = True,
-    filter_func: Any = None,
 ) -> Any:
     """Create a file system completer.
 
     Args:
+        allowednames: Allowed file names or extensions.
         directories: Include directories in completions.
-        filter_func: Optional callable to filter completions.
 
     Returns:
         A completer function.
@@ -100,9 +109,8 @@ def get_files_completer(
         ImportError: If argcomplete is not installed.
     """
     _check_argcomplete_available()
-    from argcomplete.completers import FilesCompleter
 
-    return FilesCompleter(directories=directories, filter_func=filter_func)
+    return FilesCompleter(allowednames=allowednames, directories=directories)
 
 
 __all__ = [
