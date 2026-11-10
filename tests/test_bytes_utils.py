@@ -44,6 +44,8 @@ from bytes_utils import (
     index,
     index_of,
     is_all_ones,
+    is_not_all_ones,
+    is_not_zero,
     is_power_of_two,
     is_zero,
     isalnum,
@@ -1567,6 +1569,45 @@ class TestIsZero(unittest.TestCase):
             is_zero(None)
 
 
+class TestIsNotZero(unittest.TestCase):
+    def test_contains_nonzero(self):
+        self.assertTrue(is_not_zero(b"\x00\x01\x00"))
+        self.assertTrue(is_not_zero(b"\xff"))
+
+    def test_all_zero(self):
+        self.assertFalse(is_not_zero(b"\x00\x00\x00"))
+
+    def test_empty(self):
+        self.assertFalse(is_not_zero(b""))
+
+    def test_single_nonzero(self):
+        self.assertTrue(is_not_zero(b"\x01"))
+        self.assertFalse(is_not_zero(b"\x00"))
+
+    def test_bytearray(self):
+        self.assertTrue(is_not_zero(bytearray(b"\x00\x01")))
+        self.assertFalse(is_not_zero(bytearray(b"\x00\x00")))
+
+    def test_consistency_with_is_zero(self):
+        for data in (
+            b"\x00\x00",
+            b"\x00\x01",
+            b"\xff",
+            b"",
+            bytearray(b"\x00"),
+            bytearray(b"\xff"),
+        ):
+            self.assertEqual(is_not_zero(data), not is_zero(data))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_not_zero("00")
+        with self.assertRaises(TypeError):
+            is_not_zero(0)
+        with self.assertRaises(TypeError):
+            is_not_zero(None)
+
+
 class TestTitle(unittest.TestCase):
     def test_title(self):
         self.assertEqual(title(b"hello world"), b"Hello World")
@@ -2296,6 +2337,47 @@ class TestIsAllOnes(unittest.TestCase):
             is_all_ones(255)
         with self.assertRaises(TypeError):
             is_all_ones(None)
+
+
+class TestIsNotAllOnes(unittest.TestCase):
+    def test_not_all_ones(self):
+        self.assertTrue(is_not_all_ones(b"\xff\xfe\xff"))
+        self.assertTrue(is_not_all_ones(from_hex("fffeff")))
+        self.assertTrue(is_not_all_ones(b"\x00"))
+
+    def test_all_ones(self):
+        self.assertFalse(is_not_all_ones(b"\xff\xff\xff"))
+        self.assertFalse(is_not_all_ones(from_hex("ffffff")))
+
+    def test_empty(self):
+        self.assertFalse(is_not_all_ones(b""))
+
+    def test_single(self):
+        self.assertFalse(is_not_all_ones(b"\xff"))
+        self.assertTrue(is_not_all_ones(b"\xfe"))
+
+    def test_bytearray(self):
+        self.assertTrue(is_not_all_ones(bytearray(b"\xff\x00")))
+        self.assertFalse(is_not_all_ones(bytearray(b"\xff\xff")))
+
+    def test_consistency_with_is_all_ones(self):
+        for data in (
+            b"\xff\xff",
+            b"\xff\xfe",
+            b"\x00",
+            b"",
+            bytearray(b"\xff"),
+            bytearray(b"\x00"),
+        ):
+            self.assertEqual(is_not_all_ones(data), not is_all_ones(data))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            is_not_all_ones("ff")
+        with self.assertRaises(TypeError):
+            is_not_all_ones(255)
+        with self.assertRaises(TypeError):
+            is_not_all_ones(None)
 
 
 class TestIsPrintable(unittest.TestCase):

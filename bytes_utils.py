@@ -85,7 +85,9 @@ __all__: list[str] = [
     "has_set_bits",
     "is_power_of_two",
     "is_zero",
+    "is_not_zero",
     "is_all_ones",
+    "is_not_all_ones",
     "count_null_bytes",
     "count_null_byte",
     "has_null_byte",
@@ -2426,6 +2428,36 @@ def is_zero(data: bytes) -> bool:
     return all(b == 0 for b in bytes(data))
 
 
+def is_not_zero(data: bytes) -> bool:
+    """Return True if *data* contains at least one non-zero byte.
+
+    This is the boolean negation companion to :func:`is_zero`. It returns
+    ``True`` when *data* contains at least one byte that is not zero and
+    ``False`` otherwise (an empty input is ``False``), reusing
+    :func:`is_zero` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is non-zero, False otherwise (empty input is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> is_not_zero(from_hex("000100"))
+        True
+        >>> is_not_zero(from_hex("000000"))
+        False
+        >>> is_not_zero(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return not is_zero(data)
+
+
 def is_power_of_two(data: bytes) -> bool:
     """Return True if *data* has exactly one set bit across all bytes.
 
@@ -2481,6 +2513,36 @@ def is_all_ones(data: bytes) -> bool:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
     return all(b == 0xff for b in bytes(data))
+
+
+def is_not_all_ones(data: bytes) -> bool:
+    """Return True if *data* contains at least one non-0xff byte.
+
+    This is the boolean negation companion to :func:`is_all_ones`. It returns
+    ``True`` when *data* contains at least one byte that is not 0xff and
+    ``False`` otherwise (an empty input is ``False``), reusing
+    :func:`is_all_ones` for consistency.
+
+    Args:
+        data: Bytes or bytearray to inspect.
+
+    Returns:
+        True if any byte is not 0xff, False otherwise (empty input is False).
+
+    Raises:
+        TypeError: If *data* is not bytes or bytearray.
+
+    Examples:
+        >>> is_not_all_ones(from_hex("fffeff"))
+        True
+        >>> is_not_all_ones(from_hex("ffffff"))
+        False
+        >>> is_not_all_ones(b"")
+        False
+    """
+    if not isinstance(data, (bytes, bytearray)):
+        raise TypeError("data must be bytes or bytearray")
+    return not is_all_ones(data)
 
 
 def count_null_bytes(data: bytes) -> int:
