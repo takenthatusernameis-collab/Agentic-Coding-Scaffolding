@@ -104,6 +104,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_antigravity_utils.py",
             "argparse_utils.py",
             "tests/test_argparse_utils.py",
+            "argcomplete_utils.py",
+            "tests/test_argcomplete_utils.py",
             "array_utils.py",
             "tests/test_array_utils.py",
             "ast_utils.py",

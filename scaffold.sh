@@ -397,6 +397,10 @@
 
 #   - argparse_utils.py — # Argument parsing utilities
 
+#   - argcomplete_utils.py — # Shell tab completion utilities wrapping stdlib argcomplete with input validation
+
+#   - test_argcomplete_utils.py — # Tests for argcomplete_utils.py
+
 #   - warnings_utils.py — # Utilities wrapping the standard library warnings module
 
 #   - compression_utils.py — # Compression and decompression utilities (gzip, bz2, zip, tar)
@@ -4451,6 +4455,7 @@ py_modules = [
     "async_utils",
     "asyncio_utils",
     "argparse_utils",
+    "argcomplete_utils",
     "concurrent_utils",
     "concurrent_futures_utils",
     "threading_utils",
