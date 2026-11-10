@@ -2082,7 +2082,8 @@ def is_disarium_number(value: int) -> bool:
     if value < 0:
         return False
     digits: list[int] = [int(d) for d in str(value)]
-    return sum(d ** (i + 1) for i, d in enumerate(digits)) == value
+    total: int = sum(d ** (i + 1) for i, d in enumerate(digits))
+    return total == value
 
 
 def is_ugly_number(value: int) -> bool:

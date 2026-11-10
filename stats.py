@@ -349,7 +349,7 @@ def mode_frequency(numbers: List[T | float]) -> int:
         3
     """
     _require_numbers(numbers, "numbers")
-    frequency: dict = {}
+    frequency: dict[T | float, int] = {}
     for num in numbers:
         frequency[num] = frequency.get(num, 0) + 1
     return max(frequency.values())

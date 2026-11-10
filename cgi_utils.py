@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import cgi as _cgi
+from collections.abc import Callable
 from html import escape as _html_escape
+from typing import Any
 from urllib.parse import parse_qs as _parse_qs
 from urllib.parse import parse_qsl as _parse_qsl
 
@@ -23,10 +25,10 @@ FieldStorage = _cgi.FieldStorage
 MiniFieldStorage = _cgi.MiniFieldStorage
 
 
-def escape(s, quote: bool = True):  # type: ignore[no-untyped-def]
+def escape(s: Any, quote: bool = True) -> str:
     if hasattr(_cgi, "escape"):
         try:
-            return _cgi.escape(s, quote)  # type: ignore[attr-defined]
+            return _cgi.escape(s, quote)  # type: ignore[attr-defined,no-any-return]
         except Exception:
             pass
     return _html_escape(str(s), quote)
@@ -34,7 +36,7 @@ def escape(s, quote: bool = True):  # type: ignore[no-untyped-def]
 
 parse = getattr(_cgi, "parse", _parse_qs)
 parse_header = _cgi.parse_header
-parse_multipart = getattr(_cgi, "parse_multipart", lambda *a, **k: {})
+parse_multipart: Callable[..., Any] = getattr(_cgi, "parse_multipart", lambda *a, **k: {})
 parse_qs = _parse_qs
 parse_qsl = _parse_qsl
 

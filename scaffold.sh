@@ -16575,7 +16575,7 @@ def mode_frequency(numbers: List[T | float]) -> int:
         3
     """
     _require_numbers(numbers, "numbers")
-    frequency: dict = {}
+    frequency: dict[T | float, int] = {}
     for num in numbers:
         frequency[num] = frequency.get(num, 0) + 1
     return max(frequency.values())
@@ -92451,7 +92451,8 @@ def is_disarium_number(value: int) -> bool:
     if value < 0:
         return False
     digits: list[int] = [int(d) for d in str(value)]
-    return sum(d ** (i + 1) for i, d in enumerate(digits)) == value
+    total: int = sum(d ** (i + 1) for i, d in enumerate(digits))
+    return total == value
 
 
 def is_ugly_number(value: int) -> bool:
@@ -156916,7 +156917,9 @@ cat > "$OUTPUT_DIR/cgi_utils.py" <<'CGI_UTILS'
 from __future__ import annotations
 
 import cgi as _cgi
+from collections.abc import Callable
 from html import escape as _html_escape
+from typing import Any
 from urllib.parse import parse_qs as _parse_qs
 from urllib.parse import parse_qsl as _parse_qsl
 
@@ -156936,10 +156939,10 @@ FieldStorage = _cgi.FieldStorage
 MiniFieldStorage = _cgi.MiniFieldStorage
 
 
-def escape(s, quote: bool = True):  # type: ignore[no-untyped-def]
+def escape(s: Any, quote: bool = True) -> str:
     if hasattr(_cgi, "escape"):
         try:
-            return _cgi.escape(s, quote)  # type: ignore[attr-defined]
+            return _cgi.escape(s, quote)  # type: ignore[attr-defined,no-any-return]
         except Exception:
             pass
     return _html_escape(str(s), quote)
@@ -156947,7 +156950,7 @@ def escape(s, quote: bool = True):  # type: ignore[no-untyped-def]
 
 parse = getattr(_cgi, "parse", _parse_qs)
 parse_header = _cgi.parse_header
-parse_multipart = getattr(_cgi, "parse_multipart", lambda *a, **k: {})
+parse_multipart: Callable[..., Any] = getattr(_cgi, "parse_multipart", lambda *a, **k: {})
 parse_qs = _parse_qs
 parse_qsl = _parse_qsl
 
@@ -156964,6 +156967,8 @@ cat > "$OUTPUT_DIR/cgitb_utils.py" <<'CGITB_UTILS'
 from __future__ import annotations
 
 import cgitb as _cgitb
+from collections.abc import Callable
+from typing import Any
 
 __all__: list[str] = [
     "enable",
@@ -156985,7 +156990,7 @@ __all__: list[str] = [
 enable = _cgitb.enable
 reset = getattr(_cgitb, "reset", lambda: None)
 lookup = getattr(_cgitb, "lookup", lambda *a, **k: None)
-scanvars = getattr(_cgitb, "scanvars", lambda *a, **k: ([], []))
+scanvars: Callable[..., Any] = getattr(_cgitb, "scanvars", lambda *a, **k: ([], []))
 handler = getattr(_cgitb, "handler", lambda *a, **k: None)
 text = getattr(_cgitb, "text", lambda *a, **k: "")
 html = getattr(_cgitb, "html", lambda *a, **k: "")
@@ -156998,7 +157003,8 @@ blue = getattr(_cgitb, "blue", lambda x: f"<span style='color: blue'>{x}</span>"
 
 def disable() -> None:
     if hasattr(_cgitb, "disable"):
-        return _cgitb.disable()
+        _cgitb.disable()
+        return
     import sys
 
     sys.excepthook = sys.__excepthook__
@@ -157136,6 +157142,8 @@ cat > "$OUTPUT_DIR/imghdr_utils.py" <<'IMGHDR_UTILS'
 
 from __future__ import annotations
 
+from typing import Any, Callable
+
 try:
     import imghdr as _imghdr
     _IMGHDR_AVAILABLE = True
@@ -157162,10 +157170,12 @@ def is_available() -> bool:
     return _IMGHDR_AVAILABLE
 
 
+tests: list[Callable[..., Any]] = list(getattr(_imghdr, "tests", [])) if _IMGHDR_AVAILABLE else []
+
 if _IMGHDR_AVAILABLE:
     what = _imghdr.what
-    tests = getattr(_imghdr, "tests", [])
-    def detect(file, h=None):  # type: ignore[no-untyped-def]
+
+    def detect(file: Any, h: bytes | None = None) -> str | None:
         if h is None and hasattr(file, "read"):
             h = file.read(32)
             if hasattr(file, "seek"):
@@ -157174,39 +157184,56 @@ if _IMGHDR_AVAILABLE:
                 except Exception:
                     pass
         return what(file, h)
-    def is_image(file, h=None):
-        return detect(file, h) is not None  # type: ignore[no-untyped-def]
-    def matching_formats(file, h=None):
-        return [detect(file, h)] if detect(file, h) is not None else []  # type: ignore[no-untyped-def]
-    def read_header(file, h=None):
-        return h  # type: ignore[no-untyped-def]
-    register_test = (
-        getattr(_imghdr, "tests", []).append if False else (lambda *args, **kwargs: None)  # type: ignore[no-untyped-def]
-    )
-    def unregister_test(*args, **kwargs):
-        return None  # type: ignore[no-untyped-def]
-    def supported_formats():
+
+    def is_image(file: Any, h: bytes | None = None) -> bool:
+        return detect(file, h) is not None
+
+    def matching_formats(file: Any, h: bytes | None = None) -> list[str]:
+        result = detect(file, h)
+        return [result] if result is not None else []
+
+    def read_header(file: Any, h: bytes | None = None) -> bytes | None:
+        del file
+        return h
+
+    def register_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def unregister_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def supported_formats() -> list[str]:
         return [
             "jpeg", "png", "gif", "tiff", "rgb", "pbm", "pgm", "ppm",
             "rast", "xbm", "bmp", "webp", "exr",
-        ]  # type: ignore[no-untyped-def]
+        ]
 else:
-    def what(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def what(*args: Any, **kwargs: Any) -> str | None:
         raise RuntimeError("imghdr module is not available")
-    tests = []
-    def detect(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def detect(file: Any, h: bytes | None = None) -> str | None:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def is_image(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def is_image(file: Any, h: bytes | None = None) -> bool:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def matching_formats(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def matching_formats(file: Any, h: bytes | None = None) -> list[str]:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def read_header(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def read_header(file: Any, h: bytes | None = None) -> bytes | None:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def register_test(*args, **kwargs):  # type: ignore[no-untyped-def]
-        pass
-    def unregister_test(*args, **kwargs):  # type: ignore[no-untyped-def]
-        pass
-    def supported_formats():  # type: ignore[no-untyped-def]
+
+    def register_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def unregister_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def supported_formats() -> list[str]:
         return []
 IMGHDR_UTILS
 
@@ -157260,32 +157287,32 @@ if _NNTP_LIB_AVAILABLE:
     ArticleInfo = _nntplib.ArticleInfo
 else:
     class NNTP:  # type: ignore[no-redef]
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise RuntimeError("nntplib module is not available")
 
     class NNTP_SSL(NNTP):  # type: ignore[no-redef]
         pass
 
-    class NNTPError(Exception):
+    class NNTPError(Exception):  # type: ignore[no-redef]
         pass
 
-    class NNTPReplyError(NNTPError):
+    class NNTPReplyError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPTemporaryError(NNTPError):
+    class NNTPTemporaryError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPPermanentError(NNTPError):
+    class NNTPPermanentError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPProtocolError(NNTPError):
+    class NNTPProtocolError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPDataError(NNTPError):
+    class NNTPDataError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    GroupInfo = tuple  # type: ignore[assignment]
-    ArticleInfo = tuple  # type: ignore[assignment]
+    GroupInfo = tuple  # type: ignore[misc,assignment]
+    ArticleInfo = tuple  # type: ignore[misc,assignment]
 
 
 def create_nntp(
@@ -157311,7 +157338,9 @@ def create_nntp(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
-    return NNTP(host, port, user, password, readermode, usenetrc, timeout)
+    if timeout is None:
+        return NNTP(host, port, user, password, readermode, usenetrc)
+    return NNTP(host, port, user, password, readermode, usenetrc, float(timeout))
 
 
 def create_nntp_ssl(
@@ -157338,7 +157367,9 @@ def create_nntp_ssl(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
-    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, timeout)
+    if timeout is None:
+        return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc)
+    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, float(timeout))
 NNTPLIB_UTILS
 
 # --- pipes_utils.py ---
@@ -157481,6 +157512,8 @@ cat > "$OUTPUT_DIR/telnetlib_utils.py" <<'TELNETLIB_UTILS'
 
 from __future__ import annotations
 
+from typing import Any
+
 try:
     import telnetlib as _telnetlib
     _TELNETLIB_AVAILABLE = True
@@ -157557,11 +157590,10 @@ if _TELNETLIB_AVAILABLE:
     theNULL = _telnetlib.theNULL
 else:
     class Telnet:  # type: ignore[no-redef]
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise RuntimeError("telnetlib module is not available")
-    (IAC, DONT, DO, WONT, WILL, SE, NOP, DM, BRK, IP, AO, AYT, EC, EL, GA, SB, theNULL) = (
-        (255,) * 17
-    )
+
+    IAC = DONT = DO = WONT = WILL = SE = NOP = DM = BRK = IP = AO = AYT = EC = EL = GA = SB = theNULL = bytes([255])
 
 
 def create_telnet(host: str | None = None, port: int = 23, timeout: float | None = None) -> Telnet:
@@ -157573,12 +157605,19 @@ def create_telnet(host: str | None = None, port: int = 23, timeout: float | None
         raise TypeError("port must be an int")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
-    return Telnet(host, port, timeout)
+    if host is None:
+        return Telnet()
+    if timeout is None:
+        return Telnet(host, port)
+    return Telnet(host, port, float(timeout))
 
 
 def connect_telnet(host: str, port: int = 23, timeout: float | None = None) -> Telnet:
     tn = create_telnet(None, port, timeout)
-    tn.open(host, port, timeout)
+    if timeout is None:
+        tn.open(host, port)
+    else:
+        tn.open(host, port, float(timeout))
     return tn
 
 
@@ -157646,7 +157685,7 @@ def send_line(tn: Telnet, line: str | bytes, encoding: str = "utf-8") -> int:
     return len(data)
 
 
-def expect(tn: Telnet, list_patterns, timeout: float | None = None):
+def expect(tn: Telnet, list_patterns: Any, timeout: float | None = None) -> Any:
     return tn.expect(list_patterns, timeout)
 
 
@@ -157655,8 +157694,8 @@ def expect_text(
     patterns: list[str],
     timeout: float | None = None,
     encoding: str = "utf-8",
-):
-    pat = [p.encode(encoding) if isinstance(p, str) else p for p in patterns]
+) -> Any:
+    pat: list[Any] = [p.encode(encoding) if isinstance(p, str) else p for p in patterns]
     return tn.expect(pat, timeout)
 
 
@@ -157668,29 +157707,30 @@ def escape_iac(data: bytes) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes")
     b = bytes(data)
-    return b.replace(bytes([IAC]), bytes([IAC, IAC]))
+    return b.replace(IAC, IAC + IAC)
 
 
 def strip_iac(data: bytes) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes")
     b = bytes(data)
+    iac = IAC[0]
     result = bytearray()
     i = 0
     while i < len(b):
-        if b[i] == IAC and i + 1 < len(b):
+        if b[i] == iac and i + 1 < len(b):
             cmd = b[i + 1]
-            if cmd == IAC:
-                result.append(IAC)
+            if cmd == iac:
+                result.append(iac)
                 i += 2
                 continue
-            if cmd in (DO, DONT, WILL, WONT):
+            if cmd in (DO[0], DONT[0], WILL[0], WONT[0]):
                 i += 3
                 continue
-            if cmd == SB:
+            if cmd == SB[0]:
                 i += 2
                 # skip until SE
-                while i < len(b) and not (b[i] == IAC and i + 1 < len(b) and b[i + 1] == SE):
+                while i < len(b) and not (b[i] == iac and i + 1 < len(b) and b[i + 1] == SE[0]):
                     i += 1
                 i += 2
                 continue
@@ -157701,14 +157741,13 @@ def strip_iac(data: bytes) -> bytes:
     return bytes(result)
 
 
-_COMMAND_NAMES = {
-    IAC: "IAC", DONT: "DONT", DO: "DO", WONT: "WONT", WILL: "WILL",
-    SE: "SE", NOP: "NOP", DM: "DM", BRK: "BRK", IP: "IP", AO: "AO",
-    AYT: "AYT", EC: "EC", EL: "EL", GA: "GA", SB: "SB", theNULL: "NULL",
+_COMMAND_NAMES: dict[int, str] = {
+    IAC[0]: "IAC", DONT[0]: "DONT", DO[0]: "DO", WONT[0]: "WONT", WILL[0]: "WILL",
+    SE[0]: "SE", NOP[0]: "NOP", DM[0]: "DM", BRK[0]: "BRK", IP[0]: "IP", AO[0]: "AO",
+    AYT[0]: "AYT", EC[0]: "EC", EL[0]: "EL", GA[0]: "GA", SB[0]: "SB", theNULL[0]: "NULL",
 }
 
-
-_OPTION_NAMES = {}
+_OPTION_NAMES: dict[int, str] = {}
 
 
 def command_name(cmd: int) -> str:
@@ -157864,7 +157903,7 @@ def is_collection(obj: Any) -> bool:
 
 def is_callable(obj: Any) -> bool:
     """Return ``True`` if *obj* is an instance of :class:`collections.abc.Callable`."""
-    return isinstance(obj, _cabc.Callable)
+    return callable(obj)
 
 
 def is_set(obj: Any) -> bool:

@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import cgitb as _cgitb
+from collections.abc import Callable
+from typing import Any
 
 __all__: list[str] = [
     "enable",
@@ -24,7 +26,7 @@ __all__: list[str] = [
 enable = _cgitb.enable
 reset = getattr(_cgitb, "reset", lambda: None)
 lookup = getattr(_cgitb, "lookup", lambda *a, **k: None)
-scanvars = getattr(_cgitb, "scanvars", lambda *a, **k: ([], []))
+scanvars: Callable[..., Any] = getattr(_cgitb, "scanvars", lambda *a, **k: ([], []))
 handler = getattr(_cgitb, "handler", lambda *a, **k: None)
 text = getattr(_cgitb, "text", lambda *a, **k: "")
 html = getattr(_cgitb, "html", lambda *a, **k: "")
@@ -37,7 +39,8 @@ blue = getattr(_cgitb, "blue", lambda x: f"<span style='color: blue'>{x}</span>"
 
 def disable() -> None:
     if hasattr(_cgitb, "disable"):
-        return _cgitb.disable()
+        _cgitb.disable()
+        return
     import sys
 
     sys.excepthook = sys.__excepthook__

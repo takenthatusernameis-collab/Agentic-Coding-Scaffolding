@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, Callable
+
 try:
     import imghdr as _imghdr
     _IMGHDR_AVAILABLE = True
@@ -28,10 +30,12 @@ def is_available() -> bool:
     return _IMGHDR_AVAILABLE
 
 
+tests: list[Callable[..., Any]] = list(getattr(_imghdr, "tests", [])) if _IMGHDR_AVAILABLE else []
+
 if _IMGHDR_AVAILABLE:
     what = _imghdr.what
-    tests = getattr(_imghdr, "tests", [])
-    def detect(file, h=None):  # type: ignore[no-untyped-def]
+
+    def detect(file: Any, h: bytes | None = None) -> str | None:
         if h is None and hasattr(file, "read"):
             h = file.read(32)
             if hasattr(file, "seek"):
@@ -40,37 +44,54 @@ if _IMGHDR_AVAILABLE:
                 except Exception:
                     pass
         return what(file, h)
-    def is_image(file, h=None):
-        return detect(file, h) is not None  # type: ignore[no-untyped-def]
-    def matching_formats(file, h=None):
-        return [detect(file, h)] if detect(file, h) is not None else []  # type: ignore[no-untyped-def]
-    def read_header(file, h=None):
-        return h  # type: ignore[no-untyped-def]
-    register_test = (
-        getattr(_imghdr, "tests", []).append if False else (lambda *args, **kwargs: None)  # type: ignore[no-untyped-def]
-    )
-    def unregister_test(*args, **kwargs):
-        return None  # type: ignore[no-untyped-def]
-    def supported_formats():
+
+    def is_image(file: Any, h: bytes | None = None) -> bool:
+        return detect(file, h) is not None
+
+    def matching_formats(file: Any, h: bytes | None = None) -> list[str]:
+        result = detect(file, h)
+        return [result] if result is not None else []
+
+    def read_header(file: Any, h: bytes | None = None) -> bytes | None:
+        del file
+        return h
+
+    def register_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def unregister_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def supported_formats() -> list[str]:
         return [
             "jpeg", "png", "gif", "tiff", "rgb", "pbm", "pgm", "ppm",
             "rast", "xbm", "bmp", "webp", "exr",
-        ]  # type: ignore[no-untyped-def]
+        ]
 else:
-    def what(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def what(*args: Any, **kwargs: Any) -> str | None:
         raise RuntimeError("imghdr module is not available")
-    tests = []
-    def detect(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def detect(file: Any, h: bytes | None = None) -> str | None:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def is_image(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def is_image(file: Any, h: bytes | None = None) -> bool:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def matching_formats(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def matching_formats(file: Any, h: bytes | None = None) -> list[str]:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def read_header(*args, **kwargs):  # type: ignore[no-untyped-def]
+
+    def read_header(file: Any, h: bytes | None = None) -> bytes | None:
+        del file, h
         raise RuntimeError("imghdr module is not available")
-    def register_test(*args, **kwargs):  # type: ignore[no-untyped-def]
-        pass
-    def unregister_test(*args, **kwargs):  # type: ignore[no-untyped-def]
-        pass
-    def supported_formats():  # type: ignore[no-untyped-def]
+
+    def register_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def unregister_test(*args: Any, **kwargs: Any) -> None:
+        del args, kwargs
+
+    def supported_formats() -> list[str]:
         return []

@@ -137,7 +137,7 @@ def is_collection(obj: Any) -> bool:
 
 def is_callable(obj: Any) -> bool:
     """Return ``True`` if *obj* is an instance of :class:`collections.abc.Callable`."""
-    return isinstance(obj, _cabc.Callable)
+    return callable(obj)
 
 
 def is_set(obj: Any) -> bool:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 try:
     import telnetlib as _telnetlib
     _TELNETLIB_AVAILABLE = True
@@ -78,11 +80,11 @@ if _TELNETLIB_AVAILABLE:
     theNULL = _telnetlib.theNULL
 else:
     class Telnet:  # type: ignore[no-redef]
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise RuntimeError("telnetlib module is not available")
-    (IAC, DONT, DO, WONT, WILL, SE, NOP, DM, BRK, IP, AO, AYT, EC, EL, GA, SB, theNULL) = (
-        (255,) * 17
-    )
+
+    _cmd = bytes([255])
+    IAC = DONT = DO = WONT = WILL = SE = NOP = DM = BRK = IP = AO = AYT = EC = EL = GA = SB = theNULL = _cmd
 
 
 def create_telnet(host: str | None = None, port: int = 23, timeout: float | None = None) -> Telnet:
@@ -94,12 +96,19 @@ def create_telnet(host: str | None = None, port: int = 23, timeout: float | None
         raise TypeError("port must be an int")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
-    return Telnet(host, port, timeout)
+    if host is None:
+        return Telnet()
+    if timeout is None:
+        return Telnet(host, port)
+    return Telnet(host, port, float(timeout))
 
 
 def connect_telnet(host: str, port: int = 23, timeout: float | None = None) -> Telnet:
     tn = create_telnet(None, port, timeout)
-    tn.open(host, port, timeout)
+    if timeout is None:
+        tn.open(host, port)
+    else:
+        tn.open(host, port, float(timeout))
     return tn
 
 
@@ -167,7 +176,7 @@ def send_line(tn: Telnet, line: str | bytes, encoding: str = "utf-8") -> int:
     return len(data)
 
 
-def expect(tn: Telnet, list_patterns, timeout: float | None = None):
+def expect(tn: Telnet, list_patterns: Any, timeout: float | None = None) -> Any:
     return tn.expect(list_patterns, timeout)
 
 
@@ -176,8 +185,8 @@ def expect_text(
     patterns: list[str],
     timeout: float | None = None,
     encoding: str = "utf-8",
-):
-    pat = [p.encode(encoding) if isinstance(p, str) else p for p in patterns]
+) -> Any:
+    pat: list[Any] = [p.encode(encoding) if isinstance(p, str) else p for p in patterns]
     return tn.expect(pat, timeout)
 
 
@@ -189,29 +198,30 @@ def escape_iac(data: bytes) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes")
     b = bytes(data)
-    return b.replace(bytes([IAC]), bytes([IAC, IAC]))
+    return b.replace(IAC, IAC + IAC)
 
 
 def strip_iac(data: bytes) -> bytes:
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes")
     b = bytes(data)
+    iac = IAC[0]
     result = bytearray()
     i = 0
     while i < len(b):
-        if b[i] == IAC and i + 1 < len(b):
+        if b[i] == iac and i + 1 < len(b):
             cmd = b[i + 1]
-            if cmd == IAC:
-                result.append(IAC)
+            if cmd == iac:
+                result.append(iac)
                 i += 2
                 continue
-            if cmd in (DO, DONT, WILL, WONT):
+            if cmd in (DO[0], DONT[0], WILL[0], WONT[0]):
                 i += 3
                 continue
-            if cmd == SB:
+            if cmd == SB[0]:
                 i += 2
                 # skip until SE
-                while i < len(b) and not (b[i] == IAC and i + 1 < len(b) and b[i + 1] == SE):
+                while i < len(b) and not (b[i] == iac and i + 1 < len(b) and b[i + 1] == SE[0]):
                     i += 1
                 i += 2
                 continue
@@ -222,14 +232,13 @@ def strip_iac(data: bytes) -> bytes:
     return bytes(result)
 
 
-_COMMAND_NAMES = {
-    IAC: "IAC", DONT: "DONT", DO: "DO", WONT: "WONT", WILL: "WILL",
-    SE: "SE", NOP: "NOP", DM: "DM", BRK: "BRK", IP: "IP", AO: "AO",
-    AYT: "AYT", EC: "EC", EL: "EL", GA: "GA", SB: "SB", theNULL: "NULL",
+_COMMAND_NAMES: dict[int, str] = {
+    IAC[0]: "IAC", DONT[0]: "DONT", DO[0]: "DO", WONT[0]: "WONT", WILL[0]: "WILL",
+    SE[0]: "SE", NOP[0]: "NOP", DM[0]: "DM", BRK[0]: "BRK", IP[0]: "IP", AO[0]: "AO",
+    AYT[0]: "AYT", EC[0]: "EC", EL[0]: "EL", GA[0]: "GA", SB[0]: "SB", theNULL[0]: "NULL",
 }
 
-
-_OPTION_NAMES = {}
+_OPTION_NAMES: dict[int, str] = {}
 
 
 def command_name(cmd: int) -> str:

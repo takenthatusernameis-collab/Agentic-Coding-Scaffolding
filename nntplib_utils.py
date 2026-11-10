@@ -46,32 +46,32 @@ if _NNTP_LIB_AVAILABLE:
     ArticleInfo = _nntplib.ArticleInfo
 else:
     class NNTP:  # type: ignore[no-redef]
-        def __init__(self, *args, **kwargs):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise RuntimeError("nntplib module is not available")
 
     class NNTP_SSL(NNTP):  # type: ignore[no-redef]
         pass
 
-    class NNTPError(Exception):
+    class NNTPError(Exception):  # type: ignore[no-redef]
         pass
 
-    class NNTPReplyError(NNTPError):
+    class NNTPReplyError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPTemporaryError(NNTPError):
+    class NNTPTemporaryError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPPermanentError(NNTPError):
+    class NNTPPermanentError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPProtocolError(NNTPError):
+    class NNTPProtocolError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    class NNTPDataError(NNTPError):
+    class NNTPDataError(NNTPError):  # type: ignore[no-redef]
         pass
 
-    GroupInfo = tuple  # type: ignore[assignment]
-    ArticleInfo = tuple  # type: ignore[assignment]
+    GroupInfo = tuple  # type: ignore[misc,assignment]
+    ArticleInfo = tuple  # type: ignore[misc,assignment]
 
 
 def create_nntp(
@@ -97,7 +97,9 @@ def create_nntp(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
-    return NNTP(host, port, user, password, readermode, usenetrc, timeout)
+    if timeout is None:
+        return NNTP(host, port, user, password, readermode, usenetrc)
+    return NNTP(host, port, user, password, readermode, usenetrc, float(timeout))
 
 
 def create_nntp_ssl(
@@ -124,4 +126,6 @@ def create_nntp_ssl(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
-    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, timeout)
+    if timeout is None:
+        return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc)
+    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, float(timeout))
