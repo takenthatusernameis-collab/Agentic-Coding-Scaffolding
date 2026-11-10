@@ -156699,6 +156699,154 @@ class TestCoerceToBytes(unittest.TestCase):
             type_check_utils.coerce_to_bytes(None)
 
 
+class TestUntestedPredicates(unittest.TestCase):
+    """Coverage for the 13 exported predicates that shipped without tests."""
+
+    def test_is_mapping(self) -> None:
+        self.assertTrue(type_check_utils.is_mapping({"a": 1}))
+        self.assertTrue(type_check_utils.is_mapping({}))
+        self.assertFalse(type_check_utils.is_mapping([1, 2]))
+        self.assertFalse(type_check_utils.is_mapping((1, 2)))
+        self.assertFalse(type_check_utils.is_mapping({1, 2}))
+        self.assertFalse(type_check_utils.is_mapping("hello"))
+        self.assertFalse(type_check_utils.is_mapping(b"bytes"))
+        self.assertFalse(type_check_utils.is_mapping(42))
+        self.assertFalse(type_check_utils.is_mapping(None))
+
+    def test_is_sequence(self) -> None:
+        self.assertTrue(type_check_utils.is_sequence([1, 2]))
+        self.assertTrue(type_check_utils.is_sequence((1, 2)))
+        self.assertFalse(type_check_utils.is_sequence("hello"))
+        self.assertFalse(type_check_utils.is_sequence({1, 2}))
+        self.assertFalse(type_check_utils.is_sequence({"a": 1}))
+        self.assertFalse(type_check_utils.is_sequence(42))
+        self.assertFalse(type_check_utils.is_sequence(None))
+
+    def test_is_collection(self) -> None:
+        self.assertTrue(type_check_utils.is_collection([1, 2]))
+        self.assertTrue(type_check_utils.is_collection((1, 2)))
+        self.assertTrue(type_check_utils.is_collection({1, 2}))
+        self.assertTrue(type_check_utils.is_collection({"a": 1}))
+        self.assertFalse(type_check_utils.is_collection("hello"))
+        self.assertFalse(type_check_utils.is_collection(42))
+        self.assertFalse(type_check_utils.is_collection(None))
+
+    def test_is_number(self) -> None:
+        self.assertTrue(type_check_utils.is_number(5))
+        self.assertTrue(type_check_utils.is_number(3.14))
+        self.assertTrue(type_check_utils.is_number(-2))
+        self.assertTrue(type_check_utils.is_number(1e10))
+        self.assertFalse(type_check_utils.is_number(True))
+        self.assertFalse(type_check_utils.is_number(False))
+        self.assertFalse(type_check_utils.is_number("5"))
+        self.assertFalse(type_check_utils.is_number(5 + 2j))
+        self.assertFalse(type_check_utils.is_number(None))
+
+    def test_is_object(self) -> None:
+        # Every value is an instance of object in normal cases.
+        self.assertTrue(type_check_utils.is_object(42))
+        self.assertTrue(type_check_utils.is_object("hello"))
+        self.assertTrue(type_check_utils.is_object([1, 2]))
+        self.assertTrue(type_check_utils.is_object({"a": 1}))
+        self.assertTrue(type_check_utils.is_object(None))
+        self.assertTrue(type_check_utils.is_object(type))
+
+    def test_is_class(self) -> None:
+        self.assertTrue(type_check_utils.is_class(int))
+        self.assertTrue(type_check_utils.is_class(str))
+        self.assertTrue(type_check_utils.is_class(type))
+        self.assertFalse(type_check_utils.is_class(42))
+        self.assertFalse(type_check_utils.is_class("hello"))
+        self.assertFalse(type_check_utils.is_class([1, 2]))
+        self.assertFalse(type_check_utils.is_class(None))
+
+    def test_is_dataclass(self) -> None:
+        import dataclasses
+
+        @dataclasses.dataclass
+        class Point:
+            x: int
+            y: int
+
+        self.assertTrue(type_check_utils.is_dataclass(Point))
+        self.assertTrue(type_check_utils.is_dataclass(Point(1, 2)))
+        self.assertFalse(type_check_utils.is_dataclass({"x": 1}))
+        self.assertFalse(type_check_utils.is_dataclass(42))
+        self.assertFalse(type_check_utils.is_dataclass("hello"))
+        self.assertFalse(type_check_utils.is_dataclass(None))
+
+    def test_is_instance(self) -> None:
+        self.assertTrue(type_check_utils.is_instance(5, int))
+        self.assertTrue(type_check_utils.is_instance("hi", str))
+        self.assertTrue(type_check_utils.is_instance(5, (int, str)))
+        self.assertFalse(type_check_utils.is_instance("hi", int))
+        self.assertFalse(type_check_utils.is_instance(5, str))
+        self.assertFalse(type_check_utils.is_instance(5, (str, float)))
+
+    def test_is_type(self) -> None:
+        self.assertTrue(type_check_utils.is_type(int))
+        self.assertTrue(type_check_utils.is_type(str))
+        self.assertTrue(type_check_utils.is_type(type))
+        self.assertFalse(type_check_utils.is_type(42))
+        self.assertFalse(type_check_utils.is_type("hello"))
+        self.assertFalse(type_check_utils.is_type(None))
+
+    def test_is_generator(self) -> None:
+        def gen() -> object:
+            yield 1
+            yield 2
+
+        g = gen()
+        try:
+            self.assertTrue(type_check_utils.is_generator(g))
+        finally:
+            g.close()
+        self.assertFalse(type_check_utils.is_generator([1, 2]))
+        self.assertFalse(type_check_utils.is_generator(42))
+        self.assertFalse(type_check_utils.is_generator(None))
+
+    def test_is_coroutine(self) -> None:
+        async def coro() -> int:
+            return 1
+
+        c = coro()
+        try:
+            self.assertTrue(type_check_utils.is_coroutine(c))
+        finally:
+            c.close()
+        self.assertFalse(type_check_utils.is_coroutine(42))
+        self.assertFalse(type_check_utils.is_coroutine("hello"))
+        self.assertFalse(type_check_utils.is_coroutine(None))
+
+    def test_is_async_generator(self) -> None:
+        async def agen() -> object:
+            yield 1
+
+        ag = agen()
+        try:
+            self.assertTrue(type_check_utils.is_async_generator(ag))
+        finally:
+            ag.aclose()
+        self.assertFalse(type_check_utils.is_async_generator(42))
+        self.assertFalse(type_check_utils.is_async_generator("hello"))
+        self.assertFalse(type_check_utils.is_async_generator(None))
+
+    def test_is_function(self) -> None:
+        def f() -> None:
+            return None
+
+        self.assertTrue(type_check_utils.is_function(f))
+        self.assertFalse(type_check_utils.is_function(len))
+        self.assertFalse(type_check_utils.is_function(42))
+        self.assertFalse(type_check_utils.is_function("hello"))
+
+        class C:
+            def m(self) -> None:
+                return None
+
+        self.assertFalse(type_check_utils.is_function(C().m))
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_TYPE_CHECK_UTILS
