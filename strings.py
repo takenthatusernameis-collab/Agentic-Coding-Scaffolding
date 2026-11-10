@@ -61,6 +61,8 @@ __all__: List[str] = [
     "count_binary",
     "has_binary",
     "is_octal",
+    "count_octal",
+    "has_octal",
     "is_digit",
     "is_hex",
     "count_hex",
@@ -1587,6 +1589,70 @@ def is_octal(s: str) -> bool:
     if not s:
         return False
     return all(ch in "01234567" for ch in s)
+
+
+def count_octal(s: str) -> int:
+    """Return the number of octal characters (0-7) in *s*.
+
+    An octal character is one of 0, 1, 2, 3, 4, 5, 6, 7. Empty input
+    returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of octal characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_octal("755")
+        3
+        >>> count_octal("01234567")
+        8
+        >>> count_octal("89")
+        0
+        >>> count_octal("hello")
+        0
+        >>> count_octal("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch in "01234567")
+
+
+def has_octal(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one octal character.
+
+    This is the boolean companion to :func:`count_octal`. It returns
+    ``True`` when at least one character is an octal digit and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_octal` for
+    consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains an octal character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_octal("755")
+        True
+        >>> has_octal("hello")
+        False
+        >>> has_octal("89")
+        False
+        >>> has_octal("")
+        False
+        >>> has_octal("0a1")
+        True
+    """
+    _require_string(s, "s")
+    return count_octal(s) > 0
 
 
 def is_integer(s: str) -> bool:
