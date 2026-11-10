@@ -58,6 +58,8 @@ __all__: List[str] = [
     "has_alphanumeric",
     "has_ascii",
     "is_binary",
+    "count_binary",
+    "has_binary",
     "is_octal",
     "is_digit",
     "is_hex",
@@ -1499,6 +1501,65 @@ def is_binary(s: str) -> bool:
     if not s:
         return False
     return all(ch in "01" for ch in s)
+
+
+def count_binary(s: str) -> int:
+    """Return the number of binary characters (``0`` or ``1``) in *s*.
+
+    A binary character is ``0`` or ``1``. Empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of binary characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_binary("1010")
+        4
+        >>> count_binary("102")
+        2
+        >>> count_binary("hello")
+        0
+        >>> count_binary("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch in "01")
+
+
+def has_binary(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one binary character.
+
+    This is the boolean companion to :func:`count_binary`. It returns
+    ``True`` when at least one character is ``0`` or ``1`` and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_binary` for
+    consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains a binary character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_binary("1010")
+        True
+        >>> has_binary("102")
+        True
+        >>> has_binary("234")
+        False
+        >>> has_binary("")
+        False
+    """
+    _require_string(s, "s")
+    return count_binary(s) > 0
 
 
 def is_octal(s: str) -> bool:

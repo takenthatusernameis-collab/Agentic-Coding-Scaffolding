@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-10 12:36Z) — bootstrap; added count_binary/has_binary companions to strings.is_binary
+
+The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `24ea6a7`, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Targeted baseline: `python -m pytest tests/test_strings.py -q` — **571 passed**; `python -m unittest tests.test_public_api` OK.
+
+Followed the durable "Next Planned": continued the `is*`/`count_*`/`has_*` companion gap audit in `strings.py`. `is_binary` had no `count_*`/`has_*` counterparts despite a clear per-character-count convention match (characters `0`/`1`), so added `count_binary(s) -> int` and `has_binary(s) -> bool` after `is_binary`, matching the existing `count_hex`/`has_hex` and `count_alpha`/`has_alpha` style: typed `str` API, `__all__` exports, Google-style docstrings with ASCII-safe doctests, `TypeError` validation, `has_binary` reusing `count_binary` for consistency. Added `TestCountBinary` and `TestHasBinary` to `tests/test_strings.py` covering all/mixed/none/empty cases, consistency between the two companions, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree/prose entries in `README.md` and added an Unreleased entry to `CHANGELOG.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+Completed in this session:
+- Verified repo health: clean baseline, scaffold in sync, targeted strings + public API green.
+- Added `count_binary`/`has_binary` companions to `strings.is_binary`.
+- Verified: `python -m unittest tests.test_strings` (**582 OK**), targeted doctests for `count_binary`/`has_binary` pass, `python -m unittest tests.test_public_api` OK, `python -m ruff check --fix strings.py tests/test_strings.py` clean (import ordering fixed), `python -m mypy strings.py` clean, `python tools/refresh_scaffold.py --check` in sync.
+- No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). Continue the `is*`/`count_*`/`has_*` companion gap audit in `strings.py`: remaining uncompanioned `is_*` predicates with clean per-character-count semantics include `is_octal` (0-7 per character) and others like `is_binary` are now covered; avoid whole-sequence/positional predicates (`is_anagram`, `is_isogram`, `is_palindrome`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_title`, `is_upper`, `is_lower`, `is_blank`, `is_decimal`, `is_integer`, `is_identifier`). Pick one with a clear convention match; add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError` validation; add targeted tests in `tests/test_strings.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 12:28Z) — bootstrap; added count_printable/has_printable tests for strings.is_printable
 
 The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `bcf286b`, `python tools/refresh_scaffold.py --check` reported `tests/test_strings.py` stale (embedded copy out of sync). Full suite `python -m pytest tests/` — **10339 tests, OK** (pre-work baseline); `tests.test_public_api` OK; `python -m ruff check .` — only the pre-existing `regex_utils.py:40` W605 remains; `python -m mypy .` — clean.

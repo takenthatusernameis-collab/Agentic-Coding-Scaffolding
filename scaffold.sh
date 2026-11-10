@@ -13146,6 +13146,8 @@ __all__: List[str] = [
     "has_alphanumeric",
     "has_ascii",
     "is_binary",
+    "count_binary",
+    "has_binary",
     "is_octal",
     "is_digit",
     "is_hex",
@@ -14587,6 +14589,65 @@ def is_binary(s: str) -> bool:
     if not s:
         return False
     return all(ch in "01" for ch in s)
+
+
+def count_binary(s: str) -> int:
+    """Return the number of binary characters (``0`` or ``1``) in *s*.
+
+    A binary character is ``0`` or ``1``. Empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of binary characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_binary("1010")
+        4
+        >>> count_binary("102")
+        2
+        >>> count_binary("hello")
+        0
+        >>> count_binary("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch in "01")
+
+
+def has_binary(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one binary character.
+
+    This is the boolean companion to :func:`count_binary`. It returns
+    ``True`` when at least one character is ``0`` or ``1`` and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_binary` for
+    consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains a binary character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_binary("1010")
+        True
+        >>> has_binary("102")
+        True
+        >>> has_binary("234")
+        False
+        >>> has_binary("")
+        False
+    """
+    _require_string(s, "s")
+    return count_binary(s) > 0
 
 
 def is_octal(s: str) -> bool:
@@ -18244,6 +18305,7 @@ from strings import (
     count_alpha,
     count_alphanumeric,
     count_ascii,
+    count_binary,
     count_consonants,
     count_digits,
     count_hex,
@@ -18268,6 +18330,7 @@ from strings import (
     has_alpha,
     has_alphanumeric,
     has_ascii,
+    has_binary,
     has_consonants,
     has_digits,
     has_hex,
@@ -19538,6 +19601,54 @@ class TestIsBinary(unittest.TestCase):
             is_binary(123)  # type: ignore[arg-type]
 
 
+
+class TestCountBinary(unittest.TestCase):
+    def test_all_binary(self):
+        self.assertEqual(count_binary("1010"), 4)
+        self.assertEqual(count_binary("0"), 1)
+        self.assertEqual(count_binary("11111111"), 8)
+
+    def test_mixed(self):
+        self.assertEqual(count_binary("102"), 2)
+        self.assertEqual(count_binary("abc101xyz"), 3)
+
+    def test_none(self):
+        self.assertEqual(count_binary("234"), 0)
+        self.assertEqual(count_binary("hello"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_binary(""), 0)
+
+    def test_consistency_with_has_binary(self):
+        for s in ["1010", "102", "234", "", "a1b0c"]:
+            self.assertEqual(has_binary(s), count_binary(s) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_binary(1010)  # type: ignore[arg-type]
+
+
+class TestHasBinary(unittest.TestCase):
+    def test_all_binary(self):
+        self.assertTrue(has_binary("1010"))
+        self.assertTrue(has_binary("0"))
+
+    def test_mixed(self):
+        self.assertTrue(has_binary("102"))
+        self.assertTrue(has_binary("abc1xyz"))
+
+    def test_none(self):
+        self.assertFalse(has_binary("234"))
+        self.assertFalse(has_binary("hello"))
+
+    def test_empty(self):
+        self.assertFalse(has_binary(""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_binary(None)  # type: ignore[arg-type]
+
+
 class TestIsOctal(unittest.TestCase):
     def test_octal(self):
         self.assertTrue(is_octal("755"))
@@ -20762,6 +20873,8 @@ class TestStringsBoundaryCases(unittest.TestCase):
             is_alpha,
             is_alphanumeric,
             is_binary,
+    count_binary,
+    has_binary,
             is_octal,
             is_digit,
             is_hex,
@@ -68298,6 +68411,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added `count_binary`/`has_binary` companions to `strings.is_binary`
+
+- Added `count_binary(s) -> int` and `has_binary(s) -> bool` to `strings.py` as the integer/boolean companions to `is_binary`, closing the `is*`/`count_*`/`has_*` companion gap for the binary-digit predicate. `count_binary` returns the number of binary characters (`0` or `1`) in *s* (empty input returns ``0``). `has_binary` returns ``True`` when at least one binary character is present and ``False`` otherwise (empty input is ``False``), reusing `count_binary` for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountBinary` and `TestHasBinary` to `tests/test_strings.py` covering all/mixed/none/empty cases, consistency between `count_binary` and `has_binary`, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree/prose entries in `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings`, targeted doctests for `count_binary`/`has_binary`, `python -m unittest tests.test_public_api`, `python -m ruff check strings.py tests/test_strings.py`, `python -m mypy strings.py`. No `.github/workflows/**` changes.
+
 ## Unreleased — added `count_printable`/`has_printable` companions to `strings.is_printable`
 
 - Added `count_printable(s) -> int` and `has_printable(s) -> bool` to `strings.py` as the integer/boolean companions to `is_printable`, closing the `is*`/`count_*`/`has_*` companion gap for the printable predicate. `count_printable` returns the number of printable characters (any character passing `str.isprintable()`; whitespace other than space is not printable) in *s* (empty input returns ``0``). `has_printable` returns ``True`` when at least one printable character is present and ``False`` otherwise (empty input is ``False``), reusing `count_printable` for consistency. Both accept typed `str` arguments, raise `TypeError` for non-strings, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests. Added `TestCountPrintable` (7 tests) and `TestHasPrintable` (6 tests) to `tests/test_strings.py` covering all/mixed/none/empty/unicode cases, consistency between `count_printable` and `has_printable`, and the `TypeError` path; imported the new names to match `__all__`. Updated the `strings` module tree entry in `README.md`. Synchronized `strings.py`, `tests/test_strings.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Verified: `python -m unittest tests.test_strings` OK, targeted doctests for `count_printable`/`has_printable`, `python -m unittest tests.test_public_api`, `python -m ruff check strings.py tests/test_strings.py` clean. No `.github/workflows/**` changes.
@@ -71029,7 +71146,7 @@ pickletools_utils.py         # Pickletools utilities wrapping stdlib pickletools
 calculator.py                # Simple calculator module with arithmetic operations
 config_utils.py              # Configuration utilities for JSON file management
 shapes.py                    # Geometry utilities for areas and perimeters (point_distance, midpoint, point_in_circle, point_in_rectangle)
-strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, has_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, count_alpha, has_alpha, is_alphanumeric, count_alphanumeric, count_ascii, has_alphanumeric, has_ascii, is_binary, is_ascii, is_digit, is_hex, count_hex, has_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, count_printable, has_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, has_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
+strings.py                   # String utilities for text operations (reverse_string, reverse_words, is_palindrome, count_vowels, has_vowels, count_consonants, has_consonants, count_lowercase, count_uppercase, has_uppercase, count_digits, has_digits, count_letters, has_letters, count_punctuation, has_punctuation, count_whitespace, has_whitespace, truncate, levenshtein_distance, title_case, camel_to_snake, snake_to_camel, word_count, slugify, pad_left, pad_right, center, lstrip_chars, rstrip_chars, strip_chars, strip_non_ascii, truncate_bytes, repeat_string, remove_vowels, remove_consonants, is_alpha, count_alpha, has_alpha, is_alphanumeric, count_alphanumeric, count_ascii, has_alphanumeric, has_ascii, is_binary, count_binary, has_binary, is_ascii, is_digit, is_hex, count_hex, has_hex, is_integer, is_decimal, is_whitespace, is_space, is_printable, count_printable, has_printable, is_identifier, is_pangram, is_rotation, is_subsequence, is_anagram, is_isogram, is_title, is_upper, is_lower, swap_case, count_occurrences, has_occurrences, first_n, last_n, take, drop, between, contains_any, contains_all, count_words, remove_punctuation, remove_digits, remove_blank_lines, chunk_string, initials, common_prefix, common_suffix, char_frequency, char_count, remove_whitespace, normalize_whitespace, starts_with, ends_with, find, rfind, removeprefix, removesuffix, remove_prefix, remove_suffix, partition, rpartition, split_lines, join_lines, replace_many, strip_html, capitalize_words, and is_blank, ensure_prefix, ensure_suffix, ensure_leading_newline, ensure_trailing_newline, ensure_surrounded_by_newlines, count_leading_newlines, count_trailing_newlines, strip_leading_newlines, strip_trailing_newlines)
 utils.py                     # General utility helper functions
 stats.py                     # Statistical utility functions
 math_utils.py               # Mathematical utility functions (factorial, fibonacci, gcd, is_coprime, lcm, is_prime, is_composite, is_square, clamp, is_even, combination, permutation)
@@ -71659,7 +71776,7 @@ The project includes a geometry utilities module in `shapes.py` with functions f
 
 ## Strings Module
 
-The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `has_vowels`, `count_consonants`, `has_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `count_whitespace`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `repeat_string`, `remove_vowels`, `remove_consonants`, `is_alpha`, `count_alpha`, `has_alpha`, `count_ascii`, `has_ascii`, `is_alphanumeric`, `is_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_decimal`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_anagram`, `is_isogram`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `char_count`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `find`, `rfind`, `removeprefix`, `removesuffix`, `remove_prefix`, `remove_suffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, `capitalize_words`, and `is_blank`, `ensure_prefix`, `ensure_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, and `ensure_surrounded_by_newlines`, `count_leading_newlines`, `count_trailing_newlines`, `strip_leading_newlines`, `strip_trailing_newlines`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. `has_vowels` is the boolean companion to `count_vowels`, returning ``True`` when *s* contains at least one ASCII vowel (a, e, i, o, u), case-insensitive, and ``False`` for empty or consonant-only text. `has_consonants` is the boolean companion to `count_consonants`, returning ``True`` when *s* contains at least one consonant (an alphabetic character that is not a vowel), case-insensitive, and ``False`` for vowel-only, digit-only, punctuation-only, or empty text. `has_digits` is the boolean companion to `count_digits`, returning ``True`` when *s* contains at least one digit character and ``False`` for empty or digit-free text. `has_letters` is the boolean companion to `count_letters`, returning ``True`` when *s* contains at least one alphabetic character and ``False`` for digit-only, punctuation-only, or empty text. `has_punctuation` is the boolean companion to `count_punctuation`, returning ``True`` when *s* contains at least one punctuation character and ``False`` otherwise. `has_whitespace` is the boolean companion to `count_whitespace`, returning ``True`` when *s* contains at least one whitespace character and ``False`` otherwise. `has_uppercase` is the boolean companion to `count_uppercase`, returning ``True`` when *s* contains at least one uppercase letter and ``False`` for empty or lowercase-only text. `has_occurrences` is the boolean companion to `count_occurrences`, returning ``True`` when *substring* is found in *s* (using non-overlapping matches) and ``False`` when it is absent, including for empty *s*; it raises `ValueError` for an empty *substring*. `count_alpha` is the integer companion to `is_alpha`, returning the number of alphabetic characters (any character that passes :meth:`str.isalpha`) in *s* (empty input returns ``0``); `has_alpha` is its boolean companion, returning ``True`` when *s* contains at least one alphabetic character and ``False`` otherwise (empty input is ``False``), reusing `count_alpha` for consistency. The module is tested in `tests/test_strings.py`.
+The project includes a string utilities module in `strings.py` with functions for common text operations: `reverse_string`, `reverse_words`, `is_palindrome`, `count_vowels`, `has_vowels`, `count_consonants`, `has_consonants`, `count_lowercase`, `count_uppercase`, `count_digits`, `count_letters`, `count_punctuation`, `count_whitespace`, `truncate`, `levenshtein_distance`, `title_case`, `camel_to_snake`, `snake_to_camel`, `word_count`, `slugify`, `pad_left`, `pad_right`, `center`, `lstrip_chars`, `rstrip_chars`, `strip_chars`, `strip_non_ascii`, `truncate_bytes`, `repeat_string`, `remove_vowels`, `remove_consonants`, `is_alpha`, `count_alpha`, `has_alpha`, `count_ascii`, `has_ascii`, `is_alphanumeric`, `is_binary`, `count_binary`, `has_binary`, `is_ascii`, `is_digit`, `is_hex`, `is_integer`, `is_decimal`, `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_anagram`, `is_isogram`, `is_title`, `is_upper`, `is_lower`, `swap_case`, `count_occurrences`, `first_n`, `last_n`, `take`, `drop`, `between`, `contains_any`, `contains_all`, `count_words`, `remove_punctuation`, `remove_digits`, `remove_blank_lines`, `chunk_string`, `initials`, `common_prefix`, `common_suffix`, `char_frequency`, `char_count`, `remove_whitespace`, `normalize_whitespace`, `starts_with`, `ends_with`, `find`, `rfind`, `removeprefix`, `removesuffix`, `remove_prefix`, `remove_suffix`, `partition`, `rpartition`, `split_lines`, `join_lines`, `replace_many`, `strip_html`, `capitalize_words`, and `is_blank`, `ensure_prefix`, `ensure_suffix`, `ensure_leading_newline`, `ensure_trailing_newline`, and `ensure_surrounded_by_newlines`, `count_leading_newlines`, `count_trailing_newlines`, `strip_leading_newlines`, `strip_trailing_newlines`. Added `chunk_string` for splitting strings into fixed-size chunks. `ensure_prefix` guarantees that *text* begins with *prefix* (returning *text* unchanged when it already does), and `ensure_suffix` guarantees that *text* ends with *suffix*; both raise `TypeError` for non-string arguments. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The `is_palindrome` function is case-insensitive and ignores non-alphanumeric characters. The `take` helper is an alias for `first_n` and `drop` returns all but the first *n* characters, both validating that *n* is a non-negative integer. `has_vowels` is the boolean companion to `count_vowels`, returning ``True`` when *s* contains at least one ASCII vowel (a, e, i, o, u), case-insensitive, and ``False`` for empty or consonant-only text. `has_consonants` is the boolean companion to `count_consonants`, returning ``True`` when *s* contains at least one consonant (an alphabetic character that is not a vowel), case-insensitive, and ``False`` for vowel-only, digit-only, punctuation-only, or empty text. `has_digits` is the boolean companion to `count_digits`, returning ``True`` when *s* contains at least one digit character and ``False`` for empty or digit-free text. `has_letters` is the boolean companion to `count_letters`, returning ``True`` when *s* contains at least one alphabetic character and ``False`` for digit-only, punctuation-only, or empty text. `has_punctuation` is the boolean companion to `count_punctuation`, returning ``True`` when *s* contains at least one punctuation character and ``False`` otherwise. `has_whitespace` is the boolean companion to `count_whitespace`, returning ``True`` when *s* contains at least one whitespace character and ``False`` otherwise. `has_uppercase` is the boolean companion to `count_uppercase`, returning ``True`` when *s* contains at least one uppercase letter and ``False`` for empty or lowercase-only text. `has_occurrences` is the boolean companion to `count_occurrences`, returning ``True`` when *substring* is found in *s* (using non-overlapping matches) and ``False`` when it is absent, including for empty *s*; it raises `ValueError` for an empty *substring*. `count_alpha` is the integer companion to `is_alpha`, returning the number of alphabetic characters (any character that passes :meth:`str.isalpha`) in *s* (empty input returns ``0``); `has_alpha` is its boolean companion, returning ``True`` when *s* contains at least one alphabetic character and ``False`` otherwise (empty input is ``False``), reusing `count_alpha` for consistency. The module is tested in `tests/test_strings.py`.
 
 ## Statistics Module
 

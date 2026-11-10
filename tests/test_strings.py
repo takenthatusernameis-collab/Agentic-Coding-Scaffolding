@@ -16,6 +16,7 @@ from strings import (
     count_alpha,
     count_alphanumeric,
     count_ascii,
+    count_binary,
     count_consonants,
     count_digits,
     count_hex,
@@ -40,6 +41,7 @@ from strings import (
     has_alpha,
     has_alphanumeric,
     has_ascii,
+    has_binary,
     has_consonants,
     has_digits,
     has_hex,
@@ -1310,6 +1312,54 @@ class TestIsBinary(unittest.TestCase):
             is_binary(123)  # type: ignore[arg-type]
 
 
+
+class TestCountBinary(unittest.TestCase):
+    def test_all_binary(self):
+        self.assertEqual(count_binary("1010"), 4)
+        self.assertEqual(count_binary("0"), 1)
+        self.assertEqual(count_binary("11111111"), 8)
+
+    def test_mixed(self):
+        self.assertEqual(count_binary("102"), 2)
+        self.assertEqual(count_binary("abc101xyz"), 3)
+
+    def test_none(self):
+        self.assertEqual(count_binary("234"), 0)
+        self.assertEqual(count_binary("hello"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_binary(""), 0)
+
+    def test_consistency_with_has_binary(self):
+        for s in ["1010", "102", "234", "", "a1b0c"]:
+            self.assertEqual(has_binary(s), count_binary(s) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_binary(1010)  # type: ignore[arg-type]
+
+
+class TestHasBinary(unittest.TestCase):
+    def test_all_binary(self):
+        self.assertTrue(has_binary("1010"))
+        self.assertTrue(has_binary("0"))
+
+    def test_mixed(self):
+        self.assertTrue(has_binary("102"))
+        self.assertTrue(has_binary("abc1xyz"))
+
+    def test_none(self):
+        self.assertFalse(has_binary("234"))
+        self.assertFalse(has_binary("hello"))
+
+    def test_empty(self):
+        self.assertFalse(has_binary(""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_binary(None)  # type: ignore[arg-type]
+
+
 class TestIsOctal(unittest.TestCase):
     def test_octal(self):
         self.assertTrue(is_octal("755"))
@@ -2534,6 +2584,8 @@ class TestStringsBoundaryCases(unittest.TestCase):
             is_alpha,
             is_alphanumeric,
             is_binary,
+    count_binary,
+    has_binary,
             is_octal,
             is_digit,
             is_hex,
