@@ -320,7 +320,7 @@ class TestKeysEqual(unittest.TestCase):
 
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
-            keys_equal("not a dict", {})
+            keys_equal("not a dict", {})  # type: ignore[arg-type]
 
 
 class TestValuesEqual(unittest.TestCase):
@@ -372,7 +372,7 @@ class TestContainsValue(unittest.TestCase):
         self.assertFalse(contains_value({}, 1))
 
     def test_matches_has_value(self) -> None:
-        d = {"a": 1, "b": 2}
+        d: dict[str, int | None] = {"a": 1, "b": 2}
         for v in (1, 2, 3, None):
             self.assertEqual(contains_value(d, v), has_value(d, v))
 
@@ -766,6 +766,7 @@ class TestFindWhere(unittest.TestCase):
     def test_returns_tuple(self) -> None:
         result = find_where({"a": 1}, lambda k, v: True)
         self.assertIsInstance(result, tuple)
+        assert result is not None
         self.assertEqual(len(result), 2)
 
     def test_consistency_with_has_where(self) -> None:

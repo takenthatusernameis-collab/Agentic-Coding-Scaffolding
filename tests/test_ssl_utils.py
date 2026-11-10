@@ -1,6 +1,6 @@
 import ssl
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 
 import ssl_utils
 
@@ -114,7 +114,7 @@ class TestSSLUtils(unittest.TestCase):
             ssl_utils.get_cert_san("bad")
 
     def test_cert_is_valid_at_time(self):
-        now = datetime.utcnow().replace(tzinfo=None)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         not_before = (now.replace(year=now.year - 1)).strftime("%Y%m%d%H%M%S") + "Z"
         not_after = (now.replace(year=now.year + 1)).strftime("%Y%m%d%H%M%S") + "Z"
         cert = {"notBefore": not_before, "notAfter": not_after}
