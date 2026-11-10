@@ -4184,6 +4184,22 @@ Next Planned (durable handover for the following agent):
 - If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
 - No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
 
+## Latest Session (2026-11-10 21:11Z) — added `is_not_proper_subset`/`is_not_proper_superset` to `set_utils`
+
+**Assigned task:** Board held no task (bootstrap continuation; `board_read` empty, `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). Verified starting state: `git status` showed `main...origin/main [ahead 1]` with last commit `32b3e48 feat(bytes_utils): add is_not_zero/is_not_all_ones negation companions`, `python tools/refresh_scaffold.py --check` in sync. Executed the durable "Next Planned" by auditing `set_utils.py` for a focused, hermetic helper gap: `set_utils` exposed `is_proper_subset`/`is_proper_superset` but lacked boolean negation companions, while the module already provides `is_subset`/`is_not_subset`, `is_superset`/`is_not_superset`, `is_equal`/`is_not_equal`, and `is_disjoint`/`has_intersection` pairs.
+
+**Changes:**
+- Added `is_not_proper_subset(a, b)` and `is_not_proper_superset(a, b)` to `set_utils.py` as negation companions to `is_proper_subset`/`is_proper_superset`. Typed `Iterable[Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation consistent with module conventions (delegated to positive predicates).
+- Added `TestIsNotProperSubset` and `TestIsNotProperSuperset` (16 tests) to `tests/test_set_utils.py` covering basic/empty/equal/duplicate/string cases, consistency with positive predicates, and `TypeError` paths.
+- Updated `README.md` (`set_utils` tree/prose) and `CHANGELOG.md`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_set_utils` (140 OK), `python -m doctest set_utils.py` (OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check set_utils.py tests/test_set_utils.py` clean. No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The `set_utils` subset/superset negation-companion gap is now closed; `bytes_utils` negation companions were closed in the prior session — do not re-open these as no-op work.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 21:00Z) — added `is_not_zero`/`is_not_all_ones` to `bytes_utils`
 
 **Assigned task:** Board held no task (bootstrap continuation; `board_read` empty, `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). Verified clean starting state (`git status` clean on `main` at `26fdc1d`, `python tools/refresh_scaffold.py --check` in sync). Executed the durable "Next Planned" by auditing `bytes_utils.py` for a focused, hermetic helper gap: `bytes_utils` exported `is_zero` and `is_all_ones` but lacked boolean negation companions, while the module already provides `contains`/`not_contains` and `count_null_bytes`/`has_null_byte`/`count_non_null_bytes`/`has_non_null_byte` companion pairs.

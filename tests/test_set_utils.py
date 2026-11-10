@@ -14,6 +14,8 @@ from set_utils import (
     is_disjoint,
     is_equal,
     is_not_equal,
+    is_not_proper_subset,
+    is_not_proper_superset,
     is_not_subset,
     is_not_superset,
     is_proper_subset,
@@ -615,6 +617,87 @@ class TestIsProperSuperset(unittest.TestCase):
             is_proper_superset(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_proper_superset([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotProperSubset(unittest.TestCase):
+    def test_not_proper_subset_false_when_proper_subset(self) -> None:
+        self.assertFalse(is_not_proper_subset([1, 2], [1, 2, 3]))
+
+    def test_not_proper_subset_true_equal(self) -> None:
+        self.assertTrue(is_not_proper_subset([1, 2], [1, 2]))
+
+    def test_not_proper_subset_true_not_subset(self) -> None:
+        self.assertTrue(is_not_proper_subset([1, 4], [1, 2, 3]))
+
+    def test_not_proper_subset_empty(self) -> None:
+        self.assertFalse(is_not_proper_subset([], [1, 2, 3]))
+        self.assertTrue(is_not_proper_subset([], []))
+
+    def test_not_proper_subset_duplicates_ignored(self) -> None:
+        self.assertFalse(is_not_proper_subset([1, 2, 2], [1, 2, 3]))
+
+    def test_not_proper_subset_strings(self) -> None:
+        self.assertFalse(is_not_proper_subset("ab", "abc"))
+        self.assertTrue(is_not_proper_subset("abc", "abc"))
+
+    def test_not_proper_subset_consistency_with_is_proper_subset(self) -> None:
+        cases = [
+            ([1, 2], [1, 2, 3]),
+            ([1, 2], [1, 2]),
+            ([1, 4], [1, 2, 3]),
+            ([], [1, 2, 3]),
+            ([], []),
+        ]
+        for a, b in cases:
+            self.assertEqual(is_not_proper_subset(a, b), not is_proper_subset(a, b))
+
+    def test_not_proper_subset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_not_proper_subset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_proper_subset([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestIsNotProperSuperset(unittest.TestCase):
+    def test_not_proper_superset_false_when_proper_superset(self) -> None:
+        self.assertFalse(is_not_proper_superset([1, 2, 3], [1, 2]))
+
+    def test_not_proper_superset_true_equal(self) -> None:
+        self.assertTrue(is_not_proper_superset([1, 2], [1, 2]))
+
+    def test_not_proper_superset_true_not_superset(self) -> None:
+        self.assertTrue(is_not_proper_superset([1, 2], [2, 3]))
+
+    def test_not_proper_superset_empty(self) -> None:
+        self.assertFalse(is_not_proper_superset([1, 2, 3], []))
+        self.assertTrue(is_not_proper_superset([], []))
+
+    def test_not_proper_superset_duplicates_ignored(self) -> None:
+        self.assertFalse(is_not_proper_superset([1, 2, 2, 3], [1, 2]))
+
+    def test_not_proper_superset_strings(self) -> None:
+        self.assertFalse(is_not_proper_superset("abc", "ab"))
+        self.assertTrue(is_not_proper_superset("abc", "abc"))
+
+    def test_not_proper_superset_consistency_with_is_proper_superset(self) -> None:
+        cases = [
+            ([1, 2, 3], [1, 2]),
+            ([1, 2], [1, 2]),
+            ([1, 2], [2, 3]),
+            ([1, 2, 3], []),
+            ([], []),
+        ]
+        for a, b in cases:
+            self.assertEqual(
+                is_not_proper_superset(a, b),
+                not is_proper_superset(a, b),
+            )
+
+    def test_not_proper_superset_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_not_proper_superset(123, [1, 2])  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_not_proper_superset([1, 2], 123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

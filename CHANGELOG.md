@@ -1,3 +1,11 @@
+## Unreleased — added `is_not_proper_subset`/`is_not_proper_superset` negation companions to `set_utils`
+
+- Added `is_not_proper_subset(a, b)` and `is_not_proper_superset(a, b)` to `set_utils.py` as boolean negation companions to `is_proper_subset`/`is_proper_superset`, completing the module's subset/superset negation pairs alongside existing `is_subset`/`is_not_subset`, `is_superset`/`is_not_superset`, `is_equal`/`is_not_equal`, and `is_disjoint`/`has_intersection`.
+- Typed `Iterable[Any] -> bool` APIs, `__all__` exports, Google-style docstrings with ASCII-safe doctests, and `TypeError` validation consistent with module conventions (delegated to positive predicates).
+- Added `TestIsNotProperSubset` and `TestIsNotProperSuperset` (16 tests) to `tests/test_set_utils.py` covering basic/empty/equal/duplicate/string cases, consistency with positive predicates, and `TypeError` paths.
+- Updated `README.md` (`set_utils` tree/prose). Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Targeted verification: `python -m unittest tests.test_set_utils`, `python -m doctest set_utils.py`, `python -m unittest tests.test_public_api`, `python -m ruff check set_utils.py tests/test_set_utils.py`. No `.github/workflows/**` changes.
+
 ## Unreleased — added `is_not_zero`/`is_not_all_ones` negation companions to `bytes_utils`
 
 - Added `is_not_zero(data)` and `is_not_all_ones(data)` to `bytes_utils.py` as boolean negation companions to `is_zero`/`is_all_ones`, matching the existing `contains`/`not_contains` pattern. `is_not_zero` returns ``True`` when *data* contains at least one non-zero byte (empty input is ``False``), reusing :func:`is_zero` for consistency. `is_not_all_ones` returns ``True`` when *data* contains at least one non-0xff byte (empty input is ``False``), reusing :func:`is_all_ones` for consistency. Both accept typed `bytes | bytearray` APIs, raise `TypeError` for non-bytes-like input, are exported via `__all__`, and ship with Google-style docstrings and ASCII-safe doctests.
