@@ -224,7 +224,7 @@ def format_good_luck(name: str, wish: str = "Good luck") -> str:
 
     Examples:
         >>> format_good_luck("Alice")
-        "Good luck, Alice!"
+        'Good luck, Alice!'
         >>> format_good_luck("Bob", "Best of luck")
         'Best of luck, Bob!'
     """

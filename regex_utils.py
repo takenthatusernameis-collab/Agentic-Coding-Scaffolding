@@ -37,8 +37,8 @@ def compile_pattern(pattern: str, flags: int = 0) -> Pattern[str]:
         ValueError: If the pattern is not a valid regular expression.
 
     Examples:
-        >>> compile_pattern(r"\\d+")
-        re.compile(r'\\d+')
+        >>> compile_pattern(r"\d+")
+        re.compile('\\d+')
     """
     try:
         return re.compile(pattern, flags)

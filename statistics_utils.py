@@ -95,9 +95,9 @@ def median_even(numbers: List[T | float]) -> Tuple[float, float]:
 
     Examples:
         >>> median_even([1, 2, 3, 4])
-        (2, 3)
+        (2.0, 3.0)
         >>> median_even([1, 2, 3])
-        (2, 2)
+        (2.0, 2.0)
     """
     if not numbers:
         raise ValueError("Cannot calculate median_even of empty list")

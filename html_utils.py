@@ -39,7 +39,7 @@ def escape_html(text: Union[str, None]) -> str:
 
     Examples:
         >>> escape_html("<script>alert('xss')</script>")
-        '&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;'
+        '&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;'
     """
     if text is None:
         return ""

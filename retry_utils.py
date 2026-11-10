@@ -31,15 +31,18 @@ def retry(
         Decorated function that retries on specified exceptions.
 
     Examples:
-        >>> @retry(max_attempts=3, delay=0.1, backoff=2.0)
+        >>> attempts = []
+        >>> @retry(max_attempts=3, delay=0.01, backoff=2.0)
         ... def unreliable_function():
-        ...     import random
-        ...
-        ...     if random.random() < 0.7:
+        ...     attempts.append(1)
+        ...     if len(attempts) < 2:
         ...         raise ValueError("Random failure")
         ...     return "success"
-        >>> # May succeed after retries
         >>> result = unreliable_function()
+        >>> result
+        'success'
+        >>> len(attempts)
+        2
     """
 
     def decorator(func: Callable) -> Callable:
@@ -83,15 +86,18 @@ def retry_with_backoff(
         Decorated function that retries with exponential backoff.
 
     Examples:
-        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.1, backoff_factor=2.0)
+        >>> attempts = []
+        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=False)
         ... def unreliable_function():
-        ...     import random
-        ...
-        ...     if random.random() < 0.7:
+        ...     attempts.append(1)
+        ...     if len(attempts) < 2:
         ...         raise ValueError("Random failure")
         ...     return "success"
-        >>> # May succeed after retries with increasing delays
         >>> result = unreliable_function()
+        >>> result
+        'success'
+        >>> len(attempts)
+        2
     """
 
     def decorator(func: Callable) -> Callable:
@@ -138,20 +144,20 @@ def retry_count(
         is the number of retries that occurred (0 if no retries needed).
 
     Examples:
-        >>> @retry_count(max_attempts=3, delay=0.1)
+        >>> attempts = []
+        >>> @retry_count(max_attempts=3, delay=0.01)
         ... def unreliable_function():
-        ...     import random
-        ...
-        ...     if random.random() < 0.8:
+        ...     attempts.append(1)
+        ...     if len(attempts) < 2:
         ...         raise ValueError("Random failure")
         ...     return "success"
-        >>> result, count = unreliable_function()  # count is number of retries
-        >>> isinstance(result, str)
-        True
-        >>> isinstance(count, int)
-        True
-        >>> count >= 0
-        True
+        >>> result, count = unreliable_function()
+        >>> result
+        'success'
+        >>> count
+        1
+        >>> len(attempts)
+        2
     """
 
     def decorator(func: Callable) -> Callable:

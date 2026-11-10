@@ -376,7 +376,7 @@ def adjust_brightness(hex_color: str, factor: float) -> str:
 
     Examples:
         >>> adjust_brightness("#ff5733", 0.5)
-        '#7f2b19'
+        '#802c1a'
         >>> adjust_brightness("#000000", 2.0)
         '#000000'
     """
@@ -416,7 +416,7 @@ def blend_colors(color1: _Color, color2: _Color, weight: float = 0.5) -> str:
 
     Examples:
         >>> blend_colors("#000000", "#ffffff", 0.5)
-        '#7f7f7f'
+        '#808080'
         >>> blend_colors("#ff0000", "#0000ff", 0.0)
         '#ff0000'
     """

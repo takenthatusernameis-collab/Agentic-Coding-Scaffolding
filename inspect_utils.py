@@ -111,7 +111,7 @@ def get_signature(func: Any) -> inspect.Signature:
     Examples:
         >>> def example(a: int, b: str = "x"): ...
         >>> str(get_signature(example))
-        "(a: int, b: str = 'x')"
+        "(a: 'int', b: 'str' = 'x')"
     """
     if not callable(func):
         raise TypeError(f"expected a callable, got {type(func).__name__}")

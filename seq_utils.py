@@ -913,7 +913,7 @@ def flatten(sequence: Sequence[Any]) -> List[Any]:
         >>> flatten([[1, 2], [3, 4], [5]])
         [1, 2, 3, 4, 5]
         >>> flatten([1, [2, 3], "ab"])
-        [1, 2, 3, "ab"]
+        [1, 2, 3, 'ab']
         >>> flatten([])
         []
     """
