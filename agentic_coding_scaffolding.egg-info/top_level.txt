@@ -1,6 +1,7 @@
 abc_utils
 aifc_utils
 antigravity_utils
+argcomplete_utils
 argparse_utils
 array_utils
 ast_utils
