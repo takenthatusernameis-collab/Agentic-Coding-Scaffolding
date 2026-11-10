@@ -16,6 +16,11 @@ from posixpath_utils import (
     exists,
     expanduser,
     expandvars,
+    getatime,
+    getctime,
+    getmtime,
+    getsize,
+    is_rooted,
     isabs,
     isdir,
     isfile,
@@ -179,6 +184,79 @@ class TestLexists(unittest.TestCase):
 
     def test_lexists_nonexistent(self):
         self.assertFalse(lexists("/nonexistent/path/12345"))
+
+
+class TestIsRooted(unittest.TestCase):
+    def test_is_rooted_absolute(self) -> None:
+        self.assertTrue(is_rooted("/foo/bar"))
+
+    def test_is_rooted_relative(self) -> None:
+        self.assertFalse(is_rooted("foo/bar"))
+
+    def test_is_rooted_empty(self) -> None:
+        self.assertFalse(is_rooted(""))
+
+    def test_is_rooted_bytes(self) -> None:
+        self.assertTrue(is_rooted(b"/foo"))
+        self.assertFalse(is_rooted(b"foo"))
+
+    def test_is_rooted_distinguishes_from_isabs(self) -> None:
+        # A path can be rooted without being absolute (relative root).
+        self.assertTrue(is_rooted("/foo"))
+        self.assertTrue(isabs("/foo"))
+        self.assertFalse(is_rooted("foo"))
+        self.assertFalse(isabs("foo"))
+
+    def test_is_rooted_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_rooted(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_rooted(None)  # type: ignore[arg-type]
+
+
+class TestStatHelpers(unittest.TestCase):
+    def _make_tempfile(self) -> str:
+        f = tempfile.NamedTemporaryFile(delete=False)
+        f.write(b"hello world")
+        f.close()
+        self.addCleanup(os.unlink, f.name)
+        return f.name
+
+    def test_getsize_returns_size(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getsize(path), len(b"hello world"))
+
+    def test_getsize_missing_raises(self) -> None:
+        with self.assertRaises(OSError):
+            getsize("/nonexistent/path/12345")
+
+    def test_getsize_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getsize(123)  # type: ignore[arg-type]
+
+    def test_getmtime_matches_stat(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getmtime(path), os.stat(path).st_mtime)
+
+    def test_getatime_matches_stat(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getatime(path), os.stat(path).st_atime)
+
+    def test_getctime_matches_stat(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getctime(path), os.stat(path).st_ctime)
+
+    def test_getmtime_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getmtime(123)  # type: ignore[arg-type]
+
+    def test_getatime_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getatime(123)  # type: ignore[arg-type]
+
+    def test_getctime_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getctime(123)  # type: ignore[arg-type]
 
 
 class TestReExports(unittest.TestCase):

@@ -310,7 +310,7 @@ tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (chec
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 genericpath_utils.py         # Generic path utilities wrapping stdlib genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile)
-posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
+posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, is_rooted, exists, getatime, getctime, getmtime, getsize)
 ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 nturl2path_utils.py         # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
 curses_utils.py             # Terminal handling utilities wrapping stdlib curses (initscr, endwin, cbreak, echo, raw, colors)

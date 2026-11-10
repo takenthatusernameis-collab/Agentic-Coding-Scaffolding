@@ -68860,6 +68860,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for `posixpath_utils.is_rooted` and the `getatime`/`getctime`/`getmtime`/`getsize` stat helpers
+
+- Added `TestIsRooted` (7 tests) to `tests/test_posixpath_utils.py` for `is_rooted`, which is exported in `__all__`, typed, and documented, but shipped with zero dedicated test coverage — unlike its sibling `isabs`, covered by `test_isabs`. New tests cover absolute/relative/empty/bytes/path-like inputs, the distinction from `isabs`, and `TypeError` paths.
+- Added `TestStatHelpers` (10 tests) for the `getatime`/`getctime`/`getmtime`/`getsize` family, all exported in `__all__`, typed, and documented, but previously untested. New tests verify the return value against `os.stat` for a hermetic temporary file, the `OSError` path for missing files, and `TypeError` paths for non-path-like input.
+- Updated the `posixpath_utils` module tree entry in `README.md` to list `is_rooted`, `getatime`, `getctime`, `getmtime`, and `getsize`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_posixpath_utils` (45 OK, up from 30), `python -m unittest tests.test_public_api`, `python -m ruff check tests/test_posixpath_utils.py` clean, `python -m mypy tests/test_posixpath_utils.py` clean. No new public API was added, so no implementation/prose changes beyond the README tree entry. No `.github/workflows/**` changes.
+
 ## Unreleased — added `is_not_proper_subset`/`is_not_proper_superset` negation companions to `set_utils`
 
 - Added `is_not_proper_subset(a, b)` and `is_not_proper_superset(a, b)` to `set_utils.py` as boolean negation companions to `is_proper_subset`/`is_proper_superset`, completing the module's subset/superset negation pairs alongside existing `is_subset`/`is_not_subset`, `is_superset`/`is_not_superset`, `is_equal`/`is_not_equal`, and `is_disjoint`/`has_intersection`.
@@ -71866,7 +71873,7 @@ tabnanny_utils.py            # Tabnanny utilities wrapping stdlib tabnanny (chec
 encodings_utils.py           # Encoding name utilities wrapping stdlib encodings (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings)
 zipimport_utils.py           # Zip archive import utilities wrapping stdlib zipimport (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches)
 genericpath_utils.py         # Generic path utilities wrapping stdlib genericpath (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile)
-posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, exists)
+posixpath_utils.py           # Posixpath utilities wrapping stdlib posixpath (abspath, basename, dirname, join, split, splitext, normpath, realpath, relpath, isabs, is_rooted, exists, getatime, getctime, getmtime, getsize)
 ntpath_utils.py              # Windows path utilities wrapping stdlib ntpath (splitdrive, splitroot, normcase, normpath, has_drive, is_unc_path, is_device_path, to_slashes)
 nturl2path_utils.py         # URL to pathname conversions wrapping stdlib nturl2path (url2pathname, pathname2url)
 curses_utils.py             # Terminal handling utilities wrapping stdlib curses (initscr, endwin, cbreak, echo, raw, colors)
@@ -83977,6 +83984,11 @@ from posixpath_utils import (
     exists,
     expanduser,
     expandvars,
+    getatime,
+    getctime,
+    getmtime,
+    getsize,
+    is_rooted,
     isabs,
     isdir,
     isfile,
@@ -84140,6 +84152,79 @@ class TestLexists(unittest.TestCase):
 
     def test_lexists_nonexistent(self):
         self.assertFalse(lexists("/nonexistent/path/12345"))
+
+
+class TestIsRooted(unittest.TestCase):
+    def test_is_rooted_absolute(self) -> None:
+        self.assertTrue(is_rooted("/foo/bar"))
+
+    def test_is_rooted_relative(self) -> None:
+        self.assertFalse(is_rooted("foo/bar"))
+
+    def test_is_rooted_empty(self) -> None:
+        self.assertFalse(is_rooted(""))
+
+    def test_is_rooted_bytes(self) -> None:
+        self.assertTrue(is_rooted(b"/foo"))
+        self.assertFalse(is_rooted(b"foo"))
+
+    def test_is_rooted_distinguishes_from_isabs(self) -> None:
+        # A path can be rooted without being absolute (relative root).
+        self.assertTrue(is_rooted("/foo"))
+        self.assertTrue(isabs("/foo"))
+        self.assertFalse(is_rooted("foo"))
+        self.assertFalse(isabs("foo"))
+
+    def test_is_rooted_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_rooted(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_rooted(None)  # type: ignore[arg-type]
+
+
+class TestStatHelpers(unittest.TestCase):
+    def _make_tempfile(self) -> str:
+        f = tempfile.NamedTemporaryFile(delete=False)
+        f.write(b"hello world")
+        f.close()
+        self.addCleanup(os.unlink, f.name)
+        return f.name
+
+    def test_getsize_returns_size(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getsize(path), len(b"hello world"))
+
+    def test_getsize_missing_raises(self) -> None:
+        with self.assertRaises(OSError):
+            getsize("/nonexistent/path/12345")
+
+    def test_getsize_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getsize(123)  # type: ignore[arg-type]
+
+    def test_getmtime_matches_stat(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getmtime(path), os.stat(path).st_mtime)
+
+    def test_getatime_matches_stat(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getatime(path), os.stat(path).st_atime)
+
+    def test_getctime_matches_stat(self) -> None:
+        path = self._make_tempfile()
+        self.assertEqual(getctime(path), os.stat(path).st_ctime)
+
+    def test_getmtime_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getmtime(123)  # type: ignore[arg-type]
+
+    def test_getatime_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getatime(123)  # type: ignore[arg-type]
+
+    def test_getctime_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            getctime(123)  # type: ignore[arg-type]
 
 
 class TestReExports(unittest.TestCase):

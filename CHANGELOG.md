@@ -1,3 +1,10 @@
+## Unreleased — added test coverage for `posixpath_utils.is_rooted` and the `getatime`/`getctime`/`getmtime`/`getsize` stat helpers
+
+- Added `TestIsRooted` (7 tests) to `tests/test_posixpath_utils.py` for `is_rooted`, which is exported in `__all__`, typed, and documented, but shipped with zero dedicated test coverage — unlike its sibling `isabs`, covered by `test_isabs`. New tests cover absolute/relative/empty/bytes/path-like inputs, the distinction from `isabs`, and `TypeError` paths.
+- Added `TestStatHelpers` (10 tests) for the `getatime`/`getctime`/`getmtime`/`getsize` family, all exported in `__all__`, typed, and documented, but previously untested. New tests verify the return value against `os.stat` for a hermetic temporary file, the `OSError` path for missing files, and `TypeError` paths for non-path-like input.
+- Updated the `posixpath_utils` module tree entry in `README.md` to list `is_rooted`, `getatime`, `getctime`, `getmtime`, and `getsize`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_posixpath_utils` (45 OK, up from 30), `python -m unittest tests.test_public_api`, `python -m ruff check tests/test_posixpath_utils.py` clean, `python -m mypy tests/test_posixpath_utils.py` clean. No new public API was added, so no implementation/prose changes beyond the README tree entry. No `.github/workflows/**` changes.
+
 ## Unreleased — added `is_not_proper_subset`/`is_not_proper_superset` negation companions to `set_utils`
 
 - Added `is_not_proper_subset(a, b)` and `is_not_proper_superset(a, b)` to `set_utils.py` as boolean negation companions to `is_proper_subset`/`is_proper_superset`, completing the module's subset/superset negation pairs alongside existing `is_subset`/`is_not_subset`, `is_superset`/`is_not_superset`, `is_equal`/`is_not_equal`, and `is_disjoint`/`has_intersection`.
