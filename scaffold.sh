@@ -13149,6 +13149,8 @@ __all__: List[str] = [
     "count_binary",
     "has_binary",
     "is_octal",
+    "count_octal",
+    "has_octal",
     "is_digit",
     "is_hex",
     "count_hex",
@@ -13205,10 +13207,6 @@ __all__: List[str] = [
     "chunk_string",
     "remove_vowels",
     "remove_consonants",
-    "count_vowels",
-    "has_vowels",
-    "count_consonants",
-    "has_consonants",
     "count_digits",
     "has_digits",
     "count_letters",
@@ -14675,6 +14673,70 @@ def is_octal(s: str) -> bool:
     if not s:
         return False
     return all(ch in "01234567" for ch in s)
+
+
+def count_octal(s: str) -> int:
+    """Return the number of octal characters (0-7) in *s*.
+
+    An octal character is one of 0, 1, 2, 3, 4, 5, 6, 7. Empty input
+    returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of octal characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_octal("755")
+        3
+        >>> count_octal("01234567")
+        8
+        >>> count_octal("89")
+        0
+        >>> count_octal("hello")
+        0
+        >>> count_octal("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch in "01234567")
+
+
+def has_octal(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one octal character.
+
+    This is the boolean companion to :func:`count_octal`. It returns
+    ``True`` when at least one character is an octal digit and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_octal` for
+    consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains an octal character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_octal("755")
+        True
+        >>> has_octal("hello")
+        False
+        >>> has_octal("89")
+        False
+        >>> has_octal("")
+        False
+        >>> has_octal("0a1")
+        True
+    """
+    _require_string(s, "s")
+    return count_octal(s) > 0
 
 
 def is_integer(s: str) -> bool:
@@ -18311,6 +18373,7 @@ from strings import (
     count_hex,
     count_letters,
     count_lowercase,
+    count_octal,
     count_occurrences,
     count_printable,
     count_punctuation,
@@ -18337,6 +18400,7 @@ from strings import (
     has_letters,
     has_lowercase,
     has_occurrences,
+    has_octal,
     has_printable,
     has_punctuation,
     has_uppercase,
@@ -19674,6 +19738,56 @@ class TestIsOctal(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_octal(123)  # type: ignore[arg-type]
+
+
+class TestCountOctal(unittest.TestCase):
+    def test_all_octal(self):
+        self.assertEqual(count_octal("755"), 3)
+        self.assertEqual(count_octal("0"), 1)
+        self.assertEqual(count_octal("01234567"), 8)
+
+    def test_mixed(self):
+        self.assertEqual(count_octal("12389"), 3)
+        self.assertEqual(count_octal("abc07xyz"), 2)
+
+    def test_none(self):
+        self.assertEqual(count_octal("89"), 0)
+        self.assertEqual(count_octal("hello"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_octal(""), 0)
+
+    def test_consistency_with_has_octal(self):
+        for s in ["755", "12389", "89", "", "a0b7c"]:
+            self.assertEqual(has_octal(s), count_octal(s) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_octal(123)  # type: ignore[arg-type]
+
+
+class TestHasOctal(unittest.TestCase):
+    def test_has_octal_true(self):
+        self.assertTrue(has_octal("755"))
+        self.assertTrue(has_octal("0"))
+        self.assertTrue(has_octal("7"))
+        self.assertTrue(has_octal("01234567"))
+        self.assertTrue(has_octal("a0b7c"))
+
+    def test_has_octal_false(self):
+        self.assertFalse(has_octal("89"))
+        self.assertFalse(has_octal("hello"))
+
+    def test_has_octal_empty(self):
+        self.assertFalse(has_octal(""))
+
+    def test_consistency_with_count_octal(self):
+        for s in ("755", "12389", "89", "", "abc"):
+            self.assertEqual(has_octal(s), count_octal(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_octal(None)  # type: ignore[arg-type]
 
 
 class TestIsInteger(unittest.TestCase):

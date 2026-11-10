@@ -1,5 +1,26 @@
 # Project Status
 
+## Latest Session (2026-11-10 13:24Z) — bootstrap; removed duplicate __all__ entries from strings.py
+
+The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `f9162d2`, `python tools/refresh_scaffold.py --check` reported `strings.py` and `tests/test_strings.py` stale (embedded copies out of sync). Full suite `python -m unittest discover tests/` — OK; `tests.test_public_api` OK; `python -m ruff check .` — only the pre-existing `regex_utils.py:40` W605 remains; `python -m mypy .` — clean.
+
+Followed the durable "Next Planned": continued the `is*`/`count_*`/`has_*` companion gap audit in `strings.py`. The companion audit is now complete — every per-character-count `is_*` predicate (`is_alpha`/`count_alpha`/`has_alpha`, `is_alphanumeric`/`count_alphanumeric`/`has_alphanumeric`, `is_ascii`/`count_ascii`/`has_ascii`, `is_hex`/`count_hex`/`has_hex`, `is_binary`/`count_binary`/`has_binary`, `is_octal`/`count_octal`/`has_octal`, `is_digit`/`count_digits`/`has_digits`, `is_printable`/`count_printable`/`has_printable`) has its `count_*`/`has_*` companions with tests. The remaining uncompanioned `is_*` predicates are whole-sequence or positional properties (`is_anagram`, `is_isogram`, `is_palindrome`, `is_pangram`, `is_rotation`, `is_subsequence`, `is_blank`, `is_upper`, `is_lower`, `is_title`, `is_identifier`, `is_decimal`, `is_integer`) that were explicitly rejected for this convention.
+
+While reviewing `strings.py` `__all__`, found duplicate entries: `count_vowels`, `has_vowels`, `count_consonants`, `has_consonants` each appeared twice (lines 14-17 and lines 122-125). Removed the duplicates. Scaffold copies for `strings.py` and `tests/test_strings.py` were refreshed; ruff import ordering was fixed on `tests/test_strings.py`.
+
+Completed in this session:
+- Verified repo health: clean baseline, scaffold initially stale then synced, full suite green, `tests.test_public_api` OK, mypy clean, ruff only pre-existing W605.
+- Removed 4 duplicate `__all__` entries from `strings.py` (`count_vowels`, `has_vowels`, `count_consonants`, `has_consonants`).
+- Ran `make refresh-scaffold`; refreshed `strings.py` and `tests/test_strings.py` embedded copies.
+- Fixed ruff `I001` import sorting on `tests/test_strings.py` via `--fix`.
+- Verified: `python -m unittest tests.test_strings` (**593 OK**), `python -m unittest tests.test_public_api` OK, `python -m ruff check strings.py tests/test_strings.py` clean, `python -m mypy strings.py` clean, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). The `strings.py` `is*`/`count_*`/`has_*` companion audit is now complete; remaining uncompanioned `is_*` predicates are whole-sequence/positional properties that are explicitly excluded. Run the AST-based exported-but-untested scan across unaudited modules to find a genuinely new, focused, hermetic gap outside the audited candidates (`seq_utils`, `set_utils`, `deque_utils`, `bytes_utils`, `list_utils`, `version_utils`, `numbers_utils`, `prime_utils`, `stats`, `interval_utils`, `bit_utils`, `calculator`, `dict_utils`, `calendar_utils`, `utils`, `data_utils`, `array_utils`, `itertools_utils`, `prompt_utils`, `markdown_utils`, `template_utils`, `dataclasses_utils`, `sysconfig_utils`, `pydoc_data_utils`, `enum_utils`, `pyclbr_utils`, `io_utils`, `strings`, `inspect_utils`, `ini_utils`, `opcode_utils`, `config_utils`, `configparser_utils`, `context_utils`, `pathlib_utils`, `tarfile_utils`, `sqlite3_utils`, `wave_utils`, `mailbox_utils`, `sched_utils`, `sre_constants_utils`, `math_utils`, `statistics_utils`, `datetime_utils`, `uuid_utils`).
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 12:36Z) — bootstrap; added count_binary/has_binary companions to strings.is_binary
 
 The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `24ea6a7`, `python tools/refresh_scaffold.py --check` reported all embedded copies in sync. Targeted baseline: `python -m pytest tests/test_strings.py -q` — **571 passed**; `python -m unittest tests.test_public_api` OK.
