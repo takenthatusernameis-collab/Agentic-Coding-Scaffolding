@@ -1,5 +1,20 @@
 # Project Status
 
+## Latest Session (2026-11-10 19:12Z) — bootstrap; foundation solid, no new gap found
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `4deafb5` (ahead of `origin/main` by 1 — the prior session's `calculator.permutation` test commit), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_public_api tests.test_calculator tests.test_scaffold_sync tests.test_refresh_scaffold tests.test_scaffold` — **170 tests, OK**. AST-based exported-but-untested scan run across all 268 `__all__`-bearing modules; remaining flagged names resolve to stdlib re-exports, thin pass-through wrappers, classes, or entry points (all previously audited) — no clean, hermetic, convention-consistent gap outside the audited candidates.
+
+Completed in this session:
+- Verified repo health: `git status` clean, refresh scaffold in sync, targeted tests green (170 OK).
+- Ran AST exported-but-untested scan; no genuine gap found (all flagged names are stdlib re-exports/thin wrappers/classes/entry points, already audited in prior sessions).
+- No code/API/test changes made; this entry records verified state and avoids a duplicate/no-op code commit.
+- No `.github/workflows/**` changes. No duplicate board task or timestamp-only no-op commit.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The exported-but-untested gap audit is complete across the audited candidates; do not re-run it as a no-op unless a new module is added.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 19:08Z) — bootstrap; found and closed a real gap: `calculator.permutation` was untested
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` is refused because this session is the board root, so this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `56f8de7` (up to date with `origin/main`), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran the AST-based exported-but-untested scan across all 164 `__all__`-bearing modules (every module has a test file, so the scan focused on exports with no name reference inside their test file). Filtered out type vars, constants, and stdlib re-exports; surfaced one genuine functional gap: `calculator.permutation` (calculator.py:434) — a fully typed, validated, documented function exported in `__all__`, sibling `combination` fully tested, but `permutation` had zero test coverage.
