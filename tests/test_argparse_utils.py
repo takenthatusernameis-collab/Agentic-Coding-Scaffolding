@@ -61,3 +61,18 @@ def test_subparsers():
     ns = p.parse_args(["run", "--fast"])
     assert ns.command == "run"
     assert ns.fast is True
+
+
+def test_parse_args_returns_namespace():
+    p = au.make_parser()
+    au.add_positional(p, "name")
+    ns = au.parse_args(p, ["alice"])
+    assert isinstance(ns, argparse.Namespace)
+    assert ns.name == "alice"
+
+
+def test_parse_args_with_explicit_list():
+    p = au.make_parser()
+    au.add_option(p, "--count", type_=int, default=0)
+    ns = au.parse_args(p, ["--count", "7"])
+    assert ns.count == 7
