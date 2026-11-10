@@ -1,5 +1,20 @@
 # Project Status
 
+## Latest Session (2026-11-10 05:41Z) — bootstrap; refreshed 8 stale scaffold copies, fixed retry_utils E501
+
+The board held no task (`board_read` empty; bootstrap session; session is the board root, so `board_post` to `main` is refused and this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `b6e95ae`, `python tools/refresh_scaffold.py --check` reported 8 embedded copies out of sync (`retry_utils.py`, `statistics_utils.py`, `color_utils.py`, `greeting_utils.py`, `regex_utils.py`, `html_utils.py`, `inspect_utils.py`, `seq_utils.py`).
+
+Completed in this session:
+- Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync (8 copies refreshed).
+- Found 2 pre-existing ruff regressions in synced files: `regex_utils.py:40` W605 and `retry_utils.py:90` E501. Fixed `retry_utils.py:90` E501 by wrapping the docstring decorator across two lines (doctest still passes). Reverted `regex_utils.py` to its original state — ruff W605 on doctest raw-string lines is a false positive that cannot be suppressed (`# noqa` is ignored) and `"\\d+"` breaks the doctest, so it is left as pre-existing.
+- Verified: full suite `python -m unittest discover tests/` — **10017 tests, OK**; `python -m ruff check .` — only the pre-existing `regex_utils.py:40` W605 remains; `python -m mypy .` — clean (555 source files); `python -m doctest retry_utils.py` OK.
+- Committed as `7c72713` on `main` (scaffold.sh + retry_utils.py). No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green). Only then identify a genuinely new, focused, hermetic gap outside the audited candidates, with a clear convention match (e.g. a true `count_*`/`has_*` companion pair, or an exported helper with no targeted tests and clear expected behavior). Reuse the alias-aware AST-based exported-but-untested scan. Avoid ambiguous aliases, non-idiomatic companions, or changes that only rename established APIs.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 03:51Z) — bootstrap verification; foundation solid, no gap found
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). Verified repository health before starting: `git status` clean on branch `main` at `9df27b0`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Full suite `python -m unittest discover tests/` — **10017 tests, OK**; `tests.test_public_api` OK.
