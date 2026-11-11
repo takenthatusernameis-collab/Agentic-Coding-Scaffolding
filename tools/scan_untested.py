@@ -119,7 +119,8 @@ def is_typevar_or_constant(tree: ast.Module, name: str) -> bool:
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == name:
                     if isinstance(node.value, ast.Call):
-                        if isinstance(node.value.func, ast.Name) and node.value.func.id in ("TypeVar", "ParamSpec"):
+                        func = node.value.func
+                        if isinstance(func, ast.Name) and func.id in ("TypeVar", "ParamSpec"):
                             return True
                     if isinstance(node.value, ast.Constant):
                         return True
