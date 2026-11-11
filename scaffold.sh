@@ -55535,6 +55535,7 @@ from itertools_utils import (
     chunk_iterable,
     combinations_of,
     combinations_with_replacement_of,
+    compress_iterable,
     count_duplicates,
     count_from,
     count_if,
@@ -55542,6 +55543,7 @@ from itertools_utils import (
     cycle_take,
     drop,
     drop_while_pred,
+    filter_false_iterable,
     first_or_default,
     flatten_once,
     group_by_key,
@@ -55551,15 +55553,22 @@ from itertools_utils import (
     has_duplicates,
     has_none,
     is_empty_iterable,
+    islice_iterable,
     last_or_default,
+    ncycles,
+    nth_or_default,
+    padnone,
     pairwise_iterable,
     partition,
     permutations_of,
     product_of,
     repeat_value,
+    roundrobin,
     sliding_window,
+    starmap_iterable,
     take,
     take_while_pred,
+    tee_iterables,
     unique_everseen,
     unique_justseen,
     window,
@@ -56473,6 +56482,271 @@ class TestBatchedIterable(unittest.TestCase):
     def test_rejects_negative_n(self):
         with self.assertRaises(ValueError):
             batched_iterable([1, 2, 3], -1)
+
+
+class TestCompressIterable(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(
+            compress_iterable([1, 2, 3, 4], [1, 0, 1, 0]),
+            [1, 3],
+        )
+
+    def test_all_selected(self):
+        self.assertEqual(compress_iterable([1, 2, 3], [1, 1, 1]), [1, 2, 3])
+
+    def test_none_selected(self):
+        self.assertEqual(compress_iterable([1, 2, 3], [0, 0, 0]), [])
+
+    def test_empty(self):
+        self.assertEqual(compress_iterable([], []), [])
+
+    def test_selectors_shorter(self):
+        self.assertEqual(compress_iterable([1, 2, 3, 4], [1, 0]), [1])
+
+    def test_selectors_longer(self):
+        self.assertEqual(compress_iterable([1, 2], [1, 0, 1, 0]), [1])
+
+    def test_generator_inputs(self):
+        self.assertEqual(
+            compress_iterable(iter([1, 2, 3]), iter([True, False, True])),
+            [1, 3],
+        )
+
+    def test_non_iterable_data_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            compress_iterable(42, [1, 0])
+
+    def test_non_iterable_selectors_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            compress_iterable([1, 2], 42)
+
+
+class TestFilterFalseIterable(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(filter_false_iterable([0, 1, 2, 3], bool), [0])
+
+    def test_even_filter(self):
+        self.assertEqual(
+            filter_false_iterable([1, 2, 3, 4, 5], lambda x: x % 2 == 0),
+            [1, 3, 5],
+        )
+
+    def test_all_true(self):
+        self.assertEqual(filter_false_iterable([1, 2, 3], lambda x: True), [])
+
+    def test_all_false(self):
+        self.assertEqual(filter_false_iterable([1, 2, 3], lambda x: False), [1, 2, 3])
+
+    def test_empty(self):
+        self.assertEqual(filter_false_iterable([], bool), [])
+
+    def test_generator_input(self):
+        self.assertEqual(filter_false_iterable(iter([0, 1, 2, 3]), lambda x: x % 2), [0, 2])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            filter_false_iterable(42, bool)
+
+    def test_non_callable_predicate_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            filter_false_iterable([1, 2, 3], "not callable")
+
+
+class TestTeeIterables(unittest.TestCase):
+    def test_default_two(self):
+        result = tee_iterables([1, 2, 3])
+        self.assertEqual(result, [[1, 2, 3], [1, 2, 3]])
+
+    def test_n_three(self):
+        result = tee_iterables([1, 2], 3)
+        self.assertEqual(result, [[1, 2], [1, 2], [1, 2]])
+
+    def test_n_zero(self):
+        self.assertEqual(tee_iterables([1, 2, 3], 0), [])
+
+    def test_empty_iterable(self):
+        self.assertEqual(tee_iterables([], 2), [[], []])
+
+    def test_generator_input(self):
+        self.assertEqual(tee_iterables(iter([1, 2]), 2), [[1, 2], [1, 2]])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            tee_iterables(42)
+
+    def test_non_int_n_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            tee_iterables([1, 2], "2")
+
+    def test_bool_n_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            tee_iterables([1, 2], True)
+
+    def test_negative_n_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            tee_iterables([1, 2], -1)
+
+
+class TestStarmapIterable(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(starmap_iterable(pow, [(2, 3), (3, 2)]), [8, 9])
+
+    def test_sum_pairs(self):
+        self.assertEqual(
+            starmap_iterable(lambda a, b: a + b, [(1, 2), (3, 4)]),
+            [3, 7],
+        )
+
+    def test_empty(self):
+        self.assertEqual(starmap_iterable(pow, []), [])
+
+    def test_generator_input(self):
+        self.assertEqual(starmap_iterable(pow, iter([(2, 2), (2, 3)])), [4, 8])
+
+    def test_non_callable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            starmap_iterable("not callable", [(1, 2)])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            starmap_iterable(pow, 42)
+
+
+class TestNthOrDefault(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(nth_or_default([1, 2, 3], 1), 2)
+
+    def test_first(self):
+        self.assertEqual(nth_or_default([1, 2, 3], 0), 1)
+
+    def test_out_of_range_returns_default_none(self):
+        self.assertIsNone(nth_or_default([1, 2, 3], 5))
+
+    def test_out_of_range_returns_custom_default(self):
+        self.assertEqual(nth_or_default([1, 2, 3], 5, default="none"), "none")
+
+    def test_empty(self):
+        self.assertEqual(nth_or_default([], 0, default=99), 99)
+
+    def test_generator_input(self):
+        self.assertEqual(nth_or_default((x for x in range(5)), 3), 3)
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            nth_or_default(42, 0)
+
+    def test_non_int_n_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            nth_or_default([1, 2, 3], "1")
+
+    def test_bool_n_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            nth_or_default([1, 2, 3], True)
+
+    def test_negative_n_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            nth_or_default([1, 2, 3], -1)
+
+
+class TestIsliceIterable(unittest.TestCase):
+    def test_stop_only(self):
+        self.assertEqual(islice_iterable([1, 2, 3, 4, 5], 3), [1, 2, 3])
+
+    def test_start_stop(self):
+        self.assertEqual(islice_iterable([1, 2, 3, 4, 5], 1, 4), [2, 3, 4])
+
+    def test_start_stop_step(self):
+        self.assertEqual(islice_iterable([1, 2, 3, 4, 5, 6], 0, 6, 2), [1, 3, 5])
+
+    def test_empty(self):
+        self.assertEqual(islice_iterable([], 2), [])
+
+    def test_beyond_end(self):
+        self.assertEqual(islice_iterable([1, 2], 5), [1, 2])
+
+    def test_generator_input(self):
+        self.assertEqual(islice_iterable(iter(range(10)), 2, 5), [2, 3, 4])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            islice_iterable(42, 2)
+
+
+class TestRoundrobin(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(roundrobin([1, 2, 3], [4, 5], [6]), [1, 4, 6, 2, 5, 3])
+
+    def test_equal_lengths(self):
+        self.assertEqual(roundrobin([1, 2], [3, 4]), [1, 3, 2, 4])
+
+    def test_single_iterable(self):
+        self.assertEqual(roundrobin([1, 2, 3]), [1, 2, 3])
+
+    def test_no_iterables(self):
+        self.assertEqual(roundrobin(), [])
+
+    def test_empty_iterable(self):
+        self.assertEqual(roundrobin([], [1, 2]), [1, 2])
+
+    def test_all_empty(self):
+        self.assertEqual(roundrobin([], []), [])
+
+    def test_generator_inputs(self):
+        self.assertEqual(roundrobin(iter([1, 3]), iter([2, 4])), [1, 2, 3, 4])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            roundrobin([1, 2], 42)
+
+
+class TestPadnone(unittest.TestCase):
+    def test_pads_with_none(self):
+        it = padnone([1, 2, 3])
+        result = [next(it) for _ in range(5)]
+        self.assertEqual(result, [1, 2, 3, None, None])
+
+    def test_empty_iterable(self):
+        it = padnone([])
+        self.assertIsNone(next(it))
+        self.assertIsNone(next(it))
+
+    def test_generator_input(self):
+        it = padnone(iter([1]))
+        self.assertEqual(next(it), 1)
+        self.assertIsNone(next(it))
+
+
+class TestNcycles(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(ncycles([1, 2], 3), [1, 2, 1, 2, 1, 2])
+
+    def test_zero_cycles(self):
+        self.assertEqual(ncycles([1, 2, 3], 0), [])
+
+    def test_one_cycle(self):
+        self.assertEqual(ncycles([1, 2, 3], 1), [1, 2, 3])
+
+    def test_empty_iterable(self):
+        self.assertEqual(ncycles([], 5), [])
+
+    def test_generator_input(self):
+        self.assertEqual(ncycles(iter([1, 2]), 2), [1, 2, 1, 2])
+
+    def test_non_iterable_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            ncycles(42, 2)
+
+    def test_non_int_n_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            ncycles([1, 2], "2")
+
+    def test_bool_n_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            ncycles([1, 2], True)
+
+    def test_negative_n_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            ncycles([1, 2], -1)
 
 
 if __name__ == "__main__":
