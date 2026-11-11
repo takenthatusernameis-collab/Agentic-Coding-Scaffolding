@@ -112,6 +112,8 @@ def print_exception(
     """Print exception information and stack trace."""
     if value is None and isinstance(etype_or_exc, BaseException):
         exc = etype_or_exc
+        if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+            raise TypeError("limit must be an integer or None")
         traceback.print_exception(
             type(exc), exc, exc.__traceback__, limit=limit, file=file, **kwargs
         )

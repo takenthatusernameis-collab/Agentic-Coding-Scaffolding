@@ -20,10 +20,34 @@ class TestFormatException(unittest.TestCase):
         with self.assertRaises(TypeError):
             traceback_utils.format_exception("bad", ValueError("x"), None)
 
+    def test_format_exception_from_instance(self):
+        try:
+            raise RuntimeError("inst")
+        except RuntimeError as exc:
+            result = traceback_utils.format_exception(exc)
+            self.assertIsInstance(result, list)
+            self.assertTrue(any("RuntimeError" in line for line in result))
+
+    def test_format_exception_rejects_bad_value(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exception(ValueError, "bad")  # type: ignore[arg-type]
+
+    def test_format_exception_rejects_bad_tb(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exception(ValueError, ValueError("x"), "bad")  # type: ignore[arg-type]
+
     def test_format_exception_only(self):
         result = traceback_utils.format_exception_only(ValueError, ValueError("test"))
         self.assertIsInstance(result, list)
         self.assertTrue(any("ValueError" in line for line in result))
+
+    def test_format_exception_only_rejects_bad_etype(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exception_only("bad", ValueError("x"))  # type: ignore[arg-type]
+
+    def test_format_exception_only_rejects_bad_value(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exception_only(ValueError, "bad")  # type: ignore[arg-type]
 
 
 class TestFormatTb(unittest.TestCase):
@@ -34,6 +58,14 @@ class TestFormatTb(unittest.TestCase):
             _, _, tb = sys.exc_info()
             result = traceback_utils.format_tb(tb)
             self.assertIsInstance(result, list)
+
+    def test_format_tb_none(self):
+        result = traceback_utils.format_tb(None)
+        self.assertIsInstance(result, list)
+
+    def test_format_tb_rejects_bad_tb(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_tb("bad")  # type: ignore[arg-type]
 
 
 class TestExtractTb(unittest.TestCase):
@@ -60,6 +92,20 @@ class TestExtractTb(unittest.TestCase):
             result = traceback_utils.extract_tb(tb, limit=1)
             self.assertIsInstance(result, list)
 
+    def test_extract_tb_rejects_bad_tb(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.extract_tb("bad")  # type: ignore[arg-type]
+
+    def test_extract_tb_rejects_bad_limit(self):
+        try:
+            raise ValueError()
+        except ValueError:
+            _, _, tb = sys.exc_info()
+            with self.assertRaises(TypeError):
+                traceback_utils.extract_tb(tb, limit="1")  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                traceback_utils.extract_tb(tb, limit=True)  # type: ignore[arg-type]
+
 
 class TestPrintFunctions(unittest.TestCase):
     def test_print_tb(self):
@@ -69,8 +115,31 @@ class TestPrintFunctions(unittest.TestCase):
             _, _, tb = sys.exc_info()
             traceback_utils.print_tb(tb)
 
+    def test_print_tb_none(self):
+        traceback_utils.print_tb(None)
+
+    def test_print_tb_rejects_bad_tb(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.print_tb("bad")  # type: ignore[arg-type]
+
+    def test_print_tb_rejects_bad_limit(self):
+        try:
+            raise OSError()
+        except OSError:
+            _, _, tb = sys.exc_info()
+            with self.assertRaises(TypeError):
+                traceback_utils.print_tb(tb, limit="1")  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                traceback_utils.print_tb(tb, limit=True)  # type: ignore[arg-type]
+
     def test_print_stack(self):
         traceback_utils.print_stack()
+
+    def test_print_stack_rejects_bad_limit(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.print_stack(limit="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            traceback_utils.print_stack(limit=True)  # type: ignore[arg-type]
 
     def test_print_exception(self):
         try:
@@ -78,6 +147,33 @@ class TestPrintFunctions(unittest.TestCase):
         except TypeError:
             etype, value, tb = sys.exc_info()
             traceback_utils.print_exception(etype, value, tb)
+
+    def test_print_exception_from_instance(self):
+        try:
+            raise AssertionError("bad")
+        except AssertionError as exc:
+            traceback_utils.print_exception(exc)
+
+    def test_print_exception_rejects_bad_etype(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.print_exception("bad", ValueError("x"), None)
+
+    def test_print_exception_rejects_bad_value(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.print_exception(ValueError, "bad")  # type: ignore[arg-type]
+
+    def test_print_exception_rejects_bad_tb(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.print_exception(ValueError, ValueError("x"), "bad")  # type: ignore[arg-type]
+
+    def test_print_exception_rejects_bad_limit(self):
+        try:
+            raise ValueError()
+        except ValueError as exc:
+            with self.assertRaises(TypeError):
+                traceback_utils.print_exception(exc, limit="1")  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                traceback_utils.print_exception(exc, limit=True)  # type: ignore[arg-type]
 
 
 class TestFormatStack(unittest.TestCase):
