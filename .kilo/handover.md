@@ -1,3 +1,26 @@
+## Latest Session (2026-11-11 17:55Z) — removed dead `have.txt`/`want.txt` module manifests
+
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta check vs. current HEAD `ebb5dfa`: `git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `python tools/scan_untested.py` reports no exported-but-untested callables, `python -m unittest tests.test_public_api` OK (3/3), full suite `python -m pytest tests/ -q` — 10701 passed, 4 skipped, 0 failed, `python -m ruff check .` clean, `python -m mypy .` clean (562 source files).
+
+**Genuine gap found and closed:** `have.txt` and `want.txt` are tracked files that prose across `CHANGELOG.md`, the embedded changelog, and `PROJECT_STATUS.md` cited as a live integrity gate (`want.txt == have.txt`, 274 modules), but nothing consumes them — no tool, test, Makefile target, `pyproject.toml` entry, pre-commit hook, or CI step reads either file. The manifest had drifted out of date (274 entries against 278 modules on disk; `pyproject.toml`'s `py-modules` and the disk agree at 278), so the "gate" it appeared to provide was illusory. Removed both files with `git rm`. The module surface is now guarded by real, enforced checks instead: `tests/test_scaffold_sync.py` and `tests/test_public_api.py`.
+
+**Changes made (non-workflow files only):**
+- `have.txt`, `want.txt` — removed (dead, stale, unenforced manifests).
+- `tests/test_scaffold_sync.py` — added `TestScaffoldSync.test_no_dead_module_manifest_files_exist`: the repository root must not hold any `*.txt` module-manifest file.
+- `CHANGELOG.md` — added an "Unreleased — removed dead `have.txt`/`want.txt` module manifests" entry; refreshed its embedded copy in `scaffold.sh` via `make refresh-scaffold`.
+- `scaffold.sh` — embedded `CHANGELOG.md` copy refreshed; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:**
+- `python -m pytest tests/test_scaffold_sync.py tests/test_public_api.py tests/test_refresh_scaffold.py` — targeted suite green.
+- `python -m pytest tests/ -q` — 10702 passed, 4 skipped, 0 failed (one net new assertion from the added test).
+- `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean (562 source files).
+- No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` in sync, `python tools/scan_untested.py` clean, `python -m unittest tests.test_public_api` green; run the full suite only at a coherent milestone or after relevant changes).
+- If a new module/API appears or a genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
 ## Latest Session (2026-11-11 17:30Z) — bootstrap verification; foundation solid, no task, no genuine gap
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta check vs. current HEAD `5f620f4`: `git status` clean on `main`, `python tools/refresh_scaffold.py --check` in sync, `python -m unittest tests.test_public_api` OK (3/3). Foundation solid, no genuine gap identified; no source/API/test changes made to avoid a no-op commit.

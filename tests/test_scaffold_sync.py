@@ -329,6 +329,24 @@ class TestScaffoldSync(unittest.TestCase):
             f"scaffold.sh generates unknown modules: {sorted(generated - repo_files)}",
         )
 
+    def test_no_dead_module_manifest_files_exist(self) -> None:
+        """The repository must not carry a stale module manifest.
+
+        ``have.txt`` and ``want.txt`` were once maintained by hand as an
+        integrity gate, but nothing consumes them: no tool, test, Makefile,
+        ``pyproject.toml``, pre-commit hook, or CI step reads them, so they
+        drifted out of date (274 entries against 278 modules on disk) while
+        prose still cited ``want.txt == have.txt`` as a live guarantee. A
+        manifest that nothing enforces is dead weight, so the repository must
+        not hold one.
+        """
+        manifests = sorted(path.name for path in ROOT.glob("*.txt") if path.is_file())
+        self.assertEqual(
+            manifests,
+            [],
+            f"dead module-manifest files present: {manifests}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
