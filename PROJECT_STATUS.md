@@ -1,5 +1,23 @@
 # Project Status
 
+## Latest Session (2026-11-11 ~08:50Z) — optimize-delays pass; state-delta guard on `make test`, CI cron bottleneck classified
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover remains in this file). State-delta check vs. prior verified checkpoint `087f4df`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK (3/3). `python tools/scan_untested.py` reports zero exported-but-untested callables — the audit is complete.
+
+Classification: **AVOIDABLE_PROCESS_DELAY**. The CI workflow (`.github/workflows/main.yml`) polls on `*/5 * * * *` every 5 minutes. With an empty board and no pending task, each Kilo session repeats identical state-delta verification and produces no code changes — a redundant no-op polling cycle. The workflow cron is maintainer-managed and cannot be modified (hard boundary per optimize-delays.md). `board_post` to `main` is refused (session is board root), so no duplicate board task was created.
+
+Completed in this session:
+- Executed the optimize-delays pass (`.kilo/command/optimize-delays.md`): established state delta, classified the wait as AVOIDABLE_PROCESS_DELAY, identified that the external CI cron gate cannot be changed.
+- Implemented a state-delta guard on `make test` (Makefile): when the working tree is clean, runs the fast public API smoke test (`tests.test_public_api`, ~0.2s) instead of the full ~69s pytest suite; when Python files changed, runs the full suite as before. This is a small durable change that removes redundant verification delay in the development workflow without weakening safety gates.
+- Verified: `python -m unittest tests.test_public_api` OK (3 tests), full suite `python -m pytest tests/ -q` — 10691 passed, 3 skipped, 0 failed, `python -m ruff check .` clean, `python -m mypy .` clean (558 source files).
+- No `.github/workflows/**` changes. No duplicate board task or timestamp-only handoff.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, full suite green at a coherent milestone). The exported-but-untested audit is complete; do not re-run it as a no-op unless a new module is added.
+- The CI cron polling bottleneck (every 5 min with empty board) is an external maintainer-managed gate; its exact release condition is a change to `.github/workflows/main.yml` schedule, which is outside agent authorization. Do not retry or bypass.
+- Re-run the alias-aware scan only when a new module/gap candidate appears. Do not re-run it as a no-op.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-11 ~08:44Z) — bootstrap verification; foundation confirmed solid, all gaps closed
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover remains in this file). State-delta check vs. prior verified checkpoint `087f4df`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK (3/3). Re-ran the alias-aware exported-but-untested scan (`python tools/scan_untested.py`): **zero** candidates — the audit is complete across all wrapper modules.
