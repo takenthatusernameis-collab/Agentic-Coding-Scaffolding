@@ -69391,6 +69391,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — closed exported-but-untested gap in `copyreg_utils` by routing its tests through the wrapper
+
+- State-delta check vs. prior verified checkpoint `a986efc`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK.
+- Found a genuine gap: `tests/test_copyreg_utils.py` imported the stdlib `copyreg` directly as `_copyreg` and exercised its functions in isolation, so none of the six `copyreg_utils` wrapper exports (`add_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`, `remove_extension`) were ever tested through the wrapper — violating the repo convention (e.g. `test_abc_utils.py` routes through `abc_utils`).
+- Rewrote `tests/test_copyreg_utils.py` to import and exercise `copyreg_utils` directly: existing `TestConstructor`/`TestPickle`/`TestDispatchTable`/`TestExtensionCache` classes now call `copyreg_utils.*`, and a new `TestWrapperBindings` class asserts each wrapper callable is its own binding (distinct from the stdlib alias) and that `dispatch_table()` returns the shared mapping. No implementation, `__all__`, or public API changes.
+- Verified: `python -m pytest tests/test_copyreg_utils.py` (14 passed, up from 8), `python -m unittest tests.test_public_api` OK, `python -m ruff check tests/test_copyreg_utils.py copyreg_utils.py` clean, `python -m mypy tests/test_copyreg_utils.py copyreg_utils.py` clean, `python -m doctest copyreg_utils.py` clean. Re-ran the alias-aware scan: copyreg_utils now reports zero untested exports (down from 6). Full suite at a coherent milestone: `python -m pytest tests/ -q` — 10671 passed, 3 skipped, 0 failed (up from 10665). Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — bootstrap verification; foundation confirmed solid, no genuine gap
 
 - Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. prior verified checkpoint `162ec1c`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK (3/3).
@@ -77468,9 +77475,12 @@ COPYREG_UTILS
 
 # --- tests/test_copyreg_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_copyreg_utils.py" <<'TEST_COPYREG_UTILS'
-import copyreg as _copyreg
+"""Tests for copyreg_utils module."""
+
 import pickle
 import unittest
+
+import copyreg_utils
 
 
 class _Dummy:
@@ -77485,6 +77495,42 @@ def _reduce_dummy(obj):
     return (_Dummy, (obj.value,))
 
 
+class TestWrapperBindings(unittest.TestCase):
+    """Verify the wrapper module exposes its own callable bindings."""
+
+    def test_add_extension_is_wrapper_binding(self):
+        import copyreg as _copyreg
+
+        self.assertIsNot(copyreg_utils.add_extension, _copyreg.add_extension)
+
+    def test_remove_extension_is_wrapper_binding(self):
+        import copyreg as _copyreg
+
+        self.assertIsNot(copyreg_utils.remove_extension, _copyreg.remove_extension)
+
+    def test_constructor_is_wrapper_binding(self):
+        import copyreg as _copyreg
+
+        self.assertIsNot(copyreg_utils.constructor, _copyreg.constructor)
+
+    def test_pickle_is_wrapper_binding(self):
+        import copyreg as _copyreg
+
+        self.assertIsNot(copyreg_utils.pickle, _copyreg.pickle)
+
+    def test_clear_extension_cache_is_wrapper_binding(self):
+        import copyreg as _copyreg
+
+        self.assertIsNot(
+            copyreg_utils.clear_extension_cache, _copyreg.clear_extension_cache
+        )
+
+    def test_dispatch_table_returns_shared_mapping(self):
+        import copyreg as _copyreg
+
+        self.assertIs(copyreg_utils.dispatch_table(), _copyreg.dispatch_table)
+
+
 class TestConstructor(unittest.TestCase):
     def test_constructor_registers_callable(self):
         def make_dummy(value):
@@ -77492,11 +77538,11 @@ class TestConstructor(unittest.TestCase):
 
         # copyreg.constructor registers a constructor used during unpickling
         # and returns None.
-        result = _copyreg.constructor(make_dummy)
+        result = copyreg_utils.constructor(make_dummy)
         self.assertIsNone(result)
 
     def test_constructor_enables_round_trip(self):
-        _copyreg.pickle(_Dummy, _reduce_dummy, _Dummy)
+        copyreg_utils.pickle(_Dummy, _reduce_dummy, _Dummy)
         data = pickle.dumps(_Dummy(42))
         restored = pickle.loads(data)
         self.assertEqual(restored, _Dummy(42))
@@ -77504,45 +77550,45 @@ class TestConstructor(unittest.TestCase):
 
 class TestPickle(unittest.TestCase):
     def setUp(self):
-        self._saved = _copyreg.dispatch_table.copy()
+        self._saved = copyreg_utils.dispatch_table().copy()
 
     def tearDown(self):
-        _copyreg.dispatch_table.clear()
-        _copyreg.dispatch_table.update(self._saved)
+        copyreg_utils.dispatch_table().clear()
+        copyreg_utils.dispatch_table().update(self._saved)
 
     def test_pickle_without_constructor(self):
-        _copyreg.pickle(_Dummy, _reduce_dummy)
+        copyreg_utils.pickle(_Dummy, _reduce_dummy)
         data = pickle.dumps(_Dummy(7))
         self.assertEqual(pickle.loads(data), _Dummy(7))
 
     def test_pickle_with_constructor(self):
-        _copyreg.pickle(_Dummy, _reduce_dummy, _Dummy)
+        copyreg_utils.pickle(_Dummy, _reduce_dummy, _Dummy)
         data = pickle.dumps(_Dummy(9))
         self.assertEqual(pickle.loads(data), _Dummy(9))
 
 
 class TestDispatchTable(unittest.TestCase):
     def test_returns_mapping(self):
-        self.assertTrue(hasattr(_copyreg.dispatch_table, "__getitem__"))
+        self.assertTrue(hasattr(copyreg_utils.dispatch_table(), "__getitem__"))
 
     def test_is_dict_like(self):
-        self.assertIsInstance(_copyreg.dispatch_table, dict)
+        self.assertIsInstance(copyreg_utils.dispatch_table(), dict)
 
 
 class TestExtensionCache(unittest.TestCase):
     def test_clear_extension_cache_runs(self):
         # Should not raise even when the cache is empty.
-        _copyreg.clear_extension_cache()
+        copyreg_utils.clear_extension_cache()
 
     def test_add_and_remove_extension(self):
         code_obj = (lambda: 0).__code__
         try:
-            _copyreg.add_extension("test_module", "test_name", code_obj)
+            copyreg_utils.add_extension("test_module", "test_name", code_obj)
         except Exception:
             # Some platforms reject arbitrary codes; that is acceptable.
             pass
         try:
-            _copyreg.remove_extension("test_module", "test_name")
+            copyreg_utils.remove_extension("test_module", "test_name")
         except Exception:
             pass
 
