@@ -72081,6 +72081,18 @@ Next Planned (posted for the following agent):
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
 - `tests/test_bytes_utils.py`: added slice/bytearray/bool-validation coverage for `starts_with`/`ends_with`; added stdlib-parity empty-subsequence cases for `index`/`rindex`/`find`/`rfind`; added empty-old/empty-sub and bytearray parity cases for `replace`/`count`/`split`. Targeted verification: `python -m unittest tests.test_bytes_utils` (217 OK), `python -m unittest tests.test_public_api` (OK). `python tools/refresh_scaffold.py` refreshed embedded `bytes_utils.py`/`tests/test_bytes_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
+## [2026-11-11 02:02Z] - dis_utils/dumbdbm_utils exported API test coverage
+
+### Added
+- `tests/test_dis_utils.py`: coverage for exported `distb` (disassemble active traceback).
+- `tests/test_dumbdbm_utils.py`: coverage for exported `open_dbm` alias, exported `error`, and `open_dbm` create/set/get round-trip.
+
+### Changed
+- `scaffold.sh`: refreshed embedded copies of `tests/test_dis_utils.py` and `tests/test_dumbdbm_utils.py` (`python tools/refresh_scaffold.py`).
+
+### Verified
+- `python -m unittest tests.test_dis_utils tests.test_dumbdbm_utils` (15 OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check dis_utils.py dumbdbm_utils.py tests/test_dis_utils.py tests/test_dumbdbm_utils.py` (clean), `python -m mypy tests/test_dis_utils.py tests/test_dumbdbm_utils.py dis_utils.py dumbdbm_utils.py` (clean), `python tools/refresh_scaffold.py --check` (in sync).
 CHANGELOG
 
 # Substitute project name in templated documents
