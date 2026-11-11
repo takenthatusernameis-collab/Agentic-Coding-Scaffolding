@@ -1,3 +1,9 @@
+## Unreleased — added test coverage for `bytes_utils` singular null-byte aliases
+
+- Added `TestCountNullByte` (9 tests), `TestHasNullBytes` (8 tests), and `TestCountNonNullByte` (9 tests) to `tests/test_bytes_utils.py` for `count_null_byte`, `has_null_bytes`, and `count_non_null_byte`, all exported in `__all__`, typed, and documented, but previously untested. New tests cover basic/all/none/empty/bytearray cases, consistency with the plural forms and positive predicates, and `TypeError` paths.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md` to list the singular aliases. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_bytes_utils` (424 OK, up from 407), `python -m unittest tests.test_public_api`, `python -m ruff check tests/test_bytes_utils.py bytes_utils.py` clean, `python -m mypy tests/test_bytes_utils.py bytes_utils.py` clean. No new public API was added, so no implementation/prose changes beyond the README tree entry. No `.github/workflows/**` changes.
+
 ## Unreleased — added test coverage for `list_utils.first_or_default`/`last_or_default`
 
 - Added `TestFirstOrDefault` (6 tests) and `TestLastOrDefault` (6 tests) to `tests/test_list_utils.py` for `first_or_default`/`last_or_default`, both exported in `__all__`, typed, and documented, but previously untested. New tests cover basic values, empty-with-default, empty-with-None, single-element, default-not-used-when-non-empty, and `TypeError` paths.

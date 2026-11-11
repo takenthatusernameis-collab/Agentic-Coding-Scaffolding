@@ -1,5 +1,24 @@
 # Project Status
 
+## Latest Session (2026-11-11 00:52Z) — bootstrap; closed exported-but-untested gap in `bytes_utils` singular null-byte aliases
+
+The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `5a8be61`), `python tools/refresh_scaffold.py --check` initially reported `CHANGELOG.md` stale (1 embedded copy out of sync — the source file itself was unchanged; only `scaffold.sh`'s embedded copy drifted by 1 line). Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+
+Reused the alias-aware AST exported-but-untested scan across all `__all__`-bearing modules; filtered out type vars/constants/stdlib re-exports/thin pass-through wrappers/classes/entry points. Surfaced a genuine, hermetic, convention-consistent gap in `bytes_utils`: the singular null-byte aliases `count_null_byte`, `has_null_bytes`, and `count_non_null_byte` were implemented/exported/documented (each a typed, `__all__`-exported alias delegating to its plural form, with `TypeError` validation) but had zero references in `tests/test_bytes_utils.py` — unlike their plural siblings (`count_null_bytes`, `has_null_byte`, `has_non_null_bytes`) and the positive `has_non_null_byte`/`count_non_null_bytes` which were all covered.
+
+Completed in this session:
+- Added `TestCountNullByte` (9 tests), `TestHasNullBytes` (8 tests), and `TestCountNonNullByte` (9 tests) to `tests/test_bytes_utils.py` covering basic/all/none/empty/bytearray cases, consistency with the plural forms and positive predicates, and `TypeError` paths.
+- Imported `count_null_byte`, `has_null_bytes`, and `count_non_null_byte` into the test module's import block to match `__all__`.
+- Updated the `bytes_utils` module tree entry and prose section of `README.md` to list the singular aliases. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_bytes_utils` (424 OK, up from 407), `python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_refresh_scaffold tests.test_scaffold` (50 OK), `python -m doctest bytes_utils.py` clean, `python -m ruff check tests/test_bytes_utils.py bytes_utils.py` clean, `python -m mypy tests/test_bytes_utils.py bytes_utils.py` clean.
+- Updated `CHANGELOG.md` with the session entry. No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The `bytes_utils` singular null-byte alias gap is now closed; do not re-audit it as a no-op.
+- Re-run alias-aware AST exported-but-untested scan only when a new module/gap candidate appears. Remaining flagged names from this scan are mostly stdlib re-exports/thin wrappers/entry points/classes (`abc_utils` ABCMeta/abstract* re-exports, `code_utils.interact`, `curses_utils.termname`, `linecache_utils.lazycache`, `ossaudiodev_utils.is_available`, `profile_utils.main`, `pydoc_utils.*`, `this_utils.print_zen`, `traceback_utils.extract_stack`/`format_exc`/`format_stack`, large `utils.py` surface, plus many `T`/`K`/`V` type vars and `RLIMIT_*`/`LOG_*`/`PROTOCOL_*` constants) — assess carefully for genuinely hermetic, convention-consistent value before changing.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation as appropriate; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-11 00:50Z approx) — bootstrap; closed exported-but-untested gap in `list_utils.first_or_default`/`last_or_default`
 
 The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `c0b6f47`), `python tools/refresh_scaffold.py --check` in sync. Reused the alias-aware AST exported-but-untested scan; one flagged name from the prior session's audit (`list_utils.first_or_default`/`last_or_default`) was verified as a genuine, hermetic, convention-consistent gap — both are typed, documented, `__all__`-exported helpers with `TypeError` validation, sibling to the tested `safe_get`/`find` family, and had zero references in `tests/test_list_utils.py`.

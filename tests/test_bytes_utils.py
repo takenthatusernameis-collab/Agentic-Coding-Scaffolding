@@ -14,7 +14,9 @@ from bytes_utils import (
     count_ascii,
     count_digits,
     count_lower,
+    count_non_null_byte,
     count_non_null_bytes,
+    count_null_byte,
     count_null_bytes,
     count_printable,
     count_space,
@@ -35,6 +37,7 @@ from bytes_utils import (
     has_non_null_byte,
     has_non_null_bytes,
     has_null_byte,
+    has_null_bytes,
     has_printable,
     has_set_bits,
     has_space,
@@ -1711,6 +1714,41 @@ class TestHasNullByte(unittest.TestCase):
             has_null_byte(None)
 
 
+class TestHasNullBytes(unittest.TestCase):
+    def test_has_null(self):
+        self.assertTrue(has_null_bytes(b"\x00\x00\x00"))
+
+    def test_no_null(self):
+        self.assertFalse(has_null_bytes(b"\x01\x02\x03"))
+        self.assertFalse(has_null_bytes(b"\xff"))
+
+    def test_empty(self):
+        self.assertFalse(has_null_bytes(b""))
+
+    def test_single_null(self):
+        self.assertTrue(has_null_bytes(b"\x00"))
+
+    def test_bytearray(self):
+        self.assertTrue(has_null_bytes(bytearray(b"\x00\x00")))
+        self.assertFalse(has_null_bytes(bytearray(b"\x01\x02")))
+
+    def test_consistency_with_count_null_bytes(self):
+        data = b"\x00\x01\x00\x02"
+        self.assertEqual(count_null_bytes(data) > 0, has_null_bytes(data))
+
+    def test_alias_of_has_null_byte(self):
+        for data in (b"", b"\x00", b"\x01", b"\x00\x01\x00", b"\xff\xff"):
+            self.assertEqual(has_null_byte(data), has_null_bytes(data))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            has_null_bytes("00")
+        with self.assertRaises(TypeError):
+            has_null_bytes(0)
+        with self.assertRaises(TypeError):
+            has_null_bytes(None)
+
+
 class TestCountNullBytes(unittest.TestCase):
     def test_all_null(self):
         self.assertEqual(count_null_bytes(b"\x00\x00\x00"), 3)
@@ -1743,6 +1781,44 @@ class TestCountNullBytes(unittest.TestCase):
             count_null_bytes(0)
         with self.assertRaises(TypeError):
             count_null_bytes(None)
+
+
+class TestCountNullByte(unittest.TestCase):
+    def test_all_null(self):
+        self.assertEqual(count_null_byte(b"\x00\x00\x00"), 3)
+
+    def test_no_null(self):
+        self.assertEqual(count_null_byte(b"\x01\x02\x03"), 0)
+        self.assertEqual(count_null_byte(b"\xff"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_null_byte(b""), 0)
+
+    def test_single_null(self):
+        self.assertEqual(count_null_byte(b"\x00"), 1)
+
+    def test_mixed(self):
+        self.assertEqual(count_null_byte(b"\x00\x01\x00\x02\x00"), 3)
+
+    def test_bytearray(self):
+        self.assertEqual(count_null_byte(bytearray(b"\x00\x00")), 2)
+        self.assertEqual(count_null_byte(bytearray(b"\x01\x02")), 0)
+
+    def test_consistency_with_has_null_byte(self):
+        data = b"\x00\x01\x00\x02"
+        self.assertEqual(count_null_byte(data) > 0, has_null_byte(data))
+
+    def test_alias_of_count_null_bytes(self):
+        for data in (b"", b"\x00", b"\x01", b"\x00\x01\x00", b"\xff\xff"):
+            self.assertEqual(count_null_byte(data), count_null_bytes(data))
+
+    def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_null_byte("00")
+        with self.assertRaises(TypeError):
+            count_null_byte(0)
+        with self.assertRaises(TypeError):
+            count_null_byte(None)
 
 
 class TestCountNonNullBytes(unittest.TestCase):
@@ -1797,13 +1873,51 @@ class TestHasNonNullByte(unittest.TestCase):
         self.assertTrue(has_non_null_byte(bytearray(b"\x00\x01")))
         self.assertFalse(has_non_null_byte(bytearray(b"\x00\x00")))
 
+def test_type_errors(self):
+        with self.assertRaises(TypeError):
+            count_non_null_bytes("00")
+        with self.assertRaises(TypeError):
+            count_non_null_bytes(0)
+        with self.assertRaises(TypeError):
+            count_non_null_bytes(None)
+
+
+class TestCountNonNullByte(unittest.TestCase):
+    def test_all_non_null(self):
+        self.assertEqual(count_non_null_byte(b"\x01\x02\x03"), 3)
+
+    def test_no_non_null(self):
+        self.assertEqual(count_non_null_byte(b"\x00\x00\x00"), 0)
+        self.assertEqual(count_non_null_byte(b"\xff"), 1)
+
+    def test_empty(self):
+        self.assertEqual(count_non_null_byte(b""), 0)
+
+    def test_single_non_null(self):
+        self.assertEqual(count_non_null_byte(b"\x01"), 1)
+
+    def test_mixed(self):
+        self.assertEqual(count_non_null_byte(b"\x00\x01\x00\x02\x00"), 2)
+
+    def test_bytearray(self):
+        self.assertEqual(count_non_null_byte(bytearray(b"\x00\x00")), 0)
+        self.assertEqual(count_non_null_byte(bytearray(b"\x01\x02")), 2)
+
+    def test_consistency_with_has_non_null_byte(self):
+        data = b"\x00\x01\x00\x02"
+        self.assertEqual(count_non_null_byte(data) > 0, has_non_null_byte(data))
+
+    def test_alias_of_count_non_null_bytes(self):
+        for data in (b"", b"\x00", b"\x01", b"\x00\x01\x00", b"\xff\xff"):
+            self.assertEqual(count_non_null_byte(data), count_non_null_bytes(data))
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
-            has_non_null_byte("00")
+            count_non_null_byte("00")
         with self.assertRaises(TypeError):
-            has_non_null_byte(0)
+            count_non_null_byte(0)
         with self.assertRaises(TypeError):
-            has_non_null_byte(None)
+            count_non_null_byte(None)
 
 
 class TestHasNonNullBytes(unittest.TestCase):
