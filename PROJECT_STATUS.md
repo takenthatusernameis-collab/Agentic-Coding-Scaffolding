@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-11 ~03:00Z) — bootstrap; fixed a real test error breaking `make test` in `test_bytes_utils`
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). State-delta check: `git status` clean on branch `main` at `1bb22a0`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted baseline: `python -m pytest tests/test_bytes_utils.py` errored on `tests/test_bytes_utils.py::test_type_errors` with "fixture 'self' not found".
+
+Found a real bug: a stray module-level `def test_type_errors(self):` at `tests/test_bytes_utils.py:1876` (a duplicate of the coverage already in `TestCountNonNullBytes.test_type_errors` at line 1849) sits outside any `unittest.TestCase`. Under `unittest` it is silently not collected; under `pytest` (used by `make test`) `self` is interpreted as a missing fixture, hard-erroring the run.
+
+Completed in this session:
+- Removed the stray module-level `test_type_errors(self)` duplicate from `tests/test_bytes_utils.py` (lines 1876-1884); the genuine `TypeError` coverage remains in `TestCountNonNullBytes.test_type_errors`.
+- No public API, implementation, README, or CHANGELOG changes (bug fix only; no new API surface).
+- Verified: `python -m pytest tests/test_bytes_utils.py` — 407 passed; `python -m ruff check tests/test_bytes_utils.py` clean; `python -m unittest tests.test_public_api` OK; `python tools/refresh_scaffold.py --check` in sync.
+- No `.github/workflows/**` changes. No duplicate board task or no-op commit.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The `test_bytes_utils` pytest error is now closed; do not re-audit it as a no-op.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover here.
+
 ## Latest Session (2026-11-11 01:53Z) — bootstrap; closed exported-but-untested gaps in `numbers_utils` number predicates
 
 The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `6f9863b`), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran the alias-aware AST exported-but-untested scan across all `__all__`-bearing modules; filtered out type vars/constants/stdlib re-exports/thin pass-through wrappers/classes/entry points. Surfaced genuine, hermetic, convention-consistent gaps in `numbers_utils`: `is_disarium_number`, `is_kaprekar_number`, `is_perfect_square`, `is_perfect_cube`, `is_power_of_two`, `is_triangular_number`, `is_pentagonal_number`, `is_hexagonal_number`, `is_squarefree_number`, `is_oblong_number`, `is_ugly_number`, `is_narcissistic_number`, the `is_narcissistic` alias, and `is_untouchable_number` were all typed, documented, `__all__`-exported `is_*` predicates with `TypeError` validation, sibling to the tested `is_*` family, but had zero dedicated test coverage in `tests/test_numbers_utils.py`.

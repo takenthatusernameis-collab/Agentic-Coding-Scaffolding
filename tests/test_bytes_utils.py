@@ -1873,13 +1873,6 @@ class TestHasNonNullByte(unittest.TestCase):
         self.assertTrue(has_non_null_byte(bytearray(b"\x00\x01")))
         self.assertFalse(has_non_null_byte(bytearray(b"\x00\x00")))
 
-def test_type_errors(self):
-        with self.assertRaises(TypeError):
-            count_non_null_bytes("00")
-        with self.assertRaises(TypeError):
-            count_non_null_bytes(0)
-        with self.assertRaises(TypeError):
-            count_non_null_bytes(None)
 
 
 class TestCountNonNullByte(unittest.TestCase):
