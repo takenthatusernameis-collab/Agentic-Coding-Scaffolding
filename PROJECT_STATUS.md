@@ -1,5 +1,20 @@
 # Project Status
 
+## Latest Session (2026-11-11 06:49Z) — bootstrap verification; foundation solid, no genuine gap
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover remains in this file). State-delta check vs. prior verified checkpoint `162ec1c`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK (3/3). Re-ran the alias-aware exported-but-untested scan (`python tools/scan_untested.py`): still only 10 candidates, all thin stdlib re-exports — `abc_utils` (`ABCMeta`, `abstractclassmethod`, `abstractproperty`, `abstractstaticmethod`) and `copyreg_utils` (`add_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`, `remove_extension`). Inspected both modules: each name is a one-line pass-through to the stdlib alias with no type hints, docstrings, or validation; none are hermetic, convention-consistent helpers. No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
+
+Completed in this session:
+- Verified repo health via state-delta checks (clean tree, refresh-scaffold in sync, want/have unchanged, public API tests green).
+- Re-ran the alias-aware exported-but-untested scan; no genuine gap surfaced (same 10 non-convention-consistent candidates as the prior audit, confirmed by source inspection).
+- No code/API/test changes made; this entry records verified state and avoids a duplicate/no-op code commit.
+- No `.github/workflows/**` changes. No duplicate board task (post refused — session is board root).
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, `tests.test_public_api` green; run full suite only at a coherent milestone or after relevant changes). Do not re-run the exported-but-untested scan as a no-op — it is complete across all audited candidates; only re-scan when a new module or gap candidate appears.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-11 ~06:45Z) — bootstrap verification; foundation solid, no genuine gap
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover remains in this file). State-delta check vs. prior verified checkpoint `4b6895e`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged. Ran the full suite as a coherent-milestone baseline: `python -m pytest tests/ -q` = 10663 passed, 3 skipped, 0 failed. Re-ran `python tools/scan_untested.py` — still only 10 candidates, all stdlib re-exports or thin pass-through wrappers (`abc_utils`: ABCMeta/abstractclassmethod/abstractproperty/abstractstaticmethod; `copyreg_utils`: add_extension/clear_extension_cache/constructor/dispatch_table/pickle/remove_extension) with no type hints/docstrings/validation; none are genuine, hermetic, convention-consistent helpers. No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
