@@ -108,6 +108,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `atexit_utils.py` — atexit utilities for registering and managing exit handlers
 - `multiprocessing_utils.py` — multiprocessing utilities for pools, processes, locks, queues, and shared memory (dynamic import, reload, spec inspection, metadata, resources)
 - `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
+- `zipapp_utils.py` — Zipapp utilities wrapping the standard library `zipapp` module (`create_archive`, `create_zipapp`, `get_interpreter`, `get_zipapp_interpreter`, `is_zipapp_archive`) with input validation and the re-exported `ZipAppError`
 - `bz2_utils.py` — BZ2 compression utilities wrapping the standard library `bz2` module (`bz2_compress`, `bz2_decompress`, `bz2_open`, `bz2_write`, `bz2_read`)
 - `lzma_utils.py` — LZMA compression utilities wrapping the standard library `lzma` module (`lzma_compress`, `lzma_decompress`, `lzma_open`, `lzma_write`, `lzma_read`)
 - `gc_utils.py` — GC utilities wrapping the standard library `gc` module (`enable`, `disable`, `isenabled`, `collect`, `get_count`, `get_stats`, `get_objects`, `get_referents`, `get_referrers`, `set_threshold`, `get_threshold`, `set_debug`, `get_debug`)
@@ -162,6 +163,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
 - `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation
 - `priority_queue_utils.py` — heap-based priority queue implementation
+- `queue_utils.py` — queue utilities wrapping the standard library `queue` module with a FIFO `Queue` class and functional helpers (`create`, `enqueue`, `dequeue`, `peek`, `is_empty`, `size`)
 - `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
 - `retry_utils.py` — retry utilities with exponential backoff and jitter
 - `ring_buffer_utils.py` — fixed-size circular (ring) buffer utilities
@@ -353,6 +355,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_atexit_utils.py` — unit tests for `atexit_utils.py`
 - `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
 - `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
+- `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
 - `tests/test_bz2_utils.py` — unit tests for `bz2_utils.py`
 - `tests/test_lzma_utils.py` — unit tests for `lzma_utils.py`
 - `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
@@ -365,6 +368,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
 - `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
 - `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
+- `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
 - `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
 - `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
 - `tests/test_ring_buffer_utils.py` — unit tests for `ring_buffer_utils.py`
