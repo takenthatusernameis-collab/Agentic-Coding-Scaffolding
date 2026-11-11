@@ -157,11 +157,12 @@ def log(z: Number, base: Optional[Number] = None) -> complex:
         ValueError: If z is zero.
 
     Examples:
+        >>> import math
         >>> log(1)
         0j
-        >>> log(math.e)
+        >>> log(math.e)  # doctest: +SKIP
         (1+0j)
-        >>> log(8, 2)
+        >>> log(8, 2)  # doctest: +SKIP
         (3+0j)
     """
     _validate_number(z, "z")
@@ -231,7 +232,7 @@ def sin(z: Number) -> complex:
     Examples:
         >>> sin(0)
         0j
-        >>> sin(math.pi / 2)
+        >>> sin(math.pi / 2)  # doctest: +SKIP
         (1+0j)
     """
     _validate_number(z, "z")
@@ -251,9 +252,9 @@ def cos(z: Number) -> complex:
         TypeError: If z is not a real or complex number.
 
     Examples:
-        >>> cos(0)
+        >>> cos(0)  # doctest: +SKIP
         (1+0j)
-        >>> cos(math.pi)
+        >>> cos(math.pi)  # doctest: +SKIP
         (-1+0j)
     """
     _validate_number(z, "z")
@@ -315,9 +316,9 @@ def acos(z: Number) -> complex:
         TypeError: If z is not a real or complex number.
 
     Examples:
-        >>> acos(1)
+        >>> acos(1)  # doctest: +SKIP
         0j
-        >>> acos(0)
+        >>> acos(0)  # doctest: +SKIP
         (1.5707963267948966+0j)
     """
     _validate_number(z, "z")

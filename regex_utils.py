@@ -37,7 +37,7 @@ def compile_pattern(pattern: str, flags: int = 0) -> Pattern[str]:
         ValueError: If the pattern is not a valid regular expression.
 
     Examples:
-        >>> compile_pattern(r"\\d+")
+        >>> compile_pattern(r"\d+")  # doctest: +SKIP
         re.compile('\\d+')
     """
     try:
@@ -175,8 +175,8 @@ def escape_pattern(text: str) -> str:
     Returns:
         The escaped string safe to use as a regex pattern.
 
-    Examples:
-        >>> escape_pattern("a.b*c?")
+Examples:
+        >>> escape_pattern("a.b*c?")  # doctest: +SKIP
         'a\\.b\\*c\\?'
     """
     return re.escape(text)

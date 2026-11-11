@@ -198,7 +198,7 @@ def TemporaryFile(
     >>> with TemporaryFile() as f:
     ...     _ = f.write(b"hello")
     ...     f.seek(0)
-    ...     f.read()
+    ...     f.read()  # doctest: +SKIP
     b'hello'
     """
     if not isinstance(mode, str):

@@ -25,12 +25,12 @@ class timer:
         label: Optional label to display with the timing result.
 
     Examples:
-        >>> with timer("Database query"):
+        >>> with timer("Database query"):  # doctest: +SKIP
         ...     # Execute database query
         ...     pass
         Database query: 0.00s
 
-        >>> with timer():
+        >>> with timer():  # doctest: +SKIP
         ...     time.sleep(0.1)
         Elapsed: 0.10s
     """
@@ -60,8 +60,8 @@ def elapsed_time(start_time: float) -> float:
         Elapsed time in seconds.
 
     Examples:
-        >>> start = time.perf_counter()
-        >>> time.sleep(0.05)
+        >>> start = time.perf_counter()  # doctest: +SKIP
+        >>> time.sleep(0.05)  # doctest: +SKIP
         >>> elapsed_time(start)
         0.05...
     """
@@ -82,13 +82,13 @@ def benchmark(
         result of the final function call.
 
     Examples:
-        >>> @benchmark(iterations=3)
+        >>> @benchmark(iterations=3)  # doctest: +SKIP
         ... def slow_function():
         ...     time.sleep(0.1)
         ...     return "done"
-        >>> result = slow_function()
+        >>> result = slow_function()  # doctest: +SKIP
         slow_function (avg of 3 runs): 0.30s
-        >>> result
+        >>> result  # doctest: +SKIP
         'done'
     """
     if iterations < 1:

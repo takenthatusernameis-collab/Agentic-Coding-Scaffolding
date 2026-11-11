@@ -27,10 +27,11 @@ def generate_uuid(version: int = 4) -> str:
         ValueError: If version is not 1 or 4.
 
     Examples:
-        >>> generate_uuid()
-        'f47ac10b-58cc-4372-a567-0e02b2c3d479'
-        >>> generate_uuid(version=4)
-        'e3d55f30-d0aa-4c7c-b3a8-b2c7b1a6c0f1'
+        >>> import re
+        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid()))
+        True
+        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid(version=4)))
+        True
     """
     if version == 4:
         return str(uuid.uuid4())
@@ -47,8 +48,9 @@ def generate_uuid4() -> str:
         A UUID4 string.
 
     Examples:
-        >>> generate_uuid4()
-        'f47ac10b-58cc-4372-a567-0e02b2c3d479'
+        >>> import re
+        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid4()))
+        True
     """
     return str(uuid.uuid4())
 
@@ -60,8 +62,9 @@ def generate_uuid1() -> str:
         A UUID1 string.
 
     Examples:
-        >>> generate_uuid1()
-        'e3d55f30-d0aa-4c7c-b3a8-b2c7b1a6c0f1'
+        >>> import re
+        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-1[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid1()))
+        True
     """
     return str(uuid.uuid1())
 

@@ -599,9 +599,9 @@ def count_blank_lines(text: str) -> int:
     Examples:
         >>> count_blank_lines("")
         0
-        >>> count_blank_lines("hello\nworld")
+        >>> count_blank_lines("hello\\nworld")
         0
-        >>> count_blank_lines("hello\n\nworld")
+        >>> count_blank_lines("hello\\n\\nworld")
         1
     """
     _require_string(text, "text")

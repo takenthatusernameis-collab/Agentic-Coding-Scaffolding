@@ -838,7 +838,7 @@ def remove_whitespace(s: str) -> str:
     Examples:
         >>> remove_whitespace("hello world")
         'helloworld'
-        >>> remove_whitespace("a\tb\nc")
+        >>> remove_whitespace("a\\tb\\nc")
         'abc'
         >>> remove_whitespace("")
         ''
