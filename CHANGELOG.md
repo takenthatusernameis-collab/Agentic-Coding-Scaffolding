@@ -1,5 +1,12 @@
 ## Unreleased — bootstrap verification; foundation solid, all gaps closed
 
+- Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. current HEAD `1d50b64`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt` == `have.txt` (274 modules), `python tools/scan_untested.py` reports no exported-but-untested callables — the audit is complete, `python -m unittest tests.test_public_api` OK (3/3).
+- No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
+- No `.github/workflows/**` changes.
+
+
+## Unreleased — bootstrap verification; foundation solid, all gaps closed
+
 - Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. prior verified checkpoint `dd2aba6`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `python tools/scan_untested.py` reports no exported-but-untested callables — the audit is complete, `python -m unittest tests.test_public_api` OK (3/3).
 - Verified: `python -m ruff check .` clean, `python -m mypy .` clean (558 source files).
 - No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
