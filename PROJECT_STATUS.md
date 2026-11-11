@@ -4639,6 +4639,14 @@ Next Planned (durable handover for the following agent):
 
 **Validation:** `python tools/refresh_scaffold.py --check` OK; `python -m unittest tests.test_public_api` OK. No `.github/workflows/**` changes.
 
+## Latest Session (2026-11-11 11:57Z) — bootstrap verification and scaffold sync; no task
+
+**Assigned task:** Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta check vs. checkpoint `9592f9b`: `git status` clean on `main` before fixes, `want.txt == have.txt`, counts stable (269 `*_utils.py`, 280 `tests/test_*.py`). `python tools/refresh_scaffold.py --check` reported `CHANGELOG.md` embedded copy stale in `scaffold.sh`; no new modules/APIs, so exported-but-untested audit not re-run.
+
+**Changes:** Ran `python tools/refresh_scaffold.py` to sync embedded `CHANGELOG.md` in `scaffold.sh`; durable handover/status update in this file. No source/API/test changes.
+
+**Validation:** `python tools/refresh_scaffold.py --check` OK; `python -m unittest tests.test_public_api` OK (3 tests). No `.github/workflows/**` changes.
+
 Next Planned (durable handover for the following agent):
 - Confirm foundation remains solid (`git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` in sync, targeted + `tests.test_public_api` green; run full suite only at a coherent milestone or after relevant changes). Do not re-run the exported-but-untested scan as a no-op unless a new module/API is added.
 - If a new module/API appears or a genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first.
