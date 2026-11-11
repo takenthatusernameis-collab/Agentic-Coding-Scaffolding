@@ -69365,6 +69365,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for `traceback_utils.extract_stack` and `format_exc`
+
+- Re-ran the alias-aware exported-but-untested scan (fixed to resolve module aliases such as `import traceback_utils as tb`); two genuine, hermetic, convention-consistent gaps surfaced in `traceback_utils`: `extract_stack` and `format_exc` were both typed, documented, `__all__`-exported wrappers with `TypeError` validation, but had zero dedicated coverage in `tests/test_traceback_utils.py` — unlike their siblings `extract_tb`, `format_tb`, `format_exception`, `format_stack`, `print_*`, and `clear_frames`, which were all covered.
+- Added `TestExtractStack` (4 tests) covering the empty-stack return type, `limit` narrowing, and `TypeError` paths for non-int/bool `limit`; and `TestFormatExc` (7 tests) covering the empty-when-no-exception contract, active-exception formatting, `limit` and `chain` forwarding, and `TypeError` paths for bad `limit`/`chain`. Imported nothing new — the new tests reference `traceback_utils.extract_stack`/`format_exc` directly, matching `__all__`.
+- Verified: `python -m unittest tests.test_traceback_utils` (19 OK, up from 11), `python -m doctest traceback_utils.py` clean, `python -m unittest tests.test_public_api` OK, `python -m ruff check tests/test_traceback_utils.py traceback_utils.py` clean, `python -m mypy tests/test_traceback_utils.py traceback_utils.py` clean. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — fixed a failing test in `test_argcomplete_utils` and restored full-suite green
 
 - State-delta check: `git status` clean on branch `main` at `5fbfd6e`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran the full suite (`python -m pytest tests/ -q`) at a coherent milestone as a baseline and found a real regression: `tests/test_argcomplete_utils.py::TestGetFilesCompleter::test_get_files_completer_returns_completer` failed with "Expected 'FilesCompleter' to be called once. Called 0 times."
@@ -128200,6 +128206,81 @@ class TestClearFrames(unittest.TestCase):
         except AttributeError:
             _, _, tb = sys.exc_info()
             traceback_utils.clear_frames(tb)
+
+
+class TestExtractStack(unittest.TestCase):
+    def test_extract_stack_returns_list(self):
+        result = traceback_utils.extract_stack()
+        self.assertIsInstance(result, list)
+        self.assertTrue(all(hasattr(frame, "filename") for frame in result))
+        self.assertTrue(any(frame.filename == __file__ for frame in result))
+
+    def test_extract_stack_with_limit(self):
+        def f1():
+            traceback_utils.extract_stack(limit=1)
+
+        def f2():
+            f1()
+
+        f2()
+
+    def test_extract_stack_rejects_bad_limit(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.extract_stack(limit="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            traceback_utils.extract_stack(limit=True)  # type: ignore[arg-type]
+
+
+class TestFormatExc(unittest.TestCase):
+    def test_format_exc_empty_when_no_exception(self):
+        self.assertEqual(traceback_utils.format_exc(), "")
+
+    def test_format_exc_returns_message(self):
+        try:
+            raise ValueError("active")
+        except ValueError:
+            result = traceback_utils.format_exc()
+        self.assertIsInstance(result, str)
+        self.assertIn("ValueError", result)
+        self.assertIn("active", result)
+
+    def test_format_exc_respects_limit(self):
+        def f1():
+            raise IndexError("deep")
+
+        def f2():
+            f1()
+
+        try:
+            f2()
+        except IndexError:
+            result = traceback_utils.format_exc(limit=1)
+        self.assertIsInstance(result, str)
+        self.assertIn("IndexError", result)
+
+    def test_format_exc_respects_chain(self):
+        try:
+            try:
+                raise ValueError("inner")
+            except ValueError:
+                raise TypeError("outer")
+        except TypeError:
+            chained = traceback_utils.format_exc(chain=True)
+            unchained = traceback_utils.format_exc(chain=False)
+        self.assertIn("TypeError", chained)
+        self.assertIn("ValueError", chained)
+        self.assertIn("TypeError", unchained)
+        self.assertNotIn("ValueError", unchained)
+
+    def test_format_exc_rejects_bad_limit(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exc(limit="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exc(limit=True)  # type: ignore[arg-type]
+
+    def test_format_exc_rejects_bad_chain(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_exc(chain="yes")  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

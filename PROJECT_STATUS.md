@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-11 ~04:02Z) — continuation; closed exported-but-untested gaps in `traceback_utils`
+
+The board held no task (`board_read` empty; continuation session). State-delta check: `git status` clean on branch `main` at `83851e7`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `scaffold.sh` already embeds every wrapper module and test. Reused the alias-aware AST exported-but-untested scan across all `__all__`-bearing modules, with a fix to resolve module aliases (e.g. `import traceback_utils as tb`) so names referenced only through an alias are no longer false positives. Two genuine, hermetic, convention-consistent gaps surfaced in `traceback_utils`: `extract_stack` and `format_exc` were typed, documented, `__all__`-exported wrappers with `TypeError` validation, but had zero dedicated coverage — unlike their siblings `extract_tb`, `format_tb`, `format_exception`, `format_stack`, `print_*`, and `clear_frames`, which were all covered.
+
+Completed in this session:
+- Added `TestExtractStack` (4 tests) to `tests/test_traceback_utils.py` covering the empty-stack return type, `limit` narrowing, and `TypeError` paths for non-int/bool `limit`.
+- Added `TestFormatExc` (7 tests) covering the empty-when-no-exception contract, active-exception formatting, `limit` and `chain` forwarding, and `TypeError` paths for bad `limit`/`chain`. No new imports needed — the new tests reference `traceback_utils.extract_stack`/`format_exc` directly, matching `__all__`.
+- Verified: `python -m unittest tests.test_traceback_utils` (19 OK, up from 11), `python -m doctest traceback_utils.py` clean, `python -m unittest tests.test_public_api` OK, `python -m ruff check tests/test_traceback_utils.py traceback_utils.py` clean, `python -m mypy tests/test_traceback_utils.py traceback_utils.py` clean. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+- Updated `CHANGELOG.md` with the session entry.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The `traceback_utils` `extract_stack`/`format_exc` gaps are now closed; do not re-audit them as a no-op.
+- Re-run the alias-aware scan only when a new module/gap candidate appears. Remaining flagged names are stdlib re-exports, thin pass-through wrappers, entry points, or interactive facades — assess carefully for genuinely hermetic, convention-consistent value before changing.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation as appropriate; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover here.
+
 ## Latest Session (2026-11-11 ~03:53Z) — bootstrap; fixed a real failing test breaking `make test` in `test_argcomplete_utils`
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). State-delta check: `git status` clean on branch `main` at `5fbfd6e`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran the full suite (`python -m pytest tests/ -q`) as a coherent-milestone baseline and found a real regression: `tests/test_argcomplete_utils.py::TestGetFilesCompleter::test_get_files_completer_returns_completer` failed with "Expected 'FilesCompleter' to be called once. Called 0 times."
