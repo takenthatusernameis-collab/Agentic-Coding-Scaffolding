@@ -78768,6 +78768,7 @@ cat > "$OUTPUT_DIR/tests/test_dis_utils.py" <<'TEST_DIS_UTILS'
 """Tests for dis_utils module."""
 
 import io
+import sys
 import unittest
 from contextlib import redirect_stdout
 
@@ -78777,6 +78778,7 @@ from dis_utils import (
     dis,
     disassemble,
     disco,
+    distb,
     findlabels,
     findlinestarts,
     get_instructions,
@@ -78832,6 +78834,19 @@ class TestDisUtils(unittest.TestCase):
             disco()
         except Exception:
             pass
+
+    def test_distb_disassembles_traceback(self):
+        def boom():
+            raise ValueError("x")
+
+        try:
+            boom()
+        except ValueError:
+            tb = sys.exc_info()[2]
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                distb(tb)
+            self.assertIn("RESUME", buf.getvalue())
 
 
 if __name__ == "__main__":
@@ -159579,6 +159594,23 @@ class TestDumbdbmUtils(unittest.TestCase):
     def test_bad_types(self):
         with self.assertRaises(TypeError):
             dumbdbm_utils.open(123)
+
+    def test_open_dbm_alias_and_error(self):
+        self.assertIs(dumbdbm_utils.open_dbm, dumbdbm_utils.open)
+        self.assertIs(dumbdbm_utils.error, dumbdbm_utils.dumbdbm.error)
+        fd, path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        try:
+            db = dumbdbm_utils.open_dbm(path, "c")
+            dumbdbm_utils.set(db, b"k", b"v")
+            self.assertEqual(dumbdbm_utils.get(db, b"k"), b"v")
+            dumbdbm_utils.close(db)
+        finally:
+            for ext in ["", ".dat", ".dir", ".bak"]:
+                try:
+                    os.unlink(path + ext)
+                except FileNotFoundError:
+                    pass
 
 
 if __name__ == "__main__":

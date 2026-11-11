@@ -61,6 +61,23 @@ class TestDumbdbmUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             dumbdbm_utils.open(123)
 
+    def test_open_dbm_alias_and_error(self):
+        self.assertIs(dumbdbm_utils.open_dbm, dumbdbm_utils.open)
+        self.assertIs(dumbdbm_utils.error, dumbdbm_utils.dumbdbm.error)
+        fd, path = tempfile.mkstemp(suffix=".db")
+        os.close(fd)
+        try:
+            db = dumbdbm_utils.open_dbm(path, "c")
+            dumbdbm_utils.set(db, b"k", b"v")
+            self.assertEqual(dumbdbm_utils.get(db, b"k"), b"v")
+            dumbdbm_utils.close(db)
+        finally:
+            for ext in ["", ".dat", ".dir", ".bak"]:
+                try:
+                    os.unlink(path + ext)
+                except FileNotFoundError:
+                    pass
+
 
 if __name__ == "__main__":
     unittest.main()

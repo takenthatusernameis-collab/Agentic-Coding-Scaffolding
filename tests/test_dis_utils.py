@@ -1,6 +1,7 @@
 """Tests for dis_utils module."""
 
 import io
+import sys
 import unittest
 from contextlib import redirect_stdout
 
@@ -10,6 +11,7 @@ from dis_utils import (
     dis,
     disassemble,
     disco,
+    distb,
     findlabels,
     findlinestarts,
     get_instructions,
@@ -65,6 +67,19 @@ class TestDisUtils(unittest.TestCase):
             disco()
         except Exception:
             pass
+
+    def test_distb_disassembles_traceback(self):
+        def boom():
+            raise ValueError("x")
+
+        try:
+            boom()
+        except ValueError:
+            tb = sys.exc_info()[2]
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                distb(tb)
+            self.assertIn("RESUME", buf.getvalue())
 
 
 if __name__ == "__main__":
