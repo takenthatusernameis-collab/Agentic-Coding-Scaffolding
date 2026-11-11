@@ -4496,3 +4496,17 @@ Next Planned (durable handover for the following agent):
 - Confirm foundation remains solid (`git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` in sync, targeted + `tests.test_public_api` green; run full suite only at a coherent milestone or after relevant changes). Do not re-run the exported-but-untested scan as a no-op unless a new module/API is added.
 - If a new module/API appears or a genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first.
 - No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
+
+## Latest Session (2026-11-11 07:49Z) — bootstrap verification; foundation solid, no task
+
+**Assigned task:** Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). Verified current checkpoint without full discovery: `git status` clean on `main` at `3c68378`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt`, and `python -m unittest tests.test_public_api` passes (3/3). No new modules/APIs since prior handover; alias-aware exported-but-untested scan remains complete with 0 genuine gaps, not re-run as a no-op.
+
+**Changes:** Durable handover/status update only (no source/API/test changes).
+
+**Validation:** `python tools/refresh_scaffold.py --check` OK; `diff -q want.txt have.txt` OK; `python -m unittest tests.test_public_api -v` OK (3 tests). No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` in sync, targeted + `tests.test_public_api` green; run full suite only at a coherent milestone or after relevant changes). Do not re-run the exported-but-untested scan as a no-op unless a new module/API is added.
+- If a new module/API appears or a genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
