@@ -2,7 +2,14 @@ import os
 import tempfile
 import unittest
 
-from linecache_utils import checkcache, clearcache, getline, getlines, updatecache
+from linecache_utils import (
+    checkcache,
+    clearcache,
+    getline,
+    getlines,
+    lazycache,
+    updatecache,
+)
 
 
 class TestLinecacheUtils(unittest.TestCase):
@@ -39,6 +46,25 @@ class TestLinecacheUtils(unittest.TestCase):
     def test_updatecache_type_error(self):
         with self.assertRaises(TypeError):
             updatecache(123)
+
+    def test_lazycache_type_error(self):
+        with self.assertRaises(TypeError):
+            lazycache(123, {})
+
+    def test_lazycache(self):
+        clearcache()
+        with open(self.path) as f:
+            source = f.read()
+
+        class Loader:
+            def get_source(self, name):
+                return source
+
+        module_globals = {"__name__": "lazy_mod", "__loader__": Loader()}
+        result = lazycache(self.path, module_globals)
+        self.assertIsInstance(result, bool)
+        self.assertEqual(getline(self.path, 1), "first\n")
+        self.assertEqual(getlines(self.path), ["first\n", "second\n", "third\n"])
 
     def test_clearcache(self):
         clearcache()
