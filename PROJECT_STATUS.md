@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-11 01:53Z) — bootstrap; closed exported-but-untested gaps in `numbers_utils` number predicates
+
+The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `6f9863b`), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran the alias-aware AST exported-but-untested scan across all `__all__`-bearing modules; filtered out type vars/constants/stdlib re-exports/thin pass-through wrappers/classes/entry points. Surfaced genuine, hermetic, convention-consistent gaps in `numbers_utils`: `is_disarium_number`, `is_kaprekar_number`, `is_perfect_square`, `is_perfect_cube`, `is_power_of_two`, `is_triangular_number`, `is_pentagonal_number`, `is_hexagonal_number`, `is_squarefree_number`, `is_oblong_number`, `is_ugly_number`, `is_narcissistic_number`, the `is_narcissistic` alias, and `is_untouchable_number` were all typed, documented, `__all__`-exported `is_*` predicates with `TypeError` validation, sibling to the tested `is_*` family, but had zero dedicated test coverage in `tests/test_numbers_utils.py`.
+
+Completed in this session:
+- Added `TestIsDisariumNumber`, `TestIsKaprekarNumber`, `TestIsPerfectSquare`, `TestIsPerfectCube`, `TestIsPowerOfTwo`, `TestIsTriangularNumber`, `TestIsPentagonalNumber`, `TestIsHexagonalNumber`, `TestIsSquarefreeNumber`, `TestIsOblongNumber`, `TestIsUglyNumber`, `TestIsNarcissisticNumber`, `TestIsNarcissisticAlias`, and `TestIsUntouchableNumber` to `tests/test_numbers_utils.py` covering known/non values, edge cases, consistency, and `TypeError` paths (202 tests total, up from 188).
+- Imported the new names into the test module's import block to match `__all__`.
+- Updated `CHANGELOG.md` with the session entry. No new public API was added, so no `README.md` changes. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_numbers_utils` (202 OK), `python -m unittest tests.test_public_api tests.test_scaffold tests.test_scaffold_sync tests.test_refresh_scaffold` (252 OK), `python -m ruff check tests/test_numbers_utils.py numbers_utils.py` clean, `python -m mypy tests/test_numbers_utils.py numbers_utils.py` clean. No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The `numbers_utils` predicate gaps are now closed; do not re-audit them as a no-op.
+- Re-run alias-aware AST exported-but-untested scan only when a new module/gap candidate appears. Remaining flagged names are mostly stdlib re-exports/thin wrappers/entry points/classes — assess carefully for genuinely hermetic, convention-consistent value before changing.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-11 00:52Z) — bootstrap; closed exported-but-untested gap in `bytes_utils` singular null-byte aliases
 
 The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `5a8be61`), `python tools/refresh_scaffold.py --check` initially reported `CHANGELOG.md` stale (1 embedded copy out of sync — the source file itself was unchanged; only `scaffold.sh`'s embedded copy drifted by 1 line). Ran `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.

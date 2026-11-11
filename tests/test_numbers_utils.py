@@ -14,23 +14,33 @@ from numbers_utils import (
     is_complex,
     is_coprime,
     is_deficient_number,
+    is_disarium_number,
     is_duck_number,
     is_even,
     is_evil_number,
     is_fibonacci_number,
     is_happy_number,
     is_harshad_number,
+    is_hexagonal_number,
     is_integral,
+    is_kaprekar_number,
+    is_narcissistic,
+    is_narcissistic_number,
     is_neon_number,
     is_number,
+    is_oblong_number,
     is_odd,
     is_odious_number,
     is_palindromic_number,
     is_pandigital_number,
+    is_pentagonal_number,
+    is_perfect_cube,
     is_perfect_number,
     is_perfect_power,
+    is_perfect_square,
     is_polydivisible_number,
     is_power_of,
+    is_power_of_two,
     is_pronic_number,
     is_rational,
     is_real,
@@ -38,7 +48,11 @@ from numbers_utils import (
     is_semiperfect_number,
     is_sphenic_number,
     is_spy_number,
+    is_squarefree_number,
     is_strong_number,
+    is_triangular_number,
+    is_ugly_number,
+    is_untouchable_number,
     is_weird_number,
     proper_divisors,
     sum_of_divisors,
@@ -1138,6 +1152,338 @@ class TestIsOdd(unittest.TestCase):
         for value in (1.5, 2.0, "3", None, True, [3], (3,)):
             with self.assertRaises(TypeError):
                 is_odd(value)
+
+
+class TestIsDisariumNumber(unittest.TestCase):
+    def test_known_disarium_numbers(self):
+        for value in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 89, 135, 175, 518, 598):
+            self.assertTrue(is_disarium_number(value), value)
+
+    def test_non_disarium_numbers(self):
+        for value in (10, 11, 12, 13, 14, 15, 20, 100, 136):
+            self.assertFalse(is_disarium_number(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -89, -135):
+            self.assertFalse(is_disarium_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "135", None, True, [135]):
+            with self.assertRaises(TypeError):
+                is_disarium_number(value)
+
+
+class TestIsKaprekarNumber(unittest.TestCase):
+    def test_known_kaprekar_numbers(self):
+        for value in (0, 9, 45, 55, 99, 297, 703, 999, 2223):
+            self.assertTrue(is_kaprekar_number(value), value)
+
+    def test_non_kaprekar_numbers(self):
+        for value in (2, 3, 4, 5, 6, 7, 8, 10, 100, 1000):
+            self.assertFalse(is_kaprekar_number(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -45, -297):
+            self.assertFalse(is_kaprekar_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "45", None, True, [45]):
+            with self.assertRaises(TypeError):
+                is_kaprekar_number(value)
+
+
+class TestIsPerfectSquare(unittest.TestCase):
+    def test_known_perfect_squares(self):
+        for value in (0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 10000):
+            self.assertTrue(is_perfect_square(value), value)
+
+    def test_non_perfect_squares(self):
+        for value in (2, 3, 5, 6, 7, 8, 10, 15, 20, 1000):
+            self.assertFalse(is_perfect_square(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -4, -16, -100):
+            self.assertFalse(is_perfect_square(value))
+
+    def test_type_error(self):
+        for value in (1.5, "16", None, True, [16]):
+            with self.assertRaises(TypeError):
+                is_perfect_square(value)
+
+
+class TestIsPerfectCube(unittest.TestCase):
+    def test_known_perfect_cubes(self):
+        for value in (0, 1, 8, 27, 64, 125, 216, 1000):
+            self.assertTrue(is_perfect_cube(value), value)
+
+    def test_negative_perfect_cubes(self):
+        for value in (-1, -8, -27, -64):
+            self.assertTrue(is_perfect_cube(value), value)
+
+    def test_non_perfect_cubes(self):
+        for value in (2, 3, 4, 5, 6, 7, 9, 10, 20, 100):
+            self.assertFalse(is_perfect_cube(value), value)
+
+    def test_type_error(self):
+        for value in (1.5, "27", None, True, [27]):
+            with self.assertRaises(TypeError):
+                is_perfect_cube(value)
+
+
+class TestIsPowerOfTwo(unittest.TestCase):
+    def test_known_powers_of_two(self):
+        for value in (1, 2, 4, 8, 16, 32, 64, 128, 256, 1024, 2 ** 20):
+            self.assertTrue(is_power_of_two(value), value)
+
+    def test_non_powers_of_two(self):
+        for value in (0, 3, 5, 6, 7, 9, 10, 12, 100, 1000):
+            self.assertFalse(is_power_of_two(value), value)
+
+    def test_negative_and_zero(self):
+        for value in (0, -1, -2, -4, -16):
+            self.assertFalse(is_power_of_two(value))
+
+    def test_type_error(self):
+        for value in (1.5, "16", None, True, [16]):
+            with self.assertRaises(TypeError):
+                is_power_of_two(value)
+
+
+class TestIsTriangularNumber(unittest.TestCase):
+    def test_known_triangular_numbers(self):
+        for value in (0, 1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78):
+            self.assertTrue(is_triangular_number(value), value)
+
+    def test_non_triangular_numbers(self):
+        for value in (2, 4, 5, 7, 8, 9, 11, 12, 20, 100):
+            self.assertFalse(is_triangular_number(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -3, -10):
+            self.assertFalse(is_triangular_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "10", None, True, [10]):
+            with self.assertRaises(TypeError):
+                is_triangular_number(value)
+
+
+class TestIsPentagonalNumber(unittest.TestCase):
+    def test_known_pentagonal_numbers(self):
+        for value in (0, 1, 5, 12, 22, 35, 51, 70):
+            self.assertTrue(is_pentagonal_number(value), value)
+
+    def test_non_pentagonal_numbers(self):
+        for value in (2, 3, 4, 6, 7, 8, 9, 10, 20, 100):
+            self.assertFalse(is_pentagonal_number(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -5, -12):
+            self.assertFalse(is_pentagonal_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "12", None, True, [12]):
+            with self.assertRaises(TypeError):
+                is_pentagonal_number(value)
+
+
+class TestIsHexagonalNumber(unittest.TestCase):
+    def test_known_hexagonal_numbers(self):
+        for value in (0, 1, 6, 15, 28, 45, 66, 91):
+            self.assertTrue(is_hexagonal_number(value), value)
+
+    def test_non_hexagonal_numbers(self):
+        for value in (2, 3, 4, 5, 7, 8, 9, 10, 20, 100):
+            self.assertFalse(is_hexagonal_number(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -6, -15):
+            self.assertFalse(is_hexagonal_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "15", None, True, [15]):
+            with self.assertRaises(TypeError):
+                is_hexagonal_number(value)
+
+
+class TestIsSquarefreeNumber(unittest.TestCase):
+    def test_known_squarefree_numbers(self):
+        for value in (
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            10,
+            11,
+            13,
+            14,
+            15,
+            17,
+            21,
+            22,
+            23,
+            29,
+            30,
+        ):
+            self.assertTrue(is_squarefree_number(value), value)
+
+    def test_non_squarefree_numbers(self):
+        for value in (4, 8, 9, 12, 16, 18, 20, 24, 25, 27, 28, 32, 36, 100):
+            self.assertFalse(is_squarefree_number(value), value)
+
+    def test_zero_and_negative(self):
+        self.assertFalse(is_squarefree_number(0))
+        for value in (-1, -4, -12):
+            self.assertFalse(is_squarefree_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "12", None, True, [12]):
+            with self.assertRaises(TypeError):
+                is_squarefree_number(value)
+
+
+class TestIsOblongNumber(unittest.TestCase):
+    def test_known_oblong_numbers(self):
+        for value in (0, 2, 6, 12, 20, 30, 42, 56, 72):
+            self.assertTrue(is_oblong_number(value), value)
+
+    def test_non_oblong_numbers(self):
+        for value in (1, 3, 4, 5, 7, 8, 9, 10, 11, 100):
+            self.assertFalse(is_oblong_number(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -2, -6):
+            self.assertFalse(is_oblong_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "12", None, True, [12]):
+            with self.assertRaises(TypeError):
+                is_oblong_number(value)
+
+
+class TestIsUglyNumber(unittest.TestCase):
+    def test_known_ugly_numbers(self):
+        for value in (
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            8,
+            9,
+            10,
+            12,
+            15,
+            16,
+            18,
+            20,
+            24,
+            25,
+            27,
+            30,
+            32,
+            36,
+            40,
+            45,
+            48,
+            50,
+            60,
+            64,
+            72,
+            75,
+            80,
+            81,
+            90,
+            96,
+            100,
+        ):
+            self.assertTrue(is_ugly_number(value), value)
+
+    def test_non_ugly_numbers(self):
+        for value in (7, 11, 13, 14, 17, 19, 22, 23, 26, 28, 29, 31, 33, 34, 35):
+            self.assertFalse(is_ugly_number(value), value)
+
+    def test_zero_and_negative(self):
+        self.assertFalse(is_ugly_number(0))
+        for value in (-1, -7, -30):
+            self.assertFalse(is_ugly_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "30", None, True, [30]):
+            with self.assertRaises(TypeError):
+                is_ugly_number(value)
+
+
+class TestIsNarcissisticNumber(unittest.TestCase):
+    def test_known_narcissistic_numbers(self):
+        for value in (
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            153,
+            370,
+            371,
+            407,
+            1634,
+            8208,
+            9474,
+        ):
+            self.assertTrue(is_narcissistic_number(value), value)
+
+    def test_non_narcissistic_numbers(self):
+        for value in (10, 12, 123, 145, 200, 1000, 9999):
+            self.assertFalse(is_narcissistic_number(value), value)
+
+    def test_negative_numbers(self):
+        for value in (-1, -153, -370):
+            self.assertFalse(is_narcissistic_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "153", None, True, [153]):
+            with self.assertRaises(TypeError):
+                is_narcissistic_number(value)
+
+
+class TestIsNarcissisticAlias(unittest.TestCase):
+    def test_alias_matches_implementation(self):
+        self.assertIs(is_narcissistic, is_narcissistic_number)
+        for value in (0, 1, 153, 370, 10, 100):
+            self.assertEqual(is_narcissistic(value), is_narcissistic_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "153", None, True, [153]):
+            with self.assertRaises(TypeError):
+                is_narcissistic(value)
+
+
+class TestIsUntouchableNumber(unittest.TestCase):
+    def test_known_untouchable_numbers(self):
+        for value in (2, 5, 52, 88, 120):
+            self.assertTrue(is_untouchable_number(value), value)
+
+    def test_non_untouchable_numbers(self):
+        for value in (1, 3, 4, 6, 28):
+            self.assertFalse(is_untouchable_number(value), value)
+
+    def test_zero_and_negative(self):
+        self.assertFalse(is_untouchable_number(0))
+        for value in (-1, -2):
+            self.assertFalse(is_untouchable_number(value))
+
+    def test_type_error(self):
+        for value in (1.5, "2", None, True, [2]):
+            with self.assertRaises(TypeError):
+                is_untouchable_number(value)
 
 
 if __name__ == "__main__":
