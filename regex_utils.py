@@ -24,7 +24,7 @@ __all__: List[str] = [
 
 
 def compile_pattern(pattern: str, flags: int = 0) -> Pattern[str]:
-    """Compile a regular expression pattern into a reusable pattern object.
+    r"""Compile a regular expression pattern into a reusable pattern object.
 
     Args:
         pattern: The regular expression string to compile.

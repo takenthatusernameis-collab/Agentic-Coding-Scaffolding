@@ -28,9 +28,10 @@ def generate_uuid(version: int = 4) -> str:
 
     Examples:
         >>> import re
-        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid()))
+        >>> pat = r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        >>> bool(re.match(pat, generate_uuid()))
         True
-        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid(version=4)))
+        >>> bool(re.match(pat, generate_uuid(version=4)))
         True
     """
     if version == 4:
@@ -49,7 +50,8 @@ def generate_uuid4() -> str:
 
     Examples:
         >>> import re
-        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid4()))
+        >>> pat = r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        >>> bool(re.match(pat, generate_uuid4()))
         True
     """
     return str(uuid.uuid4())
@@ -63,7 +65,8 @@ def generate_uuid1() -> str:
 
     Examples:
         >>> import re
-        >>> bool(re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-1[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$', generate_uuid1()))
+        >>> pat = r'^[0-9a-f]{8}-[0-9a-f]{4}-1[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+        >>> bool(re.match(pat, generate_uuid1()))
         True
     """
     return str(uuid.uuid1())
