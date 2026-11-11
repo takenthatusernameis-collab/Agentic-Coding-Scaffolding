@@ -3,6 +3,7 @@ import unittest
 from itertools_utils import (
     accumulate_values,
     all_equal,
+    batched_iterable,
     chain_iterables,
     chunk_iterable,
     combinations_of,
@@ -886,6 +887,65 @@ class TestPermutationsOf(unittest.TestCase):
     def test_rejects_negative_r(self):
         with self.assertRaises(ValueError):
             permutations_of([1, 2, 3], -1)
+
+
+class TestBatchedIterable(unittest.TestCase):
+    def test_even_split(self):
+        self.assertEqual(
+            batched_iterable([1, 2, 3, 4], 2),
+            [(1, 2), (3, 4)],
+        )
+
+    def test_uneven_split(self):
+        self.assertEqual(
+            batched_iterable([1, 2, 3, 4, 5], 2),
+            [(1, 2), (3, 4), (5,)],
+        )
+
+    def test_n_larger_than_iterable(self):
+        self.assertEqual(batched_iterable([1, 2], 5), [(1, 2)])
+
+    def test_empty_iterable(self):
+        self.assertEqual(batched_iterable([], 3), [])
+
+    def test_n_one(self):
+        self.assertEqual(batched_iterable([1, 2, 3], 1), [(1,), (2,), (3,)])
+
+    def test_tuple_input(self):
+        self.assertEqual(batched_iterable((1, 2, 3, 4), 2), [(1, 2), (3, 4)])
+
+    def test_generator_input(self):
+        self.assertEqual(batched_iterable(iter([1, 2, 3, 4]), 2), [(1, 2), (3, 4)])
+
+    def test_consistency_with_itertools(self):
+        import itertools
+
+        for data, n in [([1, 2, 3, 4, 5], 2), ([1, 2, 3], 1), ([], 3), (range(7), 3)]:
+            self.assertEqual(batched_iterable(data, n), list(itertools.batched(data, n)))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            batched_iterable(42, 2)
+
+    def test_rejects_non_iterable_none(self):
+        with self.assertRaises(TypeError):
+            batched_iterable(None, 2)
+
+    def test_rejects_non_int_n(self):
+        with self.assertRaises(TypeError):
+            batched_iterable([1, 2, 3], "2")
+
+    def test_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            batched_iterable([1, 2, 3], True)
+
+    def test_rejects_zero_n(self):
+        with self.assertRaises(ValueError):
+            batched_iterable([1, 2, 3], 0)
+
+    def test_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            batched_iterable([1, 2, 3], -1)
 
 
 if __name__ == "__main__":

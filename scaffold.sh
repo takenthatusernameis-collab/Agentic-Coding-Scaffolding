@@ -55530,6 +55530,7 @@ import unittest
 from itertools_utils import (
     accumulate_values,
     all_equal,
+    batched_iterable,
     chain_iterables,
     chunk_iterable,
     combinations_of,
@@ -56413,6 +56414,65 @@ class TestPermutationsOf(unittest.TestCase):
     def test_rejects_negative_r(self):
         with self.assertRaises(ValueError):
             permutations_of([1, 2, 3], -1)
+
+
+class TestBatchedIterable(unittest.TestCase):
+    def test_even_split(self):
+        self.assertEqual(
+            batched_iterable([1, 2, 3, 4], 2),
+            [(1, 2), (3, 4)],
+        )
+
+    def test_uneven_split(self):
+        self.assertEqual(
+            batched_iterable([1, 2, 3, 4, 5], 2),
+            [(1, 2), (3, 4), (5,)],
+        )
+
+    def test_n_larger_than_iterable(self):
+        self.assertEqual(batched_iterable([1, 2], 5), [(1, 2)])
+
+    def test_empty_iterable(self):
+        self.assertEqual(batched_iterable([], 3), [])
+
+    def test_n_one(self):
+        self.assertEqual(batched_iterable([1, 2, 3], 1), [(1,), (2,), (3,)])
+
+    def test_tuple_input(self):
+        self.assertEqual(batched_iterable((1, 2, 3, 4), 2), [(1, 2), (3, 4)])
+
+    def test_generator_input(self):
+        self.assertEqual(batched_iterable(iter([1, 2, 3, 4]), 2), [(1, 2), (3, 4)])
+
+    def test_consistency_with_itertools(self):
+        import itertools
+
+        for data, n in [([1, 2, 3, 4, 5], 2), ([1, 2, 3], 1), ([], 3), (range(7), 3)]:
+            self.assertEqual(batched_iterable(data, n), list(itertools.batched(data, n)))
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            batched_iterable(42, 2)
+
+    def test_rejects_non_iterable_none(self):
+        with self.assertRaises(TypeError):
+            batched_iterable(None, 2)
+
+    def test_rejects_non_int_n(self):
+        with self.assertRaises(TypeError):
+            batched_iterable([1, 2, 3], "2")
+
+    def test_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            batched_iterable([1, 2, 3], True)
+
+    def test_rejects_zero_n(self):
+        with self.assertRaises(ValueError):
+            batched_iterable([1, 2, 3], 0)
+
+    def test_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            batched_iterable([1, 2, 3], -1)
 
 
 if __name__ == "__main__":
@@ -71683,7 +71743,7 @@ maybe_utils.py             # Maybe/Option type utilities for functional programm
 either_utils.py            # Either/Result type utilities for functional programming patterns (Either, right, left, ok, err, from_optional, map, map_left, flat_map, and_then, filter, or_else, fold, swap, unwrap, unwrap_left, unwrap_or, unwrap_or_else, is_right, is_left, is_ok, is_err)
 context_utils.py          # Context manager utilities for temporarily altering the runtime environment (working directory, environment variables, standard streams)
 contextlib_utils.py        # Contextlib utility functions wrapping stdlib contextlib (suppress, nullcontext, closing, redirect_stdout/stderr, chdir, ExitStack)
-itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, grouper, roundrobin, padnone, ncycles, count_from, count_if, has_any, is_empty_iterable, etc.)
+itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, partition, zip_longest, unique_everseen, unique_justseen, sliding_window/window, grouper, roundrobin, padnone, ncycles, count_from, count_if, has_any, is_empty_iterable, batched_iterable, etc.)
 
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
