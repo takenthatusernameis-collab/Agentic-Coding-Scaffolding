@@ -53,7 +53,23 @@ def format_tb(tb: Optional[TracebackType] = None, limit: Optional[int] = None) -
 
 
 def format_stack(f=None, limit: Optional[int] = None) -> List[str]:
-    """Format a stack trace."""
+    """Format a stack trace.
+
+    Args:
+        f: Optional frame to start from; ``None`` uses the current frame.
+        limit: Optional maximum number of stack frames to include.
+
+    Returns:
+        A list of formatted stack lines, each ending with a newline.
+
+    Raises:
+        TypeError: If *limit* is not an integer or ``None``.
+
+    >>> isinstance(format_stack(), list)
+    True
+    """
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
     return traceback.format_stack(f, limit=limit)
 
 

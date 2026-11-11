@@ -69365,6 +69365,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added test coverage for `traceback_utils.format_stack`
+
+- Re-ran the alias-aware exported-but-untested scan (now a persistent tool at `tools/scan_untested.py`, which filters type vars, constants, classes, entry points, and interactive stdlib facades so only genuine gaps are reported). One genuine, hermetic, convention-consistent gap surfaced in `traceback_utils`: `format_stack` was a typed, documented, `__all__`-exported wrapper with zero dedicated coverage in `tests/test_traceback_utils.py` — and was inconsistent with its siblings, lacking the `TypeError` validation for non-int/bool `limit` that `extract_stack`, `print_stack`, `format_tb`, `format_exc`, and `extract_tb` all have.
+- Added `TypeError` validation for `limit` to `format_stack` (matching the sibling convention), plus a Google-style docstring and an ASCII-safe doctest.
+- Added `TestFormatStack` (3 tests) to `tests/test_traceback_utils.py` covering the list-of-strings return type, `limit` narrowing, and `TypeError` paths for non-int/bool `limit`.
+- Verified: `python -m unittest tests.test_traceback_utils` (22 OK, up from 19), `python -m doctest traceback_utils.py` clean, `python -m unittest tests.test_public_api` OK, `python -m ruff check tests/test_traceback_utils.py traceback_utils.py` clean, `python -m mypy tests/test_traceback_utils.py traceback_utils.py` clean. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — added test coverage for `traceback_utils.extract_stack` and `format_exc`
 
 - Re-ran the alias-aware exported-but-untested scan (fixed to resolve module aliases such as `import traceback_utils as tb`); two genuine, hermetic, convention-consistent gaps surfaced in `traceback_utils`: `extract_stack` and `format_exc` were both typed, documented, `__all__`-exported wrappers with `TypeError` validation, but had zero dedicated coverage in `tests/test_traceback_utils.py` — unlike their siblings `extract_tb`, `format_tb`, `format_exception`, `format_stack`, `print_*`, and `clear_frames`, which were all covered.
@@ -128033,7 +128040,23 @@ def format_tb(tb: Optional[TracebackType] = None, limit: Optional[int] = None) -
 
 
 def format_stack(f=None, limit: Optional[int] = None) -> List[str]:
-    """Format a stack trace."""
+    """Format a stack trace.
+
+    Args:
+        f: Optional frame to start from; ``None`` uses the current frame.
+        limit: Optional maximum number of stack frames to include.
+
+    Returns:
+        A list of formatted stack lines, each ending with a newline.
+
+    Raises:
+        TypeError: If *limit* is not an integer or ``None``.
+
+    >>> isinstance(format_stack(), list)
+    True
+    """
+    if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
+        raise TypeError("limit must be an integer or None")
     return traceback.format_stack(f, limit=limit)
 
 
@@ -128197,6 +128220,31 @@ class TestPrintFunctions(unittest.TestCase):
         except TypeError:
             etype, value, tb = sys.exc_info()
             traceback_utils.print_exception(etype, value, tb)
+
+
+class TestFormatStack(unittest.TestCase):
+    def test_format_stack_returns_list(self):
+        result = traceback_utils.format_stack()
+        self.assertIsInstance(result, list)
+        self.assertTrue(all(isinstance(line, str) for line in result))
+        self.assertTrue(any("test_traceback_utils" in line for line in result))
+
+    def test_format_stack_with_limit(self):
+        def f1():
+            return traceback_utils.format_stack(limit=1)
+
+        def f2():
+            return f1()
+
+        result = f2()
+        self.assertIsInstance(result, list)
+        self.assertLessEqual(len(result), 1)
+
+    def test_format_stack_rejects_bad_limit(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_stack(limit="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            traceback_utils.format_stack(limit=True)  # type: ignore[arg-type]
 
 
 class TestClearFrames(unittest.TestCase):

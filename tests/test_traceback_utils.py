@@ -80,6 +80,31 @@ class TestPrintFunctions(unittest.TestCase):
             traceback_utils.print_exception(etype, value, tb)
 
 
+class TestFormatStack(unittest.TestCase):
+    def test_format_stack_returns_list(self):
+        result = traceback_utils.format_stack()
+        self.assertIsInstance(result, list)
+        self.assertTrue(all(isinstance(line, str) for line in result))
+        self.assertTrue(any("test_traceback_utils" in line for line in result))
+
+    def test_format_stack_with_limit(self):
+        def f1():
+            return traceback_utils.format_stack(limit=1)
+
+        def f2():
+            return f1()
+
+        result = f2()
+        self.assertIsInstance(result, list)
+        self.assertLessEqual(len(result), 1)
+
+    def test_format_stack_rejects_bad_limit(self):
+        with self.assertRaises(TypeError):
+            traceback_utils.format_stack(limit="1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            traceback_utils.format_stack(limit=True)  # type: ignore[arg-type]
+
+
 class TestClearFrames(unittest.TestCase):
     def test_clear_frames(self):
         try:
