@@ -1,3 +1,9 @@
+## Unreleased — added test coverage for `list_utils.first_or_default`/`last_or_default`
+
+- Added `TestFirstOrDefault` (6 tests) and `TestLastOrDefault` (6 tests) to `tests/test_list_utils.py` for `first_or_default`/`last_or_default`, both exported in `__all__`, typed, and documented, but previously untested. New tests cover basic values, empty-with-default, empty-with-None, single-element, default-not-used-when-non-empty, and `TypeError` paths.
+- Updated the `list_utils` module tree entry and prose section of `README.md` to list `first_or_default` and `last_or_default`. Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_list_utils` (217 OK, up from 205), `python -m unittest tests.test_public_api`, `python -m ruff check tests/test_list_utils.py list_utils.py` clean, `python -m mypy tests/test_list_utils.py list_utils.py` clean. No new public API was added, so no implementation/prose changes beyond the README tree entry. No `.github/workflows/**` changes.
+
 ## Unreleased — added test coverage for `posixpath_utils.is_rooted` and the `getatime`/`getctime`/`getmtime`/`getsize` stat helpers
 
 - Added `TestIsRooted` (7 tests) to `tests/test_posixpath_utils.py` for `is_rooted`, which is exported in `__all__`, typed, and documented, but shipped with zero dedicated test coverage — unlike its sibling `isabs`, covered by `test_isabs`. New tests cover absolute/relative/empty/bytes/path-like inputs, the distinction from `isabs`, and `TypeError` paths.

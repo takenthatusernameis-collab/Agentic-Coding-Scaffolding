@@ -90,7 +90,7 @@ sre_constants_utils.py      # Regex constants utilities wrapping the standard li
 sre_parse_utils.py          # Regex parse utilities wrapping the standard library sre_parse module
 spwd_utils.py               # Shadow password database utilities wrapping the standard library spwd module (getspnam, getspall, is_available) with input validation
 sre_compile_utils.py        # Regular expression compile utilities wrapping the standard library sre_compile module (compile, isstring, compile_pattern, dis, is_available) with input validation
-list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, indices_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, count_unique, has_all_unique, has_duplicates, count_occurrences, count_where, has_where, all_where, none_where, has_occurrences)
+list_utils.py              # Advanced list manipulation utilities (partition, group_by, safe_get, find, find_index, find_all, find_all_indices, find_last, find_last_index, index_of, last_index_of, indices_of, drop, take, intersperse, chunks, flatten, unique_preserve_order, contains, count_duplicates, count_unique, has_all_unique, has_duplicates, count_occurrences, count_where, has_where, all_where, none_where, has_occurrences, first_or_default, last_or_default)
 locale_utils.py           # Locale utility functions for working with locale identifiers and language tags
 env_utils.py               # Environment variable handling utilities
 logging_utils.py          # Logging configuration and helper utilities
@@ -760,7 +760,7 @@ The project includes a cryptographic utilities module in `crypto_utils.py` with 
 
 ## List Utilities Module
 
-The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `indices_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, `count_unique`, `has_all_unique`, `has_duplicates`, `count_occurrences`, `count_where`, `has_where`, `all_where`, `none_where`, and `has_occurrences`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
+The project includes an advanced list manipulation utilities module in `list_utils.py` with functions for common list operations: `partition`, `group_by`, `safe_get`, `find`, `find_index`, `find_last`, `find_last_index`, `index_of`, `last_index_of`, `indices_of`, `flatten`, `drop`, `take`, `intersperse`, `chunks`, `unique_preserve_order`, `contains`, `count_duplicates`, `count_unique`, `has_all_unique`, `has_duplicates`, `count_occurrences`, `count_where`, `has_where`, `all_where`, `none_where`, `has_occurrences`, `first_or_default`, and `last_or_default`. Input validation ensures all functions raise `TypeError` when a non-list is passed (and `TypeError` for a non-callable predicate where applicable). The module is tested in `tests/test_list_utils.py`.
 
 ## Locale Utilities Module
 

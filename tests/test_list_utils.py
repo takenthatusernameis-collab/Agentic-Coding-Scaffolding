@@ -17,6 +17,7 @@ from list_utils import (
     find_index,
     find_last,
     find_last_index,
+    first_or_default,
     flatten,
     group_by,
     has_all_unique,
@@ -29,6 +30,7 @@ from list_utils import (
     is_empty,
     is_sorted,
     last_index_of,
+    last_or_default,
     none_where,
     partition,
     safe_get,
@@ -801,3 +803,45 @@ class TestHasOccurrences(unittest.TestCase):
     def test_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             has_occurrences("aba", "a")  # type: ignore[arg-type]
+
+
+class TestFirstOrDefault(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(first_or_default([1, 2, 3]), 1)
+
+    def test_empty_default(self) -> None:
+        self.assertEqual(first_or_default([], 0), 0)
+
+    def test_empty_none_default(self) -> None:
+        self.assertIsNone(first_or_default([]))
+
+    def test_single_element(self) -> None:
+        self.assertEqual(first_or_default([42]), 42)
+
+    def test_default_not_used_when_non_empty(self) -> None:
+        self.assertEqual(first_or_default([1, 2, 3], 99), 1)
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            first_or_default("abc")  # type: ignore[arg-type]
+
+
+class TestLastOrDefault(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertEqual(last_or_default([1, 2, 3]), 3)
+
+    def test_empty_default(self) -> None:
+        self.assertEqual(last_or_default([], 0), 0)
+
+    def test_empty_none_default(self) -> None:
+        self.assertIsNone(last_or_default([]))
+
+    def test_single_element(self) -> None:
+        self.assertEqual(last_or_default([42]), 42)
+
+    def test_default_not_used_when_non_empty(self) -> None:
+        self.assertEqual(last_or_default([1, 2, 3], 99), 3)
+
+    def test_non_list_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            last_or_default("abc")  # type: ignore[arg-type]

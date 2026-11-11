@@ -1,5 +1,23 @@
 # Project Status
 
+## Latest Session (2026-11-11 00:50Z approx) — bootstrap; closed exported-but-untested gap in `list_utils.first_or_default`/`last_or_default`
+
+The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `c0b6f47`), `python tools/refresh_scaffold.py --check` in sync. Reused the alias-aware AST exported-but-untested scan; one flagged name from the prior session's audit (`list_utils.first_or_default`/`last_or_default`) was verified as a genuine, hermetic, convention-consistent gap — both are typed, documented, `__all__`-exported helpers with `TypeError` validation, sibling to the tested `safe_get`/`find` family, and had zero references in `tests/test_list_utils.py`.
+
+Completed in this session:
+- Added `TestFirstOrDefault` (6 tests) and `TestLastOrDefault` (6 tests) to `tests/test_list_utils.py` covering basic values, empty-with-default, empty-with-None default, single-element, default-not-used-when-non-empty, and `TypeError` paths for non-list input.
+- Imported `first_or_default` and `last_or_default` into the test module's import block.
+- Updated the `list_utils` module tree entry and prose section of `README.md` to list `first_or_default` and `last_or_default`.
+- Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Verified: `python -m unittest tests.test_list_utils tests.test_public_api` OK (217 tests), `python -m ruff check tests/test_list_utils.py list_utils.py` clean, `python -m mypy tests/test_list_utils.py list_utils.py` clean.
+- Updated `CHANGELOG.md` with the session entry. No `.github/workflows/**` changes.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The `list_utils.first_or_default`/`last_or_default` gap is now closed; do not re-audit it as a no-op.
+- Re-run alias-aware AST exported-but-untested scan only when a new module/gap candidate appears. Remaining flagged names from this scan are mostly stdlib re-exports/thin wrappers/entry points/classes (`abc_utils` ABCMeta/abstract* re-exports, `code_utils.interact`, `curses_utils.termname`, `linecache_utils.lazycache`, `ossaudiodev_utils.is_available`, `profile_utils.main`, `pydoc_utils.*`, `this_utils.print_zen`, `traceback_utils.extract_stack`/`format_exc`/`format_stack`, large `utils.py` surface) — assess carefully for genuinely hermetic, convention-consistent value before changing.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation as appropriate; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-11 00:15Z approx) — bootstrap; closed exported-but-untested gap in `itertools_utils`
 
 The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `e7607f9`), `python tools/refresh_scaffold.py --check` in sync. Ran alias-aware AST exported-but-untested scan across `__all__`-bearing modules; identified real, hermetic gaps in `itertools_utils`: `compress_iterable`, `filter_false_iterable`, `tee_iterables`, `starmap_iterable`, `nth_or_default`, `islice_iterable`, `roundrobin`, `padnone`, and `ncycles` were implemented/exported/documented but had no references in `tests/test_itertools_utils.py`.
