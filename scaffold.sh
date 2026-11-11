@@ -19,7 +19,7 @@
 #   - .gitignore
 #   - LICENSE — MIT license file
 #   - Makefile with common developer targets (test, lint, typecheck, run,
-#     scaffold, clean, help, pre-commit-install, pre-commit-run)
+#     scaffold, refresh-scaffold, verify, clean, help, pre-commit-install, pre-commit-run)
 #   - pyproject.toml for Python project configuration and dependencies
 #   - hello.py — # Sample application entry point
 
@@ -4262,7 +4262,7 @@ PRECOMMIT
 # Makefile for ${PROJECT_NAME}
 # Common developer commands for project management
 
-.PHONY: test lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run
+.PHONY: test lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
@@ -4308,6 +4308,15 @@ refresh-scaffold:
 	@echo "Refreshing the copies embedded in scaffold.sh..."
 	@python tools/refresh_scaffold.py
 
+## Run the bounded state-delta verification pass (foundation checks)
+verify:
+	@echo "Running state-delta verification..."
+	@set -e; \
+		if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then echo "Working tree is dirty; skipping clean-tree assertion."; fi; \
+		python tools/refresh_scaffold.py --check; \
+		if [ -f tools/scan_untested.py ]; then python tools/scan_untested.py; else echo "scan_untested.py absent; skipped"; fi; \
+		python -m unittest tests.test_public_api tests.test_scaffold_sync
+
 ## Install pre-commit hooks into .git/hooks
 pre-commit-install:
 	@echo "Installing pre-commit hooks..."
@@ -4348,7 +4357,8 @@ help:
 	@echo "  typecheck  Run mypy static type checking"
 	@echo "  run        Run hello.py (usage: make run [NAME=YourName])"
 	@echo "  scaffold   Scaffold a new project using scaffold.sh"
-	@echo "  refresh-scaffold  Refresh the copies embedded in scaffold.sh"
+	@echo "  refresh-scaffold  Refresh the copies embedded in scaffold.sh from the repository sources"
+	@echo "  verify            Run the bounded state-delta verification pass"
 	@echo "  clean      Remove build artifacts"
 	@echo "  help       Show this help message"
 	@echo "  pre-commit-install  Install pre-commit hooks into .git/hooks"
