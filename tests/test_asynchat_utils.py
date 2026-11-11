@@ -27,11 +27,11 @@ class TestAsynchatUtils(unittest.TestCase):
         if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
             self.skipTest("asynchat module is available on this interpreter")
         with self.assertRaises(RuntimeError):
-            asynchat_utils.async_chat()
+            asynchat_utils.async_chat()  # type: ignore[abstract]
         with self.assertRaises(RuntimeError):
             asynchat_utils.find_prefix_at_end()
         with self.assertRaises(RuntimeError):
-            asynchat_utils.simple_producer()
+            asynchat_utils.simple_producer()  # type: ignore[call-arg]
 
 
 if __name__ == "__main__":

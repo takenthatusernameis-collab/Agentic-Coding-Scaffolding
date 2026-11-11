@@ -22,12 +22,12 @@ __all__: list[str] = [
 
 if _ASYNCHAT_AVAILABLE:
     async_chat = _asynchat.async_chat
-    find_prefix_at_end = _asynchat.find_prefix_at_end
+    find_prefix_at_end = _asynchat.find_prefix_at_end  # type: ignore[attr-defined]
     simple_producer = _asynchat.simple_producer
     deque = _deque
 else:  # pragma: no cover - exercised only on interpreters that ship the module
 
-    def async_chat(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def async_chat(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""
         raise RuntimeError("asynchat module is not available")
 
@@ -35,8 +35,8 @@ else:  # pragma: no cover - exercised only on interpreters that ship the module
         """Raise RuntimeError because the standard library module is unavailable."""
         raise RuntimeError("asynchat module is not available")
 
-    def simple_producer(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def simple_producer(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""
         raise RuntimeError("asynchat module is not available")
 
-    deque = None  # type: ignore[assignment]
+    deque = None  # type: ignore[misc,assignment]

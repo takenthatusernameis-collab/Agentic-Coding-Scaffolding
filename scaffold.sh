@@ -156898,11 +156898,11 @@ class TestAsynchatUtils(unittest.TestCase):
         if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
             self.skipTest("asynchat module is available on this interpreter")
         with self.assertRaises(RuntimeError):
-            asynchat_utils.async_chat()
+            asynchat_utils.async_chat()  # type: ignore[abstract]
         with self.assertRaises(RuntimeError):
             asynchat_utils.find_prefix_at_end()
         with self.assertRaises(RuntimeError):
-            asynchat_utils.simple_producer()
+            asynchat_utils.simple_producer()  # type: ignore[call-arg]
 
 
 if __name__ == "__main__":
@@ -161632,12 +161632,12 @@ __all__: list[str] = [
 
 if _ASYNCHAT_AVAILABLE:
     async_chat = _asynchat.async_chat
-    find_prefix_at_end = _asynchat.find_prefix_at_end
+    find_prefix_at_end = _asynchat.find_prefix_at_end  # type: ignore[attr-defined]
     simple_producer = _asynchat.simple_producer
     deque = _deque
 else:  # pragma: no cover - exercised only on interpreters that ship the module
 
-    def async_chat(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def async_chat(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""
         raise RuntimeError("asynchat module is not available")
 
@@ -161645,11 +161645,11 @@ else:  # pragma: no cover - exercised only on interpreters that ship the module
         """Raise RuntimeError because the standard library module is unavailable."""
         raise RuntimeError("asynchat module is not available")
 
-    def simple_producer(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def simple_producer(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""
         raise RuntimeError("asynchat module is not available")
 
-    deque = None  # type: ignore[assignment]
+    deque = None  # type: ignore[misc,assignment]
 ASYNCHAT_UTILS
 
 # --- asyncore_utils.py ---
@@ -161698,31 +161698,31 @@ if _ASYNCHORE_AVAILABLE:
     read = _asyncore.read
     write = _asyncore.write
     close_all = _asyncore.close_all
-    select = _asyncore.select
+    select = _asyncore.select  # type: ignore[attr-defined]
     poll2 = getattr(_asyncore, "poll2", None)
     poll3 = getattr(_asyncore, "poll3", None)
     socket_map = _asyncore.socket_map
-    ExitNow = _asyncore.ExitNow
-    errorcode = _asyncore.errorcode
+    ExitNow = _asyncore.ExitNow  # type: ignore[attr-defined]
+    errorcode = _asyncore.errorcode  # type: ignore[attr-defined]
 else:  # pragma: no cover - exercised only on interpreters that ship the module
 
-    def dispatcher(*args, **kwargs):  # type: ignore[no-untyped-def]
+    def dispatcher(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""
         raise RuntimeError("asyncore module is not available")
 
-    dispatcher_with_send = dispatcher
-    file_dispatcher = dispatcher
-    file_wrapper = dispatcher
-    loop = dispatcher
-    poll = dispatcher
-    read = dispatcher
-    write = dispatcher
-    close_all = dispatcher
-    select = dispatcher
-    poll2 = dispatcher
-    poll3 = dispatcher
+    dispatcher_with_send = dispatcher  # type: ignore[misc,assignment]
+    file_dispatcher = dispatcher  # type: ignore[misc,assignment]
+    file_wrapper = dispatcher  # type: ignore[misc,assignment]
+    loop = dispatcher  # type: ignore[assignment]
+    poll = dispatcher  # type: ignore[assignment]
+    read = dispatcher  # type: ignore[assignment]
+    write = dispatcher  # type: ignore[assignment]
+    close_all = dispatcher  # type: ignore[assignment]
+    select = dispatcher  # type: ignore[assignment]
+    poll2 = dispatcher  # type: ignore[assignment]
+    poll3 = dispatcher  # type: ignore[assignment]
     socket_map = {}
-    ExitNow = RuntimeError
+    ExitNow = RuntimeError  # type: ignore[misc,assignment]
     errorcode = {}
 
 
