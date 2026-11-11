@@ -1,5 +1,23 @@
 # Project Status
 
+## Latest Session (2026-11-11 ~03:53Z) — bootstrap; fixed a real failing test breaking `make test` in `test_argcomplete_utils`
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). State-delta check: `git status` clean on branch `main` at `5fbfd6e`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran the full suite (`python -m pytest tests/ -q`) as a coherent-milestone baseline and found a real regression: `tests/test_argcomplete_utils.py::TestGetFilesCompleter::test_get_files_completer_returns_completer` failed with "Expected 'FilesCompleter' to be called once. Called 0 times."
+
+Root cause: the test patched `argcomplete.completers.FilesCompleter` (the stdlib attribute path), but `argcomplete_utils.get_files_completer` delegates to the module-level `FilesCompleter` name that `argcomplete_utils` imported into its own namespace at `argcomplete_utils.py:19`. The sibling `TestGetCompleter.test_get_completer_returns_completer` was already correct (it patches `argcomplete_utils.ChoicesCompleter`); this test was simply out of step with the module's binding convention.
+
+Completed in this session:
+- Changed the patch target in `tests/test_argcomplete_utils.py` from `argcomplete.completers.FilesCompleter` to `argcomplete_utils.FilesCompleter`. No implementation, `__all__`, or public API changes — the test was wrong, not the code.
+- Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- Verified: full suite `python -m pytest tests/ -q` — 10633 passed, 3 skipped, 0 failed (up from 1 failed / 10632 passed); `python -m ruff check tests/test_argcomplete_utils.py argcomplete_utils.py` clean; `python -m mypy tests/test_argcomplete_utils.py argcomplete_utils.py` clean; `python -m doctest argcomplete_utils.py` clean.
+- Updated `CHANGELOG.md` with the session entry. No `.github/workflows/**` changes. No duplicate board task or no-op commit.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, full suite green). The `test_argcomplete_utils` failure is now closed; do not re-audit it as a no-op.
+- The alias-aware exported-but-untested scan now reports zero untested exported aliases and only 17 remaining candidates, all stdlib re-exports, private helpers (`_ensure_iterable`), entry points (`main`), or interactive stdlib facades (`pydoc_utils.*`, `code_utils.interact`, `this_utils.print_zen`, `traceback_utils.*`) — none are genuine hermetic, convention-consistent gaps. Do not re-run the full scan as a no-op; only re-scan when a new module/gap candidate appears.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover here.
+
 ## Latest Session (2026-11-11 ~03:00Z) — bootstrap; fixed a real test error breaking `make test` in `test_bytes_utils`
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). State-delta check: `git status` clean on branch `main` at `1bb22a0`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted baseline: `python -m pytest tests/test_bytes_utils.py` errored on `tests/test_bytes_utils.py::test_type_errors` with "fixture 'self' not found".

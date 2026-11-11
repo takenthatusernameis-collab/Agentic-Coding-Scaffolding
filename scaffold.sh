@@ -161021,7 +161021,7 @@ class TestGetFilesCompleter:
         with pytest.raises(ImportError, match="argcomplete is not installed"):
             argcomplete_utils.get_files_completer()
 
-    @patch("argcomplete.completers.FilesCompleter")
+    @patch("argcomplete_utils.FilesCompleter")
     def test_get_files_completer_returns_completer(self, mock_files_completer):
         """get_files_completer should return a FilesCompleter instance."""
         if not argcomplete_utils.is_available():
