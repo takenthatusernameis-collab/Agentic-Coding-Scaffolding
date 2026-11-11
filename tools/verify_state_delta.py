@@ -38,23 +38,29 @@ SOURCE_GLOBS = (
 )
 
 
-def run(cmd: list[str]) -> subprocess.CompletedProcess:
+def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, check=False)
 
 
 def working_tree_clean() -> bool:
-    return run(["git", "status", "--porcelain"]).stdout.strip() == ""
+    result = run(["git", "status", "--porcelain"])
+    assert isinstance(result.stdout, str)
+    return result.stdout.strip() == ""
 
 
 def head() -> str:
-    return run(["git", "rev-parse", "HEAD"]).stdout.strip()
+    result = run(["git", "rev-parse", "HEAD"])
+    assert isinstance(result.stdout, str)
+    return result.stdout.strip()
 
 
 def read_marker() -> dict | None:
     if not MARKER.is_file():
         return None
     try:
-        return json.loads(MARKER.read_text())
+        data = json.loads(MARKER.read_text())
+        assert isinstance(data, dict)
+        return data
     except (ValueError, OSError):
         return None
 
