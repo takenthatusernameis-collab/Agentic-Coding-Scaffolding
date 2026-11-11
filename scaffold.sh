@@ -69365,6 +69365,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — bootstrap verification; foundation confirmed solid, no genuine gap
+
+- Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. prior verified checkpoint `4b6895e`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged.
+- Ran the full suite as a coherent-milestone baseline: `python -m pytest tests/ -q` — 10663 passed, 3 skipped, 0 failed.
+- Re-ran the alias-aware exported-but-untested scan (`python tools/scan_untested.py`): still only 10 candidates, all stdlib re-exports or thin pass-through wrappers (`abc_utils`: ABCMeta/abstractclassmethod/abstractproperty/abstractstaticmethod; `copyreg_utils`: add_extension/clear_extension_cache/constructor/dispatch_table/pickle/remove_extension) with no type hints/docstrings/validation — none are genuine, hermetic, convention-consistent helpers. No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — added test coverage for `traceback_utils.format_stack`
 
 - Re-ran the alias-aware exported-but-untested scan (now a persistent tool at `tools/scan_untested.py`, which filters type vars, constants, classes, entry points, and interactive stdlib facades so only genuine gaps are reported). One genuine, hermetic, convention-consistent gap surfaced in `traceback_utils`: `format_stack` was a typed, documented, `__all__`-exported wrapper with zero dedicated coverage in `tests/test_traceback_utils.py` — and was inconsistent with its siblings, lacking the `TypeError` validation for non-int/bool `limit` that `extract_stack`, `print_stack`, `format_tb`, `format_exc`, and `extract_tb` all have.
