@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-11 ~08:44Z) — bootstrap verification; foundation confirmed solid, all gaps closed
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover remains in this file). State-delta check vs. prior verified checkpoint `087f4df`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK (3/3). Re-ran the alias-aware exported-but-untested scan (`python tools/scan_untested.py`): **zero** candidates — the audit is complete across all wrapper modules.
+
+Completed in this session:
+- Verified repo health via state-delta checks (clean tree, refresh-scaffold in sync, want/have unchanged, public API tests green, full suite 10425 tests passed, ruff/mypy clean).
+- Confirmed the exported-but-untested gap audit is complete: `scan_untested.py` reports no exported-but-untested callables.
+- No code/API/test changes made; this entry records verified state and avoids a duplicate/no-op code commit per delay-bottleneck guidance.
+- No `.github/workflows/**` changes. No duplicate board task (post refused — session is board root).
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, full suite green at a coherent milestone). The exported-but-untested audit is complete; do not re-run it as a no-op unless a new module is added.
+- Run the **optimize-delays** pass (`.kilo/command/optimize-delays.md`) to identify and remove the highest-leverage avoidable delay bottleneck in the CI loop (runs every 5 min, 360-min timeout, ~57s test suite) or development workflow (`make test`/`make lint`/`make typecheck`).
+- Steps: establish state delta, classify any waits (AVOIDABLE_PROCESS_DELAY, EXTERNAL_CONSTRAINT, INTEGRITY_OR_SAFETY_GATE, UNKNOWN_DELAY), implement one small durable change with bounded verification, preserve all safety/integrity gates.
+- If a real bottleneck is found: apply targeted fix (state-delta guard, event-driven wake-up, bounded timeout, task sharding/checkpoint, deduplicated handover, deterministic batching, caching). Run targeted verification first; full suite at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-11 ~07:50Z) — closed exported-but-untested gap in `abc_utils` by routing its tests through the wrapper
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover remains in this file). State-delta check vs. prior verified checkpoint `7db39e4`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK. Re-ran the alias-aware exported-but-untested scan (`python tools/scan_untested.py`): 4 candidates remained, all in `abc_utils` — `ABCMeta`, `abstractclassmethod`, `abstractproperty`, `abstractstaticmethod`. Unlike the `copyreg_utils` pass-throughs, these are real, hermetic, convention-consistent helpers: each is a typed, `__all__`-exported wrapper around a stdlib ABC decorator, exercised by the existing `TestAbcUtils` class through `abc_utils.*` but never individually asserted — the existing tests only checked that the decorator *marks* a method abstract, never that the wrapper binding itself is correct or that the decorated class behaves as expected.

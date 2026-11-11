@@ -1,3 +1,11 @@
+## Unreleased — bootstrap verification; foundation confirmed solid, all gaps closed
+
+- Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. prior verified checkpoint `087f4df`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK (3/3).
+- Re-ran the alias-aware exported-but-untested scan (`python tools/scan_untested.py`): **zero** candidates — the audit is complete across all wrapper modules.
+- Verified full suite: `python -m pytest tests/ -q` — 10425 passed, 3 skipped, 0 failed. `python -m ruff check .` clean. `python -m mypy .` clean (558 source files).
+- No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — closed exported-but-untested gap in `abc_utils` by routing its tests through the wrapper
 
 - State-delta check vs. prior verified checkpoint `7db39e4`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt` unchanged, `python -m unittest tests.test_public_api` OK.
