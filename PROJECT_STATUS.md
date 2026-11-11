@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-11 ~23:45Z) — state-delta guard advanced checkpoint; foundation solid
+
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta vs checkpoint `e656dab`: `git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` all embedded copies in sync, `python tools/scan_untested.py` no exported-but-untested callables, `python -m unittest tests.test_public_api` green (3/3). `python tools/verify_state_delta.py` detected `tools/verify_state_delta.py` changed since the checkpoint, ran the battery, and advanced `.kilo/last_verified.checkpoint` to `97b8a41`. Foundation solid, no genuine gap identified; no source/API/test changes beyond the checkpoint advance.
+
+**Completed in this session:**
+- Verified repo health via state-delta checks (clean tree, scaffold in sync, scanner clean, public API green, ruff/mypy clean).
+- `python tools/verify_state_delta.py` ran the battery and advanced the checkpoint to `97b8a41`, closing the state delta left by the prior checkpoint commit.
+- `board_post` to `main` refused (session is board root); durable handover recorded here.
+- No `.github/workflows/**` changes. No duplicate board task or timestamp-only handoff.
+
+**Next Agent Task**
+
+Execute the optimize-delays pass (`.kilo/command/optimize-delays.md`) to identify and remove the highest-leverage avoidable delay bottleneck in the repository. Current state is clean: git status clean, scaffold copies in sync, zero untested exports, all tests pass, ruff/mypy clean. Follow the 6-step process: establish state delta, classify waits, improve execution prompt, remove one high-leverage delay, verify guarantees, and post a specific next task if a real next step exists. Do not modify `.github/workflows/**` files.
+
+Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `PROJECT_STATUS.md`.
+
 ## Latest Session (2026-11-11 ~22:39Z) — bootstrap verification; foundation solid, no task, no genuine gap, no changes
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta check vs. current HEAD `676c4b7`: `git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `python tools/scan_untested.py` reports no exported-but-untested callables, `python -m unittest tests.test_public_api` OK (3/3), `python -m ruff check .` clean, `python -m mypy . --exclude build --exclude dist` success (no issues in 562 source files). Foundation solid, no genuine gap identified; no source/API/test changes made to avoid a no-op commit per delay-bottleneck guidance.
