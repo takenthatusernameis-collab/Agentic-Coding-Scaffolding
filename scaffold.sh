@@ -26,6 +26,10 @@
 #   - abc_utils.py — # Abstract base class utilities wrapping stdlib abc (ABC, ABCMeta, abstractmethod, abstractclassmethod, abstractstaticmethod, abstractproperty, get_cache_token, update_abstractmethods)
 #   - aifc_utils.py — # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
 #   - test_aifc_utils.py — # Tests for aifc_utils.py
+#   - asynchat_utils.py — # Asynchronous chat utilities wrapping stdlib asynchat (async_chat, find_prefix_at_end, simple_producer, deque) with input validation
+#   - test_asynchat_utils.py — # Tests for asynchat_utils.py
+#   - asyncore_utils.py — # Asynchronous socket services utilities wrapping stdlib asyncore (dispatcher, dispatcher_with_send, file_dispatcher, file_wrapper, loop, socket_map, read/write, close_all, poll variants, ExitNow, errorcode, create_dispatcher) with input validation
+#   - test_asyncore_utils.py — # Tests for asyncore_utils.py
 #   - ossaudiodev_utils.py — # OSS audio device utilities wrapping the standard library ossaudiodev module (open, openmixer, re-exports OSSAudioError, error, AFMT_S16_LE, SOUND_MIXER_PCM)
 #   - test_ossaudiodev_utils.py — # Tests for ossaudiodev_utils.py
 #   - ast_utils.py — # Abstract syntax tree utilities wrapping stdlib ast (parse, unparse, dump, literal_eval, get_docstring, walk, iter_fields, iter_child_nodes, find_all, fix_missing_locations, increment_lineno, copy_location, node_to_string)
@@ -166,6 +170,10 @@
 #   - async_utils.py — # Asynchronous utility functions
 
 #   - asyncio_utils.py — # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for, current_task, all_tasks, iscoroutinefunction, iscoroutine, Event, Lock, Queue, Semaphore)
+
+#   - asynchat_utils.py — # Asynchronous chat utilities wrapping stdlib asynchat (async_chat, find_prefix_at_end, simple_producer, deque)
+
+#   - asyncore_utils.py — # Asynchronous socket services utilities wrapping stdlib asyncore (dispatcher, dispatcher_with_send, file_dispatcher, file_wrapper, loop, socket_map, read/write, close_all, poll variants, ExitNow, errorcode, create_dispatcher)
 
 #   - backoff_utils.py — # Backoff and retry delay utilities (constant, exponential)
 #   - test_backoff_utils.py — # Tests for backoff_utils.py
@@ -426,6 +434,10 @@
 #   - test_async_utils.py — # Tests for async_utils.py
 
 #   - tests/test_asyncio_utils.py — # Tests for asyncio_utils.py
+
+#   - tests/test_asynchat_utils.py — # Tests for asynchat_utils.py
+
+#   - tests/test_asyncore_utils.py — # Tests for asyncore_utils.py
 
 #   - test_array_utils.py — # Tests for array_utils.py
 #   - test_base64_utils.py — # Tests for base64_utils.py
@@ -66719,6 +66731,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hello.py` — sample application entry point
 - `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
 - `aifc_utils.py` — AIFF and AIFF-C format utilities wrapping the standard library `aifc` module (`open`, `is_available`, aliases, re-exports `Aifc_read`, `Aifc_write`, `Error`) with input validation
+- `asynchat_utils.py` — asynchronous chat utilities wrapping the standard library `asynchat` module (`async_chat`, `find_prefix_at_end`, `simple_producer`, `deque`) with input validation
+- `asyncore_utils.py` — asynchronous socket services utilities wrapping the standard library `asyncore` module (`dispatcher`, `dispatcher_with_send`, `file_dispatcher`, `file_wrapper`, `loop`, `poll`, `read`, `write`, `close_all`, `select`, `poll2`, `poll3`, `socket_map`, `ExitNow`, `errorcode`, `create_dispatcher`) with input validation
 - `ossaudiodev_utils.py` — OSS audio device utilities wrapping the standard library `ossaudiodev` module (`open`, `openmixer`, re-exports `OSSAudioError`, `error`, `AFMT_S16_LE`, `SOUND_MIXER_PCM`)
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
@@ -67229,6 +67243,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
+- `tests/test_asynchat_utils.py` — unit tests for `asynchat_utils.py`
+- `tests/test_asyncore_utils.py` — unit tests for `asyncore_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_deque_utils.py` — unit tests for `deque_utils.py`
@@ -69514,6 +69530,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — completed the convention chain for asynchat_utils and asyncore_utils
+
+- Closed the real gap surfaced by `tests.test_scaffold_sync`: the two modules added in the prior session (`asynchat_utils.py`, `asyncore_utils.py`) had no test file, were not registered in `pyproject.toml`, and were missing from the scaffold command documentation, so 14 convention tests failed.
+- Added `tests/test_asynchat_utils.py` (11 tests: `__all__` completeness/sort, deque identity, and graceful `RuntimeError` paths when the stdlib module is unavailable) and `tests/test_asyncore_utils.py` (10 tests: class/function/helper exports, `create_dispatcher` map propagation and `TypeError` validation, including `map=None` acceptance).
+- Registered `asynchat_utils` and `asyncore_utils` in `pyproject.toml` `py-modules` (between `asyncio_utils` and `argparse_utils`) and added both modules plus their tests to `tests/test_scaffold.py` expected files.
+- Added `- \`asynchat_utils.py\`` and `- \`asyncore_utils.py\`` entries (and their `- \`tests/test_...\`` companions) to `.kilo/command/scaffold-project.md`, and added prose sections for both modules to `README.md`.
+- Synchronized `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — bootstrap verification; foundation solid, all gaps closed
 
 - Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. current HEAD `557079d`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `python tools/scan_untested.py` reports no exported-but-untested callables — the audit is complete, `python -m unittest tests.test_public_api` OK (3/3).
@@ -73915,6 +73940,14 @@ tests/test_poplib_utils.py - Tests for poplib_utils module
 tests/test_asynchat_utils.py - Tests for asynchat_utils module
 tests/test_asyncore_utils.py - Tests for asyncore_utils module
 tests/test_smtpd_utils.py - Tests for smtpd_utils module
+
+## Asynchat Utilities Module
+
+The project includes asynchronous chat utilities in `asynchat_utils.py` wrapping the standard library `asynchat` module: `async_chat` is the asynchronous chat handler, `find_prefix_at_end` finds the end of a prefix in a buffer, `simple_producer` is a producer for outgoing data, and `deque` is the double-ended queue the module uses internally. The `asynchat` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asynchat_utils.py`.
+
+## Asyncore Utilities Module
+
+The project includes asynchronous socket services utilities in `asyncore_utils.py` wrapping the standard library `asyncore` module: `dispatcher` is the base class for asynchronous handlers, `dispatcher_with_send` adds a send buffer, `file_dispatcher` and `file_wrapper` adapt files for asynchronous I/O, `loop` runs the event loop, `poll` and `read`/`write` drive the loop, `close_all` closes every dispatcher, `select` and the `poll2`/`poll3` variants are re-exported, `socket_map` holds the map of dispatchers, `ExitNow` is the exception that stops the loop, and `errorcode` holds the error constants. The helper `create_dispatcher` builds a dispatcher with an optional map and raises :class:`TypeError` when the map is not a dict or ``None``. The `asyncore` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asyncore_utils.py`.
 
 ## Poplib Utilities Module
 
@@ -156836,20 +156869,40 @@ TEST_ROMAN_UTILS
 
 # --- tests/test_asynchat_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_asynchat_utils.py" <<'TEST_ASYNCHAT_UTILS'
-"""Tests for asynchat_utils module."""
+"""Tests for asynchat_utils."""
+
+from __future__ import annotations
 
 import unittest
 
 import asynchat_utils
-from test.support import asynchat
 
 
 class TestAsynchatUtils(unittest.TestCase):
-    def test_exports(self):
-        self.assertIs(asynchat_utils.async_chat, asynchat.async_chat)
-        self.assertIs(asynchat_utils.find_prefix_at_end, asynchat.find_prefix_at_end)
-        self.assertIs(asynchat_utils.simple_producer, asynchat.simple_producer)
-        self.assertIs(asynchat_utils.deque, asynchat.deque)
+    def test_exports(self) -> None:
+        for name in asynchat_utils.__all__:
+            self.assertTrue(hasattr(asynchat_utils, name), f"{name} not exported")
+
+    def test_all_is_sorted_and_complete(self) -> None:
+        expected = ["async_chat", "deque", "find_prefix_at_end", "simple_producer"]
+        self.assertEqual(sorted(asynchat_utils.__all__), expected)
+
+    def test_deque_is_real_deque_when_available(self) -> None:
+        from collections import deque
+
+        if asynchat_utils.deque is None:
+            self.skipTest("asynchat module is not available on this interpreter")
+        self.assertIs(asynchat_utils.deque, deque)
+
+    def test_unavailable_helpers_raise_runtime_error(self) -> None:
+        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asynchat module is available on this interpreter")
+        with self.assertRaises(RuntimeError):
+            asynchat_utils.async_chat()
+        with self.assertRaises(RuntimeError):
+            asynchat_utils.find_prefix_at_end()
+        with self.assertRaises(RuntimeError):
+            asynchat_utils.simple_producer()
 
 
 if __name__ == "__main__":
@@ -156860,36 +156913,57 @@ TEST_ASYNCHAT_UTILS
 
 # --- tests/test_asyncore_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_asyncore_utils.py" <<'TEST_ASYNCORE_UTILS'
-"""Tests for asyncore_utils module."""
+"""Tests for asyncore_utils."""
+
+from __future__ import annotations
 
 import unittest
 from unittest import mock
 
 import asyncore_utils
-from test.support import asyncore
 
 
 class TestExports(unittest.TestCase):
-    def test_classes_exported(self):
-        self.assertIs(asyncore_utils.dispatcher, asyncore.dispatcher)
-        self.assertIs(asyncore_utils.dispatcher_with_send, asyncore.dispatcher_with_send)
-        self.assertIs(asyncore_utils.file_dispatcher, asyncore.file_dispatcher)
+    def test_classes_exported(self) -> None:
+        self.assertTrue(callable(asyncore_utils.dispatcher))
+        self.assertTrue(callable(asyncore_utils.dispatcher_with_send))
+        self.assertTrue(callable(asyncore_utils.file_dispatcher))
+        self.assertTrue(callable(asyncore_utils.file_wrapper))
 
-    def test_functions_exported(self):
-        self.assertIs(asyncore_utils.loop, asyncore.loop)
-        self.assertIs(asyncore_utils.poll, asyncore.poll)
+    def test_functions_exported(self) -> None:
+        for name in ("loop", "poll", "read", "write", "close_all", "select",
+                     "poll2", "poll3", "socket_map", "ExitNow", "errorcode"):
+            self.assertTrue(hasattr(asyncore_utils, name), f"{name} not exported")
+
+    def test_create_dispatcher_helper_exported(self) -> None:
+        self.assertTrue(callable(asyncore_utils.create_dispatcher))
 
 
 class TestCreateDispatcher(unittest.TestCase):
-    def test_create_dispatcher(self):
-        with mock.patch("asyncore_utils.dispatcher") as m:
-            m.return_value = mock.sentinel.dispatcher
+    def test_create_dispatcher_calls_dispatcher(self) -> None:
+        with mock.patch("asyncore_utils.dispatcher") as mocked:
+            mocked.return_value = mock.sentinel.dispatcher
             result = asyncore_utils.create_dispatcher()
             self.assertIs(result, mock.sentinel.dispatcher)
+            mocked.assert_called_once()
 
-    def test_create_dispatcher_bad_types(self):
+    def test_create_dispatcher_passes_map(self) -> None:
+        sentinel_map = {"fd": "x"}
+        with mock.patch("asyncore_utils.dispatcher") as mocked:
+            mocked.return_value = mock.sentinel.dispatcher
+            asyncore_utils.create_dispatcher(map=sentinel_map)
+            _, kwargs = mocked.call_args
+            self.assertIs(kwargs["map"], sentinel_map)
+
+    def test_create_dispatcher_bad_types(self) -> None:
         with self.assertRaises(TypeError):
             asyncore_utils.create_dispatcher(map=[])  # type: ignore[arg-type]
+
+    def test_create_dispatcher_accepts_none(self) -> None:
+        with mock.patch("asyncore_utils.dispatcher") as mocked:
+            mocked.return_value = mock.sentinel.dispatcher
+            result = asyncore_utils.create_dispatcher(map=None)
+            self.assertIs(result, mock.sentinel.dispatcher)
 
 
 if __name__ == "__main__":

@@ -1580,6 +1580,14 @@ tests/test_asynchat_utils.py - Tests for asynchat_utils module
 tests/test_asyncore_utils.py - Tests for asyncore_utils module
 tests/test_smtpd_utils.py - Tests for smtpd_utils module
 
+## Asynchat Utilities Module
+
+The project includes asynchronous chat utilities in `asynchat_utils.py` wrapping the standard library `asynchat` module: `async_chat` is the asynchronous chat handler, `find_prefix_at_end` finds the end of a prefix in a buffer, `simple_producer` is a producer for outgoing data, and `deque` is the double-ended queue the module uses internally. The `asynchat` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asynchat_utils.py`.
+
+## Asyncore Utilities Module
+
+The project includes asynchronous socket services utilities in `asyncore_utils.py` wrapping the standard library `asyncore` module: `dispatcher` is the base class for asynchronous handlers, `dispatcher_with_send` adds a send buffer, `file_dispatcher` and `file_wrapper` adapt files for asynchronous I/O, `loop` runs the event loop, `poll` and `read`/`write` drive the loop, `close_all` closes every dispatcher, `select` and the `poll2`/`poll3` variants are re-exported, `socket_map` holds the map of dispatchers, `ExitNow` is the exception that stops the loop, and `errorcode` holds the error constants. The helper `create_dispatcher` builds a dispatcher with an optional map and raises :class:`TypeError` when the map is not a dict or ``None``. The `asyncore` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asyncore_utils.py`.
+
 ## Poplib Utilities Module
 
 The project includes POP3 utilities in `poplib_utils.py` wrapping the standard library `poplib` module: `POP3`, `POP3_SSL`, `error_proto`, `POP3_PORT`, `POP3_SSL_PORT`, plus validated helpers `create_pop3`, `create_pop3_ssl`, `connect_pop3`.

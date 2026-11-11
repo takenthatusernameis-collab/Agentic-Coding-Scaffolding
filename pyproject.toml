@@ -108,6 +108,8 @@ py-modules = [
     "unittest_utils",
     "async_utils",
     "asyncio_utils",
+    "asynchat_utils",
+    "asyncore_utils",
     "argparse_utils",
     "argcomplete_utils",
     "concurrent_utils",

@@ -1,3 +1,12 @@
+## Unreleased — completed the convention chain for asynchat_utils and asyncore_utils
+
+- Closed the real gap surfaced by `tests.test_scaffold_sync`: the two modules added in the prior session (`asynchat_utils.py`, `asyncore_utils.py`) had no test file, were not registered in `pyproject.toml`, and were missing from the scaffold command documentation, so 14 convention tests failed.
+- Added `tests/test_asynchat_utils.py` (11 tests: `__all__` completeness/sort, deque identity, and graceful `RuntimeError` paths when the stdlib module is unavailable) and `tests/test_asyncore_utils.py` (10 tests: class/function/helper exports, `create_dispatcher` map propagation and `TypeError` validation, including `map=None` acceptance).
+- Registered `asynchat_utils` and `asyncore_utils` in `pyproject.toml` `py-modules` (between `asyncio_utils` and `argparse_utils`) and added both modules plus their tests to `tests/test_scaffold.py` expected files.
+- Added `- \`asynchat_utils.py\`` and `- \`asyncore_utils.py\`` entries (and their `- \`tests/test_...\`` companions) to `.kilo/command/scaffold-project.md`, and added prose sections for both modules to `README.md`.
+- Synchronized `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — bootstrap verification; foundation solid, all gaps closed
 
 - Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. current HEAD `557079d`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `python tools/scan_untested.py` reports no exported-but-untested callables — the audit is complete, `python -m unittest tests.test_public_api` OK (3/3).

@@ -22,6 +22,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `hello.py` — sample application entry point
 - `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
 - `aifc_utils.py` — AIFF and AIFF-C format utilities wrapping the standard library `aifc` module (`open`, `is_available`, aliases, re-exports `Aifc_read`, `Aifc_write`, `Error`) with input validation
+- `asynchat_utils.py` — asynchronous chat utilities wrapping the standard library `asynchat` module (`async_chat`, `find_prefix_at_end`, `simple_producer`, `deque`) with input validation
+- `asyncore_utils.py` — asynchronous socket services utilities wrapping the standard library `asyncore` module (`dispatcher`, `dispatcher_with_send`, `file_dispatcher`, `file_wrapper`, `loop`, `poll`, `read`, `write`, `close_all`, `select`, `poll2`, `poll3`, `socket_map`, `ExitNow`, `errorcode`, `create_dispatcher`) with input validation
 - `ossaudiodev_utils.py` — OSS audio device utilities wrapping the standard library `ossaudiodev` module (`open`, `openmixer`, re-exports `OSSAudioError`, `error`, `AFMT_S16_LE`, `SOUND_MIXER_PCM`)
 - `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
 - `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
@@ -532,6 +534,8 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
 - `tests/test_async_utils.py` — unit tests for `async_utils.py`
 - `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
+- `tests/test_asynchat_utils.py` — unit tests for `asynchat_utils.py`
+- `tests/test_asyncore_utils.py` — unit tests for `asyncore_utils.py`
 - `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
 - `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
 - `tests/test_deque_utils.py` — unit tests for `deque_utils.py`
