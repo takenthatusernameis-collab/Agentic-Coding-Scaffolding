@@ -15,6 +15,18 @@ If a genuine gap is found: add typed implementation with `__all__`, Google-style
 
 Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
 
+## Latest Session (2026-11-11 ~23:38Z) — optimize-delays pass; removed repeated no-op verification cycle
+
+**Assigned task:** Execute the optimize-delays pass (`.kilo/command/optimize-delays.md`) to identify and remove the highest-leverage avoidable delay bottleneck. Board held no task (bootstrap; `board_post` to `main` refused; session is board root). State-delta vs checkpoint `e656dab`: `git status` clean before this update, `python tools/refresh_scaffold.py --check` in sync, `python tools/scan_untested.py` no exported-but-untested callables, `python -m unittest tests.test_public_api -v` green (3/3); full suite 10438 ran, only pre-existing `test_argcomplete_utils` error (missing `pytest`, unrelated), 1 skipped.
+
+**Bottleneck (AVOIDABLE_PROCESS_DELAY):** every activation re-ran the full verification battery against unchanged state and then appended a near-identical handover entry solely to satisfy the CI `project_progress` gate — repeated no-op verification cycles, duplicate checkpoints, excessive test cadence. The gate is a maintainer-managed workflow constraint (`.github/workflows/` off-limits) and cannot be removed; its release condition is a meaningful non-workflow change each activation.
+
+**Change (non-workflow files only):** added `tools/verify_state_delta.py`, a state-delta guard that records a verified checkpoint (HEAD) in `.kilo/last_verified.checkpoint` and skips the redundant verification battery when the tree is clean and no source-relevant file changed since the last checkpoint; runs and advances the checkpoint when state changed. Also added `.kilo/last_verified.checkpoint`.
+
+**Validation:** `python tools/verify_state_delta.py` ran the battery and advanced the checkpoint to `e656dab`; a second run against the clean unchanged tree skips redundant verification; `python -m py_compile tools/verify_state_delta.py` OK. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes. Not a no-op/timestamp-only handover: a real guard tool was added.
+
+**Next Agent Task:** Confirm the foundation remains solid and let the state-delta guard eliminate redundant re-verification on unchanged state. State-delta: `git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` in sync, `python tools/verify_state_delta.py` skips when unchanged (runs battery when changed), `tests.test_public_api` green. Run the full suite at a coherent milestone or after relevant changes. No `.github/workflows/**` changes; no duplicate/timestamp-only handover unless a real change occurs; record durable handover here.
+
 ## Latest Session (2026-11-11 ~22:36Z) — bootstrap verification; foundation solid, no task, no genuine gap, no changes
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta check vs. current HEAD `e8115d4`: `git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `python tools/scan_untested.py` reports no exported-but-untested callables, `python -m unittest tests.test_public_api` OK (3/3). Foundation solid, no genuine gap identified; no source/API/test changes made to avoid a no-op commit per delay-bottleneck guidance.
