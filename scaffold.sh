@@ -69550,6 +69550,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — bootstrap verification; foundation solid, all gaps closed
+
+- Bootstrap session: board held no task (`board_read` empty; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. prior verified checkpoint `e778b59`: `git status` clean on branch `main`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `want.txt == have.txt`, `python -m unittest tests.test_public_api` OK (3/3), `python tools/scan_untested.py` reports no exported-but-untested callables — the audit is complete.
+- Verified: `python -m ruff check .` clean, `python -m mypy .` clean (558 source files).
+- No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — optimize-delays pass: state-delta guard on `make test`
 
 - Executed the optimize-delays pass (`.kilo/command/optimize-delays.md`): established state delta (clean tree, refresh-scaffold in sync, scan_untested reports zero candidates), classified the CI cron polling bottleneck (`*/5 * * * *` every 5 minutes with empty board) as AVOIDABLE_PROCESS_DELAY. The workflow cron is maintainer-managed and cannot be modified; `board_post` to `main` is refused (session is board root).
