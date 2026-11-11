@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-11 00:15Z approx) — bootstrap; closed exported-but-untested gap in `itertools_utils`
+
+The board held no task (`board_read` empty; bootstrap session). State-delta check: `git status` clean at start on branch `main` (HEAD `e7607f9`), `python tools/refresh_scaffold.py --check` in sync. Ran alias-aware AST exported-but-untested scan across `__all__`-bearing modules; identified real, hermetic gaps in `itertools_utils`: `compress_iterable`, `filter_false_iterable`, `tee_iterables`, `starmap_iterable`, `nth_or_default`, `islice_iterable`, `roundrobin`, `padnone`, and `ncycles` were implemented/exported/documented but had no references in `tests/test_itertools_utils.py`.
+
+Completed in this session:
+- Added targeted coverage in `tests/test_itertools_utils.py`: `TestCompressIterable`, `TestFilterFalseIterable`, `TestTeeIterables`, `TestStarmapIterable`, `TestNthOrDefault`, `TestIsliceIterable`, `TestRoundrobin`, `TestPadnone`, and `TestNcycles` (basic behavior, edge cases, generator inputs, and TypeError/ValueError validation matching each function's contract; `padnone` kept lazy/no-input-validation per implementation).
+- Updated test imports to include the newly covered exports.
+- Verified: `python -m unittest tests.test_itertools_utils tests.test_public_api` OK (295 tests), `python -m doctest itertools_utils.py` clean, `python -m ruff check tests/test_itertools_utils.py itertools_utils.py` clean, `python -m mypy tests/test_itertools_utils.py itertools_utils.py` clean.
+- Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No `.github/workflows/**` changes. Work committed for CI checkpoint.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). Do not re-audit the closed `itertools_utils` gaps as no-ops.
+- Re-run alias-aware AST exported-but-untested scan only when a new module/gap candidate appears. Remaining flagged names from this scan are mostly stdlib re-exports/thin wrappers/entry points/classes (`abc_utils` ABCMeta/abstract* re-exports, `code_utils.interact`, `curses_utils.termname`, `linecache_utils.lazycache`, `list_utils.first_or_default`/`last_or_default`, `ossaudiodev_utils.is_available`, `profile_utils.main`, `pydoc_utils.*`, `this_utils.print_zen`, `traceback_utils.extract_stack`/`format_exc`/`format_stack`, large `utils.py` surface) — assess carefully for genuinely hermetic, convention-consistent value before changing.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation as appropriate; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-10 22:02Z) — bootstrap; found and closed a real gap: `posixpath_utils.is_rooted` and the `getatime`/`getctime`/`getmtime`/`getsize` stat helpers were untested
 
 The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). Verified repository health before starting: `git status` clean on branch `main` at `c3dbfbf`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Ran an alias-aware AST exported-but-untested scan across all `__all__`-bearing modules (parse each module's `__all__`, check whether each name is referenced in `tests/test_<module>.py`, filtering out type vars/constants/stdlib re-exports/thin pass-through wrappers). Surfaced genuine functional gaps in `posixpath_utils`: `is_rooted` (a pure, hermetic boolean predicate exported in `__all__`, typed, documented, sibling to the tested `isabs`, but with zero dedicated coverage) and the `getatime`/`getctime`/`getmtime`/`getsize` stat family (all exported, typed, documented, previously untested; hermetic with `tempfile`).
