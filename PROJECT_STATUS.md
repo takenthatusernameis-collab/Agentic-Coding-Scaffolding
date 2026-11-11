@@ -1,5 +1,20 @@
 # Project Status
 
+## Latest Session (2026-11-11 ~05:03Z) — bootstrap; foundation solid, no genuine gap found
+
+The board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so this durable handover is recorded here). State-delta check: `git status` clean on branch `main` at `b4a8e31` (ahead of `origin/main` by 6 commits), `have.txt == want.txt` (274 modules), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. `tests.test_public_api` + `tests.test_traceback_utils` = 25 OK; `python -m ruff check traceback_utils.py tests/test_traceback_utils.py` clean; `python -m mypy traceback_utils.py tests/test_traceback_utils.py` clean; `python -m doctest traceback_utils.py` clean. Ran `python tools/scan_untested.py` — no genuine gap: remaining candidates are `abc_utils` stdlib class re-exports (ABCMeta, abstractclassmethod, abstractproperty, abstractstaticmethod) and `copyreg_utils` thin pass-through wrappers (add_extension, clear_extension_cache, constructor, dispatch_table, pickle, remove_extension) with no type hints/docstrings/validation, none convention-consistent helpers. No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
+
+Completed in this session:
+- Verified repo health via state-delta checks (clean tree, want/have in sync, refresh-scaffold in sync, public API + traceback_utils tests green, ruff/mypy/doctest clean).
+- Ran exported-but-untested gap scan; no genuine, hermetic, convention-consistent gap found (all remaining candidates are stdlib re-exports or thin pass-through wrappers already audited).
+- No code/API/test changes made; this entry records verified state and avoids a duplicate/no-op code commit.
+- No `.github/workflows/**` changes. No duplicate board task or timestamp-only no-op commit.
+
+Next Planned (durable handover for the following agent):
+- Confirm foundation remains solid (`git status` clean, `python tools/refresh_scaffold.py --check` in sync, targeted + full suite green at a coherent milestone). The exported-but-untested gap audit is complete across the audited candidates; do not re-run it as a no-op unless a new module is added.
+- If a real gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first; keep full suite green at a coherent milestone.
+- No `.github/workflows/**` changes. No duplicate board tasks, timestamp-only handoffs, or no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in this file.
+
 ## Latest Session (2026-11-11 ~04:02Z) — continuation; closed exported-but-untested gaps in `traceback_utils`
 
 The board held no task (`board_read` empty; continuation session). State-delta check: `git status` clean on branch `main` at `83851e7`, `python tools/refresh_scaffold.py --check` reports all embedded copies in sync, `scaffold.sh` already embeds every wrapper module and test. Reused the alias-aware AST exported-but-untested scan across all `__all__`-bearing modules, with a fix to resolve module aliases (e.g. `import traceback_utils as tb`) so names referenced only through an alias are no longer false positives. Two genuine, hermetic, convention-consistent gaps surfaced in `traceback_utils`: `extract_stack` and `format_exc` were typed, documented, `__all__`-exported wrappers with `TypeError` validation, but had zero dedicated coverage — unlike their siblings `extract_tb`, `format_tb`, `format_exception`, `format_stack`, `print_*`, and `clear_frames`, which were all covered.
