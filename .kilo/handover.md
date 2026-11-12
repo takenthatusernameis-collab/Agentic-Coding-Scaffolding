@@ -1,25 +1,27 @@
-## Latest Session (2026-11-12T06:34Z) — closed 3 real test-suite failures the state-delta battery had been masking
+## Latest Session (2026-11-12T07:31Z) — verified full suite green, fixed scaffold sync, resolved lint issues
 
-Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `c0604f6`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `ed9dca6`: working tree clean, source-relevant files changed (scaffold.sh refreshed, 2 test files lint-fixed), ran full verification battery.
 
-**Genuine gap found and closed — the state-delta battery itself was masking real test failures.** The battery runs only `refresh_scaffold --check`, `scan_untested`, and `tests.test_public_api` (3/3), then declares the foundation solid. It never ran the full suite, so 3 failing tests survived many sessions unnoticed. Running `python -m unittest discover tests/` exposed them:
+**Work completed this session:**
 
-1. **`tests.test_argcomplete_utils` — hard `import pytest` at module top.** The repo's documented fallback path is `python -m unittest discover tests/` (see `Makefile`), and `pytest` is an optional `[dev]` dependency not installed in the CI runner. Every other test file in the repo is unittest-native except this one, so the whole module errored on import under unittest. Rewrote it as a unittest-native suite: `@unittest.skipIf(argcomplete_utils is None, ...)` class decorators (matching the repo's `sre_compile_utils`/`sre_constants_utils` convention), `self.assertRaisesRegex` (unittest has no `match=` kwarg — that is pytest syntax and raised `TypeError`), and `unittest.main()` instead of `pytest.main()`. All `pytest.skip(...)` calls became `self.skipTest(...)`.
-2. **`tests.test_verify_state_delta.TestPathsAndGlobs.test_the_marker_lives_under_kilo` — shared-global leak.** `TestMarker` repointed the module-level `MARKER` global at a temp file and never restored it, so the mutation leaked into every later class; the `MARKER` assertion then compared a temp path against the real repo path. Added `setUp`/`tearDown` to `TestMarker` that save and restore `verify_state_delta.MARKER`.
-3. **`tests.test_verify_state_delta.TestMain.test_full_flag_runs_the_battery_and_advances_the_checkpoint` — brittle "must change" assertion.** It asserted the marker head changed after `--full`, but when the marker already equalled HEAD `--full` legitimately re-records the same value, so the test failed on a green repo. Now asserts only that `--full` returns 0 and records the current HEAD.
+1. **Scaffold sync fixed** — `python tools/refresh_scaffold.py --check` reported `CHANGELOG.md` stale; ran `make refresh-scaffold` to refresh the embedded copy in `scaffold.sh`.
 
-Refreshed embedded copies with `make refresh-scaffold` (both edited test files are embedded in `scaffold.sh`); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+2. **Lint issues resolved** — `make lint` (ruff) found missing trailing newlines in `tests/test_argcomplete_utils.py:163` and `tests/test_verify_state_delta.py:185`; fixed with `python -m ruff check --fix`.
 
-**Validation:** `python -m unittest discover tests/` — 10599 passed, 4 skipped, 0 failed (was 10587 passed, 2 failed, 1 error, 1 skipped); `python tools/scan_untested.py` no exported-but-untested callables; `python tools/refresh_scaffold.py --check` all embedded copies in sync; `python -m unittest tests.test_public_api tests.test_scaffold_sync` green. No `.github/workflows/**` changes.
+3. **Full test suite verified** — `python -m unittest discover tests/`: **10599 passed, 4 skipped, 0 failed**. All tests green.
 
-**Completed in this session:**
-- Ran the full unittest suite (not just the battery) and found 3 genuine failing tests the battery had been hiding.
-- Fixed `tests/test_argcomplete_utils.py` (pytest -> unittest-native) and `tests/test_verify_state_delta.py` (marker global-state leak + brittle assertion).
-- Refreshed embedded copies; verified scaffold sync.
-- No `.github/workflows/**` changes. No duplicate board task, no timestamp-only handoff.
+4. **Auxiliary checks green** — `python tools/scan_untested.py`: no exported-but-untested callables. `python tools/refresh_scaffold.py --check`: all embedded copies in sync. `python -m unittest tests.test_public_api tests.test_scaffold_sync`: 19 tests OK.
+
+5. **Type checking clean** — `make typecheck` (mypy): "Success: no issues found in 565 source files" (only notes on untyped test helpers).
+
+6. **State-delta verification passed** — `python tools/verify_state_delta.py` passed; checkpoint advanced to `76761e0`.
+
+**Validation:** All checks green. No `.github/workflows/**` changes. No duplicate board task, no timestamp-only handoff, no no-op commit.
+
+---
 
 # Next Agent Task
 
-Keep the full suite green. The state-delta battery (`python tools/verify_state_delta.py`) only ever runs `refresh_scaffold --check`, `scan_untested`, and `tests.test_public_api`, so it will keep declaring the foundation solid even while other tests fail — as it did for three sessions. Before claiming the foundation is solid, run `python -m unittest discover tests/` yourself; do not trust the battery alone. If you touch any `tests/test_*.py` that is embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
+Keep the full suite green. The state-delta battery (`python tools/verify_state_delta.py`) only ever runs `refresh_scaffold --check`, `scan_untested`, and `tests.test_public_api`, so it will keep declaring the foundation solid even while other tests fail — as it did for three sessions before the previous agent fixed them. Before claiming the foundation is solid, run `python -m unittest discover tests/` yourself; do not trust the battery alone. If you touch any `tests/test_*.py` that is embedded in `scaffold.sh`, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`.
 
 Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
