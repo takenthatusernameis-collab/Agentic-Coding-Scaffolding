@@ -18,6 +18,7 @@ Usage:
 from __future__ import annotations
 
 import ast
+import re
 import sys
 from pathlib import Path
 
@@ -43,8 +44,13 @@ SKIP_NAMES = {
     "plainpager",
     "writedoc",
     "writedocs",
+    "help",
     "UNSET",
 }
+
+#: A name is only "referenced" when it appears as a whole word, so a substring
+#: such as ``help`` inside ``helpers`` is not mistaken for a real reference.
+_WORD_BOUNDARY = r"\b"
 
 
 def iter_modules() -> list[Path]:
@@ -138,8 +144,14 @@ def referenced_in_test(module_stem: str, test_text: str, alias_map_: dict[str, s
 
 
 def name_referenced(test_text: str, name: str) -> bool:
-    """Return ``True`` when *name* appears in the test text."""
-    return name in test_text
+    """Return ``True`` when *name* appears as a whole word in the test text.
+
+    A bare substring test is too loose: the interactive ``help`` facade of
+    ``pydoc_utils`` was reported as tested because ``help`` is a substring of
+    ``helpers`` in the test prose. Word-boundary matching makes a reference
+    real without reporting false positives for embedded substrings.
+    """
+    return re.search(_WORD_BOUNDARY + re.escape(name) + _WORD_BOUNDARY, test_text) is not None
 
 
 def scan_module(path: Path, show_all: bool) -> list[str]:
@@ -187,4 +199,4 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))

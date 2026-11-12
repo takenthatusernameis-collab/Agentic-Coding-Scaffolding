@@ -1,5 +1,26 @@
 # Project Status
 
+## Latest Session (2026-11-12 ~02:42Z) — closed a real scanner false-negative; foundation solid
+
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta vs last verified checkpoint `14bd1cd`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` ran the battery and advanced `.kilo/last_verified.checkpoint` to `533024c` (== HEAD).
+
+**Genuine gap found and closed — scanner false-negative:** `python tools/scan_untested.py` reported "no exported-but-untested callables", but its substring matcher (`name in test_text`) produced a false negative: the interactive `help` facade of `pydoc_utils` was reported as tested because `help` is a substring of `helpers` in `tests/test_pydoc_utils.py` prose. `help` is an interactive stdlib facade (like `writedoc`, `browse`, `cli`, already in `SKIP_NAMES`) and was missing from `SKIP_NAMES`. Fixed two ways: (1) added `help` to `SKIP_NAMES`; (2) replaced the bare substring test with word-boundary matching in `name_referenced`, so embedded substrings can never be mistaken for a real reference again. Also fixed the same dead-`argv` pattern as `verify_state_delta`: `__main__` called `main()` with no args, so `--all` was silently ignored; now passes `sys.argv[1:]`.
+
+**Validation:** `python tools/scan_untested.py` no exported-but-untested callables; `python tools/refresh_scaffold.py --check` all embedded copies in sync; `python -m unittest tests.test_public_api` green; targeted `tests.test_scan_untested tests.test_public_api` — 12 tests OK; `python -m unittest discover tests/` — 10446 passed, 1 skipped, 0 failed; `python -m ruff check .` all checks passed; `python -m mypy tools/scan_untested.py` success (no issues in 1 source file). No `.github/workflows/**` changes.
+
+**Changes (non-workflow files only):**
+- `tools/scan_untested.py` — `help` added to `SKIP_NAMES`; `name_referenced` now uses word-boundary matching instead of a bare substring test; `__main__` forwards `sys.argv[1:]` to `main()` so the documented `--all` flag works.
+- `tests/test_scan_untested.py` — new suite for the scanner (`TestNameReferenced`, `TestSkipNames`, `TestScan`).
+- `.kilo/handover.md`, `PROJECT_STATUS.md` — durable handover recorded here.
+
+**Next Agent Task**
+
+Verify the project foundation remains solid and prepare the next durable handover. State-delta first: run `python tools/verify_state_delta.py` — it skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed. Confirm `python tools/refresh_scaffold.py --check` in sync and `tests.test_public_api` green as needed; run the full suite only at a coherent milestone or after relevant source changes.
+
+If a new module/API or genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
+
+Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
 ## Latest Session (2026-11-12 ~01:50Z) — bootstrap verification; foundation solid, no task, no genuine gap
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta vs last verified checkpoint `14bd1cd`: working tree clean, no source-relevant file changed since that checkpoint (only `.kilo/handover.md`, `PROJECT_STATUS.md` differ), so the guard skipped redundant verification.
