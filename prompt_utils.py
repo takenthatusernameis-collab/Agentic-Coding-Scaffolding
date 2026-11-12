@@ -998,7 +998,7 @@ def remove_blank_lines(text: str) -> str:
 
 
 def rstrip_lines(text: str) -> str:
-    """Strip trailing whitespace from each line in *text*.
+    r"""Strip trailing whitespace from each line in *text*.
 
     Args:
         text: The text to process.
@@ -1028,7 +1028,7 @@ def rstrip_lines(text: str) -> str:
 
 
 def lstrip_lines(text: str) -> str:
-    """Strip leading whitespace from each line in *text*.
+    r"""Strip leading whitespace from each line in *text*.
 
     Args:
         text: The text to process.
@@ -1057,7 +1057,7 @@ def lstrip_lines(text: str) -> str:
 
 
 def strip_lines(text: str) -> str:
-    """Strip leading and trailing whitespace from each line in *text*.
+    r"""Strip leading and trailing whitespace from each line in *text*.
 
     Args:
         text: The text to process.
@@ -1476,7 +1476,7 @@ def last_line(text: str) -> str:
 
 
 def count_lines(text: str) -> int:
-    """Return the number of lines in *text*.
+    r"""Return the number of lines in *text*.
 
     Empty text counts as zero lines. A trailing newline does not create
     an extra empty line.
@@ -1546,7 +1546,7 @@ def has_lines(text: str) -> bool:
 
 
 def count_non_blank_lines(text: str) -> int:
-    """Return the number of non-blank (non-whitespace-only) lines in *text*.
+    r"""Return the number of non-blank (non-whitespace-only) lines in *text*.
 
     Empty text counts as zero lines. A trailing newline does not create
     an extra empty line.
@@ -1788,7 +1788,7 @@ def has_trailing_newlines(text: str) -> bool:
 
 
 def count_paragraphs(text: str) -> int:
-    """Return the number of paragraphs in *text*.
+    r"""Return the number of paragraphs in *text*.
 
     A paragraph is a run of one or more non-blank lines separated from other
     paragraphs by one or more blank (whitespace-only) lines. Empty text
@@ -1929,7 +1929,7 @@ def has_characters(text: str) -> bool:
 
 
 def reverse_lines(text: str) -> str:
-    """Reverse the order of lines in *text*.
+    r"""Reverse the order of lines in *text*.
 
     Splits *text* on newline characters, reverses the resulting sequence
     of lines, and rejoins them with newlines. Empty text is returned
@@ -2319,7 +2319,7 @@ def count_spaces(text: str) -> int:
         >>> count_spaces("a  b   c")
         5
         >>> count_spaces("no spaces")
-        0
+        1
         >>> count_spaces("")
         0
     """
@@ -2407,7 +2407,7 @@ def count_letters(text: str) -> int:
         >>> count_letters("abc123")
         3
         >>> count_letters("no digits here")
-        11
+        12
         >>> count_letters("")
         0
     """
@@ -2519,7 +2519,7 @@ def count_uppercase(text: str) -> int:
         >>> count_uppercase("Hello")
         1
         >>> count_uppercase("HELLO WORLD")
-        2
+        10
         >>> count_uppercase("")
         0
     """
@@ -2948,7 +2948,7 @@ def has_tabs(text: str) -> bool:
 
 
 def ensure_surrounded_by_newlines(text: str) -> str:
-    """Ensure *text* starts and ends with a newline character.
+    r"""Ensure *text* starts and ends with a newline character.
 
     If *text* is empty, it is returned unchanged. Existing leading/trailing
     newlines are not duplicated.

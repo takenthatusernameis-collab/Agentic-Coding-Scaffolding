@@ -1177,7 +1177,7 @@ def count_alphanumeric(s: str) -> int:
 
     Examples:
         >>> count_alphanumeric("hello123")
-        9
+        8
         >>> count_alphanumeric("HelloWorld")
         10
         >>> count_alphanumeric("hello world")
@@ -1434,7 +1434,7 @@ def count_hex(s: str) -> int:
         >>> count_hex("1A2F")
         4
         >>> count_hex("hello123")
-        3
+        4
         >>> count_hex("xyz")
         0
         >>> count_hex("")
@@ -1464,7 +1464,7 @@ def has_hex(s: str) -> bool:
     Examples:
         >>> has_hex("1a2f")
         True
-        >>> has_hex("hello")
+        >>> has_hex("xyz")
         False
         >>> has_hex("")
         False
@@ -1747,7 +1747,7 @@ def is_decimal(s: str) -> bool:
 
 
 def is_printable(s: str) -> bool:
-    """Return True if all characters in *s* are printable.
+    r"""Return True if all characters in *s* are printable.
 
     A character is printable when ``str.isprintable()`` returns True for it;
     whitespace characters other than the space character are not printable.
@@ -2692,7 +2692,7 @@ def has_punctuation(s: str) -> bool:
 
 
 def count_whitespace(s: str) -> int:
-    """Return the number of whitespace characters in *s*.
+    r"""Return the number of whitespace characters in *s*.
 
     Whitespace characters are those for which ``str.isspace()`` returns True
     (spaces, tabs, newlines, carriage returns, form feeds, vertical tabs, and
@@ -2713,7 +2713,7 @@ def count_whitespace(s: str) -> int:
         >>> count_whitespace("a  b\tc")
         3
         >>> count_whitespace("no spaces")
-        0
+        1
         >>> count_whitespace("")
         0
     """

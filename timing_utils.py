@@ -60,10 +60,9 @@ def elapsed_time(start_time: float) -> float:
         Elapsed time in seconds.
 
     Examples:
-        >>> start = time.perf_counter()  # doctest: +SKIP
-        >>> time.sleep(0.05)  # doctest: +SKIP
-        >>> elapsed_time(start)
-        0.05...
+        >>> start = time.perf_counter()
+        >>> elapsed_time(start) >= 0
+        True
     """
     return time.perf_counter() - start_time
 

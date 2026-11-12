@@ -282,11 +282,12 @@ def is_awaitable(value: object) -> bool:
         True if *value* is awaitable, False otherwise.
 
     Examples:
-        >>> import asyncio
         >>> async def f():
         ...     return 1
-        >>> is_awaitable(f())
+        >>> pending = f()
+        >>> is_awaitable(pending)
         True
+        >>> pending.close()
         >>> is_awaitable(42)
         False
     """
