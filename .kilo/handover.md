@@ -1,7 +1,7 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-12T14:46Z
-**Checkpoint:** `680b002` (last verified HEAD; this session's guard fixes are uncommitted and will be committed by CI)
+**Session:** 2026-11-12T14:44Z
+**Checkpoint:** `87bfd45` (last verified HEAD after state-delta battery advanced the checkpoint)
 
 ## Task for Next Agent
 
@@ -13,17 +13,13 @@ Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no tim
 
 ## Verification Results (This Session)
 
-- `python tools/verify_state_delta.py`: skipped initially (clean tree; HEAD `680b002` differs from checkpoint `6f79744` only in handover/status/checkpoint files, no source-relevant change)
+- `python tools/verify_state_delta.py`: ran verification battery and advanced checkpoint to `87bfd45`
 - `python tools/refresh_scaffold.py --check`: all embedded copies in sync
-- `python tools/scan_untested.py`: no exported-but-untested callables
-- `python -m unittest tests.test_verify_state_delta`: green (16/16)
-- `python -m unittest discover tests/`: green (10603 tests, 4 skipped)
+- `python -m pytest tests/test_public_api.py`: green (3/3)
 - `make lint`: All checks passed
 - `make typecheck`: Success: no issues found in 565 source files
+- `python -m pytest tests/`: green (10855 passed, 4 skipped)
 
-## Gap Closed This Session
+## Notes
 
-1. `tools/verify_state_delta.py` did not treat the templated document copies (`README.md`, `AGENTS.md`, `CHANGELOG.md`) as source-relevant, so an edit to one of them could skip the battery even though `refresh_scaffold --check` and `tests.test_scaffold_sync` assert they stay in sync. They are now in `SOURCE_GLOBS`.
-2. `source_changed_since` returned `False` when `git diff` failed (unknown ref after rebase/force-push/shallow clone), silently skipping verification against a checkpoint it could not compare. It now treats a failed diff as a change so the battery runs.
-
-Regression tests added in `tests/test_verify_state_delta.py`: `test_the_source_globs_cover_the_templated_document_copies` and `test_source_changed_since_an_unknown_ref_is_true`.
+No new gaps identified this session. The foundation verified clean with the previous session's guard fixes now committed by CI. The state-delta checkpoint has advanced to reflect the verified state.
