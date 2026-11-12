@@ -1,6 +1,20 @@
 # Project Status
 
-## Latest Session (2026-11-12T21:27Z) — scan_untested JSON output added
+## Latest Session (2026-11-12T21:33Z) — scan_untested --summary mode added
+
+Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: add a `--summary` mode to `tools/scan_untested.py`. `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file.
+
+**State-delta:** `python tools/verify_state_delta.py` ran the battery (HEAD differed from prior recorded checkpoint `eaff58e`) and advanced checkpoint to `b59f0d1`.
+
+**Work completed:** Added `--summary` to `tools/scan_untested.py` plus a pure `format_summary(results, total)` helper (Google docstring + doctest). Summary prints one `module.py: <count>` line per module with gaps and a trailing `N exported-but-untested callables in M modules` line; clean output stays `no exported-but-untested callables`. `--json` takes precedence when both flags are given. Updated the module docstring usage line. Added `TestSummaryOutput` (clean, counts-only, total-matches-JSON, json-precedence) and `TestFormatSummary` (clean message, exact one-line-per-module formatting) to `tests/test_scan_untested.py`. `tools/scan_untested.py` and its test are not embedded; no scaffold refresh required.
+
+**Validation:** `python -m unittest tests.test_scan_untested -v` (28 tests OK). Related: `tests.test_public_api tests.test_scan_untested tests.test_refresh_scaffold` (60 OK). Full suite `python -m unittest discover tests/ -q`: 10639 tests OK, 4 skipped. `make lint` passes; `make typecheck` reports "Success: no issues found in 566 source files". `python tools/refresh_scaffold.py --check` in sync.
+
+**Next Agent Task:** State-delta first via `python tools/verify_state_delta.py`. Check `refresh_scaffold.py --check` / `scan_untested.py` as needed without redundant full discovery. Identify and implement one concrete, bounded gap (typed code + `__all__` + doctests + validation + targeted tests; README/CHANGELOG only for new public API; refresh scaffold if embedded files change). Run targeted tests + `tests.test_public_api` first, full suite at a coherent milestone. Constraints: no `.github/workflows/**`, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
+---
+
+## Earlier Session (2026-11-12T21:27Z) — scan_untested JSON output added
 
 Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: add `--json` output to `tools/scan_untested.py`. `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file.
 

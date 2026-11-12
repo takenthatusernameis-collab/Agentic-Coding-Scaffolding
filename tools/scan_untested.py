@@ -11,8 +11,12 @@ its real module so aliased references are no longer reported as false positives.
 Names that are type variables, constants, classes, entry points, or interactive
 stdlib facades are filtered out by default; pass ``--all`` to list them too.
 
+Pass ``--summary`` to collapse the per-name report to one line per module with
+its gap count, which is easier to scan when the list is long. ``--json`` takes
+precedence when both flags are given.
+
 Usage:
-    python tools/scan_untested.py [--all] [--json]
+    python tools/scan_untested.py [--all] [--json] [--summary]
 """
 
 from __future__ import annotations
@@ -220,11 +224,43 @@ def scan_module(path: Path, show_all: bool = False) -> list[str]:
     return gaps
 
 
+def format_summary(results: dict[str, list[str]], total: int) -> str:
+    """Return a one-line-per-module summary of *results*.
+
+    Args:
+        results: Mapping of module file name to its exported-but-untested
+            callable names.
+        total: Total number of reported callables across every module.
+
+    Returns:
+        A human-readable summary string. When *total* is zero a fixed clean
+        message is returned instead of an empty report.
+
+    Example:
+        >>> format_summary({"a_utils.py": ["x", "y"], "b_utils.py": ["z"]}, 3)
+        'a_utils.py: 2\\nb_utils.py: 1\\n\\n3 exported-but-untested callables in 2 modules'
+        >>> format_summary({}, 0)
+        'no exported-but-untested callables'
+    """
+    if not total:
+        return "no exported-but-untested callables"
+    lines = [f"{module_name}: {len(gaps)}" for module_name, gaps in results.items()]
+    lines.append(
+        f"\n{total} exported-but-untested callables in {len(results)} modules"
+    )
+    return "\n".join(lines)
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Print every exported-but-untested callable."""
+    """Print every exported-but-untested callable.
+
+    ``--summary`` collapses the report to one line per module with a gap count.
+    ``--json`` takes precedence when both ``--summary`` and ``--json`` are given.
+    """
     args = argv or []
     show_all = "--all" in args
     json_output = "--json" in args
+    summary = "--summary" in args
     total = 0
     results = {}
     for path in iter_modules():
@@ -234,6 +270,9 @@ def main(argv: list[str] | None = None) -> int:
             results[path.name] = gaps
     if json_output:
         print(json.dumps({"gaps": results, "total": total}, indent=2))
+        return 1 if total else 0
+    if summary:
+        print(format_summary(results, total))
         return 1 if total else 0
     if total:
         for module_name, gaps in results.items():

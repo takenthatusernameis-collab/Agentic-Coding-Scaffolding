@@ -247,5 +247,92 @@ class TestJSONOutput(unittest.TestCase):
                 self.assertIsInstance(name, str)
 
 
+class TestSummaryOutput(unittest.TestCase):
+    """Verify the ``--summary`` report format."""
+
+    def test_summary_when_clean(self):
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "--summary"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertEqual(result.stdout.strip(), "no exported-but-untested callables")
+
+    def test_summary_collapses_names_to_counts(self):
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "--all", "--summary"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        lines = result.stdout.splitlines()
+        # Every module line is "name.py: <count>", not a per-name listing.
+        module_lines = [line for line in lines if line.endswith(tuple("0123456789"))]
+        self.assertGreater(len(module_lines), 0)
+        for line in module_lines:
+            module_name, _, count = line.partition(": ")
+            self.assertTrue(module_name.endswith(".py"))
+            self.assertTrue(count.isdigit())
+        self.assertRegex(lines[-1], r"^\d+ exported-but-untested callables in \d+ modules$")
+        # No per-name bullets leak into the summary.
+        self.assertNotIn("  ", result.stdout)
+
+    def test_summary_total_matches_json_total(self):
+        summary = subprocess.run(
+            [sys.executable, str(TOOL), "--all", "--summary"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        json_run = subprocess.run(
+            [sys.executable, str(TOOL), "--all", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        data = json.loads(json_run.stdout)
+        self.assertIn(f"{data['total']} exported-but-untested callables", summary.stdout)
+        self.assertIn(f"in {len(data['gaps'])} modules", summary.stdout)
+
+    def test_json_takes_precedence_over_summary(self):
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "--summary", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        data = json.loads(result.stdout)
+        self.assertEqual(data["total"], 0)
+        self.assertEqual(data["gaps"], {})
+
+
+class TestFormatSummary(unittest.TestCase):
+    """Verify the summary formatter as a pure function."""
+
+    def test_clean_results_produce_a_fixed_message(self):
+        self.assertEqual(
+            scan_untested.format_summary({}, 0),
+            "no exported-but-untested callables",
+        )
+
+    def test_results_are_one_line_per_module(self):
+        summary = scan_untested.format_summary(
+            {"a_utils.py": ["x", "y"], "b_utils.py": ["z"]}, 3
+        )
+        self.assertEqual(
+            summary,
+            "a_utils.py: 2\nb_utils.py: 1\n\n"
+            "3 exported-but-untested callables in 2 modules",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
