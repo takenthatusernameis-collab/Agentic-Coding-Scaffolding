@@ -226,7 +226,23 @@ class TestAddMissingCopies(unittest.TestCase):
             "ZIPIMPORT_UTILS\n"
         )
         refreshed, _ = refresh_scaffold.add_missing_copies(text)
-        self.assertIn("ZIPIMPORT_UTILS\n\n# --- tests/test_zipimport_utils.py ---", refreshed)
+        blocks = refresh_scaffold.embedded_blocks(refreshed)
+        # The block immediately after the module must be separated by exactly
+        # one empty line: the gap is "\n# --- <next path> ---\n". Asserting the
+        # gap generically keeps the invariant valid no matter where the next
+        # block falls in the generator (the test previously hard-coded an
+        # assumption that tests/test_zipimport_utils.py followed immediately,
+        # which broke once the generator grew past 540 entries).
+        zipimport_block = next(
+            block for block in blocks if block.group("path") == "zipimport_utils.py"
+        )
+        next_block = blocks[blocks.index(zipimport_block) + 1]
+        gap = refreshed[zipimport_block.end() : next_block.start()]
+        self.assertEqual(
+            gap,
+            f"\n# --- {next_block.group('path')} ---\n",
+            "the created block is not separated from the next block by one empty line",
+        )
 
     def test_a_complete_generator_stays_untouched(self):
         text = (ROOT / "scaffold.sh").read_text()
