@@ -25,7 +25,15 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 #: Modules that are not wrapper modules but still expose ``__all__``.
-EXTRA_MODULES = ("stats.py", "strings.py", "shapes.py", "prompt_utils.py")
+EXTRA_MODULES = (
+    "stats.py",
+    "strings.py",
+    "shapes.py",
+    "prompt_utils.py",
+    "utils.py",
+    "calculator.py",
+    "config_schema.py",
+)
 
 #: Names that are known interactive facades, entry points, or constants rather
 #: than hermetic, convention-consistent helpers.
