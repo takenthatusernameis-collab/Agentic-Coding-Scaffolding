@@ -12,16 +12,19 @@ project is replaced with the ``${PROJECT_NAME}`` placeholder, which the
 generator substitutes in the scaffolded project.
 
 This script rewrites every heredoc whose target path exists in the repository
-with the current contents of that file, and it creates the heredoc of a
-wrapper module that the generator does not embed yet. Run it after adding or
-editing a module or test, then re-run the test suite to confirm the invariant
-holds.
+with the current contents of that file, it creates the heredoc of a wrapper
+module that the generator does not embed yet, and it removes the heredoc of a
+wrapper module whose repository file no longer exists. Run it after adding,
+editing, or removing a module or test, then re-run the test suite to confirm the
+invariant holds.
 
 Usage:
     python tools/refresh_scaffold.py [--check]
 
 ``--check`` reports stale and missing copies and exits with a non-zero status
-instead of rewriting the generator.
+instead of rewriting the generator. A block whose repository copy is gone is
+stale as well, so a module removed from the repository is reported instead of
+silently kept alive by the generator.
 """
 
 from __future__ import annotations
@@ -170,6 +173,56 @@ def missing_copies(scaffold_text: str) -> list[str]:
     return [relative for relative in wrapper_copies() if relative not in embedded]
 
 
+def stale_copies(scaffold_text: str) -> list[re.Match[str]]:
+    """Return the embedded blocks whose repository copy no longer exists.
+
+    A block is stale when the tool manages the path (a Python source or one of
+    the templated documents) but the repository holds no file for it. The
+    generator must stop emitting such a file, so the block is dropped instead of
+    being kept alive after the module was removed.
+    """
+    stale: list[re.Match[str]] = []
+    for match in embedded_blocks(scaffold_text):
+        relative = match.group("path")
+        if expected_body(relative) is not None:
+            continue
+        if is_verbatim_copy(relative) or is_templated_copy(relative):
+            stale.append(match)
+    return stale
+
+
+def block_start(scaffold_text: str, match: re.Match[str]) -> int:
+    """Return the offset where *match*'s block begins, comment included.
+
+    Every block is preceded by a ``# --- <path> ---`` comment. Removing the
+    comment together with the heredoc keeps the generator free of orphaned
+    comments; a block without one starts at the heredoc itself.
+    """
+    marker = f"# --- {match.group('path')} ---\n"
+    index = scaffold_text.rfind(marker, 0, match.start())
+    if index == -1:
+        return match.start()
+    # Drop the blank line the removed block leaves behind as well, so the
+    # remaining blocks stay separated by exactly one empty line.
+    if index >= 2 and scaffold_text[index - 2 : index] == "\n\n":
+        return index - 1
+    return index
+
+
+def remove_stale_copies(scaffold_text: str) -> tuple[str, list[str]]:
+    """Return the generator without the stale blocks and the removed paths."""
+    stale = stale_copies(scaffold_text)
+    if not stale:
+        return scaffold_text, []
+    pieces: list[str] = []
+    cursor = 0
+    for match in stale:
+        pieces.append(scaffold_text[cursor : block_start(scaffold_text, match)])
+        cursor = match.end()
+    pieces.append(scaffold_text[cursor:])
+    return "".join(pieces), [match.group("path") for match in stale]
+
+
 def render_block(relative: str) -> str:
     """Return the generator block that writes *relative* into the output directory.
 
@@ -271,28 +324,33 @@ def main(argv: list[str] | None = None) -> int:
 
     scaffold_text = SCAFFOLD.read_text()
     refreshed, changed, stale = refresh(scaffold_text)
+    refreshed, removed = remove_stale_copies(refreshed)
     refreshed, added = add_missing_copies(refreshed)
 
     if args.check:
         for relative in changed:
             print(f"stale: {relative}")
+        for relative in removed:
+            print(f"no repository copy: {relative}")
         for relative in added:
             print(f"missing: {relative}")
-        if changed or added:
-            print(f"{len(changed) + len(added)} embedded copies are out of sync")
+        if changed or removed or added:
+            print(f"{len(changed) + len(removed) + len(added)} embedded copies are out of sync")
             return 1
         print("all embedded copies are in sync")
         return 0
 
-    if changed or added:
+    if changed or removed or added:
         SCAFFOLD.write_text(refreshed)
     for relative in changed:
         print(f"refreshed: {relative}")
+    for relative in removed:
+        print(f"removed: {relative}")
     for relative in added:
         print(f"added: {relative}")
     for relative in stale:
         print(f"no repository copy: {relative}")
-    print(f"{len(changed) + len(added)} embedded copies refreshed")
+    print(f"{len(changed) + len(removed) + len(added)} embedded copies refreshed")
     return 0
 
 

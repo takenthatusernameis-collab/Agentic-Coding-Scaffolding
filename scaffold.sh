@@ -779,7 +779,6 @@
 #   - wsgiref_utils.py — # WSGI utilities wrapping the standard library wsgiref package (setup_testing_defaults, guess_scheme, application_uri, request_uri, shift_path_info, is_hop_by_hop, build_headers, header_values, encode_headers, file_wrapper, check_environ, environ_errors, validator, demo_app, make_server) with input validation
 #   - antigravity_utils.py — # Antigravity utilities wrapping the standard library antigravity module (geohash, fly, get_xkcd_url) with input validation
 #   - venv_utils.py — # Virtual environment utilities wrapping the standard library venv package (create_environment, describe_environment, read_configuration, environment_paths, environment_python, activation_scripts, is_environment, find_environments, run_cli) with input validation
-#   - audioop_utils.py — # Audio utilities wrapping the standard library audioop module (convert_sample_width, convert_to_u_law, convert_from_u_law, convert_to_a_law, convert_from_a_law, shift_bias, add_fragments, scale, average, root_mean_square, peak_value, peak_to_peak, count_zero_crossings, mix_to_mono, duplicate_to_stereo, resample, encode_adpcm, decode_adpcm, describe_fragment) with input validation
 #   - pipes_utils.py — # Pipeline utilities wrapping the standard library pipes module (quote, quote_command, create_template, is_available, make_pipeline, step_kinds) with input validation
 #   - ensurepip_utils.py — # Bootstrap utilities wrapping the standard library ensurepip package (bootstrap, bundled_wheel, pip_version, is_pip_installed, run_cli, is_available) with input validation
 #   - readline_utils.py — # Command line editing utilities wrapping the standard library readline module (add_history, append_history_file, clear_history, get_history_item, remove_history_item, replace_history_item, history_items, search_history, make_completer, is_available) with input validation
@@ -930,16 +929,19 @@ project is replaced with the ``${PROJECT_NAME}`` placeholder, which the
 generator substitutes in the scaffolded project.
 
 This script rewrites every heredoc whose target path exists in the repository
-with the current contents of that file, and it creates the heredoc of a
-wrapper module that the generator does not embed yet. Run it after adding or
-editing a module or test, then re-run the test suite to confirm the invariant
-holds.
+with the current contents of that file, it creates the heredoc of a wrapper
+module that the generator does not embed yet, and it removes the heredoc of a
+wrapper module whose repository file no longer exists. Run it after adding,
+editing, or removing a module or test, then re-run the test suite to confirm the
+invariant holds.
 
 Usage:
     python tools/refresh_scaffold.py [--check]
 
 ``--check`` reports stale and missing copies and exits with a non-zero status
-instead of rewriting the generator.
+instead of rewriting the generator. A block whose repository copy is gone is
+stale as well, so a module removed from the repository is reported instead of
+silently kept alive by the generator.
 """
 
 from __future__ import annotations
@@ -1088,6 +1090,56 @@ def missing_copies(scaffold_text: str) -> list[str]:
     return [relative for relative in wrapper_copies() if relative not in embedded]
 
 
+def stale_copies(scaffold_text: str) -> list[re.Match[str]]:
+    """Return the embedded blocks whose repository copy no longer exists.
+
+    A block is stale when the tool manages the path (a Python source or one of
+    the templated documents) but the repository holds no file for it. The
+    generator must stop emitting such a file, so the block is dropped instead of
+    being kept alive after the module was removed.
+    """
+    stale: list[re.Match[str]] = []
+    for match in embedded_blocks(scaffold_text):
+        relative = match.group("path")
+        if expected_body(relative) is not None:
+            continue
+        if is_verbatim_copy(relative) or is_templated_copy(relative):
+            stale.append(match)
+    return stale
+
+
+def block_start(scaffold_text: str, match: re.Match[str]) -> int:
+    """Return the offset where *match*'s block begins, comment included.
+
+    Every block is preceded by a ``# --- <path> ---`` comment. Removing the
+    comment together with the heredoc keeps the generator free of orphaned
+    comments; a block without one starts at the heredoc itself.
+    """
+    marker = f"# --- {match.group('path')} ---\n"
+    index = scaffold_text.rfind(marker, 0, match.start())
+    if index == -1:
+        return match.start()
+    # Drop the blank line the removed block leaves behind as well, so the
+    # remaining blocks stay separated by exactly one empty line.
+    if index >= 2 and scaffold_text[index - 2 : index] == "\n\n":
+        return index - 1
+    return index
+
+
+def remove_stale_copies(scaffold_text: str) -> tuple[str, list[str]]:
+    """Return the generator without the stale blocks and the removed paths."""
+    stale = stale_copies(scaffold_text)
+    if not stale:
+        return scaffold_text, []
+    pieces: list[str] = []
+    cursor = 0
+    for match in stale:
+        pieces.append(scaffold_text[cursor : block_start(scaffold_text, match)])
+        cursor = match.end()
+    pieces.append(scaffold_text[cursor:])
+    return "".join(pieces), [match.group("path") for match in stale]
+
+
 def render_block(relative: str) -> str:
     """Return the generator block that writes *relative* into the output directory.
 
@@ -1189,28 +1241,33 @@ def main(argv: list[str] | None = None) -> int:
 
     scaffold_text = SCAFFOLD.read_text()
     refreshed, changed, stale = refresh(scaffold_text)
+    refreshed, removed = remove_stale_copies(refreshed)
     refreshed, added = add_missing_copies(refreshed)
 
     if args.check:
         for relative in changed:
             print(f"stale: {relative}")
+        for relative in removed:
+            print(f"no repository copy: {relative}")
         for relative in added:
             print(f"missing: {relative}")
-        if changed or added:
-            print(f"{len(changed) + len(added)} embedded copies are out of sync")
+        if changed or removed or added:
+            print(f"{len(changed) + len(removed) + len(added)} embedded copies are out of sync")
             return 1
         print("all embedded copies are in sync")
         return 0
 
-    if changed or added:
+    if changed or removed or added:
         SCAFFOLD.write_text(refreshed)
     for relative in changed:
         print(f"refreshed: {relative}")
+    for relative in removed:
+        print(f"removed: {relative}")
     for relative in added:
         print(f"added: {relative}")
     for relative in stale:
         print(f"no repository copy: {relative}")
-    print(f"{len(changed) + len(added)} embedded copies refreshed")
+    print(f"{len(changed) + len(removed) + len(added)} embedded copies refreshed")
     return 0
 
 
@@ -4613,7 +4670,6 @@ py_modules = [
     "abc_utils",
     "aifc_utils",
     "ast_utils",
-    "audioop_utils",
     "atexit_utils",
     "pickle_utils",
     "sqlite3_utils",
@@ -4704,7 +4760,6 @@ py_modules = [
     "spwd_utils",
     "asynchat_utils",
     "asyncore_utils",
-    "smtpd_utils",
 ]
 PYPROJECT
 
@@ -147117,522 +147172,6 @@ TEST_VENV_UTILS
 
 # --- audioop_utils.py ---
 
-# --- tests/test_audioop_utils.py ---
-cat > "$OUTPUT_DIR/tests/test_audioop_utils.py" <<'TEST_AUDIOOP_UTILS'
-"""Tests for audioop_utils.
-
-The tests work on byte strings that the test itself builds, so the suite needs
-no audio device, no file, and no network.  The tests of the standard library
-module are skipped on an interpreter that removed the module, and the tests of
-the degradation are skipped on an interpreter that still ships it.
-"""
-
-import unittest
-import warnings
-from typing import Any
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", DeprecationWarning)
-    try:
-        import audioop as _audioop
-    except ImportError:  # pragma: no cover - Python 3.13 removed the module
-        _audioop = None  # type: ignore[assignment]
-
-import audioop_utils
-
-#: The convention of the ADPCM helpers of the running interpreter.
-_STATEFUL = False
-if _audioop is not None:
-    try:
-        _audioop.lin2adpcm(b"", 2, None)
-    except TypeError:
-        _STATEFUL = False
-    else:
-        _STATEFUL = True
-
-
-def _standard_encode(fragment: bytes, width: int, bits: int = 4) -> Any:
-    """Return the ADPCM coded form of a fragment, the way the standard library does."""
-    module: Any = _audioop
-    if _STATEFUL:
-        coded, state = module.lin2adpcm(fragment, width, None)
-        return coded, state
-    return module.lin2adpcm(fragment, width, bits), None
-
-
-def _standard_decode(fragment: bytes, width: int, bits: int = 4) -> Any:
-    """Return the linear form of a coded fragment, the way the standard library does."""
-    module: Any = _audioop
-    if _STATEFUL:
-        decoded, state = module.adpcm2lin(fragment, width, None)
-        return decoded, state
-    return module.adpcm2lin(fragment, width, bits), None
-
-
-class TestModuleContract(unittest.TestCase):
-    """Verify the contract of the module."""
-
-    def test_all_is_sorted_and_unique(self):
-        self.assertEqual(audioop_utils.__all__, sorted(set(audioop_utils.__all__)))
-
-    def test_every_name_exists(self):
-        for name in audioop_utils.__all__:
-            self.assertTrue(hasattr(audioop_utils, name), name)
-
-    def test_the_sample_widths_are_the_widths_of_the_standard_library(self):
-        self.assertEqual(audioop_utils.SAMPLE_WIDTHS, (1, 2, 3, 4))
-
-    def test_is_available_reports_a_bool(self):
-        self.assertIsInstance(audioop_utils.is_available(), bool)
-
-    def test_is_available_matches_the_standard_library(self):
-        self.assertEqual(audioop_utils.is_available(), _audioop is not None)
-
-    @unittest.skipUnless(_audioop is not None, "audioop module not available")
-    def test_the_error_of_the_standard_library_is_reexported(self):
-        self.assertIs(audioop_utils.AudioOpError, _audioop.error)
-
-
-class TestValidation(unittest.TestCase):
-    """Verify the validation of the arguments.
-
-    The arguments are validated before the standard library is reached, so the
-    same error is raised on an interpreter that removed the module.
-    """
-
-    def test_a_fragment_must_be_bytes_like(self):
-        with self.assertRaises(TypeError):
-            audioop_utils.add_fragments("x", b"\x01", 1)
-        with self.assertRaises(TypeError):
-            audioop_utils.add_fragments(b"\x01", "x", 1)
-        with self.assertRaises(TypeError):
-            audioop_utils.shift_bias("x", 1, 0)
-        with self.assertRaises(TypeError):
-            audioop_utils.scale(b"\x01", 1, "2")
-        with self.assertRaises(TypeError):
-            audioop_utils.sample_at(b"\x01", 1, "0")
-
-    def test_a_width_must_be_an_integer(self):
-        with self.assertRaises(TypeError):
-            audioop_utils.add_fragments(b"\x01", b"\x01", "1")
-        with self.assertRaises(TypeError):
-            audioop_utils.frame_count(b"\x01", "1")
-
-    def test_a_boolean_is_not_an_integer(self):
-        with self.assertRaises(TypeError):
-            audioop_utils.shift_bias(b"\x01", 1, True)
-        with self.assertRaises(TypeError):
-            audioop_utils.sample_at(b"\x01", 1, True)
-        with self.assertRaises(TypeError):
-            audioop_utils.scale(b"\x01", 1, True)
-
-    def test_a_width_must_be_a_width_of_the_standard_library(self):
-        for width in (0, 5, -1):
-            with self.assertRaises(ValueError):
-                audioop_utils.frame_count(b"\x01", width)
-        with self.assertRaises(ValueError):
-            audioop_utils.convert_sample_width(b"\x01", 1, 5)
-
-    def test_a_fragment_must_hold_whole_frames(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.add_fragments(b"\x01\x02", b"\x01", 2)
-        with self.assertRaises(ValueError):
-            audioop_utils.frame_count(b"\x01\x02\x03", 2)
-
-    def test_the_measurements_reject_an_empty_fragment(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.average(b"", 1)
-        with self.assertRaises(ValueError):
-            audioop_utils.root_mean_square(b"", 1)
-        with self.assertRaises(ValueError):
-            audioop_utils.describe_fragment(b"", 1)
-
-    def test_two_fragments_must_hold_the_same_number_of_bytes(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.add_fragments(b"\x01", b"\x01\x02", 1)
-        with self.assertRaises(ValueError):
-            audioop_utils.find_scale_factor(b"\x01", b"\x01\x02")
-
-    def test_a_rate_must_be_greater_than_zero(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.resample(b"\x01", 1, 1, 0, 16000, None)
-        with self.assertRaises(ValueError):
-            audioop_utils.resample(b"\x01", 1, 1, 8000, 0, None)
-
-    def test_the_number_of_channels_must_be_greater_than_zero(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.resample(b"\x01", 1, 0, 8000, 16000, None)
-
-    def test_a_stereo_fragment_must_hold_an_even_number_of_frames(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.mix_to_mono(b"\x01\x02\x03", 1)
-
-    def test_the_resampler_validates_its_arguments(self):
-        with self.assertRaises(TypeError):
-            audioop_utils.Resampler("1", 8000, 16000)
-        with self.assertRaises(ValueError):
-            audioop_utils.Resampler(0, 8000, 16000)
-        with self.assertRaises(ValueError):
-            audioop_utils.Resampler(1, 0, 16000)
-        with self.assertRaises(ValueError):
-            audioop_utils.Resampler(1, 8000, 0)
-
-    def test_a_sample_index_must_be_inside_the_fragment(self):
-        with self.assertRaises(IndexError):
-            audioop_utils.sample_at(b"\x01\x02", 1, 2)
-        with self.assertRaises(IndexError):
-            audioop_utils.sample_at(b"\x01\x02", 1, -3)
-
-
-class TestFrameCount(unittest.TestCase):
-    """Verify the helper that counts the frames of a fragment."""
-
-    def test_the_frames_are_counted(self):
-        self.assertEqual(audioop_utils.frame_count(b"\x01\x02\x03\x04", 2), 2)
-        self.assertEqual(audioop_utils.frame_count(b"\x01\x02\x03\x04", 1), 4)
-
-    def test_an_empty_fragment_holds_no_frame(self):
-        self.assertEqual(audioop_utils.frame_count(b"", 2), 0)
-
-
-class TestMeasurements(unittest.TestCase):
-    """Verify the helpers that measure a fragment."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        self.fragment = b"\x00\x01\x02\x03"
-
-    def test_the_average_is_the_exact_mean_of_the_samples(self):
-        self.assertEqual(audioop_utils.average(self.fragment, 1), 1.5)
-        self.assertEqual(audioop_utils.average(b"\x02\x04", 1), 3.0)
-
-    def test_the_root_mean_square_is_the_exact_value(self):
-        self.assertAlmostEqual(
-            audioop_utils.root_mean_square(self.fragment, 1), (3.5) ** 0.5
-        )
-
-    def test_the_peak_is_the_largest_absolute_sample(self):
-        self.assertEqual(audioop_utils.peak_value(self.fragment, 1), 3)
-        self.assertEqual(audioop_utils.peak_value(b"\xff\x01", 1), 1)
-
-    def test_the_peak_range_holds_the_smallest_and_the_largest_sample(self):
-        self.assertEqual(audioop_utils.peak_range(self.fragment, 1), (0, 3))
-        self.assertEqual(audioop_utils.peak_range(b"\xff\x01", 1), (-1, 1))
-
-    def test_the_peak_to_peak_value_is_the_distance_of_two_samples(self):
-        self.assertEqual(
-            audioop_utils.peak_to_peak(self.fragment, 1),
-            _audioop.maxpp(self.fragment, 1),
-        )
-
-    def test_the_average_peak_to_peak_value_matches_the_standard_library(self):
-        self.assertEqual(
-            audioop_utils.average_peak_to_peak(self.fragment, 1),
-            float(_audioop.avgpp(self.fragment, 1)),
-        )
-
-    def test_the_zero_crossings_are_counted(self):
-        self.assertEqual(audioop_utils.count_zero_crossings(b"\xff\x00\xff\x00", 1), 3)
-        self.assertEqual(audioop_utils.count_zero_crossings(self.fragment, 1), 0)
-
-    def test_the_description_holds_the_measurements(self):
-        description = audioop_utils.describe_fragment(self.fragment, 1)
-        self.assertEqual(description["width"], 1)
-        self.assertEqual(description["frames"], 4)
-        self.assertEqual(description["minimum"], 0)
-        self.assertEqual(description["maximum"], 3)
-        self.assertEqual(description["peak"], 3)
-        self.assertEqual(description["peak_to_peak"], _audioop.maxpp(self.fragment, 1))
-        self.assertEqual(description["average"], 1.5)
-        self.assertAlmostEqual(description["root_mean_square"], (3.5) ** 0.5)
-        self.assertEqual(description["zero_crossings"], 0)
-        self.assertEqual(
-            description["average_peak_to_peak"], float(_audioop.avgpp(self.fragment, 1))
-        )
-
-
-class TestConversions(unittest.TestCase):
-    """Verify the helpers that convert a fragment."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        self.fragment = b"\x00\x01\x02\x03"
-
-    def test_the_width_of_a_sample_is_converted(self):
-        self.assertEqual(
-            audioop_utils.convert_sample_width(b"\x01\x02", 1, 2), b"\x00\x01\x00\x02"
-        )
-
-    def test_the_u_law_form_holds_one_byte_per_sample(self):
-        self.assertEqual(len(audioop_utils.convert_to_u_law(self.fragment, 1)), 4)
-
-    def test_the_a_law_form_holds_one_byte_per_sample(self):
-        self.assertEqual(len(audioop_utils.convert_to_a_law(self.fragment, 1)), 4)
-
-    def test_the_u_law_form_is_read_back_within_the_step_of_the_coding(self):
-        coded = audioop_utils.convert_to_u_law(self.fragment, 1)
-        decoded = audioop_utils.convert_from_u_law(coded, 1)
-        self.assertEqual(len(decoded), len(self.fragment))
-        for original, restored in zip(self.fragment, decoded):
-            self.assertLessEqual(abs(original - restored), 2)
-
-    def test_the_a_law_form_is_read_back_within_the_step_of_the_coding(self):
-        coded = audioop_utils.convert_to_a_law(self.fragment, 1)
-        decoded = audioop_utils.convert_from_a_law(coded, 1)
-        self.assertEqual(len(decoded), len(self.fragment))
-        for original, restored in zip(self.fragment, decoded):
-            self.assertLessEqual(abs(original - restored), 2)
-
-    def test_the_small_samples_survive_the_u_law_coding(self):
-        self.assertEqual(
-            audioop_utils.convert_from_u_law(
-                audioop_utils.convert_to_u_law(self.fragment, 1), 1
-            ),
-            self.fragment,
-        )
-
-    def test_the_small_samples_survive_the_a_law_coding(self):
-        self.assertEqual(
-            audioop_utils.convert_from_a_law(
-                audioop_utils.convert_to_a_law(self.fragment, 1), 1
-            ),
-            self.fragment,
-        )
-
-
-class TestArithmetic(unittest.TestCase):
-    """Verify the helpers that compute on a fragment."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        self.fragment = b"\x00\x01\x02\x03"
-
-    def test_two_fragments_are_added(self):
-        self.assertEqual(
-            audioop_utils.add_fragments(self.fragment, b"\x01\x01\x01\x01", 1),
-            b"\x01\x02\x03\x04",
-        )
-
-    def test_a_bias_is_added_to_every_sample(self):
-        self.assertEqual(
-            audioop_utils.shift_bias(self.fragment, 1, 10), b"\x0a\x0b\x0c\x0d"
-        )
-
-    def test_every_sample_is_multiplied_by_a_factor(self):
-        self.assertEqual(audioop_utils.scale(self.fragment, 1, 2.0), b"\x00\x02\x04\x06")
-
-    def test_the_byte_order_of_every_sample_is_reversed(self):
-        self.assertEqual(audioop_utils.swap_byte_order(b"\x01\x02", 2), b"\x02\x01")
-
-    def test_the_samples_are_reversed(self):
-        self.assertEqual(audioop_utils.reverse_samples(b"\x01\x02\x03", 1), b"\x03\x02\x01")
-
-    def test_a_bytearray_is_accepted(self):
-        self.assertEqual(
-            audioop_utils.reverse_samples(bytearray(b"\x01\x02\x03"), 1), b"\x03\x02\x01"
-        )
-
-    def test_a_memory_view_is_accepted(self):
-        self.assertEqual(
-            audioop_utils.reverse_samples(memoryview(b"\x01\x02\x03"), 1), b"\x03\x02\x01"
-        )
-
-
-class TestChannels(unittest.TestCase):
-    """Verify the helpers that change the number of channels."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-
-    def test_a_stereo_fragment_is_mixed_down(self):
-        self.assertEqual(
-            audioop_utils.mix_to_mono(b"\x01\x02\x03\x04", 1),
-            _audioop.tomono(b"\x01\x02\x03\x04", 1, 1.0, 1.0),
-        )
-
-    def test_a_mono_fragment_is_duplicated(self):
-        self.assertEqual(
-            audioop_utils.duplicate_to_stereo(b"\x01\x02", 1),
-            _audioop.tostereo(b"\x01\x02", 1, 1.0, 1.0),
-        )
-
-    def test_the_factors_of_the_channels_are_used(self):
-        self.assertEqual(
-            audioop_utils.mix_to_mono(b"\x01\x02\x03\x04", 1, 1.0, 0.0),
-            _audioop.tomono(b"\x01\x02\x03\x04", 1, 1.0, 0.0),
-        )
-
-    def test_the_duplicated_fragment_holds_both_channels(self):
-        self.assertEqual(len(audioop_utils.duplicate_to_stereo(b"\x01\x02", 1)), 4)
-
-
-class TestSamples(unittest.TestCase):
-    """Verify the helpers that read a single sample of a fragment."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        self.fragment = b"\x01\x02\x03\x04"
-
-    def test_a_sample_is_read_by_its_position(self):
-        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, 0), 1)
-        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, 2), 3)
-
-    def test_a_negative_position_counts_from_the_end(self):
-        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -1), 4)
-        self.assertEqual(audioop_utils.sample_at(self.fragment, 1, -4), 1)
-
-    def test_the_scale_factor_of_a_fragment_is_one_for_equal_fragments(self):
-        self.assertAlmostEqual(
-            audioop_utils.find_scale_factor(self.fragment, self.fragment), 1.0
-        )
-
-    def test_the_scale_factor_needs_whole_sixteen_bit_samples(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.find_scale_factor(b"\x01\x02\x03", b"\x01\x02\x03")
-        with self.assertRaises(ValueError):
-            audioop_utils.find_scale_factor(b"\x01\x02", b"\x01\x02\x03\x04")
-
-
-class TestResampling(unittest.TestCase):
-    """Verify the helpers that resample a fragment."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        self.fragment = b"\x00\x01\x02\x03"
-
-    def test_the_resampled_fragment_and_the_state_are_returned(self):
-        data, state = audioop_utils.resample(self.fragment, 1, 1, 8000, 16000, None)
-        self.assertIsInstance(data, bytes)
-        self.assertIsNotNone(state)
-
-    def test_the_state_is_handed_back_to_the_standard_library(self):
-        data, state = audioop_utils.resample(self.fragment, 1, 1, 8000, 16000, None)
-        self.assertEqual(
-            data, _audioop.ratecv(self.fragment, 1, 1, 8000, 16000, None)[0]
-        )
-        self.assertIsNotNone(state)
-
-    def test_a_fragment_must_hold_whole_frames_of_every_channel(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.resample(b"\x01\x02\x03", 1, 2, 8000, 16000, None)
-
-    def test_the_resampler_keeps_the_state_of_the_conversion(self):
-        resampler = audioop_utils.Resampler(1, 8000, 16000)
-        first = resampler.resample(self.fragment, 1)
-        self.assertIsInstance(first, bytes)
-        self.assertIsNotNone(resampler.state)
-        second = resampler.resample(self.fragment, 1)
-        self.assertIsInstance(second, bytes)
-
-    def test_the_resampler_reports_its_settings(self):
-        resampler = audioop_utils.Resampler(2, 8000, 16000)
-        self.assertEqual(resampler.channels, 2)
-        self.assertEqual(resampler.input_rate, 8000)
-        self.assertEqual(resampler.output_rate, 16000)
-        self.assertIsNone(resampler.state)
-
-    def test_the_resampler_forgets_the_state_on_a_reset(self):
-        resampler = audioop_utils.Resampler(1, 8000, 16000)
-        resampler.resample(self.fragment, 1)
-        resampler.reset()
-        self.assertIsNone(resampler.state)
-
-    def test_the_resampler_continues_where_the_standard_library_stops(self):
-        resampler = audioop_utils.Resampler(1, 8000, 16000)
-        first = resampler.resample(self.fragment, 1)
-        second = resampler.resample(self.fragment, 1)
-        manual, state = _audioop.ratecv(self.fragment, 1, 1, 8000, 16000, None)
-        expected, _ = _audioop.ratecv(self.fragment, 1, 1, 8000, 16000, state)
-        self.assertEqual(first, manual)
-        self.assertEqual(second, expected)
-
-
-class TestAdpcm(unittest.TestCase):
-    """Verify the helpers that code a fragment with ADPCM."""
-
-    def setUp(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        self.fragment = b"\x00\x10\x20\x30\x40"
-
-    def test_the_coded_fragment_and_the_state_are_returned(self):
-        coded, state = audioop_utils.encode_adpcm(self.fragment, 1)
-        self.assertIsInstance(coded, bytes)
-        self.assertIsNotNone(state)
-
-    def test_the_coded_fragment_holds_four_bits_per_sample(self):
-        coded, _ = audioop_utils.encode_adpcm(self.fragment, 1)
-        self.assertLessEqual(len(coded), len(self.fragment) // 2)
-
-    def test_the_coded_fragment_matches_the_standard_library(self):
-        coded, _ = audioop_utils.encode_adpcm(self.fragment, 1)
-        self.assertEqual(coded, _standard_encode(self.fragment, 1)[0])
-
-    def test_the_decoded_fragment_matches_the_standard_library(self):
-        coded, _ = _standard_encode(self.fragment, 1)
-        decoded, _ = audioop_utils.decode_adpcm(coded, 1)
-        self.assertEqual(decoded, _standard_decode(coded, 1)[0])
-
-    def test_the_decoded_fragment_is_read_as_bytes(self):
-        coded, _ = audioop_utils.encode_adpcm(self.fragment, 1)
-        decoded, _ = audioop_utils.decode_adpcm(coded, 1)
-        self.assertIsInstance(decoded, bytes)
-
-    def test_the_number_of_bits_must_be_one_the_standard_library_understands(self):
-        with self.assertRaises(ValueError):
-            audioop_utils.encode_adpcm(self.fragment, 1, None, 9)
-        with self.assertRaises(ValueError):
-            audioop_utils.decode_adpcm(b"\x00", 1, None, 9)
-
-    def test_the_number_of_bits_must_be_an_integer(self):
-        with self.assertRaises(TypeError):
-            audioop_utils.encode_adpcm(self.fragment, 1, None, "4")
-
-
-class TestDegradation(unittest.TestCase):
-    """Verify the behaviour on an interpreter that removed the module."""
-
-    @unittest.skipIf(_audioop is not None, "audioop module available")
-    def test_the_helpers_report_the_missing_module(self):
-        with self.assertRaises(RuntimeError):
-            audioop_utils.convert_sample_width(b"\x01", 1, 2)
-        with self.assertRaises(RuntimeError):
-            audioop_utils.describe_fragment(b"\x01", 1)
-        with self.assertRaises(RuntimeError):
-            audioop_utils.resample(b"\x01", 1, 1, 8000, 16000, None)
-
-    @unittest.skipIf(_audioop is not None, "audioop module available")
-    def test_the_pure_helpers_keep_working(self):
-        self.assertEqual(audioop_utils.frame_count(b"\x01\x02", 1), 2)
-        self.assertEqual(audioop_utils.average(b"\x02\x04", 1), 3.0)
-
-
-class TestStateOfTheModule(unittest.TestCase):
-    """Verify the state the module keeps between two calls."""
-
-    def test_the_adpcm_convention_is_detected_once(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        audioop_utils.encode_adpcm(b"\x00\x10", 1)
-        self.assertIn(audioop_utils._ADPCM_CONVENTION, ("stateful", "legacy"))
-
-    def test_the_convention_matches_the_running_interpreter(self):
-        if _audioop is None:
-            self.skipTest("audioop module not available")
-        audioop_utils.encode_adpcm(b"\x00\x10", 1)
-        self.assertEqual(audioop_utils._ADPCM_CONVENTION == "stateful", _STATEFUL)
-
-
-if __name__ == "__main__":
-    unittest.main()
-TEST_AUDIOOP_UTILS
-
 # --- ensurepip_utils.py ---
 cat > "$OUTPUT_DIR/ensurepip_utils.py" <<'ENSUREPIP_UTILS'
 """Bootstrap utilities wrapping the standard library :mod:`ensurepip` package.
@@ -157683,94 +157222,6 @@ if __name__ == "__main__":
 TEST_ASYNCORE_UTILS
 
 # --- smtpd_utils.py ---
-
-# --- tests/test_smtpd_utils.py ---
-cat > "$OUTPUT_DIR/tests/test_smtpd_utils.py" <<'TEST_SMTPD_UTILS'
-"""Tests for smtpd_utils module."""
-
-import unittest
-from unittest import mock
-
-import smtpd_utils
-from test.support import smtpd
-
-
-class TestExports(unittest.TestCase):
-    def test_classes_exported(self):
-        self.assertIs(smtpd_utils.SMTPServer, smtpd.SMTPServer)
-        self.assertIs(smtpd_utils.DebuggingServer, smtpd.DebuggingServer)
-        self.assertIs(smtpd_utils.PureProxy, smtpd.PureProxy)
-        self.assertIs(smtpd_utils.SMTPChannel, smtpd.SMTPChannel)
-
-    def test_constants_exported(self):
-        self.assertIs(smtpd_utils.COMMASPACE, smtpd.COMMASPACE)
-        self.assertIs(smtpd_utils.NEWLINE, smtpd.NEWLINE)
-
-
-class TestCreateSMTPServer(unittest.TestCase):
-    def test_create_smtp_server(self):
-        with mock.patch("smtpd_utils.SMTPServer") as m:
-            m.return_value = mock.sentinel.server
-            result = smtpd_utils.create_smtp_server(("localhost", 1025))
-            self.assertIs(result, mock.sentinel.server)
-            m.assert_called_once()
-
-    def test_create_smtp_server_bad_types(self):
-        with self.assertRaises(TypeError):
-            smtpd_utils.create_smtp_server(localaddr="bad")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            smtpd_utils.create_smtp_server(localaddr=("host", "25"))  # type: ignore[arg-type]
-        with self.assertRaises(ValueError):
-            smtpd_utils.create_smtp_server(localaddr=("host", 70000))
-        with self.assertRaises(TypeError):
-            smtpd_utils.create_smtp_server(enable_SMTPUTF8="true")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            smtpd_utils.create_smtp_server(map=[])  # type: ignore[arg-type]
-
-
-class TestCreateDebuggingServer(unittest.TestCase):
-    def test_create_debugging_server(self):
-        with mock.patch("smtpd_utils.DebuggingServer") as m:
-            m.return_value = mock.sentinel.server
-            result = smtpd_utils.create_debugging_server(("localhost", 1025))
-            self.assertIs(result, mock.sentinel.server)
-            m.assert_called_once()
-
-
-class TestCreatePureProxy(unittest.TestCase):
-    def test_create_pure_proxy(self):
-        with mock.patch("smtpd_utils.PureProxy") as m:
-            m.return_value = mock.sentinel.server
-            result = smtpd_utils.create_pure_proxy(("localhost", 1025))
-            self.assertIs(result, mock.sentinel.server)
-            m.assert_called_once()
-
-
-class TestProcessMessage(unittest.TestCase):
-    def test_process_message(self):
-        server = mock.Mock(spec=smtpd.SMTPServer)
-        server.process_message.return_value = "250 Ok"
-        result = smtpd_utils.process_message(
-            server, ("127.0.0.1", 1234), "from@x", ["to@x"], b"data"
-        )
-        self.assertEqual(result, "250 Ok")
-        server.process_message.assert_called_once()
-
-    def test_process_message_bad_types(self):
-        server = mock.Mock(spec=smtpd.SMTPServer)
-        with self.assertRaises(TypeError):
-            smtpd_utils.process_message("bad", ("127.0.0.1", 1), "f", [], b"x")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            smtpd_utils.process_message(server, ("127.0.0.1", "1"), "f", [], b"x")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            smtpd_utils.process_message(server, ("127.0.0.1", 1), "f", "[]", b"x")  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            smtpd_utils.process_message(server, ("127.0.0.1", 1), "f", [], "x")  # type: ignore[arg-type]
-
-
-if __name__ == "__main__":
-    unittest.main()
-TEST_SMTPD_UTILS
 
 # --- hostname_utils.py ---
 cat > "$OUTPUT_DIR/hostname_utils.py" <<'HOSTNAME_UTILS'
