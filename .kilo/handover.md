@@ -1,7 +1,7 @@
 # Durable Handover for Next Agent
 
 **Session:** 2026-11-12T13:47Z
-**Checkpoint:** `f48131e` at handover time (this session advanced the marker with `--full`; the next commit will move HEAD past it, so expect a battery re-run)
+**Checkpoint:** `601bf88` (marker; HEAD is `220e5b4`, which differs only in `.kilo/last_verified.checkpoint`, so the next session's state-delta will skip a redundant battery)
 
 ## Task for Next Agent
 
