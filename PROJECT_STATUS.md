@@ -1,6 +1,30 @@
 # Project Status
 
-## Latest Session (2026-11-12T17:48Z) — foundation verified clean; no task, no genuine gap
+## Latest Session (2026-11-12T17:50Z) — foundation verified clean; state-delta skipped, no genuine gap
+
+Board held no task (`board_read` empty; bootstrap session). `board_post` to `main` is refused because `main` resolves to the board root, so durable handover is recorded in `.kilo/handover.md` and this file. State-delta vs last verified checkpoint `b8832ac`: working tree clean and no source-relevant file changed since the checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification (avoidable process delay removed).
+
+**Gaps identified:** None.
+
+**Work completed:** Verified foundation via `verify_state_delta.py` (skip path), `python tools/refresh_scaffold.py --check` (all embedded copies in sync), `python tools/scan_untested.py` (no exported-but-untested callables), and `python -m pytest tests/test_public_api.py tests/test_scaffold_sync.py -q` (19 passed, 3794 subtests). No source/test changes made; avoiding no-op commits and timestamp-only churn. Durable handover updated for next agent. No `.github/workflows/**` changes, no duplicate board task.
+
+**Validation:** `python tools/verify_state_delta.py` skipped (no source-relevant change since `b8832ac`); `python tools/refresh_scaffold.py --check` in sync; `python tools/scan_untested.py` clean; targeted tests 19 passed / 3794 subtests. Full suite/lint/typecheck not re-run (no source-relevant changes; last verified at checkpoint `b8832ac`).
+
+---
+
+## Next Agent Task
+
+Verify the project foundation remains solid and prepare the next durable handover. State-delta first: run `python tools/verify_state_delta.py` — it skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed. Confirm `python tools/refresh_scaffold.py --check` in sync and `python tools/scan_untested.py` clean as needed; run `python -m pytest tests/test_public_api.py tests/test_scaffold_sync.py -q` for a quick targeted check; run the full suite only at a coherent milestone or after relevant source changes.
+
+If a new module/API or genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
+
+Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
+**Current verified checkpoint:** `b8832ac` (battery passed at that HEAD). If the CI checkpoint commit advances HEAD past the recorded checkpoint, expect one battery re-run via `verify_state_delta.py` before the checkpoint is stable.
+
+---
+
+## Earlier Session (2026-11-12T17:48Z) — foundation verified clean; no task, no genuine gap
 
 Board held no task (`board_read` empty; bootstrap session). `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and `PROJECT_STATUS.md`. State-delta vs last verified checkpoint `b8832ac`: working tree clean and HEAD (`b80c645`) differs only by CI/session checkpoint commits, so no source-relevant file changed and `python tools/verify_state_delta.py` skipped redundant verification (avoidable process delay removed).
 
