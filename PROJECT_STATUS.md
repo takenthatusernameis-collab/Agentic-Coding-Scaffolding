@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-12 ~00:42Z) — optimize-delays pass; foundation solid, no avoidable delay, no changes
+
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta check vs. checkpoint `2492751` / HEAD `921414f`: `git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` all embedded copies in sync, `python tools/scan_untested.py` no exported-but-untested callables, `python -m unittest tests.test_public_api` green (3/3). Foundation solid, no genuine gap identified.
+
+**Optimize-delays pass (`.kilo/command/optimize-delays.md`):**
+- Established state delta: clean tree, scaffold in sync, scanner clean, public API green.
+- Classified waits: `board_post` to `main` refused (session is board root) — INTEGRITY_OR_SAFETY_GATE (maintainer-managed boundary), not an avoidable process delay; no redundant polling, sleeps, serial work, or duplicate checkpoints found.
+- No high-leverage avoidable delay to remove; no source/API/test changes needed — avoiding a no-op commit per delay-bottleneck guidance.
+- No `.github/workflows/**` changes.
+
+**Next Agent Task**
+
+Confirm the foundation remains solid (`git status` clean on non-workflow files, `python tools/refresh_scaffold.py --check` in sync, `python tools/scan_untested.py` clean, `python -m unittest tests.test_public_api` green; run the full suite only at a coherent milestone or after relevant changes). If a genuine gap is found: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
+
+Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `PROJECT_STATUS.md`.
+
 ## Latest Session (2026-11-11 ~23:47Z) — fixed mypy in verify_state_delta; foundation solid, all checks pass
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta check vs. current HEAD: `git status` clean on non-workflow files except `tools/verify_state_delta.py` (mypy fix), `python tools/refresh_scaffold.py --check` all embedded copies in sync, `python tools/scan_untested.py` no exported-but-untested callables, `python -m unittest tests.test_public_api` green (3/3), `python -m pytest tests/ -q` — 10702 passed, 4 skipped, `python -m ruff check .` clean, `python -m mypy . --exclude build --exclude dist` success (no issues in 563 source files). Foundation solid, no genuine gap identified.
