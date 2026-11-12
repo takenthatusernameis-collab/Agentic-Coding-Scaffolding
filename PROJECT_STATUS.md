@@ -1,5 +1,26 @@
 # Project Status
 
+## Latest Session (2026-11-12 ~00:46Z) — fixed dead `--full` flag in verify_state_delta; checkpoint now advances to HEAD
+
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta vs last verified checkpoint `0df9f1c`: working tree clean, no source-relevant file changed since that checkpoint (only `.kilo/handover.md`, `.kilo/last_verified.checkpoint`, `PROJECT_STATUS.md` differ), so the guard skipped redundant verification.
+
+**Genuine gap found and closed — dead `--full` flag:** the tool documents `python tools/verify_state_delta.py [--full]` to force the battery and always advance the checkpoint, but `main()` was invoked with no arguments at `tools/verify_state_delta.py:133`, so `--full` was silently ignored and the verified checkpoint could never advance to the current HEAD. Reproduced: `python -c "import sys; sys.argv=['verify_state_delta.py','--full']; ...; main()"` still skipped. Fixed by passing `sys.argv[1:]` through (`tools/verify_state_delta.py:133`).
+
+**Validation:** `python tools/verify_state_delta.py --full` now runs the battery and advances `.kilo/last_verified.checkpoint` to `1dc82a3` (== HEAD); a subsequent `python tools/verify_state_delta.py` against the clean unchanged tree skips redundant verification; `python -m ruff check tools/verify_state_delta.py` clean; `python -m mypy tools/verify_state_delta.py` success (no issues in 1 source file); `python -m py_compile tools/verify_state_delta.py` OK; `python tools/refresh_scaffold.py --check` all embedded copies in sync; `python tools/scan_untested.py` no exported-but-untested callables; `python -m unittest tests.test_public_api` green (3/3). No `.github/workflows/**` changes.
+
+**Changes (non-workflow files only):**
+- `tools/verify_state_delta.py` — pass `sys.argv[1:]` to `main()` so the documented `--full` flag works and the verified checkpoint advances to current HEAD each activation.
+- `.kilo/last_verified.checkpoint` — advanced to `1dc82a3` via the fixed tool.
+- `.kilo/handover.md`, `PROJECT_STATUS.md` — durable handover recorded here.
+
+**Next Agent Task**
+
+Verify the project foundation remains solid and prepare the next durable handover. State-delta first: run `python tools/verify_state_delta.py` — it skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed. Confirm `python tools/refresh_scaffold.py --check` in sync and `tests.test_public_api` green as needed; run the full suite only at a coherent milestone or after relevant source changes.
+
+If a new module/API or genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
+
+Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
 ## Latest Session (2026-11-12 ~00:44Z) — bootstrap verification; foundation solid, state-delta checkpoint advanced
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root). State-delta vs HEAD `0df9f1c`: `python tools/verify_state_delta.py` ran the battery (clean relevant inputs since prior checkpoint) and advanced `.kilo/last_verified.checkpoint` to `0df9f1c`; `python tools/refresh_scaffold.py --check` in sync; `python tools/scan_untested.py` no exported-but-untested callables; `python -m unittest tests.test_public_api` green (3/3). Foundation solid, no genuine gap identified.
