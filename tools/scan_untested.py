@@ -181,8 +181,16 @@ def name_referenced(test_text: str, name: str) -> bool:
     return re.search(_WORD_BOUNDARY + re.escape(name) + _WORD_BOUNDARY, test_text) is not None
 
 
-def scan_module(path: Path, show_all: bool) -> list[str]:
-    """Return the exported-but-untested callables of *path*."""
+def scan_module(path: Path, show_all: bool = False) -> list[str]:
+    """Return the exported-but-untested callables of *path*.
+
+    By default only genuine gaps are reported: a public callable that the
+    module itself defines. Type variables, constants, classes, entry points,
+    and interactive stdlib facades are filtered out because they are not
+    hermetic helpers. Passing *show_all* disables those filters and reports
+    every exported name that the module's test does not reference, which is
+    what ``--all`` documents.
+    """
     tree = ast.parse(path.read_text())
     names = exported_names(tree)
     if not names:
@@ -195,14 +203,18 @@ def scan_module(path: Path, show_all: bool) -> list[str]:
     for name in sorted(names):
         if name.startswith("_"):
             continue
-        if name in SKIP_NAMES:
-            continue
-        if not is_function_export(tree, name):
-            continue
-        if is_typevar_or_constant(tree, name):
-            continue
+        # A name referenced anywhere in the module's test counts as tested in
+        # both modes; ``--all`` widens which names are eligible, not which
+        # references count.
         if module_referenced and name_referenced(test_text, name):
             continue
+        if not show_all:
+            if name in SKIP_NAMES:
+                continue
+            if not is_function_export(tree, name):
+                continue
+            if is_typevar_or_constant(tree, name):
+                continue
         gaps.append(name)
     return gaps
 

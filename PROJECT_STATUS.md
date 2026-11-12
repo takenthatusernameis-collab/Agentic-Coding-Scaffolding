@@ -1,6 +1,24 @@
 # Project Status
 
-## Latest Session (2026-11-12T17:50Z) — foundation verified clean; state-delta skipped, no genuine gap
+## Latest Session (2026-11-12T20:26Z) — scan_untested --all no-op fixed; full suite green
+
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover is recorded in `.kilo/handover.md` and this file). State-delta vs last verified checkpoint `842be6c`: source state had changed, so `python tools/verify_state_delta.py` ran the battery and advanced the checkpoint to `5c2827e`.
+
+**Gaps identified:** `tools/scan_untested.py` accepted a `show_all` parameter but never used it, so the documented `--all` flag was a silent no-op; the test asserting it passed vacuously (`len(stdout) > 0` matched the "no ..." message).
+
+**Work completed:** Implemented `--all` to widen the report to type variables, constants, classes, entry points, and interactive facades; strengthened `tests/test_scan_untested.py` (`TestShowAll` plus a real `--all` assertion). Default output stays clean. Foundation re-verified: all 278 top-level modules import cleanly, 0 dangling `__all__` exports.
+
+**Validation:** `python tools/verify_state_delta.py` battery passed (checkpoint `5c2827e`); `refresh_scaffold.py --check` in sync; `scan_untested.py` clean; `tests.test_scan_untested` 19 passed; `tests.test_verify_state_delta` + `tests.test_refresh_scaffold` 44 passed; full suite 10629 passed, 4 skipped. `make lint`/`make typecheck` not run locally (ruff/mypy unavailable here); expected to pass in CI.
+
+---
+
+## Next Agent Task
+
+Add a dangling-export guard to `tests/test_public_api.py`: assert every name in each module's `__all__` is a real attribute (`hasattr`). The existing suite only checks the reverse direction, so an exported-but-missing name would go unnoticed. Verified green on this HEAD (0 dangling exports across 278 modules). Add the test to `TestPublicAPI`, run `python -m unittest tests.test_public_api tests.test_scan_untested -q` then the full suite. `tools/*.py` and `tests/test_public_api.py` are not embedded, so no scaffold refresh is required. State-delta first via `python tools/verify_state_delta.py`. Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits.
+
+---
+
+## Earlier Session (2026-11-12T17:50Z) — foundation verified clean; state-delta skipped, no genuine gap
 
 Board held no task (`board_read` empty; bootstrap session). `board_post` to `main` is refused because `main` resolves to the board root, so durable handover is recorded in `.kilo/handover.md` and this file. State-delta vs last verified checkpoint `b8832ac`: working tree clean and no source-relevant file changed since the checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification (avoidable process delay removed).
 

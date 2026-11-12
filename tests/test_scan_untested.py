@@ -4,6 +4,7 @@ import ast
 import importlib.util
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -99,6 +100,58 @@ class TestSkipNames(unittest.TestCase):
         self.assertNotIn("help", gaps)
 
 
+class TestShowAll(unittest.TestCase):
+    """Verify that ``--all`` widens the report instead of being a silent no-op.
+
+    ``scan_module`` used to accept ``show_all`` and ignore it, so ``--all``
+    produced the same empty report as the default. The flag is documented to
+    list type variables, constants, classes, entry points, and interactive
+    facades too, so it must actually widen the report.
+    """
+
+    def _module(self, source: str) -> Path:
+        """Write *source* to a temporary module and return its path."""
+        handle = tempfile.NamedTemporaryFile(
+            "w", suffix=".py", delete=False, encoding="utf-8"
+        )
+        self.addCleanup(lambda: Path(handle.name).unlink(missing_ok=True))
+        with handle:
+            handle.write(source)
+        return Path(handle.name)
+
+    def test_default_reports_only_genuine_gaps(self):
+        path = self._module(
+            "from typing import TypeVar\n"
+            "__all__ = ['alpha', 'K', 'main', 'Foo']\n"
+            "T = TypeVar('T')\n"
+            "K = 1\n"
+            "def alpha():\n"
+            "    return 1\n"
+            "def main():\n"
+            "    return 2\n"
+            "class Foo:\n"
+            "    pass\n"
+        )
+        self.assertEqual(scan_untested.scan_module(path, False), ["alpha"])
+
+    def test_all_includes_filtered_names(self):
+        path = self._module(
+            "from typing import TypeVar\n"
+            "__all__ = ['alpha', 'K', 'main', 'Foo']\n"
+            "T = TypeVar('T')\n"
+            "K = 1\n"
+            "def alpha():\n"
+            "    return 1\n"
+            "def main():\n"
+            "    return 2\n"
+            "class Foo:\n"
+            "    pass\n"
+        )
+        self.assertEqual(
+            scan_untested.scan_module(path, True), ["Foo", "K", "alpha", "main"]
+        )
+
+
 class TestScan(unittest.TestCase):
     """Verify the scanner reports no exported-but-untested callables."""
 
@@ -113,6 +166,16 @@ class TestScan(unittest.TestCase):
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("no exported-but-untested callables", result.stdout)
 
+    def test_the_default_report_is_empty(self):
+        result = subprocess.run(
+            [sys.executable, str(TOOL)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        self.assertEqual(result.stdout.strip(), "no exported-but-untested callables")
+
     def test_the_all_flag_lists_everything(self):
         result = subprocess.run(
             [sys.executable, str(TOOL), "--all"],
@@ -122,8 +185,15 @@ class TestScan(unittest.TestCase):
             check=False,
         )
         # With --all the scanner lists type variables, constants, classes, and
-        # interactive facades too, so it must report something.
-        self.assertGreater(len(result.stdout), 0)
+        # interactive facades too, so it must report them and exit non-zero.
+        # The old implementation ignored the flag and printed the same "no ..."
+        # message as the default, which this asserts against.
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        self.assertNotIn("no exported-but-untested callables", result.stdout)
+        self.assertIn("exported-but-untested callables", result.stdout)
+        # ``code_utils`` exports the interactive ``interact`` facade, which the
+        # default filters out but ``--all`` must surface.
+        self.assertIn("interact", result.stdout)
 
 
 if __name__ == "__main__":
