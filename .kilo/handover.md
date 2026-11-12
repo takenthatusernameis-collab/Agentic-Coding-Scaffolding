@@ -1,7 +1,7 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-12T16:43Z
-**Checkpoint:** `7934d11` (battery re-ran and passed; marker advanced to the pre-commit HEAD, so the CI auto-commit will trigger one more battery pass next session)
+**Session:** 2026-11-12T16:47Z
+**Checkpoint:** `b8832ac` (battery passed; checkpoint advanced to the new HEAD after CI auto-commit)
 
 ## Task for Next Agent
 
@@ -11,34 +11,21 @@ If a new module/API or genuine gap is identified: add typed implementation with 
 
 Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
 
-## Gap Identified and Fixed (This Session)
-
-`tools/scan_untested.py:exported_names()` only handled plain `__all__ = [...]` assignments and ignored the annotated form `__all__: list[str] = [...]`. Because 116 wrapper modules declare their exports with the annotated form, the scanner silently skipped them and reported a false "no exported-but-untested callables".
-
-The fix recognizes `ast.AnnAssign` as well (via a shared `string_constants()` helper). With the fix in place the scanner surfaced **13 genuinely untested public exports** that had been hidden:
-
-- `pyexpat_utils.external_entity_parser`
-- `ssl_utils.get_server_certificate`, `get_server_certificate_tuple`, `match_hostname`, `verify_cert_chain`
-- `telnetlib_utils.read_eager`, `read_lazy`, `read_sb_data`, `read_some`, `read_very_eager`, `read_very_lazy`
-- `uu_utils.decode_file`, `encode_file`
-
 ## Work Completed This Session
 
-1. **Scanner fixed** — `exported_names()` now handles both plain and annotated `__all__`; added `string_constants()` helper with docstring.
-2. **Regression tests** — `tests/test_scan_untested.py::TestExportedNames` covers plain, annotated, tuple, non-string entries, non-literal, missing `__all__`, and a real annotated module.
-3. **Covered the surfaced exports** — added targeted tests to `tests/test_ssl_utils.py` (mocked `ssl.get_server_certificate`; validation paths), `tests/test_uu_utils.py` (encode/decode file roundtrip), `tests/test_telnetlib_utils.py` (delegation via a fake Telnet), and `tests/test_pyexpat_utils.py` (encoding forwarding + validation).
-4. **Scaffold refreshed** — `make refresh-scaffold` re-embedded the four edited test files into `scaffold.sh`; `refresh_scaffold.py --check` is in sync.
+1. **Foundation verified** — Ran `python tools/verify_state_delta.py`; working tree clean but HEAD differed from last verified checkpoint, so the battery ran and passed.
+2. **All checks passed** — `refresh_scaffold --check` in sync; `scan_untested` clean (no exported-but-untested callables); `tests.test_public_api` (3 passed); `tests.test_scaffold_sync` (16 passed); `make lint` and `make typecheck` pass.
+3. **Checkpoint advanced** — Verification battery passed; checkpoint advanced to `b8832ac0db6832fded7810835dcdf5a36b0550ac`.
 
 ## Verification Results (This Session)
 
-- `python tools/scan_untested.py`: no exported-but-untested callables
+- `python tools/verify_state_delta.py`: battery passed; checkpoint advanced to `b8832ac`
 - `python tools/refresh_scaffold.py --check`: all embedded copies in sync
-- `python -m pytest tests/test_scan_untested.py tests/test_ssl_utils.py tests/test_uu_utils.py tests/test_telnetlib_utils.py tests/test_pyexpat_utils.py`: 96 passed
-- `python -m pytest tests/ -q`: 10877 passed, 4 skipped, 4212 subtests passed
+- `python tools/scan_untested.py`: no exported-but-untested callables
+- `python -m unittest tests.test_public_api tests.test_scaffold_sync`: 19 passed
 - `make lint`: All checks passed
 - `make typecheck`: Success: no issues found in 565 source files
-- `python tools/verify_state_delta.py`: battery passed; checkpoint advanced to `7934d11`
 
 ## Notes
 
-No public wrapper API was added, so `README.md`/`CHANGELOG.md` were not touched. The next session should expect one battery re-run because the CI auto-commit creates a new HEAD containing this session's source changes; after that the checkpoint is stable.
+No code/test changes made; avoiding a no-op commit per delay-bottleneck guidance. The CI auto-commit will create a new HEAD containing the updated `.kilo/last_verified.checkpoint`; the next session should expect one battery re-run before the checkpoint is stable.

@@ -1,16 +1,18 @@
 # Project Status
 
-## Latest Session (2026-11-12T16:43Z) — scanner false-clean fixed; 13 hidden untested exports covered
+## Latest Session (2026-11-12T16:47Z) — foundation verified clean; battery passed at new checkpoint
 
-Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `5d83e0f`: working tree clean, no source-relevant file changed, so the battery was skipped on entry.
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `7934d11`: working tree clean but HEAD (`b8832ac`) differed from the last verified checkpoint, so the battery ran and passed. Checkpoint advanced to `b8832ac0db6832fded7810835dcdf5a36b0550ac`.
 
-**Gaps identified:** `tools/scan_untested.py:exported_names()` only handled plain `__all__ = [...]` and ignored the annotated form `__all__: list[str] = [...]`. 116 wrapper modules use the annotated form, so the scanner silently skipped them and reported a false clean. After the fix it surfaced 13 genuinely untested public exports: `pyexpat_utils.external_entity_parser`; `ssl_utils.get_server_certificate`, `get_server_certificate_tuple`, `match_hostname`, `verify_cert_chain`; `telnetlib_utils.read_eager`, `read_lazy`, `read_sb_data`, `read_some`, `read_very_eager`, `read_very_lazy`; `uu_utils.decode_file`, `encode_file`.
+**Gaps identified:** None.
 
-**Work completed:** `exported_names()` now recognizes `ast.AnnAssign` via a shared `string_constants()` helper; added `TestExportedNames` regression tests; added targeted tests covering all 13 surfaced exports; ran `make refresh-scaffold` to re-embed the four edited test files into `scaffold.sh`. No public wrapper API added, so `README.md`/`CHANGELOG.md` untouched. No `.github/workflows/**` changes, no duplicate board task, no timestamp-only handover.
+**Work completed:** Foundation verified via `verify_state_delta.py` (battery passed), `refresh_scaffold --check` (all embedded copies in sync), `scan_untested` (no exported-but-untested callables), `tests.test_public_api` (3 passed), `tests.test_scaffold_sync` (16 passed), `make lint` (all checks passed), and `make typecheck` (no issues in 565 source files). No code/test changes made; avoiding a no-op commit per delay-bottleneck guidance. No `.github/workflows/**` changes, no duplicate board task, no timestamp-only handoff.
 
-**Validation:** `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync; targeted tests 96 passed; full suite 10877 passed, 4 skipped, 4212 subtests passed; `make lint` and `make typecheck` pass; `python tools/verify_state_delta.py` battery passed and advanced the checkpoint to `7934d11`.
+**Validation:** `python tools/verify_state_delta.py` battery passed; checkpoint advanced to `b8832ac`; `python tools/refresh_scaffold.py --check` in sync; `python tools/scan_untested.py` clean; `tests.test_public_api` + `tests.test_scaffold_sync` (19/19); `make lint` and `make typecheck` pass.
 
 ---
+
+## Earlier Session (2026-11-12T16:43Z) — scanner false-clean fixed; 13 hidden untested exports covered
 
 ## Earlier Session (2026-11-12T15:56Z) — foundation verified clean; no task, no genuine gap
 
@@ -84,4 +86,4 @@ If a new module/API or genuine gap is identified: add typed implementation with 
 
 Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
 
-**Current verified checkpoint:** `7934d11` (battery passed at that HEAD; the CI auto-commit creates a new HEAD containing this session's source changes, so the next session should expect one battery re-run before the checkpoint is stable).
+**Current verified checkpoint:** `b8832ac` (battery passed at that HEAD; the CI auto-commit creates a new HEAD containing this session's checkpoint update, so the next session should expect one battery re-run before the checkpoint is stable).
