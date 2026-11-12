@@ -69562,6 +69562,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — closed a real scanner false-negative in scan_untested
+
+- Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `14bd1cd`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` ran the battery and advanced `.kilo/last_verified.checkpoint` to `533024c` (== HEAD).
+- **Genuine gap found and closed — scanner false-negative:** `python tools/scan_untested.py` reported "no exported-but-untested callables", but its substring matcher (`name in test_text`) produced a false negative: the interactive `help` facade of `pydoc_utils` was reported as tested because `help` is a substring of `helpers` in `tests/test_pydoc_utils.py` prose. `help` is an interactive stdlib facade (like `writedoc`, `browse`, `cli`, already in `SKIP_NAMES`) and was missing from `SKIP_NAMES`. Fixed two ways: (1) added `help` to `SKIP_NAMES`; (2) replaced the bare substring test with word-boundary matching in `name_referenced`, so embedded substrings can never be mistaken for a real reference again. Also fixed the same dead-`argv` pattern as `verify_state_delta`: `__main__` called `main()` with no args, so the documented `--all` flag was silently ignored; now passes `sys.argv[1:]`.
+- Added `tests/test_scan_untested.py` (`TestNameReferenced`, `TestSkipNames`, `TestScan`).
+- Validation: `python tools/scan_untested.py` no exported-but-untested callables; `python tools/refresh_scaffold.py --check` all embedded copies in sync; `python -m unittest tests.test_public_api` green; targeted `tests.test_scan_untested tests.test_public_api` — 12 tests OK; `python -m unittest discover tests/` — 10446 passed, 1 skipped, 0 failed; `python -m ruff check .` all checks passed; `python -m mypy tools/scan_untested.py` success (no issues in 1 source file). No `.github/workflows/**` changes.
+- No new public API, so no `README.md` changes. `tools/scan_untested.py` and its test are not embedded in `scaffold.sh` (only `*_utils.py` modules are), so `make refresh-scaffold` is not needed.
+
 ## Unreleased — fixed stale scaffold copies and 5 ruff violations
 
 - Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`).
