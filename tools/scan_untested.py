@@ -71,18 +71,37 @@ def iter_modules() -> list[Path]:
     return modules
 
 
+def string_constants(node: ast.expr | None) -> set[str]:
+    """Return the string constants of a list/tuple/set literal.
+
+    Anything that is not such a literal (a name, a comprehension, a call)
+    yields an empty set so the caller treats the export list as unknown.
+    """
+    if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
+        return {
+            elt.value
+            for elt in node.elts
+            if isinstance(elt, ast.Constant) and isinstance(elt.value, str)
+        }
+    return set()
+
+
 def exported_names(tree: ast.Module) -> set[str]:
-    """Return the names listed in the module's ``__all__``."""
+    """Return the names listed in the module's ``__all__``.
+
+    Both the plain (``__all__ = [...]``) and the annotated
+    (``__all__: list[str] = [...]``) forms are recognized. The annotated form
+    was previously ignored, which silently skipped every module that declared
+    its exports with a type annotation.
+    """
     for node in tree.body:
         if isinstance(node, ast.Assign):
             for target in node.targets:
                 if isinstance(target, ast.Name) and target.id == "__all__":
-                    if isinstance(node.value, (ast.List, ast.Tuple, ast.Set)):
-                        return {
-                            elt.value
-                            for elt in node.value.elts
-                            if isinstance(elt, ast.Constant) and isinstance(elt.value, str)
-                        }
+                    return string_constants(node.value)
+        elif isinstance(node, ast.AnnAssign):
+            if isinstance(node.target, ast.Name) and node.target.id == "__all__":
+                return string_constants(node.value)
     return set()
 
 

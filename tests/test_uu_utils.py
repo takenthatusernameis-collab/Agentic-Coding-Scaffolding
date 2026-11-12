@@ -27,6 +27,16 @@ class TestUuUtils(unittest.TestCase):
     def test_error_class(self) -> None:
         self.assertTrue(issubclass(uu_utils.Error, Exception))
 
+    def test_encode_file_and_decode_file_roundtrip(self) -> None:
+        encoded = io.BytesIO()
+        uu_utils.encode_file(io.BytesIO(b"file body\n"), encoded, name="test.txt")
+        data = encoded.getvalue()
+        self.assertIn(b"begin", data)
+
+        decoded = io.BytesIO()
+        uu_utils.decode_file(io.BytesIO(data), decoded)
+        self.assertEqual(decoded.getvalue(), b"file body\n")
+
 
 if __name__ == "__main__":
     unittest.main()

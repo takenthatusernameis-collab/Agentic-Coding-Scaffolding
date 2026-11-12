@@ -1,6 +1,7 @@
 import ssl
 import unittest
 from datetime import datetime, timezone
+from unittest import mock
 
 import ssl_utils
 
@@ -145,3 +146,41 @@ class TestSSLUtils(unittest.TestCase):
         cert = {"notBefore": "20200101000000Z", "notAfter": "20200102000000Z"}
         with self.assertRaises(TypeError):
             ssl_utils.cert_is_valid_at_time(cert, time=True)
+
+    def test_match_hostname_rejects_a_missing_certificate(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.match_hostname(None, "example.com")
+
+    def test_match_hostname_rejects_a_non_string_hostname(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.match_hostname({}, 123)
+
+    def test_match_hostname_rejects_an_empty_hostname(self):
+        with self.assertRaises(ValueError):
+            ssl_utils.match_hostname({}, "")
+
+    def test_match_hostname_accepts_a_certificate_mapping(self):
+        self.assertIsNone(ssl_utils.match_hostname({"subject": ()}, "example.com"))
+
+    def test_get_server_certificate_returns_bytes(self):
+        with mock.patch.object(ssl_utils.ssl, "get_server_certificate", return_value="PEMDATA"):
+            self.assertEqual(ssl_utils.get_server_certificate(object()), b"PEMDATA")
+
+    def test_get_server_certificate_passes_bytes_through(self):
+        with mock.patch.object(ssl_utils.ssl, "get_server_certificate", return_value=b"RAW"):
+            self.assertEqual(ssl_utils.get_server_certificate(object()), b"RAW")
+
+    def test_get_server_certificate_tuple_returns_a_single_element_tuple(self):
+        with mock.patch.object(ssl_utils.ssl, "get_server_certificate", return_value="PEMDATA"):
+            self.assertEqual(ssl_utils.get_server_certificate_tuple(object()), (b"PEMDATA",))
+
+    def test_verify_cert_chain_rejects_a_missing_certificate(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.verify_cert_chain(None)
+
+    def test_verify_cert_chain_rejects_a_non_sequence_chain(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.verify_cert_chain({"subject": ()}, "not-a-chain")
+
+    def test_verify_cert_chain_accepts_a_certificate_mapping(self):
+        self.assertIsNone(ssl_utils.verify_cert_chain({"subject": ()}))

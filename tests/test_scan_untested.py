@@ -1,5 +1,6 @@
 """Tests for the exported-but-untested callable scanner."""
 
+import ast
 import importlib.util
 import subprocess
 import sys
@@ -49,6 +50,42 @@ class TestNameReferenced(unittest.TestCase):
         # separately (``scan_module`` filters ``name.startswith("_")``), so this
         # only verifies the matcher's own behaviour.
         self.assertTrue(scan_untested.name_referenced("the _help helper", "_help"))
+
+
+class TestExportedNames(unittest.TestCase):
+    """Verify that every spelling of ``__all__`` is recognized.
+
+    The annotated form (``__all__: list[str] = [...]``) was previously ignored,
+    which silently skipped every module that declared its exports with a type
+    annotation and made the scanner report a false clean.
+    """
+
+    def test_a_plain_assignment_is_recognized(self):
+        tree = ast.parse("__all__ = ['alpha', 'beta']")
+        self.assertEqual(scan_untested.exported_names(tree), {"alpha", "beta"})
+
+    def test_an_annotated_assignment_is_recognized(self):
+        tree = ast.parse("__all__: list[str] = ['alpha', 'beta']")
+        self.assertEqual(scan_untested.exported_names(tree), {"alpha", "beta"})
+
+    def test_a_tuple_literal_is_recognized(self):
+        tree = ast.parse("__all__ = ('alpha',)")
+        self.assertEqual(scan_untested.exported_names(tree), {"alpha"})
+
+    def test_non_string_entries_are_ignored(self):
+        tree = ast.parse("__all__ = ['alpha', 42]")
+        self.assertEqual(scan_untested.exported_names(tree), {"alpha"})
+
+    def test_a_non_literal_export_list_is_unknown(self):
+        tree = ast.parse("__all__ = list(('alpha',))")
+        self.assertEqual(scan_untested.exported_names(tree), set())
+
+    def test_a_module_without_all_is_empty(self):
+        self.assertEqual(scan_untested.exported_names(ast.parse("value = 1")), set())
+
+    def test_a_real_annotated_module_is_scanned(self):
+        tree = ast.parse((ROOT / "telnetlib_utils.py").read_text())
+        self.assertIn("read_some", scan_untested.exported_names(tree))
 
 
 class TestSkipNames(unittest.TestCase):

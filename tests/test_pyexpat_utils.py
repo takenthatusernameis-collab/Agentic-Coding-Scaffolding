@@ -302,5 +302,25 @@ class TestAttributeMapping(unittest.TestCase):
             pyexpat_utils.attribute_mapping("not-a-mapping")
 
 
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestExternalEntityParser(unittest.TestCase):
+    """Verify the external entity parser wrapper."""
+
+    def test_the_encoding_is_forwarded_and_the_parser_returned(self):
+        parser = mock.Mock()
+        result = pyexpat_utils.external_entity_parser(parser, "utf-8")
+        parser.ExternalEntityParserCreate.assert_called_once_with("utf-8")
+        self.assertIs(result, parser.ExternalEntityParserCreate.return_value)
+
+    def test_the_default_encoding_is_an_empty_string(self):
+        parser = mock.Mock()
+        pyexpat_utils.external_entity_parser(parser)
+        parser.ExternalEntityParserCreate.assert_called_once_with("")
+
+    def test_a_non_string_encoding_is_rejected(self):
+        with self.assertRaises(TypeError):
+            pyexpat_utils.external_entity_parser(mock.Mock(), 42)
+
+
 if __name__ == "__main__":
     unittest.main()

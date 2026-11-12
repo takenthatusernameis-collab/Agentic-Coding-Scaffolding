@@ -121561,6 +121561,7 @@ cat > "$OUTPUT_DIR/tests/test_ssl_utils.py" <<'TEST_SSL_UTILS'
 import ssl
 import unittest
 from datetime import datetime, timezone
+from unittest import mock
 
 import ssl_utils
 
@@ -121705,6 +121706,44 @@ class TestSSLUtils(unittest.TestCase):
         cert = {"notBefore": "20200101000000Z", "notAfter": "20200102000000Z"}
         with self.assertRaises(TypeError):
             ssl_utils.cert_is_valid_at_time(cert, time=True)
+
+    def test_match_hostname_rejects_a_missing_certificate(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.match_hostname(None, "example.com")
+
+    def test_match_hostname_rejects_a_non_string_hostname(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.match_hostname({}, 123)
+
+    def test_match_hostname_rejects_an_empty_hostname(self):
+        with self.assertRaises(ValueError):
+            ssl_utils.match_hostname({}, "")
+
+    def test_match_hostname_accepts_a_certificate_mapping(self):
+        self.assertIsNone(ssl_utils.match_hostname({"subject": ()}, "example.com"))
+
+    def test_get_server_certificate_returns_bytes(self):
+        with mock.patch.object(ssl_utils.ssl, "get_server_certificate", return_value="PEMDATA"):
+            self.assertEqual(ssl_utils.get_server_certificate(object()), b"PEMDATA")
+
+    def test_get_server_certificate_passes_bytes_through(self):
+        with mock.patch.object(ssl_utils.ssl, "get_server_certificate", return_value=b"RAW"):
+            self.assertEqual(ssl_utils.get_server_certificate(object()), b"RAW")
+
+    def test_get_server_certificate_tuple_returns_a_single_element_tuple(self):
+        with mock.patch.object(ssl_utils.ssl, "get_server_certificate", return_value="PEMDATA"):
+            self.assertEqual(ssl_utils.get_server_certificate_tuple(object()), (b"PEMDATA",))
+
+    def test_verify_cert_chain_rejects_a_missing_certificate(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.verify_cert_chain(None)
+
+    def test_verify_cert_chain_rejects_a_non_sequence_chain(self):
+        with self.assertRaises(TypeError):
+            ssl_utils.verify_cert_chain({"subject": ()}, "not-a-chain")
+
+    def test_verify_cert_chain_accepts_a_certificate_mapping(self):
+        self.assertIsNone(ssl_utils.verify_cert_chain({"subject": ()}))
 TEST_SSL_UTILS
 
 # --- stat_utils.py ---
@@ -130074,6 +130113,16 @@ class TestUuUtils(unittest.TestCase):
 
     def test_error_class(self) -> None:
         self.assertTrue(issubclass(uu_utils.Error, Exception))
+
+    def test_encode_file_and_decode_file_roundtrip(self) -> None:
+        encoded = io.BytesIO()
+        uu_utils.encode_file(io.BytesIO(b"file body\n"), encoded, name="test.txt")
+        data = encoded.getvalue()
+        self.assertIn(b"begin", data)
+
+        decoded = io.BytesIO()
+        uu_utils.decode_file(io.BytesIO(data), decoded)
+        self.assertEqual(decoded.getvalue(), b"file body\n")
 
 
 if __name__ == "__main__":
@@ -150434,6 +150483,26 @@ class TestAttributeMapping(unittest.TestCase):
             pyexpat_utils.attribute_mapping("not-a-mapping")
 
 
+@unittest.skipUnless(pyexpat_utils.is_available(), "pyexpat module not available")
+class TestExternalEntityParser(unittest.TestCase):
+    """Verify the external entity parser wrapper."""
+
+    def test_the_encoding_is_forwarded_and_the_parser_returned(self):
+        parser = mock.Mock()
+        result = pyexpat_utils.external_entity_parser(parser, "utf-8")
+        parser.ExternalEntityParserCreate.assert_called_once_with("utf-8")
+        self.assertIs(result, parser.ExternalEntityParserCreate.return_value)
+
+    def test_the_default_encoding_is_an_empty_string(self):
+        parser = mock.Mock()
+        pyexpat_utils.external_entity_parser(parser)
+        parser.ExternalEntityParserCreate.assert_called_once_with("")
+
+    def test_a_non_string_encoding_is_rejected(self):
+        with self.assertRaises(TypeError):
+            pyexpat_utils.external_entity_parser(mock.Mock(), 42)
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_PYEXPAT_UTILS
@@ -153984,15 +154053,41 @@ TEST_CRYPT_UTILS
 cat > "$OUTPUT_DIR/tests/test_telnetlib_utils.py" <<'TEST_TELNETLIB_UTILS'
 """Tests for telnetlib_utils."""
 
+import types
+
 import telnetlib_utils
 
 
 def test_exports():
     for name in ["Telnet", "IAC", "create_telnet", "connect_telnet", "read_until",
-                 "read_until_text", "read_all", "write", "send_line", "expect",
-                 "expect_text", "close", "escape_iac", "strip_iac", "command_name",
-                 "option_name", "is_available"]:
-        assert hasattr(telnetlib_utils, name)
+                 "read_until_text", "read_all", "read_some", "read_eager",
+                 "read_very_eager", "read_lazy", "read_very_lazy", "read_sb_data",
+                 "write", "send_line", "expect", "expect_text", "close",
+                 "escape_iac", "strip_iac", "command_name", "option_name",
+                 "is_available"]:
+        assert hasattr(telnetlib_utils, name), name
+
+
+def _fake_telnet():
+    """Return an object exposing the read methods the wrappers delegate to."""
+    return types.SimpleNamespace(
+        read_some=lambda: b"some",
+        read_eager=lambda: b"eager",
+        read_very_eager=lambda: b"very-eager",
+        read_lazy=lambda: b"lazy",
+        read_very_lazy=lambda: b"very-lazy",
+        read_sb_data=lambda: b"sb-data",
+    )
+
+
+def test_read_wrappers_delegate_to_the_telnet_object():
+    tn = _fake_telnet()
+    assert telnetlib_utils.read_some(tn) == b"some"
+    assert telnetlib_utils.read_eager(tn) == b"eager"
+    assert telnetlib_utils.read_very_eager(tn) == b"very-eager"
+    assert telnetlib_utils.read_lazy(tn) == b"lazy"
+    assert telnetlib_utils.read_very_lazy(tn) == b"very-lazy"
+    assert telnetlib_utils.read_sb_data(tn) == b"sb-data"
 TEST_TELNETLIB_UTILS
 
 # --- sre_constants_utils.py ---
