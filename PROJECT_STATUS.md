@@ -1,6 +1,19 @@
 # Project Status
 
-## Latest Session (2026-11-12T20:26Z) — scan_untested --all no-op fixed; full suite green
+## Latest Session (2026-11-12T20:31Z) — dangling __all__ export guard added
+
+Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: add a dangling-export guard to `tests/test_public_api.py`. `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file.
+
+**State-delta:** `python tools/verify_state_delta.py` ran the battery (HEAD differed from prior recorded checkpoint) and advanced checkpoint to `8dcde0d`.
+
+**Work completed:** Added `TestPublicAPI.test_every_export_exists` asserting every name in each module's `__all__` exists on the module (`hasattr`). Verified 0 dangling exports across discovered top-level modules on this HEAD. `tests/test_public_api.py` is not embedded; no scaffold refresh required.
+
+**Validation:** `python -m unittest tests.test_public_api -q` (4 tests OK). Full suite `python -m unittest discover tests/ -q`: 10630 tests OK, 4 skipped. `make lint`/`make typecheck` not run locally (ruff/mypy unavailable in this environment).
+
+**Next Agent Task:** State-delta first via `python tools/verify_state_delta.py`. Check `refresh_scaffold.py --check` / `scan_untested.py` as needed without redundant full discovery. Identify and implement one concrete, bounded gap (typed code + `__all__` + doctests + validation + targeted tests; README/CHANGELOG only for new public API; refresh scaffold if embedded files change). Run targeted tests + `tests.test_public_api` first, full suite at a coherent milestone. Constraints: no `.github/workflows/**`, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
+---
+ — scan_untested --all no-op fixed; full suite green
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover is recorded in `.kilo/handover.md` and this file). State-delta vs last verified checkpoint `842be6c`: source state had changed, so `python tools/verify_state_delta.py` ran the battery and advanced the checkpoint to `5c2827e`.
 

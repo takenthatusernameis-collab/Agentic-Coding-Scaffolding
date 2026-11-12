@@ -90,6 +90,15 @@ class TestPublicAPI(unittest.TestCase):
                 )
         self.assertEqual(gaps, [], "\n".join(gaps))
 
+    def test_every_export_exists(self) -> None:
+        dangling = []
+        for name in self.modules:
+            module = importlib.import_module(name)
+            for export in getattr(module, "__all__", []):
+                if not hasattr(module, export):
+                    dangling.append(f"{name}.{export} is listed in __all__ but missing")
+        self.assertEqual(dangling, [], "\n".join(dangling))
+
 
 if __name__ == "__main__":
     unittest.main()
