@@ -55,8 +55,39 @@ class TestPathsAndGlobs(unittest.TestCase):
             "pyproject.toml",
             "scaffold.sh",
             ".kilo/command/scaffold-project.md",
+            "tools/*.py",
         ):
             self.assertIn(expected, globs)
+
+    def test_the_source_globs_are_relative_paths(self):
+        # The globs are passed to ``git diff`` as pathspecs relative to the
+        # repository root, so an absolute path would silently match nothing.
+        for glob in verify_state_delta.SOURCE_GLOBS:
+            self.assertFalse(glob.startswith("/"), msg=glob)
+
+    def test_the_battery_includes_the_scaffold_sync_invariant(self):
+        # ``make verify`` runs the scaffold-sync test; the state-delta guard must
+        # not advance its checkpoint past a broken README/pyproject/scaffold
+        # synchronization. Capture the battery's commands without executing them
+        # by stubbing ``run`` for the duration of the call.
+        captured: list[list[str]] = []
+        original_run = verify_state_delta.run
+
+        def fake_run(cmd: list[str]):
+            captured.append(list(cmd))
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+
+        verify_state_delta.run = fake_run  # type: ignore[assignment]
+        try:
+            ok = verify_state_delta.battery_ok()
+        finally:
+            verify_state_delta.run = original_run  # type: ignore[assignment]
+        self.assertTrue(ok)
+        joined = [" ".join(cmd) for cmd in captured]
+        self.assertTrue(
+            any("tests.test_scaffold_sync" in entry for entry in joined),
+            msg=f"scaffold sync missing from battery: {joined}",
+        )
 
 
 class TestMarker(unittest.TestCase):

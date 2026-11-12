@@ -28,13 +28,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MARKER = ROOT / ".kilo" / "last_verified.checkpoint"
 
-#: Paths whose changes invalidate the verified checkpoint.
+#: Paths whose changes invalidate the verified checkpoint. ``tools/*.py`` is
+#: included so an edit to the verification tooling itself forces a fresh battery
+#: run instead of trusting a checkpoint produced by the old code.
 SOURCE_GLOBS = (
     "*.py",
     "Makefile",
     "pyproject.toml",
     "scaffold.sh",
     ".kilo/command/scaffold-project.md",
+    "tools/*.py",
 )
 
 
@@ -84,6 +87,10 @@ def battery_ok() -> bool:
         (
             ["python", "-m", "unittest", "tests.test_public_api"],
             "tests.test_public_api",
+        ),
+        (
+            ["python", "-m", "unittest", "tests.test_scaffold_sync"],
+            "tests.test_scaffold_sync",
         ),
     ]
     ok = True
