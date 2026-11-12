@@ -1,6 +1,6 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-12T14:50Z
+**Session:** 2026-11-12T15:43Z
 **Checkpoint:** `87bfd45` (last verified HEAD after state-delta battery advanced the checkpoint)
 
 ## Task for Next Agent
@@ -15,7 +15,7 @@ Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no tim
 
 - `python tools/verify_state_delta.py`: skipped redundant verification (clean tree, no source-relevant changes since `87bfd45`)
 - `python tools/refresh_scaffold.py --check`: all embedded copies in sync
-- `python -m unittest tests.test_public_api tests.test_scaffold_sync`: green (19/19)
+- `python -m pytest tests/test_public_api.py -q`: green (3 passed)
 - `make lint`: All checks passed
 - `make typecheck`: Success: no issues found in 565 source files
 
