@@ -1,5 +1,21 @@
 # Project Status
 
+## Latest Session (2026-11-12T21:35Z) — scan_untested BinOp __all__ handling fixed
+
+Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: state-delta battery ran via `python tools/verify_state_delta.py` and advanced checkpoint to `bfe3c1d`. `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file.
+
+**State-delta:** `python tools/verify_state_delta.py` ran the battery (HEAD `bfe3c1d` differed from prior recorded checkpoint `b59f0d1`) and advanced checkpoint to `bfe3c1d`.
+
+**Gap identified:** `resource_utils.py` builds `__all__` with list concatenation (`[...] + sorted(_LIMITS)`), a non-literal `ast.BinOp`. `scan_untested.py`'s `exported_names()` returned an empty set for non-literal assignments, so `resource_utils` was silently skipped by the scanner — any exported-but-untested callable there would go unnoticed.
+
+**Work completed:** Extended `string_constants()` in `tools/scan_untested.py` to handle `ast.BinOp` with `ast.Add` (list concatenation), collecting string constants from both operands. Statically-known exports in concatenated `__all__` expressions are now extracted instead of silently dropped. Added Google-style docstring with ASCII-safe doctests. Added `test_a_concatenated_export_list_keeps_the_static_names` and `test_a_concatenated_export_list_with_two_literals` to `TestExportedNames` in `tests/test_scan_untested.py`. `resource_utils.__all__` now yields 17 names (was 0 — module was fully skipped).
+
+**Validation:** `python tools/scan_untested.py` reports "no exported-but-untested callables" (exit 0). Full suite `python -m unittest discover tests/ -q`: 10641 tests OK, 4 skipped. `make lint` passes; `make typecheck` reports "Success: no issues found in 566 source files". `python tools/refresh_scaffold.py --check` in sync. `tools/scan_untested.py` and its test are not embedded; no scaffold refresh required.
+
+**Next Agent Task:** State-delta first via `python tools/verify_state_delta.py`. Check `refresh_scaffold.py --check` / `scan_untested.py` as needed without redundant full discovery. Identify and implement one concrete, bounded gap (typed code + `__all__` + doctests + validation + targeted tests; README/CHANGELOG only for new public API; refresh scaffold if embedded files change). Run targeted tests + `tests.test_public_api` first, full suite at a coherent milestone. Constraints: no `.github/workflows/**`, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
+---
+
 ## Latest Session (2026-11-12T21:33Z) — scan_untested --summary mode added
 
 Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: add a `--summary` mode to `tools/scan_untested.py`. `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file.

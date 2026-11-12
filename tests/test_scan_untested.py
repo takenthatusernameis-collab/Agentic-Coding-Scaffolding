@@ -82,6 +82,23 @@ class TestExportedNames(unittest.TestCase):
         tree = ast.parse("__all__ = list(('alpha',))")
         self.assertEqual(scan_untested.exported_names(tree), set())
 
+    def test_a_concatenated_export_list_keeps_the_static_names(self):
+        """A ``__all__`` built with ``literal + dynamic`` still yields the
+        static names instead of being silently skipped.
+
+        ``resource_utils`` builds ``__all__`` this way
+        (``[...] + sorted(_LIMITS)``), so without this handling the scanner
+        would report an empty set for it and skip the module entirely.
+        """
+        source = '__all__ = ["alpha", "beta"] + sorted(_NAMES)'
+        tree = ast.parse(source)
+        self.assertEqual(scan_untested.exported_names(tree), {"alpha", "beta"})
+
+    def test_a_concatenated_export_list_with_two_literals(self):
+        source = "__all__ = ['alpha', 'beta'] + ['gamma']"
+        tree = ast.parse(source)
+        self.assertEqual(scan_untested.exported_names(tree), {"alpha", "beta", "gamma"})
+
     def test_a_module_without_all_is_empty(self):
         self.assertEqual(scan_untested.exported_names(ast.parse("value = 1")), set())
 

@@ -1,7 +1,7 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-12T21:33Z
-**Checkpoint:** `b59f0d1` (battery passed via `verify_state_delta.py` this session; checkpoint at that HEAD).
+**Session:** 2026-11-12T21:35Z
+**Checkpoint:** `bfe3c1d` (battery passed via `verify_state_delta.py` this session; checkpoint at that HEAD).
 
 ## Task for Next Agent
 
@@ -22,12 +22,12 @@ Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no tim
 
 ## Work Completed This Session
 
-- **Board/state:** `board_read` empty; executed durable task from previous handover (add `--summary` mode to `tools/scan_untested.py`).
-- **State-delta:** `python tools/verify_state_delta.py` ran battery and advanced checkpoint to `b59f0d1` (HEAD differed from prior recorded checkpoint `eaff58e`).
-- **Implementation:** Added `--summary` to `tools/scan_untested.py` plus a pure `format_summary(results, total)` helper (Google docstring + doctest). Summary prints one `module.py: <count>` line per module and a trailing `N exported-but-untested callables in M modules` line; clean output stays `no exported-but-untested callables`. `--json` takes precedence when both flags are given. Updated module docstring usage line.
-- **Tests:** Added `TestSummaryOutput` (clean, counts-only, total-matches-JSON, json-precedence) and `TestFormatSummary` (clean message, exact one-line-per-module formatting) to `tests/test_scan_untested.py`.
-- **Validation:** `python -m unittest tests.test_scan_untested -v` (28 tests OK). Related: `tests.test_public_api tests.test_scan_untested tests.test_refresh_scaffold` (60 OK). Full suite `python -m unittest discover tests/ -q`: 10639 tests OK, 4 skipped. `make lint` passes; `make typecheck` reports "Success: no issues found in 566 source files".
-- **Scaffold:** `python tools/refresh_scaffold.py --check` in sync; `tools/scan_untested.py` and its test are not embedded, so no scaffold refresh required.
+- **Board/state:** `board_read` empty; bootstrap session. State-delta battery ran and advanced checkpoint to `bfe3c1d` (HEAD `bfe3c1d` differed from prior recorded checkpoint `b59f0d1`).
+- **Gap identified:** `resource_utils.py` builds `__all__` with list concatenation (`[...] + sorted(_LIMITS)`), a non-literal `ast.BinOp`. `scan_untested.py`'s `exported_names()` returned an empty set for non-literal assignments, so `resource_utils` was silently skipped by the scanner — any exported-but-untested callable there would go unnoticed.
+- **Implementation:** Extended `string_constants()` in `tools/scan_untested.py` to handle `ast.BinOp` with `ast.Add` (list concatenation), collecting string constants from both operands. Statically-known exports in concatenated `__all__` expressions are now extracted instead of silently dropped. Added Google-style docstring with ASCII-safe doctests.
+- **Tests:** Added `test_a_concatenated_export_list_keeps_the_static_names` and `test_a_concatenated_export_list_with_two_literals` to `TestExportedNames` in `tests/test_scan_untested.py`.
+- **Validation:** `resource_utils.__all__` now yields 17 names (was 0 — module was fully skipped). `python tools/scan_untested.py` reports "no exported-but-untested callables" (exit 0). Full suite `python -m unittest discover tests/ -q`: 10641 tests OK, 4 skipped. `make lint` passes; `make typecheck` reports "Success: no issues found in 566 source files". `python tools/refresh_scaffold.py --check` in sync.
+- **Scaffold:** `tools/scan_untested.py` and its test are not embedded, so no scaffold refresh required.
 
 ## Notes
 

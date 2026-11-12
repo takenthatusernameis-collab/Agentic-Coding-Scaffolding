@@ -81,6 +81,22 @@ def string_constants(node: ast.expr | None) -> set[str]:
 
     Anything that is not such a literal (a name, a comprehension, a call)
     yields an empty set so the caller treats the export list as unknown.
+    A ``BinOp`` with an ``Add`` operator (for example
+    ``__all__ = ["a", "b"] + sorted(_NAMES)``) is handled by collecting the
+    string constants from both operands, so statically-known exports are not
+    silently dropped when a module concatenates a literal list with a dynamic
+    one.
+
+    Example:
+        >>> import ast
+        >>> string_constants(ast.parse('__all__ = ["a", "b"] + sorted(_NAMES)').body[0].value)
+        {'a', 'b'}
+        >>> string_constants(ast.parse('__all__ = ["a", "b"] + ["c"]').body[0].value)
+        {'a', 'b', 'c'}
+        >>> string_constants(ast.parse('__all__ = sorted(_NAMES)').body[0].value)
+        set()
+        >>> string_constants(ast.parse('__all__ = ["a"]').body[0].value)
+        {'a'}
     """
     if isinstance(node, (ast.List, ast.Tuple, ast.Set)):
         return {
@@ -88,6 +104,8 @@ def string_constants(node: ast.expr | None) -> set[str]:
             for elt in node.elts
             if isinstance(elt, ast.Constant) and isinstance(elt.value, str)
         }
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        return string_constants(node.left) | string_constants(node.right)
     return set()
 
 
