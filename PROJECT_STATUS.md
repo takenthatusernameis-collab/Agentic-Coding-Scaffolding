@@ -1,6 +1,19 @@
 # Project Status
 
-## Latest Session (2026-11-12T20:31Z) — dangling __all__ export guard added
+## Latest Session (2026-11-12T21:27Z) — scan_untested JSON output added
+
+Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: add `--json` output to `tools/scan_untested.py`. `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file.
+
+**State-delta:** `python tools/verify_state_delta.py` ran the battery (HEAD differed from prior recorded checkpoint) and advanced checkpoint to `eaff58e`.
+
+**Work completed:** Added `--json` flag to `tools/scan_untested.py` for machine-readable output. Output structure: `{"gaps": {"module.py": ["name1", "name2"]}, "total": N}`. Works with `--all` flag. Added `TestJSONOutput` class in `tests/test_scan_untested.py` with 3 tests covering clean output, `--all` output, and JSON structure validation. `tools/scan_untested.py` and its test are not embedded; no scaffold refresh required.
+
+**Validation:** `python -m unittest tests.test_scan_untested -v` (22 tests OK). Full suite `python -m unittest discover tests/ -q`: 10633 tests OK, 4 skipped. `make lint` and `make typecheck` pass.
+
+**Next Agent Task:** State-delta first via `python tools/verify_state_delta.py`. Check `refresh_scaffold.py --check` / `scan_untested.py` as needed without redundant full discovery. Identify and implement one concrete, bounded gap (typed code + `__all__` + doctests + validation + targeted tests; README/CHANGELOG only for new public API; refresh scaffold if embedded files change). Run targeted tests + `tests.test_public_api` first, full suite at a coherent milestone. Constraints: no `.github/workflows/**`, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
+---
+ — dangling __all__ export guard added
 
 Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: add a dangling-export guard to `tests/test_public_api.py`. `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file.
 
@@ -25,12 +38,6 @@ Board held no task (`board_read` empty; bootstrap session; `board_post` to `main
 
 ---
 
-## Next Agent Task
-
-Add a dangling-export guard to `tests/test_public_api.py`: assert every name in each module's `__all__` is a real attribute (`hasattr`). The existing suite only checks the reverse direction, so an exported-but-missing name would go unnoticed. Verified green on this HEAD (0 dangling exports across 278 modules). Add the test to `TestPublicAPI`, run `python -m unittest tests.test_public_api tests.test_scan_untested -q` then the full suite. `tools/*.py` and `tests/test_public_api.py` are not embedded, so no scaffold refresh is required. State-delta first via `python tools/verify_state_delta.py`. Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits.
-
----
-
 ## Earlier Session (2026-11-12T17:50Z) — foundation verified clean; state-delta skipped, no genuine gap
 
 Board held no task (`board_read` empty; bootstrap session). `board_post` to `main` is refused because `main` resolves to the board root, so durable handover is recorded in `.kilo/handover.md` and this file. State-delta vs last verified checkpoint `b8832ac`: working tree clean and no source-relevant file changed since the checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification (avoidable process delay removed).
@@ -45,13 +52,7 @@ Board held no task (`board_read` empty; bootstrap session). `board_post` to `mai
 
 ## Next Agent Task
 
-Verify the project foundation remains solid and prepare the next durable handover. State-delta first: run `python tools/verify_state_delta.py` — it skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed. Confirm `python tools/refresh_scaffold.py --check` in sync and `python tools/scan_untested.py` clean as needed; run `python -m pytest tests/test_public_api.py tests/test_scaffold_sync.py -q` for a quick targeted check; run the full suite only at a coherent milestone or after relevant source changes.
-
-If a new module/API or genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
-
-Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
-
-**Current verified checkpoint:** `b8832ac` (battery passed at that HEAD). If the CI checkpoint commit advances HEAD past the recorded checkpoint, expect one battery re-run via `verify_state_delta.py` before the checkpoint is stable.
+Add a dangling-export guard to `tests/test_public_api.py`: assert every name in each module's `__all__` is a real attribute (`hasattr`). The existing suite only checks the reverse direction, so an exported-but-missing name would go unnoticed. Verified green on this HEAD (0 dangling exports across 278 modules). Add the test to `TestPublicAPI`, run `python -m unittest tests.test_public_api tests.test_scan_untested -q` then the full suite. `tools/*.py` and `tests/test_public_api.py` are not embedded, so no scaffold refresh is required. State-delta first via `python tools/verify_state_delta.py`. Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits.
 
 ---
 
@@ -69,17 +70,17 @@ Board held no task (`board_read` empty; bootstrap session). `board_post` to `mai
 
 ## Next Agent Task
 
-Verify the project foundation remains solid and prepare the next durable handover. State-delta first: run `python tools/verify_state_delta.py` — it skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed. Confirm `python tools/refresh_scaffold.py --check` in sync and `python tools/scan_untested.py` clean as needed; run `tests.test_public_api` + `tests.test_scaffold_sync` for a quick targeted check; run the full suite only at a coherent milestone or after relevant source changes.
+Verify the project foundation remains solid and prepare the next durable handover. State-delta first: run `python tools/verify_state_delta.py` — it skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed. Confirm `python tools/refresh_scaffold.py --check` in sync and `python tools/scan_untested.py` clean as needed; run `python -m pytest tests/test_public_api.py tests/test_scaffold_sync.py -q` for a quick targeted check; run the full suite only at a coherent milestone or after relevant source changes.
 
 If a new module/API or genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files, run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
 
 Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
 
-**Current verified checkpoint:** `b8832ac` (battery passed at that HEAD). Next source-relevant change or checkpoint drift should trigger a battery re-run via `verify_state_delta.py`.
+**Current verified checkpoint:** `b8832ac` (battery passed at that HEAD). If the CI checkpoint commit advances HEAD past the recorded checkpoint, expect one battery re-run via `verify_state_delta.py` before the checkpoint is stable.
 
 ---
 
-## Latest Session (2026-11-12T16:51Z) — foundation verified clean; battery skipped, no source change since checkpoint
+## Earlier Session (2026-11-12T16:51Z) — foundation verified clean; battery skipped, no source change since checkpoint
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `b8832ac`: working tree clean, HEAD (`5fc8e29`) differs only in `.kilo/` and `PROJECT_STATUS.md`, so no source-relevant file changed since the checkpoint and `python tools/verify_state_delta.py` skipped redundant verification (avoidable process delay removed).
 

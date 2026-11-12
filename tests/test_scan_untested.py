@@ -2,6 +2,7 @@
 
 import ast
 import importlib.util
+import json
 import subprocess
 import sys
 import tempfile
@@ -194,6 +195,56 @@ class TestScan(unittest.TestCase):
         # ``code_utils`` exports the interactive ``interact`` facade, which the
         # default filters out but ``--all`` must surface.
         self.assertIn("interact", result.stdout)
+
+
+class TestJSONOutput(unittest.TestCase):
+    """Verify the JSON output format."""
+
+    def test_json_output_when_clean(self):
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data["total"], 0)
+        self.assertEqual(data["gaps"], {})
+
+    def test_json_output_with_all_flag(self):
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "--all", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data["total"], 262)
+        self.assertIn("interact", data["gaps"].get("code_utils.py", []))
+        self.assertIn("help", data["gaps"].get("pydoc_utils.py", []))
+
+    def test_json_structure_is_valid(self):
+        result = subprocess.run(
+            [sys.executable, str(TOOL), "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        data = json.loads(result.stdout)
+        self.assertIn("gaps", data)
+        self.assertIn("total", data)
+        self.assertIsInstance(data["gaps"], dict)
+        self.assertIsInstance(data["total"], int)
+        for module, names in data["gaps"].items():
+            self.assertIsInstance(module, str)
+            self.assertIsInstance(names, list)
+            for name in names:
+                self.assertIsInstance(name, str)
 
 
 if __name__ == "__main__":

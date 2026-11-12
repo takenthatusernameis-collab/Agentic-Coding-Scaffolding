@@ -12,12 +12,13 @@ Names that are type variables, constants, classes, entry points, or interactive
 stdlib facades are filtered out by default; pass ``--all`` to list them too.
 
 Usage:
-    python tools/scan_untested.py [--all]
+    python tools/scan_untested.py [--all] [--json]
 """
 
 from __future__ import annotations
 
 import ast
+import json
 import re
 import sys
 from pathlib import Path
@@ -221,16 +222,24 @@ def scan_module(path: Path, show_all: bool = False) -> list[str]:
 
 def main(argv: list[str] | None = None) -> int:
     """Print every exported-but-untested callable."""
-    show_all = "--all" in (argv or [])
+    args = argv or []
+    show_all = "--all" in args
+    json_output = "--json" in args
     total = 0
+    results = {}
     for path in iter_modules():
         gaps = scan_module(path, show_all)
         if gaps:
             total += len(gaps)
-            print(f"{path.name}:")
+            results[path.name] = gaps
+    if json_output:
+        print(json.dumps({"gaps": results, "total": total}, indent=2))
+        return 1 if total else 0
+    if total:
+        for module_name, gaps in results.items():
+            print(f"{module_name}:")
             for name in gaps:
                 print(f"  {name}")
-    if total:
         print(f"\n{total} exported-but-untested callables")
         return 1
     print("no exported-but-untested callables")
