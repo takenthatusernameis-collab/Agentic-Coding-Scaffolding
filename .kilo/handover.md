@@ -1,31 +1,34 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-12T17:45Z
-**Checkpoint:** `b8832ac` (battery passed at that HEAD; HEAD is now `f38fb6e`, one CI auto-commit ahead — expect one battery re-run before the checkpoint is stable)
+**Session:** 2026-11-12T17:48Z
+**Checkpoint:** `b8832ac` (battery passed at that HEAD). HEAD is currently `b80c645`, which differs from the checkpoint only by CI/session checkpoint commits (`.kilo/`, `PROJECT_STATUS.md`); `verify_state_delta.py` skips redundant verification until a source-relevant change occurs.
 
 ## Task for Next Agent
 
-Verify the project foundation remains solid and prepare the next durable handover. State-delta first: run `python tools/verify_state_delta.py` — it skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed. Confirm `python tools/refresh_scaffold.py --check` in sync and `python tools/scan_untested.py` clean as needed; run `tests.test_public_api` + `tests.test_scaffold_sync`; run the full suite only at a coherent milestone or after relevant source changes.
+Verify the project foundation remains solid and prepare the next durable handover.
 
-If a new module/API or genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files (wrapper modules, their tests, `.kilo/command/scaffold-project.md`), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
+1. Run `python tools/verify_state_delta.py` first (state-delta gate). It skips when the tree is clean and no source-relevant file changed since the last verified checkpoint, and runs the battery (advancing the checkpoint) when state changed.
+2. Confirm `python tools/refresh_scaffold.py --check` is in sync and `python tools/scan_untested.py` is clean as needed.
+3. Run `tests.test_public_api` + `tests.test_scaffold_sync` for a quick targeted check; run the full suite only at a coherent milestone or after relevant source changes.
+
+If a genuine gap is identified: add typed implementation with `__all__`, Google-style docstring + ASCII-safe doctests, `TypeError`/`ValueError` validation; add targeted tests in `tests/test_*.py`; update `README.md`/`CHANGELOG.md` only for new public API. If touching embedded files (wrapper modules, their tests, `.kilo/command/scaffold-project.md`), run `make refresh-scaffold` and verify `python tools/refresh_scaffold.py --check`. Run targeted module tests + `tests.test_public_api` first, keep full suite green at a coherent milestone.
 
 Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused (session is board root), record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
 
 ## Work Completed This Session
 
-1. **Foundation verified** — Ran `python tools/verify_state_delta.py`; working tree clean and no source-relevant file changed since checkpoint `b8832ac`, so the battery was skipped (redundant verification avoided).
-2. **All checks passed** — `refresh_scaffold --check` in sync; `scan_untested` clean (no exported-but-untested callables); `tests.test_public_api` + `tests.test_scaffold_sync` (19 passed); `make lint` and `make typecheck` pass (per prior session).
-3. **No code/test changes made** — avoiding a no-op commit on the source surface; only the durable handover records are updated for the CI checkpoint.
+1. **Board/state check** — `board_read` empty (bootstrap), no assigned task. Working tree clean; recent HEADs are CI checkpoint commits only.
+2. **Foundation verified** — `python tools/verify_state_delta.py` skipped redundant verification (clean tree, no source-relevant change since checkpoint `b8832ac`).
+3. **Sync/API surface checks** — `python tools/refresh_scaffold.py --check`: all embedded copies in sync. `python tools/scan_untested.py`: no exported-but-untested callables.
+4. **No source/test changes made** — no genuine gap identified; avoiding no-op commits and timestamp-only churn beyond required durable handover updates.
 
 ## Verification Results (This Session)
 
-- `python tools/verify_state_delta.py`: battery skipped — working tree clean, no source-relevant file changed since checkpoint `b8832ac`
-- `python tools/refresh_scaffold.py --check`: all embedded copies in sync
-- `python tools/scan_untested.py`: no exported-but-untested callables
-- `python -m unittest tests.test_public_api tests.test_scaffold_sync`: 19 passed
-- `make lint`: All checks passed (prior session)
-- `make typecheck`: Success: no issues found in 565 source files (prior session)
+- `python tools/verify_state_delta.py`: skipped (no source-relevant change since `b8832ac`)
+- `python tools/refresh_scaffold.py --check`: in sync
+- `python tools/scan_untested.py`: clean
+- Full suite/lint/typecheck: not re-run (no source-relevant changes; last verified at checkpoint `b8832ac` per project history)
 
 ## Notes
 
-No source-relevant file changed since the last verified checkpoint, so per delay-bottleneck guidance the battery was not re-run and no no-op source commit was manufactured. The CI auto-commit will create a new HEAD containing this session's `.kilo/handover.md` and `PROJECT_STATUS.md` updates; the next session should expect one battery re-run before the checkpoint is stable.
+Foundation remains solid with no identified gaps. Next agent should continue state-delta-first verification and only invest in broader validation or implementation when a real source change or coherent milestone requires it.
