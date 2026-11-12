@@ -20,6 +20,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 TOOL = ROOT / "tools" / "verify_state_delta.py"
 
+#: The real checkpoint marker. ``TestMarker`` points the module-level ``MARKER``
+#: global at a temporary file for its tests; that mutation leaked into the other
+#: classes because the global is shared state. Saving and restoring it here keeps
+#: every class independent and order-independent.
+_REAL_MARKER = ROOT / ".kilo" / "last_verified.checkpoint"
+
 
 def load_tool():
     """Return the state-delta guard module loaded from its file path."""
@@ -54,7 +60,19 @@ class TestPathsAndGlobs(unittest.TestCase):
 
 
 class TestMarker(unittest.TestCase):
-    """Verify the checkpoint marker read/write round-trip."""
+    """Verify the checkpoint marker read/write round-trip.
+
+    The module-level ``MARKER`` global is shared state, so every test that
+    repoints it must restore the real marker afterwards; otherwise the
+    mutation leaks into ``TestPathsAndGlobs`` and ``TestMain`` and breaks their
+    assertions about where the marker lives.
+    """
+
+    def setUp(self):
+        self._saved_marker = verify_state_delta.MARKER
+
+    def tearDown(self):
+        verify_state_delta.MARKER = self._saved_marker
 
     def test_read_returns_none_when_the_marker_is_absent(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -118,14 +136,16 @@ class TestMain(unittest.TestCase):
             verify_state_delta.MARKER.write_text(self._original_marker)
 
     def test_full_flag_runs_the_battery_and_advances_the_checkpoint(self):
-        before = verify_state_delta.read_marker()
+        # ``--full`` must force the battery and record the current HEAD in the
+        # marker, regardless of what the marker held before. The prior
+        # assertion (that the marker *changed*) was brittle: when the marker
+        # already equalled HEAD, ``--full`` legitimately re-records the same
+        # value and the test failed on a green repository.
         rc = verify_state_delta.main(["--full"])
         self.assertEqual(rc, 0)
         after = verify_state_delta.read_marker()
         self.assertIsNotNone(after)
         self.assertEqual(after["head"], verify_state_delta.head())
-        if before is not None:
-            self.assertNotEqual(before.get("head"), after["head"])
 
     def test_skip_on_unchanged_state_when_marker_matches_head(self):
         # After --full the marker equals HEAD; a second run must skip the
