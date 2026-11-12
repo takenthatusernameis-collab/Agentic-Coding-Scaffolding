@@ -1,7 +1,7 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-12T15:45Z
-**Checkpoint:** `87bfd45` (last verified HEAD after state-delta battery advanced the checkpoint)
+**Session:** 2026-11-12T15:47Z
+**Checkpoint:** `5d83e0f` (last verified HEAD after state-delta battery; checkpoint not advanced because no source-relevant file changed)
 
 ## Task for Next Agent
 
@@ -13,12 +13,12 @@ Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no tim
 
 ## Verification Results (This Session)
 
-- `python tools/verify_state_delta.py`: skipped redundant verification (clean tree, no source-relevant changes since `87bfd45`)
+- `python tools/verify_state_delta.py`: skipped redundant verification (clean tree, no source-relevant changes since `5d83e0f`)
 - `python tools/refresh_scaffold.py --check`: all embedded copies in sync
-- `python -m pytest tests/test_public_api.py -q`: green (3 passed)
-- `make lint`: All checks passed
-- `make typecheck`: Success: no issues found in 565 source files
+- `python -m unittest tests.test_public_api -v`: green (3 passed)
+- `python -m ruff check .`: All checks passed
+- `python -m mypy . --exclude build --exclude dist`: Success: no issues found in 565 source files
 
 ## Notes
 
-No new gaps identified this session. The foundation remains solid. The state-delta checkpoint remains at `87bfd45` reflecting the last verified state with source-relevant changes. No code or test changes were made; avoiding a no-op commit per delay-bottleneck guidance.
+No new gaps identified this session. The foundation remains solid. The state-delta checkpoint remains at `5d83e0f` reflecting the last verified state with source-relevant changes. No code or test changes were made; avoiding a no-op commit per delay-bottleneck guidance.
