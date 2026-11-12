@@ -2,7 +2,8 @@
 """Verify repository state, skipping redundant re-runs via a state-delta guard.
 
 Every activation previously re-ran the full verification battery
-(``refresh_scaffold --check``, ``scan_untested``, ``tests.test_public_api``)
+(``refresh_scaffold --check``, ``scan_untested``, ``tests.test_public_api``,
+``tests.test_scaffold_sync``, ``tests.test_doctests``)
 against unchanged state and then manufactured a duplicate handover entry just to
 satisfy the CI checkpoint gate. That is a repeated no-op verification cycle
 (AVOIDABLE_PROCESS_DELAY).
@@ -108,6 +109,10 @@ def battery_ok() -> bool:
         (
             ["python", "-m", "unittest", "tests.test_scaffold_sync"],
             "tests.test_scaffold_sync",
+        ),
+        (
+            ["python", "-m", "unittest", "tests.test_doctests"],
+            "tests.test_doctests",
         ),
     ]
     ok = True

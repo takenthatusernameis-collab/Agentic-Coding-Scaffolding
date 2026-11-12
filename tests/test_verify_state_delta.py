@@ -103,6 +103,51 @@ class TestPathsAndGlobs(unittest.TestCase):
             msg=f"scaffold sync missing from battery: {joined}",
         )
 
+    def test_the_battery_includes_the_doctest_suite(self):
+        # The doctests are the executable specification of every module's
+        # documented examples, and they are the only thing that executes them.
+        # The battery previously omitted them, so a factually wrong example in a
+        # docstring survived every session that ran ``make verify``: the doctest
+        # suite failed while the battery stayed green and the checkpoint still
+        # advanced. The battery must run the doctest suite so such a regression
+        # blocks the checkpoint instead of being masked by it.
+        captured: list[list[str]] = []
+        original_run = verify_state_delta.run
+
+        def fake_run(cmd: list[str]):
+            captured.append(list(cmd))
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+
+        verify_state_delta.run = fake_run  # type: ignore[assignment]
+        try:
+            ok = verify_state_delta.battery_ok()
+        finally:
+            verify_state_delta.run = original_run  # type: ignore[assignment]
+        self.assertTrue(ok)
+        joined = [" ".join(cmd) for cmd in captured]
+        self.assertTrue(
+            any("tests.test_doctests" in entry for entry in joined),
+            msg=f"doctest suite missing from battery: {joined}",
+        )
+
+    def test_the_battery_fails_when_the_doctest_suite_fails(self):
+        # A battery that merely lists the doctest suite is not enough: the
+        # suite's exit status has to fail the battery, otherwise a broken
+        # example still advances the checkpoint. Stub ``run`` so only the
+        # doctest command reports failure.
+        original_run = verify_state_delta.run
+
+        def fake_run(cmd: list[str]):
+            code = 1 if "tests.test_doctests" in " ".join(cmd) else 0
+            return subprocess.CompletedProcess(cmd, code, "", "")
+
+        verify_state_delta.run = fake_run  # type: ignore[assignment]
+        try:
+            ok = verify_state_delta.battery_ok()
+        finally:
+            verify_state_delta.run = original_run  # type: ignore[assignment]
+        self.assertFalse(ok)
+
 
 class TestMarker(unittest.TestCase):
     """Verify the checkpoint marker read/write round-trip.
@@ -138,6 +183,27 @@ class TestMarker(unittest.TestCase):
             verify_state_delta.MARKER = marker
             verify_state_delta.write_marker({"head": "deadbeef"})
             self.assertEqual(verify_state_delta.read_marker(), {"head": "deadbeef"})
+
+
+class TestMakefileVerifyTarget(unittest.TestCase):
+    """Verify the ``make verify`` target agrees with the battery.
+
+    ``make verify`` is the documented manual entry point for the same
+    foundation checks the state-delta guard runs. When it lagged behind the
+    battery it silently stopped enforcing a check, so the target is held to the
+    suites the battery runs rather than being allowed to drift.
+    """
+
+    def test_verify_target_runs_the_doctest_suite(self):
+        text = (ROOT / "Makefile").read_text()
+        self.assertIn("tests.test_doctests", text)
+
+    def test_test_target_runs_the_doctest_suite_on_a_clean_tree(self):
+        # The clean-tree fast path of ``make test`` skips the full suite, so it
+        # has to keep the doctest suite: it is the only thing that executes the
+        # documented examples and it runs in about a second.
+        text = (ROOT / "Makefile").read_text()
+        self.assertIn("tests.test_public_api tests.test_doctests", text)
 
 
 class TestRepositoryState(unittest.TestCase):

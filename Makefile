@@ -1,14 +1,14 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify
+.PHONY: test lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
 	@echo "Running tests..."
 	@if [ -z "$$(git status --porcelain 2>/dev/null)" ]; then \
-		echo "Working tree clean; running public API smoke test (full suite skipped)."; \
-		python -m unittest tests.test_public_api; \
+		echo "Working tree clean; running public API smoke test and doctests (full suite skipped)."; \
+		python -m unittest tests.test_public_api tests.test_doctests; \
 	else \
 		if command -v pytest >/dev/null 2>&1; then \
 			pytest tests/ -v; \
@@ -16,6 +16,11 @@ test:
 			python -m unittest discover tests/ -v; \
 		fi; \
 	fi
+
+## Run the doctest suite that enforces every module's documented examples
+doctest:
+	@echo "Running doctests..."
+	@python -m unittest tests.test_doctests
 
 ## Run ruff to check code style and formatting
 lint:
@@ -59,7 +64,7 @@ verify:
 		if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then echo "Working tree is dirty; skipping clean-tree assertion."; fi; \
 		python tools/refresh_scaffold.py --check; \
 		if [ -f tools/scan_untested.py ]; then python tools/scan_untested.py; else echo "scan_untested.py absent; skipped"; fi; \
-		python -m unittest tests.test_public_api tests.test_scaffold_sync
+		python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests
 
 ## Install pre-commit hooks into .git/hooks
 pre-commit-install:
@@ -97,7 +102,8 @@ clean:
 help:
 	@echo "Available targets:"
 	@echo "  test       Run the Python test suite"
-	@echo "  lint       Run ruff code style checker"
+	@echo "  doctest   Run the doctest suite that enforces documented examples"
+	@echo "  lint      Run ruff code style checker"
 	@echo "  typecheck  Run mypy static type checking"
 	@echo "  run       Run hello.py (usage: make run [NAME=YourName])"
 	@echo "  scaffold  Scaffold a new project using scaffold.sh"
