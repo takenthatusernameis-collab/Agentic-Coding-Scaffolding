@@ -1125,11 +1125,27 @@ def anchor_for(relative: str, scaffold_text: str) -> int:
 
 
 def add_missing_copies(scaffold_text: str) -> tuple[str, list[str]]:
-    """Return the generator with the missing wrapper blocks added."""
-    added: list[str] = []
+    """Return the generator with the missing wrapper blocks added.
+
+    The list of missing copies and their insertion anchors are computed once
+    against the original text. The blocks are then inserted in reverse order
+    of their anchor, so earlier anchors stay valid and no block is rescanned
+    after it is inserted. Rescanning the growing text for every missing copy
+    made this quadratic in the number of embedded blocks: a generator that
+    lacked every block took about fourteen seconds to refresh.
+    """
+    missing = missing_copies(scaffold_text)
+    if not missing:
+        return scaffold_text, []
+
+    anchors = [(anchor_for(relative, scaffold_text), relative) for relative in missing]
+    # Insert from the end backwards so the offsets of earlier anchors are
+    # unaffected by the blocks that are added after them.
+    anchors.sort(key=lambda pair: pair[0], reverse=True)
+
     text = scaffold_text
-    for relative in missing_copies(text):
-        anchor = anchor_for(relative, text)
+    added: list[str] = []
+    for anchor, relative in anchors:
         text = text[:anchor] + render_block(relative) + text[anchor:]
         added.append(relative)
     return text, added
