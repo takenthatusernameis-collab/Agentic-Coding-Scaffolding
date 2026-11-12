@@ -59,6 +59,20 @@ class TestPathsAndGlobs(unittest.TestCase):
         ):
             self.assertIn(expected, globs)
 
+    def test_the_source_globs_cover_the_templated_document_copies(self):
+        # ``refresh_scaffold.py`` embeds these documents as templates and
+        # ``tests.test_scaffold_sync`` asserts they stay in sync, so editing one
+        # of them must invalidate the checkpoint instead of skipping the battery.
+        spec = importlib.util.spec_from_file_location(
+            "refresh_scaffold", ROOT / "tools" / "refresh_scaffold.py"
+        )
+        assert spec is not None and spec.loader is not None
+        refresh_scaffold = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(refresh_scaffold)
+        globs = set(verify_state_delta.SOURCE_GLOBS)
+        for name in refresh_scaffold.TEMPLATED_COPIES:
+            self.assertIn(name, globs, msg=name)
+
     def test_the_source_globs_are_relative_paths(self):
         # The globs are passed to ``git diff`` as pathspecs relative to the
         # repository root, so an absolute path would silently match nothing.
@@ -140,6 +154,12 @@ class TestRepositoryState(unittest.TestCase):
     def test_source_changed_since_head_is_false(self):
         # HEAD..HEAD is an empty diff, so no source-relevant file changed.
         self.assertFalse(verify_state_delta.source_changed_since(verify_state_delta.head()))
+
+    def test_source_changed_since_an_unknown_ref_is_true(self):
+        # An unknown ref (rebase, force-push, shallow clone) makes ``git diff``
+        # fail; the guard must treat that as a change so the battery still runs
+        # instead of trusting a checkpoint it cannot compare.
+        self.assertTrue(verify_state_delta.source_changed_since("0" * 40))
 
 
 class TestMain(unittest.TestCase):

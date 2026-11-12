@@ -30,12 +30,17 @@ MARKER = ROOT / ".kilo" / "last_verified.checkpoint"
 
 #: Paths whose changes invalidate the verified checkpoint. ``tools/*.py`` is
 #: included so an edit to the verification tooling itself forces a fresh battery
-#: run instead of trusting a checkpoint produced by the old code.
+#: run instead of trusting a checkpoint produced by the old code. The documents
+#: that name the project are included because ``refresh_scaffold.py`` embeds
+#: them as templates and ``tests.test_scaffold_sync`` asserts they stay in sync.
 SOURCE_GLOBS = (
     "*.py",
     "Makefile",
     "pyproject.toml",
     "scaffold.sh",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
     ".kilo/command/scaffold-project.md",
     "tools/*.py",
 )
@@ -74,8 +79,20 @@ def write_marker(data: dict) -> None:
 
 
 def source_changed_since(ref: str) -> bool:
-    """Return True when any source-relevant file changed between *ref* and HEAD."""
+    """Return True when any source-relevant file changed between *ref* and HEAD.
+
+    A missing or unknown *ref* (for example after a rebase, a force-push, or a
+    shallow clone) makes ``git diff`` fail. That is treated as a change so the
+    battery runs instead of silently trusting a checkpoint that cannot be
+    compared against the current history.
+    """
     result = run(["git", "diff", "--name-only", ref, "HEAD", "--"] + list(SOURCE_GLOBS))
+    if result.returncode != 0:
+        print(
+            f"[verify-state-delta] Cannot diff against {ref!r}; treating state as changed.",
+            file=sys.stderr,
+        )
+        return True
     return bool(result.stdout.strip())
 
 
