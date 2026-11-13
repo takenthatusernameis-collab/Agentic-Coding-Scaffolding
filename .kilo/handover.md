@@ -2,18 +2,16 @@
 
 ## Done
 - Board held no task (`board_read` empty; bootstrap/hygiene session).
-- Compared HEAD `81b922d` with `.kilo/last_verified.checkpoint` (`885e59f`):
-  checkpoint lagged HEAD; source-relevant files changed since checkpoint
-  (`tests/test_verify_state_delta.py`, `tools/verify_state_delta.py`) alongside
-  metadata files.
-- Ran `python tools/verify_state_delta.py` (battery path): verification passed
-  and advanced `.kilo/last_verified.checkpoint` to `81b922d`.
+- Compared HEAD `1fa55be` with `.kilo/last_verified.checkpoint` (`81b922d`):
+  checkpoint lagged HEAD; commit `1fa55be` touched only metadata files.
+- Ran `python tools/verify_state_delta.py --full` (battery path): verification
+  passed and advanced `.kilo/last_verified.checkpoint` to `1fa55be`.
 - No source/code changes made in this session; no `.github/workflows/**` changes.
 
 ## State
-- Verified checkpoint: `81b922d` (HEAD `81b922d`).
-- Working tree: `.kilo/last_verified.checkpoint`, `.kilo/handover.md`,
-  `PROJECT_STATUS.md` updated to record this verification.
+- Verified checkpoint: `1fa55be` (HEAD `1fa55be`).
+- Working tree: `.kilo/last_verified.checkpoint` updated to record this
+  verification.
 
 ## Next
 1. Run `git status` and compare HEAD with `.kilo/last_verified.checkpoint`.
