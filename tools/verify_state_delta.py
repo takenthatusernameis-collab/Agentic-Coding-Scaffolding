@@ -53,7 +53,16 @@ def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 
 
 def working_tree_clean() -> bool:
-    result = run(["git", "status", "--porcelain"])
+    """Return ``True`` when ``git status --porcelain`` reports no changes.
+
+    The marker this guard writes is its own output, not a source change, so it
+    is excluded: after the guard advances the checkpoint the tree is dirty only
+    because of the marker, and a subsequent invocation must still skip the
+    battery instead of re-verifying the same HEAD.
+    """
+    result = run(
+        ["git", "status", "--porcelain", "--", ".", ":!.kilo/last_verified.checkpoint"]
+    )
     assert isinstance(result.stdout, str)
     return result.stdout.strip() == ""
 
