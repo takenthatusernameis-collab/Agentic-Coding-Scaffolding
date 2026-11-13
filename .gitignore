@@ -21,3 +21,4 @@ kilo-session-*.log
 kilo-progress-*.log
 *.tmp
 .kilo/scan_untested_cache.json
+.kilo/refresh_scaffold_cache.json

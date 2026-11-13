@@ -30,12 +30,19 @@ silently kept alive by the generator.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCAFFOLD = ROOT / "scaffold.sh"
+
+#: Persistent mtime cache for the ``--check`` fast path. When ``scaffold.sh``
+#: and every managed repository file are unchanged since the last successful
+#: in-sync check, the expensive parse/compare work is skipped. The cache lives
+#: in ``.kilo/`` and is gitignored so it never dirties the working tree.
+CACHE_FILE = ROOT / ".kilo" / "refresh_scaffold_cache.json"
 
 #: The documents that are embedded as templates instead of verbatim copies.
 TEMPLATED_COPIES = ("README.md", "AGENTS.md", "CHANGELOG.md")
@@ -141,6 +148,74 @@ def wrapper_copies() -> list[str]:
             if (ROOT / relative).is_file():
                 relatives.append(relative)
     return relatives
+
+
+def managed_copy_paths() -> list[str]:
+    """Return every repository file the tool can compare or embed.
+
+    Includes all embedded wrapper module/test copies and the templated project
+    documents. The list is stable so cache fingerprints are deterministic.
+    """
+    return sorted(set(wrapper_copies()) | set(TEMPLATED_COPIES))
+
+
+def _mtime(path: Path) -> float | None:
+    """Return the modification time of *path*, or ``None`` when absent."""
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return None
+
+
+def load_check_cache() -> dict:
+    """Load the persistent check-mode mtime cache, or an empty cache."""
+    try:
+        data = json.loads(CACHE_FILE.read_text())
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def save_check_cache(cache: dict) -> None:
+    """Atomically persist *cache* to the cache file."""
+    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = CACHE_FILE.with_name(CACHE_FILE.name + ".tmp")
+    tmp.write_text(json.dumps(cache, indent=2, sort_keys=True) + "\n")
+    tmp.replace(CACHE_FILE)
+
+
+def _check_cache_fingerprint() -> dict[str, float | None]:
+    """Return the mtime fingerprint for an in-sync ``--check`` state."""
+    fingerprint = {"__scaffold__": _mtime(SCAFFOLD)}
+    for relative in managed_copy_paths():
+        fingerprint[relative] = _mtime(ROOT / relative)
+    return fingerprint
+
+
+def check_cache_hit() -> bool:
+    """Return ``True`` when the cached in-sync ``--check`` fingerprint matches."""
+    cache = load_check_cache()
+    if cache.get("status") != "in_sync":
+        return False
+    expected = cache.get("fingerprint")
+    if not isinstance(expected, dict):
+        return False
+    return expected == _check_cache_fingerprint()
+
+
+def record_check_cache_in_sync() -> None:
+    """Record that the generator is currently in sync for ``--check``."""
+    save_check_cache({"status": "in_sync", "fingerprint": _check_cache_fingerprint()})
+
+
+def clear_check_cache() -> None:
+    """Invalidate the ``--check`` cache when state is not known in-sync."""
+    try:
+        CACHE_FILE.unlink()
+    except FileNotFoundError:
+        pass
+    except OSError:
+        pass
 
 
 def heredoc_delimiter(relative: str) -> str:
@@ -362,6 +437,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    if args.check and check_cache_hit():
+        print("all embedded copies are in sync")
+        return 0
+
     scaffold_text = SCAFFOLD.read_text()
     refreshed, changed, stale = refresh(scaffold_text)
     refreshed, removed = remove_stale_copies(refreshed)
@@ -375,13 +454,16 @@ def main(argv: list[str] | None = None) -> int:
         for relative in added:
             print(f"missing: {relative}")
         if changed or removed or added:
+            clear_check_cache()
             print(f"{len(changed) + len(removed) + len(added)} embedded copies are out of sync")
             return 1
+        record_check_cache_in_sync()
         print("all embedded copies are in sync")
         return 0
 
     if changed or removed or added:
         SCAFFOLD.write_text(refreshed)
+        clear_check_cache()
     for relative in changed:
         print(f"refreshed: {relative}")
     for relative in removed:
