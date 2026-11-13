@@ -157217,6 +157217,48 @@ class TestCreateDispatcher(unittest.TestCase):
             self.assertIs(result, mock.sentinel.dispatcher)
 
 
+class TestUnavailableFallback(unittest.TestCase):
+    """Exercise the active fallback when the stdlib ``asyncore`` module is absent."""
+
+    def test_fallback_helpers_raise_runtime_error(self) -> None:
+        if asyncore_utils._ASYNCHORE_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asyncore module is available on this interpreter")
+        names = (
+            "dispatcher",
+            "dispatcher_with_send",
+            "file_dispatcher",
+            "file_wrapper",
+            "loop",
+            "poll",
+            "read",
+            "write",
+            "close_all",
+            "select",
+            "poll2",
+            "poll3",
+        )
+        for name in names:
+            with self.subTest(name=name):
+                with self.assertRaises(RuntimeError) as ctx:
+                    getattr(asyncore_utils, name)()
+                self.assertIn("asyncore module is not available", str(ctx.exception))
+
+    def test_fallback_constants(self) -> None:
+        if asyncore_utils._ASYNCHORE_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asyncore module is available on this interpreter")
+        self.assertEqual(asyncore_utils.socket_map, {})
+        self.assertEqual(asyncore_utils.errorcode, {})
+        self.assertIs(asyncore_utils.ExitNow, RuntimeError)
+
+    def test_create_dispatcher_raises_when_unavailable(self) -> None:
+        if asyncore_utils._ASYNCHORE_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asyncore module is available on this interpreter")
+        with self.assertRaises(RuntimeError):
+            asyncore_utils.create_dispatcher()
+        with self.assertRaises(RuntimeError):
+            asyncore_utils.create_dispatcher(map={})
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_ASYNCORE_UTILS
@@ -161878,7 +161920,7 @@ if _ASYNCHORE_AVAILABLE:
     socket_map = _asyncore.socket_map
     ExitNow = _asyncore.ExitNow  # type: ignore[attr-defined]
     errorcode = _asyncore.errorcode  # type: ignore[attr-defined]
-else:  # pragma: no cover - exercised only on interpreters that ship the module
+else:  # pragma: no cover - exercised only on interpreters that lack the module
 
     def dispatcher(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""

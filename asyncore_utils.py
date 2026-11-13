@@ -48,7 +48,7 @@ if _ASYNCHORE_AVAILABLE:
     socket_map = _asyncore.socket_map
     ExitNow = _asyncore.ExitNow  # type: ignore[attr-defined]
     errorcode = _asyncore.errorcode  # type: ignore[attr-defined]
-else:  # pragma: no cover - exercised only on interpreters that ship the module
+else:  # pragma: no cover - exercised only on interpreters that lack the module
 
     def dispatcher(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""

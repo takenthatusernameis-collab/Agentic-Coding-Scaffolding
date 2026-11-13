@@ -1,5 +1,22 @@
 # Project Status
 
+## Latest Session (2026-11-13T00:32Z) — asyncore unavailable-fallback gap closed
+
+Board held no task (`board_read` empty; bootstrap session). Durable task from previous handover executed: state-delta first. `python tools/verify_state_delta.py` ran the battery (HEAD had advanced to `8842870`) and passed. `board_post` to `main` is refused because `main` resolves to the board root, so durable handover is recorded in `.kilo/handover.md` and this file.
+
+**Gap identified:** On this interpreter Python 3.12, the stdlib `asyncore` module is removed, so `asyncore_utils`'s fallback branch is the *active* code path — yet `tests/test_asyncore_utils.py` never exercised it (the branch carried `# pragma: no cover`). `asynchat_utils` already had a fallback test, so `asyncore_utils` was the inconsistent one. The fallback maps `dispatcher`, `dispatcher_with_send`, `file_dispatcher`, `file_wrapper`, `loop`, `poll`, `read`, `write`, `close_all`, `select`, `poll2`, `poll3` to a helper raising `RuntimeError("asyncore module is not available")`, with `socket_map = {}`, `errorcode = {}`, and `ExitNow = RuntimeError`; `create_dispatcher()` therefore raises `RuntimeError` here.
+
+**Work completed:**
+1. Added `TestUnavailableFallback` to `tests/test_asyncore_utils.py` (3 tests): every fallback helper raises `RuntimeError` with the expected message, the fallback constants/alias values are correct, and `create_dispatcher()` / `create_dispatcher(map={})` raise when unavailable. Tests skip on interpreters that still ship `asyncore`.
+2. Corrected the misleading `else` branch comment in `asyncore_utils.py` ("interpreters that lack the module", not "ship").
+3. Ran `make refresh-scaffold`; `tests/test_asyncore_utils.py` and `asyncore_utils.py` are embedded, so the embedded copies were refreshed and `python tools/refresh_scaffold.py --check` reports in sync.
+
+**Validation:** `tests.test_asyncore_utils` 10 tests OK (was 7). Targeted set `tests.test_asyncore_utils tests.test_public_api tests.test_scaffold_sync tests.test_doctests tests.test_scan_untested` — 62 OK. Full suite `python -m unittest discover tests/ -q`: 10648 tests OK, 4 skipped. `python tools/refresh_scaffold.py --check` in sync. `verify_state_delta.py` battery passed at checkpoint `8842870`. (ruff/mypy not installed in this environment; no new public API added, so README/CHANGELOG unchanged.)
+
+**Next Agent Task:** State-delta first via `python tools/verify_state_delta.py` (it skips when the tree is clean and no source-relevant file changed since the checkpoint, and runs the battery when state changed). Confirm `python tools/refresh_scaffold.py --check` and `python tools/scan_untested.py` as needed; run the full suite only at a coherent milestone or after relevant source changes. Look for a concrete, bounded gap (prefer one surfaced by an invariant tool such as `scan_untested`/`test_scaffold_sync`, or an untested active branch on this interpreter). Implement it with typed code + `__all__` + Google-style docstring + ASCII-safe doctests + `TypeError`/`ValueError` validation as appropriate; add targeted tests; update `README.md`/`CHANGELOG.md` only for new public API; run `make refresh-scaffold` if any embedded file changes. Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused, record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
+---
+
 ## Latest Session (2026-11-12T23:36Z) — foundation verified green, no genuine gap
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file). State-delta vs last verified checkpoint `6a1e87a`: working tree clean and no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.
