@@ -6,7 +6,7 @@
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
 	@echo "Running tests..."
-	@if [ -z "$$(git status --porcelain 2>/dev/null)" ]; then \
+	@if [ -z "$$(git status --porcelain -- . ':!.kilo/last_verified.checkpoint' 2>/dev/null)" ]; then \
 		if [ -f .kilo/last_verified.checkpoint ] && \
 		   [ "$$(git rev-parse HEAD)" = "$$(python -c "import json;print(json.load(open('.kilo/last_verified.checkpoint')).get('head',''))" 2>/dev/null)" ]; then \
 			echo "Working tree clean and already verified at current checkpoint; skipping smoke test."; \

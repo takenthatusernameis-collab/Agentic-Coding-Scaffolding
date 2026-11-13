@@ -297,7 +297,11 @@ class TestMain(unittest.TestCase):
 
 
 class TestCommandLine(unittest.TestCase):
-    """Verify the command-line interface of the guard."""
+    """Verify the command-line interface of the guard.
+
+    This subprocess invocation is the end-to-end coverage that the real
+    verification battery executes successfully from the command line.
+    """
 
     def test_the_check_mode_reports_a_synchronised_repository(self):
         result = subprocess.run(

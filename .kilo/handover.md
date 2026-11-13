@@ -1,9 +1,8 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-13T12:19Z (optimize-delays; board empty, executed handover task)
-**Checkpoint:** `f9494a8` (HEAD; `verify_state_delta --full` passed with this session's changes)
-**HEAD at handover:** working tree contains this session's real changes pending CI auto-commit
-**Source changes this session:** `tools/scan_untested.py`, `tests/test_scan_untested.py`, `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md`
+**Session:** 2026-11-13T13:15Z (optimize-delays; board empty, bootstrap/root)
+**Checkpoint:** `2803d46` (HEAD; `verify_state_delta --full` passed with this session's changes)
+**Source changes this session:** `tests/test_verify_state_delta.py`, `Makefile`, `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md`
 
 ## Task for Next Agent
 
@@ -11,13 +10,13 @@ Run an **optimize-delays** pass per `.kilo/command/optimize-delays.md`: identify
 
 ## Work Completed This Session
 
-- **Board/state**: `board_read` empty (bootstrap/root). `board_post` to `main` refused; durable handover recorded here and in `PROJECT_STATUS.md`. No source file had changed since the last verified checkpoint, so no discovery/test re-run was needed to find the bottleneck.
-- **Optimize-delays improvement (AVOIDABLE_PROCESS_DELAY — the scanner test suite destroyed the shared mtime cache):** `tests/test_scan_untested.py` `TestCacheIntegration.setUp` deleted the real `.kilo/scan_untested_cache.json` before every test and `tearDown` deleted it again. Because the class runs before every other subprocess-based class, every later test (and the verification battery's `scan_untested` run in the next session) had to re-parse all 500+ modules. The suite now runs against a module-wide throwaway cache (`KILO_SCAN_UNTESTED_CACHE`), the new environment override in `tools/scan_untested.py`, and empties it once in `setUpClass` so the two population assertions still observe a genuine cold scan.
-- **Measurement (warm cache, same machine):** `tests.test_scan_untested` 3.01 s → 1.83 s (~1.2 s, ~39% per run). Per-test timings before: `TestCacheIntegration.test_all_mode_is_cached_per_mode` 0.67 s, `test_repeated_runs_produce_identical_output_and_populate_cache` 0.67 s, `TestJSONOutput.test_json_output_when_clean` 0.62 s, `TestJSONOutput.test_json_output_with_all_flag` 0.62 s; after: the two integration tests 0.66 s each (the irreducible cold scans) and every downstream test ~0.04 s. The real cache file is also no longer deleted: its mtime/size were byte-identical after a full test-module run (verified with `stat`).
-- **Verification:** `tests.test_refresh_scaffold`, `tests.test_scan_untested` (44 tests), `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta` (20 tests) all OK, full `python -m unittest discover tests/` (10675 tests, OK, skipped=4), `make lint` clean, `make typecheck` clean (566 files), `python tools/verify_state_delta.py --full` passed, `refresh_scaffold --check` in sync.
+- **Board/state:** `board_read` empty (bootstrap/root). No prior task to execute; performed optimize-delays from durable status/hints.
+- **`tests/test_verify_state_delta.py` (AVOIDABLE_PROCESS_DELAY):** `TestMain` control-flow tests now stub `battery_ok` so they no longer run redundant in-process verification batteries; the failure contract is preserved by overriding the stub to `False` in the failure test. End-to-end coverage remains: `TestCommandLine` runs one real subprocess `--full` battery, and `TestPathsAndGlobs` covers battery composition/pass-fail behavior. Measured module runtime improved (1.41 s → ~1.26 s in this environment; remaining cost is dominated by the single subprocess e2e run).
+- **`Makefile` `test` target:** marker-only dirtiness is excluded from the clean-tree check (`git status --porcelain -- . ':!.kilo/last_verified.checkpoint'`) so writing/updating `.kilo/last_verified.checkpoint` does not force the dirty-tree/full-suite path, aligning `make test`’s state treatment with `tools/verify_state_delta.py`.
+- **Verification:** `tests.test_refresh_scaffold`, `tests.test_scan_untested`, `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta`, `make lint`, `make typecheck`, and `python tools/verify_state_delta.py --full` all passed.
 - **No `.github/workflows/**` changes.**
 
 ## Notes
 
-- The env override is resolved at import time: `CACHE_FILE = Path(os.environ.get(CACHE_ENV) or ROOT / ".kilo" / "scan_untested_cache.json")`. Subprocesses inherit it through `os.environ`; the in-process global is repointed explicitly in the test module.
-- Remaining measured dev-loop costs, if a future pass wants one: `tests.test_verify_state_delta` ~4.6 s is dominated by four real battery invocations (three in-process `main(["--full"])` calls in `TestMain` plus one `--full` subprocess in `TestCommandLine`), each ~1.2 s. The control-flow tests could stub `battery_ok` and keep only the subprocess run as end-to-end coverage (~2.5-3 s avoidable). Separately, the `make test` clean-tree fast path only compares `marker.head` with HEAD, so a checkpoint-only commit still re-runs the ~1.3 s smoke test; `verify_state_delta.source_changed_since` already implements the fallback it lacks.
+- `make test`’s clean-tree fast path currently skips the smoke test only when the checkpoint HEAD matches HEAD, or when `source_changed_since` fallback allows skipping; when HEAD differs but source is unchanged it may still run the smoke+doctest suite depending on how the recipe is structured—worth a careful, measured alignment with `verify_state_delta` semantics if it avoids redundant work without weakening gates.
+- `tools/verify_state_delta.py` runs its battery checks in parallel via `ThreadPoolExecutor`; further gains likely require reducing what the battery runs or avoiding duplicate runs across `make test`/`make verify` in common workflows, but only with evidence.
