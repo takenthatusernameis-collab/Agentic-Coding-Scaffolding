@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -116,13 +117,16 @@ def battery_ok() -> bool:
         ),
     ]
     ok = True
-    for cmd, label in checks:
-        result = run(cmd)
-        if result.returncode != 0:
-            ok = False
-            print(f"[verify-state-delta] {label} failed:")
-            print(result.stdout, end="")
-            print(result.stderr, end="", file=sys.stderr)
+    with ThreadPoolExecutor(max_workers=len(checks)) as executor:
+        future_to_label = {executor.submit(run, cmd): label for cmd, label in checks}
+        for future in future_to_label:
+            label = future_to_label[future]
+            result = future.result()
+            if result.returncode != 0:
+                ok = False
+                print(f"[verify-state-delta] {label} failed:")
+                print(result.stdout, end="")
+                print(result.stderr, end="", file=sys.stderr)
     return ok
 
 
