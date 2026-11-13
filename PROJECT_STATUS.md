@@ -1,15 +1,13 @@
 # Project Status
 
-## Latest Session (2026-11-13T17:30Z) — `verify_state_delta` cosmetic stderr/reporting hardened
+## Latest Session (2026-11-13T18:17Z) — State-delta hygiene pass; test mock fix
 
 Board task from previous session executed.
 
-- **`tools/verify_state_delta.py`:** `battery_ok()` now treats non-zero exit codes as failures only; stderr emitted on a successful check (e.g. ResourceWarnings from doctest modules using `tempfile`) is no longer reported as a failure.
-- **`tests/test_doctests.py`:** doctest run wrapped with `warnings.catch_warnings()` ignoring `ResourceWarning` to suppress noisy tempfile/resource warnings during example execution.
-- **`tests/test_verify_state_delta.py`:** added `test_the_battery_ignores_stderr_when_a_check_succeeds`.
+- **`tests/test_verify_state_delta.py`:** Fixed `test_the_battery_ignores_stderr_when_a_check_succeeds` — the test incorrectly tried to mock `verify_state_delta.print` (a non-existent module attribute) instead of `builtins.print`. The fix uses `builtins.print` for the mock.
 - **Validation battery passed:** `tests.test_verify_state_delta`, `tests.test_doctests`, `refresh_scaffold --check`, `scan_untested`, `tests.test_public_api`, `tests.test_scaffold_sync`, `ruff check .`, `mypy .` (567 files), `python tools/verify_state_delta.py --full` — all green.
 
-**Current verified checkpoint:** `a125b0f` (HEAD at last `--full` run; working tree has this session's source changes pending commit).
+**Current verified checkpoint:** `41db767` (HEAD matches last `--full` run; working tree clean).
 
 ## Task for Next Agent
 

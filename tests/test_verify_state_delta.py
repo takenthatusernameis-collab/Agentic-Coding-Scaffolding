@@ -154,21 +154,23 @@ class TestPathsAndGlobs(unittest.TestCase):
         # is 0.
         original_run = verify_state_delta.run
         reported: list[str] = []
-        original_print = verify_state_delta.print
 
         def fake_run(cmd: list[str], timeout: float = 30.0):
             return subprocess.CompletedProcess(cmd, 0, "", "ResourceWarning: temp")
+
+        import builtins
+        original_print = builtins.print
 
         def fake_print(*args, **kwargs):
             reported.append(" ".join(str(a) for a in args))
 
         verify_state_delta.run = fake_run  # type: ignore[assignment]
-        verify_state_delta.print = fake_print  # type: ignore[assignment]
+        builtins.print = fake_print  # type: ignore[assignment]
         try:
             ok = verify_state_delta.battery_ok()
         finally:
             verify_state_delta.run = original_run  # type: ignore[assignment]
-            verify_state_delta.print = original_print  # type: ignore[assignment]
+            builtins.print = original_print  # type: ignore[assignment]
         self.assertTrue(ok)
         self.assertEqual(reported, [])
 
