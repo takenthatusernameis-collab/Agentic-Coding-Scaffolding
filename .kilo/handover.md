@@ -2,16 +2,18 @@
 
 ## Done
 - Executed previous handover task: state-delta verification/hygiene pass.
-- Confirmed HEAD `05646ae` matches `.kilo/last_verified.checkpoint`; working tree clean.
-- Verified the already-committed test fix in `tests/test_verify_state_delta.py`:
-  - `python -m unittest tests.test_verify_state_delta` — OK
-  - `python -m ruff check tests/test_verify_state_delta.py` — passed
-  - `python -m mypy tests/test_verify_state_delta.py` — success
-- No source-relevant changes since checkpoint, so full battery was skipped per state-delta rule.
+- Confirmed HEAD `50576e3` matches `.kilo/last_verified.checkpoint`; working tree clean.
+- Ran full verification battery:
+  - `python tools/refresh_scaffold.py --check` — all embedded copies in sync
+  - `python tools/scan_untested.py` — no exported-but-untested callables
+  - `python -m unittest discover -s tests` — all tests passed
+  - `make lint` — passed
+  - `make typecheck` — success (only untyped function notes)
+  - `python tools/verify_state_delta.py --full` — verification passed; checkpoint advanced to `50576e3`
+- No source-relevant changes since last verified checkpoint.
 
 ## State
-- HEAD at last `--full`: `41db767` (subsequent commits are docs/checkpoint only)
-- Current HEAD: `05646ae`
+- HEAD at last `--full`: `50576e3`
 - Working tree clean.
 
 ## Next
