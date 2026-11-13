@@ -1,20 +1,29 @@
 # Project Status
 
-## Latest Session (2026-11-13T19:20Z) — State-delta verification; full battery passed
+## Latest Session (2026-11-13T19:22Z) — State-delta verification; full battery passed
 
 Board task from previous session executed.
 
-- Confirmed HEAD `7ebd561` matches `.kilo/last_verified.checkpoint` and working tree is clean.
-- Ran full verification battery:
+- Confirmed HEAD `d5a5e67` vs `.kilo/last_verified.checkpoint` (`7ebd561`): only
+  handover/checkpoint docs changed since the last verified checkpoint; no
+  source-relevant changes. Working tree clean.
+- Ran the fast state-delta path:
   - `python tools/refresh_scaffold.py --check` — all embedded copies in sync
   - `python tools/scan_untested.py` — no exported-but-untested callables
+  - `python tools/verify_state_delta.py` — skipped redundant verification (state delta only)
+- Fixed one concrete avoidable-delay improvement: the test suite printed two
+  `DeprecationWarning` lines per run from the `uu_utils`/`xdrlib` wrapper modules
+  re-exporting deprecated stdlib names. Suppressed them inside
+  `tests/test_public_api.py` via a `warnings.catch_warnings()` context in
+  `setUpClass` (scoped, no global filter). Verified the warnings are gone and
+  `ruff`/`mypy` on the edited file are clean.
+- Ran the full verification battery at this material change:
   - `python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests tests.test_verify_state_delta` — all tests passed
   - `make lint` — passed
-  - `make typecheck` — success (only untyped function notes)
-  - `python tools/verify_state_delta.py --full` — verification passed; checkpoint advanced to `7ebd561`
-- Source-relevant changes since last verified checkpoint (07b599c): none (only handover/checkpoint docs changed).
+  - `make typecheck` — success
+  - `python tools/verify_state_delta.py --full` — verification passed; checkpoint already at `d5a5e67`
 
-**Current verified checkpoint:** `7ebd561`
+**Current verified checkpoint:** `d5a5e67`
 
 ## Task for Next Agent
 

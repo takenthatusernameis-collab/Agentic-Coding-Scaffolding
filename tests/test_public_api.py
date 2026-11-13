@@ -15,6 +15,7 @@ earlier regressions (for example, ``upper``/``lower`` missing from
 import importlib
 import inspect
 import unittest
+import warnings
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent.parent
@@ -57,7 +58,12 @@ class TestPublicAPI(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.modules = _iter_wrapper_modules()
+        # Wrapper modules re-export deprecated stdlib names (uu, xdrlib, ...).
+        # Their import-time DeprecationWarnings are noise in the test report and
+        # not a signal, so suppress them during discovery only.
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=DeprecationWarning)
+            cls.modules = _iter_wrapper_modules()
 
     def test_modules_are_discovered(self) -> None:
         self.assertGreater(len(self.modules), 0, "no top-level modules discovered")
