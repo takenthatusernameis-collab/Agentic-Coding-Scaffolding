@@ -76,3 +76,4 @@ def is_abstract(obj):
     """
     abstractmethods = getattr(obj, "__abstractmethods__", None)
     return bool(abstractmethods)
+# test change
