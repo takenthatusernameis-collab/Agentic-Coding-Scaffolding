@@ -452,12 +452,38 @@ def permutation(n: int, k: int) -> int:
     return result
 
 
+# Deterministic Miller-Rabin witness bases proven correct for all n < 2^64.
+# (Jim Sinclair, 2011; see OEIS A014233 / deterministic Miller-Rabin sets.)
+_MILLER_RABIN_BASES: tuple[int, ...] = (2, 325, 9375, 28178, 450775, 9780504, 1795265022)
+
+
 def is_prime(n: int) -> bool:
     """Return True if n is a prime number.
+
+    Uses a deterministic Miller-Rabin test with the witness set proven correct
+    for every integer below 2^64. This avoids the false positives a
+    single-base test produces (for example, 2047 = 23 * 89 is a strong
+    pseudoprime to base 2).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if n is prime.
 
     Raises:
         TypeError: If n is not an int.
         ValueError: If n is less than 2.
+
+    Examples:
+        >>> is_prime(2)
+        True
+        >>> is_prime(7)
+        True
+        >>> is_prime(4)
+        False
+        >>> is_prime(2047)
+        False
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError("n must be an int")
@@ -467,14 +493,15 @@ def is_prime(n: int) -> bool:
         return True
     if n % 2 == 0:
         return False
-    r, s = 0, n - 1
-    while s % 2 == 0:
+    d = n - 1
+    r = 0
+    while d % 2 == 0:
+        d //= 2
         r += 1
-        s //= 2
-    # Simple test
-    for _ in range(128):
-        a = 2
-        x = pow(a, s, n)
+    for a in _MILLER_RABIN_BASES:
+        if a % n == 0:
+            continue
+        x = pow(a, d, n)
         if x == 1 or x == n - 1:
             continue
         for _ in range(r - 1):

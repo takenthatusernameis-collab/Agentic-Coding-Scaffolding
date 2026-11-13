@@ -9908,12 +9908,38 @@ def permutation(n: int, k: int) -> int:
     return result
 
 
+# Deterministic Miller-Rabin witness bases proven correct for all n < 2^64.
+# (Jim Sinclair, 2011; see OEIS A014233 / deterministic Miller-Rabin sets.)
+_MILLER_RABIN_BASES: tuple[int, ...] = (2, 325, 9375, 28178, 450775, 9780504, 1795265022)
+
+
 def is_prime(n: int) -> bool:
     """Return True if n is a prime number.
+
+    Uses a deterministic Miller-Rabin test with the witness set proven correct
+    for every integer below 2^64. This avoids the false positives a
+    single-base test produces (for example, 2047 = 23 * 89 is a strong
+    pseudoprime to base 2).
+
+    Args:
+        n: The integer to test.
+
+    Returns:
+        True if n is prime.
 
     Raises:
         TypeError: If n is not an int.
         ValueError: If n is less than 2.
+
+    Examples:
+        >>> is_prime(2)
+        True
+        >>> is_prime(7)
+        True
+        >>> is_prime(4)
+        False
+        >>> is_prime(2047)
+        False
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError("n must be an int")
@@ -9923,14 +9949,15 @@ def is_prime(n: int) -> bool:
         return True
     if n % 2 == 0:
         return False
-    r, s = 0, n - 1
-    while s % 2 == 0:
+    d = n - 1
+    r = 0
+    while d % 2 == 0:
+        d //= 2
         r += 1
-        s //= 2
-    # Simple test
-    for _ in range(128):
-        a = 2
-        x = pow(a, s, n)
+    for a in _MILLER_RABIN_BASES:
+        if a % n == 0:
+            continue
+        x = pow(a, d, n)
         if x == 1 or x == n - 1:
             continue
         for _ in range(r - 1):
@@ -10790,6 +10817,23 @@ class TestIsPrime(unittest.TestCase):
             is_prime(1)
         with self.assertRaises(ValueError):
             is_prime(-2)
+
+    def test_is_prime_rejects_pseudoprimes(self):
+        # 2047 is the smallest strong pseudoprime to base 2 (23 * 89).
+        self.assertFalse(is_prime(2047))
+        # Other Carmichael numbers / strong pseudoprimes.
+        self.assertFalse(is_prime(2465))
+        self.assertFalse(is_prime(2821))
+        self.assertFalse(is_prime(6601))
+        self.assertFalse(is_prime(8911))
+
+    def test_is_prime_known_primes(self):
+        for p in (2, 3, 7, 11, 13, 17, 19, 23, 29, 31, 104729, 2147483647):
+            self.assertTrue(is_prime(p), f"{p} should be prime")
+
+    def test_is_prime_known_composites(self):
+        for c in (4, 6, 8, 10, 100, 1000, 1000000):
+            self.assertFalse(is_prime(c), f"{c} should be composite")
 
 
 class TestModPow(unittest.TestCase):
@@ -70203,6 +70247,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `is_prime` single-base Miller-Rabin false positives in `calculator.py`
+
+- Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `2a3b2bd`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.
+- **Genuine gap found and closed — `is_prime` in `calculator.py` returned `True` for composite numbers.** The implementation ran a single-base Miller-Rabin test with the fixed witness `a = 2` in a 128-iteration loop, which is not a valid primality proof: `2047 = 23 * 89` is a strong pseudoprime to base 2 and was reported prime. The loop also retested the same witness 128 times instead of varying the base.
+- **Fix:** replaced the single-base test with a deterministic Miller-Rabin test using the witness set `(2, 325, 9375, 28178, 450775, 9780504, 1795265022)`, which is proven correct for every integer below 2^64. The witness set is a module-level tuple `_MILLER_RABIN_BASES`. Added doctest coverage (`is_prime(2047) -> False`).
+- Added `TestIsPrime` boundary tests in `tests/test_calculator.py`: known primes (including `2147483647`, the Mersenne prime 2^31 - 1), known composites, and strong pseudoprimes / Carmichael numbers that a single-base test misclassifies (`2047`, `2465`, `2821`, `6601`, `8911`).
+- Refreshed embedded copies with `make refresh-scaffold` (`calculator.py` and `tests/test_calculator.py` are embedded in `scaffold.sh`); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- **Validation:** `python -m unittest tests.test_calculator tests.test_public_api tests.test_scaffold_sync tests.test_doctests` — 143 tests OK; `python -m ruff check calculator.py tests/test_calculator.py` all checks passed; `python -m mypy calculator.py` no issues; `python tools/scan_untested.py` no exported-but-untested callables. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — closed 7 ruff violations in backoff_utils and its test
 
 - Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `b8f9be3`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` ran the battery and advanced `.kilo/last_verified.checkpoint` to `b45d7a2` (== HEAD).

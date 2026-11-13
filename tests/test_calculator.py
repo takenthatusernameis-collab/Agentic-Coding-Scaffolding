@@ -700,6 +700,23 @@ class TestIsPrime(unittest.TestCase):
         with self.assertRaises(ValueError):
             is_prime(-2)
 
+    def test_is_prime_rejects_pseudoprimes(self):
+        # 2047 is the smallest strong pseudoprime to base 2 (23 * 89).
+        self.assertFalse(is_prime(2047))
+        # Other Carmichael numbers / strong pseudoprimes.
+        self.assertFalse(is_prime(2465))
+        self.assertFalse(is_prime(2821))
+        self.assertFalse(is_prime(6601))
+        self.assertFalse(is_prime(8911))
+
+    def test_is_prime_known_primes(self):
+        for p in (2, 3, 7, 11, 13, 17, 19, 23, 29, 31, 104729, 2147483647):
+            self.assertTrue(is_prime(p), f"{p} should be prime")
+
+    def test_is_prime_known_composites(self):
+        for c in (4, 6, 8, 10, 100, 1000, 1000000):
+            self.assertFalse(is_prime(c), f"{c} should be composite")
+
 
 class TestModPow(unittest.TestCase):
     def test_mod_pow_basic(self):
