@@ -361,6 +361,7 @@ def main(argv: list[str] | None = None) -> int:
     results = {}
     cache = load_cache()
     mode = _cache_key(show_all)
+    dirty = False
     for path in iter_modules():
         source_mtime = _mtime(path)
         test_path = ROOT / "tests" / f"test_{path.stem}.py"
@@ -370,14 +371,17 @@ def main(argv: list[str] | None = None) -> int:
             gaps = cached
         else:
             gaps = scan_module(path, show_all)
+            dirty = True
         if gaps:
             total += len(gaps)
             results[path.name] = gaps
         entry = cache.setdefault("modules", {}).get(path.name)
         if not isinstance(entry, dict):
             entry = {}
+            dirty = True
         by_mode = entry.get("gaps_by_mode")
         if not isinstance(by_mode, dict):
+            dirty = True
             by_mode = {}
         by_mode[mode] = gaps
         cache["modules"][path.name] = {
@@ -385,7 +389,8 @@ def main(argv: list[str] | None = None) -> int:
             "test_mtime": test_mtime,
             "gaps_by_mode": by_mode,
         }
-    save_cache(cache)
+    if dirty:
+        save_cache(cache)
     if json_output:
         print(json.dumps({"gaps": results, "total": total}, indent=2))
         return 1 if total else 0

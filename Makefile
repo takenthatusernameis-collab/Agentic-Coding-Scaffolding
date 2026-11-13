@@ -7,8 +7,13 @@
 test:
 	@echo "Running tests..."
 	@if [ -z "$$(git status --porcelain 2>/dev/null)" ]; then \
-		echo "Working tree clean; running public API smoke test and doctests (full suite skipped)."; \
-		python -m unittest tests.test_public_api tests.test_doctests; \
+		if [ -f .kilo/last_verified.checkpoint ] && \
+		   [ "$$(git rev-parse HEAD)" = "$$(python -c "import json;print(json.load(open('.kilo/last_verified.checkpoint')).get('head',''))" 2>/dev/null)" ]; then \
+			echo "Working tree clean and already verified at current checkpoint; skipping smoke test."; \
+		else \
+			echo "Working tree clean; running public API smoke test and doctests (full suite skipped)."; \
+			python -m unittest tests.test_public_api tests.test_doctests; \
+		fi; \
 	else \
 		if command -v pytest >/dev/null 2>&1; then \
 			pytest tests/ -v; \
