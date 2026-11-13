@@ -1,8 +1,8 @@
-# Handover (2026-11-13T20:24Z)
+# Handover (2026-11-13T20:26Z)
 
 ## Done
 - Board held no task (`board_read` empty; bootstrap/hygiene session).
-- Confirmed HEAD `cca0837` vs `.kilo/last_verified.checkpoint` (`abbd578`):
+- Confirmed HEAD `6f8d298` vs `.kilo/last_verified.checkpoint` (`cca0837`):
   only metadata files changed since the checkpoint (`.kilo/handover.md`,
   `.kilo/last_verified.checkpoint`, `PROJECT_STATUS.md`); no source-relevant
   changes. Working tree clean.
@@ -16,7 +16,7 @@
 - No `.github/workflows/**` changes.
 
 ## State
-- Verified checkpoint: `cca0837`; HEAD `cca0837` (checkpoint updated to HEAD).
+- Verified checkpoint: `6f8d298` (HEAD `6f8d298`; checkpoint updated).
 - Working tree clean.
 
 ## Next
