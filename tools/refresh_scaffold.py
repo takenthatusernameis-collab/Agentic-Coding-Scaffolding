@@ -184,28 +184,53 @@ def save_check_cache(cache: dict) -> None:
     tmp.replace(CACHE_FILE)
 
 
-def _check_cache_fingerprint() -> dict[str, float | None]:
-    """Return the mtime fingerprint for an in-sync ``--check`` state."""
+def _check_cache_fingerprint(managed_paths: list[str] | None = None) -> dict[str, float | None]:
+    """Return the mtime fingerprint for an in-sync ``--check`` state.
+
+    If *managed_paths* is provided, use it instead of recomputing the list of
+    managed paths. This avoids redundant filesystem discovery when the caller
+    already knows the path list.
+    """
     fingerprint = {"__scaffold__": _mtime(SCAFFOLD)}
-    for relative in managed_copy_paths():
+    paths = managed_paths if managed_paths is not None else managed_copy_paths()
+    for relative in paths:
         fingerprint[relative] = _mtime(ROOT / relative)
     return fingerprint
 
 
 def check_cache_hit() -> bool:
-    """Return ``True`` when the cached in-sync ``--check`` fingerprint matches."""
+    """Return ``True`` when the cached in-sync ``--check`` fingerprint matches.
+
+    Uses a fast path that avoids recomputing the managed-paths list when the
+    repository root mtime matches the cached value, indicating no files were
+    added or removed since the cache was written.
+    """
     cache = load_check_cache()
     if cache.get("status") != "in_sync":
         return False
     expected = cache.get("fingerprint")
     if not isinstance(expected, dict):
         return False
+    cached_root_mtime = cache.get("root_mtime")
+    if cached_root_mtime is not None:
+        current_root_mtime = _mtime(ROOT)
+        if current_root_mtime != cached_root_mtime:
+            return False
+        cached_paths = cache.get("managed_paths")
+        if isinstance(cached_paths, list):
+            return expected == _check_cache_fingerprint(cached_paths)
     return expected == _check_cache_fingerprint()
 
 
 def record_check_cache_in_sync() -> None:
     """Record that the generator is currently in sync for ``--check``."""
-    save_check_cache({"status": "in_sync", "fingerprint": _check_cache_fingerprint()})
+    paths = managed_copy_paths()
+    save_check_cache({
+        "status": "in_sync",
+        "fingerprint": _check_cache_fingerprint(paths),
+        "managed_paths": paths,
+        "root_mtime": _mtime(ROOT),
+    })
 
 
 def clear_check_cache() -> None:
@@ -438,6 +463,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     if args.check and check_cache_hit():
+        # Update cache to new format if it was in old format
+        cache = load_check_cache()
+        if "root_mtime" not in cache or "managed_paths" not in cache:
+            record_check_cache_in_sync()
         print("all embedded copies are in sync")
         return 0
 
