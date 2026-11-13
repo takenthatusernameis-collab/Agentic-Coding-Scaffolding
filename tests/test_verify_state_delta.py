@@ -248,8 +248,18 @@ class TestMain(unittest.TestCase):
             if verify_state_delta.MARKER.is_file()
             else None
         )
+        # The real verification battery costs ~1.2 s per invocation and this
+        # class previously ran it twice (once per ``--full`` call). The battery
+        # itself is covered end-to-end by ``TestCommandLine``, which invokes
+        # the tool as a subprocess. These control-flow tests stub ``battery_ok``
+        # so they exercise the marker advancement and skip logic without the
+        # redundant in-process cost. ``test_battery_failure_returns_one...``
+        # still overrides the stub to False.
+        self._original_battery_ok = verify_state_delta.battery_ok
+        verify_state_delta.battery_ok = lambda: True  # type: ignore[assignment]
 
     def tearDown(self):
+        verify_state_delta.battery_ok = self._original_battery_ok  # type: ignore[assignment]
         if self._original_marker is None:
             verify_state_delta.MARKER.unlink(missing_ok=True)
         else:
@@ -260,7 +270,8 @@ class TestMain(unittest.TestCase):
         # marker, regardless of what the marker held before. The prior
         # assertion (that the marker *changed*) was brittle: when the marker
         # already equalled HEAD, ``--full`` legitimately re-records the same
-        # value and the test failed on a green repository.
+        # value and the test failed on a green repository. The battery itself
+        # is stubbed here; its real execution is covered by ``TestCommandLine``.
         rc = verify_state_delta.main(["--full"])
         self.assertEqual(rc, 0)
         after = verify_state_delta.read_marker()
@@ -276,12 +287,11 @@ class TestMain(unittest.TestCase):
 
     def test_battery_failure_returns_one_and_leaves_the_marker_untouched(self):
         original = verify_state_delta.read_marker()
-        original_battery_ok = verify_state_delta.battery_ok
         verify_state_delta.battery_ok = lambda: False  # type: ignore[assignment]
         try:
             rc = verify_state_delta.main(["--full"])
         finally:
-            verify_state_delta.battery_ok = original_battery_ok  # type: ignore[assignment]
+            verify_state_delta.battery_ok = self._original_battery_ok  # type: ignore[assignment]
         self.assertEqual(rc, 1)
         self.assertEqual(verify_state_delta.read_marker(), original)
 

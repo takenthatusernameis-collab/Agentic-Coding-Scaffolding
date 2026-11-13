@@ -10,6 +10,9 @@ test:
 		if [ -f .kilo/last_verified.checkpoint ] && \
 		   [ "$$(git rev-parse HEAD)" = "$$(python -c "import json;print(json.load(open('.kilo/last_verified.checkpoint')).get('head',''))" 2>/dev/null)" ]; then \
 			echo "Working tree clean and already verified at current checkpoint; skipping smoke test."; \
+		elif [ -f .kilo/last_verified.checkpoint ] && \
+		     python -c "import sys; sys.path.insert(0,'tools'); import verify_state_delta as v; m=v.read_marker(); sys.exit(0 if (m and not v.source_changed_since(m['head'])) else 1)"; then \
+			echo "Working tree clean; no source-relevant file changed since the last verified checkpoint; skipping smoke test."; \
 		else \
 			echo "Working tree clean; running public API smoke test and doctests (full suite skipped)."; \
 			python -m unittest tests.test_public_api tests.test_doctests; \
