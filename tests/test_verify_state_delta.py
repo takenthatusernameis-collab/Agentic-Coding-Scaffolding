@@ -386,10 +386,16 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         ) = self._saved
 
     def test_clean_delta_is_computed_once_and_skips_battery(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            marker = Path(tmp) / "last_verified.checkpoint"
-            marker.write_text('{"head": "old"}')
-            verify_state_delta.MARKER = marker
+        # The marker must still exist when ``main`` reads it: a ``with`` block
+        # would delete the temporary directory before the call under test, so
+        # ``read_marker`` would return ``None`` and the battery would run even
+        # though the source delta is empty. Keep the directory alive for the
+        # duration of the test via ``addCleanup``.
+        tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(tmpdir.cleanup)
+        marker = Path(tmpdir.name) / "last_verified.checkpoint"
+        marker.write_text('{"head": "old"}')
+        verify_state_delta.MARKER = marker
 
         diff_calls: list[str] = []
         untracked_calls: list[bool] = []
@@ -411,10 +417,14 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         self.assertEqual(untracked_calls, [True])
 
     def test_changed_delta_runs_the_battery_and_lists_paths_with_diff(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            marker = Path(tmp) / "last_verified.checkpoint"
-            marker.write_text('{"head": "old"}')
-            verify_state_delta.MARKER = marker
+        # See ``test_clean_delta_is_computed_once_and_skips_battery``: the
+        # marker must exist for the whole call, so the temporary directory is
+        # kept alive with ``addCleanup`` instead of a ``with`` block.
+        tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(tmpdir.cleanup)
+        marker = Path(tmpdir.name) / "last_verified.checkpoint"
+        marker.write_text('{"head": "old"}')
+        verify_state_delta.MARKER = marker
 
         battery_calls: list[bool] = []
         verify_state_delta.working_tree_clean = lambda: True
@@ -423,20 +433,12 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         verify_state_delta.untracked_source_files = lambda: []
         verify_state_delta.battery_ok = lambda: battery_calls.append(True) or True
 
-        import builtins
         import io
         from contextlib import redirect_stdout
 
-        original_battery = verify_state_delta.battery_ok
-        verify_state_delta.battery_ok = (
-            lambda: battery_calls.append(True) or True
-        )
         buffer = io.StringIO()
-        try:
-            with redirect_stdout(buffer):
-                rc = verify_state_delta.main(["--diff"])
-        finally:
-            verify_state_delta.battery_ok = original_battery
+        with redirect_stdout(buffer):
+            rc = verify_state_delta.main(["--diff"])
 
         self.assertEqual(rc, 0)
         self.assertEqual(battery_calls, [True])
