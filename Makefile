@@ -19,11 +19,27 @@ test:
 			python -m unittest tests.test_public_api tests.test_doctests; \
 		fi; \
 	else \
-		if command -v pytest >/dev/null 2>&1; then \
-			pytest tests/ -v; \
-		else \
-			python -m unittest discover tests/ -v; \
-		fi; \
+		echo "Working tree dirty; selecting targeted tests for changed source..."; \
+		SELECTION=$$(python tools/select_tests.py --from-git --include-untracked); \
+		case "$$SELECTION" in \
+			FULL_SUITE) \
+				echo "Full-suite trigger detected; running full test suite."; \
+				if command -v pytest >/dev/null 2>&1; then \
+					pytest tests/ -v; \
+				else \
+					python -m unittest discover tests/ -v; \
+				fi; \
+				;; \
+			*) \
+				if [ -n "$$SELECTION" ]; then \
+					echo "Running targeted tests: $$SELECTION"; \
+					python -m unittest $$SELECTION; \
+				else \
+					echo "No targeted tests selected; running smoke tests."; \
+					python -m unittest tests.test_public_api tests.test_doctests; \
+				fi; \
+				;; \
+		esac; \
 	fi
 
 ## Run the doctest suite that enforces every module's documented examples
