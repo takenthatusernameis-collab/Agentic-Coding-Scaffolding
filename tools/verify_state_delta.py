@@ -11,12 +11,16 @@ satisfy the CI checkpoint gate. That is a repeated no-op verification cycle
 This tool records the HEAD at which verification last passed in
 ``.kilo/last_verified.checkpoint``. When the working tree is clean and no
 source-relevant file has changed since that checkpoint, the battery is skipped.
+When ``tests/`` changed since the last recorded full-suite run, a note is emitted
+so test-authoring regressions are not hidden by the clean-tree fast path.
 When state has changed, the battery runs and the checkpoint is advanced.
 
 Usage:
-    python tools/verify_state_delta.py [--full]
+    python tools/verify_state_delta.py [--full] [--record-full-suite]
 
 With ``--full`` the battery always runs and the checkpoint is always advanced.
+With ``--record-full-suite`` the checkpoint records that a full ``unittest discover``
+run accompanied this verification (use after ``make test-full`` or a full-suite run).
 """
 
 from __future__ import annotations
@@ -130,6 +134,23 @@ def source_changed_since(ref: str) -> bool:
     return bool(diff_since(ref)) or bool(untracked_source_files())
 
 
+def tests_changed_since(ref: str) -> bool:
+    """Return True when any file under tests/ changed since *ref*."""
+    result = run(["git", "diff", "--name-only", ref, "--", "tests"], timeout=5.0)
+    if result.returncode != 0:
+        return True
+    if [line for line in result.stdout.splitlines() if line.strip()]:
+        return True
+    result = run(
+        ["git", "status", "--porcelain", "--untracked-files=all", "--", "tests"],
+        timeout=5.0,
+    )
+    if result.returncode != 0:
+        return True
+    return bool([line for line in result.stdout.splitlines() if line.startswith("?? ")])
+
+
+
 def battery_ok() -> bool:
     """Run the verification battery; return True when every check passes."""
     checks = [
@@ -176,18 +197,23 @@ def battery_ok() -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:
-    force_full = "--full" in (argv or [])
-    show_diff = "--diff" in (argv or [])
+    args = argv or []
+    force_full = "--full" in args
+    show_diff = "--diff" in args
+    record_full_suite = "--record-full-suite" in args
     current_head = head()
 
     if not force_full and working_tree_clean():
         marker = read_marker()
         if marker is not None and marker.get("head") == current_head:
-            print(
-                "[verify-state-delta] Working tree clean and HEAD matches the "
-                "last verified checkpoint; skipping redundant verification."
-            )
-            return 0
+            if record_full_suite:
+                pass  # fall through to record marker update below
+            else:
+                print(
+                    "[verify-state-delta] Working tree clean and HEAD matches the "
+                    "last verified checkpoint; skipping redundant verification."
+                )
+                return 0
         if marker is not None:
             # Compute the source delta once. It feeds both the optional --diff
             # listing and the skip decision; the previous code recomputed it via
@@ -198,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
             if show_diff and changed:
                 for path in sorted(set(changed)):
                     print(f"[verify-state-delta] changed: {path}")
-            if not changed:
+            if not changed and not record_full_suite:
                 print(
                     "[verify-state-delta] Working tree clean and no source-relevant "
                     "file changed since the last verified checkpoint; skipping "
@@ -214,12 +240,25 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    marker = read_marker()
-    if marker is None or marker.get("head") != current_head:
-        write_marker({"head": current_head})
+    marker = read_marker() or {}
+    if marker.get("head") != current_head or record_full_suite or force_full:
+        new_marker = {"head": current_head}
+        # Preserve/record full-suite provenance: --full and --record-full-suite
+        # indicate a full `unittest discover` run accompanied this verification.
+        if record_full_suite or force_full:
+            new_marker["full_suite_head"] = current_head
+        elif "full_suite_head" in marker:
+            new_marker["full_suite_head"] = marker["full_suite_head"]
+        write_marker(new_marker)
         print(f"[verify-state-delta] Verification passed; checkpoint advanced to {current_head}.")
     else:
         print(f"[verify-state-delta] Verification passed; checkpoint already at {current_head}.")
+    if marker.get("full_suite_head") and tests_changed_since(marker["full_suite_head"]):
+        print(
+            "[verify-state-delta] Note: tests/ changed since last recorded full-suite run "
+            f"({marker['full_suite_head'][:12]}). Run `make test-full` or `python -m unittest "
+            "discover tests/` to exercise test-only changes."
+        )
     return 0
 
 

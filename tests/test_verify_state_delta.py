@@ -16,6 +16,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOL = ROOT / "tools" / "verify_state_delta.py"
@@ -43,9 +44,7 @@ class TestPathsAndGlobs(unittest.TestCase):
     """Verify the module's configured paths and source globs."""
 
     def test_the_marker_lives_under_kilo(self):
-        self.assertEqual(
-            verify_state_delta.MARKER, ROOT / ".kilo" / "last_verified.checkpoint"
-        )
+        self.assertEqual(verify_state_delta.MARKER, ROOT / ".kilo" / "last_verified.checkpoint")
 
     def test_the_source_globs_cover_the_editable_surface(self):
         globs = set(verify_state_delta.SOURCE_GLOBS)
@@ -159,6 +158,7 @@ class TestPathsAndGlobs(unittest.TestCase):
             return subprocess.CompletedProcess(cmd, 0, "", "ResourceWarning: temp")
 
         import builtins
+
         original_print = builtins.print
 
         def fake_print(*args, **kwargs):
@@ -251,9 +251,7 @@ class TestRepositoryState(unittest.TestCase):
         # When the working tree has uncommitted changes the helper also
         # reports them, so only assert the negative on a clean tree.
         if verify_state_delta.working_tree_clean():
-            self.assertFalse(
-                verify_state_delta.source_changed_since(verify_state_delta.head())
-            )
+            self.assertFalse(verify_state_delta.source_changed_since(verify_state_delta.head()))
         else:
             changed = verify_state_delta.diff_since(verify_state_delta.head())
             self.assertIsInstance(changed, list)
@@ -285,6 +283,10 @@ class TestRepositoryState(unittest.TestCase):
         # instead of trusting a checkpoint it cannot compare.
         self.assertTrue(verify_state_delta.source_changed_since("0" * 40))
 
+    def test_tests_changed_since_an_unknown_ref_is_true(self):
+        # A missing ref cannot be compared, so test-only changes must be assumed.
+        self.assertTrue(verify_state_delta.tests_changed_since("0" * 40))
+
 
 class TestMain(unittest.TestCase):
     """Verify the command-line entry point and the --full flag.
@@ -299,9 +301,7 @@ class TestMain(unittest.TestCase):
 
     def setUp(self):
         self._original_marker = (
-            verify_state_delta.MARKER.read_text()
-            if verify_state_delta.MARKER.is_file()
-            else None
+            verify_state_delta.MARKER.read_text() if verify_state_delta.MARKER.is_file() else None
         )
         # The real verification battery costs ~1.2 s per invocation and this
         # class previously ran it twice (once per ``--full`` call). The battery
@@ -332,6 +332,37 @@ class TestMain(unittest.TestCase):
         after = verify_state_delta.read_marker()
         self.assertIsNotNone(after)
         self.assertEqual(after["head"], verify_state_delta.head())
+        self.assertEqual(after.get("full_suite_head"), verify_state_delta.head())
+
+    def test_record_full_suite_updates_marker_provenance(self):
+        # ``--record-full-suite`` records that a full unittest discover run
+        # accompanied verification, even when already verified at HEAD.
+        verify_state_delta.write_marker({"head": verify_state_delta.head()})
+        rc = verify_state_delta.main(["--record-full-suite"])
+        self.assertEqual(rc, 0)
+        after = verify_state_delta.read_marker()
+        self.assertEqual(after["head"], verify_state_delta.head())
+        self.assertEqual(after.get("full_suite_head"), verify_state_delta.head())
+
+    def test_note_emitted_when_tests_changed_since_last_full_suite(self):
+        # When tests/ changed since the last recorded full-suite run, emit a note.
+        # Use --diff context path? main returns early on matching head; exercise via
+        # a path where battery runs (--full) so note logic at end is reached.
+        with mock.patch.object(verify_state_delta, "head", return_value="same"):
+            with mock.patch.object(verify_state_delta, "working_tree_clean", return_value=True):
+                with mock.patch.object(verify_state_delta, "battery_ok", return_value=True):
+                    with mock.patch.object(
+                        verify_state_delta, "tests_changed_since", return_value=True
+                    ):
+                        buf = []
+
+                        def cap(*a, **_k):
+                            buf.append(" ".join(str(x) for x in a))
+
+                        with mock.patch("builtins.print", side_effect=cap):
+                            rc = verify_state_delta.main(["--full"])
+        self.assertEqual(rc, 0)
+        self.assertTrue(any("tests/ changed since last recorded full-suite run" in s for s in buf))
 
     def test_skip_on_unchanged_state_when_marker_matches_head(self):
         # After --full the marker equals HEAD; a second run must skip the
@@ -404,9 +435,7 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         verify_state_delta.working_tree_clean = lambda: True
         verify_state_delta.head = lambda: "new-head"
         verify_state_delta.diff_since = lambda ref: diff_calls.append(ref) or []
-        verify_state_delta.untracked_source_files = (
-            lambda: untracked_calls.append(True) or []
-        )
+        verify_state_delta.untracked_source_files = lambda: untracked_calls.append(True) or []
         verify_state_delta.battery_ok = lambda: battery_calls.append(True) or True
 
         rc = verify_state_delta.main([])

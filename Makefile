@@ -1,7 +1,12 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest
+.PHONY: test test-full lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest
+
+## Run the full test suite unconditionally (use for periodic gates and after editing tests/)
+test-full:
+	@echo "Running full test suite..."
+	@if command -v pytest >/dev/null 2>&1; then 		pytest tests/ -v; 	else 		python -m unittest discover tests/ -v; 	fi
 
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
@@ -122,7 +127,8 @@ clean:
 ## Print usage information for all available targets
 help:
 	@echo "Available targets:"
-	@echo "  test       Run the Python test suite"
+	@echo "  test       Run the Python test suite (delta-aware; skips when clean/verified)"
+	@echo "  test-full  Run the full test suite unconditionally"
 	@echo "  doctest   Run the doctest suite that enforces documented examples"
 	@echo "  lint      Run ruff code style checker"
 	@echo "  typecheck  Run mypy static type checking"
