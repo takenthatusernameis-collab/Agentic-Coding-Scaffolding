@@ -351,6 +351,98 @@ class TestMain(unittest.TestCase):
         self.assertEqual(verify_state_delta.read_marker(), original)
 
 
+class TestCleanDeltaFastPath(unittest.TestCase):
+    """The clean, no-source-change path must consult git once per helper.
+
+    This is the common case in the autonomous loop: HEAD advances past the
+    checkpoint while only non-source metadata (handover/status) changes. The
+    guard previously computed the source delta twice -- once to build the
+    ``--diff`` listing and again for the skip decision -- so every activation
+    paid for four git subprocesses where two suffice. The battery must also be
+    skipped, since no source-relevant file changed.
+
+    ``MARKER`` and the subprocess-backed helpers are stubbed so the test never
+    touches the real checkpoint or repository state.
+    """
+
+    def setUp(self):
+        self._saved_marker = verify_state_delta.MARKER
+        self._saved_battery_ok = verify_state_delta.battery_ok
+        self._saved = (
+            verify_state_delta.working_tree_clean,
+            verify_state_delta.head,
+            verify_state_delta.diff_since,
+            verify_state_delta.untracked_source_files,
+        )
+
+    def tearDown(self):
+        verify_state_delta.MARKER = self._saved_marker
+        verify_state_delta.battery_ok = self._saved_battery_ok
+        (
+            verify_state_delta.working_tree_clean,
+            verify_state_delta.head,
+            verify_state_delta.diff_since,
+            verify_state_delta.untracked_source_files,
+        ) = self._saved
+
+    def test_clean_delta_is_computed_once_and_skips_battery(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = Path(tmp) / "last_verified.checkpoint"
+            marker.write_text('{"head": "old"}')
+            verify_state_delta.MARKER = marker
+
+        diff_calls: list[str] = []
+        untracked_calls: list[bool] = []
+        battery_calls: list[bool] = []
+
+        verify_state_delta.working_tree_clean = lambda: True
+        verify_state_delta.head = lambda: "new-head"
+        verify_state_delta.diff_since = lambda ref: diff_calls.append(ref) or []
+        verify_state_delta.untracked_source_files = (
+            lambda: untracked_calls.append(True) or []
+        )
+        verify_state_delta.battery_ok = lambda: battery_calls.append(True) or True
+
+        rc = verify_state_delta.main([])
+
+        self.assertEqual(rc, 0)
+        self.assertEqual(battery_calls, [])
+        self.assertEqual(diff_calls, ["old"])
+        self.assertEqual(untracked_calls, [True])
+
+    def test_changed_delta_runs_the_battery_and_lists_paths_with_diff(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = Path(tmp) / "last_verified.checkpoint"
+            marker.write_text('{"head": "old"}')
+            verify_state_delta.MARKER = marker
+
+        battery_calls: list[bool] = []
+        verify_state_delta.working_tree_clean = lambda: True
+        verify_state_delta.head = lambda: "new-head"
+        verify_state_delta.diff_since = lambda ref: ["foo_utils.py"]
+        verify_state_delta.untracked_source_files = lambda: []
+        verify_state_delta.battery_ok = lambda: battery_calls.append(True) or True
+
+        import builtins
+        import io
+        from contextlib import redirect_stdout
+
+        original_battery = verify_state_delta.battery_ok
+        verify_state_delta.battery_ok = (
+            lambda: battery_calls.append(True) or True
+        )
+        buffer = io.StringIO()
+        try:
+            with redirect_stdout(buffer):
+                rc = verify_state_delta.main(["--diff"])
+        finally:
+            verify_state_delta.battery_ok = original_battery
+
+        self.assertEqual(rc, 0)
+        self.assertEqual(battery_calls, [True])
+        self.assertIn("changed: foo_utils.py", buffer.getvalue())
+
+
 class TestCommandLine(unittest.TestCase):
     """Verify the command-line interface of the guard.
 
