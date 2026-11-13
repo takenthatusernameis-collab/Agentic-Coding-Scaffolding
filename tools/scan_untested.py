@@ -32,7 +32,8 @@ ROOT = Path(__file__).resolve().parent.parent
 #: Persistent per-module mtime cache. Modules whose source and test mtimes
 #: match a cached entry are not re-parsed; the cached gaps are reused. The
 #: cache lives in ``.kilo/`` alongside the verification checkpoint and is
-#: gitignored so it never marks the working tree dirty.
+#: gitignored so it never marks the working tree dirty. Gaps are stored per
+#: scan mode (``default`` and ``all``) because ``--all`` widens the report.
 CACHE_FILE = ROOT / ".kilo" / "scan_untested_cache.json"
 
 #: Modules that are not wrapper modules but still expose ``__all__``.
@@ -113,12 +114,21 @@ def save_cache(cache: dict) -> None:
     tmp.replace(CACHE_FILE)
 
 
-def cached_entry(cache: dict, path: Path, source_mtime: float | None,
-                 test_mtime: float | None) -> list[str] | None:
-    """Return the cached gaps for *path* when its mtimes still match.
+def _mode_key(show_all: bool) -> str:
+    """Return the cache key for the active scan mode."""
+    return "all" if show_all else "default"
 
-    Returns ``None`` when there is no valid cache entry, signalling that the
-    module must be re-scanned.
+
+def cached_entry(cache: dict, path: Path, source_mtime: float | None,
+                 test_mtime: float | None, show_all: bool = False) -> list[str] | None:
+    """Return the cached gaps for *path* and mode when its mtimes still match.
+
+    Gaps are stored per mode so default and ``--all`` scans do not collide.
+    For backward compatibility, a legacy ``gaps`` list is treated as the
+    default-mode result.
+
+    Returns ``None`` when there is no valid cache entry for the requested
+    mode, signalling that the module must be re-scanned.
     """
     entry = cache.get("modules", {}).get(path.name)
     if not isinstance(entry, dict):
@@ -127,8 +137,15 @@ def cached_entry(cache: dict, path: Path, source_mtime: float | None,
         return None
     if entry.get("test_mtime") != test_mtime:
         return None
-    gaps = entry.get("gaps")
-    return gaps if isinstance(gaps, list) else None
+    mode = _mode_key(show_all)
+    by_mode = entry.get("gaps_by_mode")
+    if isinstance(by_mode, dict):
+        gaps = by_mode.get(mode)
+        return gaps if isinstance(gaps, list) else None
+    if mode == "default":
+        gaps = entry.get("gaps")
+        return gaps if isinstance(gaps, list) else None
+    return None
 
 
 def string_constants(node: ast.expr | None) -> set[str]:
@@ -336,14 +353,13 @@ def main(argv: list[str] | None = None) -> int:
     summary = "--summary" in args
     total = 0
     results = {}
-    #: ``--all`` widens the report, so it always re-scans and never reads or
-    #: writes the cache (whose entries are default-mode results only).
-    cache = load_cache() if not show_all else {"modules": {}}
+    cache = load_cache()
+    mode = _mode_key(show_all)
     for path in iter_modules():
         source_mtime = _mtime(path)
         test_path = ROOT / "tests" / f"test_{path.stem}.py"
         test_mtime = _mtime(test_path)
-        cached = cached_entry(cache, path, source_mtime, test_mtime)
+        cached = cached_entry(cache, path, source_mtime, test_mtime, show_all)
         if cached is not None:
             gaps = cached
         else:
@@ -351,13 +367,19 @@ def main(argv: list[str] | None = None) -> int:
         if gaps:
             total += len(gaps)
             results[path.name] = gaps
-        cache.setdefault("modules", {})[path.name] = {
+        entry = cache.setdefault("modules", {}).get(path.name)
+        if not isinstance(entry, dict):
+            entry = {}
+        by_mode = entry.get("gaps_by_mode")
+        if not isinstance(by_mode, dict):
+            by_mode = {}
+        by_mode[mode] = gaps
+        cache["modules"][path.name] = {
             "source_mtime": source_mtime,
             "test_mtime": test_mtime,
-            "gaps": gaps,
+            "gaps_by_mode": by_mode,
         }
-    if not show_all:
-        save_cache(cache)
+    save_cache(cache)
     if json_output:
         print(json.dumps({"gaps": results, "total": total}, indent=2))
         return 1 if total else 0

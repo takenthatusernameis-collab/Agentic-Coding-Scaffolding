@@ -386,7 +386,7 @@ class TestCache(unittest.TestCase):
                     "a_utils.py": {
                         "source_mtime": 1.0,
                         "test_mtime": 2.0,
-                        "gaps": ["foo", "bar"],
+                        "gaps_by_mode": {"default": ["foo", "bar"]},
                     }
                 }
             }
@@ -398,7 +398,7 @@ class TestCache(unittest.TestCase):
                     "a_utils.py": {
                         "source_mtime": 1.0,
                         "test_mtime": 2.0,
-                        "gaps": ["foo", "bar"],
+                        "gaps_by_mode": {"default": ["foo", "bar"]},
                     }
                 }
             },
@@ -415,7 +415,7 @@ class TestCache(unittest.TestCase):
                 "a_utils.py": {
                     "source_mtime": 1.0,
                     "test_mtime": 2.0,
-                    "gaps": ["foo", "bar"],
+                    "gaps_by_mode": {"default": ["foo", "bar"]},
                 }
             }
         }
@@ -430,7 +430,7 @@ class TestCache(unittest.TestCase):
                 "a_utils.py": {
                     "source_mtime": 1.0,
                     "test_mtime": 2.0,
-                    "gaps": ["foo"],
+                    "gaps_by_mode": {"default": ["foo"]},
                 }
             }
         }
@@ -442,7 +442,7 @@ class TestCache(unittest.TestCase):
                 "a_utils.py": {
                     "source_mtime": 1.0,
                     "test_mtime": 2.0,
-                    "gaps": ["foo"],
+                    "gaps_by_mode": {"default": ["foo"]},
                 }
             }
         }
@@ -454,11 +454,48 @@ class TestCache(unittest.TestCase):
                 "a_utils.py": {
                     "source_mtime": 1.0,
                     "test_mtime": 2.0,
-                    "gaps": "not a list",
+                    "gaps_by_mode": {"default": "not a list"},
                 }
             }
         }
         self.assertIsNone(scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0))
+
+    def test_cached_entry_supports_all_mode(self):
+        cache = {
+            "modules": {
+                "a_utils.py": {
+                    "source_mtime": 1.0,
+                    "test_mtime": 2.0,
+                    "gaps_by_mode": {"default": ["x"], "all": ["x", "Y"]},
+                }
+            }
+        }
+        self.assertEqual(
+            scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0, True),
+            ["x", "Y"],
+        )
+        self.assertEqual(
+            scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0, False),
+            ["x"],
+        )
+
+    def test_cached_entry_reads_legacy_default_gaps(self):
+        cache = {
+            "modules": {
+                "a_utils.py": {
+                    "source_mtime": 1.0,
+                    "test_mtime": 2.0,
+                    "gaps": ["legacy"],
+                }
+            }
+        }
+        self.assertEqual(
+            scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0),
+            ["legacy"],
+        )
+        self.assertIsNone(
+            scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0, True)
+        )
 
 
 class TestCacheIntegration(unittest.TestCase):
@@ -493,6 +530,30 @@ class TestCacheIntegration(unittest.TestCase):
         data = json.loads(self._cache_file.read_text())
         self.assertIn("modules", data)
         self.assertIsInstance(data["modules"], dict)
+        entry = next(iter(data["modules"].values()))
+        self.assertIn("gaps_by_mode", entry)
+
+    def test_all_mode_is_cached_per_mode(self):
+        first = subprocess.run(
+            [sys.executable, str(TOOL), "--all", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        second = subprocess.run(
+            [sys.executable, str(TOOL), "--all", "--json"],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        self.assertEqual(first.returncode, 1, msg=first.stderr)
+        self.assertEqual(second.returncode, 1, msg=second.stderr)
+        self.assertEqual(first.stdout, second.stdout)
+        data = json.loads(self._cache_file.read_text())
+        entry = next(iter(data["modules"].values()))
+        self.assertIn("all", entry.get("gaps_by_mode", {}))
 
 
 if __name__ == "__main__":
