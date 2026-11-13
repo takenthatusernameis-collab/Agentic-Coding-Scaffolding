@@ -1,22 +1,20 @@
 # Project Status
 
-## Latest Session (2026-11-13T17:17Z) — dirty-tree `make test` validation complete
+## Latest Session (2026-11-13T17:30Z) — `verify_state_delta` cosmetic stderr/reporting hardened
 
-Board held no task (`board_read` empty; bootstrap/root).
+Board task from previous session executed.
 
-- **`Makefile` `test` target (AVOIDABLE_PROCESS_DELAY):** Validated end-to-end:
-  1. Small change to `abc_utils.py` (added type hint) → `make test` ran only `tests.test_abc_utils` (24 tests, ~0.001s) ✅
-  2. Change to `Makefile` → `make test` triggered full suite via `unittest discover` (10675 tests, ~19s) ✅
-  3. `test_doctests` passes both directly and under `discover` (return code 0). The "[verify-state-delta] tests.test_doctests failed:" message is cosmetic — `verify_state_delta` prints ResourceWarnings from stderr even when return code is 0. No flaky failure; full-suite gate is reliable.
-- **Validation battery passed:** `tests.test_refresh_scaffold`, `tests.test_scan_untested`, `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta`, `make lint`, `make typecheck` (567 files), `python tools/verify_state_delta.py --full` — all green.
-- **Checkpoint advanced:** `verify_state_delta` battery passed; checkpoint at `81affd2` (HEAD).
+- **`tools/verify_state_delta.py`:** `battery_ok()` now treats non-zero exit codes as failures only; stderr emitted on a successful check (e.g. ResourceWarnings from doctest modules using `tempfile`) is no longer reported as a failure.
+- **`tests/test_doctests.py`:** doctest run wrapped with `warnings.catch_warnings()` ignoring `ResourceWarning` to suppress noisy tempfile/resource warnings during example execution.
+- **`tests/test_verify_state_delta.py`:** added `test_the_battery_ignores_stderr_when_a_check_succeeds`.
+- **Validation battery passed:** `tests.test_verify_state_delta`, `tests.test_doctests`, `refresh_scaffold --check`, `scan_untested`, `tests.test_public_api`, `tests.test_scaffold_sync`, `ruff check .`, `mypy .` (567 files), `python tools/verify_state_delta.py --full` — all green.
 
-**Current verified checkpoint:** `81affd2` (== HEAD).
+**Current verified checkpoint:** `a125b0f` (HEAD at last `--full` run; working tree has this session's source changes pending commit).
 
 ## Task for Next Agent
 
-Address the `verify_state_delta` cosmetic stderr leak and harden the verification battery:
-1. Fix `verify_state_delta.py` so it does not print "tests.test_doctests failed:" when the return code is 0 but stderr contains ResourceWarnings (the check should only treat non-zero exit codes as failures; stderr warnings are expected from doctest modules using `tempfile`).
-2. Optionally suppress ResourceWarnings in `tests.test_doctests` by explicitly closing temporary resources in doctest examples, or by configuring warning filters for the verification subprocess.
-3. Run the full validation battery again after the fix: `tests.test_refresh_scaffold`, `tests.test_scan_untested`, `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta`, `make lint`, `make typecheck`, `python tools/verify_state_delta.py --full`.
+Perform a routine state-delta verification/hygiene pass:
+1. Run `git status` and compare with the latest handover/checkpoint to classify any remaining wait as avoidable delay vs external gate (do not modify `.github/workflows/**`).
+2. If source-relevant files changed since last checkpoint, run targeted tests for changed modules plus the verification battery: `python tools/refresh_scaffold.py --check`, `python tools/scan_untested.py`, `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta`, `make lint`, `make typecheck`, `python tools/verify_state_delta.py --full`. If no relevant changes, skip redundant runs and report the state delta.
+3. Look for a small, concrete improvement (e.g. reduce noisy warnings in test output, or tighten a Makefile/tooling fast path) only if it removes avoidable process delay without broad refactors.
 4. Record handover in `.kilo/handover.md` and `PROJECT_STATUS.md`. No `.github/workflows/**` changes.

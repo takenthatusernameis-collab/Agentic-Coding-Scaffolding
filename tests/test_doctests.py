@@ -54,23 +54,27 @@ class TestDoctests(unittest.TestCase):
         failures: list[str] = []
         attempted = 0
         try:
+            import warnings
+
             finder = doctest.DocTestFinder(recurse=True)
-            for name in self.modules:
-                try:
-                    module = importlib.import_module(name)
-                    tests = finder.find(module, name, globs=vars(module))
-                except Exception as exc:  # pragma: no cover - defensive guard
-                    failures.append(f"{name}: could not load doctests: {exc!r}")
-                    continue
-                for test in tests:
-                    if not test.examples:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", ResourceWarning)
+                for name in self.modules:
+                    try:
+                        module = importlib.import_module(name)
+                        tests = finder.find(module, name, globs=vars(module))
+                    except Exception as exc:  # pragma: no cover - defensive guard
+                        failures.append(f"{name}: could not load doctests: {exc!r}")
                         continue
-                    attempted += 1
-                    out = io.StringIO()
-                    runner = doctest.DocTestRunner(optionflags=0, verbose=False)
-                    runner.run(test, out=out.write)
-                    if runner.failures:
-                        failures.append(f"{test.name}:\n{out.getvalue().rstrip()}")
+                    for test in tests:
+                        if not test.examples:
+                            continue
+                        attempted += 1
+                        out = io.StringIO()
+                        runner = doctest.DocTestRunner(optionflags=0, verbose=False)
+                        runner.run(test, out=out.write)
+                        if runner.failures:
+                            failures.append(f"{test.name}:\n{out.getvalue().rstrip()}")
         finally:
             os.environ.clear()
             os.environ.update(saved_env)

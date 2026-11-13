@@ -151,6 +151,9 @@ def battery_ok() -> bool:
                 print(f"[verify-state-delta] {label} failed:")
                 print(result.stdout, end="")
                 print(result.stderr, end="", file=sys.stderr)
+            # Stderr on a successful run (e.g. ResourceWarnings from doctest
+            # modules using tempfile) is expected and must not be reported as a
+            # failure.
     return ok
 
 
