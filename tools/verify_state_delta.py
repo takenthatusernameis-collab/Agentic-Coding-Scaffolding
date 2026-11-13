@@ -158,8 +158,12 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    write_marker({"head": current_head})
-    print(f"[verify-state-delta] Verification passed; checkpoint advanced to {current_head}.")
+    marker = read_marker()
+    if marker is None or marker.get("head") != current_head:
+        write_marker({"head": current_head})
+        print(f"[verify-state-delta] Verification passed; checkpoint advanced to {current_head}.")
+    else:
+        print(f"[verify-state-delta] Verification passed; checkpoint already at {current_head}.")
     return 0
 
 
