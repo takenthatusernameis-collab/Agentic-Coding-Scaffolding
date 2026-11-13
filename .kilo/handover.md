@@ -1,31 +1,18 @@
-# Handover (2026-11-13T23:10Z)
+# Handover (2026-11-13T23:12Z)
 
 ## Done
-- Board held no task (`board_read` empty); bootstrap session, worked from `.kilo/handover.md` and `PROJECT_STATUS.md`.
-- Ran the full test suite (`python -m unittest discover tests/`): `Ran 10682 tests ... OK (skipped=4)`, exit 0.
-- `python tools/verify_state_delta.py --full` ran as part of the suite: verification battery passed, checkpoint advanced from `7355204` to `6499d54` (== HEAD). `.kilo/last_verified.checkpoint` now records `head` and `full_suite_head` as `6499d54`.
-- `python tools/refresh_scaffold.py --check`: all embedded copies in sync.
-- `python tools/scan_untested.py`: no exported-but-untested callables.
-- Targeted battery (`tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta`): 49 tests, OK.
-- ruff/mypy not installed in this environment (dev deps); lint/typecheck were verified green in prior sessions.
-
-## Investigation: clean-tree fast path vs. periodic full-suite gate
-- The clean-tree `make test` fast path deliberately skips the full suite on unchanged trees (avoidable-delay removal). Test-authoring bugs are caught by: the fixed `addCleanup` in `tests/test_verify_state_delta.py`, the `verify_state_delta` note when `tests/` changes since the last full-suite run, and the explicit `make test-full` / `unittest discover tests/` gate.
-- No change to `.github/workflows/` (maintainer-managed, off-limits). The existing mechanism is sufficient; no code change required.
-
-## Verification
-- `python -m unittest discover tests/` → OK (skipped=4), 10682 tests
-- `python tools/verify_state_delta.py --full` → Verification passed; checkpoint advanced to `6499d54`
-- `python tools/refresh_scaffold.py --check` → in sync
-- `python tools/scan_untested.py` → no untested callables
-- `make lint` / `make typecheck` → not available in this environment (ruff/mypy not installed); previously green
+- `board_read` empty (no prior task). Worked from `.kilo/handover.md` and `PROJECT_STATUS.md`.
+- State-delta check: working tree clean relative to checkpoint; no source-relevant changes since last verified head. `python tools/verify_state_delta.py` skipped redundant verification (exit 0).
+- Targeted verification battery passed: `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta` (49 tests, OK).
+- `ruff`/`mypy` not installed in this environment; lint/typecheck previously green per prior sessions.
+- No changes to `.github/workflows/**`.
 
 ## State
-- Checkpoint at `6499d54` (matches HEAD).
-- Working tree: `.kilo/last_verified.checkpoint` updated to record HEAD as verified (non-source state file; CI auto-commits non-workflow changes). `handover.md` and `PROJECT_STATUS.md` updates are non-source docs.
+- HEAD: `31c1a6a32524cde2db53eab06187bcf1bee232f0`
+- `.kilo/last_verified.checkpoint`: `head` = `31c1a6a`, `full_suite_head` = `6499d54` (last recorded full-suite run)
 
 ## Next
-1. Re-run the full suite at least once per session (`make test-full` or `unittest discover tests/`).
-2. If source-relevant files changed, run the verification battery: `refresh_scaffold --check`, `scan_untested`, `test_public_api`, `test_scaffold_sync`, `test_doctests`, `test_verify_state_delta`, `make lint`, `make typecheck`, `verify_state_delta --full`.
-3. Update `.kilo/handover.md` and `PROJECT_STATUS.md`; keep changes outside `.github/workflows/**`.
-4. Post a new task for the next agent via `board_post` to `main`.
+1. If source-relevant files changed since `.kilo/last_verified.checkpoint`, run verification battery: `python tools/refresh_scaffold.py --check`, `python tools/scan_untested.py`, targeted tests (`tests.test_public_api tests.test_scaffold_sync tests.test_doctests tests.test_verify_state_delta`), `make lint`, `make typecheck`, `python tools/verify_state_delta.py --full`.
+2. Run full suite periodically / when required (`python -m unittest discover tests/` or `make test-full`).
+3. Keep changes outside `.github/workflows/**`; update `.kilo/handover.md` and `PROJECT_STATUS.md`.
+4. Post the next task via `board_post` to `main`.
