@@ -92,24 +92,42 @@ def write_marker(data: dict) -> None:
     MARKER.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def source_changed_since(ref: str) -> bool:
-    """Return True when any source-relevant file changed between *ref* and HEAD.
+def diff_since(ref: str) -> list[str]:
+    """Return changed source-relevant files between *ref* and the working tree.
 
-    A missing or unknown *ref* (for example after a rebase, a force-push, or a
-    shallow clone) makes ``git diff`` fail. That is treated as a change so the
-    battery runs instead of silently trusting a checkpoint that cannot be
-    compared against the current history.
+    Untracked source files are included: the battery must treat a brand new
+    module the same as an edited one. A missing or unknown *ref* (for example
+    after a rebase, a force-push, or a shallow clone) makes ``git diff`` fail;
+    that is reported as a change so the battery runs instead of silently
+    trusting a checkpoint that cannot be compared against the current history.
     """
     result = run(
-        ["git", "diff", "--name-only", ref, "HEAD", "--"] + list(SOURCE_GLOBS), timeout=5.0
+        ["git", "diff", "--name-only", ref, "--"] + list(SOURCE_GLOBS), timeout=5.0
     )
     if result.returncode != 0:
         print(
             f"[verify-state-delta] Cannot diff against {ref!r}; treating state as changed.",
             file=sys.stderr,
         )
-        return True
-    return bool(result.stdout.strip())
+        return ["<unknown>"]
+    return [line for line in result.stdout.splitlines() if line.strip()]
+
+
+def untracked_source_files() -> list[str]:
+    """Return untracked source-relevant files (including repository-root paths)."""
+    result = run(
+        ["git", "status", "--porcelain", "--untracked-files=all", "--"]
+        + list(SOURCE_GLOBS),
+        timeout=5.0,
+    )
+    if result.returncode != 0:
+        return []
+    return [line[3:].strip() for line in result.stdout.splitlines() if line.startswith("?? ")]
+
+
+def source_changed_since(ref: str) -> bool:
+    """Return True when any source-relevant file changed between *ref* and now."""
+    return bool(diff_since(ref)) or bool(untracked_source_files())
 
 
 def battery_ok() -> bool:
@@ -159,6 +177,7 @@ def battery_ok() -> bool:
 
 def main(argv: list[str] | None = None) -> int:
     force_full = "--full" in (argv or [])
+    show_diff = "--diff" in (argv or [])
     current_head = head()
 
     if not force_full and working_tree_clean():
@@ -169,13 +188,18 @@ def main(argv: list[str] | None = None) -> int:
                 "last verified checkpoint; skipping redundant verification."
             )
             return 0
-        if marker is not None and not source_changed_since(marker["head"]):
-            print(
-                "[verify-state-delta] Working tree clean and no source-relevant "
-                "file changed since the last verified checkpoint; skipping "
-                "redundant verification."
-            )
-            return 0
+        if marker is not None:
+            changed = diff_since(marker["head"]) + untracked_source_files()
+            if show_diff and changed:
+                for path in sorted(set(changed)):
+                    print(f"[verify-state-delta] changed: {path}")
+            if not source_changed_since(marker["head"]):
+                print(
+                    "[verify-state-delta] Working tree clean and no source-relevant "
+                    "file changed since the last verified checkpoint; skipping "
+                    "redundant verification."
+                )
+                return 0
 
     print("[verify-state-delta] Running verification battery...")
     if not battery_ok():

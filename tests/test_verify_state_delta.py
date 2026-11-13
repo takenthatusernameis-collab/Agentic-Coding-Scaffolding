@@ -248,7 +248,36 @@ class TestRepositoryState(unittest.TestCase):
 
     def test_source_changed_since_head_is_false(self):
         # HEAD..HEAD is an empty diff, so no source-relevant file changed.
-        self.assertFalse(verify_state_delta.source_changed_since(verify_state_delta.head()))
+        # When the working tree has uncommitted changes the helper also
+        # reports them, so only assert the negative on a clean tree.
+        if verify_state_delta.working_tree_clean():
+            self.assertFalse(
+                verify_state_delta.source_changed_since(verify_state_delta.head())
+            )
+        else:
+            changed = verify_state_delta.diff_since(verify_state_delta.head())
+            self.assertIsInstance(changed, list)
+
+    def test_diff_since_returns_only_source_globs(self):
+        # ``diff_since`` lists every changed file between *ref* and the
+        # working tree, filtered to SOURCE_GLOBS.
+        if verify_state_delta.working_tree_clean():
+            self.assertEqual(verify_state_delta.diff_since(verify_state_delta.head()), [])
+        else:
+            changed = verify_state_delta.diff_since(verify_state_delta.head())
+            for path in changed:
+                is_source = path.endswith(".py") or any(
+                    marker in path
+                    for marker in (
+                        "Makefile",
+                        "pyproject",
+                        "scaffold.sh",
+                        "README",
+                        "AGENTS",
+                        "CHANGELOG",
+                    )
+                )
+                self.assertTrue(is_source, f"unexpected path {path!r}")
 
     def test_source_changed_since_an_unknown_ref_is_true(self):
         # An unknown ref (rebase, force-push, shallow clone) makes ``git diff``
