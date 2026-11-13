@@ -194,9 +194,12 @@ class TestMakefileVerifyTarget(unittest.TestCase):
     suites the battery runs rather than being allowed to drift.
     """
 
-    def test_verify_target_runs_the_doctest_suite(self):
+    def test_verify_target_delegates_to_state_delta_guard(self):
+        # ``make verify`` must delegate to the state-delta guard so a clean,
+        # unchanged tree skips the redundant verification battery instead of
+        # re-running every check serially on every invocation.
         text = (ROOT / "Makefile").read_text()
-        self.assertIn("tests.test_doctests", text)
+        self.assertIn("tools/verify_state_delta.py", text)
 
     def test_test_target_runs_the_doctest_suite_on_a_clean_tree(self):
         # The clean-tree fast path of ``make test`` skips the full suite, so it

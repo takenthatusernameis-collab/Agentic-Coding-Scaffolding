@@ -60,11 +60,7 @@ refresh-scaffold:
 ## Run the bounded state-delta verification pass (foundation checks)
 verify:
 	@echo "Running state-delta verification..."
-	@set -e; \
-		if [ -n "$$(git status --porcelain 2>/dev/null)" ]; then echo "Working tree is dirty; skipping clean-tree assertion."; fi; \
-		python tools/refresh_scaffold.py --check; \
-		if [ -f tools/scan_untested.py ]; then python tools/scan_untested.py; else echo "scan_untested.py absent; skipped"; fi; \
-		python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests
+	@python tools/verify_state_delta.py
 
 ## Install pre-commit hooks into .git/hooks
 pre-commit-install:
