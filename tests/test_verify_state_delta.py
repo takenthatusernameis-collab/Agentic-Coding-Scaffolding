@@ -87,7 +87,7 @@ class TestPathsAndGlobs(unittest.TestCase):
         captured: list[list[str]] = []
         original_run = verify_state_delta.run
 
-        def fake_run(cmd: list[str]):
+        def fake_run(cmd: list[str], timeout: float = 30.0):
             captured.append(list(cmd))
             return subprocess.CompletedProcess(cmd, 0, "", "")
 
@@ -114,7 +114,7 @@ class TestPathsAndGlobs(unittest.TestCase):
         captured: list[list[str]] = []
         original_run = verify_state_delta.run
 
-        def fake_run(cmd: list[str]):
+        def fake_run(cmd: list[str], timeout: float = 30.0):
             captured.append(list(cmd))
             return subprocess.CompletedProcess(cmd, 0, "", "")
 
@@ -137,7 +137,7 @@ class TestPathsAndGlobs(unittest.TestCase):
         # doctest command reports failure.
         original_run = verify_state_delta.run
 
-        def fake_run(cmd: list[str]):
+        def fake_run(cmd: list[str], timeout: float = 30.0):
             code = 1 if "tests.test_doctests" in " ".join(cmd) else 0
             return subprocess.CompletedProcess(cmd, code, "", "")
 

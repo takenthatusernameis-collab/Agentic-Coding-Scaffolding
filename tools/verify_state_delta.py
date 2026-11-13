@@ -48,8 +48,10 @@ SOURCE_GLOBS = (
 )
 
 
-def run(cmd: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, check=False)
+def run(cmd: list[str], timeout: float = 30.0) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        cmd, cwd=ROOT, text=True, capture_output=True, check=False, timeout=timeout
+    )
 
 
 def working_tree_clean() -> bool:
@@ -61,14 +63,15 @@ def working_tree_clean() -> bool:
     battery instead of re-verifying the same HEAD.
     """
     result = run(
-        ["git", "status", "--porcelain", "--", ".", ":!.kilo/last_verified.checkpoint"]
+        ["git", "status", "--porcelain", "--", ".", ":!.kilo/last_verified.checkpoint"],
+        timeout=5.0,
     )
     assert isinstance(result.stdout, str)
     return result.stdout.strip() == ""
 
 
 def head() -> str:
-    result = run(["git", "rev-parse", "HEAD"])
+    result = run(["git", "rev-parse", "HEAD"], timeout=5.0)
     assert isinstance(result.stdout, str)
     return result.stdout.strip()
 
@@ -97,7 +100,9 @@ def source_changed_since(ref: str) -> bool:
     battery runs instead of silently trusting a checkpoint that cannot be
     compared against the current history.
     """
-    result = run(["git", "diff", "--name-only", ref, "HEAD", "--"] + list(SOURCE_GLOBS))
+    result = run(
+        ["git", "diff", "--name-only", ref, "HEAD", "--"] + list(SOURCE_GLOBS), timeout=5.0
+    )
     if result.returncode != 0:
         print(
             f"[verify-state-delta] Cannot diff against {ref!r}; treating state as changed.",
@@ -110,27 +115,37 @@ def source_changed_since(ref: str) -> bool:
 def battery_ok() -> bool:
     """Run the verification battery; return True when every check passes."""
     checks = [
-        (["python", "tools/refresh_scaffold.py", "--check"], "refresh_scaffold --check"),
-        (["python", "tools/scan_untested.py"], "scan_untested"),
+        (["python", "tools/refresh_scaffold.py", "--check"], "refresh_scaffold --check", 10.0),
+        (["python", "tools/scan_untested.py"], "scan_untested", 10.0),
         (
             ["python", "-m", "unittest", "tests.test_public_api"],
             "tests.test_public_api",
+            15.0,
         ),
         (
             ["python", "-m", "unittest", "tests.test_scaffold_sync"],
             "tests.test_scaffold_sync",
+            15.0,
         ),
         (
             ["python", "-m", "unittest", "tests.test_doctests"],
             "tests.test_doctests",
+            30.0,
         ),
     ]
     ok = True
     with ThreadPoolExecutor(max_workers=len(checks)) as executor:
-        future_to_label = {executor.submit(run, cmd): label for cmd, label in checks}
+        future_to_label = {
+            executor.submit(run, cmd, timeout): label for cmd, label, timeout in checks
+        }
         for future in future_to_label:
             label = future_to_label[future]
-            result = future.result()
+            try:
+                result = future.result()
+            except subprocess.TimeoutExpired:
+                ok = False
+                print(f"[verify-state-delta] {label} timed out", file=sys.stderr)
+                continue
             if result.returncode != 0:
                 ok = False
                 print(f"[verify-state-delta] {label} failed:")
