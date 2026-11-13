@@ -23,18 +23,26 @@ from __future__ import annotations
 
 import ast
 import json
+import os
 import re
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+#: Environment variable that relocates the cache file. The test suite points it
+#: at a throwaway file so exercising the scanner end-to-end never deletes or
+#: invalidates the developer's real cache; ordinary runs leave it unset.
+CACHE_ENV = "KILO_SCAN_UNTESTED_CACHE"
+
 #: Persistent per-module mtime cache. Modules whose source and test mtimes
 #: match a cached entry are not re-parsed; the cached gaps are reused. The
 #: cache lives in ``.kilo/`` alongside the verification checkpoint and is
 #: gitignored so it never marks the working tree dirty. Gaps are stored per
 #: scan mode (``default`` and ``all``) because ``--all`` widens the report.
-CACHE_FILE = ROOT / ".kilo" / "scan_untested_cache.json"
+CACHE_FILE = Path(
+    os.environ.get(CACHE_ENV) or ROOT / ".kilo" / "scan_untested_cache.json"
+)
 
 #: Modules that are not wrapper modules but still expose ``__all__``.
 EXTRA_MODULES = (

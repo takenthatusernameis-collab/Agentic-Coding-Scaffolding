@@ -3,6 +3,7 @@
 import ast
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -11,6 +12,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOL = ROOT / "tools" / "scan_untested.py"
+
+#: Every subprocess in this module runs with ``KILO_SCAN_UNTESTED_CACHE`` set to
+#: a throwaway file, and the in-process module global is repointed at the same
+#: file. Deleting the real ``.kilo/scan_untested_cache.json`` here (the previous
+#: behaviour) forced every later test and the verification battery to re-parse all
+#: 500+ modules, which dominated the suite's runtime.
+_CACHE_TMPDIR = tempfile.TemporaryDirectory()
+CACHE_FILE = Path(_CACHE_TMPDIR.name) / "scan_untested_cache.json"
 
 
 def load_tool():
@@ -23,6 +32,8 @@ def load_tool():
 
 
 scan_untested = load_tool()
+scan_untested.CACHE_FILE = CACHE_FILE
+os.environ[scan_untested.CACHE_ENV] = str(CACHE_FILE)
 
 
 class TestNameReferenced(unittest.TestCase):
@@ -355,8 +366,8 @@ class TestCache(unittest.TestCase):
     """Verify the persistent per-module mtime cache.
 
     The module-level ``CACHE_FILE`` global is shared state, so every test that
-    repoints it must restore the real cache file afterwards; otherwise the
-    mutation leaks into other classes.
+    repoints it must restore the module's isolated cache file afterwards;
+    otherwise the mutation leaks into other classes.
     """
 
     def setUp(self):
@@ -497,16 +508,35 @@ class TestCache(unittest.TestCase):
             scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0, True)
         )
 
+    def test_cache_file_honours_the_environment_override(self):
+        # The test suite relocates the cache through this variable so an
+        # end-to-end run never deletes the developer's real cache.
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "custom_cache.json"
+            saved_env = os.environ.get(scan_untested.CACHE_ENV)
+            os.environ[scan_untested.CACHE_ENV] = str(target)
+            try:
+                module = load_tool()
+            finally:
+                if saved_env is None:
+                    os.environ.pop(scan_untested.CACHE_ENV, None)
+                else:
+                    os.environ[scan_untested.CACHE_ENV] = saved_env
+            self.assertEqual(module.CACHE_FILE, target)
+
 
 class TestCacheIntegration(unittest.TestCase):
-    """Verify the cache behaves end-to-end across subprocess runs."""
+    """Verify the cache behaves end-to-end across subprocess runs.
 
-    def setUp(self):
-        self._cache_file = scan_untested.CACHE_FILE
-        self._cache_file.unlink(missing_ok=True)
+    The module-wide isolated cache is emptied once, here, so the two
+    population assertions observe a genuine cold scan. Everything the later
+    classes run is then served from that cache instead of re-parsing every
+    module again.
+    """
 
-    def tearDown(self):
-        self._cache_file.unlink(missing_ok=True)
+    @classmethod
+    def setUpClass(cls):
+        CACHE_FILE.unlink(missing_ok=True)
 
     def test_repeated_runs_produce_identical_output_and_populate_cache(self):
         first = subprocess.run(
@@ -526,8 +556,8 @@ class TestCacheIntegration(unittest.TestCase):
         self.assertEqual(first.returncode, 0, msg=first.stderr)
         self.assertEqual(second.returncode, 0, msg=second.stderr)
         self.assertEqual(first.stdout, second.stdout)
-        self.assertTrue(self._cache_file.is_file(), "cache file should be written")
-        data = json.loads(self._cache_file.read_text())
+        self.assertTrue(CACHE_FILE.is_file(), "cache file should be written")
+        data = json.loads(CACHE_FILE.read_text())
         self.assertIn("modules", data)
         self.assertIsInstance(data["modules"], dict)
         entry = next(iter(data["modules"].values()))
@@ -551,7 +581,7 @@ class TestCacheIntegration(unittest.TestCase):
         self.assertEqual(first.returncode, 1, msg=first.stderr)
         self.assertEqual(second.returncode, 1, msg=second.stderr)
         self.assertEqual(first.stdout, second.stdout)
-        data = json.loads(self._cache_file.read_text())
+        data = json.loads(CACHE_FILE.read_text())
         entry = next(iter(data["modules"].values()))
         self.assertIn("all", entry.get("gaps_by_mode", {}))
 
