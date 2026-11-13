@@ -26,12 +26,36 @@ class TestAsynchatUtils(unittest.TestCase):
     def test_unavailable_helpers_raise_runtime_error(self) -> None:
         if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
             self.skipTest("asynchat module is available on this interpreter")
-        with self.assertRaises(RuntimeError):
-            asynchat_utils.async_chat()  # type: ignore[abstract]
-        with self.assertRaises(RuntimeError):
-            asynchat_utils.find_prefix_at_end()
-        with self.assertRaises(RuntimeError):
-            asynchat_utils.simple_producer()  # type: ignore[call-arg]
+        names = ("async_chat", "find_prefix_at_end", "simple_producer")
+        for name in names:
+            with self.subTest(name=name):
+                with self.assertRaises(RuntimeError) as ctx:
+                    getattr(asynchat_utils, name)()
+                self.assertIn("asynchat module is not available", str(ctx.exception))
+
+    def test_deque_is_none_when_unavailable(self) -> None:
+        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asynchat module is available on this interpreter")
+        self.assertIsNone(asynchat_utils.deque)
+
+
+class TestUnavailableFallback(unittest.TestCase):
+    """Exercise the active fallback when the stdlib ``asynchat`` module is absent."""
+
+    def test_fallback_helpers_raise_runtime_error(self) -> None:
+        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asynchat module is available on this interpreter")
+        names = ("async_chat", "find_prefix_at_end", "simple_producer")
+        for name in names:
+            with self.subTest(name=name):
+                with self.assertRaises(RuntimeError) as ctx:
+                    getattr(asynchat_utils, name)()
+                self.assertIn("asynchat module is not available", str(ctx.exception))
+
+    def test_fallback_deque_is_none(self) -> None:
+        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asynchat module is available on this interpreter")
+        self.assertIsNone(asynchat_utils.deque)
 
 
 if __name__ == "__main__":

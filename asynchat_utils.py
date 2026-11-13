@@ -25,7 +25,7 @@ if _ASYNCHAT_AVAILABLE:
     find_prefix_at_end = _asynchat.find_prefix_at_end  # type: ignore[attr-defined]
     simple_producer = _asynchat.simple_producer
     deque = _deque
-else:  # pragma: no cover - exercised only on interpreters that ship the module
+else:  # pragma: no cover - exercised only on interpreters that lack the module
 
     def async_chat(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""

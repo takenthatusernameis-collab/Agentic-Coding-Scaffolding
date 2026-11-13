@@ -1,3 +1,11 @@
+## Unreleased — asynchat_utils fallback coverage closed on Python 3.12
+
+- Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta ran the battery and advanced `.kilo/last_verified.checkpoint` to `6a02e05` (== HEAD).
+- **Genuine gap found and closed — `asynchat_utils.py`'s fallback branch is active on Python 3.12 but undertested.** `asynchat` is removed on this interpreter, so the `else` branch (raising `RuntimeError("asynchat module is not available")` for `async_chat`, `find_prefix_at_end`, `simple_producer`, and setting `deque = None`) is the live code path. `tests/test_asynchat_utils.py` only asserted the exception type and skipped instead of asserting `deque is None`, and the `else` branch comment wrongly said "exercised only on interpreters that ship the module" (it runs when the module is absent).
+- **Fix:** corrected the misleading comment to "exercised only on interpreters that lack the module". Added `TestUnavailableFallback` to `tests/test_asynchat_utils.py` asserting each fallback helper raises `RuntimeError` with the expected message and that `deque is None` when unavailable. Tests skip on interpreters that still ship `asynchat`.
+- Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- **Validation:** `python -m unittest tests.test_asynchat_utils` OK; `python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests` green; `python tools/scan_untested.py` no exported-but-untested callables; `make lint` all checks passed; `make typecheck` no issues. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — refresh_scaffold no longer emits a heredoc that never converges
 
 - Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `2310297`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.

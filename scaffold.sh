@@ -70203,6 +70203,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — asynchat_utils fallback coverage closed on Python 3.12
+
+- Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta ran the battery and advanced `.kilo/last_verified.checkpoint` to `6a02e05` (== HEAD).
+- **Genuine gap found and closed — `asynchat_utils.py`'s fallback branch is active on Python 3.12 but undertested.** `asynchat` is removed on this interpreter, so the `else` branch (raising `RuntimeError("asynchat module is not available")` for `async_chat`, `find_prefix_at_end`, `simple_producer`, and setting `deque = None`) is the live code path. `tests/test_asynchat_utils.py` only asserted the exception type and skipped instead of asserting `deque is None`, and the `else` branch comment wrongly said "exercised only on interpreters that ship the module" (it runs when the module is absent).
+- **Fix:** corrected the misleading comment to "exercised only on interpreters that lack the module". Added `TestUnavailableFallback` to `tests/test_asynchat_utils.py` asserting each fallback helper raises `RuntimeError` with the expected message and that `deque is None` when unavailable. Tests skip on interpreters that still ship `asynchat`.
+- Refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- **Validation:** `python -m unittest tests.test_asynchat_utils` OK; `python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests` green; `python tools/scan_untested.py` no exported-but-untested callables; `make lint` all checks passed; `make typecheck` no issues. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — refresh_scaffold no longer emits a heredoc that never converges
 
 - Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `2310297`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.
@@ -157196,12 +157204,36 @@ class TestAsynchatUtils(unittest.TestCase):
     def test_unavailable_helpers_raise_runtime_error(self) -> None:
         if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
             self.skipTest("asynchat module is available on this interpreter")
-        with self.assertRaises(RuntimeError):
-            asynchat_utils.async_chat()  # type: ignore[abstract]
-        with self.assertRaises(RuntimeError):
-            asynchat_utils.find_prefix_at_end()
-        with self.assertRaises(RuntimeError):
-            asynchat_utils.simple_producer()  # type: ignore[call-arg]
+        names = ("async_chat", "find_prefix_at_end", "simple_producer")
+        for name in names:
+            with self.subTest(name=name):
+                with self.assertRaises(RuntimeError) as ctx:
+                    getattr(asynchat_utils, name)()
+                self.assertIn("asynchat module is not available", str(ctx.exception))
+
+    def test_deque_is_none_when_unavailable(self) -> None:
+        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asynchat module is available on this interpreter")
+        self.assertIsNone(asynchat_utils.deque)
+
+
+class TestUnavailableFallback(unittest.TestCase):
+    """Exercise the active fallback when the stdlib ``asynchat`` module is absent."""
+
+    def test_fallback_helpers_raise_runtime_error(self) -> None:
+        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asynchat module is available on this interpreter")
+        names = ("async_chat", "find_prefix_at_end", "simple_producer")
+        for name in names:
+            with self.subTest(name=name):
+                with self.assertRaises(RuntimeError) as ctx:
+                    getattr(asynchat_utils, name)()
+                self.assertIn("asynchat module is not available", str(ctx.exception))
+
+    def test_fallback_deque_is_none(self) -> None:
+        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+            self.skipTest("asynchat module is available on this interpreter")
+        self.assertIsNone(asynchat_utils.deque)
 
 
 if __name__ == "__main__":
@@ -161899,7 +161931,7 @@ if _ASYNCHAT_AVAILABLE:
     find_prefix_at_end = _asynchat.find_prefix_at_end  # type: ignore[attr-defined]
     simple_producer = _asynchat.simple_producer
     deque = _deque
-else:  # pragma: no cover - exercised only on interpreters that ship the module
+else:  # pragma: no cover - exercised only on interpreters that lack the module
 
     def async_chat(*args, **kwargs):  # type: ignore[no-untyped-def, no-redef]
         """Raise RuntimeError because the standard library module is unavailable."""
