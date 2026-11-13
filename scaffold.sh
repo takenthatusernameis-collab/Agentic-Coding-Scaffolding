@@ -1203,8 +1203,47 @@ def add_missing_copies(scaffold_text: str) -> tuple[str, list[str]]:
     return text, added
 
 
+def delimiter_for(relative: str, preferred: str, body: str) -> str:
+    """Return a delimiter that the heredoc of *relative* can close with.
+
+    *preferred* is the delimiter the block already uses. It is kept whenever no
+    line of *body* equals it, so a rewritten block keeps the style of the
+    generator. A body that does hold such a line falls back to a delimiter
+    derived from the file name, which is what a newly created block uses.
+
+    Example:
+        >>> delimiter_for("README.md", "__README__", "# a title\\n")
+        '__README__'
+        >>> delimiter_for("README.md", "README", "README\\n")
+        'README_COPY'
+    """
+    if preferred not in set(body.split("\n")):
+        return preferred
+    return unique_delimiter(relative, body)
+
+
 def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
-    """Return the refreshed generator text together with the changed and stale paths."""
+    """Return the refreshed generator text together with the changed and stale paths.
+
+    A rewritten block keeps its delimiter, unless the new body holds a line
+    that would close the heredoc with it. Reusing such a delimiter is wrong
+    once the repository copy grows that line: the emitted heredoc would end
+    early, the generator would no longer hold the copy, and the next refresh
+    would rewrite the same block forever instead of converging. Falling back
+    to the delimiter a newly created block would use makes the refresh
+    idempotent.
+
+    Example:
+        >>> text = (
+        ...     "cat > \\"$OUTPUT_DIR/doctest_utils.py\\" <<'DOCTEST_UTILS'\\n"
+        ...     "an outdated body\\nDOCTEST_UTILS\\n"
+        ... )
+        >>> refreshed, changed, stale = refresh(text)
+        >>> changed, stale
+        (['doctest_utils.py'], [])
+        >>> refresh(refreshed)[0] == refreshed
+        True
+    """
     changed: list[str] = []
     stale: list[str] = []
     pieces: list[str] = []
@@ -1218,9 +1257,10 @@ def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
             continue
         if match.group("body") != expected:
             changed.append(relative)
+            delimiter = delimiter_for(relative, match.group("delim"), expected)
             replacement = (
-                f"cat > \"$OUTPUT_DIR/{relative}\" <<'{match.group('delim')}'\n"
-                f"{expected}\n{match.group('delim')}\n"
+                f"cat > \"$OUTPUT_DIR/{relative}\" <<'{delimiter}'\n"
+                f"{expected}\n{delimiter}\n"
             )
             pieces.append(scaffold_text[cursor : match.start()])
             pieces.append(replacement)
@@ -70163,6 +70203,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — refresh_scaffold no longer emits a heredoc that never converges
+
+- Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `2310297`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.
+- **Genuine gap found and closed — `refresh()` could emit a heredoc the generator could never converge on.** `render_block` picks a delimiter that no line of the body closes the heredoc with (`unique_delimiter`), but `refresh()` rewrote a stale block reusing the delimiter the block already had. A repository copy that grows a line equal to that delimiter therefore produced a heredoc that ends early: the generator stopped holding the copy, and every later refresh rewrote the same block forever instead of converging (observed with a `doctest_utils.py` body containing a `DOCTEST_UTILS` line — the first refresh produced a truncated heredoc and the second pass still reported the block as changed).
+- **Fix:** added `delimiter_for(relative, preferred, body)`, which keeps the block's current delimiter whenever no body line equals it (so generator style is unchanged) and otherwise falls back to `unique_delimiter`, the delimiter a newly created block would get. `refresh()` now uses it. `refresh` documents the idempotence guarantee with a doctest, and `tests.test_refresh_scaffold` adds `test_a_rewritten_body_that_closes_the_old_delimiter_gets_a_fresh_one` plus `test_refreshing_a_complete_generator_converges`.
+- Refreshed embedded copies with `make refresh-scaffold` (the tool is embedded in `scaffold.sh`); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- **Validation:** `python -m unittest tests.test_refresh_scaffold` — 30 tests OK; `python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests` — 22 tests OK; full suite `python -m unittest discover tests/` — 10650 passed, 4 skipped, 0 failed; `python tools/scan_untested.py` no exported-but-untested callables; `make lint` all checks passed; `make typecheck` no issues in 566 source files. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — closed 3 real test-suite failures the state-delta battery had been masking
 
 - Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `c0604f6`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.

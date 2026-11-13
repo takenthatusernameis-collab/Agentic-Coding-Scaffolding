@@ -3,6 +3,7 @@
 import importlib.util
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -145,6 +146,41 @@ class TestRefresh(unittest.TestCase):
         self.assertEqual(refreshed, text)
         self.assertEqual(changed, [])
         self.assertEqual(stale, [])
+
+    def test_a_rewritten_body_that_closes_the_old_delimiter_gets_a_fresh_one(self):
+        # A repository copy may hold a line that equals the block's delimiter.
+        # Reusing that delimiter would end the heredoc early and the refresh
+        # would never converge, so the rewritten block must pick a delimiter
+        # the new body does not close.
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "doctest_utils.py").write_text("a\nDOCTEST_UTILS\nb\n")
+            original_root = refresh_scaffold.ROOT
+            refresh_scaffold.ROOT = root
+            try:
+                text = (
+                    "cat > \"$OUTPUT_DIR/doctest_utils.py\" <<'DOCTEST_UTILS'\n"
+                    "an outdated body\n"
+                    "DOCTEST_UTILS\n"
+                )
+                refreshed, changed, stale = refresh_scaffold.refresh(text)
+            finally:
+                refresh_scaffold.ROOT = original_root
+        self.assertEqual(changed, ["doctest_utils.py"])
+        self.assertEqual(stale, [])
+        match = refresh_scaffold.HEREDOC.search(refreshed)
+        assert match is not None
+        self.assertEqual(match.group("body"), "a\nDOCTEST_UTILS\nb")
+        self.assertNotEqual(match.group("delim"), "DOCTEST_UTILS")
+
+    def test_refreshing_a_complete_generator_converges(self):
+        text = (ROOT / "scaffold.sh").read_text()
+        refreshed, changed, _ = refresh_scaffold.refresh(text)
+        self.assertEqual(changed, [])
+        self.assertEqual(refreshed, text)
+        again, changed_again, _ = refresh_scaffold.refresh(refreshed)
+        self.assertEqual(changed_again, [])
+        self.assertEqual(again, refreshed)
 
 
 class TestHeredocDelimiter(unittest.TestCase):

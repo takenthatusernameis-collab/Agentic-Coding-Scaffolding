@@ -1,5 +1,23 @@
 # Project Status
 
+## Latest Session (2026-11-13T01:36Z) — refresh_scaffold delimiter-collision bug closed
+
+Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file). State-delta vs last verified checkpoint `2310297`: working tree clean and no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification. `refresh_scaffold.py --check` and `scan_untested.py` both clean.
+
+**Gap identified:** `tools/refresh_scaffold.py:refresh()` rewrote an outdated embedded block reusing the block's existing heredoc delimiter, while `render_block()` (used when *adding* a block) guarded against a delimiter collision via `unique_delimiter()`. A repository copy that grows a line equal to the delimiter therefore produced a heredoc that ended early: the generator stopped holding the copy, and every subsequent refresh reported the same block as changed forever instead of converging. Reproduced with a `doctest_utils.py` body containing a `DOCTEST_UTILS` line — first refresh emitted a truncated heredoc, second pass still reported `changed=['doctest_utils.py']`.
+
+**Work completed:**
+1. Added `delimiter_for(relative, preferred, body)` to `tools/refresh_scaffold.py`: keeps the block's current delimiter when no body line equals it (so generator style is unchanged) and otherwise falls back to `unique_delimiter()`. `refresh()` now routes through it.
+2. Documented the idempotence guarantee on `refresh` with a Google-style docstring and an ASCII-safe doctest; the doctest is executed by `tests.test_doctests` only for top-level modules, so it is also covered by `python -m doctest tools/refresh_scaffold.py`.
+3. Added `tests/test_refresh_scaffold.py::TestRefresh::test_a_rewritten_body_that_closes_the_old_delimiter_gets_a_fresh_one` and `test_refreshing_a_complete_generator_converges`.
+4. Ran `make refresh-scaffold` twice (the tool and the `CHANGELOG.md` template are embedded in `scaffold.sh`); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
+**Validation:** `python -m unittest tests.test_refresh_scaffold` — 30 tests OK; `python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests` — 22 OK; full suite `python -m unittest discover tests/ -q` — 10650 passed, 4 skipped, 0 failed; `python tools/scan_untested.py` clean; `make lint` all checks passed; `make typecheck` no issues in 566 source files. No new public API, so no `README.md` changes; `CHANGELOG.md` updated for the bug fix. No `.github/workflows/**` changes, no duplicate board task, no timestamp-only handoff.
+
+**Next Agent Task:** State-delta first via `python tools/verify_state_delta.py` (it skips when the tree is clean and no source-relevant file changed since the checkpoint, and runs the battery when state changed). Confirm `python tools/refresh_scaffold.py --check` and `python tools/scan_untested.py` as needed; run the full suite only at a coherent milestone or after relevant source changes. Look for one concrete, bounded gap — a productive pattern is comparing two surfaces that solve the same problem and checking whether they agree (this session's bug was exactly that). Implement it with typed code + `__all__` + Google-style docstring + ASCII-safe doctests + `TypeError`/`ValueError` validation as appropriate; add targeted tests; update `README.md`/`CHANGELOG.md` (a changelog entry is expected for a fixed bug too); run `make refresh-scaffold` if any embedded file changes. Constraints: no `.github/workflows/**` changes, no duplicate board tasks, no timestamp-only handoffs, no no-op commits. Since `board_post` to `main` is refused, record durable handover in `.kilo/handover.md` and `PROJECT_STATUS.md`.
+
+---
+
 ## Latest Session (2026-11-13T01:33Z) — foundation green, no genuine gap, no-op avoided
 
 Board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `.kilo/handover.md` and this file). State-delta vs last verified checkpoint `2310297`: working tree clean and no source-relevant file changed since that checkpoint (HEAD `2a40759` differs only in CI/session checkpoint commits), so `python tools/verify_state_delta.py` skipped redundant verification (avoidable process delay removed). Checkpoint unchanged at `2310297`.

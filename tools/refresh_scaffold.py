@@ -286,8 +286,47 @@ def add_missing_copies(scaffold_text: str) -> tuple[str, list[str]]:
     return text, added
 
 
+def delimiter_for(relative: str, preferred: str, body: str) -> str:
+    """Return a delimiter that the heredoc of *relative* can close with.
+
+    *preferred* is the delimiter the block already uses. It is kept whenever no
+    line of *body* equals it, so a rewritten block keeps the style of the
+    generator. A body that does hold such a line falls back to a delimiter
+    derived from the file name, which is what a newly created block uses.
+
+    Example:
+        >>> delimiter_for("README.md", "__README__", "# a title\\n")
+        '__README__'
+        >>> delimiter_for("README.md", "README", "README\\n")
+        'README_COPY'
+    """
+    if preferred not in set(body.split("\n")):
+        return preferred
+    return unique_delimiter(relative, body)
+
+
 def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
-    """Return the refreshed generator text together with the changed and stale paths."""
+    """Return the refreshed generator text together with the changed and stale paths.
+
+    A rewritten block keeps its delimiter, unless the new body holds a line
+    that would close the heredoc with it. Reusing such a delimiter is wrong
+    once the repository copy grows that line: the emitted heredoc would end
+    early, the generator would no longer hold the copy, and the next refresh
+    would rewrite the same block forever instead of converging. Falling back
+    to the delimiter a newly created block would use makes the refresh
+    idempotent.
+
+    Example:
+        >>> text = (
+        ...     "cat > \\"$OUTPUT_DIR/doctest_utils.py\\" <<'DOCTEST_UTILS'\\n"
+        ...     "an outdated body\\nDOCTEST_UTILS\\n"
+        ... )
+        >>> refreshed, changed, stale = refresh(text)
+        >>> changed, stale
+        (['doctest_utils.py'], [])
+        >>> refresh(refreshed)[0] == refreshed
+        True
+    """
     changed: list[str] = []
     stale: list[str] = []
     pieces: list[str] = []
@@ -301,9 +340,10 @@ def refresh(scaffold_text: str) -> tuple[str, list[str], list[str]]:
             continue
         if match.group("body") != expected:
             changed.append(relative)
+            delimiter = delimiter_for(relative, match.group("delim"), expected)
             replacement = (
-                f"cat > \"$OUTPUT_DIR/{relative}\" <<'{match.group('delim')}'\n"
-                f"{expected}\n{match.group('delim')}\n"
+                f"cat > \"$OUTPUT_DIR/{relative}\" <<'{delimiter}'\n"
+                f"{expected}\n{delimiter}\n"
             )
             pieces.append(scaffold_text[cursor : match.start()])
             pieces.append(replacement)
