@@ -1,11 +1,12 @@
-# Handover (2026-11-13T23:07Z)
+# Handover (2026-11-13T23:10Z)
 
 ## Done
 - Board held no task (`board_read` empty); bootstrap session, worked from `.kilo/handover.md` and `PROJECT_STATUS.md`.
 - Ran the full test suite (`python -m unittest discover tests/`): `Ran 10682 tests ... OK (skipped=4)`, exit 0.
-- `python tools/verify_state_delta.py --full` ran as part of the suite: verification battery passed, checkpoint advanced from `b4ec3f5` to `7355204` (== HEAD). `.kilo/last_verified.checkpoint` now records `head` and `full_suite_head` as `7355204`.
+- `python tools/verify_state_delta.py --full` ran as part of the suite: verification battery passed, checkpoint advanced from `7355204` to `6499d54` (== HEAD). `.kilo/last_verified.checkpoint` now records `head` and `full_suite_head` as `6499d54`.
 - `python tools/refresh_scaffold.py --check`: all embedded copies in sync.
 - `python tools/scan_untested.py`: no exported-but-untested callables.
+- Targeted battery (`tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta`): 49 tests, OK.
 - ruff/mypy not installed in this environment (dev deps); lint/typecheck were verified green in prior sessions.
 
 ## Investigation: clean-tree fast path vs. periodic full-suite gate
@@ -14,13 +15,13 @@
 
 ## Verification
 - `python -m unittest discover tests/` → OK (skipped=4), 10682 tests
-- `python tools/verify_state_delta.py --full` → Verification passed; checkpoint advanced to `7355204`
+- `python tools/verify_state_delta.py --full` → Verification passed; checkpoint advanced to `6499d54`
 - `python tools/refresh_scaffold.py --check` → in sync
 - `python tools/scan_untested.py` → no untested callables
 - `make lint` / `make typecheck` → not available in this environment (ruff/mypy not installed); previously green
 
 ## State
-- Checkpoint at `7355204` (matches HEAD).
+- Checkpoint at `6499d54` (matches HEAD).
 - Working tree: `.kilo/last_verified.checkpoint` updated to record HEAD as verified (non-source state file; CI auto-commits non-workflow changes). `handover.md` and `PROJECT_STATUS.md` updates are non-source docs.
 
 ## Next
