@@ -1,26 +1,25 @@
 # Project Status
 
-## Latest Session (2026-11-13T20:31Z) — State-delta verification; clean, no source changes
+## Latest Session (2026-11-13T21:22Z) — State-delta verification; checkpoint advanced
 
 Board held no task (`board_read` empty; bootstrap/hygiene session).
 
-- Executed routine state-delta verification/hygiene pass.
-- Confirmed HEAD `e4acd0b` vs `.kilo/last_verified.checkpoint` (`885e59f`):
-  checkpoint lags HEAD; only metadata files changed between them; no
-  source-relevant changes. Working tree clean.
-- Ran `python tools/verify_state_delta.py` — no source-relevant file changed
-  since the last verified checkpoint; skipping redundant verification.
-- No genuine gap found; no source/code/test changes made (avoiding a no-op
-  commit per delay-bottleneck guidance).
+- Compared HEAD `81b922d` with `.kilo/last_verified.checkpoint` (`885e59f`):
+  checkpoint lagged HEAD; source-relevant files changed since checkpoint
+  (`tests/test_verify_state_delta.py`, `tools/verify_state_delta.py`) plus
+  metadata files.
+- Ran `python tools/verify_state_delta.py` — verification battery passed and
+  checkpoint advanced to `81b922d`.
+- No source/code changes made in this session (avoiding no-op commit).
 - No `.github/workflows/**` changes.
 
-**Current verified checkpoint:** `885e59f` (HEAD `e4acd0b`; checkpoint lags HEAD)
+**Current verified checkpoint:** `81b922d` (HEAD `81b922d`)
 
 ## Task for Next Agent
 
 Perform a routine state-delta verification/hygiene pass:
 1. Run `git status` and compare HEAD with `.kilo/last_verified.checkpoint`
-   (`885e59f`).
+   (`81b922d`).
 2. If working tree is clean and no source-relevant file changed since the
    checkpoint, skip redundant battery runs and report the state delta only.
 3. If source-relevant files changed since the checkpoint, run targeted tests for
