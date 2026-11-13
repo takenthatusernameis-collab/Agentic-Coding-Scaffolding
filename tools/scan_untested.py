@@ -29,6 +29,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
+#: Persistent per-module mtime cache. Modules whose source and test mtimes
+#: match a cached entry are not re-parsed; the cached gaps are reused. The
+#: cache lives in ``.kilo/`` alongside the verification checkpoint and is
+#: gitignored so it never marks the working tree dirty.
+CACHE_FILE = ROOT / ".kilo" / "scan_untested_cache.json"
+
 #: Modules that are not wrapper modules but still expose ``__all__``.
 EXTRA_MODULES = (
     "stats.py",
@@ -74,6 +80,55 @@ def iter_modules() -> list[Path]:
         if path.is_file():
             modules.append(path)
     return modules
+
+
+def _mtime(path: Path) -> float | None:
+    """Return the modification time of *path*, or ``None`` when it is absent."""
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return None
+
+
+def load_cache() -> dict:
+    """Load the persistent per-module mtime cache, or an empty cache.
+
+    A missing or corrupt cache file degrades gracefully to an empty cache so
+    the next run performs a full scan and repopulates it.
+    """
+    try:
+        data = json.loads(CACHE_FILE.read_text())
+    except (OSError, ValueError):
+        return {"modules": {}}
+    if not isinstance(data, dict) or not isinstance(data.get("modules"), dict):
+        return {"modules": {}}
+    return data
+
+
+def save_cache(cache: dict) -> None:
+    """Atomically persist *cache* to the cache file."""
+    CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = CACHE_FILE.with_name(CACHE_FILE.name + ".tmp")
+    tmp.write_text(json.dumps(cache, indent=2) + "\n")
+    tmp.replace(CACHE_FILE)
+
+
+def cached_entry(cache: dict, path: Path, source_mtime: float | None,
+                 test_mtime: float | None) -> list[str] | None:
+    """Return the cached gaps for *path* when its mtimes still match.
+
+    Returns ``None`` when there is no valid cache entry, signalling that the
+    module must be re-scanned.
+    """
+    entry = cache.get("modules", {}).get(path.name)
+    if not isinstance(entry, dict):
+        return None
+    if entry.get("source_mtime") != source_mtime:
+        return None
+    if entry.get("test_mtime") != test_mtime:
+        return None
+    gaps = entry.get("gaps")
+    return gaps if isinstance(gaps, list) else None
 
 
 def string_constants(node: ast.expr | None) -> set[str]:
@@ -281,11 +336,28 @@ def main(argv: list[str] | None = None) -> int:
     summary = "--summary" in args
     total = 0
     results = {}
+    #: ``--all`` widens the report, so it always re-scans and never reads or
+    #: writes the cache (whose entries are default-mode results only).
+    cache = load_cache() if not show_all else {"modules": {}}
     for path in iter_modules():
-        gaps = scan_module(path, show_all)
+        source_mtime = _mtime(path)
+        test_path = ROOT / "tests" / f"test_{path.stem}.py"
+        test_mtime = _mtime(test_path)
+        cached = cached_entry(cache, path, source_mtime, test_mtime)
+        if cached is not None:
+            gaps = cached
+        else:
+            gaps = scan_module(path, show_all)
         if gaps:
             total += len(gaps)
             results[path.name] = gaps
+        cache.setdefault("modules", {})[path.name] = {
+            "source_mtime": source_mtime,
+            "test_mtime": test_mtime,
+            "gaps": gaps,
+        }
+    if not show_all:
+        save_cache(cache)
     if json_output:
         print(json.dumps({"gaps": results, "total": total}, indent=2))
         return 1 if total else 0

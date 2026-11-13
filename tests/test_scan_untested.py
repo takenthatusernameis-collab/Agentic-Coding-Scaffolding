@@ -351,5 +351,149 @@ class TestFormatSummary(unittest.TestCase):
         )
 
 
+class TestCache(unittest.TestCase):
+    """Verify the persistent per-module mtime cache.
+
+    The module-level ``CACHE_FILE`` global is shared state, so every test that
+    repoints it must restore the real cache file afterwards; otherwise the
+    mutation leaks into other classes.
+    """
+
+    def setUp(self):
+        self._saved_cache_file = scan_untested.CACHE_FILE
+        self._tmpdir = tempfile.TemporaryDirectory()
+        scan_untested.CACHE_FILE = Path(self._tmpdir.name) / "scan_untested_cache.json"
+
+    def tearDown(self):
+        scan_untested.CACHE_FILE = self._saved_cache_file
+        self._tmpdir.cleanup()
+
+    def test_load_cache_returns_empty_when_missing(self):
+        self.assertEqual(scan_untested.load_cache(), {"modules": {}})
+
+    def test_load_cache_returns_empty_when_corrupt(self):
+        scan_untested.CACHE_FILE.write_text("not json {")
+        self.assertEqual(scan_untested.load_cache(), {"modules": {}})
+
+    def test_load_cache_returns_empty_when_shape_is_wrong(self):
+        scan_untested.CACHE_FILE.write_text('["not", "a", "dict"]')
+        self.assertEqual(scan_untested.load_cache(), {"modules": {}})
+
+    def test_save_and_load_round_trips(self):
+        scan_untested.save_cache(
+            {
+                "modules": {
+                    "a_utils.py": {
+                        "source_mtime": 1.0,
+                        "test_mtime": 2.0,
+                        "gaps": ["foo", "bar"],
+                    }
+                }
+            }
+        )
+        self.assertEqual(
+            scan_untested.load_cache(),
+            {
+                "modules": {
+                    "a_utils.py": {
+                        "source_mtime": 1.0,
+                        "test_mtime": 2.0,
+                        "gaps": ["foo", "bar"],
+                    }
+                }
+            },
+        )
+
+    def test_cached_entry_returns_none_when_no_entry(self):
+        self.assertIsNone(
+            scan_untested.cached_entry({"modules": {}}, Path("a_utils.py"), 1.0, 2.0)
+        )
+
+    def test_cached_entry_returns_gaps_when_mtimes_match(self):
+        cache = {
+            "modules": {
+                "a_utils.py": {
+                    "source_mtime": 1.0,
+                    "test_mtime": 2.0,
+                    "gaps": ["foo", "bar"],
+                }
+            }
+        }
+        self.assertEqual(
+            scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0),
+            ["foo", "bar"],
+        )
+
+    def test_cached_entry_invalidates_when_source_mtime_changes(self):
+        cache = {
+            "modules": {
+                "a_utils.py": {
+                    "source_mtime": 1.0,
+                    "test_mtime": 2.0,
+                    "gaps": ["foo"],
+                }
+            }
+        }
+        self.assertIsNone(scan_untested.cached_entry(cache, Path("a_utils.py"), 9.0, 2.0))
+
+    def test_cached_entry_invalidates_when_test_mtime_changes(self):
+        cache = {
+            "modules": {
+                "a_utils.py": {
+                    "source_mtime": 1.0,
+                    "test_mtime": 2.0,
+                    "gaps": ["foo"],
+                }
+            }
+        }
+        self.assertIsNone(scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 9.0))
+
+    def test_cached_entry_returns_none_for_non_list_gaps(self):
+        cache = {
+            "modules": {
+                "a_utils.py": {
+                    "source_mtime": 1.0,
+                    "test_mtime": 2.0,
+                    "gaps": "not a list",
+                }
+            }
+        }
+        self.assertIsNone(scan_untested.cached_entry(cache, Path("a_utils.py"), 1.0, 2.0))
+
+
+class TestCacheIntegration(unittest.TestCase):
+    """Verify the cache behaves end-to-end across subprocess runs."""
+
+    def setUp(self):
+        self._cache_file = scan_untested.CACHE_FILE
+        self._cache_file.unlink(missing_ok=True)
+
+    def tearDown(self):
+        self._cache_file.unlink(missing_ok=True)
+
+    def test_repeated_runs_produce_identical_output_and_populate_cache(self):
+        first = subprocess.run(
+            [sys.executable, str(TOOL)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        second = subprocess.run(
+            [sys.executable, str(TOOL)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+        self.assertEqual(first.returncode, 0, msg=first.stderr)
+        self.assertEqual(second.returncode, 0, msg=second.stderr)
+        self.assertEqual(first.stdout, second.stdout)
+        self.assertTrue(self._cache_file.is_file(), "cache file should be written")
+        data = json.loads(self._cache_file.read_text())
+        self.assertIn("modules", data)
+        self.assertIsInstance(data["modules"], dict)
+
+
 if __name__ == "__main__":
     unittest.main()

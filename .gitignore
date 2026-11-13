@@ -20,3 +20,4 @@ coverage.xml
 kilo-session-*.log
 kilo-progress-*.log
 *.tmp
+.kilo/scan_untested_cache.json
