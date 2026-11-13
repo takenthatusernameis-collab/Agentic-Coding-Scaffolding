@@ -4,6 +4,7 @@ import importlib.util
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -285,6 +286,34 @@ class TestAddMissingCopies(unittest.TestCase):
         refreshed, added = refresh_scaffold.add_missing_copies(text)
         self.assertEqual(added, [])
         self.assertEqual(refreshed, text)
+
+    def test_a_generator_missing_every_block_converges(self):
+        # A generator that lacks every block is what a bootstrap starts from,
+        # and it is the shape that made the refresh quadratic: splicing each
+        # block into the growing text copied the whole multi-megabyte generator
+        # once per missing copy. The result must still be a generator that
+        # holds every block, is free of missing copies, and is a fixed point of
+        # ``refresh``.
+        text = "# a generator without any block\n"
+        refreshed, added = refresh_scaffold.add_missing_copies(text)
+        self.assertEqual(len(added), len(refresh_scaffold.wrapper_copies()))
+        self.assertEqual(refresh_scaffold.missing_copies(refreshed), [])
+        again, changed, stale = refresh_scaffold.refresh(refreshed)
+        self.assertEqual(changed, [])
+        self.assertEqual(stale, [])
+        self.assertEqual(again, refreshed)
+
+    def test_adding_every_missing_block_stays_linear(self):
+        # The refresh is quadratic in the number of missing blocks when each
+        # block is spliced into the growing text. This bound is deliberately
+        # loose (the rewrite runs in ~0.05 s, the quadratic form took ~4 s) so
+        # it fails only if the quadratic behaviour returns, not on a slow host.
+        text = "# a generator without any block\n"
+        started = time.monotonic()
+        refreshed, added = refresh_scaffold.add_missing_copies(text)
+        elapsed = time.monotonic() - started
+        self.assertEqual(len(added), len(refresh_scaffold.wrapper_copies()))
+        self.assertLess(elapsed, 2.0, f"add_missing_copies took {elapsed:.2f}s")
 
 
 class TestCommandLine(unittest.TestCase):

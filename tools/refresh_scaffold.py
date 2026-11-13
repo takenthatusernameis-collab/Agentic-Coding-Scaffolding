@@ -362,28 +362,43 @@ def anchor_for(relative: str, scaffold_text: str) -> int:
 def add_missing_copies(scaffold_text: str) -> tuple[str, list[str]]:
     """Return the generator with the missing wrapper blocks added.
 
-    The list of missing copies and their insertion anchors are computed once
-    against the original text. The blocks are then inserted in reverse order
-    of their anchor, so earlier anchors stay valid and no block is rescanned
-    after it is inserted. Rescanning the growing text for every missing copy
-    made this quadratic in the number of embedded blocks: a generator that
-    lacked every block took about fourteen seconds to refresh.
+    The missing blocks are located once against the original text and are then
+    spliced into it in a single left-to-right pass: every insertion point is
+    emitted, followed by the text that precedes the next one. Splicing each
+    block into the growing text one at a time copied the whole generator once
+    per missing copy, which is quadratic: a generator that lacked all 542
+    blocks took about four seconds, so a full bootstrap paid that cost again
+    after every edit to a module.
+
+    The emitted text is unchanged: blocks that share an insertion point are
+    still emitted in the reverse of their discovery order, which is what
+    inserting them one at a time at that same point produced.
     """
     missing = missing_copies(scaffold_text)
     if not missing:
         return scaffold_text, []
 
-    anchors = [(anchor_for(relative, scaffold_text), relative) for relative in missing]
-    # Insert from the end backwards so the offsets of earlier anchors are
-    # unaffected by the blocks that are added after them.
-    anchors.sort(key=lambda pair: pair[0], reverse=True)
+    groups: list[tuple[int, list[str]]] = []
+    for relative in missing:
+        anchor = anchor_for(relative, scaffold_text)
+        if groups and groups[-1][0] == anchor:
+            groups[-1][1].append(relative)
+        else:
+            groups.append((anchor, [relative]))
 
-    text = scaffold_text
-    added: list[str] = []
-    for anchor, relative in anchors:
-        text = text[:anchor] + render_block(relative) + text[anchor:]
-        added.append(relative)
-    return text, added
+    # A group holds the blocks discovered at one insertion point, in discovery
+    # order; inserting them one at a time at that point emits them in reverse.
+    ordered = sorted(groups, key=lambda group: group[0], reverse=True)
+    pieces: list[str] = []
+    cursor = 0
+    for anchor, relatives in sorted(groups):
+        pieces.append(scaffold_text[cursor:anchor])
+        pieces.extend(render_block(relative) for relative in reversed(relatives))
+        cursor = anchor
+    pieces.append(scaffold_text[cursor:])
+
+    added = [relative for _, relatives in ordered for relative in relatives]
+    return "".join(pieces), added
 
 
 def delimiter_for(relative: str, preferred: str, body: str) -> str:

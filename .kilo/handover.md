@@ -1,9 +1,9 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-13T10:11Z (optimize-delays; board empty, executed handover task)
-**Checkpoint:** `a628539` (HEAD; `verify_state_delta --full` passed and checkpoint advanced during this session)
+**Session:** 2026-11-13T10:19Z (optimize-delays; board empty, executed handover task)
+**Checkpoint:** `ec26076` (HEAD; `verify_state_delta --full` passed and checkpoint advanced during this session)
 **HEAD at handover:** working tree contains this session's real changes pending CI auto-commit
-**Source changes this session:** `Makefile`, `tools/scan_untested.py`, `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md`
+**Source changes this session:** `tools/refresh_scaffold.py`, `tests/test_refresh_scaffold.py`, `scaffold.sh`, `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md`
 
 ## Task for Next Agent
 
@@ -12,11 +12,13 @@ Run an **optimize-delays** pass per `.kilo/command/optimize-delays.md`: identify
 ## Work Completed This Session
 
 - **Board/state**: `board_read` empty (bootstrap/root). `board_post` to `main` refused; durable handover recorded here and in `PROJECT_STATUS.md`.
-- **Optimize-delays improvement 1 (AVOIDABLE_PROCESS_DELAY — unconditional cache write on every `scan_untested` invocation):** `tools/scan_untested.py` `main()` now only persists the per-module mtime cache when at least one entry was re-scanned (cache miss or legacy-format upgrade). On all-cache-hit runs the 58 KB cache file is no longer rewritten. Verified: cache mtime unchanged on second consecutive run.
-- **Optimize-delays improvement 2 (AVOIDABLE_PROCESS_DELAY — redundant `make test` smoke test on clean tree):** `Makefile` `test` target now skips `tests.test_public_api` + `tests.test_doctests` (~1.1 s) when the working tree is clean and `.kilo/last_verified.checkpoint` already matches HEAD, since the state-delta guard's verification battery already ran those suites when the checkpoint was advanced. Falls back to running the smoke test when the checkpoint is missing, stale, or the tree is dirty.
-- **Verification:** `tests.test_refresh_scaffold`, `tests.test_scan_untested`, `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta` (115 tests, OK), `make lint` clean, `make typecheck` clean (566 files), `python tools/verify_state_delta.py --full` passed.
+- **Optimize-delays improvement (AVOIDABLE_PROCESS_DELAY — quadratic block splicing in `refresh_scaffold.add_missing_copies`):** the function spliced each missing block into the growing generator text one at a time, so it copied the whole multi-megabyte `scaffold.sh` once per missing copy. It now locates every insertion anchor once against the original text and emits the result in a single left-to-right pass. Blocks sharing one insertion point are still emitted in the reverse of their discovery order, so the output text and the returned `added` list are byte-identical to the previous implementation.
+- **Measurement (generator missing all 542 blocks — the bootstrap shape):** `add_missing_copies` ~4.09 s before vs ~0.05 s after (~80x faster, ~4.0 s avoided per bootstrap refresh). `tests.test_refresh_scaffold` 6.35 s → 1.13 s. `add_missing_copies` on the current in-sync `scaffold.sh` is unchanged at ~0.08 s (no missing blocks).
+- **Verification:** `tests.test_refresh_scaffold` (32 tests), `tests.test_scan_untested`, `tests.test_public_api`, `tests.test_scaffold_sync`, `tests.test_doctests`, `tests.test_verify_state_delta` (85 tests, OK), full `python -m unittest discover tests/` (10674 tests, OK, skipped=4), `make lint` clean, `make typecheck` clean (566 files), `python tools/verify_state_delta.py --full` passed, `refresh_scaffold --check` in sync.
+- **Scaffold sync:** the embedded copy of `tools/refresh_scaffold.py` in `scaffold.sh` was refreshed (the refresh tool's own change made it stale); `python tools/refresh_scaffold.py --check` reports in sync.
 - **No `.github/workflows/**` changes.**
 
 ## Notes
 
-- Workflow-level delays (npm install, cron/idle timeout) remain maintainer-managed in `.github/workflows/main.yml`. `verify_state_delta` skips the battery when tree/state matches the last verified checkpoint; `refresh_scaffold --check` and `scan_untested` both have in-process/local mtime caches for repeated runs.
+- Workflow-level delays (npm install, cron/idle timeout) remain maintainer-managed in `.github/workflows/main.yml`. `verify_state_delta` skips the battery when tree/state matches the last verified checkpoint; `refresh_scaffold --check`, `scan_untested`, and `make test` all have guards for repeated invocations.
+- Remaining measured dev-loop costs, if a future pass wants one: `tests.test_verify_state_delta` ~4.6 s and `tests.test_scan_untested` ~2.9 s are dominated by real subprocess invocations of the tools they cover (the suites intentionally exercise the CLI), so they are not redundant work.
