@@ -114,8 +114,14 @@ def save_cache(cache: dict) -> None:
     tmp.replace(CACHE_FILE)
 
 
-def _mode_key(show_all: bool) -> str:
-    """Return the cache key for the active scan mode."""
+def _cache_key(show_all: bool) -> str:
+    """Return the cache key for the active scan mode.
+
+    The key encodes all flags that affect scan behaviour (not just output
+    format). Currently only ``show_all`` affects behaviour, but the function
+    is structured so that additional behaviour-affecting flags can be added
+    to the tuple without breaking cache isolation.
+    """
     return "all" if show_all else "default"
 
 
@@ -137,7 +143,7 @@ def cached_entry(cache: dict, path: Path, source_mtime: float | None,
         return None
     if entry.get("test_mtime") != test_mtime:
         return None
-    mode = _mode_key(show_all)
+    mode = _cache_key(show_all)
     by_mode = entry.get("gaps_by_mode")
     if isinstance(by_mode, dict):
         gaps = by_mode.get(mode)
@@ -354,7 +360,7 @@ def main(argv: list[str] | None = None) -> int:
     total = 0
     results = {}
     cache = load_cache()
-    mode = _mode_key(show_all)
+    mode = _cache_key(show_all)
     for path in iter_modules():
         source_mtime = _mtime(path)
         test_path = ROOT / "tests" / f"test_{path.stem}.py"
