@@ -1,34 +1,30 @@
 # Durable Handover for Next Agent
 
-**Session:** 2026-11-13T04:24Z (bootstrap; board empty, no task from previous agent)
-**Checkpoint:** `115c3ae` (verified; battery ran and passed, marker advanced to HEAD)
-**HEAD at handover:** `115c3ae` (working tree clean after commit)
-**Source changes this session:** none (foundation already green; only `.kilo/handover.md` and `PROJECT_STATUS.md` refreshed to reflect current verified state)
+**Session:** 2026-11-13T06:20Z (bootstrap; board empty, no task from previous agent)
+**Checkpoint:** `55e4785` (verified; battery ran and passed, marker advanced to HEAD)
+**HEAD at handover:** `55e4785` (working tree clean after commit)
+**Source changes this session:** `Makefile` (verify target delegates to verify_state_delta.py), `tests/test_verify_state_delta.py` (updated TestMakefileVerifyTarget for new verify target)
 
 ## Task for Next Agent
 
-Run the **optimize-delays** pass to identify and eliminate the highest-leverage avoidable delay bottleneck in the CI/development workflow. Follow the structured process in `.kilo/command/optimize-delays.md`:
+Add incremental per-module mtime caching to `tools/scan_untested.py` so the verification battery skips re-scanning modules whose source and test files are unchanged since the last scan (caching of validated results). This is the remaining serial work inside the battery: `scan_untested.py` parses all ~286 modules (~0.3s) on every dirty-tree run even when only one module changed. Follow `.kilo/command/optimize-delays.md`:
 
-1. **Establish state delta**: `git status --short`, recent commits, active checkpoint, test status. Reuse last verified evidence — do not re-run full discovery or full test suites if inputs/state unchanged.
+1. **Establish state delta**: `git status --short`, recent commits, checkpoint `55e4785`, test status.
+2. **Classify**: `AVOIDABLE_PROCESS_DELAY` (repeated re-scanning of unchanged modules).
+3. **Improve the execution prompt**: shortest high-information diagnostic, dependency graph, bounded timeouts, resume from checkpoints, targeted tests, measurable before/after criteria, explicit do-not-bypass gates.
+4. **Remove one high-leverage delay**: add per-module mtime cache; skip unchanged modules; preserve `--all`/`--summary`/`--json` contracts; no unrelated edits.
+5. **Verify**: `tests/test_public_api tests.test_scaffold_sync tests.test_doctests tests/test_verify_state_delta`, `make lint`, `make typecheck`, `make verify` (skip path on clean tree).
+6. **Handover policy**: update durable state only on real change. No timestamp-only commits, duplicate board tasks, or empty cycles.
 
-2. **Classify any waits found**: exactly one primary class — `AVOIDABLE_PROCESS_DELAY` (redundant polling, sleeps, serial work, repeated setup, unnecessary handoffs, duplicate checkpoints, excessive test cadence, unbounded jobs, no-op cycles), `EXTERNAL_CONSTRAINT`, `INTEGRITY_OR_SAFETY_GATE`, or `UNKNOWN_DELAY`.
-
-3. **Improve the execution prompt** for the identified bottleneck: shortest high-information diagnostic, dependency graph, bounded timeouts/retries, resume from checkpoints, targeted tests after local changes, distinguish required waiting from idle time, measurable before/after criteria, explicit do-not-bypass gates.
-
-4. **Remove one high-leverage delay** with a small durable change: state-delta guard, event-driven wake-up, bounded timeout, task sharding/checkpoint, deduplicated handover, deterministic batching, caching of validated results, or focused diagnostic/test. No unrelated edits.
-
-5. **Verify and preserve guarantees**: smallest relevant verification first, full gate at milestone, record exact commands/outputs, confirm data/safety/authorization rules intact, measure avoided wait.
-
-6. **Handover policy**: update durable state only on real change/new evidence/task transition. No timestamp-only commits, duplicate board tasks, or empty cycles. Leave one specific next task only if a real next step exists.
-
-**Repository state**: verified checkpoint `115c3ae`, all tests passing, scaffold in sync, no untested callables. Focus on finding redundant polling, serial work, repeated setup, or excessive test cadence that can be eliminated without weakening guarantees.
+**Repository state**: verified checkpoint `55e4785`, all tests passing, scaffold in sync, no untested callables, `make verify` skips redundant battery on clean tree.
 
 ## Work Completed This Session
 
 - **Board/state**: `board_read` empty (bootstrap session). No task from previous agent. `board_post` to `main` refused (session is board root).
-- **State-delta**: `python tools/verify_state_delta.py` ran the verification battery (refresh_scaffold --check, scan_untested, tests.test_public_api, tests.test_scaffold_sync, tests.test_doctests); all passed; checkpoint advanced to HEAD `115c3ae`.
-- **Foundation verified green**: ruff all checks passed; mypy success (no issues in 566 source files); refresh_scaffold --check all embedded copies in sync; scan_untested no exported-but-untested callables; targeted tests 22 OK.
+- **Optimize-delays pass**: classified `make verify` repeated no-op battery as `AVOIDABLE_PROCESS_DELAY`. Delegated `make verify` to `python tools/verify_state_delta.py` — state-delta guard skips battery when clean/unchanged, parallel execution when changed. Before: ~1.9s serial every invocation. After: <0.1s skip when unchanged, ~1s parallel when changed.
+- **Verification**: ruff clean, mypy clean (566 source files), `refresh_scaffold --check` in sync, `scan_untested` no gaps, 42 targeted tests OK, `make verify` skip path confirmed.
+- **Checkpoint**: advanced to `55e4785` via `python tools/verify_state_delta.py`.
 
 ## Notes
 
-Foundation is solid. All invariant checks are green; nothing else surfaced this session. No code change was warranted.
+`make verify` now delegates to `verify_state_delta.py`. The `make test` target already skips the full suite on a clean tree. Big delays (npm install, 900s idle timeout, 5-minute cron) are in `.github/workflows/main.yml` (maintainer-managed, not in scope).
