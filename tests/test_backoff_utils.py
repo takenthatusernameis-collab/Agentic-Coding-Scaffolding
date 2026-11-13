@@ -45,18 +45,12 @@ class TestBackoffUtils(unittest.TestCase):
         self.assertEqual(backoff_delay(strategy="constant", delay=2.5, attempt=3), 2.5)
 
     def test_backoff_delay_exponential(self):
-        self.assertEqual(
-            backoff_delay(strategy="exponential", initial=1.0, factor=2.0, max_delay=50.0, attempt=1),
-            2.0,
-        )
-        self.assertEqual(
-            backoff_delay(strategy="exponential", initial=1.0, factor=2.0, max_delay=50.0, attempt=2),
-            4.0,
-        )
-        self.assertEqual(
-            backoff_delay(strategy="exponential", initial=1.0, factor=2.0, max_delay=50.0, attempt=3),
-            8.0,
-        )
+        call = dict(initial=1.0, factor=2.0, max_delay=50.0, attempt=1)
+        self.assertEqual(backoff_delay(strategy="exponential", **call), 2.0)
+        call = dict(initial=1.0, factor=2.0, max_delay=50.0, attempt=2)
+        self.assertEqual(backoff_delay(strategy="exponential", **call), 4.0)
+        call = dict(initial=1.0, factor=2.0, max_delay=50.0, attempt=3)
+        self.assertEqual(backoff_delay(strategy="exponential", **call), 8.0)
 
     def test_backoff_delay_default_strategy(self):
         self.assertEqual(backoff_delay(delay=3.0), 3.0)

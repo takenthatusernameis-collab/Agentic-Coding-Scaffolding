@@ -139,9 +139,11 @@ def backoff_delay(
     Examples:
         >>> backoff_delay(strategy="constant", delay=2.5)
         2.5
-        >>> backoff_delay(strategy="exponential", initial=1.0, factor=2.0, max_delay=50.0, attempt=1)
+        >>> call = dict(initial=1.0, factor=2.0, max_delay=50.0, attempt=1)
+        >>> backoff_delay(strategy="exponential", **call)
         2.0
-        >>> backoff_delay(strategy="exponential", initial=1.0, factor=2.0, max_delay=50.0, attempt=2)
+        >>> call = dict(initial=1.0, factor=2.0, max_delay=50.0, attempt=2)
+        >>> backoff_delay(strategy="exponential", **call)
         4.0
         >>> backoff_delay(strategy="nonexistent", delay=1.0)
         Traceback (most recent call last):
