@@ -71231,6 +71231,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — hardened `telnetlib_utils` unavailable-branch test to reload-based pattern
+
+- **Test hardening — `telnetlib_utils` already guarded the stdlib import and raised `RuntimeError` on module-backed operations, but the unavailable branch was verified via `mock.patch.object` on the availability flag instead of the import-time logic.** The test now reloads the wrapper with `telnetlib` removed from `sys.modules`, exercising the exact code path a Python 3.13+ interpreter follows: the top-level `try/except ImportError` runs, `is_available()` returns `False`, `Telnet`/`create_telnet`/`connect_telnet` raise `RuntimeError`, and pure helpers (`escape_iac`, `strip_iac`, `command_name`, `option_name`) keep working with the documented fallback constants (all command codes collapse to the same sentinel value).
+- `tests/test_telnetlib_utils.py`: replaced `TestUnavailableModule.test_create_telnet_raises_when_unavailable` with `TestUnavailableModule.test_unavailable_branch` — reload-based test matching the convention established for `imghdr_utils`/`crypt_utils`/`nntplib_utils`/`sndhdr_utils`/`spwd_utils`/`ossaudiodev_utils`.
+- Validation: `python -m unittest tests.test_telnetlib_utils` — 47 OK; `python -m unittest discover tests/` — 10938 OK (skipped=4); `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean (567 source files); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` — all embedded copies in sync; `python tools/verify_state_delta.py --full --record-full-suite` passed.
+
 ## Unreleased — added Python 3.13+ unavailable-branch tests for `imghdr_utils` and `crypt_utils`
 
 - **Genuine gap found and closed — `imghdr_utils` and `crypt_utils` guard the stdlib modules removed in Python 3.13 (`imghdr`, `crypt`) and raise `RuntimeError` on module-backed operations, but the unavailable branch was not verified by reload-based tests.** Each wrapper exports a truthful `is_available()` and falls back to documented defaults (`tests == []`, `supported_formats() == []`, `METHOD_* == None`, `methods() == []`) when the module is absent, matching the convention established for `aifc`/`sunau`/`uu`/`xdrlib`/`mailcap`/`cgi`/`cgitb`/`pipes`/`telnetlib`/`nntplib`/`sndhdr`/`spwd`/`ossaudiodev`.
@@ -155518,6 +155524,8 @@ cat > "$OUTPUT_DIR/tests/test_telnetlib_utils.py" <<'TEST_TELNETLIB_UTILS'
 
 from __future__ import annotations
 
+import importlib
+import sys
 import telnetlib
 import unittest
 from unittest import mock
@@ -155836,12 +155844,30 @@ class TestOptionName(unittest.TestCase):
 
 
 class TestUnavailableModule(unittest.TestCase):
-    """The wrappers raise a clear error when telnetlib itself is missing."""
+    """Verify the Python 3.13+ path where :mod:`telnetlib` no longer ships."""
 
-    def test_create_telnet_raises_when_unavailable(self):
-        with mock.patch.object(telnetlib_utils, "_TELNETLIB_AVAILABLE", False):
-            with self.assertRaises(RuntimeError):
-                telnetlib_utils.create_telnet()
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"telnetlib": None}):
+                reloaded = importlib.reload(telnetlib_utils)
+                assert reloaded.is_available() is False
+                # Telnet class raises RuntimeError on instantiation
+                with self.assertRaises(RuntimeError):
+                    reloaded.Telnet()
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_telnet()
+                with self.assertRaises(RuntimeError):
+                    reloaded.connect_telnet("example.com")
+                # Pure Python helpers keep working without the module.
+                iac = reloaded.IAC
+                assert reloaded.escape_iac(b"a" + iac + b"b") == b"a" + iac + iac + b"b"
+                assert reloaded.strip_iac(iac + iac) == iac
+                # When unavailable, all command constants collapse to the same value.
+                assert reloaded.command_name(iac[0]) == "NULL"
+                assert reloaded.option_name(42) == "42"
+        finally:
+            importlib.reload(telnetlib_utils)
+        assert telnetlib_utils.is_available() is True
 
 
 if __name__ == "__main__":

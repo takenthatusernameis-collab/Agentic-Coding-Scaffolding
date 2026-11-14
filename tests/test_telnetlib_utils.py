@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import importlib
+import sys
 import telnetlib
 import unittest
 from unittest import mock
@@ -320,12 +322,30 @@ class TestOptionName(unittest.TestCase):
 
 
 class TestUnavailableModule(unittest.TestCase):
-    """The wrappers raise a clear error when telnetlib itself is missing."""
+    """Verify the Python 3.13+ path where :mod:`telnetlib` no longer ships."""
 
-    def test_create_telnet_raises_when_unavailable(self):
-        with mock.patch.object(telnetlib_utils, "_TELNETLIB_AVAILABLE", False):
-            with self.assertRaises(RuntimeError):
-                telnetlib_utils.create_telnet()
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"telnetlib": None}):
+                reloaded = importlib.reload(telnetlib_utils)
+                assert reloaded.is_available() is False
+                # Telnet class raises RuntimeError on instantiation
+                with self.assertRaises(RuntimeError):
+                    reloaded.Telnet()
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_telnet()
+                with self.assertRaises(RuntimeError):
+                    reloaded.connect_telnet("example.com")
+                # Pure Python helpers keep working without the module.
+                iac = reloaded.IAC
+                assert reloaded.escape_iac(b"a" + iac + b"b") == b"a" + iac + iac + b"b"
+                assert reloaded.strip_iac(iac + iac) == iac
+                # When unavailable, all command constants collapse to the same value.
+                assert reloaded.command_name(iac[0]) == "NULL"
+                assert reloaded.option_name(42) == "42"
+        finally:
+            importlib.reload(telnetlib_utils)
+        assert telnetlib_utils.is_available() is True
 
 
 if __name__ == "__main__":
