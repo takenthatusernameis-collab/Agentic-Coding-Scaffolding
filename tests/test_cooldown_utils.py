@@ -49,9 +49,9 @@ class TestCooldownReady(unittest.TestCase):
         self.assertFalse(cooldown.ready())
 
     def test_ready_after_interval(self) -> None:
-        cooldown = Cooldown(0.1)
+        cooldown = Cooldown(0.01)
         cooldown.call(lambda: None)
-        time.sleep(0.15)
+        time.sleep(0.015)
         self.assertTrue(cooldown.ready())
 
 
@@ -67,9 +67,9 @@ class TestCooldownRemaining(unittest.TestCase):
         self.assertLessEqual(cooldown.remaining(), 1.0)
 
     def test_remaining_zero_after_interval(self) -> None:
-        cooldown = Cooldown(0.1)
+        cooldown = Cooldown(0.01)
         cooldown.call(lambda: None)
-        time.sleep(0.15)
+        time.sleep(0.015)
         self.assertEqual(cooldown.remaining(), 0.0)
 
 
@@ -101,9 +101,9 @@ class TestCooldownCall(unittest.TestCase):
             cooldown.call(lambda: None)
 
     def test_call_allows_after_interval(self) -> None:
-        cooldown = Cooldown(0.1)
+        cooldown = Cooldown(0.01)
         cooldown.call(lambda: None)
-        time.sleep(0.15)
+        time.sleep(0.015)
         cooldown.call(lambda: None)
 
     def test_call_non_callable_raises(self) -> None:
@@ -128,12 +128,12 @@ class TestCooldownDecorator(unittest.TestCase):
     def test_decorator_allows_after_interval(self) -> None:
         calls = []
 
-        @cooldown(0.1)
+        @cooldown(0.01)
         def func() -> None:
             calls.append(1)
 
         func()
-        time.sleep(0.15)
+        time.sleep(0.015)
         func()
         self.assertEqual(len(calls), 2)
 

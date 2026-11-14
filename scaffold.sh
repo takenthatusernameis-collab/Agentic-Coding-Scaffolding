@@ -50746,7 +50746,7 @@ class TestCircuitBreaker(unittest.TestCase):
         self.assertFalse(breaker.can_execute())
 
     def test_half_open_allows_trial_call(self):
-        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
+        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.005)
 
         def fail() -> None:
             raise ValueError("boom")
@@ -50754,14 +50754,14 @@ class TestCircuitBreaker(unittest.TestCase):
         with self.assertRaises(ValueError):
             breaker.call(fail)
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
         # A successful trial call closes the circuit.
         self.assertEqual(breaker.call(lambda: "ok"), "ok")
         self.assertEqual(breaker.state, CircuitBreaker.CLOSED)
 
     def test_half_open_failed_trial_reopens(self):
-        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
+        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.005)
 
         def fail() -> None:
             raise ValueError("boom")
@@ -50769,18 +50769,18 @@ class TestCircuitBreaker(unittest.TestCase):
         with self.assertRaises(ValueError):
             breaker.call(fail)
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
         with self.assertRaises(ValueError):
             breaker.call(fail)
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
 
     def test_half_open_only_one_trial_at_a_time(self):
-        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
+        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.005)
 
         with self.assertRaises(ValueError):
             breaker.call(lambda: (_ for _ in ()).throw(ValueError("boom")))
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
 
         trial_started = threading.Event()
@@ -71231,6 +71231,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — reduced test-suite wall time in cooldown and circuit_breaker timing tests
+
+- **Avoidable process delay removed (test-suite timing) — `tests/test_cooldown_utils.py` spent ~0.6s of real clock time sleeping across four `time.sleep(0.15)` calls, and `tests/test_circuit_breaker_utils.py` spent ~0.3s across three `time.sleep(0.1)` calls.** Scaled both proportionally: cooldown interval 0.1s → 0.01s with sleeps 0.15s → 0.015s; circuit breaker recovery_timeout 0.05s → 0.005s with sleeps 0.1s → 0.01s. The same behavioral guarantees (cooldown ready/remaining/rejection after interval, half-open trial/reopen/half-open serialization) are verified on real time at a faster scale. Combined wall time for the two test files dropped from ~0.9s to ~0.095s (~9.4x faster); full `unittest discover` suite dropped from ~13.2s to ~12.4s. No source/API/test-behavior changes beyond timing; no `.github/workflows/**` changes.
+- Refreshed embedded copies of `tests/test_cooldown_utils.py` and `tests/test_circuit_breaker_utils.py` in `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Validation: `python -m unittest tests.test_cooldown_utils tests.test_circuit_breaker_utils` — 45 OK; `python -m unittest discover tests/` — 10942 OK (skipped=4); `python -m ruff check tests/test_cooldown_utils.py tests/test_circuit_breaker_utils.py cooldown_utils.py circuit_breaker_utils.py` clean; `python -m mypy tests/test_cooldown_utils.py tests/test_circuit_breaker_utils.py cooldown_utils.py circuit_breaker_utils.py` clean; `python tools/scan_untested.py` clean; `python tools/verify_state_delta.py --full --record-full-suite` passed.
+
 ## Unreleased — reduced test-suite wall time in rate_limiter_utils timing tests
 
 - **Avoidable process delay removed (test-suite timing) — `tests/test_rate_limiter_utils.py` spent ~4.6s of real clock time sleeping for token-bucket refills at rate=1.0/2.0 tokens/sec.** Increased the rate proportionally (rate=10.0/20.0 with capacity=2.0 to preserve pacing) and reduced sleeps and timing bounds by the same factor, so the same behavioral guarantees (bucket depletion, refill-driven re-acquire, blocking acquire, rate-paced decorator calls) are verified on real time at a faster scale. Wall time for the test file dropped from ~4.63s to ~0.55s (~8.4x faster); full `unittest discover` suite dropped from ~17.1s to ~13.2s (~22% faster). No source/API/test-behavior changes beyond timing; no `.github/workflows/**` changes.
@@ -157471,9 +157477,9 @@ class TestCooldownReady(unittest.TestCase):
         self.assertFalse(cooldown.ready())
 
     def test_ready_after_interval(self) -> None:
-        cooldown = Cooldown(0.1)
+        cooldown = Cooldown(0.01)
         cooldown.call(lambda: None)
-        time.sleep(0.15)
+        time.sleep(0.015)
         self.assertTrue(cooldown.ready())
 
 
@@ -157489,9 +157495,9 @@ class TestCooldownRemaining(unittest.TestCase):
         self.assertLessEqual(cooldown.remaining(), 1.0)
 
     def test_remaining_zero_after_interval(self) -> None:
-        cooldown = Cooldown(0.1)
+        cooldown = Cooldown(0.01)
         cooldown.call(lambda: None)
-        time.sleep(0.15)
+        time.sleep(0.015)
         self.assertEqual(cooldown.remaining(), 0.0)
 
 
@@ -157523,9 +157529,9 @@ class TestCooldownCall(unittest.TestCase):
             cooldown.call(lambda: None)
 
     def test_call_allows_after_interval(self) -> None:
-        cooldown = Cooldown(0.1)
+        cooldown = Cooldown(0.01)
         cooldown.call(lambda: None)
-        time.sleep(0.15)
+        time.sleep(0.015)
         cooldown.call(lambda: None)
 
     def test_call_non_callable_raises(self) -> None:
@@ -157550,12 +157556,12 @@ class TestCooldownDecorator(unittest.TestCase):
     def test_decorator_allows_after_interval(self) -> None:
         calls = []
 
-        @cooldown(0.1)
+        @cooldown(0.01)
         def func() -> None:
             calls.append(1)
 
         func()
-        time.sleep(0.15)
+        time.sleep(0.015)
         func()
         self.assertEqual(len(calls), 2)
 

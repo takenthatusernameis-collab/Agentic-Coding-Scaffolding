@@ -67,7 +67,7 @@ class TestCircuitBreaker(unittest.TestCase):
         self.assertFalse(breaker.can_execute())
 
     def test_half_open_allows_trial_call(self):
-        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
+        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.005)
 
         def fail() -> None:
             raise ValueError("boom")
@@ -75,14 +75,14 @@ class TestCircuitBreaker(unittest.TestCase):
         with self.assertRaises(ValueError):
             breaker.call(fail)
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
         # A successful trial call closes the circuit.
         self.assertEqual(breaker.call(lambda: "ok"), "ok")
         self.assertEqual(breaker.state, CircuitBreaker.CLOSED)
 
     def test_half_open_failed_trial_reopens(self):
-        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
+        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.005)
 
         def fail() -> None:
             raise ValueError("boom")
@@ -90,18 +90,18 @@ class TestCircuitBreaker(unittest.TestCase):
         with self.assertRaises(ValueError):
             breaker.call(fail)
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
         with self.assertRaises(ValueError):
             breaker.call(fail)
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
 
     def test_half_open_only_one_trial_at_a_time(self):
-        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.05)
+        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.005)
 
         with self.assertRaises(ValueError):
             breaker.call(lambda: (_ for _ in ()).throw(ValueError("boom")))
-        time.sleep(0.1)
+        time.sleep(0.01)
         self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
 
         trial_started = threading.Event()
