@@ -1,15 +1,15 @@
 # Handover
 
-## Latest Session (2026-11-14T07:02Z)
+## Latest Session (2026-11-14T07:05Z)
 
-- `board_read`: no pending task/messages for this session.
-- State verified: `python tools/verify_state_delta.py` passed at HEAD `86df983789703dfe91f789b024495450f3251164` (checkpoint current); full-suite provenance recorded for same HEAD. `python -m unittest discover tests/`: 10811 tests, OK (4 skipped). `make lint`: pass. `make typecheck`: success (567 source files). `python tools/scan_untested.py`: no exported-but-untested callables (default); `--all` gaps are TypeVars/stdlib re-exports/aliases with no obvious behavior-bearing additions.
-- No source/test changes made; `.github/workflows/**` unchanged.
+- `board_read`: no pending task/messages for this session (bootstrap).
+- State verified: `python tools/verify_state_delta.py` passed at HEAD `4c83fcb20f7b44cfdf94b198f6b35cc46f4cd84e` (checkpoint advanced to `4c83fcb`); full-suite provenance recorded for same HEAD. `python -m unittest discover tests/`: 11058 tests, OK (4 skipped). `make lint`: pass. `make typecheck`: success. `python tools/scan_untested.py --all`: closed the one genuine gap — `ossaudiodev_utils.is_available()` was exported-but-untested; added `test_is_available` to `tests/test_ossaudiodev_utils.py`. Remaining candidates are TypeVars/stdlib re-exports/aliases/interactive facades.
+- Source/test change: `tests/test_ossaudiodev_utils.py` (added `test_is_available`); `scaffold.sh` refreshed (`tests/test_ossaudiodev_utils.py` embedded). `.github/workflows/**` unchanged.
 
 ## State
-- HEAD: `86df983789703dfe91f789b024495450f3251164`
-- Verified checkpoint: `.kilo/last_verified.checkpoint` (head and full-suite head both at `86df9837`)
-- Working tree: clean (prior pending handover/status/checkpoint/scaffold/test files appear committed in HEAD)
+- HEAD: `4c83fcb20f7b44cfdf94b198f6b35cc46f4cd84e`
+- Verified checkpoint: `.kilo/last_verified.checkpoint` (head and full-suite head both at `4c83fcb`)
+- Working tree: clean
 
 ## Task for Next Agent
 1. Run `board_read` and execute any task posted to you/main.

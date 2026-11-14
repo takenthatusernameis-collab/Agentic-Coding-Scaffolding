@@ -157514,7 +157514,14 @@ cat > "$OUTPUT_DIR/tests/test_ossaudiodev_utils.py" <<'TEST_OSSAUDIODEV_UTILS'
 import ossaudiodev
 import unittest
 
-from ossaudiodev_utils import AFMT_S16_LE, SOUND_MIXER_PCM, OSSAudioError, error, openmixer
+from ossaudiodev_utils import (
+    AFMT_S16_LE,
+    SOUND_MIXER_PCM,
+    OSSAudioError,
+    error,
+    is_available,
+    openmixer,
+)
 from ossaudiodev_utils import open as _open
 
 
@@ -157534,6 +157541,11 @@ class TestOssaudiodevUtils(unittest.TestCase):
         self.assertIsInstance(SOUND_MIXER_PCM, int)
         self.assertEqual(AFMT_S16_LE, ossaudiodev.AFMT_S16_LE)
         self.assertEqual(SOUND_MIXER_PCM, ossaudiodev.SOUND_MIXER_PCM)
+
+    def test_is_available(self):
+        result = is_available()
+        self.assertIsInstance(result, bool)
+        self.assertEqual(result, ossaudiodev is not None)
 
 
 if __name__ == "__main__":
