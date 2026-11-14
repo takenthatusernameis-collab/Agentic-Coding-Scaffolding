@@ -18,18 +18,15 @@ test-full:
 ## Run the Python test suite using pytest (falling back to unittest if pytest is unavailable)
 test:
 	@echo "Running tests..."
-	@if [ -z "$$(git status --porcelain -- . ':!.kilo/last_verified.checkpoint' 2>/dev/null)" ]; then \
-		python -c "import sys; sys.path.insert(0,'tools'); import verify_state_delta as v; m=v.read_marker(); h=v.head(); \
-		sys.exit(0 if m and m.get('head')==h else 1 if m and not v.source_changed_since(m['head']) else 2)" >/dev/null 2>&1; \
-		rc=$$?; \
-		if [ $$rc -eq 0 ]; then \
-			echo "Working tree clean and already verified at current checkpoint; skipping smoke test."; \
-		elif [ $$rc -eq 1 ]; then \
-			echo "Working tree clean; no source-relevant file changed since the last verified checkpoint; skipping smoke test."; \
-		else \
-			echo "Working tree clean; running public API smoke test and doctests (full suite skipped)."; \
-			python -m unittest tests.test_public_api tests.test_doctests; \
-		fi; \
+	@python tools/verify_state_delta.py --probe >/dev/null 2>&1; \
+	rc=$$?; \
+	if [ $$rc -eq 0 ]; then \
+		echo "Working tree clean and already verified at current checkpoint; skipping smoke test."; \
+	elif [ $$rc -eq 1 ]; then \
+		echo "Working tree clean; no source-relevant file changed since the last verified checkpoint; skipping smoke test."; \
+	elif [ -z "$$(git status --porcelain -- . ':!.kilo/last_verified.checkpoint' 2>/dev/null)" ]; then \
+		echo "Working tree clean; running public API smoke test and doctests (full suite skipped)."; \
+		python -m unittest tests.test_public_api tests.test_doctests; \
 	else \
 		echo "Working tree dirty; selecting targeted tests for changed source..."; \
 		SELECTION=$$(python tools/select_tests.py --from-git --include-untracked); \

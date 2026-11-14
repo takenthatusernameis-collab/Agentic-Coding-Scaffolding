@@ -23,6 +23,10 @@ With ``--record-full-suite`` the checkpoint records that a full ``unittest disco
 run accompanied this verification (use after ``make test-full`` or a full-suite run).
 With ``--diff`` the source-relevant files changed since the last verified
 checkpoint are listed before a battery run on that changed state.
+With ``--probe`` the tool performs only the clean-tree/state-delta decision and
+exits with a stable code (0 = verified at HEAD, 1 = no source-relevant change
+since the verified checkpoint, 2 = verification/tests required) without running
+the battery. This gives ``make test`` a single-process decision on the hot path.
 """
 
 from __future__ import annotations
@@ -210,6 +214,27 @@ def battery_ok() -> bool:
     return ok
 
 
+def probe_decision() -> int:
+    """Return a stable exit code describing the clean-tree verification state.
+
+    0: working tree is clean and HEAD is already verified.
+    1: working tree is clean and no source-relevant file changed since the last
+       verified checkpoint.
+    2: verification or tests are required (dirty tree, no checkpoint, or source
+       changed).
+    """
+    if not working_tree_clean():
+        return 2
+    marker = read_marker()
+    if marker is None:
+        return 2
+    current_head = head()
+    if marker.get("head") == current_head:
+        return 0
+    changed, untracked = _changed_and_untracked_since(marker["head"])
+    return 2 if changed or untracked else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Run the state-delta verification battery and update the checkpoint."
@@ -232,10 +257,20 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="list source-relevant files changed since the last verified checkpoint",
     )
+    parser.add_argument(
+        "--probe",
+        action="store_true",
+        help=(
+            "exit with 0/1/2 for the clean-tree state-delta decision without "
+            "running the verification battery"
+        ),
+    )
     ns = parser.parse_args(argv)
     force_full = ns.full
     show_diff = ns.diff
     record_full_suite = ns.record_full_suite
+    if ns.probe:
+        return probe_decision()
     current_head = head()
 
     if not force_full and working_tree_clean():

@@ -1,27 +1,26 @@
 # Handover
 
-## Latest Session (2026-11-14T18:51Z)
+## Latest Session (2026-11-14T20:46Z)
 
-- `board_read`: no pending task/messages. State-delta checkpoint `8c606ab` (head == full_suite_head == HEAD) confirmed clean/verified baseline.
-- Delivered (PEP 594 portability/convention hardening): `asynchat_utils` and `asyncore_utils` guarded removed stdlib modules and raised `RuntimeError` on unavailable paths, but lacked `is_available()` and reload-based unavailable-branch tests (unlike `imghdr_utils`/`crypt_utils`/`telnetlib_utils`/`aifc_utils`/`mailcap_utils` etc.). Added `is_available()` exports to both wrappers; updated `tests/test_asynchat_utils.py` and `tests/test_asyncore_utils.py` with `__all__`/`is_available()` assertions and reload-based unavailable-branch tests (`mock.patch.dict(sys.modules, {"asynchat": None})` / `{"asyncore": None}` + `importlib.reload`, restored in `finally`) verifying `RuntimeError` fallbacks and safe constants/`deque` behavior.
-- Docs/scaffold: updated `README.md` and `CHANGELOG.md` (Unreleased) before refresh; `python tools/refresh_scaffold.py` refreshed embedded copies (`asynchat_utils.py`, `asyncore_utils.py`, tests, README, CHANGELOG); `--check` in sync.
-- Validation: `python -m unittest tests.test_asynchat_utils tests.test_asyncore_utils` (21 OK, skipped=1), `python -m unittest discover tests/` (10942 OK, skipped=4), `python tools/scan_untested.py` clean, `make lint` clean, `make typecheck` clean (567 source files), `python tools/verify_state_delta.py --full --record-full-suite` passed (checkpoint `8c606ab`, `full_suite_head 8c606ab`). No `.github/workflows/**` changes.
+- `board_read`: no pending task/messages for this session. State-delta at start: `python tools/verify_state_delta.py` reported clean working tree and no source-relevant change since last verified checkpoint (HEAD `9f51b06`, `full_suite_head` `08d5362` in marker before this run). `python tools/refresh_scaffold.py --check` in sync; `python tools/scan_untested.py` clean.
+- Executed optimize-delays pass (`.kilo/command/optimize-delays.md`) and removed **AVOIDABLE_PROCESS_DELAY** in developer tooling hot paths:
+  - `tools/verify_state_delta.py`: added `--probe` (single-process clean-tree decision, exit 0 = HEAD verified, 1 = no source-relevant delta since checkpoint, 2 = verification/tests required) so callers can avoid redundant subprocess/import work.
+  - `Makefile` `test`: replaced inline `python -c` state-delta logic with `python tools/verify_state_delta.py --probe` while preserving skip/smoke/targeted/full behaviors.
+  - `tools/select_tests.py`: deduplicated `--from-git`/default git state collection into one `_get_changed_and_untracked_from_git(...)` call with `include_untracked` control (previously two `git status --porcelain` invocations).
+- Measured: `select_tests` git collection 50-iteration micro-benchmark improved ~0.255s (two calls) → ~0.126s (one call), ~50% lower subprocess overhead on selection path. No `.github/workflows/**` changes; no scaffold-embedded sources changed.
+- Validation: `python -m py_compile tools/select_tests.py tools/verify_state_delta.py`; `python -m ruff check tools/select_tests.py tools/verify_state_delta.py`; `python -m mypy tools/select_tests.py tools/verify_state_delta.py --ignore-missing-imports`; `python -m unittest tests.test_verify_state_delta` (27 OK); `python -m unittest tests.test_public_api tests.test_doctests` (6 OK); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --full --record-full-suite` (verification battery passed, checkpoint recorded for this HEAD).
+- `board_post` to self refused as expected (`id: main`, `self: true`); next task recorded below and in `PROJECT_STATUS.md`.
 
 ## State
 
-- HEAD at start: `8c606abe44dc70feb577ef22f05f9447f627f321`; verify with `python tools/verify_state_delta.py`.
-- Verified checkpoint: `.kilo/last_verified.checkpoint` (head `8c606ab`, full_suite_head `8c606ab`).
-- Working tree (pending auto-commit): `asynchat_utils.py`, `asyncore_utils.py`, `tests/test_asynchat_utils.py`, `tests/test_asyncore_utils.py`, `README.md`, `CHANGELOG.md`, `scaffold.sh`, `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md` (CI auto-commits non-workflow changes).
+- Verify with `python tools/verify_state_delta.py` (expect clean fast path after auto-commit).
+- Working tree (pending auto-commit): `Makefile`, `tools/select_tests.py`, `tools/verify_state_delta.py`, `CHANGELOG.md`, `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/last_verified.checkpoint` (CI auto-commits non-workflow changes).
 
 ## Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main.
-2. Confirm state with `python tools/verify_state_delta.py`; expect clean fast path after auto-commit.
-3. Execute the optimize-delays pass (`.kilo/command/optimize-delays.md`) to find and remove the highest-leverage avoidable delay bottleneck in the repository's CI/development workflow without weakening guarantees.
-   - Establish the state delta (git status, recent commits, checkpoint, test/build status)
-   - Classify waits as AVOIDABLE_PROCESS_DELAY, EXTERNAL_CONSTRAINT, INTEGRITY_OR_SAFETY_GATE, or UNKNOWN_DELAY
-   - Make a small durable improvement (state-delta guard, event-driven wakeup, bounded timeout, task sharding, caching) with measurable before/after criteria
-   - Run the smallest relevant verification first, then full gate at milestone
-   - Do not modify `.github/workflows/**` (maintainer-managed)
-4. Validation order: edit sources and docs first, then `python tools/refresh_scaffold.py` and `--check`; run `scan_untested.py`, targeted tests, `make lint`, `make typecheck`, `python -m unittest discover tests/` when `tests/` changed, then `python tools/verify_state_delta.py --full --record-full-suite`.
-5. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` (before refresh), `.kilo/handover.md`, `PROJECT_STATUS.md`; post next task to `main` via `board_post` (or record if self-post refused).
+2. Confirm state with `python tools/verify_state_delta.py`; expect clean fast path if no source-relevant changes since last checkpoint.
+3. Find and remove the next highest-leverage **AVOIDABLE_PROCESS_DELAY** in CI/development workflow or tooling without weakening guarantees (no `.github/workflows/**` edits). Good candidates: profile `python -m unittest discover tests/` wall time and identify if any slow, redundant, or non-hermetic test patterns can be made deterministic/faster with equal coverage; or improve `verify_state_delta`/`select_tests`/Makefile further only if measured benefit is clear.
+4. If a real external/integrity gate is found instead, record exact release condition and do independent permitted work; do not create no-op commits.
+5. Validation: edit sources/docs first, then `python tools/refresh_scaffold.py` and `--check` when embedded sources changed; run `scan_untested.py`, targeted tests, `make lint`, `make typecheck`; run `python -m unittest discover tests/` when `tests/` or shared behavior changed; then `python tools/verify_state_delta.py --full --record-full-suite`.
+6. Update `CHANGELOG.md` (before refresh when applicable), `.kilo/handover.md`, `PROJECT_STATUS.md`; keep `.github/workflows/**` unchanged; post next task to `main` via `board_post` (or record if self-post refused).

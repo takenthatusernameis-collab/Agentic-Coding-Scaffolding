@@ -57,12 +57,17 @@ def run_git(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-def _get_changed_and_untracked_from_git(base: str | None = None, head: str = "HEAD") -> tuple[list[str], list[str]]:
+def _get_changed_and_untracked_from_git(
+    base: str | None = None, head: str = "HEAD", include_untracked: bool = True
+) -> tuple[list[str], list[str]]:
     """Get changed and untracked files from git status in one call.
 
-    Returns (changed_files, untracked_files).
+    Returns (changed_files, untracked_files). Untracked files are only collected
+    when *include_untracked* is ``True``.
     """
-    cmd = ["git", "status", "--porcelain", "--untracked-files=all"]
+    cmd = ["git", "status", "--porcelain"]
+    if include_untracked:
+        cmd.append("--untracked-files=all")
     if base:
         cmd.extend([base, head])
     else:
@@ -79,7 +84,8 @@ def _get_changed_and_untracked_from_git(base: str | None = None, head: str = "HE
         status = line[:2]
         path = line[3:].strip()
         if status.startswith("?"):
-            untracked.append(path)
+            if include_untracked:
+                untracked.append(path)
         else:
             changed.append(path)
     return changed, untracked
@@ -87,7 +93,7 @@ def _get_changed_and_untracked_from_git(base: str | None = None, head: str = "HE
 
 def get_changed_files_from_git(base: str | None = None, head: str = "HEAD") -> list[str]:
     """Get list of changed files from git diff."""
-    changed, _ = _get_changed_and_untracked_from_git(base, head)
+    changed, _ = _get_changed_and_untracked_from_git(base, head, include_untracked=False)
     return changed
 
 
@@ -218,16 +224,18 @@ def main(argv: list[str] | None = None) -> int:
         modules = get_all_test_modules()
         run_full = True
     elif args.from_git:
-        changed = get_changed_files_from_git(args.base, args.head)
+        changed, untracked = _get_changed_and_untracked_from_git(
+            args.base, args.head, include_untracked=args.include_untracked
+        )
         if args.include_untracked:
-            changed.extend(get_untracked_files())
+            changed.extend(untracked)
         modules, run_full = select_tests(changed)
     elif args.changed_files:
         modules, run_full = select_tests(args.changed_files)
     else:
         # Default: from git with untracked
-        changed = get_changed_files_from_git()
-        changed.extend(get_untracked_files())
+        changed, untracked = _get_changed_and_untracked_from_git()
+        changed.extend(untracked)
         modules, run_full = select_tests(changed)
 
     if args.json:
