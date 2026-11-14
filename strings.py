@@ -80,6 +80,8 @@ __all__: List[str] = [
     "count_printable",
     "has_printable",
     "is_identifier",
+    "count_identifier",
+    "has_identifier",
     "is_pangram",
     "count_pangram",
     "has_pangram",
@@ -2071,6 +2073,65 @@ def is_identifier(s: str) -> bool:
     if not s:
         return False
     return s.isidentifier()
+
+
+def count_identifier(s: str) -> int:
+    """Return the number of valid identifier characters in *s*.
+
+    A valid identifier character is an ASCII letter, digit, or underscore. This
+    is the integer companion to :func:`is_identifier`; empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of characters in *s* that are valid in a Python identifier.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_identifier("foo_bar")
+        7
+        >>> count_identifier("foo-bar")
+        6
+        >>> count_identifier("123abc")
+        6
+        >>> count_identifier("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isalnum() or ch == "_")
+
+
+def has_identifier(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one valid identifier character.
+
+    A boolean companion to :func:`count_identifier`. Returns ``True`` when *s*
+    has one or more identifier-valid characters (ASCII letter, digit, or
+    underscore) and ``False`` otherwise, reusing :func:`count_identifier` for
+    consistency.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* contains at least one identifier character, ``False``
+        otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_identifier("foo")
+        True
+        >>> has_identifier("-")
+        False
+        >>> has_identifier("")
+        False
+    """
+    _require_string(s, "s")
+    return count_identifier(s) > 0
 
 
 def is_pangram(s: str) -> bool:
