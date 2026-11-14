@@ -65,6 +65,15 @@ def run(cmd: list[str], timeout: float = 30.0) -> subprocess.CompletedProcess[st
     )
 
 
+def _ref_exists(ref: str) -> bool:
+    """Return ``True`` when *ref* resolves to a commit in this repository."""
+    result = run(
+        ["git", "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+        timeout=5.0,
+    )
+    return result.returncode == 0
+
+
 def working_tree_clean() -> bool:
     """Return ``True`` when ``git status --porcelain`` reports no changes.
 
@@ -109,6 +118,12 @@ def _changed_and_untracked_since(ref: str) -> tuple[list[str], list[str]]:
     Uses ``git status --porcelain`` which reports both modified and untracked
     files in a single invocation, avoiding two subprocess calls on the hot path.
     """
+    if not _ref_exists(ref):
+        print(
+            f"[verify-state-delta] Cannot resolve {ref!r}; treating state as changed.",
+            file=sys.stderr,
+        )
+        return ["<unknown>"], []
     result = run(
         ["git", "status", "--porcelain", "--untracked-files=all", ref, "--"]
         + list(SOURCE_GLOBS),
