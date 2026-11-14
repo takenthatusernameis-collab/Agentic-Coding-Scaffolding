@@ -78,6 +78,12 @@ class TestFcntlUtils(unittest.TestCase):
         self.assertEqual(fcntl_utils.F_DUPFD, fcntl.F_DUPFD)
         self.assertEqual(fcntl_utils.F_DUPFD_CLOEXEC, fcntl.F_DUPFD_CLOEXEC)
         self.assertEqual(fcntl_utils.FD_CLOEXEC, fcntl.FD_CLOEXEC)
+        self.assertEqual(fcntl_utils.F_RDLCK, fcntl.F_RDLCK)
+        self.assertEqual(fcntl_utils.F_WRLCK, fcntl.F_WRLCK)
+        self.assertEqual(fcntl_utils.F_UNLCK, fcntl.F_UNLCK)
+        self.assertEqual(fcntl_utils.F_GETLK, fcntl.F_GETLK)
+        self.assertEqual(fcntl_utils.F_SETLK, fcntl.F_SETLK)
+        self.assertEqual(fcntl_utils.F_SETLKW, fcntl.F_SETLKW)
 
     def test_flock_locks_the_file(self):
         other = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o600)
