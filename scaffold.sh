@@ -13672,6 +13672,8 @@ __all__: List[str] = [
     "has_printable",
     "is_identifier",
     "is_pangram",
+    "count_pangram",
+    "has_pangram",
     "is_rotation",
     "is_subsequence",
     "initials",
@@ -15691,6 +15693,68 @@ def is_pangram(s: str) -> bool:
     _require_string(s, "s")
     letters = {ch.lower() for ch in s if ch.isalpha()}
     return set("abcdefghijklmnopqrstuvwxyz").issubset(letters)
+
+
+def count_pangram(s: str) -> int:
+    """Return the number of distinct alphabet letters present in *s*.
+
+    The count is case-insensitive and ignores non-alphabetic characters, so it
+    measures how many of the 26 letters of the English alphabet appear at least
+    once. This is the integer companion to :func:`is_pangram`; empty input
+    returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of distinct alphabet letters present in *s*, between ``0`` and
+        ``26`` inclusive.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_pangram("The quick brown fox jumps over the lazy dog")
+        26
+        >>> count_pangram("Hello world")
+        7
+        >>> count_pangram("abc")
+        3
+        >>> count_pangram("")
+        0
+    """
+    _require_string(s, "s")
+    letters = {ch.lower() for ch in s if ch.isalpha()}
+    return len(letters & set("abcdefghijklmnopqrstuvwxyz"))
+
+
+def has_pangram(s: str) -> bool:
+    """Return ``True`` if *s* contains every letter of the alphabet.
+
+    A boolean companion to :func:`count_pangram`. Returns ``True`` when all 26
+    letters of the English alphabet appear at least once (case-insensitive,
+    ignoring non-alphabetic characters) and ``False`` otherwise, reusing
+    :func:`count_pangram` for consistency.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* is a pangram, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_pangram("The quick brown fox jumps over the lazy dog")
+        True
+        >>> has_pangram("Hello world")
+        False
+        >>> has_pangram("")
+        False
+    """
+    _require_string(s, "s")
+    return count_pangram(s) == 26
 
 
 def swap_case(s: str) -> str:
@@ -19083,6 +19147,7 @@ from strings import (
     count_lowercase,
     count_occurrences,
     count_octal,
+    count_pangram,
     count_printable,
     count_punctuation,
     count_title,
@@ -19112,6 +19177,7 @@ from strings import (
     has_lowercase,
     has_occurrences,
     has_octal,
+    has_pangram,
     has_printable,
     has_punctuation,
     has_title,
@@ -20837,6 +20903,61 @@ class TestIsPangram(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_pangram(123)  # type: ignore[arg-type]
+
+
+class TestCountPangram(unittest.TestCase):
+    def test_pangram_all_letters(self):
+        self.assertEqual(
+            count_pangram("The quick brown fox jumps over the lazy dog"), 26
+        )
+        self.assertEqual(
+            count_pangram("Pack my box with five dozen liquor jugs"), 26
+        )
+
+    def test_partial_count(self):
+        self.assertEqual(count_pangram("Hello world"), 7)
+        self.assertEqual(count_pangram("abc"), 3)
+        self.assertEqual(count_pangram("aabbcc"), 3)
+
+    def test_case_insensitive(self):
+        self.assertEqual(count_pangram("ABCabc"), 3)
+        self.assertEqual(count_pangram("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"), 26)
+
+    def test_ignores_non_alphabetic(self):
+        self.assertEqual(count_pangram("abc123def"), 6)
+        self.assertEqual(count_pangram("The1quick2brown3fox4"), 15)
+
+    def test_empty(self):
+        self.assertEqual(count_pangram(""), 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_pangram(123)  # type: ignore[arg-type]
+
+
+class TestHasPangram(unittest.TestCase):
+    def test_has_pangram_true(self):
+        self.assertTrue(has_pangram("The quick brown fox jumps over the lazy dog"))
+        self.assertTrue(has_pangram("Pack my box with five dozen liquor jugs"))
+
+    def test_has_pangram_false(self):
+        self.assertFalse(has_pangram("Hello world"))
+        self.assertFalse(has_pangram("abcdefghijklmnopqrstuvwxy"))
+        self.assertFalse(has_pangram(""))
+
+    def test_consistency_with_count_pangram(self):
+        for s in (
+            "The quick brown fox jumps over the lazy dog",
+            "Hello world",
+            "abc",
+            "",
+            "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
+        ):
+            self.assertEqual(has_pangram(s), count_pangram(s) == 26)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_pangram(123)  # type: ignore[arg-type]
 
 
 class TestIsSubsequence(unittest.TestCase):
@@ -73799,7 +73920,6 @@ backoff_utils.py             # Backoff and retry delay utilities (constant, expo
 hostname_utils.py            # Hostname validation and normalization utilities (is_valid_hostname, normalize_hostname, get_local_hostname, is_fully_qualified, split_hostname)
 aifc_utils.py                # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
 ast_utils.py                 # Abstract syntax tree utilities wrapping stdlib ast
-audioop_utils.py             # Audio utilities wrapping the standard library audioop module
 gzip_utils.py               # Gzip compression/decompression utilities wrapping stdlib gzip
 mailcap_utils.py            # Mailcap utilities wrapping stdlib mailcap
 pickle_utils.py              # Object serialization utilities wrapping stdlib pickle
@@ -74165,7 +74285,6 @@ test_path_utils.py          # Tests for path_utils.py
 poplib_utils.py            # Poplib utilities wrapping stdlib poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
 asynchat_utils.py         # Asynchronous chat utilities wrapping stdlib asynchat (async_chat, find_prefix_at_end, simple_producer)
 asyncore_utils.py         # Asynchronous socket services utilities wrapping stdlib asyncore (dispatcher, dispatcher_with_send, file_dispatcher, file_wrapper, loop, socket_map, read/write, close_all, poll variants, ExitNow, errorcode)
-smtpd_utils.py            # SMTP server utilities wrapping stdlib smtpd (SMTPServer, DebuggingServer, PureProxy, SMTPChannel, create_smtp_server, create_debugging_server, create_pure_proxy, process_message)
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
@@ -74251,7 +74370,6 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_semver_utils.py        # Tests for semver_utils.py
   test_interval_utils.py      # Tests for interval_utils.py
   test_venv_utils.py          # Tests for venv_utils.py
-  test_audioop_utils.py       # Tests for audioop_utils.py
   test_ensurepip_utils.py     # Tests for ensurepip_utils.py
   test_readline_utils.py      # Tests for readline_utils.py
   test_builtins_utils.py      # Tests for builtins_utils.py
@@ -75328,7 +75446,6 @@ The project includes FTP utilities in `ftplib_utils.py` wrapping the standard li
 tests/test_poplib_utils.py - Tests for poplib_utils module
 tests/test_asynchat_utils.py - Tests for asynchat_utils module
 tests/test_asyncore_utils.py - Tests for asyncore_utils module
-tests/test_smtpd_utils.py - Tests for smtpd_utils module
 
 ## Asynchat Utilities Module
 
@@ -75468,10 +75585,6 @@ The project includes profiling utilities in `cprofile_utils.py` wrapping the sta
 ## Venv Utilities Module
 
 The project includes virtual environment utilities in `venv_utils.py` wrapping the standard library `venv` package: `create_environment` creates a virtual environment and returns a description of it, `describe_environment` describes an environment that already exists, `read_configuration` returns the settings of the configuration file of an environment as a mapping, `is_environment` reports whether a directory holds an environment, `environment_paths` returns the directories of an environment the way the standard library computes them, `environment_python` returns the interpreter of an environment, `activation_scripts` returns the scripts that activate an environment, `find_environments` returns the environments of a directory tree, and `run_cli` runs the command-line interface of the standard library and returns its exit code. The class `EnvBuilder` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the creation of an environment returns a description of the result instead of nothing, the directories of an environment are computed without creating it, and the environments of a directory tree are found. The helpers that create an environment write to the directory they are given and nothing else, and the helpers that only read an environment never write to it, so the tests of the project create every environment in a temporary directory of their own and the suite never installs a package and never reaches the network. The module is tested in `tests/test_venv_utils.py`.
-## Audio Utilities Module
-
-The project includes audio utilities in `audioop_utils.py` wrapping the standard library `audioop` module (`frame_count`, `convert_sample_width`, `convert_to_u_law`, `convert_from_u_law`, `convert_to_a_law`, `convert_from_a_law`, `shift_bias`, `add_fragments`, `scale`, `average`, `average_peak_to_peak`, `root_mean_square`, `peak_value`, `peak_range`, `peak_to_peak`, `count_zero_crossings`, `find_scale_factor`, `mix_to_mono`, `duplicate_to_stereo`, `swap_byte_order`, `reverse_samples`, `sample_at`, `resample`, `encode_adpcm`, `decode_adpcm`, `describe_fragment`) with typed signatures, docstrings, `__all__`, and input validation, plus unit tests in `tests/test_audioop_utils.py`. The class `Resampler` keeps the state of the resampling, the helper `is_available` reports whether the interpreter still ships the module, and the module degrades gracefully on Python 3.13 where `audioop` was removed, raising `RuntimeError` pointing at `audioop-lts`. The wrapper validates arguments, rejects empty fragments in measurements, supports negative sample indices, and provides `describe_fragment` returning measurements together.
-
 ## Ensurepip Utilities Module
 
 The project includes bootstrap utilities in `ensurepip_utils.py` wrapping the standard library `ensurepip` package: `bootstrap` installs the `pip` the interpreter carries and returns a `BootstrapResult` record of the installation, `pip_version` reports the version of the bundled `pip` as text, `bundled_wheel` returns the path of the wheel the interpreter carries, `is_pip_installed` reports whether the running interpreter can import `pip` without importing it, `run_cli` runs the command-line interface of the standard library and returns its exit code, and `is_available` reports whether the interpreter ships the package. The record of an installation holds its `pip_version`, `root`, `upgrade`, `user`, `altinstall`, `default_pip`, and `verbosity`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the installation returns a record instead of nothing, the wheel the interpreter carries is located, the presence of `pip` is reported without importing it, and the command-line interface returns its exit code instead of terminating the interpreter. The installation uses the wheel the interpreter was built with, so it never reaches the network, and the tests of the project patch the standard library instead, so the suite installs no package. The module is tested in `tests/test_ensurepip_utils.py`.

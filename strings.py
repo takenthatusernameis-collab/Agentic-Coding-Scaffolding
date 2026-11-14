@@ -81,6 +81,8 @@ __all__: List[str] = [
     "has_printable",
     "is_identifier",
     "is_pangram",
+    "count_pangram",
+    "has_pangram",
     "is_rotation",
     "is_subsequence",
     "initials",
@@ -2100,6 +2102,68 @@ def is_pangram(s: str) -> bool:
     _require_string(s, "s")
     letters = {ch.lower() for ch in s if ch.isalpha()}
     return set("abcdefghijklmnopqrstuvwxyz").issubset(letters)
+
+
+def count_pangram(s: str) -> int:
+    """Return the number of distinct alphabet letters present in *s*.
+
+    The count is case-insensitive and ignores non-alphabetic characters, so it
+    measures how many of the 26 letters of the English alphabet appear at least
+    once. This is the integer companion to :func:`is_pangram`; empty input
+    returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of distinct alphabet letters present in *s*, between ``0`` and
+        ``26`` inclusive.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_pangram("The quick brown fox jumps over the lazy dog")
+        26
+        >>> count_pangram("Hello world")
+        7
+        >>> count_pangram("abc")
+        3
+        >>> count_pangram("")
+        0
+    """
+    _require_string(s, "s")
+    letters = {ch.lower() for ch in s if ch.isalpha()}
+    return len(letters & set("abcdefghijklmnopqrstuvwxyz"))
+
+
+def has_pangram(s: str) -> bool:
+    """Return ``True`` if *s* contains every letter of the alphabet.
+
+    A boolean companion to :func:`count_pangram`. Returns ``True`` when all 26
+    letters of the English alphabet appear at least once (case-insensitive,
+    ignoring non-alphabetic characters) and ``False`` otherwise, reusing
+    :func:`count_pangram` for consistency.
+
+    Args:
+        s: The string to check.
+
+    Returns:
+        ``True`` when *s* is a pangram, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_pangram("The quick brown fox jumps over the lazy dog")
+        True
+        >>> has_pangram("Hello world")
+        False
+        >>> has_pangram("")
+        False
+    """
+    _require_string(s, "s")
+    return count_pangram(s) == 26
 
 
 def swap_case(s: str) -> str:

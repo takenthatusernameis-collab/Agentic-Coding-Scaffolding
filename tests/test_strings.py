@@ -26,6 +26,7 @@ from strings import (
     count_lowercase,
     count_occurrences,
     count_octal,
+    count_pangram,
     count_printable,
     count_punctuation,
     count_title,
@@ -55,6 +56,7 @@ from strings import (
     has_lowercase,
     has_occurrences,
     has_octal,
+    has_pangram,
     has_printable,
     has_punctuation,
     has_title,
@@ -1780,6 +1782,61 @@ class TestIsPangram(unittest.TestCase):
     def test_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             is_pangram(123)  # type: ignore[arg-type]
+
+
+class TestCountPangram(unittest.TestCase):
+    def test_pangram_all_letters(self):
+        self.assertEqual(
+            count_pangram("The quick brown fox jumps over the lazy dog"), 26
+        )
+        self.assertEqual(
+            count_pangram("Pack my box with five dozen liquor jugs"), 26
+        )
+
+    def test_partial_count(self):
+        self.assertEqual(count_pangram("Hello world"), 7)
+        self.assertEqual(count_pangram("abc"), 3)
+        self.assertEqual(count_pangram("aabbcc"), 3)
+
+    def test_case_insensitive(self):
+        self.assertEqual(count_pangram("ABCabc"), 3)
+        self.assertEqual(count_pangram("THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG"), 26)
+
+    def test_ignores_non_alphabetic(self):
+        self.assertEqual(count_pangram("abc123def"), 6)
+        self.assertEqual(count_pangram("The1quick2brown3fox4"), 15)
+
+    def test_empty(self):
+        self.assertEqual(count_pangram(""), 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_pangram(123)  # type: ignore[arg-type]
+
+
+class TestHasPangram(unittest.TestCase):
+    def test_has_pangram_true(self):
+        self.assertTrue(has_pangram("The quick brown fox jumps over the lazy dog"))
+        self.assertTrue(has_pangram("Pack my box with five dozen liquor jugs"))
+
+    def test_has_pangram_false(self):
+        self.assertFalse(has_pangram("Hello world"))
+        self.assertFalse(has_pangram("abcdefghijklmnopqrstuvwxy"))
+        self.assertFalse(has_pangram(""))
+
+    def test_consistency_with_count_pangram(self):
+        for s in (
+            "The quick brown fox jumps over the lazy dog",
+            "Hello world",
+            "abc",
+            "",
+            "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG",
+        ):
+            self.assertEqual(has_pangram(s), count_pangram(s) == 26)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_pangram(123)  # type: ignore[arg-type]
 
 
 class TestIsSubsequence(unittest.TestCase):
