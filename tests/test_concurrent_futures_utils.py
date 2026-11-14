@@ -1,6 +1,7 @@
 import unittest
 from concurrent.futures import Future, ThreadPoolExecutor
 
+import concurrent_futures_utils
 from concurrent_futures_utils import (
     FIRST_COMPLETED,
     FIRST_EXCEPTION,
@@ -58,6 +59,26 @@ class TestConcurrentFuturesUtils(unittest.TestCase):
             as_completed_iter([], timeout=-1)
         with self.assertRaises(ValueError):
             wait_futures([], return_when="BAD")
+
+    def test_reexported_public_surface(self):
+        # The wrapper's ``__all__`` re-exports the stdlib ``concurrent.futures``
+        # callables; verify they resolve and work *through this module* rather
+        # than only through the standard library.
+        self.assertIs(
+            concurrent_futures_utils.ProcessPoolExecutor,
+            process_pool_executor.__globals__["ProcessPoolExecutor"],
+        )
+        with thread_pool_executor(max_workers=2) as ex:
+            futures = [submit(ex, square, i) for i in range(3)]
+            completed = list(concurrent_futures_utils.as_completed(futures))
+            self.assertEqual(sorted(f.result() for f in completed), [0, 1, 4])
+            done, not_done = concurrent_futures_utils.wait(futures)
+            self.assertEqual(len(not_done), 0)
+            self.assertTrue(all(f in done for f in futures))
+
+    def test_reexported_process_pool_executor_type(self):
+        with process_pool_executor(max_workers=1) as ex:
+            self.assertIsInstance(ex, concurrent_futures_utils.ProcessPoolExecutor)
 
 
 if __name__ == "__main__":
