@@ -2,8 +2,14 @@
 
 from __future__ import annotations
 
-import uu as _uu
 from typing import Any
+
+try:
+    import uu as _uu
+    _UU_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when uu is unavailable
+    _uu = None  # type: ignore[assignment]
+    _UU_AVAILABLE = False
 
 __all__: list[str] = [
     "Error",
@@ -11,10 +17,25 @@ __all__: list[str] = [
     "decode",
     "encode_file",
     "decode_file",
+    "is_available",
 ]
 
 
-Error = _uu.Error
+def is_available() -> bool:
+    """Return True if the standard library :mod:`uu` module is available."""
+    return _UU_AVAILABLE
+
+
+def _require_uu(name: str) -> None:
+    if not _UU_AVAILABLE:
+        raise RuntimeError(f"uu module is not available; {name} cannot be used")
+
+
+if _UU_AVAILABLE:
+    Error = _uu.Error
+else:  # pragma: no cover - exercised when uu is unavailable
+    class Error(Exception):  # type: ignore[no-redef]
+        pass
 
 
 def encode(
@@ -24,6 +45,7 @@ def encode(
     mode: int | None = None,
     backtick: bool = False,
 ) -> None:
+    _require_uu("encode")
     if name is None:
         name = "-"
     if mode is None:
@@ -41,6 +63,7 @@ def decode(
     mode: int | None = None,
     quiet: int = 0,
 ) -> None:
+    _require_uu("decode")
     if mode is None:
         mode = 0o666
     try:
