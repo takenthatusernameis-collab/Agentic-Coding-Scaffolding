@@ -16,15 +16,18 @@ so test-authoring regressions are not hidden by the clean-tree fast path.
 When state has changed, the battery runs and the checkpoint is advanced.
 
 Usage:
-    python tools/verify_state_delta.py [--full] [--record-full-suite]
+    python tools/verify_state_delta.py [--full] [--record-full-suite] [--diff]
 
 With ``--full`` the battery always runs and the checkpoint is always advanced.
 With ``--record-full-suite`` the checkpoint records that a full ``unittest discover``
 run accompanied this verification (use after ``make test-full`` or a full-suite run).
+With ``--diff`` the source-relevant files changed since the last verified
+checkpoint are listed before a battery run on that changed state.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import subprocess
 import sys
@@ -197,10 +200,31 @@ def battery_ok() -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = argv or []
-    force_full = "--full" in args
-    show_diff = "--diff" in args
-    record_full_suite = "--record-full-suite" in args
+    parser = argparse.ArgumentParser(
+        description="Run the state-delta verification battery and update the checkpoint."
+    )
+    parser.add_argument(
+        "--full",
+        action="store_true",
+        help="always run the verification battery and advance the checkpoint",
+    )
+    parser.add_argument(
+        "--record-full-suite",
+        action="store_true",
+        help=(
+            "record that a full unittest discover run accompanied verification "
+            "(use after make test-full)"
+        ),
+    )
+    parser.add_argument(
+        "--diff",
+        action="store_true",
+        help="list source-relevant files changed since the last verified checkpoint",
+    )
+    ns = parser.parse_args(argv)
+    force_full = ns.full
+    show_diff = ns.diff
+    record_full_suite = ns.record_full_suite
     current_head = head()
 
     if not force_full and working_tree_clean():
