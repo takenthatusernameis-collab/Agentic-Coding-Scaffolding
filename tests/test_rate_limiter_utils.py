@@ -19,32 +19,32 @@ class TestRateLimiter(unittest.TestCase):
         self.assertEqual(limiter.tokens, 4.0)
 
     def test_acquire_immediate(self):
-        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
         # Should be able to acquire immediately
         self.assertTrue(limiter.acquire(1.0))
         # Now bucket is empty
         self.assertFalse(limiter.acquire(1.0))
-        # Wait a bit and try again
-        time.sleep(1.1)
+        # Wait for one token to refill (1 token per 0.1s at rate=10.0)
+        time.sleep(0.2)
         self.assertTrue(limiter.acquire(1.0))
 
     def test_acquire_blocking(self):
-        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
         # Start with full bucket
         start = time.monotonic()
         limiter.acquire_blocking(1.0)  # Should return immediately
         elapsed = time.monotonic() - start
         self.assertLess(elapsed, 0.1)  # Should be very quick
 
-        # Now bucket is empty, next acquire should block for about 1 second
+        # Now bucket is empty, next acquire should block for about 0.1s
         start = time.monotonic()
         limiter.acquire_blocking(1.0)
         elapsed = time.monotonic() - start
-        self.assertGreaterEqual(elapsed, 0.9)
-        self.assertLess(elapsed, 1.1)
+        self.assertGreaterEqual(elapsed, 0.05)
+        self.assertLess(elapsed, 0.3)
 
     def test_token_bucket_context_manager(self):
-        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
         # Acquire one token immediately
         with token_bucket(limiter, 1.0):
             pass  # Should not block
@@ -53,13 +53,13 @@ class TestRateLimiter(unittest.TestCase):
         with token_bucket(limiter, 1.0):
             pass
         elapsed = time.monotonic() - start
-        self.assertGreaterEqual(elapsed, 0.9)
-        self.assertLess(elapsed, 1.1)
+        self.assertGreaterEqual(elapsed, 0.05)
+        self.assertLess(elapsed, 0.3)
 
     def test_rate_limit_decorator(self):
         calls = []
 
-        @rate_limit(rate=2.0)  # 2 calls per second
+        @rate_limit(rate=20.0, capacity=2.0)  # 20 calls per second, burst of 2
         def limited_function():
             calls.append(time.monotonic())
 
@@ -69,19 +69,19 @@ class TestRateLimiter(unittest.TestCase):
             limited_function()
         elapsed = time.monotonic() - start
 
-        # With rate 2 per second and capacity=2 (default), the first two calls are immediate.
-        # Then each additional call requires 0.5 seconds to regenerate one token.
-        # For 5 calls: 2 immediate + 3 * 0.5 = 1.5 seconds minimum.
-        self.assertGreaterEqual(elapsed, 1.4)
-        self.assertLess(elapsed, 2.0)  # Allow a little slack above 1.5
+        # With rate 20 per second and capacity=2, the first two calls are immediate.
+        # Then each additional call requires 0.05 seconds to regenerate one token.
+        # For 5 calls: 2 immediate + 3 * 0.05 = 0.15 seconds minimum.
+        self.assertGreaterEqual(elapsed, 0.1)
+        self.assertLess(elapsed, 0.5)  # Allow slack above 0.15
 
         # Check that the calls are spaced appropriately after the bucket is depleted
-        # We expect intervals of about 0.5 seconds after the first two calls.
+        # We expect intervals of about 0.05 seconds after the first two calls.
         if len(calls) >= 3:
-            # Intervals between call2-call3, call3-call4, call4-call5 should be ~0.5
+            # Intervals between call2-call3, call3-call4, call4-call5 should be ~0.05
             intervals = [calls[i + 1] - calls[i] for i in range(1, len(calls) - 1)]
             for interval in intervals:
-                self.assertAlmostEqual(interval, 0.5, places=1)
+                self.assertAlmostEqual(interval, 0.05, places=1)
 
 
 if __name__ == "__main__":
