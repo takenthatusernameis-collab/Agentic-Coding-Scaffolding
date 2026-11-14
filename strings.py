@@ -69,7 +69,11 @@ __all__: List[str] = [
     "count_hex",
     "has_hex",
     "is_integer",
+    "count_integer",
+    "has_integer",
     "is_decimal",
+    "count_decimal",
+    "has_decimal",
     "is_printable",
     "count_printable",
     "has_printable",
@@ -1686,6 +1690,68 @@ def is_integer(s: str) -> bool:
     return s_stripped.isdigit()
 
 
+def count_integer(s: str) -> int:
+    """Return the number of integer-digit characters in *s*.
+
+    An integer-digit character is one of ``0``-``9``. Empty input returns
+    ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of integer digits in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_integer("123")
+        3
+        >>> count_integer("-123")
+        3
+        >>> count_integer("12.3")
+        3
+        >>> count_integer("hello")
+        0
+        >>> count_integer("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isdigit())
+
+
+def has_integer(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one integer digit.
+
+    This is the boolean companion to :func:`count_integer`. It returns
+    ``True`` when at least one character is a digit (``0``-``9``) and
+    ``False`` otherwise (empty input is ``False``), reusing
+    :func:`count_integer` for consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains an integer digit.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_integer("123")
+        True
+        >>> has_integer("-123")
+        True
+        >>> has_integer("abc")
+        False
+        >>> has_integer("")
+        False
+    """
+    _require_string(s, "s")
+    return count_integer(s) > 0
+
+
 def is_decimal(s: str) -> bool:
     """Return True if the string represents a decimal number.
 
@@ -1744,6 +1810,66 @@ def is_decimal(s: str) -> bool:
         int_part, _, frac_part = s_stripped.partition(".")
         return bool(int_part.isdigit() and frac_part.isdigit() and (int_part or frac_part))
     return s_stripped.isdigit()
+
+
+def count_decimal(s: str) -> int:
+    """Return the number of decimal-digit characters in *s*.
+
+    A decimal-digit character is one of ``0``-``9``. Empty input returns
+    ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of decimal digits in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_decimal("123")
+        3
+        >>> count_decimal("12.5")
+        3
+        >>> count_decimal("abc")
+        0
+        >>> count_decimal("")
+        0
+    """
+    _require_string(s, "s")
+    return sum(1 for ch in s if ch.isdigit())
+
+
+def has_decimal(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one decimal digit.
+
+    This is the boolean companion to :func:`count_decimal`. It returns
+    ``True`` when at least one character is a digit (``0``-``9``) and
+    ``False`` otherwise (empty input is ``False``), reusing
+    :func:`count_decimal` for consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains a decimal digit.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_decimal("123")
+        True
+        >>> has_decimal("12.5")
+        True
+        >>> has_decimal("abc")
+        False
+        >>> has_decimal("")
+        False
+    """
+    _require_string(s, "s")
+    return count_decimal(s) > 0
 
 
 def is_printable(s: str) -> bool:

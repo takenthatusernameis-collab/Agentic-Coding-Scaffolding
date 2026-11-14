@@ -18,8 +18,10 @@ from strings import (
     count_ascii,
     count_binary,
     count_consonants,
+    count_decimal,
     count_digits,
     count_hex,
+    count_integer,
     count_letters,
     count_lowercase,
     count_occurrences,
@@ -44,8 +46,10 @@ from strings import (
     has_ascii,
     has_binary,
     has_consonants,
+    has_decimal,
     has_digits,
     has_hex,
+    has_integer,
     has_letters,
     has_lowercase,
     has_occurrences,
@@ -1362,6 +1366,102 @@ class TestHasBinary(unittest.TestCase):
     def test_type_error(self):
         with self.assertRaises(TypeError):
             has_binary(None)  # type: ignore[arg-type]
+
+
+class TestCountInteger(unittest.TestCase):
+    def test_all_digits(self):
+        self.assertEqual(count_integer("123"), 3)
+        self.assertEqual(count_integer("0"), 1)
+        self.assertEqual(count_integer("9876543210"), 10)
+
+    def test_mixed(self):
+        self.assertEqual(count_integer("-123"), 3)
+        self.assertEqual(count_integer("12.3"), 3)
+        self.assertEqual(count_integer("abc101xyz"), 3)
+
+    def test_none(self):
+        self.assertEqual(count_integer("abc"), 0)
+        self.assertEqual(count_integer("hello"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_integer(""), 0)
+
+    def test_consistency_with_has_integer(self):
+        for s in ["123", "-123", "12.3", "234a", "", "a1b0c"]:
+            self.assertEqual(has_integer(s), count_integer(s) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_integer(123)  # type: ignore[arg-type]
+
+
+class TestHasInteger(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(has_integer("123"))
+        self.assertTrue(has_integer("-123"))
+        self.assertTrue(has_integer("0"))
+
+    def test_mixed(self):
+        self.assertTrue(has_integer("abc1xyz"))
+
+    def test_false(self):
+        self.assertFalse(has_integer("abc"))
+        self.assertFalse(has_integer("hello"))
+
+    def test_empty(self):
+        self.assertFalse(has_integer(""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_integer(None)  # type: ignore[arg-type]
+
+
+class TestCountDecimal(unittest.TestCase):
+    def test_all_digits(self):
+        self.assertEqual(count_decimal("123"), 3)
+        self.assertEqual(count_decimal("0"), 1)
+        self.assertEqual(count_decimal("9876543210"), 10)
+
+    def test_mixed(self):
+        self.assertEqual(count_decimal("12.5"), 3)
+        self.assertEqual(count_decimal("-3.14"), 3)
+        self.assertEqual(count_decimal("abc101xyz"), 3)
+
+    def test_none(self):
+        self.assertEqual(count_decimal("abc"), 0)
+        self.assertEqual(count_decimal("hello"), 0)
+
+    def test_empty(self):
+        self.assertEqual(count_decimal(""), 0)
+
+    def test_consistency_with_has_decimal(self):
+        for s in ["123", "12.5", "-3.14", "abc", "", "a1b0c"]:
+            self.assertEqual(has_decimal(s), count_decimal(s) > 0)
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            count_decimal(123)  # type: ignore[arg-type]
+
+
+class TestHasDecimal(unittest.TestCase):
+    def test_true(self):
+        self.assertTrue(has_decimal("123"))
+        self.assertTrue(has_decimal("12.5"))
+        self.assertTrue(has_decimal("0"))
+
+    def test_mixed(self):
+        self.assertTrue(has_decimal("abc1xyz"))
+
+    def test_false(self):
+        self.assertFalse(has_decimal("abc"))
+        self.assertFalse(has_decimal("hello"))
+
+    def test_empty(self):
+        self.assertFalse(has_decimal(""))
+
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_decimal(None)  # type: ignore[arg-type]
 
 
 class TestIsOctal(unittest.TestCase):
