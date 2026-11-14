@@ -1,7 +1,10 @@
 """Tests for crypt_utils."""
 
+import importlib
+import sys
 import unittest
 import warnings
+from unittest import mock
 
 import crypt_utils
 
@@ -104,6 +107,36 @@ class TestHashAndVerify(unittest.TestCase):
         methods = crypt_utils.methods()
         self.assertIsInstance(methods, list)
         self.assertTrue(methods)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`crypt` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"crypt": None}):
+                reloaded = importlib.reload(crypt_utils)
+                assert reloaded.is_available() is False
+                assert reloaded.METHOD_CRYPT is None
+                assert reloaded.METHOD_MD5 is None
+                assert reloaded.METHOD_SHA256 is None
+                assert reloaded.METHOD_SHA512 is None
+                assert reloaded.METHOD_BLOWFISH is None
+                with self.assertRaises(RuntimeError):
+                    reloaded.crypt("password")
+                with self.assertRaises(RuntimeError):
+                    reloaded.mksalt()
+                with self.assertRaises(RuntimeError):
+                    reloaded.hash_password("password")
+                with self.assertRaises(RuntimeError):
+                    reloaded.verify("password", "x")
+                # Pure helpers keep working without the module.
+                assert reloaded.identify_method("$6$salt$hash") == "SHA512"
+                assert reloaded.is_hash("$6$salt$hash") is True
+                assert reloaded.methods() == []
+        finally:
+            importlib.reload(crypt_utils)
+        assert crypt_utils.is_available() is True
 
 
 if __name__ == "__main__":

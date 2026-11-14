@@ -1,6 +1,9 @@
 """Tests for imghdr_utils."""
 
+import importlib
+import sys
 import unittest
+from unittest import mock
 
 import imghdr_utils
 
@@ -102,6 +105,34 @@ class TestPredicates(unittest.TestCase):
         # The wrappers accept arbitrary args and intentionally return None.
         imghdr_utils.register_test(id(PNG), lambda *a: None)
         imghdr_utils.unregister_test(id(PNG))
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`imghdr` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"imghdr": None}):
+                reloaded = importlib.reload(imghdr_utils)
+                assert reloaded.is_available() is False
+                assert reloaded.tests == []
+                with self.assertRaises(RuntimeError):
+                    reloaded.what(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.detect(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.is_image(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.matching_formats(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.read_header(b"\x89PNG")
+                # Pure no-op helpers keep working without the module.
+                assert reloaded.register_test() is None
+                assert reloaded.unregister_test() is None
+                assert reloaded.supported_formats() == []
+        finally:
+            importlib.reload(imghdr_utils)
+        assert imghdr_utils.is_available() is True
 
 
 if __name__ == "__main__":

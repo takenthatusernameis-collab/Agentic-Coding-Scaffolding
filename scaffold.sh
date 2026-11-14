@@ -71231,6 +71231,22 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added Python 3.13+ unavailable-branch tests for `imghdr_utils` and `crypt_utils`
+
+- **Genuine gap found and closed — `imghdr_utils` and `crypt_utils` guard the stdlib modules removed in Python 3.13 (`imghdr`, `crypt`) and raise `RuntimeError` on module-backed operations, but the unavailable branch was not verified by reload-based tests.** Each wrapper exports a truthful `is_available()` and falls back to documented defaults (`tests == []`, `supported_formats() == []`, `METHOD_* == None`, `methods() == []`) when the module is absent, matching the convention established for `aifc`/`sunau`/`uu`/`xdrlib`/`mailcap`/`cgi`/`cgitb`/`pipes`/`telnetlib`/`nntplib`/`sndhdr`/`spwd`/`ossaudiodev`.
+- `tests/test_imghdr_utils.py`: added `TestUnavailableModule.test_unavailable_branch` — reloads the wrapper with `imghdr` removed from `sys.modules`, verifies `is_available()` returns `False`, module-backed callables (`what`, `detect`, `is_image`, `matching_formats`, `read_header`) raise `RuntimeError`, no-op helpers (`register_test`, `unregister_test`) still return `None`, and `supported_formats()` falls back to `[]`.
+- `tests/test_crypt_utils.py`: added `TestUnavailableModule.test_unavailable_branch` — reloads the wrapper with `crypt` removed from `sys.modules`, verifies `is_available()` returns `False`, `METHOD_*` constants fall back to `None`, module-backed callables (`crypt`, `mksalt`, `hash_password`, `verify`) raise `RuntimeError`, pure helpers (`identify_method`, `is_hash`) still work, and `methods()` falls back to `[]`.
+- Validation: `python -m unittest tests.test_imghdr_utils tests.test_crypt_utils` — 38 OK; `python -m unittest discover tests/` — 10936 OK (skipped=4); `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` — all embedded copies in sync. No `.github/workflows/**` changes.
+
+## Unreleased — added Python 3.13+ unavailable-branch tests for `nntplib_utils`, `sndhdr_utils`, `spwd_utils`, `ossaudiodev_utils`
+
+- **Portability hardening — the wrappers already guarded the stdlib imports, but the Python 3.13+ path (where `nntplib`, `sndhdr`, `spwd`, `ossaudiodev` are removed) was not covered by the test suite.** Each wrapper exports `is_available()` and raises `RuntimeError` on module-backed operations when the stdlib module is absent, matching the convention established for `aifc`/`sunau`/`uu`/`xdrlib`/`mailcap`/`cgi`/`cgitb`/`pipes`/`telnetlib`/`imghdr`/`crypt`. The gap was a missing reload-based test for the unavailable branch on every interpreter.
+- `tests/test_nntplib_utils.py`: added `TestUnavailableModule.test_unavailable_branch` — reloads the wrapper with `nntplib` removed from `sys.modules`, verifies `is_available()` returns `False`, exception hierarchy is preserved (`NNTPError` and its subclasses remain valid `Exception` subclasses), and module-backed callables (`NNTP`, `create_nntp`, `create_nntp_ssl`) raise `RuntimeError`.
+- `tests/test_sndhdr_utils.py`: added `TestUnavailableModule.test_unavailable_branch` — same pattern; verifies `what`/`whathdr` raise `RuntimeError` and `tests` falls back to `[]`.
+- `tests/test_spwd_utils.py`: added `TestUnavailableModule.test_unavailable_branch` — same pattern; verifies `getspnam`/`getspall` raise `RuntimeError`.
+- `tests/test_ossaudiodev_utils.py`: added `TestUnavailableModule.test_unavailable_branch` — same pattern; verifies `open`/`openmixer` raise `RuntimeError`, `OSSAudioError`/`error` exception hierarchy is preserved, and constants fall back to documented defaults (`AFMT_S16_LE=0x00000010`, `SOUND_MIXER_PCM=0`).
+- Validation: `python -m unittest tests.test_nntplib_utils tests.test_sndhdr_utils tests.test_spwd_utils tests.test_ossaudiodev_utils` — 26 OK; `python -m unittest discover tests/` — 10928 OK (skipped=4); `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean (567 source files); `python tools/scan_untested.py` clean (no exported-but-untested callables); `python tools/refresh_scaffold.py --check` — all embedded copies in sync; `python tools/verify_state_delta.py --full --record-full-suite` passed. No `.github/workflows/**` changes.
+
 ## Unreleased — made `cgi_utils`, `cgitb_utils`, and `pipes_utils` importable without their stdlib module
 
 - **Genuine portability defect found and fixed — `is_available()` lied and the modules could not be imported on Python 3.13+.** `cgi`, `cgitb`, and `pipes` were removed in Python 3.13, but all three wrappers imported them unconditionally while still exporting `is_available()` returning a hard-coded `True`. On an interpreter without the module the entire wrapper failed at import time, and the advertised availability flag was wrong. This diverged from the established convention in `imghdr_utils`, `sndhdr_utils`, `spwd_utils`, `nntplib_utils`, and `telnetlib_utils`, which guard the import and return a real flag.
@@ -152320,7 +152336,10 @@ TEST_BUILTINS_UTILS
 cat > "$OUTPUT_DIR/tests/test_imghdr_utils.py" <<'TEST_IMGHDR_UTILS'
 """Tests for imghdr_utils."""
 
+import importlib
+import sys
 import unittest
+from unittest import mock
 
 import imghdr_utils
 
@@ -152422,6 +152441,34 @@ class TestPredicates(unittest.TestCase):
         # The wrappers accept arbitrary args and intentionally return None.
         imghdr_utils.register_test(id(PNG), lambda *a: None)
         imghdr_utils.unregister_test(id(PNG))
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`imghdr` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"imghdr": None}):
+                reloaded = importlib.reload(imghdr_utils)
+                assert reloaded.is_available() is False
+                assert reloaded.tests == []
+                with self.assertRaises(RuntimeError):
+                    reloaded.what(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.detect(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.is_image(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.matching_formats(b"\x89PNG")
+                with self.assertRaises(RuntimeError):
+                    reloaded.read_header(b"\x89PNG")
+                # Pure no-op helpers keep working without the module.
+                assert reloaded.register_test() is None
+                assert reloaded.unregister_test() is None
+                assert reloaded.supported_formats() == []
+        finally:
+            importlib.reload(imghdr_utils)
+        assert imghdr_utils.is_available() is True
 
 
 if __name__ == "__main__":
@@ -155320,8 +155367,11 @@ TEST_AIFC_UTILS
 cat > "$OUTPUT_DIR/tests/test_crypt_utils.py" <<'TEST_CRYPT_UTILS'
 """Tests for crypt_utils."""
 
+import importlib
+import sys
 import unittest
 import warnings
+from unittest import mock
 
 import crypt_utils
 
@@ -155424,6 +155474,36 @@ class TestHashAndVerify(unittest.TestCase):
         methods = crypt_utils.methods()
         self.assertIsInstance(methods, list)
         self.assertTrue(methods)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`crypt` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"crypt": None}):
+                reloaded = importlib.reload(crypt_utils)
+                assert reloaded.is_available() is False
+                assert reloaded.METHOD_CRYPT is None
+                assert reloaded.METHOD_MD5 is None
+                assert reloaded.METHOD_SHA256 is None
+                assert reloaded.METHOD_SHA512 is None
+                assert reloaded.METHOD_BLOWFISH is None
+                with self.assertRaises(RuntimeError):
+                    reloaded.crypt("password")
+                with self.assertRaises(RuntimeError):
+                    reloaded.mksalt()
+                with self.assertRaises(RuntimeError):
+                    reloaded.hash_password("password")
+                with self.assertRaises(RuntimeError):
+                    reloaded.verify("password", "x")
+                # Pure helpers keep working without the module.
+                assert reloaded.identify_method("$6$salt$hash") == "SHA512"
+                assert reloaded.is_hash("$6$salt$hash") is True
+                assert reloaded.methods() == []
+        finally:
+            importlib.reload(crypt_utils)
+        assert crypt_utils.is_available() is True
 
 
 if __name__ == "__main__":
