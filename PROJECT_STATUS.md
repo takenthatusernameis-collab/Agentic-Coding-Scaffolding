@@ -1,33 +1,33 @@
 # Project Status
 
-## Latest Session (2026-11-14T17:51Z)
+## Latest Session (2026-11-14T18:51Z)
 
-- `board_read`: no pending task/messages (bootstrap session). State-delta confirmed foundation health.
-- Hardened `telnetlib_utils` unavailable-branch test to reload-based pattern. The wrapper already guarded the stdlib import and raised `RuntimeError` on module-backed operations, but the unavailable branch was verified via `mock.patch.object` on the availability flag instead of the import-time logic. Replaced with reload-based test matching the convention established for `imghdr_utils`/`crypt_utils`/`nntplib_utils`/`sndhdr_utils`/`spwd_utils`/`ossaudiodev_utils`.
-- `tests/test_telnetlib_utils.py`: replaced `TestUnavailableModule.test_create_telnet_raises_when_unavailable` with `TestUnavailableModule.test_unavailable_branch` — reloads the wrapper with `telnetlib` removed from `sys.modules`, verifies `is_available()` returns `False`, `Telnet`/`create_telnet`/`connect_telnet` raise `RuntimeError`, and pure helpers (`escape_iac`, `strip_iac`, `command_name`, `option_name`) keep working with documented fallback constants.
-- State-delta: checkpoint advanced to `a7c8afd` (head == full_suite_head == HEAD).
-- Verification results:
-  - `python tools/refresh_scaffold.py --check`: all embedded copies in sync
-  - `python tools/scan_untested.py`: zero exported-but-untested callables
-  - `python -m unittest tests.test_telnetlib_utils`: 47 OK
-  - `python -m unittest discover tests/`: 10938 OK (skipped=4)
-  - `python -m ruff check .`: clean
-  - `python -m mypy . --exclude build --exclude dist`: clean (567 source files)
-  - `python tools/verify_state_delta.py --full --record-full-suite`: passed
+- `board_read`: no pending task/messages. State-delta: checkpoint `8c606ab`, `full_suite_head == HEAD`, clean fast path after prior checkpoint.
+- Hardened `asynchat_utils`/`asyncore_utils` (PEP 594 removed stdlib modules) to match the established guarded-availability convention:
+  - Added `is_available()` (exported in `__all__`) to both wrappers.
+  - `tests/test_asynchat_utils.py`, `tests/test_asyncore_utils.py`: updated export expectations, added `is_available()` assertions, and added reload-based unavailable-branch tests (`mock.patch.dict(sys.modules, {"asynchat": None})` / `{"asyncore": None}` + `importlib.reload`) verifying `RuntimeError` fallbacks and safe constants when the stdlib module is absent.
+- Docs: updated `README.md` (`asynchat_utils`/`asyncore_utils` tree + prose) and `CHANGELOG.md` Unreleased entry; refreshed embedded scaffold copies with `python tools/refresh_scaffold.py` (`--check` in sync).
+- Verification:
+  - `python -m unittest tests.test_asynchat_utils tests.test_asyncore_utils`: 21 OK (skipped=1)
+  - `python -m unittest discover tests/`: 10942 OK (skipped=4)
+  - `python tools/scan_untested.py`: no exported-but-untested callables
+  - `make lint`: clean
+  - `make typecheck`: clean (567 source files)
+  - `python tools/verify_state_delta.py --full --record-full-suite`: passed (checkpoint `8c606ab`, `full_suite_head 8c606ab`)
 - `.github/workflows/**` unchanged.
 
 ## State
 
-- Verified checkpoint: `.kilo/last_verified.checkpoint` (head `a7c8afd`, full_suite_head `a7c8afd`).
-- Working tree clean (no non-workflow changes pending).
+- Verified checkpoint: `.kilo/last_verified.checkpoint` (head `8c606ab`, full_suite_head `8c606ab`).
+- Working tree: session changes pending CI auto-commit (outside `.github/workflows/`).
 
 ## Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main.
-2. Confirm state with `python tools/verify_state_delta.py`; after auto-commit expect clean fast path.
+2. Confirm state with `python tools/verify_state_delta.py`; expect clean fast path after auto-commit.
 3. Deliver one concrete, verified improvement (evidence-driven):
    - `python tools/scan_untested.py --all` for safe behavior coverage opportunities (skip non-behavioral/interactive noise).
-   - Audit remaining wrappers for Python 3.13+ removed/renamed stdlib imports lacking guarded availability/fallback; fix with reload-based tests.
+   - Continue Python 3.13+ portability/guard audit: find wrappers importing removed/renamed stdlib modules without `is_available()`/reload-based unavailable-branch tests and align to convention.
    - Fix wrapper doc/API/edge-case mismatches with targeted tests.
    Avoid no-op/timestamp-only changes.
 4. Validation: edit sources/docs first, then `python tools/refresh_scaffold.py` and `--check`; run `scan_untested.py`, targeted tests, `make lint`, `make typecheck`, `python -m unittest discover tests/` when `tests/` changed, then `python tools/verify_state_delta.py --full --record-full-suite`.

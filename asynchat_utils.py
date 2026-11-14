@@ -17,6 +17,7 @@ __all__: list[str] = [
     "find_prefix_at_end",
     "simple_producer",
     "deque",
+    "is_available",
 ]
 
 
@@ -40,3 +41,8 @@ else:  # pragma: no cover - exercised only on interpreters that lack the module
         raise RuntimeError("asynchat module is not available")
 
     deque = None  # type: ignore[misc,assignment]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`asynchat` module is available."""
+    return _ASYNCHAT_AVAILABLE

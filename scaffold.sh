@@ -71702,6 +71702,11 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
 
+- `asynchat_utils.py`, `asyncore_utils.py`: added `is_available()` (exported in `__all__`) to report stdlib `asynchat`/`asyncore` module presence, aligning with the guarded-import convention used by other PEP 594/3.13-removed module wrappers.
+- `tests/test_asynchat_utils.py`, `tests/test_asyncore_utils.py`: updated `__all__`/export expectations, added `is_available()` assertions, and added reload-based unavailable-branch tests (`mock.patch.dict(sys.modules, {"asynchat": None})` / `{"asyncore": None}` + `importlib.reload`) verifying `RuntimeError` fallbacks and safe constants on missing-module paths.
+- `README.md`: documented `is_available()` for `asynchat_utils`/`asyncore_utils`. Refreshed embedded scaffold copies via `python tools/refresh_scaffold.py`.
+
+
 ### Added
 - Added `take` and `drop` to `seq_utils.py` for sequence slicing by count with
   typed `Sequence` inputs, `__all__` exports, ASCII-safe doctests, and
@@ -74637,8 +74642,8 @@ test_markdown_utils.py      # Tests for markdown_utils.py
 test_path_utils.py          # Tests for path_utils.py
   test_pathlib_utils.py       # Tests for pathlib_utils.py
 poplib_utils.py            # Poplib utilities wrapping stdlib poplib (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
-asynchat_utils.py         # Asynchronous chat utilities wrapping stdlib asynchat (async_chat, find_prefix_at_end, simple_producer)
-asyncore_utils.py         # Asynchronous socket services utilities wrapping stdlib asyncore (dispatcher, dispatcher_with_send, file_dispatcher, file_wrapper, loop, socket_map, read/write, close_all, poll variants, ExitNow, errorcode)
+asynchat_utils.py         # Asynchronous chat utilities wrapping stdlib asynchat (async_chat, find_prefix_at_end, simple_producer, deque, is_available)
+asyncore_utils.py         # Asynchronous socket services utilities wrapping stdlib asyncore (dispatcher, loop, socket_map, read/write helpers, create_dispatcher, is_available)
   test_pattern_utils.py       # Tests for pattern_utils.py
   test_pprint_utils.py        # Tests for pprint_utils.py
 test_reprlib_utils.py       # Tests for reprlib_utils.py
@@ -75803,11 +75808,11 @@ tests/test_asyncore_utils.py - Tests for asyncore_utils module
 
 ## Asynchat Utilities Module
 
-The project includes asynchronous chat utilities in `asynchat_utils.py` wrapping the standard library `asynchat` module: `async_chat` is the asynchronous chat handler, `find_prefix_at_end` finds the end of a prefix in a buffer, `simple_producer` is a producer for outgoing data, and `deque` is the double-ended queue the module uses internally. The `asynchat` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asynchat_utils.py`.
+The project includes asynchronous chat utilities in `asynchat_utils.py` wrapping the standard library `asynchat` module: `async_chat` is the asynchronous chat handler, `find_prefix_at_end` finds the end of a prefix in a buffer, `simple_producer` is a producer for outgoing data, `deque` is the double-ended queue the module uses internally, and `is_available` reports whether the interpreter ships the standard library module. The `asynchat` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asynchat_utils.py`.
 
 ## Asyncore Utilities Module
 
-The project includes asynchronous socket services utilities in `asyncore_utils.py` wrapping the standard library `asyncore` module: `dispatcher` is the base class for asynchronous handlers, `dispatcher_with_send` adds a send buffer, `file_dispatcher` and `file_wrapper` adapt files for asynchronous I/O, `loop` runs the event loop, `poll` and `read`/`write` drive the loop, `close_all` closes every dispatcher, `select` and the `poll2`/`poll3` variants are re-exported, `socket_map` holds the map of dispatchers, `ExitNow` is the exception that stops the loop, and `errorcode` holds the error constants. The helper `create_dispatcher` builds a dispatcher with an optional map and raises :class:`TypeError` when the map is not a dict or ``None``. The `asyncore` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asyncore_utils.py`.
+The project includes asynchronous socket services utilities in `asyncore_utils.py` wrapping the standard library `asyncore` module: `dispatcher` is the base class for asynchronous handlers, `dispatcher_with_send` adds a send buffer, `file_dispatcher` and `file_wrapper` adapt files for asynchronous I/O, `loop` runs the event loop, `poll` and `read`/`write` drive the loop, `close_all` closes every dispatcher, `select` and the `poll2`/`poll3` variants are re-exported, `socket_map` holds the map of dispatchers, `ExitNow` is the exception that stops the loop, `errorcode` holds the error constants, `create_dispatcher` builds a dispatcher with an optional map and raises :class:`TypeError` when the map is not a dict or ``None``, and `is_available` reports whether the interpreter ships the standard library module. The `asyncore` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_asyncore_utils.py`.
 
 ## Poplib Utilities Module
 
@@ -159883,7 +159888,10 @@ cat > "$OUTPUT_DIR/tests/test_asynchat_utils.py" <<'TEST_ASYNCHAT_UTILS'
 
 from __future__ import annotations
 
+import importlib
+import sys
 import unittest
+from unittest import mock
 
 import asynchat_utils
 
@@ -159892,20 +159900,34 @@ class TestAsynchatUtils(unittest.TestCase):
     def test_exports(self) -> None:
         for name in asynchat_utils.__all__:
             self.assertTrue(hasattr(asynchat_utils, name), f"{name} not exported")
+        self.assertIn("is_available", asynchat_utils.__all__)
 
     def test_all_is_sorted_and_complete(self) -> None:
-        expected = ["async_chat", "deque", "find_prefix_at_end", "simple_producer"]
+        expected = [
+            "async_chat",
+            "deque",
+            "find_prefix_at_end",
+            "is_available",
+            "simple_producer",
+        ]
         self.assertEqual(sorted(asynchat_utils.__all__), expected)
+
+    def test_is_available(self) -> None:
+        self.assertIsInstance(asynchat_utils.is_available(), bool)
+        self.assertEqual(
+            asynchat_utils.is_available(),
+            asynchat_utils._ASYNCHAT_AVAILABLE,  # type: ignore[attr-defined]
+        )
 
     def test_deque_is_real_deque_when_available(self) -> None:
         from collections import deque
 
-        if asynchat_utils.deque is None:
+        if not asynchat_utils.is_available():
             self.skipTest("asynchat module is not available on this interpreter")
         self.assertIs(asynchat_utils.deque, deque)
 
     def test_unavailable_helpers_raise_runtime_error(self) -> None:
-        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+        if asynchat_utils.is_available():
             self.skipTest("asynchat module is available on this interpreter")
         names = ("async_chat", "find_prefix_at_end", "simple_producer")
         for name in names:
@@ -159915,16 +159937,32 @@ class TestAsynchatUtils(unittest.TestCase):
                 self.assertIn("asynchat module is not available", str(ctx.exception))
 
     def test_deque_is_none_when_unavailable(self) -> None:
-        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+        if asynchat_utils.is_available():
             self.skipTest("asynchat module is available on this interpreter")
         self.assertIsNone(asynchat_utils.deque)
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"asynchat": None}):
+                reloaded = importlib.reload(asynchat_utils)
+                self.assertIs(reloaded.is_available(), False)
+                for name in ("async_chat", "find_prefix_at_end", "simple_producer"):
+                    with self.subTest(name=name):
+                        with self.assertRaises(RuntimeError) as ctx:
+                            getattr(reloaded, name)()
+                        self.assertIn(
+                            "asynchat module is not available", str(ctx.exception)
+                        )
+                self.assertIsNone(reloaded.deque)
+        finally:
+            importlib.reload(asynchat_utils)
 
 
 class TestUnavailableFallback(unittest.TestCase):
     """Exercise the active fallback when the stdlib ``asynchat`` module is absent."""
 
     def test_fallback_helpers_raise_runtime_error(self) -> None:
-        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+        if asynchat_utils.is_available():
             self.skipTest("asynchat module is available on this interpreter")
         names = ("async_chat", "find_prefix_at_end", "simple_producer")
         for name in names:
@@ -159934,7 +159972,7 @@ class TestUnavailableFallback(unittest.TestCase):
                 self.assertIn("asynchat module is not available", str(ctx.exception))
 
     def test_fallback_deque_is_none(self) -> None:
-        if asynchat_utils._ASYNCHAT_AVAILABLE:  # type: ignore[attr-defined]
+        if asynchat_utils.is_available():
             self.skipTest("asynchat module is available on this interpreter")
         self.assertIsNone(asynchat_utils.deque)
 
@@ -159951,6 +159989,8 @@ cat > "$OUTPUT_DIR/tests/test_asyncore_utils.py" <<'TEST_ASYNCORE_UTILS'
 
 from __future__ import annotations
 
+import importlib
+import sys
 import unittest
 from unittest import mock
 
@@ -159965,9 +160005,29 @@ class TestExports(unittest.TestCase):
         self.assertTrue(callable(asyncore_utils.file_wrapper))
 
     def test_functions_exported(self) -> None:
-        for name in ("loop", "poll", "read", "write", "close_all", "select",
-                     "poll2", "poll3", "socket_map", "ExitNow", "errorcode"):
+        for name in (
+            "loop",
+            "poll",
+            "read",
+            "write",
+            "close_all",
+            "select",
+            "poll2",
+            "poll3",
+            "socket_map",
+            "ExitNow",
+            "errorcode",
+            "is_available",
+        ):
             self.assertTrue(hasattr(asyncore_utils, name), f"{name} not exported")
+        self.assertIn("is_available", asyncore_utils.__all__)
+
+    def test_is_available(self) -> None:
+        self.assertIsInstance(asyncore_utils.is_available(), bool)
+        self.assertEqual(
+            asyncore_utils.is_available(),
+            asyncore_utils._ASYNCHORE_AVAILABLE,  # type: ignore[attr-defined]
+        )
 
     def test_create_dispatcher_helper_exported(self) -> None:
         self.assertTrue(callable(asyncore_utils.create_dispatcher))
@@ -160004,7 +160064,7 @@ class TestUnavailableFallback(unittest.TestCase):
     """Exercise the active fallback when the stdlib ``asyncore`` module is absent."""
 
     def test_fallback_helpers_raise_runtime_error(self) -> None:
-        if asyncore_utils._ASYNCHORE_AVAILABLE:  # type: ignore[attr-defined]
+        if asyncore_utils.is_available():
             self.skipTest("asyncore module is available on this interpreter")
         names = (
             "dispatcher",
@@ -160027,19 +160087,55 @@ class TestUnavailableFallback(unittest.TestCase):
                 self.assertIn("asyncore module is not available", str(ctx.exception))
 
     def test_fallback_constants(self) -> None:
-        if asyncore_utils._ASYNCHORE_AVAILABLE:  # type: ignore[attr-defined]
+        if asyncore_utils.is_available():
             self.skipTest("asyncore module is available on this interpreter")
         self.assertEqual(asyncore_utils.socket_map, {})
         self.assertEqual(asyncore_utils.errorcode, {})
         self.assertIs(asyncore_utils.ExitNow, RuntimeError)
 
     def test_create_dispatcher_raises_when_unavailable(self) -> None:
-        if asyncore_utils._ASYNCHORE_AVAILABLE:  # type: ignore[attr-defined]
+        if asyncore_utils.is_available():
             self.skipTest("asyncore module is available on this interpreter")
         with self.assertRaises(RuntimeError):
             asyncore_utils.create_dispatcher()
         with self.assertRaises(RuntimeError):
             asyncore_utils.create_dispatcher(map={})
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"asyncore": None}):
+                reloaded = importlib.reload(asyncore_utils)
+                self.assertIs(reloaded.is_available(), False)
+                names = (
+                    "dispatcher",
+                    "dispatcher_with_send",
+                    "file_dispatcher",
+                    "file_wrapper",
+                    "loop",
+                    "poll",
+                    "read",
+                    "write",
+                    "close_all",
+                    "select",
+                    "poll2",
+                    "poll3",
+                )
+                for name in names:
+                    with self.subTest(name=name):
+                        with self.assertRaises(RuntimeError) as ctx:
+                            getattr(reloaded, name)()
+                        self.assertIn(
+                            "asyncore module is not available", str(ctx.exception)
+                        )
+                self.assertEqual(reloaded.socket_map, {})
+                self.assertEqual(reloaded.errorcode, {})
+                self.assertIs(reloaded.ExitNow, RuntimeError)
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_dispatcher()
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_dispatcher(map={})
+        finally:
+            importlib.reload(asyncore_utils)
 
 
 if __name__ == "__main__":
@@ -164831,6 +164927,7 @@ __all__: list[str] = [
     "find_prefix_at_end",
     "simple_producer",
     "deque",
+    "is_available",
 ]
 
 
@@ -164854,6 +164951,11 @@ else:  # pragma: no cover - exercised only on interpreters that lack the module
         raise RuntimeError("asynchat module is not available")
 
     deque = None  # type: ignore[misc,assignment]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`asynchat` module is available."""
+    return _ASYNCHAT_AVAILABLE
 ASYNCHAT_UTILS
 
 # --- asyncore_utils.py ---
@@ -164889,6 +164991,7 @@ __all__: list[str] = [
     "ExitNow",
     "errorcode",
     "create_dispatcher",
+    "is_available",
 ]
 
 
@@ -164950,6 +165053,11 @@ def create_dispatcher(map: dict[Any, Any] | None = None) -> Any:
     if map is not None and not isinstance(map, dict):
         raise TypeError("map must be a dict or None")
     return dispatcher(map=map)
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`asyncore` module is available."""
+    return _ASYNCHORE_AVAILABLE
 ASYNCORE_UTILS
 
 

@@ -29,6 +29,7 @@ __all__: list[str] = [
     "ExitNow",
     "errorcode",
     "create_dispatcher",
+    "is_available",
 ]
 
 
@@ -90,3 +91,8 @@ def create_dispatcher(map: dict[Any, Any] | None = None) -> Any:
     if map is not None and not isinstance(map, dict):
         raise TypeError("map must be a dict or None")
     return dispatcher(map=map)
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`asyncore` module is available."""
+    return _ASYNCHORE_AVAILABLE

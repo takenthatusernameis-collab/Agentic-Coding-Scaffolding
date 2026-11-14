@@ -469,6 +469,11 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
 
+- `asynchat_utils.py`, `asyncore_utils.py`: added `is_available()` (exported in `__all__`) to report stdlib `asynchat`/`asyncore` module presence, aligning with the guarded-import convention used by other PEP 594/3.13-removed module wrappers.
+- `tests/test_asynchat_utils.py`, `tests/test_asyncore_utils.py`: updated `__all__`/export expectations, added `is_available()` assertions, and added reload-based unavailable-branch tests (`mock.patch.dict(sys.modules, {"asynchat": None})` / `{"asyncore": None}` + `importlib.reload`) verifying `RuntimeError` fallbacks and safe constants on missing-module paths.
+- `README.md`: documented `is_available()` for `asynchat_utils`/`asyncore_utils`. Refreshed embedded scaffold copies via `python tools/refresh_scaffold.py`.
+
+
 ### Added
 - Added `take` and `drop` to `seq_utils.py` for sequence slicing by count with
   typed `Sequence` inputs, `__all__` exports, ASCII-safe doctests, and
