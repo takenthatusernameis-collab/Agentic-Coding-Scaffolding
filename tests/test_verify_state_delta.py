@@ -134,6 +134,17 @@ class TestPathsAndGlobs(unittest.TestCase):
         # suite's exit status has to fail the battery, otherwise a broken
         # example still advances the checkpoint. Stub ``run`` so only the
         # doctest command reports failure.
+        #
+        # The intentional failure is asserted through the return value. The
+        # battery also prints a diagnostic for the failing check, and that
+        # print previously leaked a ``tests.test_doctests failed:`` line into
+        # the normal test log on every run. It looks exactly like a real
+        # regression (it misled an earlier session into investigating a
+        # non-existent failure), so the diagnostic is captured and discarded
+        # here instead of being allowed to pollute the output.
+        import contextlib
+        import io
+
         original_run = verify_state_delta.run
 
         def fake_run(cmd: list[str], timeout: float = 30.0):
@@ -141,11 +152,16 @@ class TestPathsAndGlobs(unittest.TestCase):
             return subprocess.CompletedProcess(cmd, code, "", "")
 
         verify_state_delta.run = fake_run  # type: ignore[assignment]
+        out, err = io.StringIO(), io.StringIO()
         try:
-            ok = verify_state_delta.battery_ok()
+            with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                ok = verify_state_delta.battery_ok()
         finally:
             verify_state_delta.run = original_run  # type: ignore[assignment]
         self.assertFalse(ok)
+        # The diagnostic is captured here instead of leaking into the test log.
+        self.assertIn("tests.test_doctests failed:", out.getvalue())
+        self.assertEqual(err.getvalue(), "")
 
     def test_the_battery_ignores_stderr_when_a_check_succeeds(self):
         # Warnings emitted on stderr (e.g. ResourceWarnings from doctest modules

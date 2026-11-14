@@ -1,7 +1,14 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test test-full lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest
+.PHONY: test test-full lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest setup-dev
+
+## Install the project with its development dependencies (ruff, mypy, pytest)
+## Fresh checkouts and CI runners start without ruff/mypy, so `make lint` and
+## `make typecheck` cannot run until this target has been used once.
+setup-dev:
+	@echo "Installing development dependencies..."
+	@python -m pip install -e ".[dev]"
 
 ## Run the full test suite unconditionally (use for periodic gates and after editing tests/)
 test-full:
@@ -58,7 +65,7 @@ lint:
 	@if python -m ruff --version >/dev/null 2>&1; then \
 		python -m ruff check .; \
 	else \
-		echo "ruff not installed. Install with: pip install ruff"; \
+		echo "ruff not installed. Install with: make setup-dev"; \
 		exit 1; \
 	fi
 
@@ -68,7 +75,7 @@ typecheck:
 	@if python -m mypy --version >/dev/null 2>&1; then \
 		python -m mypy . --exclude build --exclude dist; \
 	else \
-		echo "mypy not installed. Install with: pip install mypy"; \
+		echo "mypy not installed. Install with: make setup-dev"; \
 		exit 1; \
 	fi
 
@@ -130,6 +137,7 @@ help:
 	@echo "  test       Run the Python test suite (delta-aware; skips when clean/verified)"
 	@echo "  test-full  Run the full test suite unconditionally"
 	@echo "  doctest   Run the doctest suite that enforces documented examples"
+	@echo "  setup-dev  Install the project with its development dependencies (ruff, mypy, pytest)"
 	@echo "  lint      Run ruff code style checker"
 	@echo "  typecheck  Run mypy static type checking"
 	@echo "  run       Run hello.py (usage: make run [NAME=YourName])"
