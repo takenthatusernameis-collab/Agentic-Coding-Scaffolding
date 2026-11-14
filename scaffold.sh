@@ -151034,13 +151034,112 @@ TEST_BUILTINS_UTILS
 cat > "$OUTPUT_DIR/tests/test_imghdr_utils.py" <<'TEST_IMGHDR_UTILS'
 """Tests for imghdr_utils."""
 
+import unittest
+
 import imghdr_utils
 
+PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
+JPEG = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00" + b"\x00" * 16
+GIF = b"GIF89a" + b"\x00" * 16
+BMP = b"BM" + b"\x00" * 16
+TIFF = b"II*\x00" + b"\x00" * 16
+WEBP = b"RIFF\x00\x00\x00\x00WEBP" + b"\x00" * 8
 
-def test_exports():
-    for name in ["what", "tests", "detect", "is_available", "is_image", "matching_formats",
-                 "read_header", "register_test", "supported_formats", "unregister_test"]:
-        assert hasattr(imghdr_utils, name)
+
+class _FakeFile:
+    """Minimal file-like object exposing read/seek for detect()."""
+
+    def __init__(self, data: bytes) -> None:
+        self._data = data
+
+    def read(self, size: int = -1) -> bytes:
+        return self._data if size < 0 else self._data[:size]
+
+    def seek(self, offset: int) -> int:
+        return offset
+
+
+class TestExports(unittest.TestCase):
+    def test_exports(self) -> None:
+        for name in [
+            "what",
+            "tests",
+            "detect",
+            "is_available",
+            "is_image",
+            "matching_formats",
+            "read_header",
+            "register_test",
+            "supported_formats",
+            "unregister_test",
+        ]:
+            self.assertTrue(hasattr(imghdr_utils, name), name)
+
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(imghdr_utils.is_available(), bool)
+
+
+@unittest.skipUnless(imghdr_utils.is_available(), "imghdr not available")
+class TestDetect(unittest.TestCase):
+    def test_detect_png(self) -> None:
+        self.assertEqual(imghdr_utils.detect(None, PNG), "png")
+
+    def test_detect_jpeg(self) -> None:
+        self.assertEqual(imghdr_utils.detect(None, JPEG), "jpeg")
+
+    def test_detect_gif(self) -> None:
+        self.assertEqual(imghdr_utils.detect(None, GIF), "gif")
+
+    def test_detect_bmp(self) -> None:
+        self.assertEqual(imghdr_utils.detect(None, BMP), "bmp")
+
+    def test_detect_tiff(self) -> None:
+        self.assertEqual(imghdr_utils.detect(None, TIFF), "tiff")
+
+    def test_detect_webp(self) -> None:
+        self.assertEqual(imghdr_utils.detect(None, WEBP), "webp")
+
+    def test_detect_unknown_returns_none(self) -> None:
+        self.assertIsNone(imghdr_utils.detect(None, b"not an image"))
+
+    def test_detect_reads_from_file_object(self) -> None:
+        self.assertEqual(imghdr_utils.detect(_FakeFile(PNG)), "png")
+
+    def test_detect_file_object_without_read(self) -> None:
+        self.assertIsNone(imghdr_utils.detect(object(), b"not an image"))
+
+
+@unittest.skipUnless(imghdr_utils.is_available(), "imghdr not available")
+class TestPredicates(unittest.TestCase):
+    def test_is_image_true(self) -> None:
+        self.assertTrue(imghdr_utils.is_image(None, PNG))
+
+    def test_is_image_false(self) -> None:
+        self.assertFalse(imghdr_utils.is_image(None, b"not an image"))
+
+    def test_matching_formats_hit(self) -> None:
+        self.assertEqual(imghdr_utils.matching_formats(None, PNG), ["png"])
+
+    def test_matching_formats_miss(self) -> None:
+        self.assertEqual(imghdr_utils.matching_formats(None, b"not an image"), [])
+
+    def test_read_header_returns_bytes(self) -> None:
+        self.assertEqual(imghdr_utils.read_header(None, PNG), PNG)
+
+    def test_supported_formats_contains_common(self) -> None:
+        formats = imghdr_utils.supported_formats()
+        self.assertIsInstance(formats, list)
+        for name in ("jpeg", "png", "gif"):
+            self.assertIn(name, formats)
+
+    def test_register_and_unregister_are_noops(self) -> None:
+        # The wrappers accept arbitrary args and intentionally return None.
+        imghdr_utils.register_test(id(PNG), lambda *a: None)
+        imghdr_utils.unregister_test(id(PNG))
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_IMGHDR_UTILS
 
 # --- posix_utils.py ---
@@ -153819,14 +153918,114 @@ TEST_AIFC_UTILS
 cat > "$OUTPUT_DIR/tests/test_crypt_utils.py" <<'TEST_CRYPT_UTILS'
 """Tests for crypt_utils."""
 
+import unittest
+import warnings
+
 import crypt_utils
 
 
-def test_exports():
-    for name in ["crypt", "mksalt", "METHOD_CRYPT", "METHOD_MD5", "METHOD_SHA256",
-                 "METHOD_SHA512", "METHOD_BLOWFISH", "hash_password", "verify",
-                 "identify_method", "is_hash", "methods", "is_available"]:
-        assert hasattr(crypt_utils, name)
+class TestExports(unittest.TestCase):
+    def test_exports(self) -> None:
+        for name in [
+            "crypt",
+            "mksalt",
+            "METHOD_CRYPT",
+            "METHOD_MD5",
+            "METHOD_SHA256",
+            "METHOD_SHA512",
+            "METHOD_BLOWFISH",
+            "hash_password",
+            "verify",
+            "identify_method",
+            "is_hash",
+            "methods",
+            "is_available",
+        ]:
+            self.assertTrue(hasattr(crypt_utils, name), name)
+
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(crypt_utils.is_available(), bool)
+
+
+class TestIdentifyMethod(unittest.TestCase):
+    def test_sha512(self) -> None:
+        self.assertEqual(crypt_utils.identify_method("$6$salt$hash"), "SHA512")
+
+    def test_sha256(self) -> None:
+        self.assertEqual(crypt_utils.identify_method("$5$salt$hash"), "SHA256")
+
+    def test_md5(self) -> None:
+        self.assertEqual(crypt_utils.identify_method("$1$salt$hash"), "MD5")
+
+    def test_blowfish_variants(self) -> None:
+        for prefix in ("$2a$", "$2b$", "$2y$"):
+            self.assertEqual(crypt_utils.identify_method(prefix + "x"), "BLOWFISH")
+
+    def test_unknown_returns_none(self) -> None:
+        self.assertIsNone(crypt_utils.identify_method("plaintext"))
+
+    def test_non_string_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            crypt_utils.identify_method(123)  # type: ignore[arg-type]
+
+
+class TestIsHash(unittest.TestCase):
+    def test_recognised_hash(self) -> None:
+        self.assertTrue(crypt_utils.is_hash("$6$salt$hash"))
+
+    def test_generic_dollar_prefix(self) -> None:
+        self.assertTrue(crypt_utils.is_hash("$unknown"))
+
+    def test_plaintext_is_not_hash(self) -> None:
+        self.assertFalse(crypt_utils.is_hash("plaintext"))
+
+    def test_non_string_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            crypt_utils.is_hash(123)  # type: ignore[arg-type]
+
+
+@unittest.skipUnless(crypt_utils.is_available(), "crypt not available")
+class TestHashAndVerify(unittest.TestCase):
+    def test_hash_password_returns_str(self) -> None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            hashed = crypt_utils.hash_password("s3cret")
+        self.assertIsInstance(hashed, str)
+        self.assertNotEqual(hashed, "s3cret")
+
+    def test_verify_roundtrip(self) -> None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            hashed = crypt_utils.hash_password("s3cret")
+            self.assertTrue(crypt_utils.verify("s3cret", hashed))
+            self.assertFalse(crypt_utils.verify("wrong", hashed))
+
+    def test_hash_password_with_explicit_salt(self) -> None:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            salted = crypt_utils.hash_password("s3cret", "$6$fixedsalt")
+        self.assertTrue(salted.startswith("$6$"))
+
+    def test_hash_password_type_checks(self) -> None:
+        with self.assertRaises(TypeError):
+            crypt_utils.hash_password(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            crypt_utils.hash_password("pw", 123)  # type: ignore[arg-type]
+
+    def test_verify_type_checks(self) -> None:
+        with self.assertRaises(TypeError):
+            crypt_utils.verify(123, "x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            crypt_utils.verify("pw", 123)  # type: ignore[arg-type]
+
+    def test_methods_lists_available_methods(self) -> None:
+        methods = crypt_utils.methods()
+        self.assertIsInstance(methods, list)
+        self.assertTrue(methods)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_CRYPT_UTILS
 
 # --- telnetlib_utils.py ---
@@ -154299,13 +154498,105 @@ TEST_CGITB_UTILS
 cat > "$OUTPUT_DIR/tests/test_nntplib_utils.py" <<'TEST_NNTPLIB_UTILS'
 """Tests for nntplib_utils."""
 
+import unittest
+
 import nntplib_utils
 
 
-def test_exports():
-    for name in ["NNTP", "NNTP_SSL", "GroupInfo", "ArticleInfo", "create_nntp",
-                 "create_nntp_ssl", "is_available"]:
-        assert hasattr(nntplib_utils, name)
+class TestExports(unittest.TestCase):
+    def test_exports(self) -> None:
+        for name in [
+            "NNTP",
+            "NNTP_SSL",
+            "NNTPError",
+            "NNTPReplyError",
+            "NNTPTemporaryError",
+            "NNTPPermanentError",
+            "NNTPProtocolError",
+            "NNTPDataError",
+            "GroupInfo",
+            "ArticleInfo",
+            "create_nntp",
+            "create_nntp_ssl",
+            "is_available",
+        ]:
+            self.assertTrue(hasattr(nntplib_utils, name), name)
+
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(nntplib_utils.is_available(), bool)
+
+
+@unittest.skipUnless(nntplib_utils.is_available(), "nntplib not available")
+class TestValidation(unittest.TestCase):
+    """Exercise argument validation without opening a network connection.
+
+    Every check below raises before the underlying NNTP object is constructed,
+    so no socket is created.
+    """
+
+    def test_create_nntp_host_must_be_str(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp(123)  # type: ignore[arg-type]
+
+    def test_create_nntp_port_must_be_int(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp("host", "119")  # type: ignore[arg-type]
+
+    def test_create_nntp_port_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp("host", True)  # type: ignore[arg-type]
+
+    def test_create_nntp_port_range(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", 70000)
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", -1)
+
+    def test_create_nntp_user_must_be_str(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp("host", 119, 5)  # type: ignore[arg-type]
+
+    def test_create_nntp_password_must_be_str(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp("host", 119, None, 5)  # type: ignore[arg-type]
+
+    def test_create_nntp_timeout_must_be_number(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp("host", timeout="soon")  # type: ignore[arg-type]
+
+    def test_create_nntp_ssl_host_must_be_str(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp_ssl(123)  # type: ignore[arg-type]
+
+    def test_create_nntp_ssl_port_range(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", 70000)
+
+    def test_create_nntp_ssl_timeout_must_be_number(self) -> None:
+        with self.assertRaises(TypeError):
+            nntplib_utils.create_nntp_ssl("host", timeout="soon")  # type: ignore[arg-type]
+
+
+@unittest.skipUnless(nntplib_utils.is_available(), "nntplib not available")
+class TestExceptionHierarchy(unittest.TestCase):
+    def test_reply_error_is_nntp_error(self) -> None:
+        self.assertTrue(issubclass(nntplib_utils.NNTPReplyError, nntplib_utils.NNTPError))
+
+    def test_temporary_error_is_nntp_error(self) -> None:
+        self.assertTrue(issubclass(nntplib_utils.NNTPTemporaryError, nntplib_utils.NNTPError))
+
+    def test_permanent_error_is_nntp_error(self) -> None:
+        self.assertTrue(issubclass(nntplib_utils.NNTPPermanentError, nntplib_utils.NNTPError))
+
+    def test_protocol_error_is_nntp_error(self) -> None:
+        self.assertTrue(issubclass(nntplib_utils.NNTPProtocolError, nntplib_utils.NNTPError))
+
+    def test_data_error_is_nntp_error(self) -> None:
+        self.assertTrue(issubclass(nntplib_utils.NNTPDataError, nntplib_utils.NNTPError))
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_NNTPLIB_UTILS
 
 # --- sndhdr_utils.py ---
