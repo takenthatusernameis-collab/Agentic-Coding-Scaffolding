@@ -70464,6 +70464,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — closed alias-parity gap in `version_utils.greater_equal`/`less_equal`
+
+- Bootstrap session: board held no task (`board_read` empty); confirmed foundation health with `python tools/verify_state_delta.py` (clean-tree fast path, checkpoint matched HEAD) and `python tools/scan_untested.py --all` (185 gaps across 63 modules, all TypeVars/stdlib re-exports/aliases/constants — noise per convention).
+- Targeted maintenance improvement (API parity): `version_utils.py` exports the relational aliases `greater_equal` and `less_equal` in `__all__`, but they were imported nowhere in `tests/test_version_utils.py` and had no direct coverage, so `--all` flagged them as gaps. Added `greater_equal`/`less_equal` to the test imports and a `TestVersionRelationalAliases` class (6 tests) asserting each alias mirrors its canonical implementation (`is_greater_equal`/`is_less_equal`) across greater/equal/strict, different-length, and `v`-prefixed cases, plus the `TypeError`/`ValueError` validation paths. The implementation in `version_utils.py` was unchanged.
+- Refreshed embedded copies with `make refresh-scaffold` (`tests/test_version_utils.py` is embedded in `scaffold.sh`); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Validation: `python -m unittest tests.test_version_utils` — 298 OK (up from 292); `python tools/scan_untested.py --all` — `version_utils` no longer reported (185→183 gaps, 63→62 modules); `python -m unittest discover tests/` — 10836 OK (skipped=4); `python -m ruff check .` clean; `python -m mypy .` success (567 source files); `python tools/verify_state_delta.py --full` passed, checkpoint advanced to `a5183dd` (== HEAD), and `--record-full-suite` set `full_suite_head` to `a5183dd`. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — closed exported-but-untested gap in `ossaudiodev_utils.is_available`
 
 - Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. last verified checkpoint `86df9837`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification; checkpoint advanced to `4c83fcb` after this session's changes.
@@ -132104,6 +132111,7 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    greater_equal,
     greater_than,
     has_build_metadata,
     has_build_metadata_identifiers,
@@ -132144,6 +132152,7 @@ from version_utils import (
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
+    less_equal,
     less_than,
     major,
     max_version,
@@ -132299,9 +132308,68 @@ class TestIsLessEqual(unittest.TestCase):
 
     def test_less_equal_rejects_invalid(self):
         with self.assertRaises((ValueError, TypeError)):
-            is_less_equal("", "1.0.0")
+            less_equal("", "1.0.0")
         with self.assertRaises(ValueError):
-            is_less_equal("1.2.a", "1.2.3")
+            less_equal("1.2.a", "1.2.3")
+
+
+class TestVersionRelationalAliases(unittest.TestCase):
+    """Coverage for the ``greater_equal``/``less_equal`` relational aliases.
+
+    The aliases are exported in ``version_utils.__all__`` and delegate to
+    :func:`is_greater_equal`/:func:`is_less_equal`; this suite asserts they
+    mirror the canonical implementations including the validation paths.
+    """
+
+    def test_greater_equal_matches_is_greater_equal(self):
+        cases = [
+            ("2.0.0", "1.0.0", True),
+            ("1.0.0", "1.0.0", True),
+            ("1.2.0", "1.2", True),
+            ("0.9", "1.0", False),
+            ("1.2", "1.2.0", False),
+            ("v2.0.0", "v1.9.9", True),
+        ]
+        for a, b, expected in cases:
+            self.assertEqual(greater_equal(a, b), expected)
+            self.assertEqual(greater_equal(a, b), is_greater_equal(a, b))
+
+    def test_greater_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            greater_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            greater_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_greater_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            greater_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            greater_equal("1.2.a", "1.2.3")
+
+    def test_less_equal_matches_is_less_equal(self):
+        cases = [
+            ("0.9", "1.0", True),
+            ("1.0.0", "1.0.0", True),
+            ("1.2", "1.2.0", True),
+            ("2.0", "1.9", False),
+            ("1.2.0", "1.2", False),
+            ("v1.0.0", "v2.0.0", True),
+        ]
+        for a, b, expected in cases:
+            self.assertEqual(less_equal(a, b), expected)
+            self.assertEqual(less_equal(a, b), is_less_equal(a, b))
+
+    def test_less_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            less_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            less_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_less_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            less_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            less_equal("1.2.a", "1.2.3")
 
 
 class TestNormalizeVersion(unittest.TestCase):

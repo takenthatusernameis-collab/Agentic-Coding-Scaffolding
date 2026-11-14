@@ -33,6 +33,7 @@ from version_utils import (
     get_patch_version,
     get_prerelease,
     get_prerelease_tag,
+    greater_equal,
     greater_than,
     has_build_metadata,
     has_build_metadata_identifiers,
@@ -73,6 +74,7 @@ from version_utils import (
     is_version_greater_equal,
     is_version_less,
     is_version_less_equal,
+    less_equal,
     less_than,
     major,
     max_version,
@@ -228,9 +230,68 @@ class TestIsLessEqual(unittest.TestCase):
 
     def test_less_equal_rejects_invalid(self):
         with self.assertRaises((ValueError, TypeError)):
-            is_less_equal("", "1.0.0")
+            less_equal("", "1.0.0")
         with self.assertRaises(ValueError):
-            is_less_equal("1.2.a", "1.2.3")
+            less_equal("1.2.a", "1.2.3")
+
+
+class TestVersionRelationalAliases(unittest.TestCase):
+    """Coverage for the ``greater_equal``/``less_equal`` relational aliases.
+
+    The aliases are exported in ``version_utils.__all__`` and delegate to
+    :func:`is_greater_equal`/:func:`is_less_equal`; this suite asserts they
+    mirror the canonical implementations including the validation paths.
+    """
+
+    def test_greater_equal_matches_is_greater_equal(self):
+        cases = [
+            ("2.0.0", "1.0.0", True),
+            ("1.0.0", "1.0.0", True),
+            ("1.2.0", "1.2", True),
+            ("0.9", "1.0", False),
+            ("1.2", "1.2.0", False),
+            ("v2.0.0", "v1.9.9", True),
+        ]
+        for a, b, expected in cases:
+            self.assertEqual(greater_equal(a, b), expected)
+            self.assertEqual(greater_equal(a, b), is_greater_equal(a, b))
+
+    def test_greater_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            greater_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            greater_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_greater_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            greater_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            greater_equal("1.2.a", "1.2.3")
+
+    def test_less_equal_matches_is_less_equal(self):
+        cases = [
+            ("0.9", "1.0", True),
+            ("1.0.0", "1.0.0", True),
+            ("1.2", "1.2.0", True),
+            ("2.0", "1.9", False),
+            ("1.2.0", "1.2", False),
+            ("v1.0.0", "v2.0.0", True),
+        ]
+        for a, b, expected in cases:
+            self.assertEqual(less_equal(a, b), expected)
+            self.assertEqual(less_equal(a, b), is_less_equal(a, b))
+
+    def test_less_equal_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            less_equal(1, "1.0.0")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            less_equal("1.0.0", 2)  # type: ignore[arg-type]
+
+    def test_less_equal_rejects_invalid(self):
+        with self.assertRaises((ValueError, TypeError)):
+            less_equal("", "1.0.0")
+        with self.assertRaises(ValueError):
+            less_equal("1.2.a", "1.2.3")
 
 
 class TestNormalizeVersion(unittest.TestCase):
