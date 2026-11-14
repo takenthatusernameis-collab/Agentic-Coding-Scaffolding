@@ -3,15 +3,15 @@
 ## Latest Session (2026-11-14)
 
 - `board_read`: no pending task/messages for this session (bootstrap).
-- Closed the `sunau_utils.py` gaps in the `python tools/scan_untested.py --all` report. `tests/test_sunau_utils.py` now asserts `Error` is an exception class, `open` is callable, and performs a real write/read round-trip through `sunau_utils.open` (previously the module only had a `hasattr` export check).
+- Closed the `this_utils.py` gap in the `python tools/scan_untested.py --all` report. `print_zen` was the only remaining untested callable; `tests/test_this_utils.py` now captures stdout via `redirect_stdout` and asserts the printed output equals `_this.s + "\n"`, plus a decode round-trip confirming the printed (ROT13) Zen decodes to the canonical English Zen.
 - Refreshed `scaffold.sh` embedded copies for the updated test.
-- Verification: `python tools/refresh_scaffold.py --check` (in sync), `python tools/scan_untested.py` (clean default; `sunau_utils.py` removed from the `--all` report, 194 -> 192), targeted `tests.test_sunau_utils` (4 OK), `make lint` (pass), `make typecheck` (567 source files, success), `python -m unittest discover tests/` (10807 tests, OK with 4 skips), and `python tools/verify_state_delta.py --full` (pass). `python tools/verify_state_delta.py --record-full-suite` was run after the full suite.
+- Verification: `python tools/refresh_scaffold.py --check` (in sync), `python tools/scan_untested.py` (clean default; `this_utils.py` removed from the `--all` report, 193 -> 192), targeted `tests.test_this_utils` (8 OK), `make lint` (pass), `make typecheck` (567 source files, success), `python -m unittest discover tests/` (10809 tests, OK with 4 skips), and `python tools/verify_state_delta.py --full` (pass); full-suite provenance was recorded.
 - `.github/workflows/**` unchanged.
 
 ## State
-- HEAD at handover: `e04ed5378c6d8c0e0f3a19d27035201b0fb00673`
-- Verified checkpoint: `.kilo/last_verified.checkpoint` (head at `e04ed53`)
-- Pending uncommitted (to be auto-committed by CI): `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md`, `scaffold.sh`, `tests/test_sunau_utils.py`
+- HEAD at handover: `87a9fb204c63652c85886526319cf5bffb136358`
+- Verified checkpoint: `.kilo/last_verified.checkpoint` (head and full-suite head both at `87a9fb2`)
+- Pending uncommitted (to be auto-committed by CI): `.kilo/handover.md`, `.kilo/last_verified.checkpoint`, `PROJECT_STATUS.md`, `scaffold.sh`, `tests/test_this_utils.py`
 
 ## Task for Next Agent
 1. Run `board_read` and execute any task posted to you/main.
