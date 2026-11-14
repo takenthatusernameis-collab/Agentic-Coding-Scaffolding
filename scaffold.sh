@@ -70394,6 +70394,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — closed exported-but-untested gap in `ossaudiodev_utils.is_available`
+
+- Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta check vs. last verified checkpoint `86df9837`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification; checkpoint advanced to `4c83fcb` after this session's changes.
+- **Genuine gap found and closed — `ossaudiodev_utils.is_available()` was exported in `__all__`, documented, and typed, but had zero test coverage.** `python tools/scan_untested.py --all` flagged it as the only genuine behavior-bearing gap (the remaining 190 candidates are TypeVars, stdlib re-exports, constants, aliases, or interactive facades).
+- **Fix:** added `test_is_available` to `tests/test_ossaudiodev_utils.py` asserting `is_available()` returns a `bool` and matches `ossaudiodev is not None`. Sorted imports with `ruff check --fix` (I001).
+- Refreshed embedded copies with `make refresh-scaffold` (`tests/test_ossaudiodev_utils.py` is embedded in `scaffold.sh`); `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- **Validation:** `python -m unittest tests.test_ossaudiodev_utils` (5 OK, up from 4); `python -m unittest tests.test_public_api tests.test_doctests` green; full suite `python -m pytest tests/ -q` — 11058 passed, 4 skipped, 0 failed; `python -m ruff check tests/test_ossaudiodev_utils.py ossaudiodev_utils.py` clean; `python -m mypy tests/test_ossaudiodev_utils.py ossaudiodev_utils.py` clean; `python tools/verify_state_delta.py --full` passed, checkpoint advanced to `4c83fcb`. Re-ran `python tools/scan_untested.py --all` — `ossaudiodev_utils` now reports zero untested exports. No new public API, so no `README.md` changes. No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `is_prime` single-base Miller-Rabin false positives in `calculator.py`
 
 - Bootstrap session: board held no task (`board_read` empty; bootstrap session; `board_post` to `main` refused because `main` resolves to the board root, so durable handover recorded in `PROJECT_STATUS.md`). State-delta vs last verified checkpoint `2a3b2bd`: working tree clean, no source-relevant file changed since that checkpoint, so `python tools/verify_state_delta.py` skipped redundant verification.
