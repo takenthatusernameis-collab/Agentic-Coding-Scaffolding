@@ -4,6 +4,7 @@ from unittest.mock import patch
 import syslog_utils
 from syslog_utils import (
     LOG_ALERT,
+    LOG_FTP,
     LOG_CRIT,
     LOG_DEBUG,
     LOG_EMERG,
@@ -46,6 +47,49 @@ class TestSyslogUtils(unittest.TestCase):
         self.assertEqual(LOG_DEBUG, 7)
         self.assertEqual(LOG_USER, 8)
         self.assertEqual(LOG_LOCAL0, 128)
+
+    @unittest.skipUnless(syslog_utils.is_available(), "syslog is not available")
+    def test_facility_constants_match_the_standard_library(self):
+        # Every facility and option flag exported by the wrapper is checked
+        # against the real module so a stale fallback value is caught.
+        import syslog as stdlib_syslog
+
+        for name in (
+            "LOG_KERN",
+            "LOG_USER",
+            "LOG_MAIL",
+            "LOG_DAEMON",
+            "LOG_AUTH",
+            "LOG_SYSLOG",
+            "LOG_LPR",
+            "LOG_NEWS",
+            "LOG_UUCP",
+            "LOG_CRON",
+            "LOG_AUTHPRIV",
+            "LOG_FTP",
+            "LOG_LOCAL0",
+            "LOG_LOCAL1",
+            "LOG_LOCAL2",
+            "LOG_LOCAL3",
+            "LOG_LOCAL4",
+            "LOG_LOCAL5",
+            "LOG_LOCAL6",
+            "LOG_LOCAL7",
+            "LOG_CONS",
+            "LOG_ODELAY",
+            "LOG_NDELAY",
+            "LOG_NOWAIT",
+            "LOG_PERROR",
+        ):
+            with self.subTest(name=name):
+                self.assertEqual(
+                    getattr(syslog_utils, name), getattr(stdlib_syslog, name)
+                )
+
+    def test_log_mask_alias_matches_log_mask(self):
+        # LOG_MASK is an alias of log_mask mirroring the standard library name.
+        self.assertIs(syslog_utils.LOG_MASK, syslog_utils.log_mask)
+        self.assertEqual(LOG_MASK(LOG_EMERG), log_mask(LOG_EMERG))
 
     @patch("syslog_utils._syslog.openlog")
     def test_open_log(self, mock_openlog):
