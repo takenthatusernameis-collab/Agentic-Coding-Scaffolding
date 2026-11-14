@@ -99,42 +99,53 @@ def write_marker(data: dict) -> None:
     MARKER.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def diff_since(ref: str) -> list[str]:
-    """Return changed source-relevant files between *ref* and the working tree.
+def _changed_and_untracked_since(ref: str) -> tuple[list[str], list[str]]:
+    """Return (changed, untracked) source-relevant files since *ref* in one git call.
 
-    Untracked source files are included: the battery must treat a brand new
-    module the same as an edited one. A missing or unknown *ref* (for example
-    after a rebase, a force-push, or a shallow clone) makes ``git diff`` fail;
-    that is reported as a change so the battery runs instead of silently
-    trusting a checkpoint that cannot be compared against the current history.
+    Uses ``git status --porcelain`` which reports both modified and untracked
+    files in a single invocation, avoiding two subprocess calls on the hot path.
     """
     result = run(
-        ["git", "diff", "--name-only", ref, "--"] + list(SOURCE_GLOBS), timeout=5.0
-    )
-    if result.returncode != 0:
-        print(
-            f"[verify-state-delta] Cannot diff against {ref!r}; treating state as changed.",
-            file=sys.stderr,
-        )
-        return ["<unknown>"]
-    return [line for line in result.stdout.splitlines() if line.strip()]
-
-
-def untracked_source_files() -> list[str]:
-    """Return untracked source-relevant files (including repository-root paths)."""
-    result = run(
-        ["git", "status", "--porcelain", "--untracked-files=all", "--"]
+        ["git", "status", "--porcelain", "--untracked-files=all", ref, "--"]
         + list(SOURCE_GLOBS),
         timeout=5.0,
     )
     if result.returncode != 0:
-        return []
-    return [line[3:].strip() for line in result.stdout.splitlines() if line.startswith("?? ")]
+        print(
+            f"[verify-state-delta] Cannot get status against {ref!r}; treating state as changed.",
+            file=sys.stderr,
+        )
+        return ["<unknown>"], []
+    changed = []
+    untracked = []
+    for line in result.stdout.splitlines():
+        if not line.strip():
+            continue
+        status = line[:2]
+        path = line[3:].strip()
+        if status.startswith("?"):
+            untracked.append(path)
+        else:
+            changed.append(path)
+    return changed, untracked
+
+
+def diff_since(ref: str) -> list[str]:
+    """Return changed source-relevant files between *ref* and the working tree."""
+    changed, _ = _changed_and_untracked_since(ref)
+    return changed
+
+
+def untracked_source_files() -> list[str]:
+    """Return untracked source-relevant files (including repository-root paths)."""
+    _, untracked = _changed_and_untracked_since("HEAD")
+    return untracked
 
 
 def source_changed_since(ref: str) -> bool:
     """Return True when any source-relevant file changed between *ref* and now."""
-    return bool(diff_since(ref)) or bool(untracked_source_files())
+    changed, untracked = _changed_and_untracked_since(ref)
+    return bool(changed) or bool(untracked)
 
 
 def tests_changed_since(ref: str) -> bool:

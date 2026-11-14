@@ -57,9 +57,12 @@ def run_git(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     )
 
 
-def get_changed_files_from_git(base: str | None = None, head: str = "HEAD") -> list[str]:
-    """Get list of changed files from git diff."""
-    cmd = ["git", "diff", "--name-only"]
+def _get_changed_and_untracked_from_git(base: str | None = None, head: str = "HEAD") -> tuple[list[str], list[str]]:
+    """Get changed and untracked files from git status in one call.
+
+    Returns (changed_files, untracked_files).
+    """
+    cmd = ["git", "status", "--porcelain", "--untracked-files=all"]
     if base:
         cmd.extend([base, head])
     else:
@@ -67,20 +70,31 @@ def get_changed_files_from_git(base: str | None = None, head: str = "HEAD") -> l
     cmd.extend(["--"] + list(SOURCE_GLOBS))
     result = run_git(cmd)
     if result.returncode != 0:
-        return []
-    return [line.strip() for line in result.stdout.strip().splitlines() if line.strip()]
+        return [], []
+    changed = []
+    untracked = []
+    for line in result.stdout.strip().splitlines():
+        if not line.strip():
+            continue
+        status = line[:2]
+        path = line[3:].strip()
+        if status.startswith("?"):
+            untracked.append(path)
+        else:
+            changed.append(path)
+    return changed, untracked
+
+
+def get_changed_files_from_git(base: str | None = None, head: str = "HEAD") -> list[str]:
+    """Get list of changed files from git diff."""
+    changed, _ = _get_changed_and_untracked_from_git(base, head)
+    return changed
 
 
 def get_untracked_files() -> list[str]:
     """Get list of untracked source files."""
-    result = run_git(["git", "status", "--porcelain", "--"] + list(SOURCE_GLOBS))
-    if result.returncode != 0:
-        return []
-    files = []
-    for line in result.stdout.strip().splitlines():
-        if line.startswith("?? "):
-            files.append(line[3:].strip())
-    return files
+    _, untracked = _get_changed_and_untracked_from_git()
+    return untracked
 
 
 def map_source_to_test(source_file: str) -> str | None:
