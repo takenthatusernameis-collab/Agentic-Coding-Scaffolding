@@ -42,6 +42,8 @@ from pydoc_utils import (
     stripid,
     synopsis,
     visiblename,
+    writedoc,
+    writedocs,
 )
 
 
@@ -185,7 +187,7 @@ class TestIntrospection(unittest.TestCase):
 
     def test_classname_returns_the_qualified_name(self):
         found = classname(_Example, "anything")
-        self.assertEqual(found, "test_pydoc_utils._Example")
+        self.assertEqual(found, "tests.test_pydoc_utils._Example")
 
     def test_classname_rejects_a_non_string_modname(self):
         with self.assertRaises(TypeError):
@@ -193,7 +195,7 @@ class TestIntrospection(unittest.TestCase):
 
     def test_parentname_returns_the_module_name(self):
         found = parentname(_Example, "anything")
-        self.assertEqual(found, "test_pydoc_utils")
+        self.assertEqual(found, "tests.test_pydoc_utils")
 
     def test_parentname_rejects_a_non_string_modname(self):
         with self.assertRaises(TypeError):
@@ -353,6 +355,58 @@ class TestHelpers(unittest.TestCase):
 
     def test_apropos_prints_a_summary(self):
         apropos("pydoc")
+
+    def test_writedoc_writes_a_file(self):
+        import os
+        import tempfile
+        with tempfile.TemporaryDirectory() as directory:
+            old_cwd = os.getcwd()
+            os.chdir(directory)
+            try:
+                writedoc(_Example)
+                expected_file = os.path.join(directory, "_Example.html")
+                self.assertTrue(os.path.exists(expected_file))
+                with open(expected_file, encoding="utf-8") as f:
+                    content = f.read()
+                self.assertIn("Example", content)
+            finally:
+                os.chdir(old_cwd)
+
+    def test_writedoc_rejects_non_bool_forceload(self):
+        with self.assertRaises(TypeError):
+            writedoc(_Example, forceload="yes")  # type: ignore[arg-type]
+
+    def test_writedocs_writes_files(self):
+        import os
+        import sys
+        import tempfile
+        from pathlib import Path
+        with tempfile.TemporaryDirectory() as directory:
+            module_dir = os.path.join(directory, "mymodule")
+            os.makedirs(module_dir)
+            Path(module_dir, "__init__.py").write_text("", encoding="utf-8")
+            Path(module_dir, "mod.py").write_text('"""A module."""\n', encoding="utf-8")
+            sys.path.insert(0, directory)
+            old_cwd = os.getcwd()
+            os.chdir(directory)
+            try:
+                writedocs(module_dir, pkgpath="mymodule.")
+                expected_file = os.path.join(directory, "mymodule.mod.html")
+                self.assertTrue(os.path.exists(expected_file))
+                with open(expected_file, encoding="utf-8") as f:
+                    content = f.read()
+                self.assertIn("A module", content.replace("&nbsp;", " "))
+            finally:
+                os.chdir(old_cwd)
+                sys.path.remove(directory)
+
+    def test_writedocs_rejects_non_string_directory(self):
+        with self.assertRaises(TypeError):
+            writedocs(123)  # type: ignore[arg-type]
+
+    def test_writedocs_rejects_non_string_pkgpath(self):
+        with self.assertRaises(TypeError):
+            writedocs("dir", pkgpath=123)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
