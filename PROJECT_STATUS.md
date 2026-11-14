@@ -1,27 +1,28 @@
 # Project Status
 
-## Latest Session (2026-11-14T13:05Z)
+## Latest Session (2026-11-14T14:56Z)
 
-- `board_read`: no pending task/messages for this session (bootstrap/idle session); task recovered from `.kilo/next_task.md` and `.kilo/handover.md`.
-- State-delta caught a real integrity regression: `python tools/verify_state_delta.py` refused to advance the checkpoint because `python tools/refresh_scaffold.py --check` reported `stale: README.md` and `stale: CHANGELOG.md`. Commit `3312fec` had edited both documents after refreshing `scaffold.sh`, so the generator embedded two stale document templates. This is the second occurrence (previous session also repaired a stale `CHANGELOG.md`).
-- Repair + structural guard: refreshed the two embedded copies (`python tools/refresh_scaffold.py`), then closed the blind spot in `tests/test_scaffold_sync.py` — the existing tests only assert that the embedded documents *mention* every module. Added `test_the_embedded_documents_match_the_repository_templates`, which compares every `refresh_scaffold.TEMPLATED_COPIES` document against `templated_body(...)` byte for byte, so `make test` fails on drift instead of relying on someone remembering `make refresh-scaffold`. Verified it fails against the pre-refresh generator.
-- Validation: `python -m unittest tests.test_scaffold_sync tests.test_refresh_scaffold` — 49 OK; `python -m unittest discover tests/` — 10903 OK (skipped=4), up from 10902; `python -m ruff check tests/test_scaffold_sync.py` clean; `python -m mypy tests/test_scaffold_sync.py` clean; `python tools/refresh_scaffold.py --check` — all embedded copies in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed; checkpoint advanced to `3312fec`.
-- `.github/workflows/**` unchanged. Updated `tests/test_scaffold_sync.py`, `CHANGELOG.md`, `scaffold.sh` (refreshed embedded copies), `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md`.
+- `board_read`: no pending task/messages for this session.
+- State-delta: `python tools/verify_state_delta.py` passed and advanced checkpoint to `39041e7e8befeacabad1bfaa1f7fdafffb096063` (HEAD). Clean-tree fast path not applicable after local edits.
+- Executed previous handover: `python tools/scan_untested.py` reported `code_utils.interact` as the only default exported-but-untested callable. Added behavior coverage in `tests/test_code_utils.py` (`test_interact` mocks `code.interact` and asserts argument forwarding; `test_compile_command_type_error` covers non-string `TypeError`). Updated `tests/test_scan_untested.py` to assert `--all` surfaces stable interactive facades (e.g. `pydoc_utils.help`) now that `interact` is tested.
+- Docs/scaffold sync: added Unreleased changelog entry before refresh, ran `python tools/refresh_scaffold.py` (refreshed `CHANGELOG.md`, `tests/test_code_utils.py` embedded copies), `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- Validation: `python -m unittest tests.test_code_utils -v` (10 OK), `python -m unittest tests.test_scan_untested` (44 OK), `python -m ruff check tests/test_code_utils.py tests/test_scan_untested.py` clean, `python -m mypy tests/test_code_utils.py tests/test_scan_untested.py` clean, `python -m unittest discover tests/` 10908 OK (skipped=4), `python tools/scan_untested.py` clean, `python tools/verify_state_delta.py --full --record-full-suite` passed (`full_suite_head` `39041e7`).
+- `.github/workflows/**` unchanged.
 
 ## State
 
-- HEAD: `3312fec75b704870633879616e81dd1590c9197c`
-- Verified checkpoint: `.kilo/last_verified.checkpoint` (head `3312fec`, full_suite_head `3312fec`)
-- Working tree (pending auto-commit): `.kilo/last_verified.checkpoint`, `scaffold.sh`, `CHANGELOG.md`, `tests/test_scaffold_sync.py` (auto-committed by CI workflow per AGENTS.md; do not commit manually)
+- HEAD: `39041e7e8befeacabad1bfaa1f7fdafffb096063`
+- Verified checkpoint: `.kilo/last_verified.checkpoint` (head `39041e7`, full_suite_head `39041e7`)
+- Working tree (pending auto-commit): `CHANGELOG.md`, `PROJECT_STATUS.md`, `.kilo/handover.md`, `.kilo/last_verified.checkpoint`, `scaffold.sh`, `tests/test_code_utils.py`, `tests/test_scan_untested.py` (auto-committed by CI workflow per AGENTS.md; do not commit manually)
 
 ## Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main.
-2. Confirm state with `python tools/verify_state_delta.py`; the clean-tree fast path does not apply until the pending auto-commit lands.
+2. Confirm state with `python tools/verify_state_delta.py`; clean-tree fast path applies once the pending auto-commit lands and no source-relevant files changed.
 3. Deliver one concrete, verified improvement (choose on evidence):
-   - `python tools/scan_untested.py --all`: add behavior coverage for an exported-but-untested callable (skip TypeVar/stdlib re-export/alias/constant noise).
-   - Tooling parity: extend the new byte-identity pattern to the embedded `pyproject.toml` vs `pyproject.toml`, or another generated surface where `tests/test_scaffold_sync.py` still only checks containment.
-   - Edge-case hardening or a doc/API mismatch found by inspection.
+   - `python tools/scan_untested.py --all`: add behavior coverage for an exported-but-untested callable where meaningful (skip TypeVar/stdlib re-export/alias/constant/interactive-facade noise unless a safe behavioral seam exists).
+   - Inspect wrapper modules for doc/API/edge-case mismatches (e.g. inconsistent validation/error types vs stdlib or module conventions) with targeted tests.
+   - Tooling parity: extend byte-identity/consistency checks to other generated/embedded surfaces only if a real drift risk is evidenced.
    Avoid timestamp-only or no-op changes.
-4. Validation order that avoids the recurring drift: edit sources and documents first, then `python tools/refresh_scaffold.py` (never the reverse), then `python tools/refresh_scaffold.py --check`. Add `python tools/scan_untested.py`, targeted tests, `make lint`, `make typecheck`, and `python -m unittest discover tests/` when `tests/` changed, finishing with `python tools/verify_state_delta.py --full --record-full-suite`.
+4. Validation order to avoid drift: edit sources and **documents first**, then `python tools/refresh_scaffold.py` (never the reverse), then `python tools/refresh_scaffold.py --check`. Run `python tools/scan_untested.py`, targeted tests, `make lint`, `make typecheck`, and `python -m unittest discover tests/` when `tests/` changed, finishing with `python tools/verify_state_delta.py --full --record-full-suite`.
 5. Keep changes outside `.github/workflows/**`; update `CHANGELOG.md` (before refreshing), `.kilo/handover.md`, `PROJECT_STATUS.md`; post the next task via `board_post` to `main` (or record it in handover if posting to self is refused).

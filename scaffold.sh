@@ -74134,6 +74134,10 @@ Next Planned (posted for the following agent):
 
 - Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
 
+## Unreleased — code_utils interact and compile_command validation coverage
+
+- Added `TestCodeUtils.test_interact` to `tests/test_code_utils.py`, mocking `code.interact` to verify `code_utils.interact` forwards `banner`, `readfunc`, `local`, and `exitmsg` without launching an interactive console. Added `TestCodeUtils.test_compile_command_type_error` to cover the `TypeError` path for non-string sources, closing the only exported-but-untested callable in default `python tools/scan_untested.py` results (`code_utils.interact`). Targeted verification: `python -m unittest tests.test_code_utils -v` (10 OK). Synchronized embedded copy with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — seq_utils find_index predicate search
 
 - Added `find_index(sequence, predicate)` to `seq_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError` for non-sequence inputs and non-callable predicates; it returns the 0-based index of the first element satisfying *predicate*, or `None` when no match is found (complements `index_of` value search). Added `TestFindIndex` to `tests/test_seq_utils.py` (9 tests). Updated `README.md` (tree + prose). Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_seq_utils -q`, `python -m unittest tests.test_public_api -q`. No `.github/workflows/**` changes.
@@ -78026,6 +78030,7 @@ CODE_UTILS
 # --- tests/test_code_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_code_utils.py" <<'TEST_CODE_UTILS'
 import unittest
+from unittest import mock
 
 import code_utils
 
@@ -78037,11 +78042,23 @@ class TestCodeUtils(unittest.TestCase):
     def test_compile_command_invalid(self):
         self.assertIsNone(code_utils.compile_command("def foo("))
 
+    def test_compile_command_type_error(self):
+        with self.assertRaises(TypeError):
+            code_utils.compile_command(123)
+
     def test_console_class(self):
         self.assertTrue(callable(code_utils.console_class()))
 
     def test_interpreter_class(self):
         self.assertTrue(callable(code_utils.interpreter_class()))
+
+    def test_interact(self):
+        with mock.patch("code.interact", return_value="ok") as mocked:
+            result = code_utils.interact(banner="hi", local={"x": 1})
+        self.assertEqual(result, "ok")
+        mocked.assert_called_once_with(
+            banner="hi", readfunc=None, local={"x": 1}, exitmsg=None
+        )
 
     def test_is_complete(self):
         self.assertTrue(code_utils.is_complete("x = 1"))

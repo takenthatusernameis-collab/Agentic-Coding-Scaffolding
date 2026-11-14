@@ -220,9 +220,9 @@ class TestScan(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertNotIn("no exported-but-untested callables", result.stdout)
         self.assertIn("exported-but-untested callables", result.stdout)
-        # ``code_utils`` exports the interactive ``interact`` facade, which the
-        # default filters out but ``--all`` must surface.
-        self.assertIn("interact", result.stdout)
+        # ``--all`` must surface known interactive facades that remain
+        # unreferenced in their module tests.
+        self.assertIn("help", result.stdout)
 
 
 class TestJSONOutput(unittest.TestCase):
@@ -252,7 +252,6 @@ class TestJSONOutput(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         data = json.loads(result.stdout)
         self.assertGreater(data["total"], 0)
-        self.assertIn("interact", data["gaps"].get("code_utils.py", []))
         self.assertIn("help", data["gaps"].get("pydoc_utils.py", []))
 
     def test_json_structure_is_valid(self):
