@@ -87,6 +87,8 @@ __all__: List[str] = [
     "has_pangram",
     "is_rotation",
     "is_subsequence",
+    "count_subsequence",
+    "has_subsequence",
     "initials",
     "swap_case",
     "count_occurrences",
@@ -3113,6 +3115,85 @@ def is_subsequence(needle: str, haystack: str) -> bool:
             if i == len(needle):
                 return True
     return False
+
+
+def count_subsequence(needle: str, haystack: str) -> int:
+    """Return the number of times *needle* occurs as a subsequence of *haystack*.
+
+    A subsequence is formed by deleting zero or more characters from
+    *haystack* without changing the order of the remaining characters, so
+    every character of *needle* must appear in *haystack* in the same
+    relative order (not necessarily consecutively). Unlike
+    :func:`count_occurrences`, the matches need not be contiguous. The empty
+    string occurs as a subsequence exactly once, including of the empty
+    string.
+
+    This is the integer companion to :func:`is_subsequence`.
+
+    Args:
+        needle: The subsequence to count.
+        haystack: The string to search within.
+
+    Returns:
+        The number of distinct index selections of *haystack* that spell
+        *needle* in order.
+
+    Raises:
+        TypeError: If *needle* or *haystack* is not a string.
+
+    Examples:
+        >>> count_subsequence("abc", "aebdc")
+        1
+        >>> count_subsequence("ab", "aabb")
+        4
+        >>> count_subsequence("", "anything")
+        1
+        >>> count_subsequence("abc", "acb")
+        0
+        >>> count_subsequence("aaa", "aaaa")
+        4
+    """
+    _require_string(needle, "needle")
+    _require_string(haystack, "haystack")
+    m = len(needle)
+    dp = [0] * (m + 1)
+    dp[0] = 1
+    for ch in haystack:
+        for j in range(m, 0, -1):
+            if ch == needle[j - 1]:
+                dp[j] += dp[j - 1]
+    return dp[m]
+
+
+def has_subsequence(needle: str, haystack: str) -> bool:
+    """Return ``True`` if *needle* is a subsequence of *haystack*.
+
+    This is the boolean companion to :func:`count_subsequence`. It returns
+    ``True`` when *needle* occurs at least once as a subsequence of
+    *haystack* and ``False`` otherwise, reusing :func:`count_subsequence`
+    for consistency. This mirrors :func:`is_subsequence`.
+
+    Args:
+        needle: The subsequence to look for.
+        haystack: The string to search within.
+
+    Returns:
+        ``True`` if *needle* is a subsequence of *haystack*.
+
+    Raises:
+        TypeError: If *needle* or *haystack* is not a string.
+
+    Examples:
+        >>> has_subsequence("abc", "aebdc")
+        True
+        >>> has_subsequence("abc", "acb")
+        False
+        >>> has_subsequence("", "anything")
+        True
+    """
+    _require_string(needle, "needle")
+    _require_string(haystack, "haystack")
+    return count_subsequence(needle, haystack) > 0
 
 
 def ensure_prefix(text: str, prefix: str) -> str:

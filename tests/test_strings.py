@@ -30,6 +30,7 @@ from strings import (
     count_pangram,
     count_printable,
     count_punctuation,
+    count_subsequence,
     count_title,
     count_uppercase,
     count_vowels,
@@ -61,6 +62,7 @@ from strings import (
     has_pangram,
     has_printable,
     has_punctuation,
+    has_subsequence,
     has_title,
     has_uppercase,
     has_vowels,
@@ -2012,6 +2014,108 @@ class TestHasOccurrences(unittest.TestCase):
             has_occurrences(123, "a")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             has_occurrences("a", 123)  # type: ignore[arg-type]
+
+
+class TestCountSubsequence(unittest.TestCase):
+    def test_basic(self):
+        self.assertEqual(count_subsequence("abc", "aebdc"), 1)
+        self.assertEqual(count_subsequence("ace", "abcde"), 1)
+        self.assertEqual(count_subsequence("ab", "aabb"), 4)
+        self.assertEqual(count_subsequence("abc", "abc"), 1)
+
+    def test_not_present(self):
+        self.assertEqual(count_subsequence("abc", "acb"), 0)
+        self.assertEqual(count_subsequence("abc", "ab"), 0)
+        self.assertEqual(count_subsequence("abcd", "abc"), 0)
+        self.assertEqual(count_subsequence("xyz", "abc"), 0)
+
+    def test_empty_needle(self):
+        self.assertEqual(count_subsequence("", "anything"), 1)
+        self.assertEqual(count_subsequence("", ""), 1)
+
+    def test_empty_haystack(self):
+        self.assertEqual(count_subsequence("a", ""), 0)
+        self.assertEqual(count_subsequence("", ""), 1)
+
+    def test_case_sensitive(self):
+        self.assertEqual(count_subsequence("ABC", "abc"), 0)
+        self.assertEqual(count_subsequence("abc", "ABC"), 0)
+        self.assertEqual(count_subsequence("abc", "aXbYc"), 1)
+
+    def test_multiple_ways(self):
+        self.assertEqual(count_subsequence("aaa", "aaaa"), 4)
+        self.assertEqual(count_subsequence("ab", "abab"), 3)
+
+    def test_consistency_with_is_subsequence(self):
+        cases = (
+            ("abc", "aebdc"),
+            ("abc", "acb"),
+            ("", "anything"),
+            ("a", ""),
+            ("aaa", "aaaa"),
+        )
+        for needle, haystack in cases:
+            self.assertEqual(
+                count_subsequence(needle, haystack) > 0,
+                is_subsequence(needle, haystack),
+            )
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_subsequence(123, "abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            count_subsequence("abc", 123)  # type: ignore[arg-type]
+
+
+class TestHasSubsequence(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_subsequence("abc", "aebdc"))
+        self.assertTrue(has_subsequence("ace", "abcde"))
+        self.assertTrue(has_subsequence("abc", "abc"))
+
+    def test_not_present(self):
+        self.assertFalse(has_subsequence("abc", "acb"))
+        self.assertFalse(has_subsequence("abc", "ab"))
+        self.assertFalse(has_subsequence("abcd", "abc"))
+
+    def test_empty_needle(self):
+        self.assertTrue(has_subsequence("", "anything"))
+        self.assertTrue(has_subsequence("", ""))
+
+    def test_empty_haystack(self):
+        self.assertFalse(has_subsequence("a", ""))
+        self.assertTrue(has_subsequence("", ""))
+
+    def test_consistency_with_count_subsequence(self):
+        cases = (
+            ("abc", "aebdc"),
+            ("abc", "acb"),
+            ("", "anything"),
+            ("a", ""),
+            ("aaa", "aaaa"),
+        )
+        for needle, haystack in cases:
+            self.assertEqual(
+                has_subsequence(needle, haystack),
+                count_subsequence(needle, haystack) > 0,
+            )
+
+    def test_consistency_with_is_subsequence(self):
+        cases = (
+            ("abc", "aebdc"),
+            ("abc", "acb"),
+            ("", "anything"),
+            ("a", ""),
+            ("aaa", "aaaa"),
+        )
+        for needle, haystack in cases:
+            self.assertEqual(has_subsequence(needle, haystack), is_subsequence(needle, haystack))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_subsequence(123, "abc")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_subsequence("abc", 123)  # type: ignore[arg-type]
 
 
 class TestStartsWith(unittest.TestCase):
