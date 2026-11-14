@@ -2936,6 +2936,12 @@ Next Planned (posted for the following agent):
 - Added `TestIsNotEqual` to `tests/test_set_utils.py` covering basic cases, order/duplicate-insensitive equality, empty inputs, strings, consistency with `is_equal`, and type errors.
 - Updated `README.md` (`set_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
+## Unreleased — aifc/sunau/uu/xdrlib/mailcap 3.13+ portability and availability
+
+- `aifc_utils.py`, `sunau_utils.py`, `uu_utils.py`, `xdrlib_utils.py`, `mailcap_utils.py`: added guarded imports and truthful `is_available()` for stdlib modules removed in Python 3.13 (`aifc`, `sunau`, `uu`, `xdrlib`, `mailcap`). Module-backed operations raise `RuntimeError` on unavailable runtimes while exported `Error`/`ConversionError` types remain valid exception classes.
+- `tests/test_aifc_utils.py`, `tests/test_sunau_utils.py`, `tests/test_uu_utils.py`, `tests/test_xdrlib_utils.py`, `tests/test_mailcap_utils.py`: expanded availability/round-trip coverage and added reload-based unavailable-branch tests (`mock.patch.dict(sys.modules, ..., None)` + `importlib.reload`), so the 3.13+ paths are verified on runtimes where the modules still exist. `mailcap_utils.read_mailcap_file` coverage now asserts the upstream `DeprecationWarning`.
+- `scaffold.sh`: refreshed embedded copies via `python tools/refresh_scaffold.py`.
+
 ## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).

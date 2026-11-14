@@ -74169,6 +74169,12 @@ Next Planned (posted for the following agent):
 - Added `TestIsNotEqual` to `tests/test_set_utils.py` covering basic cases, order/duplicate-insensitive equality, empty inputs, strings, consistency with `is_equal`, and type errors.
 - Updated `README.md` (`set_utils` tree/prose). Refreshed embedded copies with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
 
+## Unreleased — aifc/sunau/uu/xdrlib/mailcap 3.13+ portability and availability
+
+- `aifc_utils.py`, `sunau_utils.py`, `uu_utils.py`, `xdrlib_utils.py`, `mailcap_utils.py`: added guarded imports and truthful `is_available()` for stdlib modules removed in Python 3.13 (`aifc`, `sunau`, `uu`, `xdrlib`, `mailcap`). Module-backed operations raise `RuntimeError` on unavailable runtimes while exported `Error`/`ConversionError` types remain valid exception classes.
+- `tests/test_aifc_utils.py`, `tests/test_sunau_utils.py`, `tests/test_uu_utils.py`, `tests/test_xdrlib_utils.py`, `tests/test_mailcap_utils.py`: expanded availability/round-trip coverage and added reload-based unavailable-branch tests (`mock.patch.dict(sys.modules, ..., None)` + `importlib.reload`), so the 3.13+ paths are verified on runtimes where the modules still exist. `mailcap_utils.read_mailcap_file` coverage now asserts the upstream `DeprecationWarning`.
+- `scaffold.sh`: refreshed embedded copies via `python tools/refresh_scaffold.py`.
+
 ## Unreleased — bytes_utils starts/ends slice + search stdlib-parity tests
 
 - `bytes_utils.py`: added `start`/`end` slice parameters (with bool-rejected int validation, matching the module's strict style) and Google-style docstrings to `starts_with` and `ends_with`, preserving the existing two-argument behavior as defaults (stdlib-compatible API extension).
@@ -92256,8 +92262,14 @@ cat > "$OUTPUT_DIR/mailcap_utils.py" <<'MAILCAP_UTILS'
 
 from __future__ import annotations
 
-import mailcap
 from typing import Any
+
+try:
+    import mailcap as _mailcap
+    _MAILCAP_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when mailcap is unavailable
+    _mailcap = None  # type: ignore[assignment]
+    _MAILCAP_AVAILABLE = False
 
 __all__: list[str] = [
     "getcaps",
@@ -92269,32 +92281,48 @@ __all__: list[str] = [
     "lookup",
     "subst",
     "find_param",
+    "is_available",
 ]
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`mailcap` module is available."""
+    return _MAILCAP_AVAILABLE
+
+
+def _require_mailcap(name: str) -> None:
+    if not _MAILCAP_AVAILABLE:
+        raise RuntimeError(f"mailcap module is not available; {name} cannot be used")
 
 
 def getcaps() -> dict[str, list[dict[str, Any]]]:
     """Return the mailcap database as a dict keyed by MIME type."""
-    return mailcap.getcaps()
+    _require_mailcap("getcaps")
+    return _mailcap.getcaps()
 
 
 def list_mailcap_files() -> list[str]:
     """Return the list of mailcap files found on the system."""
-    return mailcap.listmailcapfiles()  # type: ignore[attr-defined,no-any-return]
+    _require_mailcap("list_mailcap_files")
+    return _mailcap.listmailcapfiles()  # type: ignore[attr-defined,no-any-return]
 
 
 def read_mailcap_file(fp: Any) -> dict[str, list[dict[str, Any]]]:
     """Read a mailcap file and return a dict keyed by MIME type."""
-    return mailcap.readmailcapfile(fp)  # type: ignore[attr-defined,no-any-return]
+    _require_mailcap("read_mailcap_file")
+    return _mailcap.readmailcapfile(fp)  # type: ignore[attr-defined,no-any-return]
 
 
 def parse_line(line: str) -> tuple[Any, Any]:
     """Parse one mailcap entry line."""
-    return mailcap.parseline(line)  # type: ignore[attr-defined,no-any-return]
+    _require_mailcap("parse_line")
+    return _mailcap.parseline(line)  # type: ignore[attr-defined,no-any-return]
 
 
 def parse_field(line: str, i: int, n: int) -> tuple[str, int]:
     """Separate one key-value pair in a mailcap entry."""
-    return mailcap.parsefield(line, i, n)  # type: ignore[attr-defined,no-any-return]
+    _require_mailcap("parse_field")
+    return _mailcap.parsefield(line, i, n)  # type: ignore[attr-defined,no-any-return]
 
 
 def find_match(
@@ -92305,9 +92333,10 @@ def find_match(
     plist: list[str] | None = None,
 ) -> tuple[Any, Any]:
     """Find a match for a mailcap entry."""
+    _require_mailcap("find_match")
     if plist is None:
         plist = []
-    return mailcap.findmatch(caps, mime_type, key=key, filename=filename, plist=plist)
+    return _mailcap.findmatch(caps, mime_type, key=key, filename=filename, plist=plist)
 
 
 def lookup(
@@ -92316,7 +92345,8 @@ def lookup(
     key: str | None = None,
 ) -> list[dict[str, Any]]:
     """Look up mailcap entries for a MIME type."""
-    return mailcap.lookup(caps, mime_type, key=key)  # type: ignore[attr-defined,no-any-return]
+    _require_mailcap("lookup")
+    return _mailcap.lookup(caps, mime_type, key=key)  # type: ignore[attr-defined,no-any-return]
 
 
 def subst(
@@ -92326,14 +92356,16 @@ def subst(
     plist: list[str] | None = None,
 ) -> str | None:
     """Substitute fields into a mailcap command string."""
+    _require_mailcap("subst")
     if plist is None:
         plist = []
-    return mailcap.subst(field, mime_type, filename, plist)  # type: ignore[attr-defined,no-any-return]
+    return _mailcap.subst(field, mime_type, filename, plist)  # type: ignore[attr-defined,no-any-return]
 
 
 def find_param(name: str, plist: list[str]) -> str:
     """Find a parameter value in a plist."""
-    return mailcap.findparam(name, plist)  # type: ignore[attr-defined,no-any-return]
+    _require_mailcap("find_param")
+    return _mailcap.findparam(name, plist)  # type: ignore[attr-defined,no-any-return]
 MAILCAP_UTILS
 
 # --- tests/test_mailcap_utils.py ---
@@ -92342,9 +92374,12 @@ cat > "$OUTPUT_DIR/tests/test_mailcap_utils.py" <<'TEST_MAILCAP_UTILS'
 
 from __future__ import annotations
 
+import importlib
 import os
+import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import mailcap_utils
 
@@ -92353,6 +92388,9 @@ class TestMailcapUtils(unittest.TestCase):
     def test_exports(self) -> None:
         for name in mailcap_utils.__all__:
             self.assertTrue(hasattr(mailcap_utils, name))
+
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(mailcap_utils.is_available(), bool)
 
     def test_getcaps_returns_dict(self) -> None:
         caps = mailcap_utils.getcaps()
@@ -92368,7 +92406,8 @@ class TestMailcapUtils(unittest.TestCase):
             path = f.name
         try:
             with open(path) as fh:
-                caps = mailcap_utils.read_mailcap_file(fh)
+                with self.assertWarns(DeprecationWarning):
+                    caps = mailcap_utils.read_mailcap_file(fh)
             self.assertIsInstance(caps, dict)
         finally:
             os.unlink(path)
@@ -92380,7 +92419,6 @@ class TestMailcapUtils(unittest.TestCase):
 
     def test_parse_field(self) -> None:
         line = "view=cat %s; test=echo"
-        # Find position after first key
         name, i = mailcap_utils.parse_field(line, 0, len(line))
         self.assertIsInstance(name, str)
         self.assertIsInstance(i, int)
@@ -92397,12 +92435,42 @@ class TestMailcapUtils(unittest.TestCase):
 
     def test_subst(self) -> None:
         result = mailcap_utils.subst("cat %s", "text/plain", "/tmp/file.txt")
-        # Can be str or None
         self.assertTrue(result is None or isinstance(result, str))
 
     def test_find_param(self) -> None:
         result = mailcap_utils.find_param("test", ["test=hello", "other=world"])
         self.assertIsInstance(result, str)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`mailcap` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"mailcap": None}):
+                reloaded = importlib.reload(mailcap_utils)
+                assert reloaded.is_available() is False
+                with self.assertRaises(RuntimeError):
+                    reloaded.getcaps()
+                with self.assertRaises(RuntimeError):
+                    reloaded.list_mailcap_files()
+                with self.assertRaises(RuntimeError):
+                    reloaded.read_mailcap_file(object())
+                with self.assertRaises(RuntimeError):
+                    reloaded.parse_line("text/plain; cat %s\n")
+                with self.assertRaises(RuntimeError):
+                    reloaded.parse_field("a=b", 0, 3)
+                with self.assertRaises(RuntimeError):
+                    reloaded.find_match({}, "text/plain")
+                with self.assertRaises(RuntimeError):
+                    reloaded.lookup({}, "text/plain")
+                with self.assertRaises(RuntimeError):
+                    reloaded.subst("cat %s", "text/plain", "/tmp/x")
+                with self.assertRaises(RuntimeError):
+                    reloaded.find_param("x", [])
+        finally:
+            importlib.reload(mailcap_utils)
+        assert mailcap_utils.is_available() is True
 
 
 if __name__ == "__main__":
@@ -131431,8 +131499,11 @@ cat > "$OUTPUT_DIR/tests/test_uu_utils.py" <<'TEST_UU_UTILS'
 
 from __future__ import annotations
 
+import importlib
 import io
+import sys
 import unittest
+from unittest import mock
 
 import uu_utils
 
@@ -131441,6 +131512,9 @@ class TestUuUtils(unittest.TestCase):
     def test_exports(self) -> None:
         for name in uu_utils.__all__:
             self.assertTrue(hasattr(uu_utils, name))
+
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(uu_utils.is_available(), bool)
 
     def test_encode_decode_roundtrip(self) -> None:
         inp = io.BytesIO(b"hello world\n")
@@ -131465,6 +131539,28 @@ class TestUuUtils(unittest.TestCase):
         decoded = io.BytesIO()
         uu_utils.decode_file(io.BytesIO(data), decoded)
         self.assertEqual(decoded.getvalue(), b"file body\n")
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`uu` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"uu": None}):
+                reloaded = importlib.reload(uu_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.Error, Exception)
+                with self.assertRaises(RuntimeError):
+                    reloaded.encode(io.BytesIO(b"x"), io.BytesIO())
+                with self.assertRaises(RuntimeError):
+                    reloaded.decode(io.BytesIO(b""), io.BytesIO())
+                with self.assertRaises(RuntimeError):
+                    reloaded.encode_file(io.BytesIO(b"x"), io.BytesIO())
+                with self.assertRaises(RuntimeError):
+                    reloaded.decode_file(io.BytesIO(b""), io.BytesIO())
+        finally:
+            importlib.reload(uu_utils)
+        assert uu_utils.is_available() is True
 
 
 if __name__ == "__main__":
@@ -136068,7 +136164,10 @@ cat > "$OUTPUT_DIR/tests/test_xdrlib_utils.py" <<'TEST_XDRLIB_UTILS'
 
 from __future__ import annotations
 
+import importlib
+import sys
 import unittest
+from unittest import mock
 
 import xdrlib_utils
 
@@ -136078,12 +136177,39 @@ class TestXdrlibUtils(unittest.TestCase):
         for name in xdrlib_utils.__all__:
             self.assertTrue(hasattr(xdrlib_utils, name))
 
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(xdrlib_utils.is_available(), bool)
+
+    def test_error_classes(self) -> None:
+        self.assertTrue(issubclass(xdrlib_utils.Error, Exception))
+        self.assertTrue(issubclass(xdrlib_utils.ConversionError, xdrlib_utils.Error))
+
+    @unittest.skipUnless(xdrlib_utils.is_available(), "xdrlib is not available")
     def test_packer_unpacker_roundtrip(self) -> None:
         p = xdrlib_utils.Packer()
         p.pack_uint(5)
         data = p.get_buffer()
         u = xdrlib_utils.Unpacker(data)
         self.assertEqual(u.unpack_uint(), 5)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`xdrlib` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"xdrlib": None}):
+                reloaded = importlib.reload(xdrlib_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.Error, Exception)
+                assert issubclass(reloaded.ConversionError, reloaded.Error)
+                with self.assertRaises(RuntimeError):
+                    reloaded.Packer()
+                with self.assertRaises(RuntimeError):
+                    reloaded.Unpacker(b"")
+        finally:
+            importlib.reload(xdrlib_utils)
+        assert xdrlib_utils.is_available() is True
 
 
 if __name__ == "__main__":
@@ -155124,9 +155250,12 @@ cat > "$OUTPUT_DIR/tests/test_aifc_utils.py" <<'TEST_AIFC_UTILS'
 
 from __future__ import annotations
 
+import importlib
 import os
+import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import aifc_utils
 
@@ -155136,6 +155265,9 @@ class TestAifcUtils(unittest.TestCase):
         for name in aifc_utils.__all__:
             self.assertTrue(hasattr(aifc_utils, name))
 
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(aifc_utils.is_available(), bool)
+
     def test_error_is_an_exception_class(self) -> None:
         self.assertTrue(isinstance(aifc_utils.Error, type))
         self.assertTrue(issubclass(aifc_utils.Error, Exception))
@@ -155143,6 +155275,7 @@ class TestAifcUtils(unittest.TestCase):
     def test_open_is_callable(self) -> None:
         self.assertTrue(callable(aifc_utils.open))
 
+    @unittest.skipUnless(aifc_utils.is_available(), "aifc is not available")
     def test_open_round_trip(self) -> None:
         frames = b"\x00\x00\x01\x00\xff\xff"
         with tempfile.TemporaryDirectory() as directory:
@@ -155159,6 +155292,22 @@ class TestAifcUtils(unittest.TestCase):
                 self.assertEqual(reader.getframerate(), 8000)
                 self.assertEqual(reader.getcomptype(), b"NONE")
                 self.assertEqual(reader.readframes(reader.getnframes()), frames)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`aifc` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"aifc": None}):
+                reloaded = importlib.reload(aifc_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.Error, Exception)
+                with self.assertRaises(RuntimeError):
+                    reloaded.open("sample.aiff", "rb")
+        finally:
+            importlib.reload(aifc_utils)
+        assert aifc_utils.is_available() is True
 
 
 if __name__ == "__main__":
@@ -156829,9 +156978,12 @@ cat > "$OUTPUT_DIR/tests/test_sunau_utils.py" <<'TEST_SUNAU_UTILS'
 
 from __future__ import annotations
 
+import importlib
 import os
+import sys
 import tempfile
 import unittest
+from unittest import mock
 
 import sunau_utils
 
@@ -156841,6 +156993,9 @@ class TestSunauUtils(unittest.TestCase):
         for name in sunau_utils.__all__:
             self.assertTrue(hasattr(sunau_utils, name))
 
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(sunau_utils.is_available(), bool)
+
     def test_error_is_an_exception_class(self) -> None:
         self.assertTrue(isinstance(sunau_utils.Error, type))
         self.assertTrue(issubclass(sunau_utils.Error, Exception))
@@ -156848,6 +157003,7 @@ class TestSunauUtils(unittest.TestCase):
     def test_open_is_callable(self) -> None:
         self.assertTrue(callable(sunau_utils.open))
 
+    @unittest.skipUnless(sunau_utils.is_available(), "sunau is not available")
     def test_open_round_trip(self) -> None:
         frames = bytes(range(256))
         with tempfile.TemporaryDirectory() as directory:
@@ -156865,6 +157021,22 @@ class TestSunauUtils(unittest.TestCase):
                 self.assertIsNotNone(data)
                 assert data is not None
                 self.assertEqual(len(data), len(frames))
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`sunau` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"sunau": None}):
+                reloaded = importlib.reload(sunau_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.Error, Exception)
+                with self.assertRaises(RuntimeError):
+                    reloaded.open("sample.au", "rb")
+        finally:
+            importlib.reload(sunau_utils)
+        assert sunau_utils.is_available() is True
 
 
 if __name__ == "__main__":
@@ -161363,16 +161535,36 @@ cat > "$OUTPUT_DIR/sunau_utils.py" <<'SUNAU_UTILS'
 
 from __future__ import annotations
 
-import sunau as _sunau
+from typing import Any
+
+try:
+    import sunau as _sunau
+    _SUNAU_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when sunau is unavailable
+    _sunau = None  # type: ignore[assignment]
+    _SUNAU_AVAILABLE = False
 
 __all__: list[str] = [
     "Error",
     "open",
+    "is_available",
 ]
 
 
-Error = _sunau.Error
-open = _sunau.open
+def is_available() -> bool:
+    """Return True if the standard library :mod:`sunau` module is available."""
+    return _SUNAU_AVAILABLE
+
+
+if _SUNAU_AVAILABLE:
+    Error = _sunau.Error
+    open = _sunau.open
+else:  # pragma: no cover - exercised when sunau is unavailable
+    class Error(Exception):  # type: ignore[no-redef]
+        pass
+
+    def open(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        raise RuntimeError("sunau module is not available")
 SUNAU_UTILS
 
 # --- uu_utils.py ---
@@ -161381,8 +161573,14 @@ cat > "$OUTPUT_DIR/uu_utils.py" <<'UU_UTILS'
 
 from __future__ import annotations
 
-import uu as _uu
 from typing import Any
+
+try:
+    import uu as _uu
+    _UU_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when uu is unavailable
+    _uu = None  # type: ignore[assignment]
+    _UU_AVAILABLE = False
 
 __all__: list[str] = [
     "Error",
@@ -161390,10 +161588,25 @@ __all__: list[str] = [
     "decode",
     "encode_file",
     "decode_file",
+    "is_available",
 ]
 
 
-Error = _uu.Error
+def is_available() -> bool:
+    """Return True if the standard library :mod:`uu` module is available."""
+    return _UU_AVAILABLE
+
+
+def _require_uu(name: str) -> None:
+    if not _UU_AVAILABLE:
+        raise RuntimeError(f"uu module is not available; {name} cannot be used")
+
+
+if _UU_AVAILABLE:
+    Error = _uu.Error
+else:  # pragma: no cover - exercised when uu is unavailable
+    class Error(Exception):  # type: ignore[no-redef]
+        pass
 
 
 def encode(
@@ -161403,6 +161616,7 @@ def encode(
     mode: int | None = None,
     backtick: bool = False,
 ) -> None:
+    _require_uu("encode")
     if name is None:
         name = "-"
     if mode is None:
@@ -161420,6 +161634,7 @@ def decode(
     mode: int | None = None,
     quiet: int = 0,
 ) -> None:
+    _require_uu("decode")
     if mode is None:
         mode = 0o666
     try:
@@ -161453,20 +161668,68 @@ cat > "$OUTPUT_DIR/xdrlib_utils.py" <<'XDRLIB_UTILS'
 
 from __future__ import annotations
 
-import xdrlib as _xdrlib
+from typing import Any, Type
 
 __all__: list[str] = [
     "Error",
     "Packer",
     "Unpacker",
     "ConversionError",
+    "is_available",
 ]
 
+try:
+    import xdrlib as _xdrlib
 
-Error = getattr(_xdrlib, "Error", Exception)
-ConversionError = getattr(_xdrlib, "ConversionError", Error)
-Packer = _xdrlib.Packer
-Unpacker = _xdrlib.Unpacker
+    _XDRLIB_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when xdrlib is unavailable
+    _xdrlib = None  # type: ignore[assignment]
+    _XDRLIB_AVAILABLE = False
+
+
+def is_available() -> bool:
+    """Return True if the standard library :mod:`xdrlib` module is available."""
+    return _XDRLIB_AVAILABLE
+
+
+Error: Type[BaseException]
+ConversionError: Type[BaseException]
+Packer: Any
+Unpacker: Any
+
+if _XDRLIB_AVAILABLE:
+    _BaseError = getattr(_xdrlib, "Error", Exception)
+    _BaseConversionError = getattr(_xdrlib, "ConversionError", _BaseError)
+
+    class _Error(_BaseError):  # type: ignore[misc, valid-type]
+        pass
+
+    class _ConversionError(_BaseConversionError, _Error):  # type: ignore[misc, valid-type]
+        pass
+
+    Error = _Error
+    ConversionError = _ConversionError
+    Packer = _xdrlib.Packer
+    Unpacker = _xdrlib.Unpacker
+else:  # pragma: no cover - exercised when xdrlib is unavailable
+    class _UnavailableError(Exception):
+        pass
+
+    class _UnavailableConversionError(_UnavailableError):
+        pass
+
+    class _UnavailablePacker:
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            raise RuntimeError("xdrlib module is not available")
+
+    class _UnavailableUnpacker:
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            raise RuntimeError("xdrlib module is not available")
+
+    Error = _UnavailableError
+    ConversionError = _UnavailableConversionError
+    Packer = _UnavailablePacker
+    Unpacker = _UnavailableUnpacker
 XDRLIB_UTILS
 
 # --- aifc_utils.py ---
@@ -161475,16 +161738,36 @@ cat > "$OUTPUT_DIR/aifc_utils.py" <<'AIFC_UTILS'
 
 from __future__ import annotations
 
-import aifc as _aifc
+from typing import Any
+
+try:
+    import aifc as _aifc
+    _AIFC_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when aifc is unavailable
+    _aifc = None  # type: ignore[assignment]
+    _AIFC_AVAILABLE = False
 
 __all__: list[str] = [
     "Error",
     "open",
+    "is_available",
 ]
 
 
-Error = _aifc.Error
-open = _aifc.open
+def is_available() -> bool:
+    """Return True if the standard library :mod:`aifc` module is available."""
+    return _AIFC_AVAILABLE
+
+
+if _AIFC_AVAILABLE:
+    Error = _aifc.Error
+    open = _aifc.open
+else:  # pragma: no cover - exercised when aifc is unavailable
+    class Error(Exception):  # type: ignore[no-redef]
+        pass
+
+    def open(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        raise RuntimeError("aifc module is not available")
 AIFC_UTILS
 
 # --- chunk_utils.py ---

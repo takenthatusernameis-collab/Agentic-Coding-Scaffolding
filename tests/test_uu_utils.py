@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import importlib
 import io
+import sys
 import unittest
+from unittest import mock
 
 import uu_utils
 
@@ -12,6 +15,9 @@ class TestUuUtils(unittest.TestCase):
     def test_exports(self) -> None:
         for name in uu_utils.__all__:
             self.assertTrue(hasattr(uu_utils, name))
+
+    def test_is_available_returns_bool(self) -> None:
+        self.assertIsInstance(uu_utils.is_available(), bool)
 
     def test_encode_decode_roundtrip(self) -> None:
         inp = io.BytesIO(b"hello world\n")
@@ -36,6 +42,28 @@ class TestUuUtils(unittest.TestCase):
         decoded = io.BytesIO()
         uu_utils.decode_file(io.BytesIO(data), decoded)
         self.assertEqual(decoded.getvalue(), b"file body\n")
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`uu` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"uu": None}):
+                reloaded = importlib.reload(uu_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.Error, Exception)
+                with self.assertRaises(RuntimeError):
+                    reloaded.encode(io.BytesIO(b"x"), io.BytesIO())
+                with self.assertRaises(RuntimeError):
+                    reloaded.decode(io.BytesIO(b""), io.BytesIO())
+                with self.assertRaises(RuntimeError):
+                    reloaded.encode_file(io.BytesIO(b"x"), io.BytesIO())
+                with self.assertRaises(RuntimeError):
+                    reloaded.decode_file(io.BytesIO(b""), io.BytesIO())
+        finally:
+            importlib.reload(uu_utils)
+        assert uu_utils.is_available() is True
 
 
 if __name__ == "__main__":

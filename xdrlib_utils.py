@@ -2,14 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-try:
-    import xdrlib as _xdrlib
-    _XDRLIB_AVAILABLE = True
-except Exception:  # pragma: no cover - exercised when xdrlib is unavailable
-    _xdrlib = None  # type: ignore[assignment]
-    _XDRLIB_AVAILABLE = False
+from typing import Any, Type
 
 __all__: list[str] = [
     "Error",
@@ -19,28 +12,55 @@ __all__: list[str] = [
     "is_available",
 ]
 
+try:
+    import xdrlib as _xdrlib
+
+    _XDRLIB_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when xdrlib is unavailable
+    _xdrlib = None  # type: ignore[assignment]
+    _XDRLIB_AVAILABLE = False
+
 
 def is_available() -> bool:
     """Return True if the standard library :mod:`xdrlib` module is available."""
     return _XDRLIB_AVAILABLE
 
 
+Error: Type[BaseException]
+ConversionError: Type[BaseException]
+Packer: Any
+Unpacker: Any
+
 if _XDRLIB_AVAILABLE:
-    Error = getattr(_xdrlib, "Error", Exception)
-    ConversionError = getattr(_xdrlib, "ConversionError", Error)
+    _BaseError = getattr(_xdrlib, "Error", Exception)
+    _BaseConversionError = getattr(_xdrlib, "ConversionError", _BaseError)
+
+    class _Error(_BaseError):  # type: ignore[misc, valid-type]
+        pass
+
+    class _ConversionError(_BaseConversionError, _Error):  # type: ignore[misc, valid-type]
+        pass
+
+    Error = _Error
+    ConversionError = _ConversionError
     Packer = _xdrlib.Packer
     Unpacker = _xdrlib.Unpacker
 else:  # pragma: no cover - exercised when xdrlib is unavailable
-    class Error(Exception):  # type: ignore[no-redef]
+    class _UnavailableError(Exception):
         pass
 
-    class ConversionError(Error):  # type: ignore[no-redef]
+    class _UnavailableConversionError(_UnavailableError):
         pass
 
-    class Packer:  # type: ignore[no-redef]
+    class _UnavailablePacker:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise RuntimeError("xdrlib module is not available")
 
-    class Unpacker:  # type: ignore[no-redef]
+    class _UnavailableUnpacker:
         def __init__(self, *args: Any, **kwargs: Any) -> None:
             raise RuntimeError("xdrlib module is not available")
+
+    Error = _UnavailableError
+    ConversionError = _UnavailableConversionError
+    Packer = _UnavailablePacker
+    Unpacker = _UnavailableUnpacker
