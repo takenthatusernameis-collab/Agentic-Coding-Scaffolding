@@ -78206,6 +78206,25 @@ class TestExceptions(unittest.TestCase):
         self.assertTrue(issubclass(NoOptionError, Error))
         self.assertTrue(issubclass(ParsingError, Error))
 
+    def test_reexported_exception_aliases(self):
+        from configparser_utils import (
+            ConfigParserError,
+            DuplicateOptionError,
+            DuplicateSectionError,
+            InterpolationDepthError,
+            InterpolationMissingOptionError,
+            InterpolationSyntaxError,
+            MissingSectionHeaderError,
+        )
+
+        self.assertIs(ConfigParserError, Error)
+        self.assertTrue(issubclass(MissingSectionHeaderError, ParsingError))
+        self.assertTrue(issubclass(DuplicateSectionError, Error))
+        self.assertTrue(issubclass(DuplicateOptionError, Error))
+        self.assertTrue(issubclass(InterpolationMissingOptionError, Error))
+        self.assertTrue(issubclass(InterpolationSyntaxError, Error))
+        self.assertTrue(issubclass(InterpolationDepthError, Error))
+
 
 if __name__ == "__main__":
     unittest.main()
