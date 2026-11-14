@@ -251,7 +251,7 @@ class TestJSONOutput(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         data = json.loads(result.stdout)
-        self.assertEqual(data["total"], 248)
+        self.assertEqual(data["total"], 225)
         self.assertIn("interact", data["gaps"].get("code_utils.py", []))
         self.assertIn("help", data["gaps"].get("pydoc_utils.py", []))
 

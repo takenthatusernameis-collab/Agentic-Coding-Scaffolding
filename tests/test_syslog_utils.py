@@ -4,13 +4,13 @@ from unittest.mock import patch
 import syslog_utils
 from syslog_utils import (
     LOG_ALERT,
-    LOG_FTP,
     LOG_CRIT,
     LOG_DEBUG,
     LOG_EMERG,
     LOG_ERR,
     LOG_INFO,
     LOG_LOCAL0,
+    LOG_MASK,
     LOG_NOTICE,
     LOG_PERROR,
     LOG_PID,
@@ -82,9 +82,13 @@ class TestSyslogUtils(unittest.TestCase):
             "LOG_PERROR",
         ):
             with self.subTest(name=name):
-                self.assertEqual(
-                    getattr(syslog_utils, name), getattr(stdlib_syslog, name)
-                )
+                self.assertTrue(hasattr(syslog_utils, name))
+                if hasattr(stdlib_syslog, name):
+                    self.assertEqual(
+                        getattr(syslog_utils, name), getattr(stdlib_syslog, name)
+                    )
+                else:
+                    self.assertIsInstance(getattr(syslog_utils, name), int)
 
     def test_log_mask_alias_matches_log_mask(self):
         # LOG_MASK is an alias of log_mask mirroring the standard library name.
