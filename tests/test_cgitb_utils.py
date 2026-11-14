@@ -1,7 +1,9 @@
 """Tests for cgitb_utils."""
 
+import importlib
 import sys
 import unittest
+from unittest import mock
 
 import cgitb_utils
 
@@ -47,6 +49,37 @@ class TestCgitbUtils(unittest.TestCase):
     def test_disable_does_not_raise(self) -> None:
         cgitb_utils.disable()
         self.assertIs(sys.excepthook, sys.__excepthook__)
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"cgitb": None}):
+                reloaded = importlib.reload(cgitb_utils)
+                self.assertIs(reloaded.is_available(), False)
+                for name in [
+                    "enable",
+                    "reset",
+                    "lookup",
+                    "scanvars",
+                    "handler",
+                    "text",
+                    "html",
+                ]:
+                    with self.assertRaises(RuntimeError):
+                        getattr(reloaded, name)()
+                # The pure HTML formatters do not depend on cgitb.
+                self.assertEqual(reloaded.small("x"), "<small>x</small>")
+                self.assertEqual(reloaded.strong("x"), "<strong>x</strong>")
+                self.assertEqual(reloaded.grey("x"), '<font color="#909090">x</font>')
+                self.assertEqual(
+                    reloaded.pink("x"), "<span style='color: pink'>x</span>"
+                )
+                self.assertEqual(
+                    reloaded.blue("x"), "<span style='color: blue'>x</span>"
+                )
+                reloaded.disable()
+                self.assertIs(sys.excepthook, sys.__excepthook__)
+        finally:
+            importlib.reload(cgitb_utils)
 
 
 if __name__ == "__main__":

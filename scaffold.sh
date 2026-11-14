@@ -71231,6 +71231,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — made `cgi_utils`, `cgitb_utils`, and `pipes_utils` importable without their stdlib module
+
+- **Genuine portability defect found and fixed — `is_available()` lied and the modules could not be imported on Python 3.13+.** `cgi`, `cgitb`, and `pipes` were removed in Python 3.13, but all three wrappers imported them unconditionally while still exporting `is_available()` returning a hard-coded `True`. On an interpreter without the module the entire wrapper failed at import time, and the advertised availability flag was wrong. This diverged from the established convention in `imghdr_utils`, `sndhdr_utils`, `spwd_utils`, `nntplib_utils`, and `telnetlib_utils`, which guard the import and return a real flag.
+- `cgi_utils.py`: guarded the `cgi` import, added `_CGI_AVAILABLE`, and made `is_available()` report it. `FieldStorage`/`MiniFieldStorage`/`parse_header`/`parse_multipart` now raise `RuntimeError` when `cgi` is missing, while the pure helpers (`escape`, `parse`, `parse_qs`, `parse_qsl`) keep working because `escape` falls back to `html.escape` and `parse` falls back to `urllib.parse.parse_qs`.
+- `cgitb_utils.py`: guarded the `cgitb` import and made `is_available()` truthful. The cgitb-backed helpers (`enable`, `reset`, `lookup`, `scanvars`, `handler`, `text`, `html`) raise `RuntimeError` when the module is absent; the pure HTML formatters (`small`, `strong`, `grey`, `pink`, `blue`) still work, and `disable()` safely resets `sys.excepthook`.
+- `pipes_utils.py`: guarded the `pipes` import and made `is_available()` truthful. `Template`, `create_template`, and `make_pipeline` raise `RuntimeError` when `pipes` is absent; shell quoting falls back to `shlex.quote` (the same implementation `pipes.quote` aliases), so `quote`/`quote_command` keep working, and `step_kinds()` is unchanged.
+- Repaired an inherited full-suite regression from the previous checkpoint (`8cd6acd`): `tests/test_pydoc_utils.py` hard-coded `tests.test_pydoc_utils` as the expected module for `classname`/`parentname`, which fails under `python -m unittest discover tests/` where the module is imported as top-level `test_pydoc_utils`. The assertions now derive the expected values from `_Example.__module__`/`__qualname__`, so they pass under both import styles.
+- Tests: added behavior coverage for `cgi_utils.escape` (HTML/quote/non-string), which the scanner previously counted as covered by an existence-only `hasattr` check, and added reload-based unavailable-branch tests for all three wrappers (`mock.patch.dict(sys.modules, ..., None)` plus `importlib.reload`) so the Python 3.13+ path is verified on every interpreter. Validation: `python -m unittest tests.test_cgi_utils tests.test_cgitb_utils tests.test_pipes_utils` — 24 OK; `python -m unittest discover tests/` — 10921 OK (skipped=4); `python -m ruff check .` and `python -m mypy . --exclude build --exclude dist` clean; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` — all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — repaired the embedded `pyproject.toml` template and guarded it
 
 - **Genuine defect found and fixed — a scaffolded project could not be installed.** `scaffold.sh` embeds a `pyproject.toml` template that is maintained by hand, and the only sync test checked that it *mentions* every module. That let the template drift into a build configuration setuptools rejects: it used the `py_modules` key, so `pip install -e .` in a scaffolded project failed with `configuration error: 'tool.setuptools' must not contain {'py_modules'} properties` (verified against the pre-repair template with `setuptools.config.pyprojecttoml.read_configuration`). The same template had also fallen behind `pyproject.toml` on the `ruff` development dependency, on module order (`deque_utils`), on the entries added for `asynchat_utils`/`asyncore_utils`/`pipes_utils`/`sndhdr_utils`/`crypt_utils`/`telnetlib_utils`/`spwd_utils`/`imghdr_utils`/`calendar_utils`, on a malformed two-modules-on-one-line entry (`"nntplib_utils",    "calendar_utils",`), and it listed `spwd_utils` twice.
@@ -140863,7 +140872,8 @@ class TestIntrospection(unittest.TestCase):
 
     def test_classname_returns_the_qualified_name(self):
         found = classname(_Example, "anything")
-        self.assertEqual(found, "tests.test_pydoc_utils._Example")
+        expected = f"{_Example.__module__}.{_Example.__qualname__}"
+        self.assertEqual(found, expected)
 
     def test_classname_rejects_a_non_string_modname(self):
         with self.assertRaises(TypeError):
@@ -140871,7 +140881,7 @@ class TestIntrospection(unittest.TestCase):
 
     def test_parentname_returns_the_module_name(self):
         found = parentname(_Example, "anything")
-        self.assertEqual(found, "tests.test_pydoc_utils")
+        self.assertEqual(found, _Example.__module__)
 
     def test_parentname_rejects_a_non_string_modname(self):
         with self.assertRaises(TypeError):
@@ -155026,7 +155036,10 @@ TEST_CHUNK_UTILS
 cat > "$OUTPUT_DIR/tests/test_pipes_utils.py" <<'TEST_PIPES_UTILS'
 """Tests for pipes_utils."""
 
+import importlib
+import sys
 import unittest
+from unittest import mock
 
 import pipes_utils
 
@@ -155077,6 +155090,26 @@ class TestPipesUtils(unittest.TestCase):
     def test_make_pipeline_rejects_non_string(self) -> None:
         with self.assertRaises(TypeError):
             pipes_utils.make_pipeline("cat", 1)  # type: ignore[arg-type]
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"pipes": None}):
+                reloaded = importlib.reload(pipes_utils)
+                self.assertIs(reloaded.is_available(), False)
+                with self.assertRaises(RuntimeError):
+                    reloaded.Template()
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_template()
+                with self.assertRaises(RuntimeError):
+                    reloaded.make_pipeline("cat")
+                # Shell quoting falls back to shlex when pipes is absent.
+                self.assertEqual(reloaded.quote("a b"), "'a b'")
+                self.assertEqual(reloaded.quote_command("a b"), "'a b'")
+                self.assertEqual(
+                    reloaded.step_kinds(), ["FILEIN", "FILEOUT", "SOURCE", "SINK"]
+                )
+        finally:
+            importlib.reload(pipes_utils)
 
 
 if __name__ == "__main__":
@@ -155975,20 +156008,63 @@ TEST_SRE_CONSTANTS_UTILS
 cat > "$OUTPUT_DIR/tests/test_cgi_utils.py" <<'TEST_CGI_UTILS'
 """Tests for cgi_utils."""
 
+import importlib
+import sys
+import unittest
+from unittest import mock
+
 import cgi_utils
 
 
-def test_exports():
-    assert hasattr(cgi_utils, "FieldStorage")
-    assert hasattr(cgi_utils, "MiniFieldStorage")
-    assert hasattr(cgi_utils, "escape")
-    assert hasattr(cgi_utils, "parse")
-    assert hasattr(cgi_utils, "parse_header")
-    assert hasattr(cgi_utils, "parse_multipart")
-    assert hasattr(cgi_utils, "parse_qs")
-    assert hasattr(cgi_utils, "parse_qsl")
-    assert hasattr(cgi_utils, "is_available")
-    assert cgi_utils.is_available() is True
+class TestCgiUtils(unittest.TestCase):
+    def test_exports(self):
+        assert hasattr(cgi_utils, "FieldStorage")
+        assert hasattr(cgi_utils, "MiniFieldStorage")
+        assert hasattr(cgi_utils, "escape")
+        assert hasattr(cgi_utils, "parse")
+        assert hasattr(cgi_utils, "parse_header")
+        assert hasattr(cgi_utils, "parse_multipart")
+        assert hasattr(cgi_utils, "parse_qs")
+        assert hasattr(cgi_utils, "parse_qsl")
+        assert hasattr(cgi_utils, "is_available")
+        assert cgi_utils.is_available() is True
+
+    def test_escape_quotes_html(self):
+        assert cgi_utils.escape("<script>") == "&lt;script&gt;"
+
+    def test_escape_with_quotes(self):
+        assert cgi_utils.escape('"x"', True) == "&quot;x&quot;"
+        assert cgi_utils.escape('"x"', False) == '"x"'
+
+    def test_escape_coerces_non_strings(self):
+        assert cgi_utils.escape(42) == "42"
+
+    def test_parse_qs_and_parse_qsl(self):
+        assert cgi_utils.parse_qs("a=1&b=2") == {"a": ["1"], "b": ["2"]}
+        assert cgi_utils.parse_qsl("a=1&b=2") == [("a", "1"), ("b", "2")]
+
+    def test_unavailable_branch(self):
+        try:
+            with mock.patch.dict(sys.modules, {"cgi": None}):
+                reloaded = importlib.reload(cgi_utils)
+                assert reloaded.is_available() is False
+                with self.assertRaises(RuntimeError):
+                    reloaded.FieldStorage()
+                with self.assertRaises(RuntimeError):
+                    reloaded.MiniFieldStorage()
+                with self.assertRaises(RuntimeError):
+                    reloaded.parse_header("a", "b")
+                with self.assertRaises(RuntimeError):
+                    reloaded.parse_multipart(b"", {})
+                # Pure helpers keep working without the cgi module.
+                assert reloaded.escape("<x>") == "&lt;x&gt;"
+                assert reloaded.parse_qs("a=1") == {"a": ["1"]}
+        finally:
+            importlib.reload(cgi_utils)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_CGI_UTILS
 
 # --- cgitb_utils.py ---
@@ -155997,8 +156073,10 @@ TEST_CGI_UTILS
 cat > "$OUTPUT_DIR/tests/test_cgitb_utils.py" <<'TEST_CGITB_UTILS'
 """Tests for cgitb_utils."""
 
+import importlib
 import sys
 import unittest
+from unittest import mock
 
 import cgitb_utils
 
@@ -156044,6 +156122,37 @@ class TestCgitbUtils(unittest.TestCase):
     def test_disable_does_not_raise(self) -> None:
         cgitb_utils.disable()
         self.assertIs(sys.excepthook, sys.__excepthook__)
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"cgitb": None}):
+                reloaded = importlib.reload(cgitb_utils)
+                self.assertIs(reloaded.is_available(), False)
+                for name in [
+                    "enable",
+                    "reset",
+                    "lookup",
+                    "scanvars",
+                    "handler",
+                    "text",
+                    "html",
+                ]:
+                    with self.assertRaises(RuntimeError):
+                        getattr(reloaded, name)()
+                # The pure HTML formatters do not depend on cgitb.
+                self.assertEqual(reloaded.small("x"), "<small>x</small>")
+                self.assertEqual(reloaded.strong("x"), "<strong>x</strong>")
+                self.assertEqual(reloaded.grey("x"), '<font color="#909090">x</font>')
+                self.assertEqual(
+                    reloaded.pink("x"), "<span style='color: pink'>x</span>"
+                )
+                self.assertEqual(
+                    reloaded.blue("x"), "<span style='color: blue'>x</span>"
+                )
+                reloaded.disable()
+                self.assertIs(sys.excepthook, sys.__excepthook__)
+        finally:
+            importlib.reload(cgitb_utils)
 
 
 if __name__ == "__main__":
@@ -162689,12 +162798,18 @@ cat > "$OUTPUT_DIR/cgi_utils.py" <<'CGI_UTILS'
 
 from __future__ import annotations
 
-import cgi as _cgi
 from collections.abc import Callable
 from html import escape as _html_escape
 from typing import Any
 from urllib.parse import parse_qs as _parse_qs
 from urllib.parse import parse_qsl as _parse_qsl
+
+try:
+    import cgi as _cgi
+    _CGI_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when cgi is unavailable
+    _cgi = None  # type: ignore[assignment]
+    _CGI_AVAILABLE = False
 
 __all__: list[str] = [
     "FieldStorage",
@@ -162708,9 +162823,6 @@ __all__: list[str] = [
     "is_available",
 ]
 
-FieldStorage = _cgi.FieldStorage
-MiniFieldStorage = _cgi.MiniFieldStorage
-
 
 def escape(s: Any, quote: bool = True) -> str:
     if hasattr(_cgi, "escape"):
@@ -162721,16 +162833,36 @@ def escape(s: Any, quote: bool = True) -> str:
     return _html_escape(str(s), quote)
 
 
+if _CGI_AVAILABLE:
+    FieldStorage = _cgi.FieldStorage
+    MiniFieldStorage = _cgi.MiniFieldStorage
+    parse_header: Callable[..., Any] = _cgi.parse_header
+    parse_multipart: Callable[..., Any] = getattr(
+        _cgi, "parse_multipart", lambda *args, **kwargs: {}
+    )
+else:  # pragma: no cover - exercised when cgi is unavailable
+    class FieldStorage:  # type: ignore[no-redef]
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            raise RuntimeError("cgi module is not available")
+
+    class MiniFieldStorage(FieldStorage):  # type: ignore[no-redef]
+        pass
+
+    def parse_header(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        raise RuntimeError("cgi module is not available")
+
+    def parse_multipart(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        raise RuntimeError("cgi module is not available")
+
+
 parse = getattr(_cgi, "parse", _parse_qs)
-parse_header = _cgi.parse_header
-parse_multipart: Callable[..., Any] = getattr(_cgi, "parse_multipart", lambda *a, **k: {})
 parse_qs = _parse_qs
 parse_qsl = _parse_qsl
 
 
 def is_available() -> bool:
     """Return True if the standard library :mod:`cgi` module is available."""
-    return True
+    return _CGI_AVAILABLE
 CGI_UTILS
 
 # --- cgitb_utils.py ---
@@ -162739,9 +162871,16 @@ cat > "$OUTPUT_DIR/cgitb_utils.py" <<'CGITB_UTILS'
 
 from __future__ import annotations
 
-import cgitb as _cgitb
+import sys
 from collections.abc import Callable
 from typing import Any
+
+try:
+    import cgitb as _cgitb
+    _CGITB_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when cgitb is unavailable
+    _cgitb = None  # type: ignore[assignment]
+    _CGITB_AVAILABLE = False
 
 __all__: list[str] = [
     "enable",
@@ -162760,32 +162899,72 @@ __all__: list[str] = [
     "is_available",
 ]
 
-enable = _cgitb.enable
-reset = getattr(_cgitb, "reset", lambda: None)
-lookup = getattr(_cgitb, "lookup", lambda *a, **k: None)
-scanvars: Callable[..., Any] = getattr(_cgitb, "scanvars", lambda *a, **k: ([], []))
-handler = getattr(_cgitb, "handler", lambda *a, **k: None)
-text = getattr(_cgitb, "text", lambda *a, **k: "")
-html = getattr(_cgitb, "html", lambda *a, **k: "")
-small = getattr(_cgitb, "small", lambda x: f"<small>{x}</small>")
-strong = getattr(_cgitb, "strong", lambda x: f"<strong>{x}</strong>")
-grey = getattr(_cgitb, "grey", lambda x: f"<span style='color: gray'>{x}</span>")
-pink = getattr(_cgitb, "pink", lambda x: f"<span style='color: pink'>{x}</span>")
-blue = getattr(_cgitb, "blue", lambda x: f"<span style='color: blue'>{x}</span>")
+
+def _require_cgitb(name: str) -> None:
+    if not _CGITB_AVAILABLE:
+        raise RuntimeError(f"cgitb module is not available; {name} cannot be used")
+
+
+if _CGITB_AVAILABLE:
+    enable: Callable[..., Any] = _cgitb.enable
+    reset: Callable[..., Any] = getattr(_cgitb, "reset", lambda: None)
+    lookup: Callable[..., Any] = getattr(_cgitb, "lookup", lambda *args, **kwargs: None)
+    scanvars: Callable[..., Any] = getattr(
+        _cgitb, "scanvars", lambda *args, **kwargs: ([], [])
+    )
+    handler: Callable[..., Any] = getattr(_cgitb, "handler", lambda *args, **kwargs: None)
+    text: Callable[..., Any] = getattr(_cgitb, "text", lambda *args, **kwargs: "")
+    html: Callable[..., Any] = getattr(_cgitb, "html", lambda *args, **kwargs: "")
+else:  # pragma: no cover - exercised when cgitb is unavailable
+    def enable(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        _require_cgitb("enable")
+
+    def reset(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        _require_cgitb("reset")
+
+    def lookup(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        _require_cgitb("lookup")
+
+    def scanvars(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        _require_cgitb("scanvars")
+
+    def handler(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        _require_cgitb("handler")
+
+    def text(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        _require_cgitb("text")
+
+    def html(*args: Any, **kwargs: Any) -> Any:  # type: ignore[no-redef]
+        _require_cgitb("html")
+
+
+small: Callable[[Any], str] = getattr(
+    _cgitb, "small", lambda value: f"<small>{value}</small>"
+)
+strong: Callable[[Any], str] = getattr(
+    _cgitb, "strong", lambda value: f"<strong>{value}</strong>"
+)
+grey: Callable[[Any], str] = getattr(
+    _cgitb, "grey", lambda value: f"<font color=\"#909090\">{value}</font>"
+)
+pink: Callable[[Any], str] = getattr(
+    _cgitb, "pink", lambda value: f"<span style='color: pink'>{value}</span>"
+)
+blue: Callable[[Any], str] = getattr(
+    _cgitb, "blue", lambda value: f"<span style='color: blue'>{value}</span>"
+)
 
 
 def disable() -> None:
-    if hasattr(_cgitb, "disable"):
+    if _CGITB_AVAILABLE and hasattr(_cgitb, "disable"):
         _cgitb.disable()
         return
-    import sys
-
     sys.excepthook = sys.__excepthook__
 
 
 def is_available() -> bool:
     """Return True if the standard library :mod:`cgitb` module is available."""
-    return True
+    return _CGITB_AVAILABLE
 CGITB_UTILS
 
 # --- crypt_utils.py ---
@@ -163151,7 +163330,15 @@ cat > "$OUTPUT_DIR/pipes_utils.py" <<'PIPES_UTILS'
 
 from __future__ import annotations
 
-import pipes as _pipes
+import shlex
+from typing import Any
+
+try:
+    import pipes as _pipes
+    _PIPES_AVAILABLE = True
+except Exception:  # pragma: no cover - exercised when pipes is unavailable
+    _pipes = None  # type: ignore[assignment]
+    _PIPES_AVAILABLE = False
 
 __all__: list[str] = [
     "Template",
@@ -163163,8 +163350,22 @@ __all__: list[str] = [
     "step_kinds",
 ]
 
-Template = _pipes.Template
-quote = _pipes.quote
+
+def _require_pipes(name: str) -> None:
+    if not _PIPES_AVAILABLE:
+        raise RuntimeError(f"pipes module is not available; {name} cannot be used")
+
+
+if _PIPES_AVAILABLE:
+    Template = _pipes.Template
+    quote = _pipes.quote
+else:  # pragma: no cover - exercised when pipes is unavailable
+    class Template:  # type: ignore[no-redef]
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            raise RuntimeError("pipes module is not available")
+
+    def quote(value: str) -> str:  # type: ignore[misc]
+        return shlex.quote(value)
 
 
 def quote_command(command: str) -> str:
@@ -163174,21 +163375,23 @@ def quote_command(command: str) -> str:
     return quote(command)
 
 
-def create_template() -> _pipes.Template:
+def create_template() -> Template:
     """Create a new pipeline template."""
+    _require_pipes("create_template")
     return _pipes.Template()
 
 
 def is_available() -> bool:
     """Return True if the standard library :mod:`pipes` module is available."""
-    return True
+    return _PIPES_AVAILABLE
 
 
-def make_pipeline(*commands: str) -> _pipes.Template:
+def make_pipeline(*commands: str) -> Template:
     """Create a pipeline template from commands."""
     for cmd in commands:
         if not isinstance(cmd, str):
             raise TypeError("commands must be strings")
+    _require_pipes("make_pipeline")
     t = _pipes.Template()
     # pipes.Template uses different API; just return configured template
     for cmd in commands:

@@ -187,7 +187,8 @@ class TestIntrospection(unittest.TestCase):
 
     def test_classname_returns_the_qualified_name(self):
         found = classname(_Example, "anything")
-        self.assertEqual(found, "tests.test_pydoc_utils._Example")
+        expected = f"{_Example.__module__}.{_Example.__qualname__}"
+        self.assertEqual(found, expected)
 
     def test_classname_rejects_a_non_string_modname(self):
         with self.assertRaises(TypeError):
@@ -195,7 +196,7 @@ class TestIntrospection(unittest.TestCase):
 
     def test_parentname_returns_the_module_name(self):
         found = parentname(_Example, "anything")
-        self.assertEqual(found, "tests.test_pydoc_utils")
+        self.assertEqual(found, _Example.__module__)
 
     def test_parentname_rejects_a_non_string_modname(self):
         with self.assertRaises(TypeError):
