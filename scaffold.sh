@@ -71231,6 +71231,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — reduced test-suite wall time in the scaffold integration test
+
+- **Avoidable process delay removed (test-suite timing) — `tests/test_scaffold.py::TestScaffoldKiloJson` ran `scaffold.sh` once per test in `setUp`, and its four tests each paid ~0.7s for the same deterministic subprocess.** `scaffold.sh` output is deterministic for a given project name and output directory, so the four tests were each regenerating an identical project only to read the same `kilo.json` and required-file list. Moved the subprocess invocation to `setUpClass` (and cleanup to `tearDownClass`), so the generator runs once for the whole class; every assertion is unchanged and still runs against the same generated output. Wall time for `tests/test_scaffold.py` dropped from ~2.82s to ~0.73s (~3.9x faster); full `python -m pytest tests/` dropped from ~24.35s to ~22.93s. No source/API/behavior changes; `tests/test_scaffold.py` is not embedded in `scaffold.sh`, so no generator refresh was required.
+- Validation: `python -m pytest tests/test_scaffold.py` — 4 OK; `python -m pytest tests/` — 11183 OK (skipped=4); `python -m ruff check tests/test_scaffold.py` clean; `python -m mypy tests/test_scaffold.py` clean; `python tools/refresh_scaffold.py --check` (in sync); `python tools/scan_untested.py` (clean).
+
 ## Unreleased — fixed `verify_state_delta` unknown-ref handling for clean-state probes
 
 - **Integrity fix — `tools/verify_state_delta.py` treated an unresolved comparison ref as "no source-relevant change".** `git status --porcelain --untracked-files=all <ref> -- <pathspecs>` returns exit code 0 even when `<ref>` cannot be resolved, so `_changed_and_untracked_since` returned empty lists for refs such as a zero SHA (rebase/force-push/shallow-clone edge cases and the test contract in `tests/test_verify_state_delta.py::TestRepositoryState::test_source_changed_since_an_unknown_ref_is_true`). `source_changed_since` therefore returned `False`, which could let the clean-tree fast path skip verification when the checkpoint could not actually be compared.

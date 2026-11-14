@@ -18,25 +18,32 @@ SCAFFOLD = ROOT / "scaffold.sh"
 class TestScaffoldKiloJson(unittest.TestCase):
     """Verify scaffold.sh emits a complete, valid kilo.json."""
 
-    def setUp(self) -> None:
-        self.tmp = Path(tempfile.mkdtemp(prefix="scaffold-test-"))
-        self.project_dir = self.tmp / "my-project"
+    tmp: Path
+    project_dir: Path
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        # scaffold.sh is deterministic, so run it once for the whole class
+        # instead of once per test; every assertion below reads the same output.
+        cls.tmp = Path(tempfile.mkdtemp(prefix="scaffold-test-"))
+        cls.project_dir = cls.tmp / "my-project"
         # --no-test keeps the run fast and hermetic.
         result = subprocess.run(
-            ["bash", str(SCAFFOLD), "My Project", str(self.project_dir), "--no-test"],
+            ["bash", str(SCAFFOLD), "My Project", str(cls.project_dir), "--no-test"],
             capture_output=True,
             text=True,
             timeout=120,
             check=False,
         )
-        self.assertEqual(
-            result.returncode,
-            0,
-            msg=(f"scaffold.sh failed:\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}"),
-        )
+        if result.returncode != 0:
+            raise AssertionError(
+                "scaffold.sh failed:\n"
+                f"stdout:\n{result.stdout}\nstderr:\n{result.stderr}"
+            )
 
-    def tearDown(self) -> None:
-        shutil.rmtree(self.tmp, ignore_errors=True)
+    @classmethod
+    def tearDownClass(cls) -> None:
+        shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def test_kilo_json_is_valid(self) -> None:
         kilo_json = self.project_dir / "kilo.json"
