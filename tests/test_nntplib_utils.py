@@ -1,6 +1,9 @@
 """Tests for nntplib_utils."""
 
+import importlib
+import sys
 import unittest
+from unittest import mock
 
 import nntplib_utils
 
@@ -95,6 +98,31 @@ class TestExceptionHierarchy(unittest.TestCase):
 
     def test_data_error_is_nntp_error(self) -> None:
         self.assertTrue(issubclass(nntplib_utils.NNTPDataError, nntplib_utils.NNTPError))
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`nntplib` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"nntplib": None}):
+                reloaded = importlib.reload(nntplib_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.NNTPError, Exception)
+                assert issubclass(reloaded.NNTPReplyError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPTemporaryError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPPermanentError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPProtocolError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPDataError, reloaded.NNTPError)
+                with self.assertRaises(RuntimeError):
+                    reloaded.NNTP()
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_nntp("example.com")
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_nntp_ssl("example.com")
+        finally:
+            importlib.reload(nntplib_utils)
+        assert nntplib_utils.is_available() is True
 
 
 if __name__ == "__main__":

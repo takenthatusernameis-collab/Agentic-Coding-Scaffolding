@@ -156314,7 +156314,10 @@ TEST_CGITB_UTILS
 cat > "$OUTPUT_DIR/tests/test_nntplib_utils.py" <<'TEST_NNTPLIB_UTILS'
 """Tests for nntplib_utils."""
 
+import importlib
+import sys
 import unittest
+from unittest import mock
 
 import nntplib_utils
 
@@ -156411,6 +156414,31 @@ class TestExceptionHierarchy(unittest.TestCase):
         self.assertTrue(issubclass(nntplib_utils.NNTPDataError, nntplib_utils.NNTPError))
 
 
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`nntplib` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"nntplib": None}):
+                reloaded = importlib.reload(nntplib_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.NNTPError, Exception)
+                assert issubclass(reloaded.NNTPReplyError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPTemporaryError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPPermanentError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPProtocolError, reloaded.NNTPError)
+                assert issubclass(reloaded.NNTPDataError, reloaded.NNTPError)
+                with self.assertRaises(RuntimeError):
+                    reloaded.NNTP()
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_nntp("example.com")
+                with self.assertRaises(RuntimeError):
+                    reloaded.create_nntp_ssl("example.com")
+        finally:
+            importlib.reload(nntplib_utils)
+        assert nntplib_utils.is_available() is True
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_NNTPLIB_UTILS
@@ -156421,12 +156449,39 @@ TEST_NNTPLIB_UTILS
 cat > "$OUTPUT_DIR/tests/test_sndhdr_utils.py" <<'TEST_SNDHDR_UTILS'
 """Tests for sndhdr_utils."""
 
+import importlib
+import sys
+import unittest
+from unittest import mock
+
 import sndhdr_utils
 
 
 def test_exports():
     for name in ["what", "whathdr", "tests", "is_available"]:
         assert hasattr(sndhdr_utils, name)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`sndhdr` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"sndhdr": None}):
+                reloaded = importlib.reload(sndhdr_utils)
+                assert reloaded.is_available() is False
+                with self.assertRaises(RuntimeError):
+                    reloaded.what("dummy")
+                with self.assertRaises(RuntimeError):
+                    reloaded.whathdr("dummy")
+                assert reloaded.tests == []
+        finally:
+            importlib.reload(sndhdr_utils)
+        assert sndhdr_utils.is_available() is True
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_SNDHDR_UTILS
 
 # --- sre_compile_utils.py ---
@@ -157049,12 +157104,38 @@ TEST_SUNAU_UTILS
 cat > "$OUTPUT_DIR/tests/test_spwd_utils.py" <<'TEST_SPWD_UTILS'
 """Tests for spwd_utils."""
 
+import importlib
+import sys
+import unittest
+from unittest import mock
+
 import spwd_utils
 
 
 def test_exports():
     for name in ["getspnam", "getspall", "is_available"]:
         assert hasattr(spwd_utils, name)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`spwd` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"spwd": None}):
+                reloaded = importlib.reload(spwd_utils)
+                assert reloaded.is_available() is False
+                with self.assertRaises(RuntimeError):
+                    reloaded.getspnam("dummy")
+                with self.assertRaises(RuntimeError):
+                    reloaded.getspall()
+        finally:
+            importlib.reload(spwd_utils)
+        assert spwd_utils.is_available() is True
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_SPWD_UTILS
 
 # --- cooldown_utils.py ---
@@ -158810,9 +158891,13 @@ TEST_HTML_ENTITIES_UTILS
 
 # --- tests/test_ossaudiodev_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_ossaudiodev_utils.py" <<'TEST_OSSAUDIODEV_UTILS'
+import importlib
 import ossaudiodev
+import sys
 import unittest
+from unittest import mock
 
+import ossaudiodev_utils
 from ossaudiodev_utils import (
     AFMT_S16_LE,
     SOUND_MIXER_PCM,
@@ -158845,6 +158930,28 @@ class TestOssaudiodevUtils(unittest.TestCase):
         result = is_available()
         self.assertIsInstance(result, bool)
         self.assertEqual(result, ossaudiodev is not None)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`ossaudiodev` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"ossaudiodev": None}):
+                reloaded = importlib.reload(ossaudiodev_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.OSSAudioError, Exception)
+                assert reloaded.error is reloaded.OSSAudioError
+                with self.assertRaises(RuntimeError):
+                    reloaded.open()
+                with self.assertRaises(RuntimeError):
+                    reloaded.openmixer()
+                # Constants have fallback values
+                assert reloaded.AFMT_S16_LE == 0x00000010
+                assert reloaded.SOUND_MIXER_PCM == 0
+        finally:
+            importlib.reload(ossaudiodev_utils)
+        assert ossaudiodev_utils.is_available() is True
 
 
 if __name__ == "__main__":

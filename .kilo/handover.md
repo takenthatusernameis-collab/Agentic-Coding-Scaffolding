@@ -1,20 +1,20 @@
 # Handover
 
-## Latest Session (2026-11-14T16:42Z)
+## Latest Session (2026-11-14T16:49Z)
 
-- `board_read`: no pending task/messages (bootstrap/idle). Durable handover in `PROJECT_STATUS.md` requested Python 3.13+ portability for `aifc_utils`, `sunau_utils`, `uu_utils`, `xdrlib_utils`, `mailcap_utils`.
-- State-delta: `python tools/verify_state_delta.py` at start showed stale/out-of-sync embedded copies for those modules/tests (7 stale) because repository copies had been updated but `scaffold.sh` was not refreshed; repaired as part of this session.
-- Delivered (Python 3.13+ portability & availability truthfulness): `aifc_utils`, `sunau_utils`, `uu_utils`, `xdrlib_utils`, `mailcap_utils` now use guarded imports and truthful `is_available()` for stdlib modules removed in Python 3.13 (`aifc`, `sunau`, `uu`, `xdrlib`, `mailcap`). Module-backed operations raise `RuntimeError` when unavailable; exported `Error`/`ConversionError` remain valid exception classes. `xdrlib_utils` exposes compatible `Packer`/`Unpacker` callables that raise `RuntimeError` on instantiation when unavailable (and preserves subclass relationship between `ConversionError` and `Error`).
-- Tests: expanded availability/round-trip coverage and added reload-based unavailable-branch tests for all five wrappers (`mock.patch.dict(sys.modules, ..., None)` + `importlib.reload`), so 3.13+ removal paths are verified on 3.12. `mailcap_utils.read_mailcap_file` coverage now asserts upstream `DeprecationWarning` to keep test output clean.
-- Docs/scaffold sync: added Unreleased changelog entry before refresh; `python tools/refresh_scaffold.py` refreshed embedded copies; `--check` reports all in sync. `scan_untested.py` clean for default exported API.
-- Validation: `python -m unittest tests.test_aifc_utils tests.test_sunau_utils tests.test_uu_utils tests.test_xdrlib_utils tests.test_mailcap_utils` (35 OK); `make lint` clean; `make typecheck` clean; `python -m unittest discover tests/` OK (10928 tests, 4 skipped); `python tools/verify_state_delta.py --full --record-full-suite` passed.
+- `board_read`: no pending task/messages (bootstrap session). Durable handover in `PROJECT_STATUS.md` requested Python 3.13+ portability audit continuation.
+- Delivered (Python 3.13+ unavailable-branch test coverage): added reload-based unavailable-branch tests for `nntplib_utils`, `sndhdr_utils`, `spwd_utils`, `ossaudiodev_utils`. These wrappers already guarded the stdlib imports (`nntplib`, `sndhdr`, `spwd`, `ossaudiodev` — all removed in Python 3.13) and raised `RuntimeError` on module-backed operations when the module is absent, matching the convention established for `aifc`/`sunau`/`uu`/`xdrlib`/`mailcap`/`cgi`/`cgitb`/`pipes`/`telnetlib`/`imghdr`/`crypt`. The gap was a missing test for the unavailable branch on every interpreter.
+- Each test reloads the wrapper with the stdlib module removed from `sys.modules` (`mock.patch.dict(sys.modules, ..., None)` + `importlib.reload`), verifies `is_available()` returns `False`, exception hierarchies are preserved, module-backed callables raise `RuntimeError`, and constants fall back to documented defaults where applicable.
+- Tests: `python -m unittest tests.test_nntplib_utils tests.test_sndhdr_utils tests.test_spwd_utils tests.test_ossaudiodev_utils` — 26 OK; `python -m unittest discover tests/` — 10928 OK (skipped=4).
+- Docs/scaffold sync: added Unreleased changelog entry before refresh; `python tools/refresh_scaffold.py` refreshed 4 embedded test copies; `--check` reports all in sync. `scan_untested.py` clean for default exported API (zero exported-but-untested callables).
+- Validation: `make lint` clean; `make typecheck` clean; `python tools/verify_state_delta.py --full --record-full-suite` passed.
 - `.github/workflows/**` unchanged.
 
 ## State
 
-- HEAD at start: `9324ee2` (checkpoint advanced during session); verify with `python tools/verify_state_delta.py`.
-- Verified checkpoint: `.kilo/last_verified.checkpoint` (updated by `--full --record-full-suite`).
-- Working tree (pending auto-commit): `CHANGELOG.md`, `aifc_utils.py`, `mailcap_utils.py`, `scaffold.sh`, `sunau_utils.py`, `tests/test_aifc_utils.py`, `tests/test_mailcap_utils.py`, `tests/test_sunau_utils.py`, `tests/test_uu_utils.py`, `tests/test_xdrlib_utils.py`, `uu_utils.py`, `xdrlib_utils.py`, `.kilo/handover.md`, `PROJECT_STATUS.md` (auto-committed by CI per AGENTS.md; do not commit manually)
+- HEAD at start: `bd24639e` (checkpoint advanced during session); verify with `python tools/verify_state_delta.py`.
+- Verified checkpoint: `.kilo/last_verified.checkpoint` (updated by `--full --record-full-suite` to `12bda210`).
+- Working tree (pending auto-commit): `CHANGELOG.md`, `tests/test_nntplib_utils.py`, `tests/test_sndhdr_utils.py`, `tests/test_spwd_utils.py`, `tests/test_ossaudiodev_utils.py`, `scaffold.sh`, `.kilo/handover.md`, `PROJECT_STATUS.md` (auto-committed by CI per AGENTS.md; do not commit manually)
 
 ## Task for Next Agent
 

@@ -1,6 +1,10 @@
+import importlib
 import ossaudiodev
+import sys
 import unittest
+from unittest import mock
 
+import ossaudiodev_utils
 from ossaudiodev_utils import (
     AFMT_S16_LE,
     SOUND_MIXER_PCM,
@@ -33,6 +37,28 @@ class TestOssaudiodevUtils(unittest.TestCase):
         result = is_available()
         self.assertIsInstance(result, bool)
         self.assertEqual(result, ossaudiodev is not None)
+
+
+class TestUnavailableModule(unittest.TestCase):
+    """Verify the Python 3.13+ path where :mod:`ossaudiodev` no longer ships."""
+
+    def test_unavailable_branch(self) -> None:
+        try:
+            with mock.patch.dict(sys.modules, {"ossaudiodev": None}):
+                reloaded = importlib.reload(ossaudiodev_utils)
+                assert reloaded.is_available() is False
+                assert issubclass(reloaded.OSSAudioError, Exception)
+                assert reloaded.error is reloaded.OSSAudioError
+                with self.assertRaises(RuntimeError):
+                    reloaded.open()
+                with self.assertRaises(RuntimeError):
+                    reloaded.openmixer()
+                # Constants have fallback values
+                assert reloaded.AFMT_S16_LE == 0x00000010
+                assert reloaded.SOUND_MIXER_PCM == 0
+        finally:
+            importlib.reload(ossaudiodev_utils)
+        assert ossaudiodev_utils.is_available() is True
 
 
 if __name__ == "__main__":
