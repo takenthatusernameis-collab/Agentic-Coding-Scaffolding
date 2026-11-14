@@ -92,7 +92,9 @@ from strings import (
     remove_blank_lines,
     remove_consonants,
     remove_digits,
+    remove_prefix,
     remove_punctuation,
+    remove_suffix,
     remove_vowels,
     remove_whitespace,
     removeprefix,
@@ -2153,6 +2155,74 @@ class TestRemoveSuffix(unittest.TestCase):
             removesuffix(123, "s")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             removesuffix("abc", 123)  # type: ignore[arg-type]
+
+
+class TestRemovePrefixAlias(unittest.TestCase):
+    """Coverage for the ``remove_prefix`` alias of :func:`removeprefix`."""
+
+    def test_alias_matches_removeprefix(self):
+        self.assertIs(remove_prefix, removeprefix)
+
+    def test_alias_strips_present_prefix(self):
+        self.assertEqual(remove_prefix("prefix-value", "prefix-"), "value")
+
+    def test_alias_returns_string_when_prefix_absent(self):
+        self.assertEqual(remove_prefix("value", "prefix-"), "value")
+
+    def test_alias_empty_prefix_is_noop(self):
+        self.assertEqual(remove_prefix("hello", ""), "hello")
+
+    def test_alias_full_match(self):
+        self.assertEqual(remove_prefix("abc", "abc"), "")
+
+    def test_alias_partial_overlap_keeps_string(self):
+        self.assertEqual(remove_prefix("abcX", "abcY"), "abcX")
+
+    def test_alias_case_sensitive(self):
+        self.assertEqual(remove_prefix("Hello", "hello"), "Hello")
+
+    def test_alias_empty_string(self):
+        self.assertEqual(remove_prefix("", "prefix"), "")
+
+    def test_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            remove_prefix(123, "p")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_prefix("abc", 123)  # type: ignore[arg-type]
+
+
+class TestRemoveSuffixAlias(unittest.TestCase):
+    """Coverage for the ``remove_suffix`` alias of :func:`removesuffix`."""
+
+    def test_alias_matches_removesuffix(self):
+        self.assertIs(remove_suffix, removesuffix)
+
+    def test_alias_strips_present_suffix(self):
+        self.assertEqual(remove_suffix("value-suffix", "-suffix"), "value")
+
+    def test_alias_returns_string_when_suffix_absent(self):
+        self.assertEqual(remove_suffix("value", "-suffix"), "value")
+
+    def test_alias_empty_suffix_is_noop(self):
+        self.assertEqual(remove_suffix("hello", ""), "hello")
+
+    def test_alias_full_match(self):
+        self.assertEqual(remove_suffix("abc", "abc"), "")
+
+    def test_alias_partial_overlap_keeps_string(self):
+        self.assertEqual(remove_suffix("abcX", "abcY"), "abcX")
+
+    def test_alias_case_sensitive(self):
+        self.assertEqual(remove_suffix("Hello", "ello"), "H")
+
+    def test_alias_empty_string(self):
+        self.assertEqual(remove_suffix("", "suffix"), "")
+
+    def test_alias_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            remove_suffix(123, "s")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            remove_suffix("abc", 123)  # type: ignore[arg-type]
 
 
 class TestPartition(unittest.TestCase):
