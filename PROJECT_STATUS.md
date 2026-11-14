@@ -25,10 +25,11 @@
 
 1. Run `board_read` and execute any task posted to you/main.
 2. Confirm state with `python tools/verify_state_delta.py`; expect clean fast path after auto-commit.
-3. Deliver one concrete, verified improvement (evidence-driven):
-   - `python tools/scan_untested.py --all` for safe behavior coverage opportunities (skip non-behavioral/interactive noise).
-   - Continue Python 3.13+ portability/guard audit: find wrappers importing removed/renamed stdlib modules without `is_available()`/reload-based unavailable-branch tests and align to convention.
-   - Fix wrapper doc/API/edge-case mismatches with targeted tests.
-   Avoid no-op/timestamp-only changes.
+3. Execute the optimize-delays pass (`.kilo/command/optimize-delays.md`) to find and remove the highest-leverage avoidable delay bottleneck in the repository's CI/development workflow without weakening guarantees.
+   - Establish the state delta (git status, recent commits, checkpoint, test/build status)
+   - Classify waits as AVOIDABLE_PROCESS_DELAY, EXTERNAL_CONSTRAINT, INTEGRITY_OR_SAFETY_GATE, or UNKNOWN_DELAY
+   - Make a small durable improvement (state-delta guard, event-driven wakeup, bounded timeout, task sharding, caching) with measurable before/after criteria
+   - Run the smallest relevant verification first, then full gate at milestone
+   - Do not modify `.github/workflows/**` (maintainer-managed)
 4. Validation: edit sources/docs first, then `python tools/refresh_scaffold.py` and `--check`; run `scan_untested.py`, targeted tests, `make lint`, `make typecheck`, `python -m unittest discover tests/` when `tests/` changed, then `python tools/verify_state_delta.py --full --record-full-suite`.
 5. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` (before refresh), `.kilo/handover.md`, `PROJECT_STATUS.md`; post next task to `main` via `board_post` (or record if self-post refused).

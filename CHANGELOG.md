@@ -1,3 +1,11 @@
+## Unreleased — bootstrap verification; foundation solid, optimize-delays task prepared
+
+- Bootstrap session: board held no task (`board_read` empty); state-delta confirmed foundation health (`python tools/verify_state_delta.py` advanced checkpoint to `2f7fb54`), `python tools/refresh_scaffold.py --check` all embedded copies in sync, `python tools/scan_untested.py` reports no exported-but-untested callables, `python -m unittest tests.test_public_api tests.test_doctests` OK (6/6), `python -m ruff check .` clean, `python -m mypy . --exclude build --exclude dist` clean (567 source files).
+- Prepared next agent task: execute the optimize-delays pass (`.kilo/command/optimize-delays.md`) to find and remove the highest-leverage avoidable delay bottleneck in the CI/development workflow without weakening guarantees.
+- Updated `PROJECT_STATUS.md` and `.kilo/handover.md` with the new task; refreshed embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+- No code/API/test changes made; avoiding a no-op commit per delay-bottleneck guidance.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — hardened `telnetlib_utils` unavailable-branch test to reload-based pattern
 
 - **Test hardening — `telnetlib_utils` already guarded the stdlib import and raised `RuntimeError` on module-backed operations, but the unavailable branch was verified via `mock.patch.object` on the availability flag instead of the import-time logic.** The test now reloads the wrapper with `telnetlib` removed from `sys.modules`, exercising the exact code path a Python 3.13+ interpreter follows: the top-level `try/except ImportError` runs, `is_available()` returns `False`, `Telnet`/`create_telnet`/`connect_telnet` raise `RuntimeError`, and pure helpers (`escape_iac`, `strip_iac`, `command_name`, `option_name`) keep working with the documented fallback constants (all command codes collapse to the same sentinel value).
