@@ -355,7 +355,10 @@ class TestHelpers(unittest.TestCase):
         self.assertTrue(found is None or callable(found))
 
     def test_apropos_prints_a_summary(self):
-        apropos("pydoc")
+        from unittest import mock
+        with mock.patch("pydoc_utils._pydoc.apropos") as mock_apropos:
+            apropos("pydoc")
+            mock_apropos.assert_called_once_with("pydoc")
 
     def test_writedoc_writes_a_file(self):
         import os

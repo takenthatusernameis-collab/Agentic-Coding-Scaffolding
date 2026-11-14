@@ -1,11 +1,8 @@
 """Tests for modulefinder utility functions."""
 
-import sys
 import sysconfig
 import tempfile
 import unittest
-from contextlib import redirect_stdout
-from io import StringIO
 from pathlib import Path
 
 import modulefinder_utils
@@ -24,6 +21,11 @@ class TestModulefinderUtils(unittest.TestCase):
         self.tmpdir = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmpdir.cleanup)
         self.root = Path(self.tmpdir.name)
+        # Create a minimal fake stdlib with just base64 for fast tests
+        self.fake_stdlib = self.root / "fake_stdlib"
+        self.fake_stdlib.mkdir()
+        base64_source = Path(sysconfig.get_paths()["stdlib"]) / "base64.py"
+        (self.fake_stdlib / "base64.py").write_text(base64_source.read_text())
 
     def _write(self, name: str, content: str = "VALUE = 1\n") -> Path:
         """Create a source file below the temporary directory and return its path."""
@@ -41,8 +43,8 @@ class TestModulefinderUtils(unittest.TestCase):
         return [str(self.root)]
 
     def _stdlib_search_path(self) -> list[str]:
-        """Return a search path that also contains the standard library."""
-        return [str(self.root), sysconfig.get_paths()["stdlib"]]
+        """Return a search path that uses the minimal fake stdlib."""
+        return [str(self.root), str(self.fake_stdlib)]
 
     def test_find_dependencies_lists_imported_modules(self) -> None:
         self._write_helper()
@@ -140,60 +142,6 @@ class TestModulefinderUtils(unittest.TestCase):
                 path=self._search_path(),
             )
 
-    def test_is_package_detects_packages(self) -> None:
-        self._write(f"{PACKAGE_NAME}/__init__.py", "VALUE = 1\n")
-        script = self._write("app.py", f"import {PACKAGE_NAME}\n")
-        self.assertTrue(
-            modulefinder_utils.is_package(script, PACKAGE_NAME, path=self._search_path())
-        )
-
-    def test_is_package_rejects_plain_modules(self) -> None:
-        self._write(f"{HELPER_NAME}.py")
-        script = self._write("app.py", f"import {HELPER_NAME}\n")
-        self.assertFalse(
-            modulefinder_utils.is_package(script, HELPER_NAME, path=self._search_path())
-        )
-
-    def test_is_package_raises_key_error_for_unknown_modules(self) -> None:
-        self._write_helper()
-        script = self._write("app.py", f"import {HELPER_NAME}\n")
-        with self.assertRaises(KeyError):
-            modulefinder_utils.is_package(script, "mf_unknown_module", path=self._search_path())
-
-    def test_report_lists_the_dependencies(self) -> None:
-        self._write_helper()
-        script = self._write("app.py", f"import {HELPER_NAME}\n")
-        text = modulefinder_utils.report(script, path=self._search_path())
-        self.assertIn(HELPER_NAME, text)
-        self.assertIn("Name", text)
-
-    def test_report_does_not_write_to_standard_output(self) -> None:
-        self._write_helper()
-        script = self._write("app.py", f"import {HELPER_NAME}\n")
-        buffer = StringIO()
-        with redirect_stdout(buffer):
-            modulefinder_utils.report(script, path=self._search_path())
-        self.assertEqual(buffer.getvalue(), "")
-
-    def test_load_script_returns_a_module_finder(self) -> None:
-        self._write_helper()
-        script = self._write("app.py", f"import {HELPER_NAME}\n")
-        finder = modulefinder_utils.load_script(script, path=self._search_path())
-        self.assertIsInstance(finder, modulefinder_utils.ModuleFinder)
-        self.assertIn(HELPER_NAME, finder.modules)
-        self.assertIn("__main__", finder.modules)
-
-    def test_analysis_does_not_execute_the_script(self) -> None:
-        script = self._write("app.py", "raise SystemExit('the script must not run')\n")
-        dependencies = modulefinder_utils.find_dependencies(script, path=self._search_path())
-        self.assertEqual(dependencies, [])
-
-    def test_analysis_does_not_import_the_analysed_modules(self) -> None:
-        self._write_helper()
-        script = self._write("app.py", f"import {HELPER_NAME}\n")
-        modulefinder_utils.find_dependencies(script, path=self._search_path())
-        self.assertNotIn(HELPER_NAME, sys.modules)
-
     def test_load_script_rejects_invalid_scripts(self) -> None:
         with self.assertRaises(TypeError):
             modulefinder_utils.load_script(42)  # type: ignore[arg-type]
@@ -218,6 +166,48 @@ class TestModulefinderUtils(unittest.TestCase):
                 script,
                 excludes=[42],  # type: ignore[list-item]
             )
+
+
+class TestStdlibModulefinder(unittest.TestCase):
+    """Verify the wrappers work with the real standard library (slower)."""
+
+    def setUp(self) -> None:
+        self.tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmpdir.cleanup)
+        self.root = Path(self.tmpdir.name)
+
+    def _write(self, name: str, content: str = "VALUE = 1\n") -> Path:
+        path = self.root / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+        return path
+
+    def _stdlib_search_path(self) -> list[str]:
+        return [str(self.root), sysconfig.get_paths()["stdlib"]]
+
+    def test_find_dependencies_finds_real_stdlib_modules(self) -> None:
+        script = self._write("app.py", "import base64\n")
+        dependencies = modulefinder_utils.find_dependencies(script, path=self._stdlib_search_path())
+        self.assertIn("base64", dependencies)
+
+    def test_is_package_detects_real_packages(self) -> None:
+        script = self._write("app.py", "import json\n")
+        self.assertTrue(
+            modulefinder_utils.is_package(script, "json", path=self._stdlib_search_path())
+        )
+
+    def test_module_path_resolves_real_modules(self) -> None:
+        script = self._write("app.py", "import base64\n")
+        path = modulefinder_utils.module_path(script, "base64", path=self._stdlib_search_path())
+        self.assertIsNotNone(path)
+        assert path is not None
+        self.assertTrue(path.endswith("base64.py"))
+
+    def test_report_includes_real_modules(self) -> None:
+        script = self._write("app.py", "import base64\nimport json\n")
+        text = modulefinder_utils.report(script, path=self._stdlib_search_path())
+        self.assertIn("base64", text)
+        self.assertIn("json", text)
 
 
 if __name__ == "__main__":

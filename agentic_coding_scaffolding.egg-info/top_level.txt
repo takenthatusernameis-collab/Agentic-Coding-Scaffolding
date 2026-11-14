@@ -6,7 +6,9 @@ argparse_utils
 array_utils
 ast_utils
 async_utils
+asynchat_utils
 asyncio_utils
+asyncore_utils
 atexit_utils
 backoff_utils
 base64_utils

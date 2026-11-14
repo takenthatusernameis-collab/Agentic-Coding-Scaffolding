@@ -8,7 +8,9 @@ argparse_utils.py
 array_utils.py
 ast_utils.py
 async_utils.py
+asynchat_utils.py
 asyncio_utils.py
+asyncore_utils.py
 atexit_utils.py
 backoff_utils.py
 base64_utils.py
@@ -290,7 +292,9 @@ tests/test_argparse_utils.py
 tests/test_array_utils.py
 tests/test_ast_utils.py
 tests/test_async_utils.py
+tests/test_asynchat_utils.py
 tests/test_asyncio_utils.py
+tests/test_asyncore_utils.py
 tests/test_atexit_utils.py
 tests/test_backoff_utils.py
 tests/test_base64_utils.py
@@ -350,6 +354,7 @@ tests/test_dict_utils.py
 tests/test_difflib_utils.py
 tests/test_dis_utils.py
 tests/test_doctest_utils.py
+tests/test_doctests.py
 tests/test_dumbdbm_utils.py
 tests/test_duration_utils.py
 tests/test_either_utils.py
@@ -474,6 +479,7 @@ tests/test_roman_utils.py
 tests/test_runpy_utils.py
 tests/test_scaffold.py
 tests/test_scaffold_sync.py
+tests/test_scan_untested.py
 tests/test_sched_utils.py
 tests/test_secrets_utils.py
 tests/test_select_utils.py
@@ -548,6 +554,7 @@ tests/test_uu_utils.py
 tests/test_uuid_utils.py
 tests/test_validation_utils.py
 tests/test_venv_utils.py
+tests/test_verify_state_delta.py
 tests/test_version_utils.py
 tests/test_warnings_utils.py
 tests/test_wave_utils.py
