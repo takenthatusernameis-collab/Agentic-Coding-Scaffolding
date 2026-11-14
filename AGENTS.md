@@ -33,6 +33,13 @@ new module and its test are added to `scaffold.sh` by running the tool instead o
 header comment of the generator, the embedded `pyproject.toml`, the README tree, and the changelog
 are still maintained by hand.
 
+Because those four surfaces are hand-maintained, `tests/test_scaffold_sync.py` compares them against
+the repository instead of trusting them: the embedded `README.md`, `AGENTS.md`, and `CHANGELOG.md`
+must be byte-identical to `refresh_scaffold.templated_body(...)`, and the embedded `pyproject.toml`
+must equal `pyproject.toml` with the project name replaced by `${PROJECT_ID}`, must be accepted by
+`setuptools`, and must not list a module twice. A hand edit to the build configuration therefore
+has to be made in `pyproject.toml` first and then copied into the generator (or the sync test fails).
+
 ## Coding Conventions
 
 - Write clean, well-documented code

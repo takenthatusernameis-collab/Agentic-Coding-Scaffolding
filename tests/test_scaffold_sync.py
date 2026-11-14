@@ -8,9 +8,11 @@ identical to the repository files, so a scaffolded project is a faithful copy
 of the project that generated it.
 """
 
+import importlib
 import importlib.util
 import os
 import re
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -34,6 +36,11 @@ PYPROJECT_HEREDOC = re.compile(
     r"(?P<body>.*?)\n(?P=delim)\n",
     re.S,
 )
+
+#: The module list of a ``pyproject.toml``. The key is spelled with a hyphen,
+#: the spelling setuptools reads; the underscore spelling is a defect this suite
+#: has to be able to see, so the pattern must not require one spelling.
+PYTHON_MODULES = re.compile(r"^py[-_]modules = \[(?P<body>.*?)^\]", re.S | re.M)
 
 
 def load_refresh_tool():
@@ -79,6 +86,24 @@ def embedded_pyproject(scaffold_text: str) -> str:
     """Return the body of the ``pyproject.toml`` template of the generator."""
     match = PYPROJECT_HEREDOC.search(scaffold_text)
     return match.group("body") if match else ""
+
+
+def pyproject_template(pyproject_text: str) -> str:
+    """Return the ``pyproject.toml`` template the generator has to embed.
+
+    The build configuration of a scaffolded project is the build configuration
+    of this repository with the name of the project replaced by ``PROJECT_ID``,
+    the identifier the generator derives from the name it is given. Deriving the
+    template here states that rule once, so the test does not repeat the
+    repository content and cannot agree with a stale copy of it.
+    """
+    return re.sub(
+        r'^name = "[^"]*"$',
+        'name = "${PROJECT_ID}"',
+        pyproject_text.rstrip("\n"),
+        count=1,
+        flags=re.M,
+    )
 
 
 def readme_module_paragraph(readme_text: str, name: str) -> str:
@@ -359,6 +384,67 @@ class TestScaffoldSync(unittest.TestCase):
                     expected,
                     f"the embedded {relative} is out of sync; run `make refresh-scaffold`",
                 )
+
+    def test_the_embedded_pyproject_matches_the_repository_build_configuration(self) -> None:
+        """The embedded ``pyproject.toml`` must match the repository configuration.
+
+        ``test_every_module_is_registered_in_the_embedded_pyproject`` only checks
+        that the template mentions every module, so the template can drift in
+        every other respect and keep passing. It did: the embedded copy used the
+        ``py_modules`` key, which setuptools rejects (``configuration error:
+        ``tool.setuptools`` must not contain {'py_modules'} properties``), so a
+        scaffolded project could not be installed, and it had fallen behind the
+        repository on the ``ruff`` development dependency and on the module list.
+        Comparing the whole template is what catches such drift.
+        """
+        embedded = embedded_pyproject(self.scaffold_text)
+        self.assertTrue(embedded, "scaffold.sh does not embed a pyproject.toml template")
+        self.assertEqual(
+            embedded,
+            pyproject_template(self.pyproject_text),
+            "the embedded pyproject.toml is out of sync with pyproject.toml",
+        )
+
+    def test_the_embedded_pyproject_is_accepted_by_setuptools(self) -> None:
+        """The template must be a build configuration setuptools accepts.
+
+        A scaffolded project is installed with ``pip install -e .``, so a key
+        setuptools rejects makes the generated project unusable even though the
+        file parses as TOML. Parsing alone would not have caught ``py_modules``.
+        """
+        try:
+            setuptools_config = importlib.import_module("setuptools.config.pyprojecttoml")
+        except ImportError as error:  # pragma: no cover - setuptools ships with pip
+            self.skipTest(f"setuptools is unavailable: {error}")
+        embedded = embedded_pyproject(self.scaffold_text)
+        self.assertTrue(embedded, "scaffold.sh does not embed a pyproject.toml template")
+        with tempfile.TemporaryDirectory(prefix="pyproject-template-") as directory:
+            path = Path(directory) / "pyproject.toml"
+            path.write_text(embedded.replace("${PROJECT_ID}", "scaffold-check") + "\n")
+            try:
+                # ``expand=False`` validates the schema without resolving the
+                # package layout, which needs a distribution object.
+                setuptools_config.read_configuration(path, expand=False)
+            except Exception as error:  # noqa: BLE001 - the message is the assertion
+                self.fail(f"setuptools rejects the embedded pyproject.toml: {error}")
+
+    def test_the_embedded_pyproject_has_no_duplicate_module(self) -> None:
+        """A duplicated module entry is a copy/paste defect setuptools cannot see."""
+        embedded = embedded_pyproject(self.scaffold_text)
+        self.assertTrue(embedded, "scaffold.sh does not embed a pyproject.toml template")
+        match = PYTHON_MODULES.search(embedded)
+        self.assertIsNotNone(
+            match,
+            "the embedded pyproject.toml does not declare a Python module list",
+        )
+        assert match is not None
+        names = re.findall(r'"([^"]+)"', match.group("body"))
+        duplicates = sorted({name for name in names if names.count(name) > 1})
+        self.assertEqual(
+            duplicates,
+            [],
+            f"the embedded pyproject.toml lists modules twice: {duplicates}",
+        )
 
     def test_generated_project_has_no_unexpected_files(self) -> None:
         """The scaffold must not emit Python files that the repository lacks."""

@@ -4620,6 +4620,7 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "mypy>=1.8",
+    "ruff>=0.17",
 ]
 
 [tool.pytest.ini_options]
@@ -4647,7 +4648,7 @@ exclude = [
 ]
 
 [tool.setuptools]
-py_modules = [
+py-modules = [
     "hello",
     "calculator",
     "backoff_utils",
@@ -4680,11 +4681,11 @@ py_modules = [
     "inspect_utils",
     "bit_utils",
     "data_utils",
-    "deque_utils",
     "datetime_utils",
     "dbm_utils",
     "dumbdbm_utils",
     "deprecation_utils",
+    "deque_utils",
     "file_utils",
     "filecmp_utils",
     "fileinput_utils",
@@ -4715,6 +4716,8 @@ py_modules = [
     "unittest_utils",
     "async_utils",
     "asyncio_utils",
+    "asynchat_utils",
+    "asyncore_utils",
     "argparse_utils",
     "argcomplete_utils",
     "concurrent_utils",
@@ -4785,11 +4788,17 @@ py_modules = [
     "contextlib_utils",
     "contextvars_utils",
     "netrc_utils",
-    "nntplib_utils",    "calendar_utils",
+    "nntplib_utils",
     "cgi_utils",
     "cgitb_utils",
-    "chunk_utils",
     "pipes_utils",
+    "sndhdr_utils",
+    "crypt_utils",
+    "telnetlib_utils",
+    "spwd_utils",
+    "imghdr_utils",
+    "calendar_utils",
+    "chunk_utils",
     "cmath_utils",
     "colorsys_utils",
     "dataclasses_utils",
@@ -4914,18 +4923,10 @@ py_modules = [
     "ensurepip_utils",
     "readline_utils",
     "builtins_utils",
-    "imghdr_utils",
     "posix_utils",
-    "crypt_utils",
-    "telnetlib_utils",
     "sre_compile_utils",
     "sre_constants_utils",
     "sre_parse_utils",
-    "spwd_utils",
-    "sndhdr_utils",
-    "spwd_utils",
-    "asynchat_utils",
-    "asyncore_utils",
 ]
 PYPROJECT
 
@@ -71230,6 +71231,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — repaired the embedded `pyproject.toml` template and guarded it
+
+- **Genuine defect found and fixed — a scaffolded project could not be installed.** `scaffold.sh` embeds a `pyproject.toml` template that is maintained by hand, and the only sync test checked that it *mentions* every module. That let the template drift into a build configuration setuptools rejects: it used the `py_modules` key, so `pip install -e .` in a scaffolded project failed with `configuration error: 'tool.setuptools' must not contain {'py_modules'} properties` (verified against the pre-repair template with `setuptools.config.pyprojecttoml.read_configuration`). The same template had also fallen behind `pyproject.toml` on the `ruff` development dependency, on module order (`deque_utils`), on the entries added for `asynchat_utils`/`asyncore_utils`/`pipes_utils`/`sndhdr_utils`/`crypt_utils`/`telnetlib_utils`/`spwd_utils`/`imghdr_utils`/`calendar_utils`, on a malformed two-modules-on-one-line entry (`"nntplib_utils",    "calendar_utils",`), and it listed `spwd_utils` twice.
+- Fixed the template by regenerating it from `pyproject.toml` with the project name replaced by `${PROJECT_ID}` (the identifier the generator derives from the name it is given). The template is now byte-identical to the repository build configuration apart from that one placeholder, so it parses, is accepted by setuptools, has no duplicate module, and matches the repository list in both content and order (278 unique modules, `ruff>=0.17` in `dev`).
+- Hardened `tests/test_scaffold_sync.py` with three guards so this class of drift fails `make test` instead of shipping: `test_the_embedded_pyproject_matches_the_repository_build_configuration` compares the whole template against `pyproject_template(...)`, which derives the expected template from `pyproject.toml` (the rule is stated once, in `pyproject_template`, instead of being duplicated in the assertion); `test_the_embedded_pyproject_is_accepted_by_setuptools` runs `read_configuration(..., expand=False)` on the template so a key setuptools rejects is caught even though the file parses as TOML; `test_the_embedded_pyproject_has_no_duplicate_module` reports a module listed twice, which setuptools would silently accept. Verified all three fail against the pre-repair generator (drift diff, the setuptools rejection above, and `['spwd_utils']`) and pass after.
+- Validation: `python -m unittest tests.test_scaffold_sync tests.test_refresh_scaffold` — 68 OK; `python -m unittest discover tests/` — see the handover; `python -m ruff check tests/test_scaffold_sync.py` and `python -m mypy tests/test_scaffold_sync.py` clean; `python tools/refresh_scaffold.py --check` — all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — guard the templated scaffold documents against silent drift
 
 - State-delta found a real integrity regression: `python tools/verify_state_delta.py` refused to advance the checkpoint because `python tools/refresh_scaffold.py --check` reported `stale: README.md` and `stale: CHANGELOG.md`. The previous checkpoint commit (`3312fec`) edited `README.md` and `CHANGELOG.md` after refreshing `scaffold.sh`, so the generator shipped two stale document templates. This is the second occurrence of the same ordering mistake (the session before also repaired a stale `CHANGELOG.md`), so the recurrence needed a structural guard rather than another manual refresh.
@@ -76049,6 +76057,13 @@ The tool also creates the heredoc of a wrapper module that the generator does no
 new module and its test are added to `scaffold.sh` by running the tool instead of by hand. The
 header comment of the generator, the embedded `pyproject.toml`, the README tree, and the changelog
 are still maintained by hand.
+
+Because those four surfaces are hand-maintained, `tests/test_scaffold_sync.py` compares them against
+the repository instead of trusting them: the embedded `README.md`, `AGENTS.md`, and `CHANGELOG.md`
+must be byte-identical to `refresh_scaffold.templated_body(...)`, and the embedded `pyproject.toml`
+must equal `pyproject.toml` with the project name replaced by `${PROJECT_ID}`, must be accepted by
+`setuptools`, and must not list a module twice. A hand edit to the build configuration therefore
+has to be made in `pyproject.toml` first and then copied into the generator (or the sync test fails).
 
 ## Coding Conventions
 
