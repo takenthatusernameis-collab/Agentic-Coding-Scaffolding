@@ -1,3 +1,10 @@
+## Unreleased — guard the templated scaffold documents against silent drift
+
+- State-delta found a real integrity regression: `python tools/verify_state_delta.py` refused to advance the checkpoint because `python tools/refresh_scaffold.py --check` reported `stale: README.md` and `stale: CHANGELOG.md`. The previous checkpoint commit (`3312fec`) edited `README.md` and `CHANGELOG.md` after refreshing `scaffold.sh`, so the generator shipped two stale document templates. This is the second occurrence of the same ordering mistake (the session before also repaired a stale `CHANGELOG.md`), so the recurrence needed a structural guard rather than another manual refresh.
+- Repaired the invariant with `python tools/refresh_scaffold.py` (2 embedded copies refreshed, `--check` idempotent).
+- Hardened `tests/test_scaffold_sync.py`: the existing tests only require that the embedded `README.md`/`CHANGELOG.md` *mention* every module, so a document edit that was never refreshed keeps passing them. Added `test_the_embedded_documents_match_the_repository_templates`, which compares every document listed in `refresh_scaffold.TEMPLATED_COPIES` against the template the refresh tool expects (`templated_body`), so `make test` now fails on drift instead of leaving it to whoever remembers to run `make refresh-scaffold`. Verified the new test fails against the pre-refresh generator and passes after.
+- Validation: `python -m unittest tests.test_scaffold_sync tests.test_refresh_scaffold` — 65 OK; `python tools/refresh_scaffold.py --check` — all embedded copies in sync; `python -m ruff check tests/test_scaffold_sync.py` and `python -m mypy tests/test_scaffold_sync.py` clean. No `.github/workflows/**` changes.
+
 ## Unreleased — added `count_subsequence`/`has_subsequence` companions to `strings.is_subsequence`
 
 - Bootstrap session: board held no task (`board_read` empty); state-delta confirmed foundation health (`python tools/verify_state_delta.py` skipped redundant verification, checkpoint matched HEAD) and `python tools/scan_untested.py` reported no exported-but-untested callables. State-delta checkpoint is current (head == full_suite_head == HEAD `969cf3fb`).

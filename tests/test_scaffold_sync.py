@@ -8,6 +8,7 @@ identical to the repository files, so a scaffolded project is a faithful copy
 of the project that generated it.
 """
 
+import importlib.util
 import os
 import re
 import unittest
@@ -15,6 +16,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SCAFFOLD = ROOT / "scaffold.sh"
+TOOL = ROOT / "tools" / "refresh_scaffold.py"
 PYPROJECT = ROOT / "pyproject.toml"
 README = ROOT / "README.md"
 PROJDOC = ROOT / ".kilo" / "command" / "scaffold-project.md"
@@ -32,6 +34,23 @@ PYPROJECT_HEREDOC = re.compile(
     r"(?P<body>.*?)\n(?P=delim)\n",
     re.S,
 )
+
+
+def load_refresh_tool():
+    """Return the refresh tool module loaded from its file path.
+
+    The refresh tool is the single definition of which embedded copies are
+    verbatim and which are templates, so the sync tests ask it instead of
+    repeating the rules and letting the two drift apart.
+    """
+    spec = importlib.util.spec_from_file_location("refresh_scaffold", TOOL)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+refresh_scaffold = load_refresh_tool()
 
 
 def module_names() -> list[str]:
@@ -310,6 +329,35 @@ class TestScaffoldSync(unittest.TestCase):
                     f"- `tests/test_{name}.py` —",
                     document,
                     f"the embedded command document does not list tests/test_{name}.py",
+                )
+
+    def test_the_embedded_documents_match_the_repository_templates(self) -> None:
+        """The templated documents must be byte identical to the repository copies.
+
+        ``test_the_embedded_readme_*`` and ``test_the_embedded_changelog_*``
+        only require that the embedded documents mention every module, so an
+        edit to ``README.md`` or ``CHANGELOG.md`` that is not followed by
+        ``make refresh-scaffold`` keeps passing them while the generator ships a
+        stale document. Comparing the whole template is the check that catches
+        such drift, so it lives in the test suite instead of depending on
+        someone running the refresh tool after editing a document.
+        """
+        for relative in refresh_scaffold.TEMPLATED_COPIES:
+            with self.subTest(document=relative):
+                self.assertIn(
+                    relative,
+                    self.bodies,
+                    f"scaffold.sh does not embed {relative}",
+                )
+                expected = refresh_scaffold.templated_body(relative)
+                self.assertIsNotNone(
+                    expected,
+                    f"the refresh tool does not manage {relative}",
+                )
+                self.assertEqual(
+                    self.bodies[relative][0],
+                    expected,
+                    f"the embedded {relative} is out of sync; run `make refresh-scaffold`",
                 )
 
     def test_generated_project_has_no_unexpected_files(self) -> None:
