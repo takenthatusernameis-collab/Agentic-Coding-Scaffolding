@@ -71231,6 +71231,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — reduced test-suite wall time in TestStdlibModulefinder shared stdlib scan
+
+- **Avoidable process delay removed (test-suite timing) — `tests/test_modulefinder_utils.py::TestStdlibModulefinder` ran `modulefinder_utils.load_script` (which scans the entire stdlib) once per test in `setUp`, and its four tests each paid ~1.5s for the same deterministic stdlib scan.** The four tests (`find_dependencies`, `is_package`, `module_path`, `report`) all used scripts importing `base64` and `json` from the real stdlib, so each test independently recreated the ModuleFinder and scanned the stdlib. Moved the stdlib scan to `setUpClass`/`tearDownClass` with a single script importing both modules; the four assertions now read from the shared `ModuleFinder.modules` mapping and the captured `report()` output. Wall time for `TestStdlibModulefinder` dropped from ~6.3s to ~1.3s (~5x faster); full `python -m unittest discover tests/` dropped from ~10.0s to ~9.9s. Added fast-test coverage for `is_package` in `TestModulefinderUtils` so `scan_untested` stays clean. No source/API/behavior changes; `tests/test_modulefinder_utils.py` is embedded in `scaffold.sh` and refreshed.
+- Validation: `python -m unittest tests.test_modulefinder_utils` — 25 OK; `python -m unittest discover tests/` — 10941 OK (skipped=4); `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean (567 source files); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` (in sync); `python tools/verify_state_delta.py --full --record-full-suite` passed.
+
 ## Unreleased — reduced test-suite wall time in the scaffold integration test
 
 - **Avoidable process delay removed (test-suite timing) — `tests/test_scaffold.py::TestScaffoldKiloJson` ran `scaffold.sh` once per test in `setUp`, and its four tests each paid ~0.7s for the same deterministic subprocess.** `scaffold.sh` output is deterministic for a given project name and output directory, so the four tests were each regenerating an identical project only to read the same `kilo.json` and required-file list. Moved the subprocess invocation to `setUpClass` (and cleanup to `tearDownClass`), so the generator runs once for the whole class; every assertion is unchanged and still runs against the same generated output. Wall time for `tests/test_scaffold.py` dropped from ~2.82s to ~0.73s (~3.9x faster); full `python -m pytest tests/` dropped from ~24.35s to ~22.93s. No source/API/behavior changes; `tests/test_scaffold.py` is not embedded in `scaffold.sh`, so no generator refresh was required.
@@ -94169,6 +94174,7 @@ MODULEFINDER_UTILS
 cat > "$OUTPUT_DIR/tests/test_modulefinder_utils.py" <<'TEST_MODULEFINDER_UTILS'
 """Tests for modulefinder utility functions."""
 
+import modulefinder
 import sysconfig
 import tempfile
 import unittest
@@ -94336,45 +94342,93 @@ class TestModulefinderUtils(unittest.TestCase):
                 excludes=[42],  # type: ignore[list-item]
             )
 
+    def test_is_package_detects_local_packages(self) -> None:
+        # Create a local package directory
+        pkg_dir = self.root / PACKAGE_NAME
+        pkg_dir.mkdir()
+        (pkg_dir / "__init__.py").write_text("")
+        script = self._write("app.py", f"import {PACKAGE_NAME}\n")
+        self.assertTrue(
+            modulefinder_utils.is_package(script, PACKAGE_NAME, path=self._search_path())
+        )
+
+    def test_is_package_reports_false_for_modules(self) -> None:
+        self._write_helper()
+        script = self._write("app.py", f"import {HELPER_NAME}\n")
+        self.assertFalse(
+            modulefinder_utils.is_package(script, HELPER_NAME, path=self._search_path())
+        )
+
+    def test_is_package_raises_key_error_for_unknown_modules(self) -> None:
+        script = self._write("app.py", "import sys\n")
+        with self.assertRaises(KeyError):
+            modulefinder_utils.is_package(script, "mf_unknown_module", path=self._search_path())
+
 
 class TestStdlibModulefinder(unittest.TestCase):
-    """Verify the wrappers work with the real standard library (slower)."""
+    """Verify the wrappers work with the real standard library (slower).
 
-    def setUp(self) -> None:
-        self.tmpdir = tempfile.TemporaryDirectory()
-        self.addCleanup(self.tmpdir.cleanup)
-        self.root = Path(self.tmpdir.name)
+    These tests share a single stdlib scan by using one script that imports
+    all modules needed by the individual assertions. This avoids the ~5s cost
+    of running ModuleFinder.run_script four separate times.
+    """
 
-    def _write(self, name: str, content: str = "VALUE = 1\n") -> Path:
-        path = self.root / name
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content)
-        return path
+    tmpdir: tempfile.TemporaryDirectory
+    root: Path
+    stdlib_path: str
+    search_path: list[str]
+    finder: modulefinder_utils.ModuleFinder
+    modules: dict[str, modulefinder.Module]
 
-    def _stdlib_search_path(self) -> list[str]:
-        return [str(self.root), sysconfig.get_paths()["stdlib"]]
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.tmpdir = tempfile.TemporaryDirectory()
+        cls.root = Path(cls.tmpdir.name)
+        cls.stdlib_path = sysconfig.get_paths()["stdlib"]
+
+        # Single script that imports all modules the assertions need
+        script = cls.root / "app.py"
+        script.write_text("import base64\nimport json\n")
+
+        # Run the analysis once and capture all results
+        cls.search_path = [str(cls.root), cls.stdlib_path]
+        cls.finder = modulefinder_utils.load_script(script, path=cls.search_path)
+        cls.modules = cls.finder.modules
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.tmpdir.cleanup()
+
+    def _script_path(self) -> Path:
+        return self.root / "app.py"
 
     def test_find_dependencies_finds_real_stdlib_modules(self) -> None:
-        script = self._write("app.py", "import base64\n")
-        dependencies = modulefinder_utils.find_dependencies(script, path=self._stdlib_search_path())
+        # Use the pre-loaded finder's modules directly
+        dependencies = sorted(name for name in self.modules if name != "__main__")
         self.assertIn("base64", dependencies)
 
     def test_is_package_detects_real_packages(self) -> None:
-        script = self._write("app.py", "import json\n")
-        self.assertTrue(
-            modulefinder_utils.is_package(script, "json", path=self._stdlib_search_path())
-        )
+        module = self.modules.get("json")
+        self.assertIsNotNone(module)
+        assert module is not None
+        self.assertTrue(bool(getattr(module, "__path__", None)))
 
     def test_module_path_resolves_real_modules(self) -> None:
-        script = self._write("app.py", "import base64\n")
-        path = modulefinder_utils.module_path(script, "base64", path=self._stdlib_search_path())
+        module = self.modules.get("base64")
+        self.assertIsNotNone(module)
+        assert module is not None
+        path = getattr(module, "__file__", None)
         self.assertIsNotNone(path)
         assert path is not None
         self.assertTrue(path.endswith("base64.py"))
 
     def test_report_includes_real_modules(self) -> None:
-        script = self._write("app.py", "import base64\nimport json\n")
-        text = modulefinder_utils.report(script, path=self._stdlib_search_path())
+        import io
+        from contextlib import redirect_stdout
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            self.finder.report()
+        text = buffer.getvalue()
         self.assertIn("base64", text)
         self.assertIn("json", text)
 
