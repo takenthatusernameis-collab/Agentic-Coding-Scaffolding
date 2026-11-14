@@ -47,6 +47,8 @@ __all__: List[str] = [
     "is_upper",
     "is_lower",
     "is_title",
+    "count_title",
+    "has_title",
     "is_ascii",
     "is_whitespace",
     "is_space",
@@ -1046,6 +1048,80 @@ def is_title(s: str) -> bool:
     if not any(c.isalpha() for c in s):
         return False
     return s == s.title()
+
+
+def count_title(s: str) -> int:
+    """Return the number of titlecase characters in *s*.
+
+    A titlecase character is an uppercase character that appears at a word
+    boundary (the start of *s* or immediately after a non-alphabetic
+    character) and is followed by a lowercase character, a non-alphabetic
+    character, or the end of *s*. This mirrors the uppercase positions of a
+    titlecased string (as produced by :meth:`str.title`) and is the integer
+    companion to :func:`is_title`; empty input returns ``0``.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        Count of titlecase characters in *s*.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> count_title("Hello World")
+        2
+        >>> count_title("Hello")
+        1
+        >>> count_title("hello world")
+        0
+        >>> count_title("HelloWorld")
+        1
+        >>> count_title("")
+        0
+    """
+    _require_string(s, "s")
+    count = 0
+    n = len(s)
+    for i, ch in enumerate(s):
+        if ch.isupper():
+            at_boundary = i == 0 or not s[i - 1].isalpha()
+            if at_boundary:
+                if i + 1 == n:
+                    count += 1
+                elif not s[i + 1].isupper():
+                    count += 1
+    return count
+
+
+def has_title(s: str) -> bool:
+    """Return ``True`` if *s* contains at least one titlecase character.
+
+    This is the boolean companion to :func:`count_title`. It returns ``True``
+    when at least one character is a titlecase character and ``False``
+    otherwise (empty input is ``False``), reusing :func:`count_title` for
+    consistency.
+
+    Args:
+        s: The string to inspect.
+
+    Returns:
+        ``True`` if *s* contains a titlecase character.
+
+    Raises:
+        TypeError: If *s* is not a string.
+
+    Examples:
+        >>> has_title("Hello World")
+        True
+        >>> has_title("hello world")
+        False
+        >>> has_title("")
+        False
+    """
+    _require_string(s, "s")
+    return count_title(s) > 0
 
 
 def is_alpha(s: str) -> bool:

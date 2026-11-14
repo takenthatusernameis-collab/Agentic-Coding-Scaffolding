@@ -28,6 +28,7 @@ from strings import (
     count_octal,
     count_printable,
     count_punctuation,
+    count_title,
     count_uppercase,
     count_vowels,
     count_whitespace,
@@ -56,6 +57,7 @@ from strings import (
     has_octal,
     has_printable,
     has_punctuation,
+    has_title,
     has_uppercase,
     has_vowels,
     has_whitespace,
@@ -931,6 +933,54 @@ class TestIsTitle(unittest.TestCase):
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
             is_title(123)  # type: ignore[arg-type]
+
+
+class TestCountTitle(unittest.TestCase):
+    def test_title_multiple_words(self):
+        self.assertEqual(count_title("Hello World"), 2)
+        self.assertEqual(count_title("Hi There"), 2)
+
+    def test_title_single_word(self):
+        self.assertEqual(count_title("Hello"), 1)
+
+    def test_title_none(self):
+        self.assertEqual(count_title("hello world"), 0)
+        self.assertEqual(count_title("HELLO"), 0)
+
+    def test_title_camel_case_counts_only_first(self):
+        self.assertEqual(count_title("HelloWorld"), 1)
+
+    def test_title_empty(self):
+        self.assertEqual(count_title(""), 0)
+
+    def test_consistency_with_has_title(self):
+        for s in ("Hello World", "hello world", "Hello", "HelloWorld", "", "123"):
+            self.assertEqual(count_title(s) > 0, has_title(s))
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            count_title(123)  # type: ignore[arg-type]
+
+
+class TestHasTitle(unittest.TestCase):
+    def test_has_title_true(self):
+        self.assertTrue(has_title("Hello World"))
+        self.assertTrue(has_title("Hello"))
+
+    def test_has_title_false(self):
+        self.assertFalse(has_title("hello world"))
+        self.assertFalse(has_title("HELLO"))
+
+    def test_has_title_empty(self):
+        self.assertFalse(has_title(""))
+
+    def test_consistency_with_count_title(self):
+        for s in ("Hello World", "hello world", "Hello", "HelloWorld", "", "123"):
+            self.assertEqual(has_title(s), count_title(s) > 0)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            has_title(123)  # type: ignore[arg-type]
 
 
 class TestIsAlpha(unittest.TestCase):
@@ -2819,6 +2869,8 @@ class TestStringsBoundaryCases(unittest.TestCase):
             is_upper,
             is_lower,
             is_title,
+            count_title,
+            has_title,
             is_ascii,
             is_whitespace,
             is_space,
