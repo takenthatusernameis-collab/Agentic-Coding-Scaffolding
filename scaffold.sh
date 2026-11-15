@@ -71667,6 +71667,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `keyword_utils.main` raising `AttributeError` on Python 3.12+
+
+- **Correctness fix — `keyword_utils.main()` raised `AttributeError: module 'keyword' has no attribute 'main'`.** The standard library removed `keyword.main` in Python 3.12, but the wrapper returned the bare attribute `_keyword.main` and its docstring/README claimed it "runs the keyword module's interactive entry point". Calling `main()` therefore crashed on every supported interpreter, and the documented behavior could never hold. `main()` now returns `getattr(_keyword, "main", None)` — the entry point when present, `None` when the standard library no longer provides it — mirroring the safe accessor already used by `cmd_utils.main`. The docstring and the README sentence were corrected to describe this contract. Added `test_main_is_safe_when_stdlib_entry_point_is_absent`, which fails before the fix (the `AttributeError`) and passes after. Refreshed the embedded `keyword_utils.py`, `tests/test_keyword_utils.py`, and `README.md` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_keyword_utils` — 6 OK; `python -m doctest keyword_utils.py` — OK; `python -m unittest discover tests/` — 11090 OK (skipped=4); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync. (`ruff`/`mypy` are not installed in this environment.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `slugify_utils.slugify_many` rejecting documented iterables
 
 - **Correctness fix — `slugify_many` rejected generators and sets despite an `Iterable[str]` signature.** The docstring and type hint declare `texts: Iterable[str]`, but the implementation only accepted `list` and `tuple`, raising `TypeError("texts must be a list or tuple")` for any other iterable. A generator such as `slugify_many(iter(["Hello World"]))` and a set such as `slugify_many({"Hello World", "Foo Bar"})` both failed, contradicting the documented contract. The check now accepts any non-string/non-bytes iterable (`hasattr(texts, "__iter__")`), preserving the per-item `str` validation and the empty-separator check. `str`/`bytes` are still rejected as iterables of characters.
@@ -76047,7 +76053,7 @@ The project includes glob utilities in `glob_utils.py` for pathname pattern expa
 
 ## Keyword Utilities Module
 
-The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` runs the keyword module's interactive entry point. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
+The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` returns the keyword module's `main` entry point if available (it was removed from the standard library in Python 3.12, so it returns `None` on current interpreters). All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
 
 ## Shlex Utilities Module
 
@@ -92572,8 +92578,12 @@ def softkwlist():
 
 
 def main():
-    """Run the keyword module's interactive ``main`` entry point."""
-    return _keyword.main
+    """Return the ``keyword`` module's ``main`` entry point if available.
+
+    The standard library removed ``keyword.main`` in Python 3.12, so this
+    returns ``None`` on current interpreters instead of raising.
+    """
+    return getattr(_keyword, "main", None)
 KEYWORD_UTILS
 
 # --- tests/test_keyword_utils.py ---
@@ -92597,6 +92607,13 @@ class TestKeywordUtils(unittest.TestCase):
 
     def test_softkwlist(self):
         self.assertIn("match", keyword_utils.softkwlist())
+
+    def test_main_is_safe_when_stdlib_entry_point_is_absent(self):
+        # ``keyword.main`` was removed from the standard library in Python 3.12.
+        # The wrapper must not raise on interpreters where it is absent; it
+        # returns the entry point when available and ``None`` otherwise.
+        result = keyword_utils.main()
+        self.assertTrue(result is None or callable(result))
 
     def test_type_error(self):
         with self.assertRaises(TypeError):

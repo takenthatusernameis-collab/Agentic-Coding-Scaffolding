@@ -36,5 +36,9 @@ def softkwlist():
 
 
 def main():
-    """Run the keyword module's interactive ``main`` entry point."""
-    return _keyword.main
+    """Return the ``keyword`` module's ``main`` entry point if available.
+
+    The standard library removed ``keyword.main`` in Python 3.12, so this
+    returns ``None`` on current interpreters instead of raising.
+    """
+    return getattr(_keyword, "main", None)

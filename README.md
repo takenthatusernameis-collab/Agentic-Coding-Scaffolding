@@ -1212,7 +1212,7 @@ The project includes glob utilities in `glob_utils.py` for pathname pattern expa
 
 ## Keyword Utilities Module
 
-The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` runs the keyword module's interactive entry point. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
+The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` returns the keyword module's `main` entry point if available (it was removed from the standard library in Python 3.12, so it returns `None` on current interpreters). All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
 
 ## Shlex Utilities Module
 

@@ -18,6 +18,13 @@ class TestKeywordUtils(unittest.TestCase):
     def test_softkwlist(self):
         self.assertIn("match", keyword_utils.softkwlist())
 
+    def test_main_is_safe_when_stdlib_entry_point_is_absent(self):
+        # ``keyword.main`` was removed from the standard library in Python 3.12.
+        # The wrapper must not raise on interpreters where it is absent; it
+        # returns the entry point when available and ``None`` otherwise.
+        result = keyword_utils.main()
+        self.assertTrue(result is None or callable(result))
+
     def test_type_error(self):
         with self.assertRaises(TypeError):
             keyword_utils.is_keyword(123)
