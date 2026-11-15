@@ -71667,6 +71667,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `tests/test_slugify_utils.py` missing trailing newline (`make lint` failure)
+
+- **Tooling fix — `tests/test_slugify_utils.py` had drifted from its embedded copy in `scaffold.sh` and was missing the final newline, so `ruff check .` (the `make lint` target) failed with `W292 No newline at end of file`.** The defect was latent because `ruff`/`mypy` are not installed in the default CI runner, so `make lint` short-circuits with "ruff not installed" and the failure only surfaces once a developer installs the dev tools. The repository source ended at `unittest.main()` without a trailing `\n`, while the embedded copy in `scaffold.sh` correctly ended with one — an avoidable source/embedded divergence that `refresh_scaffold.py --check` did not flag because the embedded side was already correct. Restored the trailing newline in the source so the file matches its embedded copy and `ruff` passes. No behavior change to the tests themselves.
+- Validation: `ruff check .` — All checks passed (previously `W292` on this file); `python -m unittest tests.test_slugify_utils` — 31 OK; `python -m unittest tests.test_scaffold_sync` — 20 OK; `python -m unittest discover tests/` — full suite OK; `python tools/refresh_scaffold.py --check` — in sync; `mypy . --exclude build --exclude dist` — Success (568 files).
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `keyword_utils.main` raising `AttributeError` on Python 3.12+
 
 - **Correctness fix — `keyword_utils.main()` raised `AttributeError: module 'keyword' has no attribute 'main'`.** The standard library removed `keyword.main` in Python 3.12, but the wrapper returned the bare attribute `_keyword.main` and its docstring/README claimed it "runs the keyword module's interactive entry point". Calling `main()` therefore crashed on every supported interpreter, and the documented behavior could never hold. `main()` now returns `getattr(_keyword, "main", None)` — the entry point when present, `None` when the standard library no longer provides it — mirroring the safe accessor already used by `cmd_utils.main`. The docstring and the README sentence were corrected to describe this contract. Added `test_main_is_safe_when_stdlib_entry_point_is_absent`, which fails before the fix (the `AttributeError`) and passes after. Refreshed the embedded `keyword_utils.py`, `tests/test_keyword_utils.py`, and `README.md` copies in `scaffold.sh`; `refresh --check` in sync.
