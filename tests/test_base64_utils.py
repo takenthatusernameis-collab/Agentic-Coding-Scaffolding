@@ -114,6 +114,24 @@ class TestIsValidBase64(unittest.TestCase):
     def test_is_valid_base64_type_error_returns_false(self):
         self.assertFalse(is_valid_base64(123))  # type: ignore[arg-type]
 
+    def test_is_valid_base64_rejects_non_alphabet(self):
+        self.assertFalse(is_valid_base64("!!!!"))
+        self.assertFalse(is_valid_base64("aGVsbG8=!!!!"))
+
+    def test_is_valid_base64_rejects_data_after_padding(self):
+        self.assertFalse(is_valid_base64("aGVsbG8=extra"))
+
+    def test_is_valid_base64_rejects_excess_padding(self):
+        self.assertFalse(is_valid_base64("aGVsbG8===="))
+
+    def test_is_valid_base64_rejects_whitespace(self):
+        self.assertFalse(is_valid_base64("aGVsbG8=\n"))
+        self.assertFalse(is_valid_base64("aGVsbG8= "))
+
+    def test_is_valid_base64_urlsafe_alphabet(self):
+        self.assertTrue(is_valid_base64("-_8=", urlsafe=True))
+        self.assertFalse(is_valid_base64("-_8=", urlsafe=False))
+
 
 class TestIsValidHex(unittest.TestCase):
     def test_is_valid_hex_true(self):
