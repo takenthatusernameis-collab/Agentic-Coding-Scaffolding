@@ -12,6 +12,36 @@ __all__ = [
 ]
 
 
+def _validate_retry_args(
+    max_attempts: int,
+    delay: float,
+    backoff: float,
+    exceptions: Tuple[Type[BaseException], ...],
+) -> None:
+    """Validate retry decorator parameters, raising clear errors for misuse.
+
+    ``max_attempts`` must be at least one so the wrapped function is actually
+    invoked; a value of zero previously fell through the loop and surfaced a
+    misleading ``RuntimeError("Unexpected state in retry decorator")``. A
+    negative ``delay`` likewise surfaced a low-level ``time.sleep`` error
+    instead of an argument problem.
+    """
+    if not isinstance(max_attempts, int):
+        raise TypeError(f"max_attempts must be an int, got {type(max_attempts).__name__}")
+    if max_attempts < 1:
+        raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
+    if not isinstance(delay, (int, float)):
+        raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if delay < 0:
+        raise ValueError(f"delay must be non-negative, got {delay}")
+    if not isinstance(backoff, (int, float)):
+        raise TypeError(f"backoff must be a number, got {type(backoff).__name__}")
+    if backoff < 0:
+        raise ValueError(f"backoff must be non-negative, got {backoff}")
+    if not isinstance(exceptions, tuple):
+        raise TypeError(f"exceptions must be a tuple, got {type(exceptions).__name__}")
+
+
 def retry(
     max_attempts: int = 3,
     delay: float = 0.1,
@@ -22,13 +52,18 @@ def retry(
     Decorator that retries a function if it raises an exception.
 
     Args:
-        max_attempts: Maximum number of attempts (including initial attempt).
-        delay: Initial delay between attempts in seconds.
+        max_attempts: Maximum number of attempts (including the initial
+            attempt). Must be at least 1.
+        delay: Initial delay between attempts in seconds. Must be non-negative.
         backoff: Multiplier applied to delay after each attempt.
         exceptions: Tuple of exception types to catch and retry on.
 
     Returns:
         Decorated function that retries on specified exceptions.
+
+    Raises:
+        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
+        TypeError: If any argument has the wrong type.
 
     Examples:
         >>> attempts = []
@@ -44,6 +79,7 @@ def retry(
         >>> len(attempts)
         2
     """
+    _validate_retry_args(max_attempts, delay, backoff, exceptions)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -85,10 +121,16 @@ def retry_with_backoff(
     Returns:
         Decorated function that retries with exponential backoff.
 
+    Raises:
+        ValueError: If ``max_attempts`` is less than 1 or ``initial_delay`` is
+            negative.
+        TypeError: If any argument has the wrong type.
+
     Examples:
         >>> attempts = []
-        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.01,
-        ...                     backoff_factor=2.0, jitter=False)
+        >>> @retry_with_backoff(
+        ...     max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=False
+        ... )
         ... def unreliable_function():
         ...     attempts.append(1)
         ...     if len(attempts) < 2:
@@ -100,6 +142,7 @@ def retry_with_backoff(
         >>> len(attempts)
         2
     """
+    _validate_retry_args(max_attempts, initial_delay, backoff_factor, exceptions)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -144,6 +187,10 @@ def retry_count(
         Decorated function that returns (result, retry_count) where retry_count
         is the number of retries that occurred (0 if no retries needed).
 
+    Raises:
+        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
+        TypeError: If any argument has the wrong type.
+
     Examples:
         >>> attempts = []
         >>> @retry_count(max_attempts=3, delay=0.01)
@@ -160,6 +207,7 @@ def retry_count(
         >>> len(attempts)
         2
     """
+    _validate_retry_args(max_attempts, delay, backoff, exceptions)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)

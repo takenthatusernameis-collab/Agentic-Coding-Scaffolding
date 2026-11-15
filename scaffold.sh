@@ -40487,6 +40487,36 @@ __all__ = [
 ]
 
 
+def _validate_retry_args(
+    max_attempts: int,
+    delay: float,
+    backoff: float,
+    exceptions: Tuple[Type[BaseException], ...],
+) -> None:
+    """Validate retry decorator parameters, raising clear errors for misuse.
+
+    ``max_attempts`` must be at least one so the wrapped function is actually
+    invoked; a value of zero previously fell through the loop and surfaced a
+    misleading ``RuntimeError("Unexpected state in retry decorator")``. A
+    negative ``delay`` likewise surfaced a low-level ``time.sleep`` error
+    instead of an argument problem.
+    """
+    if not isinstance(max_attempts, int):
+        raise TypeError(f"max_attempts must be an int, got {type(max_attempts).__name__}")
+    if max_attempts < 1:
+        raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
+    if not isinstance(delay, (int, float)):
+        raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if delay < 0:
+        raise ValueError(f"delay must be non-negative, got {delay}")
+    if not isinstance(backoff, (int, float)):
+        raise TypeError(f"backoff must be a number, got {type(backoff).__name__}")
+    if backoff < 0:
+        raise ValueError(f"backoff must be non-negative, got {backoff}")
+    if not isinstance(exceptions, tuple):
+        raise TypeError(f"exceptions must be a tuple, got {type(exceptions).__name__}")
+
+
 def retry(
     max_attempts: int = 3,
     delay: float = 0.1,
@@ -40497,13 +40527,18 @@ def retry(
     Decorator that retries a function if it raises an exception.
 
     Args:
-        max_attempts: Maximum number of attempts (including initial attempt).
-        delay: Initial delay between attempts in seconds.
+        max_attempts: Maximum number of attempts (including the initial
+            attempt). Must be at least 1.
+        delay: Initial delay between attempts in seconds. Must be non-negative.
         backoff: Multiplier applied to delay after each attempt.
         exceptions: Tuple of exception types to catch and retry on.
 
     Returns:
         Decorated function that retries on specified exceptions.
+
+    Raises:
+        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
+        TypeError: If any argument has the wrong type.
 
     Examples:
         >>> attempts = []
@@ -40519,6 +40554,7 @@ def retry(
         >>> len(attempts)
         2
     """
+    _validate_retry_args(max_attempts, delay, backoff, exceptions)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -40560,10 +40596,16 @@ def retry_with_backoff(
     Returns:
         Decorated function that retries with exponential backoff.
 
+    Raises:
+        ValueError: If ``max_attempts`` is less than 1 or ``initial_delay`` is
+            negative.
+        TypeError: If any argument has the wrong type.
+
     Examples:
         >>> attempts = []
-        >>> @retry_with_backoff(max_attempts=3, initial_delay=0.01,
-        ...                     backoff_factor=2.0, jitter=False)
+        >>> @retry_with_backoff(
+        ...     max_attempts=3, initial_delay=0.01, backoff_factor=2.0, jitter=False
+        ... )
         ... def unreliable_function():
         ...     attempts.append(1)
         ...     if len(attempts) < 2:
@@ -40575,6 +40617,7 @@ def retry_with_backoff(
         >>> len(attempts)
         2
     """
+    _validate_retry_args(max_attempts, initial_delay, backoff_factor, exceptions)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -40619,6 +40662,10 @@ def retry_count(
         Decorated function that returns (result, retry_count) where retry_count
         is the number of retries that occurred (0 if no retries needed).
 
+    Raises:
+        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
+        TypeError: If any argument has the wrong type.
+
     Examples:
         >>> attempts = []
         >>> @retry_count(max_attempts=3, delay=0.01)
@@ -40635,6 +40682,7 @@ def retry_count(
         >>> len(attempts)
         2
     """
+    _validate_retry_args(max_attempts, delay, backoff, exceptions)
 
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
@@ -54431,6 +54479,118 @@ class TestRetryCountDecorator(unittest.TestCase):
             func()
         # Note: The wrapper re-raises the exception, so we don't get a count return
         # This is expected behavior - when all attempts fail, the exception propagates
+
+
+class TestRetryArgumentValidation(unittest.TestCase):
+    """Edge-case validation for retry decorator arguments.
+
+    ``max_attempts=0`` previously let the wrapper loop fall through and raise a
+    misleading ``RuntimeError("Unexpected state in retry decorator")`` without
+    ever calling the wrapped function. A negative ``delay`` likewise surfaced a
+    low-level ``time.sleep`` error. Both are now caught at decoration time.
+    """
+
+    def test_retry_rejects_zero_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry(max_attempts=0, delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_negative_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry(max_attempts=-1, delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_negative_delay(self):
+        with self.assertRaises(ValueError):
+
+            @retry(max_attempts=3, delay=-0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_non_int_max_attempts(self):
+        with self.assertRaises(TypeError):
+
+            @retry(max_attempts=1.5, delay=0.01)  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_non_tuple_exceptions(self):
+        with self.assertRaises(TypeError):
+
+            @retry(max_attempts=3, delay=0.01, exceptions=ValueError)  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_zero_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry_with_backoff(max_attempts=0, initial_delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_negative_initial_delay(self):
+        with self.assertRaises(ValueError):
+
+            @retry_with_backoff(max_attempts=3, initial_delay=-0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_count_rejects_zero_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry_count(max_attempts=0, delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_count_rejects_negative_delay(self):
+        with self.assertRaises(ValueError):
+
+            @retry_count(max_attempts=3, delay=-0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_count_rejects_negative_backoff(self):
+        with self.assertRaises(ValueError):
+
+            @retry_count(max_attempts=3, delay=0.01, backoff=-1.0)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_non_int_max_attempts(self):
+        with self.assertRaises(TypeError):
+
+            @retry_with_backoff(max_attempts=1.5, initial_delay=0.01)  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+
+class TestRetryBackoffDelaySchedule(unittest.TestCase):
+    """Confirm the delay schedule is applied between attempts."""
+
+    def test_retry_uses_backoff_multiplier(self):
+        slept: list[float] = []
+        original_sleep = time.sleep
+
+        def mock_sleep(duration: float) -> None:
+            slept.append(duration)
+
+        time.sleep = mock_sleep
+        try:
+
+            @retry(max_attempts=3, delay=0.1, backoff=2.0)
+            def func():
+                raise ValueError("always")
+
+            with self.assertRaises(ValueError):
+                func()
+        finally:
+            time.sleep = original_sleep
+
+        self.assertEqual(slept, [0.1, 0.2])
 
 
 if __name__ == "__main__":
@@ -71323,6 +71483,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed misleading error paths in retry_utils decorators
+
+- **Correctness fix — `retry_utils` decorators surfaced misleading errors for invalid arguments.** With `max_attempts=0` the wrapper's `for` loop never executed, so the wrapped function was never called and the code fell through to `raise RuntimeError("Unexpected state in retry decorator")` — a confusing message for what is really an argument problem. A negative `delay` likewise propagated a low-level `time.sleep` error ("sleep length must be non-negative") instead of an argument-validation error. All three decorators (`retry`, `retry_with_backoff`, `retry_count`) now validate `max_attempts` (must be `int` and `>= 1`), `delay`/`initial_delay` (non-negative number), `backoff`/`backoff_factor` (non-negative number), and `exceptions` (must be a `tuple`) at decoration time via a shared `_validate_retry_args` helper, raising `ValueError`/`TypeError` with clear messages. Added `TestRetryArgumentValidation` (10 cases across all three decorators) and `TestRetryBackoffDelaySchedule` (confirms `delay *= backoff` is applied between attempts); the pre-fix `max_attempts=0` case now raises `ValueError` rather than the old `RuntimeError`. Refreshed the embedded `retry_utils.py` and `tests/test_retry_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_retry_utils` — 24 OK; `python -m ruff check retry_utils.py tests/test_retry_utils.py` clean; `python -m ruff format --check retry_utils.py tests/test_retry_utils.py` clean; `python -m mypy retry_utils.py` clean; `python -m doctest retry_utils.py` — 16 passed; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `rate_limiter_utils` infinite hang and token-minting edge cases
 
 - **Correctness fix — `RateLimiter.acquire_blocking` looped forever when the requested token count exceeded the bucket capacity.** `acquire` already returned `False` for `tokens > capacity`, but `acquire_blocking` retried that request in a `while not self.acquire(...)` loop with no exit condition, so any `acquire_blocking(n > capacity)` (and therefore `with token_bucket(limiter, n > capacity)`) hung indefinitely; `capacity=0` produced the same hang for any positive request. `acquire_blocking` now raises `ValueError` for an unsatisfiable request instead of spinning, and `RateLimiter.__init__` rejects a non-positive `capacity` (it previously accepted `0`, producing a bucket that could never satisfy a positive `acquire`). `acquire` now rejects negative token counts with `ValueError` instead of silently minting tokens (a negative request previously *added* tokens to the bucket). `rate_limit` now wraps the decorated function with `functools.wraps` so `__name__`/`__doc__` are preserved. Added six regression tests (`test_acquire_more_than_capacity`, `test_acquire_negative_tokens_rejected`, `test_acquire_blocking_raises_when_tokens_exceed_capacity`, `test_token_bucket_raises_when_tokens_exceed_capacity`, `test_non_positive_capacity_rejected`, `test_rate_limit_preserves_metadata`); the pre-fix `acquire_blocking` case hangs rather than failing, which is the defect being removed. Refreshed the embedded `rate_limiter_utils.py` and `tests/test_rate_limiter_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.

@@ -204,5 +204,117 @@ class TestRetryCountDecorator(unittest.TestCase):
         # This is expected behavior - when all attempts fail, the exception propagates
 
 
+class TestRetryArgumentValidation(unittest.TestCase):
+    """Edge-case validation for retry decorator arguments.
+
+    ``max_attempts=0`` previously let the wrapper loop fall through and raise a
+    misleading ``RuntimeError("Unexpected state in retry decorator")`` without
+    ever calling the wrapped function. A negative ``delay`` likewise surfaced a
+    low-level ``time.sleep`` error. Both are now caught at decoration time.
+    """
+
+    def test_retry_rejects_zero_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry(max_attempts=0, delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_negative_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry(max_attempts=-1, delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_negative_delay(self):
+        with self.assertRaises(ValueError):
+
+            @retry(max_attempts=3, delay=-0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_non_int_max_attempts(self):
+        with self.assertRaises(TypeError):
+
+            @retry(max_attempts=1.5, delay=0.01)  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_non_tuple_exceptions(self):
+        with self.assertRaises(TypeError):
+
+            @retry(max_attempts=3, delay=0.01, exceptions=ValueError)  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_zero_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry_with_backoff(max_attempts=0, initial_delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_negative_initial_delay(self):
+        with self.assertRaises(ValueError):
+
+            @retry_with_backoff(max_attempts=3, initial_delay=-0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_count_rejects_zero_max_attempts(self):
+        with self.assertRaises(ValueError):
+
+            @retry_count(max_attempts=0, delay=0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_count_rejects_negative_delay(self):
+        with self.assertRaises(ValueError):
+
+            @retry_count(max_attempts=3, delay=-0.01)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_count_rejects_negative_backoff(self):
+        with self.assertRaises(ValueError):
+
+            @retry_count(max_attempts=3, delay=0.01, backoff=-1.0)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_non_int_max_attempts(self):
+        with self.assertRaises(TypeError):
+
+            @retry_with_backoff(max_attempts=1.5, initial_delay=0.01)  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+
+class TestRetryBackoffDelaySchedule(unittest.TestCase):
+    """Confirm the delay schedule is applied between attempts."""
+
+    def test_retry_uses_backoff_multiplier(self):
+        slept: list[float] = []
+        original_sleep = time.sleep
+
+        def mock_sleep(duration: float) -> None:
+            slept.append(duration)
+
+        time.sleep = mock_sleep
+        try:
+
+            @retry(max_attempts=3, delay=0.1, backoff=2.0)
+            def func():
+                raise ValueError("always")
+
+            with self.assertRaises(ValueError):
+                func()
+        finally:
+            time.sleep = original_sleep
+
+        self.assertEqual(slept, [0.1, 0.2])
+
+
 if __name__ == "__main__":
     unittest.main()
