@@ -98,6 +98,21 @@ class TestMemoize(unittest.TestCase):
         self.assertEqual(value(1), 1)
         self.assertEqual(calls[0], 4)
 
+    def test_lru_eviction_moves_hit_to_rear(self) -> None:
+        calls = [0]
+
+        @memoize(maxsize=2)
+        def value(n: int) -> int:
+            calls[0] += 1
+            return n
+
+        self.assertEqual(value(1), 1)   # miss: cache={1}, order=[1]
+        self.assertEqual(value(2), 2)   # miss: cache={1,2}, order=[1,2]
+        self.assertEqual(value(1), 1)   # hit: order=[2,1] (1 moved to rear)
+        self.assertEqual(value(3), 3)   # miss: evict LRU(2), cache={1,3}
+        self.assertEqual(value(2), 2)   # miss: 2 was evicted, recompute
+        self.assertEqual(calls[0], 4)   # 1, 2, 3, 2 recomputed
+
     def test_clear_cache_method(self) -> None:
         calls = [0]
 

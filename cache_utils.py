@@ -83,6 +83,10 @@ def memoize(
             key = _make_key(args, kwargs)
             if key in cache:
                 hits[0] += 1
+                # Mark as most-recently-used: move to the rear of order so
+                # eviction removes the least-recently-used entry (true LRU).
+                order.remove(key)
+                order.append(key)
                 return cache[key]
             misses[0] += 1
             result = func(*args, **kwargs)
