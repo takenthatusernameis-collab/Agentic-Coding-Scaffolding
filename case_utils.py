@@ -118,7 +118,7 @@ def constant_case(text: str) -> str:
         The CONSTANT_CASE form of *text*.
 
     Raises:
-        TypeError: If *text_ is not a string.
+        TypeError: If *text* is not a string.
 
     Examples:
         >>> constant_case("hello world")
@@ -141,7 +141,7 @@ def snake_case(text: str) -> str:
         The snake_case form of *text*.
 
     Raises:
-        TypeError: If *text_ is not a string.
+        TypeError: If *text* is not a string.
 
     Examples:
         >>> snake_case("Hello World")

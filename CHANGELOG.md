@@ -3103,6 +3103,12 @@ Next Planned (posted for the following agent):
 - `ring_buffer_utils.RingBuffer.from_list`: `from_list([])` with no explicit `capacity` now raises `ValueError("capacity must be provided when items is empty")` instead of the misleading `ValueError("capacity must be greater than 0")`; `from_list([], capacity=n)` remains supported for constructing an empty buffer with a known capacity.
 - `tests/test_ring_buffer_utils.py`: added `test_from_list_empty_requires_capacity` and `test_from_list_empty_with_explicit_capacity` (13 tests total). Targeted verification: `python -m unittest tests.test_ring_buffer_utils -v` (OK), `python -m ruff check ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean), `python -m mypy ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
+## Unreleased — case_utils docstring typo fixes
+
+- `case_utils.py`: corrected `TypeError` docstrings in `constant_case` and `snake_case` (`*text_` → `*text*`) to match the actual parameter name and module conventions. No behavior change.
+- `scaffold.sh`: refreshed embedded `case_utils.py` copy via `python tools/refresh_scaffold.py`; `--check` reports in sync.
+- Validation: `python -m doctest case_utils.py` (clean), `python -m unittest tests.test_case_utils` (59 OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
+
 ## Unreleased — dict_utils deep_merge strict validation
 
 - `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
