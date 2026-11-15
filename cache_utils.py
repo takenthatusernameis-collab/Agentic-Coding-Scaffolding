@@ -35,8 +35,10 @@ def memoize(
             cache exceeds this size, the least-recently-used entry is evicted.
             Pass ``None`` for an unbounded cache. Defaults to ``128``.
         typed: If ``True``, arguments of the same value but different types
-            (e.g. ``1`` and ``1.0``) are cached separately. Defaults to
-            ``False``.
+            (e.g. ``1`` and ``1.0``) are cached separately. The type of every
+            argument value — positional or keyword — is part of the key, so a
+            call written positionally and the same call written with keywords
+            stay distinct under ``typed=True``. Defaults to ``False``.
 
     Returns:
         A decorator that wraps a function with caching behavior.
@@ -60,11 +62,21 @@ def memoize(
         misses = [0]
 
         def _make_key(args: Tuple[Any, ...], kwargs: Dict[str, Any]) -> Any:
-            """Build a hashable cache key from positional and keyword arguments."""
+            """Build a hashable cache key from positional and keyword arguments.
+
+            When ``typed`` is set, the argument types are folded into the key so
+            that values of the same magnitude but different types (e.g. ``1``
+            and ``1.0``) are cached separately. The types of keyword argument
+            values are included as well, otherwise a call written positionally
+            and the same call written with keywords would share an entry even
+            under ``typed=True``.
+            """
             key_args: Tuple[Any, ...] = tuple(args)
             key_kwargs: Tuple[Tuple[str, Any], ...] = tuple(sorted(kwargs.items()))
             if typed:
-                return (key_args, key_kwargs, tuple(type(a) for a in args))
+                arg_types = tuple(type(a) for a in args)
+                kwarg_types = tuple(type(v) for _, v in key_kwargs)
+                return (key_args, key_kwargs, arg_types, kwarg_types)
             return (key_args, key_kwargs)
 
         def _evict_if_needed() -> None:

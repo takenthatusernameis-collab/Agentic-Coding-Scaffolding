@@ -83,6 +83,37 @@ class TestMemoize(unittest.TestCase):
         self.assertEqual(identity(1.0), 1.0)
         self.assertEqual(calls[0], 1)
 
+    def test_typed_keyword_arguments_distinct(self) -> None:
+        """``typed=True`` must distinguish keyword argument types too.
+
+        Only the positional argument types were folded into the key, so a call
+        written positionally and the same value passed by keyword shared an
+        entry even under ``typed=True`` — the keyword form collapsed ``1`` and
+        ``1.0`` onto a single cached result.
+        """
+        calls = [0]
+
+        @memoize(typed=True)
+        def identity(value: object) -> object:
+            calls[0] += 1
+            return value
+
+        self.assertEqual(identity(x=1), 1)
+        self.assertEqual(identity(x=1.0), 1.0)
+        self.assertEqual(calls[0], 2)
+
+    def test_typed_mixed_positional_and_keyword(self) -> None:
+        calls = [0]
+
+        @memoize(typed=True)
+        def func(a: object, b: object = 0) -> tuple:
+            calls[0] += 1
+            return (a, b)
+
+        self.assertEqual(func(1, b=2), (1, 2))
+        self.assertEqual(func(1.0, b=2), (1.0, 2))
+        self.assertEqual(calls[0], 2)
+
     def test_maxsize_eviction(self) -> None:
         calls = [0]
 
