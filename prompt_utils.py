@@ -1538,8 +1538,8 @@ def has_lines(text: str) -> bool:
     _require_string(text, "text")
     if not text:
         return False
-    normalized = text.replace("\\r\\n", "\\n").replace("\\r", "\\n")
-    lines = normalized.split("\\n")
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return len(lines) > 0

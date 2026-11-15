@@ -2582,6 +2582,10 @@ class TestHasLines(unittest.TestCase):
         self.assertTrue(has_lines("hello"))
         self.assertTrue(has_lines("a\nb"))
         self.assertFalse(has_lines(""))
+    def test_line_endings(self):
+        self.assertTrue(has_lines("a\r\nb"))
+        self.assertTrue(has_lines("a\rb"))
+        self.assertTrue(has_lines("\n"))
     def test_type_error(self):
         with self.assertRaises(TypeError):
             has_lines(123)  # type: ignore[arg-type]

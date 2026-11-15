@@ -31926,6 +31926,10 @@ class TestHasLines(unittest.TestCase):
         self.assertTrue(has_lines("hello"))
         self.assertTrue(has_lines("a\nb"))
         self.assertFalse(has_lines(""))
+    def test_line_endings(self):
+        self.assertTrue(has_lines("a\r\nb"))
+        self.assertTrue(has_lines("a\rb"))
+        self.assertTrue(has_lines("\n"))
     def test_type_error(self):
         with self.assertRaises(TypeError):
             has_lines(123)  # type: ignore[arg-type]
@@ -47465,8 +47469,8 @@ def has_lines(text: str) -> bool:
     _require_string(text, "text")
     if not text:
         return False
-    normalized = text.replace("\\r\\n", "\\n").replace("\\r", "\\n")
-    lines = normalized.split("\\n")
+    normalized = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = normalized.split("\n")
     if lines and lines[-1] == "":
         lines = lines[:-1]
     return len(lines) > 0
@@ -71628,6 +71632,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `prompt_utils.has_lines` double-escaped line-ending literals
+
+- **Code-quality fix — `has_lines` matched literal backslash escape sequences instead of real line endings.** `prompt_utils.has_lines` normalized text with `text.replace("\\r\\n", "\\n").replace("\\r", "\\n")` and split on the two-character `"\\n"` literal, unlike its siblings `count_lines`, `first_line`, `last_line`, and `normalize_line_endings`, which operate on real `"\r\n"`/`"\n"`/`"\r"`. The behavior was masked (both forms yield `True` for every non-empty string and `False` only for `""`), so no behavioral regression was possible, but the literals were a latent trap: the code read as if it handled CRLF/CR input when it did not. It now uses the same real escapes as the sibling helpers. Added `test_line_endings` covering CRLF, lone CR, and a lone newline. Refreshed the embedded `prompt_utils.py` and `tests/test_prompt_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_prompt_utils` — 612 OK; `python -m unittest discover tests/` — 11048 OK (skipped=4); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync. (`ruff`/`mypy` are not installed in this environment.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `select_tests` now maps a changed test file to its own module
 
 - **Tooling fix — `tools/select_tests.py` mapped a changed `tests/test_*.py` file to `None`, so `make test` fell back to the smoke test for a test-only edit and silently never exercised the edited test locally.** `map_source_to_test` only handled `tools/*.py` and root-level source modules; a path under `tests/` matched neither branch and returned `None`, leaving `select_tests` with no targeted module. A test file is now its own best targeted test: `tests/test_abc_utils.py` maps to `tests.test_abc_utils`, while a non-test helper under `tests/` (for example `tests/helpers.py`) is still ignored. This removes a real local-dev gap where a broken test could pass the smoke test and only surface at the next full-suite milestone. Added regression coverage for the mapping, `select_tests(...)`, and the `--changed-files` CLI path, and replaced the old assertion that a test file maps to `None`.
