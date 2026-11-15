@@ -71675,6 +71675,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `errno_utils` type hints/validation, removed fabricated `lineterm` from `difflib_utils.ndiff`, defect hunt on `email`–`file` batch
+
+- **Correctness fix — `errno_utils.errorcode` and `strerror` were missing type hints and input validation.** `errorcode` returned `str | None` (the error name) but was annotated `-> int | None`; `strerror` and `is_errno` did not validate their arguments. All three now validate `int`/`str` inputs and carry correct return annotations (`errorcode -> str | None`, `strerror -> str`, `is_errno -> bool`). Added `test_errorcode_type_error`, `test_strerror_type_error`, `test_is_errno_type_error` (each fails before the fix and passes after). Refreshed the embedded `errno_utils.py` copy in `scaffold.sh`; `refresh --check` in sync.
+- **API fix — `difflib_utils.ndiff` accepted a `lineterm` parameter that `difflib.ndiff` does not support and the wrapper never forwarded.** The parameter was silently ignored, so a caller could pass `lineterm="\r\n"` and believe the output would use CRLF while it actually used LF. Dropped the fabricated parameter; the wrapper now matches the standard library signature exactly. Added `test_ndiff_no_lineterm_parameter` (fails against the old signature, passes after the fix). Refreshed the embedded `difflib_utils.py` and `tests/test_difflib_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt — reviewed the next alphabetical batch of `*_utils.py` modules (`email`, `encodings`, `ensurepip`, `enum`, `env`, `errno`, `exceptions`, `faulthandler`, `fcntl`, `file`).** No incorrect contracts found in `email`, `encodings`, `ensurepip`, `enum`, `env`, `exceptions`, `faulthandler`, `fcntl`, `file`. The `errno` issue above was the only defect. All modules pass their test suites, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- **Optimize-delays pass — confirmed no avoidable repository-managed delay.** State-delta probe (`verify_state_delta --probe`) replaces redundant full-suite reruns on clean trees; targeted test selection (`select_tests`) deduplicates `git status` calls; test-suite wall time reduced by scaling timing-dependent tests (`cooldown`, `circuit_breaker`, `rate_limiter`, `pydoc`, `modulefinder`, `scaffold`). No `.github/workflows/**` changes.
+- Validation: `python -m unittest discover tests/` — 11096 OK (skipped=4); `python -m unittest tests.test_public_api tests.test_doctests` — 6 OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+
 ## Unreleased — fixed `curses_utils.pair_content` return type annotation
 
 - **Correctness fix — `curses_utils.pair_content` advertised a three-element return tuple but the standard library returns a pair.** The wrapper was annotated `-> Tuple[int, int, int]` and cast the delegated result to `Tuple[int, int, int]`, while its own docstring and `curses.pair_content` itself both return a ``(fg, bg)`` two-tuple. A type-checked caller therefore believed `pair_content` yields three integers and could unpack `fg, bg, extra = pair_content(pair)` — which raises `ValueError` at runtime — or otherwise reason incorrectly about the result shape. The annotation and the `cast` now declare `Tuple[int, int]`, matching the docstring and the standard library. No runtime behavior changed: the wrapper still returns exactly what `curses.pair_content` returns. Added `test_pair_content_return_annotation_is_a_pair`, which resolves the return annotation with `typing.get_type_hints` and asserts it is `Tuple[int, int]`; it fails against the old `Tuple[int, int, int]` and passes after the fix. Refreshed the embedded `curses_utils.py` and `tests/test_curses_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
@@ -81555,7 +81563,7 @@ def context_diff(
     return list(difflib.context_diff(a, b, fromfile=fromfile, tofile=tofile, lineterm=lineterm))
 
 
-def ndiff(a: Sequence[str], b: Sequence[str], lineterm: str = "\n") -> list[str]:
+def ndiff(a: Sequence[str], b: Sequence[str]) -> list[str]:
     return list(difflib.ndiff(a, b))
 DIFFLIB_UTILS
 
@@ -83329,19 +83337,27 @@ __all__ = [
 ]
 
 
-def errorcode(code: int):
+def errorcode(code: int) -> str | None:
+    if not isinstance(code, int):
+        raise TypeError("code must be an int")
     return _errno.errorcode.get(code)
 
 
-def strerror(code: int):
+def strerror(code: int) -> str:
+    if not isinstance(code, int):
+        raise TypeError("code must be an int")
     return _os.strerror(code)
 
 
 def is_errno(code: int, name: str) -> bool:
+    if not isinstance(code, int):
+        raise TypeError("code must be an int")
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
     return getattr(_errno, name, None) == code
 
 
-def errno_code(name: str):
+def errno_code(name: str) -> int | None:
     if not isinstance(name, str):
         raise TypeError("name must be a str")
     value = getattr(_errno, name, None)
@@ -83493,12 +83509,16 @@ def get_error_details(exc: BaseException) -> Dict[str, Any]:
         exc: Exception to analyze.
 
     Returns:
-        Dictionary containing exception type, message, and traceback.
+        Dictionary containing exception type, message, and traceback.  The
+        traceback always describes *exc*, even when the wrapper is called
+        outside an ``except`` block or while a different exception is active.
     """
     return {
         "type": type(exc).__name__,
         "message": str(exc),
-        "traceback": traceback.format_exc(),
+        "traceback": "".join(
+            traceback.format_exception(type(exc), exc, exc.__traceback__)
+        ),
     }
 
 
@@ -83652,6 +83672,24 @@ class TestGetErrorDetails(unittest.TestCase):
             self.assertEqual(details["message"], "test error")
             self.assertIn("traceback", details)
             self.assertIsInstance(details["traceback"], str)
+
+    def test_get_error_details_reports_the_passed_exception_not_the_active_one(self):
+        captured = None
+        try:
+            raise TypeError("passed")
+        except TypeError as exc:
+            captured = exc
+        try:
+            raise ValueError("active")
+        except ValueError:
+            # A different exception is active here; the traceback field must
+            # still describe the captured TypeError, not the active ValueError.
+            details = get_error_details(captured)
+            self.assertEqual(details["type"], "TypeError")
+            self.assertEqual(details["message"], "passed")
+            self.assertIn("TypeError", details["traceback"])
+            self.assertIn("passed", details["traceback"])
+            self.assertNotIn("ValueError", details["traceback"])
 
 
 class TestIsInstanceOfAny(unittest.TestCase):

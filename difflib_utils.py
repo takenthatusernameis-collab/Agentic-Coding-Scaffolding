@@ -47,5 +47,5 @@ def context_diff(
     return list(difflib.context_diff(a, b, fromfile=fromfile, tofile=tofile, lineterm=lineterm))
 
 
-def ndiff(a: Sequence[str], b: Sequence[str], lineterm: str = "\n") -> list[str]:
+def ndiff(a: Sequence[str], b: Sequence[str]) -> list[str]:
     return list(difflib.ndiff(a, b))

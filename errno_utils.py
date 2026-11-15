@@ -12,19 +12,27 @@ __all__ = [
 ]
 
 
-def errorcode(code: int):
+def errorcode(code: int) -> str | None:
+    if not isinstance(code, int):
+        raise TypeError("code must be an int")
     return _errno.errorcode.get(code)
 
 
-def strerror(code: int):
+def strerror(code: int) -> str:
+    if not isinstance(code, int):
+        raise TypeError("code must be an int")
     return _os.strerror(code)
 
 
 def is_errno(code: int, name: str) -> bool:
+    if not isinstance(code, int):
+        raise TypeError("code must be an int")
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
     return getattr(_errno, name, None) == code
 
 
-def errno_code(name: str):
+def errno_code(name: str) -> int | None:
     if not isinstance(name, str):
         raise TypeError("name must be a str")
     value = getattr(_errno, name, None)
