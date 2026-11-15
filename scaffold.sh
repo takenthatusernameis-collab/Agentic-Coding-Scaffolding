@@ -71628,6 +71628,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `select_tests` now maps a changed test file to its own module
+
+- **Tooling fix — `tools/select_tests.py` mapped a changed `tests/test_*.py` file to `None`, so `make test` fell back to the smoke test for a test-only edit and silently never exercised the edited test locally.** `map_source_to_test` only handled `tools/*.py` and root-level source modules; a path under `tests/` matched neither branch and returned `None`, leaving `select_tests` with no targeted module. A test file is now its own best targeted test: `tests/test_abc_utils.py` maps to `tests.test_abc_utils`, while a non-test helper under `tests/` (for example `tests/helpers.py`) is still ignored. This removes a real local-dev gap where a broken test could pass the smoke test and only surface at the next full-suite milestone. Added regression coverage for the mapping, `select_tests(...)`, and the `--changed-files` CLI path, and replaced the old assertion that a test file maps to `None`.
+- Validation: `python -m unittest tests.test_select_tests` — 62 OK; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --probe` rc=0/1 on a clean verified tree; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync. (`ruff`/`mypy` are not installed in this environment.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed stale full-suite note in the state-delta guard
 
 - **Correctness fix — `tools/verify_state_delta.py` warned that `tests/` changed since the last full-suite run even immediately after `--record-full-suite` recorded a full run at the current HEAD.** The trailing note compared against the pre-update `marker` instead of the freshly written `new_marker`, so it cited the *old* `full_suite_head` and emitted a spurious "run `make test-full`" warning after the full suite had just been recorded. That could prompt a redundant full-suite re-run (an avoidable process delay). The note now reads the marker that is in effect after the update. Added `test_record_full_suite_note_uses_the_freshly_recorded_head` to lock the behavior.

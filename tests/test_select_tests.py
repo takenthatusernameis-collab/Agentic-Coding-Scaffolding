@@ -192,8 +192,19 @@ class TestMapSourceToTest(unittest.TestCase):
         result = select_tests.map_source_to_test("stats.py")
         self.assertEqual(result, "tests.test_stats")
 
-    def test_root_py_file_in_tests_dir(self):
+    def test_test_file_maps_to_its_own_module(self):
+        """A changed test file must select its own test module.
+
+        Returning ``None`` here made ``make test`` fall back to the smoke test
+        for a test-only edit, so the edited test was silently never exercised
+        locally; the module is the best targeted test for its own change.
+        """
         result = select_tests.map_source_to_test("tests/test_abc_utils.py")
+        self.assertEqual(result, "tests.test_abc_utils")
+
+    def test_non_test_file_in_tests_dir_is_ignored(self):
+        # A helper module under tests/ is not itself a test module.
+        result = select_tests.map_source_to_test("tests/helpers.py")
         self.assertIsNone(result)
 
     def test_kilo_command_md(self):
@@ -259,6 +270,18 @@ class TestSelectTests(unittest.TestCase):
         modules, run_full = select_tests.select_tests(["tools/nonexistent_tool.py"])
         self.assertTrue(run_full)
         self.assertEqual(modules, [])
+
+    def test_changed_test_file_selects_its_own_module(self):
+        modules, run_full = select_tests.select_tests(["tests/test_abc_utils.py"])
+        self.assertEqual(modules, ["tests.test_abc_utils"])
+        self.assertFalse(run_full)
+
+    def test_changed_source_and_test_files_are_both_selected(self):
+        modules, run_full = select_tests.select_tests(
+            ["abc_utils.py", "tests/test_abc_utils.py"]
+        )
+        self.assertEqual(modules, ["tests.test_abc_utils"])
+        self.assertFalse(run_full)
 
 
 class TestGetAllTestModules(unittest.TestCase):
@@ -338,6 +361,11 @@ class TestMain(unittest.TestCase):
         rc, out, err = self.run_main(["--changed-files", "Makefile"])
         self.assertEqual(rc, 0)
         self.assertEqual(out.strip(), "FULL_SUITE")
+
+    def test_changed_test_file_flag(self):
+        rc, out, err = self.run_main(["--changed-files", "tests/test_abc_utils.py"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(out.strip(), "tests.test_abc_utils")
 
     def test_help_flag(self):
         rc, out, err = self.run_main(["--help"])

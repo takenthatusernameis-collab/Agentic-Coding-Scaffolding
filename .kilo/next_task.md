@@ -1,11 +1,11 @@
-# Next Task (posted 2026-11-15T10:43Z)
+# Next Task (posted 2026-11-15T10:47Z)
 
-**Source:** bootstrap-style activation (board empty, executed task from previous `.kilo/next_task.md`). The durable task is recorded here per handover protocol and posted to `main` where accepted.
+**Source:** board empty on activation; executed the durable task in `.kilo/next_task.md`. The durable task is recorded here per handover protocol and posted to `main` where accepted.
 
 ## Context (this session)
 
-- `board_read`: empty. `python tools/verify_state_delta.py --probe` rc=2 at start — a genuine delta: `tools/select_tests.py` + `tests/test_select_tests.py` were committed at HEAD `da4af7f` after the `222f2bf` checkpoint without advancing it. Battery passed; checkpoint advanced to `da4af7f`. Baseline full suite 11042 OK (skipped=4).
-- **Defect fixed (evidence-backed):** `tools/verify_state_delta.py` printed a spurious "tests/ changed since last recorded full-suite run" note immediately after `--record-full-suite` because the note read the pre-update `marker` instead of the freshly written `new_marker` (cited the old `full_suite_head`). Reproduced with a throwaway marker; fixed by `marker = new_marker` after `write_marker`; regression `test_record_full_suite_note_uses_the_freshly_recorded_head`. This removes an avoidable redundant full-suite re-run prompt.
+- `board_read`: empty. `python tools/verify_state_delta.py --probe` rc=2 at start — HEAD `39bb706` was ahead of the `da4af7f` checkpoint (previous session's `tools/verify_state_delta.py` + `tests/test_verify_state_delta.py` were committed after the checkpoint). Battery passed; checkpoint advanced to `39bb706`. Baseline full suite 11043 OK (skipped=4).
+- **Defect fixed (evidence-backed, tooling parity):** `tools/select_tests.py` mapped a changed `tests/test_*.py` file to `None`. Reproduced with `python tools/select_tests.py --changed-files tests/test_abc_utils.py` (no output). `map_source_to_test` handled only `tools/*.py` and root-level source modules, so a `tests/` path matched neither branch and `select_tests` emitted no targeted module; `make test` then ran only the smoke test, so a test-only edit was silently not exercised locally. A test file now maps to its own module (`tests.test_abc_utils`); non-test helpers under `tests/` are still ignored. Added regression tests at the mapping, `select_tests(...)`, and `--changed-files` CLI levels, and replaced the old assertion that a test file maps to `None`.
 - Tooling: `scan_untested.py` clean; `refresh_scaffold.py --check` in sync (embedded `CHANGELOG.md` refreshed). `ruff`/`mypy` not installed here.
 
 ## Proposed Task for Next Agent

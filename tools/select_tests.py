@@ -155,6 +155,22 @@ def map_source_to_test(source_file: str) -> str | None:
             return f"tests.test_{path.stem}"
         return "FULL_SUITE"  # Tool changes without direct test should run full suite
 
+    # Handle changed test files: the test module is its own best targeted test.
+    # Returning None here made ``make test`` fall back to the smoke test for a
+    # test-only edit, so the edited test was silently never exercised locally.
+    try:
+        rel_to_root = path.relative_to(ROOT)
+    except ValueError:
+        rel_to_root = None
+    if (
+        rel_to_root is not None
+        and len(rel_to_root.parts) == 2
+        and rel_to_root.parts[0] == "tests"
+        and rel_to_root.suffix == ".py"
+        and rel_to_root.name.startswith("test_")
+    ):
+        return f"tests.{path.stem}"
+
     # Handle root-level *.py files
     try:
         if path.relative_to(ROOT).parts[0] != "tests" and path.suffix == ".py":
