@@ -445,6 +445,41 @@ class TestMain(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertTrue(any("tests/ changed since last recorded full-suite run" in s for s in buf))
 
+    def test_record_full_suite_note_uses_the_freshly_recorded_head(self):
+        # Regression: after ``--record-full-suite`` advances ``full_suite_head``
+        # to HEAD, the trailing "tests changed" note must consult the value it
+        # just wrote, not the pre-update marker. Reading the stale marker warned
+        # that tests changed since the *old* full-suite head even though a full
+        # run had just been recorded at HEAD, which could prompt a redundant
+        # full-suite re-run (an avoidable delay). The old head looks stale and
+        # the new head is current, so a correct note uses the new head and stays
+        # silent.
+        seen: list[str] = []
+
+        def fake_tests_changed(ref: str) -> bool:
+            seen.append(ref)
+            return ref == "old-full-suite-head"
+
+        buf: list[str] = []
+        with mock.patch.object(verify_state_delta, "head", return_value="new-head"):
+            with mock.patch.object(verify_state_delta, "working_tree_clean", return_value=True):
+                with mock.patch.object(verify_state_delta, "battery_ok", return_value=True):
+                    with mock.patch.object(
+                        verify_state_delta,
+                        "tests_changed_since",
+                        side_effect=fake_tests_changed,
+                    ):
+                        with mock.patch(
+                            "builtins.print",
+                            side_effect=lambda *a, **k: buf.append(" ".join(str(x) for x in a)),
+                        ):
+                            rc = verify_state_delta.main(["--record-full-suite"])
+        self.assertEqual(rc, 0)
+        self.assertEqual(seen, ["new-head"])
+        self.assertFalse(any("tests/ changed since" in line for line in buf))
+        after = verify_state_delta.read_marker()
+        self.assertEqual(after.get("full_suite_head"), "new-head")
+
     def test_skip_on_unchanged_state_when_marker_matches_head(self):
         # After --full the marker equals HEAD; a second run must skip the
         # battery rather than re-running it.

@@ -1,27 +1,24 @@
 # Handover
 
-## Latest Session (2026-11-15T08:37Z)
+## Latest Session (2026-11-15T10:43Z)
 
-- `board_read`: empty (no task posted to main); executed the task recorded in `.kilo/next_task.md`. `python tools/verify_state_delta.py --probe` rc=1 at start (clean working tree, no source-relevant changes since last verified checkpoint; full battery correctly skipped).
-- **Stateful-helper survey (evidence-backed, no repository change required):**
-  - `call_once_utils`: caches first result/exception and re-raises without re-invoking (including `BaseException`); `reset()` clears state. 6 tests OK.
-  - `cooldown_utils`: consumes cooldown slot on an allowed call even if the wrapped callable raises (rate-limiting contract); `ready/remaining/reset` consistent. 17 tests OK.
-  - `retry_utils`: argument validation and retry/backoff/jitter behavior match implementation/tests. 39 tests OK.
-  - `rate_limiter_utils`: negative/unsatisfiable token requests rejected; blocking acquisition semantics as designed. 11 tests OK.
-  - `memoize_utils`/`lru_memoize`: successful results cached; exceptions not cached (recomputed), confirmed empirically. 13 tests OK.
-- **Verification run this session:** `python -m unittest tests.test_call_once_utils tests.test_cooldown_utils tests.test_retry_utils tests.test_rate_limiter_utils tests.test_memoize_utils` — 86 tests OK. `python tools/scan_untested.py` — no exported-but-untested callables. `python tools/refresh_scaffold.py --check` — in sync.
-- **Optimize-delays pass:** no repository-managed AVOIDABLE_PROCESS_DELAY identified (state-delta fast path active; workflow/CI gates maintainer-managed). No `.github/workflows/**` edits.
+- `board_read`: empty (no task posted to main); executed the durable task in `.kilo/next_task.md`. Bootstrap-style activation.
+- **State delta:** `python tools/verify_state_delta.py --probe` rc=2 at start — not a no-op activation. `tools/select_tests.py` and `tests/test_select_tests.py` had been committed (HEAD `da4af7f`) after the checkpoint (`222f2bf`) without advancing it, so a genuine source delta existed. Ran the battery: passed, checkpoint advanced to `da4af7f`.
+- **Baseline:** `python -m unittest discover tests/` — 11042 OK (skipped=4). Recorded full-suite provenance (`--record-full-suite`).
+- **Defect found and fixed (evidence-backed):** `tools/verify_state_delta.py` printed a spurious "tests/ changed since last recorded full-suite run" note immediately after `--record-full-suite`, because the note read the pre-update `marker` (old `full_suite_head`) instead of the freshly written `new_marker`. Reproduced deterministically with a throwaway marker (note cited the old head; marker correctly updated to the new head). This can prompt a redundant full-suite re-run (AVOIDABLE_PROCESS_DELAY). Fixed by rebinding `marker = new_marker` after `write_marker`, so the note compares against the head now in effect. Added regression `test_record_full_suite_note_uses_the_freshly_recorded_head`.
+- **Optimize-delays pass:** the above is the removed avoidable delay (spurious full-suite re-run prompt). State-delta fast path already in place; workflow/CI gates remain maintainer-managed. No `.github/workflows/**` edits.
+- **Verification:** `tests.test_verify_state_delta` — 31 OK; `python -m unittest discover tests/` — 11043 OK (skipped=4); `tests.test_scaffold_sync tests.test_verify_state_delta tests.test_doctests` — 53 OK; `scan_untested.py` clean; `refresh_scaffold.py --check` in sync (refreshed the embedded `CHANGELOG.md` copy). `ruff`/`mypy` are not installed in this environment (`setup-dev` not run), so they could not be executed.
 
 ## State
 
-- Working tree (pre-commit): `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated with this session's survey/findings (no source/test behavior changes).
-- Checkpoint: `222f2bf` (last verified); probe rc=1 on unchanged clean state.
+- Working tree (pre-commit): `tools/verify_state_delta.py`, `tests/test_verify_state_delta.py`, `CHANGELOG.md`, `scaffold.sh` (embedded CHANGELOG refresh), `.kilo/last_verified.checkpoint`, plus these handoff docs.
+- Checkpoint: `da4af7f` recorded as `head`/`full_suite_head`; it will re-verify at the next committed HEAD.
 
 ## Task for Next Agent
 
-1. Run `board_read` and execute any task posted to you/main.
-2. Confirm state with `python tools/verify_state_delta.py --probe` (expect rc=0/1 on clean activation).
-3. Continue optimize-delays pass (`.kilo/command/optimize-delays.md`): remove any remaining repository-managed **AVOIDABLE_PROCESS_DELAY** with evidence (no `.github/workflows/**` edits). If none found, record survey without no-op changes.
-4. If none found, pick next evidence-backed defect/coverage/tooling-parity fix — verify empirically before claiming a bug; prefer stateful/concurrency-sensitive areas or gaps not covered by current guards.
-5. Validation: edit sources/docs first, then `python tools/refresh_scaffold.py` and `--check` when embedded sources changed; run `scan_untested.py`, targeted tests, `python -m ruff check`/`make lint`, `python -m mypy`/`make typecheck` on changed files; run full suite and `python tools/verify_state_delta.py --full --record-full-suite` when `tests/` or shared behavior changed.
-6. Keep `.github/workflows/**` unchanged; update durable handoff docs and post next task to `main` via `board_post`.
+1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
+2. Confirm state with `python tools/verify_state_delta.py --probe` (expect rc=2 on the first activation after the auto-commit, then rc=0/1 once re-verified).
+3. Continue optimize-delays pass (`.kilo/command/optimize-delays.md`): remove any remaining repository-managed **AVOIDABLE_PROCESS_DELAY** with evidence (no `.github/workflows/**` edits). If none, record the survey without no-op changes.
+4. Otherwise pick the next evidence-backed defect/edge-case/coverage gap: reproduce empirically first, prefer stateful/concurrency-sensitive helpers or tooling parity, verify with targeted tests, then `ruff`/`mypy` on touched files when available.
+5. If embedded source/test/command files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`.
+6. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` only for user-visible code/tooling changes (refresh scaffold afterwards), update `.kilo/handover.md`, `PROJECT_STATUS.md`, and `.kilo/next_task.md`; post the next task to `main` via `board_post`.

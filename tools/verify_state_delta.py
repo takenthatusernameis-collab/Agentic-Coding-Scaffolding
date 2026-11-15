@@ -346,6 +346,13 @@ def main(argv: list[str] | None = None) -> int:
         elif "full_suite_head" in marker:
             new_marker["full_suite_head"] = marker["full_suite_head"]
         write_marker(new_marker)
+        # The trailing "tests changed" note must compare against the
+        # full-suite provenance that is now in effect, not the pre-update
+        # ``marker``. Reading the stale ``marker`` warned that tests changed
+        # since ``full_suite_head`` even when ``--record-full-suite`` had just
+        # recorded a full run at the current HEAD, which could prompt a
+        # redundant full-suite re-run (an avoidable delay).
+        marker = new_marker
         print(f"[verify-state-delta] Verification passed; checkpoint advanced to {current_head}.")
     else:
         print(f"[verify-state-delta] Verification passed; checkpoint already at {current_head}.")

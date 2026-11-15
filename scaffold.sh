@@ -71628,6 +71628,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed stale full-suite note in the state-delta guard
+
+- **Correctness fix — `tools/verify_state_delta.py` warned that `tests/` changed since the last full-suite run even immediately after `--record-full-suite` recorded a full run at the current HEAD.** The trailing note compared against the pre-update `marker` instead of the freshly written `new_marker`, so it cited the *old* `full_suite_head` and emitted a spurious "run `make test-full`" warning after the full suite had just been recorded. That could prompt a redundant full-suite re-run (an avoidable process delay). The note now reads the marker that is in effect after the update. Added `test_record_full_suite_note_uses_the_freshly_recorded_head` to lock the behavior.
+- Validation: `python -m unittest tests.test_verify_state_delta` — 31 OK; `python -m unittest discover tests/` — 11043 OK (skipped=4); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync. (`ruff`/`mypy` are not installed in this environment.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `circuit_breaker_utils` half-open trial lock-up on unexpected exceptions
 
 - **Correctness fix — `CircuitBreaker.call` could pin the circuit in half-open forever after an unexpected exception during a recovery trial.** When the breaker is half-open, `call` marks `_half_open_trial = True` and only clears it in the `except self._expected_exceptions` and `else` branches. An exception *outside* `expected_exception` (for example a `TypeError` while `expected_exception=ValueError`) escaped through neither branch, so the trial slot stayed marked in progress. Every subsequent call then raised `CircuitOpenError("... a trial call is in progress")` and `state` stayed `half_open` permanently, defeating recovery. Added an `except BaseException` branch that releases the trial slot without recording a failure, matching the closed-state contract that unexpected exceptions are not counted. Added `test_half_open_unexpected_exception_releases_trial` proving a later call can attempt a fresh trial and close the circuit. Refreshed the embedded `circuit_breaker_utils.py` and `tests/test_circuit_breaker_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
