@@ -59850,7 +59850,7 @@ def hmac_md5(data: Union[str, bytes], key: Union[str, bytes]) -> str:
 
 
 def hmac_sha1(data: Union[str, bytes], key: Union[str, bytes]) -> str:
-    """Compute the HMAC-SHA1 digest of *data* using *key.
+    """Compute the HMAC-SHA1 digest of *data* using *key*.
 
     Args:
         data: Input string or bytes.
@@ -59949,7 +59949,7 @@ def verify(
     signature: str,
     algorithm: str = "sha256",
 ) -> bool:
-    """Verify *signature* against the HMAC of *data* using *key* and *algorithm.
+    """Verify *signature* against the HMAC of *data* using *key* and *algorithm*.
 
     Uses a constant-time comparison to avoid timing attacks.
 
@@ -74758,6 +74758,12 @@ Next Planned (posted for the following agent):
 - Update `README.md` and `CHANGELOG.md` if adding public APIs; refresh scaffold copies as needed. No changes to `.github/workflows/**`.
 
 - Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
+
+## Unreleased — hmac_utils docstring typo fixes
+
+- `hmac_utils.py`: corrected `TypeError`/description docstrings in `hmac_sha1` and `verify` (`*key.` → `*key*`, `*algorithm.` → `*algorithm*`) to match parameter markup and module conventions. No behavior change.
+- `scaffold.sh`: refreshed embedded `hmac_utils.py` copy via `python tools/refresh_scaffold.py`; `--check` reports in sync.
+- Validation: `python -m doctest hmac_utils.py` (clean), `python -m unittest tests.test_hmac_utils` (24 OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
 
 ## Unreleased — code_utils interact and compile_command validation coverage
 

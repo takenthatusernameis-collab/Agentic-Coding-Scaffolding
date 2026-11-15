@@ -3090,6 +3090,12 @@ Next Planned (posted for the following agent):
 
 - Added `is_spy_number(value)` to `number_utils.py` with digit sum and product validation (raising `TypeError` for non-ints/bools; returns `False` for `<= 0`), exported via `__all__`, Google-style docstring with examples, and comprehensive tests. Updated `number_utils` in `README.md` and `.kilo/command/scaffold-project.md`. Synchronized embedded copies with `make refresh-scaffold`.
 
+## Unreleased — hmac_utils docstring typo fixes
+
+- `hmac_utils.py`: corrected `TypeError`/description docstrings in `hmac_sha1` and `verify` (`*key.` → `*key*`, `*algorithm.` → `*algorithm*`) to match parameter markup and module conventions. No behavior change.
+- `scaffold.sh`: refreshed embedded `hmac_utils.py` copy via `python tools/refresh_scaffold.py`; `--check` reports in sync.
+- Validation: `python -m doctest hmac_utils.py` (clean), `python -m unittest tests.test_hmac_utils` (24 OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
+
 ## Unreleased — code_utils interact and compile_command validation coverage
 
 - Added `TestCodeUtils.test_interact` to `tests/test_code_utils.py`, mocking `code.interact` to verify `code_utils.interact` forwards `banner`, `readfunc`, `local`, and `exitmsg` without launching an interactive console. Added `TestCodeUtils.test_compile_command_type_error` to cover the `TypeError` path for non-string sources, closing the only exported-but-untested callable in default `python tools/scan_untested.py` results (`code_utils.interact`). Targeted verification: `python -m unittest tests.test_code_utils -v` (10 OK). Synchronized embedded copy with `python tools/refresh_scaffold.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.

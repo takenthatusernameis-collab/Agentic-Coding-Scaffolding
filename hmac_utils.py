@@ -71,7 +71,7 @@ def hmac_md5(data: Union[str, bytes], key: Union[str, bytes]) -> str:
 
 
 def hmac_sha1(data: Union[str, bytes], key: Union[str, bytes]) -> str:
-    """Compute the HMAC-SHA1 digest of *data* using *key.
+    """Compute the HMAC-SHA1 digest of *data* using *key*.
 
     Args:
         data: Input string or bytes.
@@ -170,7 +170,7 @@ def verify(
     signature: str,
     algorithm: str = "sha256",
 ) -> bool:
-    """Verify *signature* against the HMAC of *data* using *key* and *algorithm.
+    """Verify *signature* against the HMAC of *data* using *key* and *algorithm*.
 
     Uses a constant-time comparison to avoid timing attacks.
 
