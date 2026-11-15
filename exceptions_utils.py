@@ -94,12 +94,16 @@ def get_error_details(exc: BaseException) -> Dict[str, Any]:
         exc: Exception to analyze.
 
     Returns:
-        Dictionary containing exception type, message, and traceback.
+        Dictionary containing exception type, message, and traceback.  The
+        traceback always describes *exc*, even when the wrapper is called
+        outside an ``except`` block or while a different exception is active.
     """
     return {
         "type": type(exc).__name__,
         "message": str(exc),
-        "traceback": traceback.format_exc(),
+        "traceback": "".join(
+            traceback.format_exception(type(exc), exc, exc.__traceback__)
+        ),
     }
 
 

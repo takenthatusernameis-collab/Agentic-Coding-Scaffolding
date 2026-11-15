@@ -121,6 +121,24 @@ class TestGetErrorDetails(unittest.TestCase):
             self.assertIn("traceback", details)
             self.assertIsInstance(details["traceback"], str)
 
+    def test_get_error_details_reports_the_passed_exception_not_the_active_one(self):
+        captured = None
+        try:
+            raise TypeError("passed")
+        except TypeError as exc:
+            captured = exc
+        try:
+            raise ValueError("active")
+        except ValueError:
+            # A different exception is active here; the traceback field must
+            # still describe the captured TypeError, not the active ValueError.
+            details = get_error_details(captured)
+            self.assertEqual(details["type"], "TypeError")
+            self.assertEqual(details["message"], "passed")
+            self.assertIn("TypeError", details["traceback"])
+            self.assertIn("passed", details["traceback"])
+            self.assertNotIn("ValueError", details["traceback"])
+
 
 class TestIsInstanceOfAny(unittest.TestCase):
     def test_matches_single_type(self):
