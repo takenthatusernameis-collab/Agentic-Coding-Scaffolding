@@ -85,6 +85,17 @@ class TestRingBuffer(unittest.TestCase):
         self.assertEqual(to_list(rb), [1, 2, 3])
         self.assertEqual(rb.capacity, 3)
 
+    def test_from_list_empty_requires_capacity(self):
+        with self.assertRaises(ValueError) as ctx:
+            RingBuffer.from_list([])
+        self.assertIn("capacity must be provided when items is empty", str(ctx.exception))
+
+    def test_from_list_empty_with_explicit_capacity(self):
+        rb = RingBuffer.from_list([], capacity=2)
+        self.assertTrue(rb.is_empty)
+        self.assertEqual(rb.capacity, 2)
+        self.assertEqual(to_list(rb), [])
+
     def test_iteration_order(self):
         rb = create(3)
         append(rb, 1)

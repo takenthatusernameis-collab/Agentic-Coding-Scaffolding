@@ -113,10 +113,20 @@ class RingBuffer(Generic[T]):
 
         Args:
             items: Elements to load, oldest first.
-            capacity: Buffer capacity (defaults to the number of items).
+            capacity: Buffer capacity. Defaults to ``len(items)`` when
+                ``items`` is non-empty.
+
+        Raises:
+            ValueError: If ``capacity`` is not provided and ``items`` is empty,
+                or if the resolved capacity is not greater than 0.
         """
         item_list = list(items)
-        cap = len(item_list) if capacity is None else capacity
+        if capacity is None:
+            if not item_list:
+                raise ValueError("capacity must be provided when items is empty")
+            cap = len(item_list)
+        else:
+            cap = capacity
         buffer = cls(cap)
         for value in item_list:
             buffer.append(value)

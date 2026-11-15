@@ -40864,10 +40864,20 @@ class RingBuffer(Generic[T]):
 
         Args:
             items: Elements to load, oldest first.
-            capacity: Buffer capacity (defaults to the number of items).
+            capacity: Buffer capacity. Defaults to ``len(items)`` when
+                ``items`` is non-empty.
+
+        Raises:
+            ValueError: If ``capacity`` is not provided and ``items`` is empty,
+                or if the resolved capacity is not greater than 0.
         """
         item_list = list(items)
-        cap = len(item_list) if capacity is None else capacity
+        if capacity is None:
+            if not item_list:
+                raise ValueError("capacity must be provided when items is empty")
+            cap = len(item_list)
+        else:
+            cap = capacity
         buffer = cls(cap)
         for value in item_list:
             buffer.append(value)
@@ -54709,6 +54719,17 @@ class TestRingBuffer(unittest.TestCase):
         rb = RingBuffer.from_list([1, 2, 3])
         self.assertEqual(to_list(rb), [1, 2, 3])
         self.assertEqual(rb.capacity, 3)
+
+    def test_from_list_empty_requires_capacity(self):
+        with self.assertRaises(ValueError) as ctx:
+            RingBuffer.from_list([])
+        self.assertIn("capacity must be provided when items is empty", str(ctx.exception))
+
+    def test_from_list_empty_with_explicit_capacity(self):
+        rb = RingBuffer.from_list([], capacity=2)
+        self.assertTrue(rb.is_empty)
+        self.assertEqual(rb.capacity, 2)
+        self.assertEqual(to_list(rb), [])
 
     def test_iteration_order(self):
         rb = create(3)
@@ -74558,6 +74579,11 @@ Next Planned (posted for the following agent):
 ## Unreleased — seq_utils find_index predicate search
 
 - Added `find_index(sequence, predicate)` to `seq_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError` for non-sequence inputs and non-callable predicates; it returns the 0-based index of the first element satisfying *predicate*, or `None` when no match is found (complements `index_of` value search). Added `TestFindIndex` to `tests/test_seq_utils.py` (9 tests). Updated `README.md` (tree + prose). Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_seq_utils -q`, `python -m unittest tests.test_public_api -q`. No `.github/workflows/**` changes.
+
+## Unreleased — ring_buffer_utils from_list empty-iterable contract
+
+- `ring_buffer_utils.RingBuffer.from_list`: `from_list([])` with no explicit `capacity` now raises `ValueError("capacity must be provided when items is empty")` instead of the misleading `ValueError("capacity must be greater than 0")`; `from_list([], capacity=n)` remains supported for constructing an empty buffer with a known capacity.
+- `tests/test_ring_buffer_utils.py`: added `test_from_list_empty_requires_capacity` and `test_from_list_empty_with_explicit_capacity` (13 tests total). Targeted verification: `python -m unittest tests.test_ring_buffer_utils -v` (OK), `python -m ruff check ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean), `python -m mypy ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 
 ## Unreleased — dict_utils deep_merge strict validation
 

@@ -3049,6 +3049,11 @@ Next Planned (posted for the following agent):
 
 - Added `find_index(sequence, predicate)` to `seq_utils.py` with a typed signature, `__all__` export, Google-style docstring with doctests, and validation raising `TypeError` for non-sequence inputs and non-callable predicates; it returns the 0-based index of the first element satisfying *predicate*, or `None` when no match is found (complements `index_of` value search). Added `TestFindIndex` to `tests/test_seq_utils.py` (9 tests). Updated `README.md` (tree + prose). Synchronized embedded copies with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. Targeted verification: `python -m unittest tests.test_seq_utils -q`, `python -m unittest tests.test_public_api -q`. No `.github/workflows/**` changes.
 
+## Unreleased — ring_buffer_utils from_list empty-iterable contract
+
+- `ring_buffer_utils.RingBuffer.from_list`: `from_list([])` with no explicit `capacity` now raises `ValueError("capacity must be provided when items is empty")` instead of the misleading `ValueError("capacity must be greater than 0")`; `from_list([], capacity=n)` remains supported for constructing an empty buffer with a known capacity.
+- `tests/test_ring_buffer_utils.py`: added `test_from_list_empty_requires_capacity` and `test_from_list_empty_with_explicit_capacity` (13 tests total). Targeted verification: `python -m unittest tests.test_ring_buffer_utils -v` (OK), `python -m ruff check ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean), `python -m mypy ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — dict_utils deep_merge strict validation
 
 - `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
