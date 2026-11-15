@@ -40318,6 +40318,7 @@ including a RateLimiter class, a token_bucket context manager, and a rate_limit
 decorator.
 """
 
+import functools
 import time
 from typing import Any, Callable, Optional, TypeVar
 
@@ -40341,6 +40342,8 @@ class RateLimiter:
     def __init__(self, rate: float, capacity: Optional[float] = None):
         if rate <= 0:
             raise ValueError("rate must be positive")
+        if capacity is not None and capacity <= 0:
+            raise ValueError("capacity must be positive")
         self.rate = float(rate)
         self.capacity = float(capacity if capacity is not None else rate)
         self.tokens = self.capacity
@@ -40360,7 +40363,13 @@ class RateLimiter:
 
         Returns:
             True if tokens were acquired, False otherwise.
+
+        Raises:
+            ValueError: If *tokens* is negative, which would otherwise silently
+                mint tokens instead of consuming them.
         """
+        if tokens < 0:
+            raise ValueError("tokens must be non-negative")
         self._update()
         if tokens > self.capacity:
             # Cannot acquire more than capacity at once
@@ -40375,7 +40384,16 @@ class RateLimiter:
 
         Args:
             tokens: Number of tokens to acquire.
+
+        Raises:
+            ValueError: If *tokens* exceeds the bucket capacity. Such a request
+                can never be satisfied, so blocking on it would loop forever.
         """
+        if tokens > self.capacity:
+            raise ValueError(
+                f"cannot acquire {tokens} tokens from a bucket with capacity "
+                f"{self.capacity}"
+            )
         while not self.acquire(tokens):
             time.sleep(0.001)  # Sleep briefly to avoid busy loop
 
@@ -40427,6 +40445,7 @@ def rate_limit(
     limiter = RateLimiter(rate=rate, capacity=capacity)
 
     def decorator(func: F) -> F:
+        @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             limiter.acquire_blocking()
             return func(*args, **kwargs)
@@ -54130,6 +54149,50 @@ class TestRateLimiter(unittest.TestCase):
         elapsed = time.monotonic() - start
         self.assertGreaterEqual(elapsed, 0.05)
         self.assertLess(elapsed, 0.3)
+
+    def test_acquire_more_than_capacity(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        # A request larger than the bucket can never be satisfied and must not
+        # be reported as acquired.
+        self.assertFalse(limiter.acquire(2.0))
+        # The rejected request must not consume tokens.
+        self.assertTrue(limiter.acquire(1.0))
+
+    def test_acquire_negative_tokens_rejected(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        limiter.tokens = 0.0
+        with self.assertRaises(ValueError):
+            limiter.acquire(-1.0)
+        # The failed request must not mint tokens.
+        self.assertAlmostEqual(limiter.tokens, 0.0, places=6)
+
+    def test_acquire_blocking_raises_when_tokens_exceed_capacity(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        # This used to spin forever because acquire() can never succeed.
+        start = time.monotonic()
+        with self.assertRaises(ValueError):
+            limiter.acquire_blocking(2.0)
+        self.assertLess(time.monotonic() - start, 0.1)
+
+    def test_token_bucket_raises_when_tokens_exceed_capacity(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        with self.assertRaises(ValueError):
+            with token_bucket(limiter, 2.0):
+                pass
+
+    def test_non_positive_capacity_rejected(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=0.0)
+
+    def test_rate_limit_preserves_metadata(self):
+        @rate_limit(rate=1000.0)
+        def documented() -> str:
+            """A documented callable."""
+            return "ok"
+
+        self.assertEqual(documented.__name__, "documented")
+        self.assertEqual(documented.__doc__, "A documented callable.")
+        self.assertEqual(documented(), "ok")
 
     def test_rate_limit_decorator(self):
         calls = []
@@ -71260,6 +71323,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `rate_limiter_utils` infinite hang and token-minting edge cases
+
+- **Correctness fix — `RateLimiter.acquire_blocking` looped forever when the requested token count exceeded the bucket capacity.** `acquire` already returned `False` for `tokens > capacity`, but `acquire_blocking` retried that request in a `while not self.acquire(...)` loop with no exit condition, so any `acquire_blocking(n > capacity)` (and therefore `with token_bucket(limiter, n > capacity)`) hung indefinitely; `capacity=0` produced the same hang for any positive request. `acquire_blocking` now raises `ValueError` for an unsatisfiable request instead of spinning, and `RateLimiter.__init__` rejects a non-positive `capacity` (it previously accepted `0`, producing a bucket that could never satisfy a positive `acquire`). `acquire` now rejects negative token counts with `ValueError` instead of silently minting tokens (a negative request previously *added* tokens to the bucket). `rate_limit` now wraps the decorated function with `functools.wraps` so `__name__`/`__doc__` are preserved. Added six regression tests (`test_acquire_more_than_capacity`, `test_acquire_negative_tokens_rejected`, `test_acquire_blocking_raises_when_tokens_exceed_capacity`, `test_token_bucket_raises_when_tokens_exceed_capacity`, `test_non_positive_capacity_rejected`, `test_rate_limit_preserves_metadata`); the pre-fix `acquire_blocking` case hangs rather than failing, which is the defect being removed. Refreshed the embedded `rate_limiter_utils.py` and `tests/test_rate_limiter_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_rate_limiter_utils` — 11 OK; `python -m unittest discover tests/` — full suite OK; `python -m ruff check rate_limiter_utils.py tests/test_rate_limiter_utils.py` clean; `python -m mypy rate_limiter_utils.py` clean; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — added edge-case coverage for memoize_utils; advanced checkpoint
 
 - **Coverage gap — `tests/test_memoize_utils.py` gained three edge-case tests not previously exercised:** `memoize` caches identically regardless of keyword-argument order (the `sorted(kwargs.items())` cache key) and preserves wrapped-function metadata via `functools.wraps` (`__name__`, `__doc__`); `lru_memoize` verifies `cache_clear` empties the LRU cache and forces recomputation. Default `scan_untested` stays clean (no exported-but-untested callables); `--all` surfaces only TypeVar/constant/class/re-export noise. Refreshed the embedded `tests/test_memoize_utils.py` copy in `scaffold.sh`; `refresh --check` in sync.

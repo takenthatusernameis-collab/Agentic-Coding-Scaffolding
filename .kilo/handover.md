@@ -1,21 +1,22 @@
 # Handover
 
-## Latest Session (2026-11-15T03:21Z)
+## Latest Session (2026-11-15T04:22Z)
 
-- `board_read`: empty (no task posted to main). `python tools/verify_state_delta.py --probe` rc=1 (working tree clean, no source-relevant file changed since verified checkpoint `1b6b4df`); `refresh_scaffold.py --check` in sync; `scan_untested.py` clean; `ruff`/`mypy` clean per prior verified state.
-- **Optimize-delays measurement (evidence):** probed hot-path tools — `verify_state_delta --probe` ~0.06s real, `refresh_scaffold --check` ~0.22s real (cache hit, `.kilo/refresh_scaffold_cache.json` present), `scan_untested` ~0.04s real (cache hit), `select_tests --from-git --include-untracked` ~0.05s real. `make test` already short-circuits on probe rc=0/1 to skip redundant smoke/full runs. `scan_untested --all` remains exhausted (TypeVar/constant/class/re-export/entry-point noise only). No remaining high-leverage **AVOIDABLE_PROCESS_DELAY** identified in repository-managed tooling without weakening guarantees; `.github/workflows/**` edits are out of scope (maintainer-managed).
-- No source/test behavior changes this session (documentation/state handover update only). No embedded module/test/doc template changed; `refresh_scaffold --check` remains in sync.
+- `board_read`: empty (no task posted to main). `board_post` to `main` was refused (self-post: this session is the board root); the next task below is recorded here instead. Prior handover task executed: continue the optimize-delays pass; if no avoidable repository-managed delay remained, do independent durable work instead of a no-op.
+- State confirmed: `python tools/verify_state_delta.py --probe` returned rc=2 because the checkpoint (`ba862aa`) trailed HEAD (`89a5cf7`) with source-relevant files changed after it (`CHANGELOG.md`, `scaffold.sh`, `tests/test_select_tests.py`, `tools/select_tests.py`). `verify_state_delta --diff` ran a passing battery and advanced the checkpoint to HEAD. `refresh_scaffold --check` in sync; `scan_untested` clean.
+- **Durable work delivered — fixed real defects in `rate_limiter_utils`:** `RateLimiter.acquire_blocking` spun forever when `tokens > capacity` (verified: `timeout 3` killed it, exit 124) because `acquire` always returned `False`; `capacity=0` produced the same hang. `acquire_blocking` now raises `ValueError` for an unsatisfiable request, `__init__` rejects non-positive `capacity`, `acquire` rejects negative token counts (which previously minted tokens), and `rate_limit` now preserves metadata via `functools.wraps`. Six regression tests added.
+- No high-leverage **AVOIDABLE_PROCESS_DELAY** remained in repository-managed tooling (probe/refresh/scan all cached and sub-second; `.github/workflows/**` is maintainer-managed). This session therefore took the permitted-durable-work branch (correctness fix) instead of a no-op commit.
 
 ## State
 
-- Working tree: `.kilo/handover.md`, `PROJECT_STATUS.md`, `CHANGELOG.md` modified (non-workflow). CI auto-commits non-workflow changes.
-- Checkpoint: `1b6b4df` (full suite recorded). After auto-commit expect `verify_state_delta --probe` rc=0 at HEAD.
+- Working tree (pre-commit): `rate_limiter_utils.py`, `tests/test_rate_limiter_utils.py`, `scaffold.sh`, `CHANGELOG.md`, `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/last_verified.checkpoint` (non-workflow). CI auto-commits non-workflow changes.
+- Checkpoint: `89a5cf7` (full suite recorded; battery validated the working tree that includes these edits). The auto-commit creates a new HEAD containing the source edits, so the next `verify_state_delta --probe` will return rc=2 once (a real source delta between the recorded checkpoint and the auto-commit); the next battery run advances the checkpoint, and clean activations after that are rc=0/1.
 
 ## Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main.
-2. Confirm state with `python tools/verify_state_delta.py --probe` (expect rc=0 clean/verified at HEAD after the auto-commit).
-3. Continue optimize-delays pass (`.kilo/command/optimize-delays.md`): if any **AVOIDABLE_PROCESS_DELAY** remains in repository-managed CI/dev tooling, measure with evidence and remove it without weakening guarantees (no `.github/workflows/**` edits). Current hot paths are cached/fast; `scan_untested --all` exhausted.
-4. If no avoidable delay is found, do independent permitted work that adds durable value (e.g. edge-case/portability tests for an under-covered exported helper, or a small hermetic utility consistent with existing API conventions) rather than a no-op commit.
-5. Validation: edit sources/docs first, then `python tools/refresh_scaffold.py` and `--check` when embedded sources changed; run `scan_untested.py`, targeted tests, `make lint`, `make typecheck`; run full suite when `tests/` or shared behavior changed; then `python tools/verify_state_delta.py --full --record-full-suite` as appropriate.
-6. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` (before refresh when applicable), `.kilo/handover.md`, `PROJECT_STATUS.md`; post next task to `main` via `board_post` (record if self-post refused).
+2. Confirm state with `python tools/verify_state_delta.py --probe` (the first run after this session's auto-commit returns rc=2 — a real delta from the checkpoint — so run the battery once to advance it; later clean activations are rc=0/1).
+3. Continue the optimize-delays pass (`.kilo/command/optimize-delays.md`): measure and remove any remaining repository-managed **AVOIDABLE_PROCESS_DELAY** with evidence, without weakening guarantees (no `.github/workflows/**` edits).
+4. If none is found, pick the next real defect/coverage gap on evidence rather than a no-op. Candidate areas from the size-vs-test survey: `retry_utils` (225 src / 12 tests), `ring_buffer_utils` (174/11), `memoize_utils` (111/12), `priority_queue_utils` (149/18) — all time/stateful helpers where edge cases (empty/overflow/concurrency) are easy to get wrong. Verify each candidate empirically before claiming a bug.
+5. Validation: edit sources/docs first, then `python tools/refresh_scaffold.py` and `--check` when embedded sources changed; run `scan_untested.py`, targeted tests, `make lint`, `make typecheck`; run `python -m unittest discover tests/` when `tests/` or shared behavior changed; then `python tools/verify_state_delta.py --full --record-full-suite`.
+6. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` (before refresh when applicable), `.kilo/handover.md`, `PROJECT_STATUS.md`; post the next task to `main` via `board_post` (record if self-post is refused).

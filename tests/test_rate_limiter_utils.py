@@ -56,6 +56,50 @@ class TestRateLimiter(unittest.TestCase):
         self.assertGreaterEqual(elapsed, 0.05)
         self.assertLess(elapsed, 0.3)
 
+    def test_acquire_more_than_capacity(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        # A request larger than the bucket can never be satisfied and must not
+        # be reported as acquired.
+        self.assertFalse(limiter.acquire(2.0))
+        # The rejected request must not consume tokens.
+        self.assertTrue(limiter.acquire(1.0))
+
+    def test_acquire_negative_tokens_rejected(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        limiter.tokens = 0.0
+        with self.assertRaises(ValueError):
+            limiter.acquire(-1.0)
+        # The failed request must not mint tokens.
+        self.assertAlmostEqual(limiter.tokens, 0.0, places=6)
+
+    def test_acquire_blocking_raises_when_tokens_exceed_capacity(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        # This used to spin forever because acquire() can never succeed.
+        start = time.monotonic()
+        with self.assertRaises(ValueError):
+            limiter.acquire_blocking(2.0)
+        self.assertLess(time.monotonic() - start, 0.1)
+
+    def test_token_bucket_raises_when_tokens_exceed_capacity(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        with self.assertRaises(ValueError):
+            with token_bucket(limiter, 2.0):
+                pass
+
+    def test_non_positive_capacity_rejected(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=0.0)
+
+    def test_rate_limit_preserves_metadata(self):
+        @rate_limit(rate=1000.0)
+        def documented() -> str:
+            """A documented callable."""
+            return "ok"
+
+        self.assertEqual(documented.__name__, "documented")
+        self.assertEqual(documented.__doc__, "A documented callable.")
+        self.assertEqual(documented(), "ok")
+
     def test_rate_limit_decorator(self):
         calls = []
 

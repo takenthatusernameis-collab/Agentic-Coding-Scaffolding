@@ -5,6 +5,7 @@ including a RateLimiter class, a token_bucket context manager, and a rate_limit
 decorator.
 """
 
+import functools
 import time
 from typing import Any, Callable, Optional, TypeVar
 
@@ -28,6 +29,8 @@ class RateLimiter:
     def __init__(self, rate: float, capacity: Optional[float] = None):
         if rate <= 0:
             raise ValueError("rate must be positive")
+        if capacity is not None and capacity <= 0:
+            raise ValueError("capacity must be positive")
         self.rate = float(rate)
         self.capacity = float(capacity if capacity is not None else rate)
         self.tokens = self.capacity
@@ -47,7 +50,13 @@ class RateLimiter:
 
         Returns:
             True if tokens were acquired, False otherwise.
+
+        Raises:
+            ValueError: If *tokens* is negative, which would otherwise silently
+                mint tokens instead of consuming them.
         """
+        if tokens < 0:
+            raise ValueError("tokens must be non-negative")
         self._update()
         if tokens > self.capacity:
             # Cannot acquire more than capacity at once
@@ -62,7 +71,16 @@ class RateLimiter:
 
         Args:
             tokens: Number of tokens to acquire.
+
+        Raises:
+            ValueError: If *tokens* exceeds the bucket capacity. Such a request
+                can never be satisfied, so blocking on it would loop forever.
         """
+        if tokens > self.capacity:
+            raise ValueError(
+                f"cannot acquire {tokens} tokens from a bucket with capacity "
+                f"{self.capacity}"
+            )
         while not self.acquire(tokens):
             time.sleep(0.001)  # Sleep briefly to avoid busy loop
 
@@ -114,6 +132,7 @@ def rate_limit(
     limiter = RateLimiter(rate=rate, capacity=capacity)
 
     def decorator(func: F) -> F:
+        @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             limiter.acquire_blocking()
             return func(*args, **kwargs)
