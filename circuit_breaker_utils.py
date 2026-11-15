@@ -192,6 +192,15 @@ class CircuitBreaker:
                 self._record_failure()
                 self._half_open_trial = False
             raise
+        except BaseException:
+            # An unexpected exception escapes without counting as a failure, but
+            # the half-open trial slot must still be released. Leaving the slot
+            # marked as in progress would reject every later call with
+            # CircuitOpenError and pin the circuit in half-open forever, so the
+            # next call is free to attempt a fresh recovery trial.
+            with self._lock:
+                self._half_open_trial = False
+            raise
         else:
             with self._lock:
                 self._record_success()

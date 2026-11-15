@@ -134,6 +134,34 @@ class TestCircuitBreaker(unittest.TestCase):
         self.assertEqual(breaker.state, CircuitBreaker.CLOSED)
         self.assertEqual(breaker.failures, 0)
 
+    def test_half_open_unexpected_exception_releases_trial(self):
+        breaker = CircuitBreaker(
+            failure_threshold=1, recovery_timeout=0.005, expected_exception=ValueError
+        )
+
+        def fail() -> None:
+            raise ValueError("boom")
+
+        with self.assertRaises(ValueError):
+            breaker.call(fail)
+        time.sleep(0.01)
+        self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
+
+        # An exception that is not expected escapes and is not counted, but it
+        # must not leave the half-open trial slot permanently marked in use.
+        def unexpected() -> None:
+            raise TypeError("unexpected")
+
+        with self.assertRaises(TypeError):
+            breaker.call(unexpected)
+        self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
+        self.assertEqual(breaker.failures, 1)
+
+        # A later call is free to attempt a fresh trial and close the circuit.
+        self.assertEqual(breaker.call(lambda: "ok"), "ok")
+        self.assertEqual(breaker.state, CircuitBreaker.CLOSED)
+        self.assertEqual(breaker.failures, 0)
+
     def test_reset_closes_circuit(self):
         breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=60.0)
 

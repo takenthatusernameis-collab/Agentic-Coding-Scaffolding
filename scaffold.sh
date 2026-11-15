@@ -50808,6 +50808,15 @@ class CircuitBreaker:
                 self._record_failure()
                 self._half_open_trial = False
             raise
+        except BaseException:
+            # An unexpected exception escapes without counting as a failure, but
+            # the half-open trial slot must still be released. Leaving the slot
+            # marked as in progress would reject every later call with
+            # CircuitOpenError and pin the circuit in half-open forever, so the
+            # next call is free to attempt a fresh recovery trial.
+            with self._lock:
+                self._half_open_trial = False
+            raise
         else:
             with self._lock:
                 self._record_success()
@@ -50957,6 +50966,34 @@ class TestCircuitBreaker(unittest.TestCase):
         # TypeError is not expected, so it propagates and does not open.
         with self.assertRaises(TypeError):
             breaker.call(type_error)
+        self.assertEqual(breaker.state, CircuitBreaker.CLOSED)
+        self.assertEqual(breaker.failures, 0)
+
+    def test_half_open_unexpected_exception_releases_trial(self):
+        breaker = CircuitBreaker(
+            failure_threshold=1, recovery_timeout=0.005, expected_exception=ValueError
+        )
+
+        def fail() -> None:
+            raise ValueError("boom")
+
+        with self.assertRaises(ValueError):
+            breaker.call(fail)
+        time.sleep(0.01)
+        self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
+
+        # An exception that is not expected escapes and is not counted, but it
+        # must not leave the half-open trial slot permanently marked in use.
+        def unexpected() -> None:
+            raise TypeError("unexpected")
+
+        with self.assertRaises(TypeError):
+            breaker.call(unexpected)
+        self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
+        self.assertEqual(breaker.failures, 1)
+
+        # A later call is free to attempt a fresh trial and close the circuit.
+        self.assertEqual(breaker.call(lambda: "ok"), "ok")
         self.assertEqual(breaker.state, CircuitBreaker.CLOSED)
         self.assertEqual(breaker.failures, 0)
 
@@ -71591,6 +71628,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `circuit_breaker_utils` half-open trial lock-up on unexpected exceptions
+
+- **Correctness fix — `CircuitBreaker.call` could pin the circuit in half-open forever after an unexpected exception during a recovery trial.** When the breaker is half-open, `call` marks `_half_open_trial = True` and only clears it in the `except self._expected_exceptions` and `else` branches. An exception *outside* `expected_exception` (for example a `TypeError` while `expected_exception=ValueError`) escaped through neither branch, so the trial slot stayed marked in progress. Every subsequent call then raised `CircuitOpenError("... a trial call is in progress")` and `state` stayed `half_open` permanently, defeating recovery. Added an `except BaseException` branch that releases the trial slot without recording a failure, matching the closed-state contract that unexpected exceptions are not counted. Added `test_half_open_unexpected_exception_releases_trial` proving a later call can attempt a fresh trial and close the circuit. Refreshed the embedded `circuit_breaker_utils.py` and `tests/test_circuit_breaker_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_circuit_breaker_utils` — 16 OK; `python -m ruff check circuit_breaker_utils.py tests/test_circuit_breaker_utils.py` clean; `python -m mypy circuit_breaker_utils.py tests/test_circuit_breaker_utils.py` clean; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `cache_utils` test bug in typed keyword argument handling
 
 - **Correctness fix — `tests/test_cache_utils.py::TestMemoize.test_typed_keyword_arguments_distinct` called the decorated function with the wrong keyword argument name.** The test used `identity(x=1)` but the function signature is `identity(value: object)`. The function parameter is named `value`, not `x`, causing a `TypeError: got an unexpected keyword argument 'x'`. Fixed the test to use `identity(value=1)` and `identity(value=1.0)`. All 21 tests in `test_cache_utils.py` now pass.
