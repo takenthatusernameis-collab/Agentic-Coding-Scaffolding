@@ -5,6 +5,12 @@
 - No `.github/workflows/**` changes.
 
 
+## Unreleased — optimize-delays measurement pass (no avoidable repository-managed delay found)
+
+- `board_read`: empty (no task posted to main). Confirmed clean/no-source-delta state (`python tools/verify_state_delta.py --probe` rc=1, checkpoint `1b6b4df`); `python tools/refresh_scaffold.py --check` in sync; `python tools/scan_untested.py` clean.
+- Measured hot-path tooling: `verify_state_delta --probe` ~0.06s real, `refresh_scaffold --check` ~0.22s real (cache hit), `scan_untested` ~0.04s real (cache hit), `select_tests --from-git --include-untracked` ~0.05s real. `make test` already skips redundant smoke/full runs on probe rc=0/1. `scan_untested --all` remains exhausted (TypeVar/constant/class/re-export/entry-point noise only).
+- Finding: no remaining high-leverage **AVOIDABLE_PROCESS_DELAY** identified in repository-managed CI/dev tooling without weakening guarantees; `.github/workflows/**` changes remain out of scope (maintainer-managed). No source/test behavior changes in this session (handover/status/changelog state update only).
+
 ## Unreleased — fixed two silent state-delta and scaffold-sync defects
 
 - **Integrity fix — `tools/verify_state_delta.py` computed its source delta with `git status --porcelain --untracked-files=all <ref> -- <pathspecs>`.** `git status` does not take a commit argument: a bare `<ref>` before `--` is interpreted as a pathspec, so the command matched nothing and `_changed_and_untracked_since` returned an empty delta on a clean tree even after source files changed between the checkpoint and the working tree. The clean-tree fast path then skipped the verification battery and the checkpoint could advance past unverified code. The tracked delta is now taken from `git diff --name-only <ref>` and untracked files from a plain `git status --porcelain --untracked-files=all`, so a committed or uncommitted source change correctly forces the battery. Added `tests/test_verify_state_delta.py::TestDeltaAcrossCommits`, which builds a throwaway repository with a source file changed in a second commit and asserts the helper reports it; the test fails against the old `git status <ref>` form and passes with the fix.
