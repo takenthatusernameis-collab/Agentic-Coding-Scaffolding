@@ -6,6 +6,10 @@ maps them to their corresponding test files and returns the test module names
 that should be run. This enables targeted test runs for local development
 while preserving the full suite for CI/milestones.
 
+A committed range (``--base``) is resolved with ``git diff``; ``git status``
+cannot diff two commits, so the working-tree form is used only when no base is
+given.
+
 Usage:
     python tools/select_tests.py [--changed-files FILE1 FILE2 ...]
     python tools/select_tests.py --from-git [--base REF] [--head REF]
@@ -56,24 +60,50 @@ def run_git(cmd: list[str]) -> subprocess.CompletedProcess[str]:
 def _get_changed_and_untracked_from_git(
     base: str | None = None, head: str = "HEAD", include_untracked: bool = True
 ) -> tuple[list[str], list[str]]:
-    """Get changed and untracked files from git status in one call.
+    """Get changed and untracked files from git.
 
     Returns (changed_files, untracked_files). Untracked files are only collected
     when *include_untracked* is ``True``.
+
+    ``git status`` does not accept a commit range: a bare ``<ref>`` before
+    ``--`` is interpreted as a pathspec, so the previous
+    ``git status --porcelain <base> <head> -- <paths>`` form always matched
+    nothing and reported an empty delta for a committed range. The committed
+    delta is therefore taken from ``git diff --name-only <base> <head>``, while
+    untracked files (which are relative to the working tree, not to *base*) are
+    read from a plain ``git status --porcelain``.
     """
+    globs = list(SOURCE_GLOBS)
+
+    if base:
+        diff_result = run_git(["git", "diff", "--name-only", base, head, "--"] + globs)
+        if diff_result.returncode != 0:
+            return [], []
+        changed = [
+            line.strip() for line in diff_result.stdout.splitlines() if line.strip()
+        ]
+        untracked: list[str] = []
+        if include_untracked:
+            status_result = run_git(
+                ["git", "status", "--porcelain", "--untracked-files=all", "--"] + globs
+            )
+            if status_result.returncode == 0:
+                untracked = [
+                    line[3:].strip()
+                    for line in status_result.stdout.splitlines()
+                    if line.startswith("??")
+                ]
+        return changed, untracked
+
     cmd = ["git", "status", "--porcelain"]
     if include_untracked:
         cmd.append("--untracked-files=all")
-    if base:
-        cmd.extend([base, head])
-    else:
-        cmd.append(head)
-    cmd.extend(["--"] + list(SOURCE_GLOBS))
+    cmd.extend(["--"] + globs)
     result = run_git(cmd)
     if result.returncode != 0:
         return [], []
-    changed = []
-    untracked = []
+    changed_files: list[str] = []
+    untracked_files: list[str] = []
     for line in result.stdout.rstrip("\n").splitlines():
         if not line.strip():
             continue
@@ -81,10 +111,10 @@ def _get_changed_and_untracked_from_git(
         path = line[3:].strip()
         if status.startswith("?"):
             if include_untracked:
-                untracked.append(path)
+                untracked_files.append(path)
         else:
-            changed.append(path)
-    return changed, untracked
+            changed_files.append(path)
+    return changed_files, untracked_files
 
 
 def get_changed_files_from_git(base: str | None = None, head: str = "HEAD") -> list[str]:

@@ -81,12 +81,31 @@ class TestGetChangedAndUntrackedFromGit(unittest.TestCase):
     def test_base_and_head_args_are_passed(self):
         with mock.patch.object(select_tests, "run_git") as mock_run:
             mock_run.return_value = subprocess.CompletedProcess(
-                ["git", "status"], 0, "", ""
+                ["git", "diff"], 0, "", ""
             )
             select_tests._get_changed_and_untracked_from_git(base="HEAD~1", head="HEAD")
-            args = mock_run.call_args[0][0]
+            args = mock_run.call_args_list[0][0][0]
             self.assertIn("HEAD~1", args)
             self.assertIn("HEAD", args)
+
+    def test_base_uses_git_diff_not_status(self):
+        """A committed range must be resolved with ``git diff``.
+
+        ``git status`` cannot diff two commits; a bare ref before ``--`` is a
+        pathspec, so the old ``git status --porcelain <base> <head>`` form always
+        reported an empty delta. This asserts the base path issues ``git diff``.
+        """
+        with mock.patch.object(select_tests, "run_git") as mock_run:
+            mock_run.return_value = subprocess.CompletedProcess(
+                ["git", "diff"], 0, "foo_utils.py\n", ""
+            )
+            changed, untracked = select_tests._get_changed_and_untracked_from_git(
+                base="HEAD~1", head="HEAD"
+            )
+            args = mock_run.call_args_list[0][0][0]
+            self.assertEqual(args[:4], ["git", "diff", "--name-only", "HEAD~1"])
+            self.assertEqual(changed, ["foo_utils.py"])
+            self.assertEqual(untracked, [])
 
     def test_source_globs_are_passed_as_pathspecs(self):
         with mock.patch.object(select_tests, "run_git") as mock_run:
@@ -396,6 +415,62 @@ class TestSourceGlobs(unittest.TestCase):
 
     def test_contains_tools_py(self):
         self.assertIn("tools/*.py", select_tests.SOURCE_GLOBS)
+
+
+class TestGitRangeRegression(unittest.TestCase):
+    """A committed range must be reported via ``git diff``.
+
+    Regression guard for a real bug: ``_get_changed_and_untracked_from_git``
+    computed the delta with ``git status --porcelain <base> <head>``. ``git
+    status`` does not take a commit range; a bare ref before ``--`` is a
+    pathspec, so the command matched nothing and ``--from-git --base`` silently
+    reported no changed files even when source files changed between the two
+    commits. This builds a throwaway repository with a source file committed in
+    a second commit and asserts the base range reports it.
+    """
+
+    def setUp(self):
+        self._saved_root = select_tests.ROOT
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        repo = Path(self._tmp.name)
+        select_tests.ROOT = repo
+
+        def git(*args: str) -> str:
+            result = subprocess.run(
+                ["git", *args], cwd=repo, capture_output=True, text=True, check=True
+            )
+            return result.stdout.strip()
+
+        git("init", "-q")
+        git("config", "user.email", "test@example.com")
+        git("config", "user.name", "test")
+        (repo / "main.py").write_text("x = 1\n")
+        git("add", ".")
+        git("commit", "-qm", "one")
+        self._first = git("rev-parse", "HEAD")
+        (repo / "main.py").write_text("x = 2\n")
+        (repo / "main_utils.py").write_text("y = 1\n")
+        git("add", ".")
+        git("commit", "-qm", "two")
+
+    def tearDown(self):
+        select_tests.ROOT = self._saved_root
+
+    def test_committed_source_change_is_detected_for_base_range(self):
+        changed, untracked = select_tests._get_changed_and_untracked_from_git(
+            base=self._first, head="HEAD"
+        )
+        self.assertEqual(untracked, [])
+        self.assertIn("main.py", changed)
+        self.assertIn("main_utils.py", changed)
+
+    def test_no_change_between_head_and_itself(self):
+        changed, untracked = select_tests._get_changed_and_untracked_from_git(
+            base="HEAD", head="HEAD"
+        )
+        self.assertEqual(changed, [])
+        self.assertEqual(untracked, [])
 
 
 if __name__ == "__main__":
