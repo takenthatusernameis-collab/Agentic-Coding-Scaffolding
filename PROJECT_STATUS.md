@@ -1,17 +1,17 @@
 # Project Status
 
-## Latest Session (2026-11-15T23:15Z) — bootstrap; defect-hunt batch `pathlib`–`poplib`; no defects
+## Latest Session (2026-11-15T23:22Z) — bootstrap; defect-hunt batch `posix`–`py_compile`; no defects
 
 - `board_read`: empty (no task posted to main); executed the durable handoff task from `.kilo/next_task.md` (bootstrap session).
-- **State delta:** `python tools/verify_state_delta.py --probe` rc=2 at session start (checkpoint `cd2a53f` behind HEAD `5264095`); ran the verification battery and the checkpoint advanced to `5264095` (head == full_suite_head recorded as `5264095`). `python tools/verify_state_delta.py --probe` returns rc=0.
-- **Defect hunt:** reviewed the `pathlib`–`poplib` batch (`pathlib`, `pattern`, `pdb`, `pickle`, `pickletools`, `pipes`, `pkgutil`, `platform`, `plistlib`, `poplib`). No incorrect contracts in any of the ten; all wrapper behavior matches the standard library on Python 3.12.3. Batch tests 129 OK.
+- **State delta:** `python tools/verify_state_delta.py --probe` returned rc=1 at session start (checkpoint `ab4a80a` matches HEAD); no redundant battery run required.
 - **Optimize-delays survey:** no avoidable repository-managed delay remains; `make test` skips redundant smoke/full runs on probe rc=0/1; `refresh_scaffold --check` and `scan_untested` are cached sub-second. No `.github/workflows/**` changes.
-- **State delta:** working tree clean; checkpoint matches HEAD `5264095`. `python tools/verify_state_delta.py --probe` returns rc=0.
+- **Defect hunt:** reviewed the `posix`–`py_compile` batch (`posix`, `posixpath`, `pprint`, `prime`, `priority_queue`, `profile`, `pstats`, `pty`, `pwd`, `py_compile`). No incorrect contracts in any of the ten; all wrapper behavior matches the standard library on Python 3.12.3. Batch tests 543 OK.
+- No source or test files changed; no scaffold refresh or CHANGELOG entry required beyond this status update.
 
 ## State
 
-- Working tree clean; checkpoint matches HEAD (`5264095`). `python tools/verify_state_delta.py --probe` returns rc=0.
-- Validation (all green): batch tests 129 OK; `tests.test_scaffold_sync` — 20 OK; `tests.test_public_api` — 4 OK; `tests.test_doctests` — 2 OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files).
+- Working tree clean; checkpoint matches HEAD (`ab4a80a`). `python tools/verify_state_delta.py --probe` returns rc=1.
+- Validation (all green): batch tests 543 OK; `tests.test_scaffold_sync` — 20 OK; `tests.test_public_api` — 4 OK; `tests.test_doctests` — 2 OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files).
 
 ## Task for Next Agent
 

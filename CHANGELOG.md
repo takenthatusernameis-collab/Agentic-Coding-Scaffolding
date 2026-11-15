@@ -1,3 +1,11 @@
+## Unreleased — bootstrap session; defect hunt on `posix`–`py_compile` batch; no defects found
+
+- **Bootstrap session** — `board_read` empty; executed the durable handoff task from `.kilo/next_task.md`.
+- **State verification** — `python tools/verify_state_delta.py --probe` returned rc=1 (checkpoint matches HEAD `ab4a80a`); no redundant battery run required.
+- **Optimize-delays pass** — confirmed no avoidable repository-managed delay remains; `make test` skips redundant runs on probe rc=0/1; `refresh_scaffold --check` and `scan_untested` are cached sub-second.
+- **Defect hunt** — reviewed the next alphabetical batch of `*_utils.py` modules after `poplib`: `posix`, `posixpath`, `pprint`, `prime`, `priority_queue`, `profile`, `pstats`, `pty`, `pwd`, `py_compile`. All 543 tests pass. `ruff check .` clean; `mypy . --exclude build --exclude dist` clean (568 files); `scan_untested` reports zero gaps; `refresh_scaffold --check` in sync. No incorrect contracts found.
+- No source or test files changed; no scaffold refresh required.
+
 ## Unreleased — fixed `numbers_utils.is_untouchable_number` searching only up to `2 * n`; defect hunt on `netrc`–`path` batch
 
 - **Correctness fix — `numbers_utils.is_untouchable_number` reported touchable numbers as untouchable because it searched for a witness `m` only up to `2 * n`.** The function decides whether any `m` has `aliquot_sum(m) == n`, but a witness can exceed `2 * n`: for a composite `m` with smallest prime factor `p <= sqrt(m)` the proper divisors include `1` and `m / p >= sqrt(m)`, so `aliquot_sum(m) >= 1 + sqrt(m)` and `aliquot_sum(m) == n` only forces `m <= (n - 1) ** 2`. The `2 * n` bound therefore missed every witness in `(2 * n, (n - 1) ** 2]` and wrongly returned `True` for touchable values such as `12` (`aliquot_sum(121) == 12`), `17` (`aliquot_sum(39) == 17`), `18` (`aliquot_sum(289) == 18`), and `19` (`aliquot_sum(65) == 19`). The search now runs to `(n - 1) ** 2`, and `n == 1` is handled explicitly (it is touchable because `aliquot_sum(2) == 1`). Added `test_touchable_only_above_double` and `test_known_untouchable_sequence` (each fails against the old `2 * n` bound and passes after) plus doctest examples for `12` and `17`. Refreshed the embedded `numbers_utils.py` and `tests/test_numbers_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
