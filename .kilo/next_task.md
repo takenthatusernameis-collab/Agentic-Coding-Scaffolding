@@ -1,36 +1,30 @@
-# Next Task (posted 2026-11-15T08:26Z)
+# Next Task (posted 2026-11-15T08:37Z)
 
-**Source:** bootstrap session (board empty, previous task read from `.kilo/next_task.md`, HEAD `0576ce4`). Board post to `main` was refused (`main` resolves to the board root / this session), so the task is recorded here per the handover protocol.
+**Source:** bootstrap session (board empty, executed task from previous `.kilo/next_task.md`, HEAD `222f2bf`). Board post to `main` was refused in this environment (`main` resolves to board root/self), so the durable task is recorded here per handover protocol (and posted to `main` where accepted).
 
-## Context
+## Context (this session)
 
-- **Fixed scaffold sync**: `make refresh-scaffold` updated embedded copies of `call_once_utils.py` and `tests/test_call_once_utils.py` in `scaffold.sh` (they were stale from a previous edit).
-- **Full quality gate pass**:
-  - `make test-full` — 11039 OK (skipped=4)
-  - `make lint` — All checks passed
-  - `make typecheck` — Success (only annotation-unchecked notes in test files)
-  - `python tools/refresh_scaffold.py --check` — In sync
-  - `python tools/verify_state_delta.py` — Checkpoint advanced to `0576ce4757a25abaf7efe2caa0b650288abcfdc8`
-  - `python tools/scan_untested.py` — No exported-but-untested callables
-- **Investigated next-task candidates from previous handover**:
-  1. `call_once_utils` exception caching: **Already correct** — implementation caches exceptions on first failure and re-raises without re-invoking (test `test_exception_is_cached_not_re_invoked` passes; docstring lines 30-34 confirm this contract).
-  2. Other stateful helpers (`cooldown_utils`, `retry_utils`, `rate_limiter_utils`): All 65 tests pass; no defects found.
-  3. Tooling parity: All four hand-maintained surfaces (README.md, AGENTS.md, CHANGELOG.md, pyproject.toml) guarded by byte-identity checks in `test_scaffold_sync.py`.
-  4. Optimize-delays pass: **No avoidable process delay found**. CI workflow is maintainer-managed; test selection via `verify_state_delta` already skips redundant work on clean activations.
+- `board_read`: empty. `python tools/verify_state_delta.py --probe` rc=1 at start (clean working tree, no source-relevant changes since last verified checkpoint; redundant verification battery correctly skipped).
+- **Stateful-helper survey (evidence-backed, no defect found):**
+  - `call_once_utils`: caches first result or exception and re-raises without re-invoking (including `BaseException` paths exercised); `reset()` clears cached state. Tests: 6 OK.
+  - `cooldown_utils`: records last-call when interval elapsed even if the wrapped call raises (caller consumes the slot), which matches its rate-limiting contract; `ready/remaining/reset` consistent. Tests: 17 OK.
+  - `retry_utils`: validates args (`max_attempts>=1`, non-negative delays/backoff, tuple exceptions) and retries only specified exceptions with configured backoff/jitter behavior. Tests: 39 OK.
+  - `rate_limiter_utils`: `acquire` rejects negative tokens and requests above capacity; `acquire_blocking` raises for unsatisfiable requests; decorator acquires before call (token consumed on failure by design). Tests: 11 OK.
+  - `memoize_utils`/`lru_memoize`: cache on success only; exceptions not cached and recomputed on next call (empirically confirmed). Tests: 13 OK.
+- Tooling: `python tools/scan_untested.py` — no exported-but-untested callables. `python tools/refresh_scaffold.py --check` — in sync. Targeted suite for surveyed modules: 86 tests OK.
+- **Optimize-delays pass:** no repository-managed AVOIDABLE_PROCESS_DELAY identified (state-delta probe already avoids redundant battery on clean activations; CI/workflow gates are maintainer-managed and unchanged). No `.github/workflows/**` edits.
 
 ## Proposed Task for Next Agent
 
-Deliver one concrete, verified improvement (choose on evidence):
-
-1. **Optimize-delays pass** (`.kilo/command/optimize-delays.md`): Measure and remove any remaining repository-managed **AVOIDABLE_PROCESS_DELAY** with evidence (no `.github/workflows/**` edits). If none found, document the survey.
-2. **Next defect/coverage fix**: Pick an evidence-backed defect or coverage gap (verify empirically before claiming a bug; survey stateful helpers and any module with complex state).
-3. **Tooling parity**: If the sync suite still has a hand-maintained surface not guarded by a byte-identity test, add the assertion.
+1. Run `board_read` and execute any task posted to you/main; if board is empty, execute this task.
+2. Confirm state with `python tools/verify_state_delta.py --probe` (expect rc=0/1 on a clean, unchanged activation). Do not rerun the full battery or full test suite without a state delta or explicit need.
+3. Continue optimize-delays pass (`.kilo/command/optimize-delays.md`): identify and remove any remaining repository-managed **AVOIDABLE_PROCESS_DELAY** with evidence (no `.github/workflows/**` edits). If none found, record the survey result (do not create no-op/timestamp-only changes).
+4. If no avoidable delay remains, pick the next evidence-backed defect, edge-case hardening, or coverage gap: reproduce empirically first, prefer stateful/concurrency-sensitive helpers or tooling parity issues, and verify the fix with targeted tests plus `ruff`/`mypy` on touched files. Run `python -m unittest discover tests/` and `python tools/verify_state_delta.py --full --record-full-suite` when `tests/` or shared behavior changes.
+5. If embedded source/test/command files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`.
+6. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` only for user-visible code/tooling changes (not for survey-only handoffs), update `.kilo/handover.md`, `PROJECT_STATUS.md`, and this durable next-task record; post next task to `main` via `board_post`.
 
 ## Constraints
 
 - Do not modify `.github/workflows/**`.
-- Edit sources and documents first, then run `python tools/refresh_scaffold.py` (never the reverse), then `python tools/refresh_scaffold.py --check`.
-- Validate narrowly (`python -m unittest tests.test_<module>`, targeted tests), then `python -m ruff check` / `python -m mypy` on touched files; run `python -m unittest discover tests/` when `tests/` changed and finish with `python tools/verify_state_delta.py --full --record-full-suite`.
-- Do not create timestamp-only or no-op changes; preserve required gates and never claim verification that was not run.
-
-(End of file - total 38 lines)
+- Never claim verification that was not run; preserve required gates and maintainer boundaries.
+- Avoid duplicate board tasks and timestamp-only/no-op commits.
