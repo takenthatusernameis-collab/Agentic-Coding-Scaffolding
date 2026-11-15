@@ -58,6 +58,27 @@ class TestMemoize(unittest.TestCase):
         with self.assertRaises(TypeError):
             memoize(42)  # type: ignore[arg-type]
 
+    def test_memoize_kwargs_order_invariance(self):
+        calls = []
+
+        @memoize
+        def compute(x: int, y: int) -> int:
+            calls.append((x, y))
+            return x + y
+
+        self.assertEqual(compute(x=1, y=2), 3)
+        self.assertEqual(compute(y=2, x=1), 3)
+        self.assertEqual(len(calls), 1)
+
+    def test_memoize_preserves_function_metadata(self):
+        def compute(x: int) -> int:
+            """Compute docstring."""
+            return x
+
+        wrapped = memoize(compute)
+        self.assertEqual(wrapped.__name__, "compute")
+        self.assertEqual(wrapped.__doc__, "Compute docstring.")
+
 
 if __name__ == "__main__":
     unittest.main()
@@ -110,3 +131,17 @@ class TestLruMemoize(unittest.TestCase):
             lru_memoize(lambda x: x, maxsize="a")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             lru_memoize(lambda x: x, maxsize=-1)
+
+    def test_lru_memoize_cache_clear(self):
+        calls = []
+
+        @lru_memoize(maxsize=2)
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        compute(1)
+        compute(1)
+        compute.cache_clear()
+        compute(1)
+        self.assertEqual(len(calls), 2)

@@ -71260,6 +71260,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — added edge-case coverage for memoize_utils; advanced checkpoint
+
+- **Coverage gap — `tests/test_memoize_utils.py` gained three edge-case tests not previously exercised:** `memoize` caches identically regardless of keyword-argument order (the `sorted(kwargs.items())` cache key) and preserves wrapped-function metadata via `functools.wraps` (`__name__`, `__doc__`); `lru_memoize` verifies `cache_clear` empties the LRU cache and forces recomputation. Default `scan_untested` stays clean (no exported-but-untested callables); `--all` surfaces only TypeVar/constant/class/re-export noise. Refreshed the embedded `tests/test_memoize_utils.py` copy in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_memoize_utils` — 12 OK; `python -m pytest tests/` — 11198 passed (skipped=4); `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean (567 source files); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --full --record-full-suite` passed, checkpoint advanced to `1b6b4df`.
+- No `.github/workflows/**` changes.
+
+
 ## Unreleased — fixed two silent state-delta and scaffold-sync defects
 
 - **Integrity fix — `tools/verify_state_delta.py` computed its source delta with `git status --porcelain --untracked-files=all <ref> -- <pathspecs>`.** `git status` does not take a commit argument: a bare `<ref>` before `--` is interpreted as a pathspec, so the command matched nothing and `_changed_and_untracked_since` returned an empty delta on a clean tree even after source files changed between the checkpoint and the working tree. The clean-tree fast path then skipped the verification battery and the checkpoint could advance past unverified code. The tracked delta is now taken from `git diff --name-only <ref>` and untracked files from a plain `git status --porcelain --untracked-files=all`, so a committed or uncommitted source change correctly forces the battery. Added `tests/test_verify_state_delta.py::TestDeltaAcrossCommits`, which builds a throwaway repository with a source file changed in a second commit and asserts the helper reports it; the test fails against the old `git status <ref>` form and passes with the fix.
@@ -93168,6 +93175,27 @@ class TestMemoize(unittest.TestCase):
         with self.assertRaises(TypeError):
             memoize(42)  # type: ignore[arg-type]
 
+    def test_memoize_kwargs_order_invariance(self):
+        calls = []
+
+        @memoize
+        def compute(x: int, y: int) -> int:
+            calls.append((x, y))
+            return x + y
+
+        self.assertEqual(compute(x=1, y=2), 3)
+        self.assertEqual(compute(y=2, x=1), 3)
+        self.assertEqual(len(calls), 1)
+
+    def test_memoize_preserves_function_metadata(self):
+        def compute(x: int) -> int:
+            """Compute docstring."""
+            return x
+
+        wrapped = memoize(compute)
+        self.assertEqual(wrapped.__name__, "compute")
+        self.assertEqual(wrapped.__doc__, "Compute docstring.")
+
 
 if __name__ == "__main__":
     unittest.main()
@@ -93220,6 +93248,20 @@ class TestLruMemoize(unittest.TestCase):
             lru_memoize(lambda x: x, maxsize="a")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             lru_memoize(lambda x: x, maxsize=-1)
+
+    def test_lru_memoize_cache_clear(self):
+        calls = []
+
+        @lru_memoize(maxsize=2)
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        compute(1)
+        compute(1)
+        compute.cache_clear()
+        compute(1)
+        self.assertEqual(len(calls), 2)
 TEST_MEMOIZE_UTILS
 
 # --- mimetypes_utils.py ---
