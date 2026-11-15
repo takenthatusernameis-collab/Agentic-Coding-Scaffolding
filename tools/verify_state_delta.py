@@ -356,7 +356,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"[verify-state-delta] Verification passed; checkpoint advanced to {current_head}.")
     else:
         print(f"[verify-state-delta] Verification passed; checkpoint already at {current_head}.")
-    if marker.get("full_suite_head") and tests_changed_since(marker["full_suite_head"]):
+    # ``--record-full-suite`` asserts that a full ``unittest discover`` run
+    # accompanied this verification, so the provenance recorded above already
+    # covers the tests of the current working tree. Warning in the same run
+    # would report the run the caller just made as missing, which only prompts
+    # a redundant second full-suite run (an avoidable delay). A plain
+    # verification run still warns, because its battery does not run the suite.
+    if (
+        marker.get("full_suite_head")
+        and not record_full_suite
+        and tests_changed_since(marker["full_suite_head"])
+    ):
         print(
             "[verify-state-delta] Note: tests/ changed since last recorded full-suite run "
             f"({marker['full_suite_head'][:12]}). Run `make test-full` or `python -m unittest "

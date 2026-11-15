@@ -1017,7 +1017,7 @@ The project includes HTML parser utilities in `html_parser_utils.py` wrapping th
 
 ## HTML Entities Utilities Module
 
-The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with helpers `name_to_codepoint`/`get_entity_by_name` to look up entity names, `codepoint_to_name` to look up names from codepoints, and `decode_entity`/`unescape_entity` to decode named entities to characters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
+The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with `escape` replacing the HTML special characters (and, by default, the quote characters, so the result is safe inside an attribute delimiter) and `unescape` decoding named and numeric character references back to their characters. Both helpers validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
 
 
 ## Bytes Utilities Module

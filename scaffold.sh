@@ -306,7 +306,7 @@
 
 #   - html_utils.py — # HTML escaping, unescaping, and tag-stripping utilities
 
-#   - html_entities_utils.py — # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, name_to_codepoint, get_entity_by_name, codepoint_to_name, decode_entity, unescape_entity)
+#   - html_entities_utils.py — # HTML entities utilities wrapping the standard library html.entities module (name2codepoint, codepoint2name, entitydefs, html5, escape, unescape, is_available)
 
 #   - html_parser_utils.py — # HTML parser utilities wrapping the standard library html.parser module (HTMLParser, parse_html, strip_tags)
 
@@ -69001,7 +69001,7 @@ Generate scaffolding files for a new agentic coding project. This command create
 - `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
 - `hostname_utils.py` — : `is_valid_hostname` validates an RFC 1123 hostname, `normalize_hostname` lowercases and strips a trailing dot, `get_local_hostname` returns the local machine hostname, `is_fully_qualified` reports whether a hostname is fully qualified, and `split_hostname` returns the DNS labels. All functions validate their inputs and raise ``TypeError`` or ``ValueError`` on invalid arguments. The module is tested in `tests/test_hostname_utils.py`.
 - `tests/test_hostname_utils.py` — unit tests for `hostname_utils.py`
-- `html_entities_utils.py` — wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with helpers `name_to_codepoint`/`get_entity_by_name` to look up entity names, `codepoint_to_name` to look up names from codepoints, and `decode_entity`/`unescape_entity` to decode named entities to characters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
+- `html_entities_utils.py` — wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with `escape` replacing the HTML special characters (and, by default, the quote characters, so the result is safe inside an attribute delimiter) and `unescape` decoding named and numeric character references back to their characters. Both helpers validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
 - `tests/test_html_entities_utils.py` — unit tests for `html_entities_utils.py`
 - `html_parser_utils.py` — wrapping the standard library `html.parser` module: `HTMLParser` is re-exported for custom parsing, `strip_tags` removes all HTML tags leaving only text content, and `parse_html` creates and feeds a parser with optional custom handlers for start/end tags, data, comments, entities, declarations, and processing instructions. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_html_parser_utils.py`.
 - `tests/test_html_parser_utils.py` — unit tests for `html_parser_utils.py`
@@ -71675,6 +71675,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `html_entities_utils.escape` now honours `quote=False`; corrected the documented entity helper list, defect hunt on `hash`–`inspect` batch
+
+- **Correctness fix — `html_entities_utils.escape` validated the `quote` argument but ignored it.** The wrapper accepted `quote: bool = True`, raised `TypeError` for a non-bool `quote`, and then always escaped both quote characters anyway, so `escape('a "quoted" value', quote=False)` returned `'a &quot;quoted&quot; value'` instead of leaving the quotes intact as :func:`html.escape` does with `quote=False`. A caller who passed `quote=False` to keep text readable outside an attribute delimiter got an attribute-safe string regardless, and the accepted-but-inert parameter read as if the option worked (the same class of defect as the removed `difflib_utils.ndiff` `lineterm`). `escape` now replaces ``&``, ``<``, and ``>`` first and only replaces ``"``/``'`` when ``quote`` is true, matching the standard library for both modes. Added `test_escape_quote_false_keeps_quotes`, `test_escape_quote_false_still_escapes_markup`, `test_escape_matches_stdlib_for_both_quote_modes`, and `test_escape_rejects_non_bool_quote`, plus doctest examples for both modes. Refreshed the embedded `html_entities_utils.py` and `tests/test_html_entities_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Documentation fix — the README, `.kilo/command/scaffold-project.md`, and the generator header comment advertised entity helpers that do not exist.** All three claimed `name_to_codepoint`/`get_entity_by_name`, `codepoint_to_name`, and `decode_entity`/`unescape_entity`, and that the module raises `TypeError` *or* `ValueError`; `html_entities_utils` exports only `name2codepoint`, `codepoint2name`, `entitydefs`, `html5`, `escape`, `unescape`, and `is_available`, and its helpers raise only `TypeError`. The paragraph now describes the real surface (`escape` with its `quote` flag, `unescape`) and the corrected error contract, so the documentation no longer points at missing API.
+- **Tooling fix — `verify_state_delta --record-full-suite` warned that `tests/` had changed since the full-suite run it had just recorded.** The trailing "tests/ changed since last recorded full-suite run" note consulted the live working tree, so any uncommitted edit under `tests/` made the note fire in the same run that recorded the new provenance — reporting the run the caller had just performed as missing and prompting a redundant second full-suite run (an avoidable process delay). `--record-full-suite` is the flag's assertion that `python -m unittest discover tests/` accompanied the verification, so the note is now suppressed for that run; a plain verification run still warns, because its battery runs only `test_public_api`, `test_scaffold_sync`, and `test_doctests`. Added `test_record_full_suite_does_not_warn_about_the_run_it_records` (fails before the fix, passes after) and kept the existing `--full` note coverage.
+- **Test fix — `test_diff_since_returns_only_source_globs` repeated the guard's glob list and drifted.** The test re-declared the source-relevant path markers inline, so the first edit to a source-relevant path the copy had forgotten (`.kilo/command/scaffold-project.md`, which `tools/verify_state_delta.py` has always listed in `SOURCE_GLOBS`) failed the test even though the tool classified the path correctly. The assertion now derives the admissible paths from `verify_state_delta.SOURCE_GLOBS` (matching a slash-free glob against the base name too, as `git` reads a pathspec), and `test_source_globs_cover_the_command_documentation` locks the inclusion of the scaffold command document.
+- **Defect hunt — reviewed the next alphabetical batch of `*_utils.py` modules (`hash`, `hmac`, `html_entities`, `html_parser`, `html`, `http`, `id`, `imaplib`, `imghdr`, `importlib`, `inspect`).** No incorrect contracts found in `hash`, `hmac`, `html_parser`, `html`, `http`, `id`, `imaplib`, `imghdr`, or `inspect`. `importlib_utils.get_module_name_from_path` returns the fixed placeholder name ``tmp_module`` rather than a name derived from the path, and its docstring does not promise a derivation, so it was recorded and left unchanged rather than silently redefined. The `html_entities` issue above was the only defect. All batch modules pass their tests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- **Optimize-delays pass — confirmed no avoidable repository-managed delay.** `verify_state_delta --probe` returned rc=1 (clean tree, no source-relevant change since the verified checkpoint), so no full-suite rerun was performed at session start; the full suite is run once at this milestone only. No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `errno_utils` type hints/validation, removed fabricated `lineterm` from `difflib_utils.ndiff`, defect hunt on `email`–`file` batch
 
 - **Correctness fix — `errno_utils.errorcode` and `strerror` were missing type hints and input validation.** `errorcode` returned `str | None` (the error name) but was annotated `-> int | None`; `strerror` and `is_errno` did not validate their arguments. All three now validate `int`/`str` inputs and carry correct return annotations (`errorcode -> str | None`, `strerror -> str`, `is_errno -> bool`). Added `test_errorcode_type_error`, `test_strerror_type_error`, `test_is_errno_type_error` (each fails before the fix and passes after). Refreshed the embedded `errno_utils.py` copy in `scaffold.sh`; `refresh --check` in sync.
@@ -75886,7 +75895,7 @@ The project includes HTML parser utilities in `html_parser_utils.py` wrapping th
 
 ## HTML Entities Utilities Module
 
-The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with helpers `name_to_codepoint`/`get_entity_by_name` to look up entity names, `codepoint_to_name` to look up names from codepoints, and `decode_entity`/`unescape_entity` to decode named entities to characters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
+The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with `escape` replacing the HTML special characters (and, by default, the quote characters, so the result is safe inside an attribute delimiter) and `unescape` decoding named and numeric character references back to their characters. Both helpers validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
 
 
 ## Bytes Utilities Module
@@ -159871,18 +159880,32 @@ entitydefs: Dict[str, str] = getattr(entities, "entitydefs", {})
 
 
 def escape(s: str, quote: bool = True) -> str:
-    """Escape HTML special characters."""
+    """Escape HTML special characters.
+
+    Args:
+        s: The string to escape.
+        quote: When ``True`` (the default) the quote characters are escaped as
+            well, so the result can be used inside an HTML attribute
+            delimiter. When ``False`` only ``&``, ``<``, and ``>`` are
+            replaced, matching :func:`html.escape` with ``quote=False``.
+
+    Raises:
+        TypeError: If ``s`` is not a string or ``quote`` is not a bool.
+
+    Examples:
+        >>> escape("<div>")
+        '&lt;div&gt;'
+        >>> escape('a "quoted" value', quote=False)
+        'a "quoted" value'
+    """
     if not isinstance(s, str):
         raise TypeError(f"s must be a string, got {type(s).__name__}")
     if not isinstance(quote, bool):
         raise TypeError(f"quote must be a bool, got {type(quote).__name__}")
-    return (
-        s.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-        .replace("'", "&#x27;")
-    )
+    escaped = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    if quote:
+        escaped = escaped.replace('"', "&quot;").replace("'", "&#x27;")
+    return escaped
 
 
 def unescape(s: str) -> str:
@@ -159898,6 +159921,7 @@ HTML_ENTITIES_UTILS
 cat > "$OUTPUT_DIR/tests/test_html_entities_utils.py" <<'TEST_HTML_ENTITIES_UTILS'
 """Tests for html_entities_utils module."""
 
+import html
 import unittest
 
 from html_entities_utils import (
@@ -159924,9 +159948,25 @@ class TestHTMLEntitiesUtils(unittest.TestCase):
     def test_escape_ampersand(self):
         self.assertEqual(escape("a & b"), "a &amp; b")
 
+    def test_escape_quote_false_keeps_quotes(self):
+        self.assertEqual(escape('a "quoted" value', quote=False), 'a "quoted" value')
+        self.assertEqual(escape("it's", quote=False), "it's")
+
+    def test_escape_quote_false_still_escapes_markup(self):
+        self.assertEqual(escape("<b> & 'x'</b>", quote=False), "&lt;b&gt; &amp; 'x'&lt;/b&gt;")
+
+    def test_escape_matches_stdlib_for_both_quote_modes(self):
+        for text in ('<a href="x">\'y\' & z</a>', "plain", "&amp;"):
+            self.assertEqual(escape(text, quote=True), html.escape(text, quote=True))
+            self.assertEqual(escape(text, quote=False), html.escape(text, quote=False))
+
     def test_escape_rejects_non_string(self):
         with self.assertRaises(TypeError):
             escape(123)
+
+    def test_escape_rejects_non_bool_quote(self):
+        with self.assertRaises(TypeError):
+            escape("<b>", quote="yes")  # type: ignore[arg-type]
 
     def test_unescape_basic(self):
         self.assertEqual(unescape("&lt;div&gt;"), "<div>")

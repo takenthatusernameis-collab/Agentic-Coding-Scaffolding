@@ -10,7 +10,9 @@ marker tests, and the real marker is backed up and restored around the
 ``main`` tests that advance it.
 """
 
+import fnmatch
 import importlib.util
+import os
 import subprocess
 import sys
 import tempfile
@@ -339,24 +341,31 @@ class TestRepositoryState(unittest.TestCase):
 
     def test_diff_since_returns_only_source_globs(self):
         # ``diff_since`` lists every changed file between *ref* and the
-        # working tree, filtered to SOURCE_GLOBS.
+        # working tree, filtered to ``SOURCE_GLOBS``. The check derives the
+        # admissible paths from the tool's own glob list instead of repeating
+        # it: the copy of that list used to live here and drifted, so the
+        # first edit to a source-relevant path the copy had forgotten (for
+        # example ``.kilo/command/scaffold-project.md``) failed this test even
+        # though the tool reported the path correctly. A glob without a slash
+        # is matched against the base name as well, which is how ``git`` reads
+        # a pathspec.
         if verify_state_delta.working_tree_clean():
             self.assertEqual(verify_state_delta.diff_since(verify_state_delta.head()), [])
         else:
             changed = verify_state_delta.diff_since(verify_state_delta.head())
             for path in changed:
-                is_source = path.endswith(".py") or any(
-                    marker in path
-                    for marker in (
-                        "Makefile",
-                        "pyproject",
-                        "scaffold.sh",
-                        "README",
-                        "AGENTS",
-                        "CHANGELOG",
-                    )
+                is_source = any(
+                    fnmatch.fnmatch(path, glob)
+                    or fnmatch.fnmatch(os.path.basename(path), glob)
+                    for glob in verify_state_delta.SOURCE_GLOBS
                 )
                 self.assertTrue(is_source, f"unexpected path {path!r}")
+
+    def test_source_globs_cover_the_command_documentation(self):
+        # The scaffold command document is embedded verbatim in the generator,
+        # so an edit to it changes the scaffolded output and must invalidate a
+        # checkpoint even though it is not a Python file.
+        self.assertIn(".kilo/command/scaffold-project.md", verify_state_delta.SOURCE_GLOBS)
 
     def test_source_changed_since_an_unknown_ref_is_true(self):
         # An unknown ref (rebase, force-push, shallow clone) makes ``git diff``
@@ -445,20 +454,19 @@ class TestMain(unittest.TestCase):
         self.assertEqual(rc, 0)
         self.assertTrue(any("tests/ changed since last recorded full-suite run" in s for s in buf))
 
-    def test_record_full_suite_note_uses_the_freshly_recorded_head(self):
-        # Regression: after ``--record-full-suite`` advances ``full_suite_head``
-        # to HEAD, the trailing "tests changed" note must consult the value it
-        # just wrote, not the pre-update marker. Reading the stale marker warned
-        # that tests changed since the *old* full-suite head even though a full
-        # run had just been recorded at HEAD, which could prompt a redundant
-        # full-suite re-run (an avoidable delay). The old head looks stale and
-        # the new head is current, so a correct note uses the new head and stays
-        # silent.
+    def test_record_full_suite_does_not_warn_about_the_run_it_records(self):
+        # ``--record-full-suite`` asserts that a full ``unittest discover`` run
+        # just covered the tests of the working tree, so the trailing "tests
+        # changed" note must stay silent in that run even when tests/ differs
+        # from the previously recorded full-suite head. Warning there reported
+        # the run the caller had just made as missing and could prompt a
+        # redundant second full-suite run (an avoidable delay). The marker
+        # still records the new provenance.
         seen: list[str] = []
 
         def fake_tests_changed(ref: str) -> bool:
             seen.append(ref)
-            return ref == "old-full-suite-head"
+            return True
 
         buf: list[str] = []
         with mock.patch.object(verify_state_delta, "head", return_value="new-head"):
@@ -475,7 +483,7 @@ class TestMain(unittest.TestCase):
                         ):
                             rc = verify_state_delta.main(["--record-full-suite"])
         self.assertEqual(rc, 0)
-        self.assertEqual(seen, ["new-head"])
+        self.assertEqual(seen, [])
         self.assertFalse(any("tests/ changed since" in line for line in buf))
         after = verify_state_delta.read_marker()
         self.assertEqual(after.get("full_suite_head"), "new-head")

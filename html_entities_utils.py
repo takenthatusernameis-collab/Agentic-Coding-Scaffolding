@@ -29,18 +29,32 @@ entitydefs: Dict[str, str] = getattr(entities, "entitydefs", {})
 
 
 def escape(s: str, quote: bool = True) -> str:
-    """Escape HTML special characters."""
+    """Escape HTML special characters.
+
+    Args:
+        s: The string to escape.
+        quote: When ``True`` (the default) the quote characters are escaped as
+            well, so the result can be used inside an HTML attribute
+            delimiter. When ``False`` only ``&``, ``<``, and ``>`` are
+            replaced, matching :func:`html.escape` with ``quote=False``.
+
+    Raises:
+        TypeError: If ``s`` is not a string or ``quote`` is not a bool.
+
+    Examples:
+        >>> escape("<div>")
+        '&lt;div&gt;'
+        >>> escape('a "quoted" value', quote=False)
+        'a "quoted" value'
+    """
     if not isinstance(s, str):
         raise TypeError(f"s must be a string, got {type(s).__name__}")
     if not isinstance(quote, bool):
         raise TypeError(f"quote must be a bool, got {type(quote).__name__}")
-    return (
-        s.replace("&", "&amp;")
-        .replace("<", "&lt;")
-        .replace(">", "&gt;")
-        .replace('"', "&quot;")
-        .replace("'", "&#x27;")
-    )
+    escaped = s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    if quote:
+        escaped = escaped.replace('"', "&quot;").replace("'", "&#x27;")
+    return escaped
 
 
 def unescape(s: str) -> str:
