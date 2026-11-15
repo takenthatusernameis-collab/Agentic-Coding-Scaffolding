@@ -117,8 +117,8 @@ def slugify_many(texts: Iterable[str], separator: str = "-") -> list[str]:
     """
     if not isinstance(separator, str) or not separator:
         raise ValueError("separator must be a non-empty str")
-    if not isinstance(texts, (list, tuple)):
-        raise TypeError("texts must be a list or tuple")
+    if not hasattr(texts, "__iter__") or isinstance(texts, (str, bytes)):
+        raise TypeError("texts must be an iterable of str")
     result: list[str] = []
     for item in texts:
         if not isinstance(item, str):

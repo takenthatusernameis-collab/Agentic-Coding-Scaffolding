@@ -71667,6 +71667,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `slugify_utils.slugify_many` rejecting documented iterables
+
+- **Correctness fix — `slugify_many` rejected generators and sets despite an `Iterable[str]` signature.** The docstring and type hint declare `texts: Iterable[str]`, but the implementation only accepted `list` and `tuple`, raising `TypeError("texts must be a list or tuple")` for any other iterable. A generator such as `slugify_many(iter(["Hello World"]))` and a set such as `slugify_many({"Hello World", "Foo Bar"})` both failed, contradicting the documented contract. The check now accepts any non-string/non-bytes iterable (`hasattr(texts, "__iter__")`), preserving the per-item `str` validation and the empty-separator check. `str`/`bytes` are still rejected as iterables of characters.
+- Rewrote `tests/test_slugify_utils.py` as a unittest-native suite (the old file hard-imported `pytest`, which is not installed in the CI runner, so `python -m unittest tests.test_slugify_utils` ran zero tests). Added `TestSlugifyMany` coverage for list/tuple/generator/set acceptance, `str`/non-iterable/non-string-item rejection, and empty-separator rejection, plus `is_slug` custom-separator, `truncate_slug` bool-`max_length` rejection, zero-length truncation, and custom-ellipsis cases.
+- Validation: `python -m unittest tests.test_slugify_utils` — 31 OK; `python -m unittest discover tests/` — 11089 OK (skipped=4); `python -m doctest slugify_utils.py` — OK; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --full --record-full-suite` passed. (`ruff`/`mypy` are not installed in this environment.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `secrets_utils` accepting booleans as integer arguments
 
 - **Correctness fix — `token_bytes`, `token_hex`, `token_urlsafe`, `randbelow`, and `randbits` accepted boolean arguments instead of rejecting them.** Because `bool` is a subclass of `int`, the `isinstance(nbytes, int)` validation let `True` and `False` slip through, so `token_bytes(True)` returned a single byte and `randbelow(True)` returned `0` instead of raising `ValueError`. This violated the documented contract ("nbytes must be a non-negative integer", "n must be a positive integer") and diverged from the bool-rejection convention used elsewhere (`duration_utils`, `semver_utils`). Each validator now rejects `bool` explicitly before the integer check. Added `test_boolean_rejected` to `TestTokenBytes`, `TestTokenHex`, `TestTokenUrlsafe`, `TestRandbelow`, and `TestRandbits` (5 new tests, all failing before the fix and passing after). Refreshed the embedded `secrets_utils.py` and `tests/test_secrets_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
@@ -159107,8 +159114,8 @@ def slugify_many(texts: Iterable[str], separator: str = "-") -> list[str]:
     """
     if not isinstance(separator, str) or not separator:
         raise ValueError("separator must be a non-empty str")
-    if not isinstance(texts, (list, tuple)):
-        raise TypeError("texts must be a list or tuple")
+    if not hasattr(texts, "__iter__") or isinstance(texts, (str, bytes)):
+        raise TypeError("texts must be an iterable of str")
     result: list[str] = []
     for item in texts:
         if not isinstance(item, str):
@@ -159121,93 +159128,145 @@ SLUGIFY_UTILS
 cat > "$OUTPUT_DIR/tests/test_slugify_utils.py" <<'TEST_SLUGIFY_UTILS'
 """Tests for slugify_utils."""
 
-from slugify_utils import deslugify, is_slug, slugify, truncate_slug
+import unittest
+
+from slugify_utils import deslugify, is_slug, slugify, slugify_many, truncate_slug
 
 
-def test_slugify_basic():
-    assert slugify("Hello World") == "hello-world"
+class TestSlugify(unittest.TestCase):
+    def test_slugify_basic(self):
+        self.assertEqual(slugify("Hello World"), "hello-world")
+
+    def test_slugify_accents(self):
+        self.assertEqual(slugify("Cafe Resume"), "cafe-resume")
+
+    def test_slugify_custom_separator(self):
+        self.assertEqual(slugify("Hello World", "_"), "hello_world")
+
+    def test_slugify_invalid_text(self):
+        with self.assertRaises(TypeError):
+            slugify(123)  # type: ignore[arg-type]
+
+    def test_slugify_empty_separator(self):
+        with self.assertRaises(ValueError):
+            slugify("Hello World", "")
+
+    def test_slugify_strips_leading_trailing_separators(self):
+        self.assertEqual(slugify(" -- Hello World -- "), "hello-world")
 
 
-def test_slugify_accents():
-    assert slugify("Cafe Resume") == "cafe-resume"
+class TestIsSlug(unittest.TestCase):
+    def test_is_slug(self):
+        self.assertTrue(is_slug("hello-world"))
+
+    def test_not_is_slug(self):
+        self.assertFalse(is_slug("Hello World"))
+
+    def test_empty_is_not_slug(self):
+        self.assertFalse(is_slug(""))
+
+    def test_is_slug_invalid_text(self):
+        with self.assertRaises(TypeError):
+            is_slug(123)  # type: ignore[arg-type]
+
+    def test_is_slug_custom_separator(self):
+        self.assertTrue(is_slug("hello_world", "_"))
+        self.assertFalse(is_slug("hello-world", "_"))
 
 
-def test_slugify_custom_separator():
-    assert slugify("Hello World", "_") == "hello_world"
+class TestDeslugify(unittest.TestCase):
+    def test_deslugify(self):
+        self.assertEqual(deslugify("hello-world"), "Hello World")
+
+    def test_deslugify_custom_separator(self):
+        self.assertEqual(deslugify("hello_world", "_"), "Hello World")
+
+    def test_deslugify_invalid(self):
+        with self.assertRaises(TypeError):
+            deslugify(123)  # type: ignore[arg-type]
+
+    def test_deslugify_empty_separator(self):
+        with self.assertRaises(ValueError):
+            deslugify("hello-world", "")
 
 
-def test_slugify_invalid_text():
-    try:
-        slugify(123)  # type: ignore[arg-type]
-    except TypeError:
-        pass
-    else:
-        raise AssertionError("expected TypeError")
+class TestTruncateSlug(unittest.TestCase):
+    def test_truncate_slug_no_truncation(self):
+        self.assertEqual(truncate_slug("hello-world", 100), "hello-world")
+
+    def test_truncate_slug_basic(self):
+        self.assertEqual(truncate_slug("hello-world-foo-bar", 12), "hello...")
+
+    def test_truncate_slug_hard_cut(self):
+        self.assertEqual(truncate_slug("abcdefghij", 5), "ab...")
+
+    def test_truncate_slug_invalid_text(self):
+        with self.assertRaises(TypeError):
+            truncate_slug(123, 5)  # type: ignore[arg-type]
+
+    def test_truncate_slug_invalid_max_length(self):
+        with self.assertRaises(ValueError):
+            truncate_slug("abc", -1)
+
+    def test_truncate_slug_bool_max_length_rejected(self):
+        with self.assertRaises(TypeError):
+            truncate_slug("abc", True)  # type: ignore[arg-type]
+
+    def test_truncate_slug_max_length_zero(self):
+        self.assertEqual(truncate_slug("hello", 0), "")
+
+    def test_truncate_slug_custom_ellipsis(self):
+        self.assertEqual(
+            truncate_slug("hello-world-foo-bar", 12, ellipsis=".."),
+            "hello..",
+        )
 
 
-def test_is_slug():
-    assert is_slug("hello-world")
-    assert not is_slug("Hello World")
-    assert not is_slug("")
-
-
-def test_deslugify():
-    assert deslugify("hello-world") == "Hello World"
-    assert deslugify("hello_world", "_") == "Hello World"
-
-
-def test_deslugify_invalid():
-    try:
-        deslugify(123)  # type: ignore[arg-type]
-    except TypeError:
-        pass
-    else:
-        raise AssertionError("expected TypeError")
-
-
-def test_truncate_slug_no_truncation():
-    assert truncate_slug("hello-world", 100) == "hello-world"
-
-
-def test_truncate_slug_basic():
-    assert truncate_slug("hello-world-foo-bar", 12) == "hello..."
-
-
-def test_truncate_slug_hard_cut():
-    assert truncate_slug("abcdefghij", 5) == "ab..."
-
-
-def test_truncate_slug_invalid_text():
-    try:
-        truncate_slug(123, 5)  # type: ignore[arg-type]
-    except TypeError:
-        pass
-    else:
-        raise AssertionError("expected TypeError")
-
-
-def test_truncate_slug_invalid_max_length():
-    try:
-        truncate_slug("abc", -1)
-    except ValueError:
-        pass
-    else:
-        raise AssertionError("expected ValueError")
-
-
-class TestSlugifyMany:
+class TestSlugifyMany(unittest.TestCase):
     def test_basic(self):
-        from slugify_utils import slugify_many
+        self.assertEqual(
+            slugify_many(["Hello World", "Foo Bar"]),
+            ["hello-world", "foo-bar"],
+        )
 
-        assert slugify_many(["Hello World", "Foo Bar"]) == ["hello-world", "foo-bar"]
+    def test_accepts_tuple(self):
+        self.assertEqual(
+            slugify_many(("Hello World", "Foo Bar")),
+            ["hello-world", "foo-bar"],
+        )
 
-    def test_type_error(self):
-        import pytest  # type: ignore[import-not-found]
+    def test_accepts_generator(self):
+        self.assertEqual(
+            slugify_many(iter(["Hello World", "Foo Bar"])),
+            ["hello-world", "foo-bar"],
+        )
 
-        from slugify_utils import slugify_many
+    def test_accepts_set(self):
+        # Order is not guaranteed for a set, so compare as a set.
+        self.assertEqual(
+            set(slugify_many({"Hello World", "Foo Bar"})),
+            {"hello-world", "foo-bar"},
+        )
 
-        with pytest.raises(TypeError):
+    def test_rejects_string(self):
+        with self.assertRaises(TypeError):
             slugify_many("nope")
+
+    def test_rejects_non_iterable(self):
+        with self.assertRaises(TypeError):
+            slugify_many(123)  # type: ignore[arg-type]
+
+    def test_rejects_non_string_items(self):
+        with self.assertRaises(TypeError):
+            slugify_many(["ok", 5])  # type: ignore[list-item]
+
+    def test_rejects_empty_separator(self):
+        with self.assertRaises(ValueError):
+            slugify_many(["Hello World"], "")
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_SLUGIFY_UTILS
 
 # --- backoff_utils.py ---
