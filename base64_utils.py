@@ -196,19 +196,36 @@ def is_valid_base64(encoded: str, urlsafe: bool = False) -> bool:
     Returns:
         True if ``encoded`` is valid Base64, False otherwise.
 
+    Validation is strict: only characters from the selected alphabet are
+    accepted (no whitespace or other stray characters), padding must be
+    well-formed, and there must be no data after the padding. The check is
+    purely structural, so a string whose decoded bytes are not valid UTF-8 is
+    still reported as valid Base64.
+
     Examples:
         >>> is_valid_base64("aGVsbG8=")
         True
         >>> is_valid_base64("not valid base64!!!")
         False
+        >>> is_valid_base64("aGVsbG8=extra")
+        False
+        >>> is_valid_base64("-_8=", urlsafe=True)
+        True
+        >>> is_valid_base64("-_8=", urlsafe=False)
+        False
     """
     if not isinstance(encoded, str):
         return False
     try:
-        base64_decode(encoded, urlsafe=urlsafe)
-        return True
-    except (TypeError, ValueError, UnicodeDecodeError):
+        encoded_bytes = encoded.encode("ascii")
+    except UnicodeEncodeError:
         return False
+    altchars = b"-_" if urlsafe else None
+    try:
+        base64.b64decode(encoded_bytes, altchars=altchars, validate=True)
+    except (binascii.Error, ValueError):
+        return False
+    return True
 
 
 def is_valid_hex(encoded: str) -> bool:
