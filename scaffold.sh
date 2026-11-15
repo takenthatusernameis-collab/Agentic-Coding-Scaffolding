@@ -71675,6 +71675,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `numbers_utils.is_untouchable_number` searching only up to `2 * n`; defect hunt on `netrc`–`path` batch
+
+- **Correctness fix — `numbers_utils.is_untouchable_number` reported touchable numbers as untouchable because it searched for a witness `m` only up to `2 * n`.** The function decides whether any `m` has `aliquot_sum(m) == n`, but a witness can exceed `2 * n`: for a composite `m` with smallest prime factor `p <= sqrt(m)` the proper divisors include `1` and `m / p >= sqrt(m)`, so `aliquot_sum(m) >= 1 + sqrt(m)` and `aliquot_sum(m) == n` only forces `m <= (n - 1) ** 2`. The `2 * n` bound therefore missed every witness in `(2 * n, (n - 1) ** 2]` and wrongly returned `True` for touchable values such as `12` (`aliquot_sum(121) == 12`), `17` (`aliquot_sum(39) == 17`), `18` (`aliquot_sum(289) == 18`), and `19` (`aliquot_sum(65) == 19`). The search now runs to `(n - 1) ** 2`, and `n == 1` is handled explicitly (it is touchable because `aliquot_sum(2) == 1`). Added `test_touchable_only_above_double` and `test_known_untouchable_sequence` (each fails against the old `2 * n` bound and passes after) plus doctest examples for `12` and `17`. Refreshed the embedded `numbers_utils.py` and `tests/test_numbers_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt — reviewed the next alphabetical batch of `*_utils.py` modules (`netrc`, `ntpath`, `nturl2path`, `numbers`, `opcode`, `operator`, `optparse`, `os`, `ossaudiodev`, `path`).** No incorrect contracts found in `netrc`, `ntpath`, `nturl2path`, `opcode`, `operator`, `optparse`, `os`, `ossaudiodev`, or `path`. The `numbers` issue above was the only defect. All batch modules pass their tests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- **Optimize-delays pass — confirmed no avoidable repository-managed delay.** `verify_state_delta --probe` returned rc=1 at session start (clean tree, no source-relevant change since the verified checkpoint), so no redundant full-suite rerun was performed; the battery runs once at this milestone. No `.github/workflows/**` changes.
+- Validation: `python -m unittest tests.test_numbers_utils` — 204 OK; `python -m doctest numbers_utils.py` — 177 passed; `python -m unittest tests.test_scaffold_sync` — 20 OK; `python -m unittest tests.test_public_api` — 4 OK; `python -m unittest tests.test_doctests` — 2 OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files).
+
 ## Unreleased — `html_entities_utils.escape` now honours `quote=False`; corrected the documented entity helper list, defect hunt on `hash`–`inspect` batch
 
 - **Correctness fix — `html_entities_utils.escape` validated the `quote` argument but ignored it.** The wrapper accepted `quote: bool = True`, raised `TypeError` for a non-bool `quote`, and then always escaped both quote characters anyway, so `escape('a "quoted" value', quote=False)` returned `'a &quot;quoted&quot; value'` instead of leaving the quotes intact as :func:`html.escape` does with `quote=False`. A caller who passed `quote=False` to keep text readable outside an attribute delimiter got an attribute-safe string regardless, and the accepted-but-inert parameter read as if the option worked (the same class of defect as the removed `difflib_utils.ndiff` `lineterm`). `escape` now replaces ``&``, ``<``, and ``>`` first and only replaces ``"``/``'`` when ``quote`` is true, matching the standard library for both modes. Added `test_escape_quote_false_keeps_quotes`, `test_escape_quote_false_still_escapes_markup`, `test_escape_matches_stdlib_for_both_quote_modes`, and `test_escape_rejects_non_bool_quote`, plus doctest examples for both modes. Refreshed the embedded `html_entities_utils.py` and `tests/test_html_entities_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
@@ -102206,15 +102213,26 @@ def is_untouchable_number(n: int) -> bool:
         True
         >>> is_untouchable_number(6)
         False
+        >>> is_untouchable_number(12)
+        False
+        >>> is_untouchable_number(17)
+        False
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 1:
         return False
-    # A number n is touchable iff some m has aliquot_sum(m) == n.
-    # Searching m up to 2*n (with a small floor) is sufficient for small n.
-    limit = max(2 * n, 10)
-    for m in range(1, limit + 1):
+    # ``n`` is touchable iff some ``m`` has ``aliquot_sum(m) == n``. For a
+    # composite ``m`` with smallest prime factor ``p <= sqrt(m)`` the proper
+    # divisors include ``1`` and ``m / p >= sqrt(m)``, so
+    # ``aliquot_sum(m) >= 1 + sqrt(m)``. Thus ``aliquot_sum(m) == n`` forces
+    # ``m <= (n - 1) ** 2``; searching only up to ``2 * n`` misses witnesses
+    # such as ``aliquot_sum(39) == 17`` or ``aliquot_sum(121) == 12``.
+    # ``n == 1`` is touchable because ``aliquot_sum(2) == 1``.
+    if n == 1:
+        return False
+    limit = (n - 1) ** 2
+    for m in range(2, limit + 1):
         if aliquot_sum(m) == n:
             return False
     return True
@@ -103869,6 +103887,19 @@ class TestIsUntouchableNumber(unittest.TestCase):
     def test_non_untouchable_numbers(self):
         for value in (1, 3, 4, 6, 28):
             self.assertFalse(is_untouchable_number(value), value)
+
+    def test_touchable_only_above_double(self):
+        # Each of these is touchable, but only via an m greater than 2 * n, so
+        # a search bounded by 2 * n (the previous implementation) wrongly
+        # reports them as untouchable. Witnesses: aliquot_sum(39) == 17,
+        # aliquot_sum(121) == 12, aliquot_sum(289) == 18, aliquot_sum(65) == 19.
+        for value in (12, 17, 18, 19):
+            self.assertFalse(is_untouchable_number(value), value)
+
+    def test_known_untouchable_sequence(self):
+        # OEIS A005114: the first untouchable numbers.
+        for value in (2, 5, 52, 88, 96, 120, 124):
+            self.assertTrue(is_untouchable_number(value), value)
 
     def test_zero_and_negative(self):
         self.assertFalse(is_untouchable_number(0))

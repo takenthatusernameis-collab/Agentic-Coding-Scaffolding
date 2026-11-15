@@ -1475,6 +1475,19 @@ class TestIsUntouchableNumber(unittest.TestCase):
         for value in (1, 3, 4, 6, 28):
             self.assertFalse(is_untouchable_number(value), value)
 
+    def test_touchable_only_above_double(self):
+        # Each of these is touchable, but only via an m greater than 2 * n, so
+        # a search bounded by 2 * n (the previous implementation) wrongly
+        # reports them as untouchable. Witnesses: aliquot_sum(39) == 17,
+        # aliquot_sum(121) == 12, aliquot_sum(289) == 18, aliquot_sum(65) == 19.
+        for value in (12, 17, 18, 19):
+            self.assertFalse(is_untouchable_number(value), value)
+
+    def test_known_untouchable_sequence(self):
+        # OEIS A005114: the first untouchable numbers.
+        for value in (2, 5, 52, 88, 96, 120, 124):
+            self.assertTrue(is_untouchable_number(value), value)
+
     def test_zero_and_negative(self):
         self.assertFalse(is_untouchable_number(0))
         for value in (-1, -2):

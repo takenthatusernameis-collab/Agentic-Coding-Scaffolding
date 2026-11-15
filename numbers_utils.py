@@ -1614,15 +1614,26 @@ def is_untouchable_number(n: int) -> bool:
         True
         >>> is_untouchable_number(6)
         False
+        >>> is_untouchable_number(12)
+        False
+        >>> is_untouchable_number(17)
+        False
     """
     if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 1:
         return False
-    # A number n is touchable iff some m has aliquot_sum(m) == n.
-    # Searching m up to 2*n (with a small floor) is sufficient for small n.
-    limit = max(2 * n, 10)
-    for m in range(1, limit + 1):
+    # ``n`` is touchable iff some ``m`` has ``aliquot_sum(m) == n``. For a
+    # composite ``m`` with smallest prime factor ``p <= sqrt(m)`` the proper
+    # divisors include ``1`` and ``m / p >= sqrt(m)``, so
+    # ``aliquot_sum(m) >= 1 + sqrt(m)``. Thus ``aliquot_sum(m) == n`` forces
+    # ``m <= (n - 1) ** 2``; searching only up to ``2 * n`` misses witnesses
+    # such as ``aliquot_sum(39) == 17`` or ``aliquot_sum(121) == 12``.
+    # ``n == 1`` is touchable because ``aliquot_sum(2) == 1``.
+    if n == 1:
+        return False
+    limit = (n - 1) ** 2
+    for m in range(2, limit + 1):
         if aliquot_sum(m) == n:
             return False
     return True
