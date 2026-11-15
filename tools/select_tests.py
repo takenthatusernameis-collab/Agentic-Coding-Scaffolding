@@ -31,10 +31,6 @@ FULL_SUITE_TRIGGERS = {
     "AGENTS.md",
     "CHANGELOG.md",
     ".kilo/command/scaffold-project.md",
-    "tools/verify_state_delta.py",
-    "tools/refresh_scaffold.py",
-    "tools/scan_untested.py",
-    "tools/select_tests.py",
 }
 
 # Source file patterns that map to test files
@@ -78,7 +74,7 @@ def _get_changed_and_untracked_from_git(
         return [], []
     changed = []
     untracked = []
-    for line in result.stdout.strip().splitlines():
+    for line in result.stdout.rstrip("\n").splitlines():
         if not line.strip():
             continue
         status = line[:2]
@@ -99,7 +95,9 @@ def get_changed_files_from_git(base: str | None = None, head: str = "HEAD") -> l
 
 def get_untracked_files() -> list[str]:
     """Get list of untracked source files."""
-    _, untracked = _get_changed_and_untracked_from_git()
+    _, untracked = _get_changed_and_untracked_from_git(
+        base=None, head="HEAD", include_untracked=True
+    )
     return untracked
 
 
@@ -111,8 +109,12 @@ def map_source_to_test(source_file: str) -> str | None:
     """
     path = Path(source_file).resolve()
 
-    # Check for full-suite triggers
-    if path.name in FULL_SUITE_TRIGGERS:
+    # Check for full-suite triggers (use relative path for subdirectory files)
+    try:
+        rel_path = str(path.relative_to(ROOT))
+    except ValueError:
+        rel_path = path.name
+    if rel_path in FULL_SUITE_TRIGGERS or path.name in FULL_SUITE_TRIGGERS:
         return "FULL_SUITE"
 
     # Handle tools/*.py files
@@ -162,6 +164,7 @@ def select_tests(changed_files: list[str]) -> tuple[list[str], bool]:
         mapped = map_source_to_test(f)
         if mapped == "FULL_SUITE":
             run_full = True
+            test_modules.clear()
             break
         elif mapped:
             test_modules.add(mapped)
@@ -222,7 +225,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.all:
         modules = get_all_test_modules()
-        run_full = True
+        run_full = False
     elif args.from_git:
         changed, untracked = _get_changed_and_untracked_from_git(
             args.base, args.head, include_untracked=args.include_untracked
