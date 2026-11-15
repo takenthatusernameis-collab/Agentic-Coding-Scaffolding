@@ -113,10 +113,17 @@ def write_marker(data: dict) -> None:
 
 
 def _changed_and_untracked_since(ref: str) -> tuple[list[str], list[str]]:
-    """Return (changed, untracked) source-relevant files since *ref* in one git call.
+    """Return (changed, untracked) source-relevant files since *ref*.
 
-    Uses ``git status --porcelain`` which reports both modified and untracked
-    files in a single invocation, avoiding two subprocess calls on the hot path.
+    ``git status`` does not accept a commit argument: a bare ``<ref>`` before
+    ``--`` is interpreted as a pathspec, so the previous
+    ``git status --porcelain <ref> -- <paths>`` form always matched nothing and
+    reported an empty delta on a clean tree. That silently skipped the
+    verification battery even after source files changed between *ref* and the
+    working tree. The tracked delta is therefore taken from
+    ``git diff --name-only <ref>`` and the untracked files from a plain
+    ``git status --porcelain --untracked-files=all`` (untracked files are
+    relative to the working tree, not to *ref*).
     """
     if not _ref_exists(ref):
         print(
@@ -124,28 +131,30 @@ def _changed_and_untracked_since(ref: str) -> tuple[list[str], list[str]]:
             file=sys.stderr,
         )
         return ["<unknown>"], []
-    result = run(
-        ["git", "status", "--porcelain", "--untracked-files=all", ref, "--"]
-        + list(SOURCE_GLOBS),
-        timeout=5.0,
-    )
-    if result.returncode != 0:
+    globs = list(SOURCE_GLOBS)
+    diff_result = run(["git", "diff", "--name-only", ref, "--"] + globs, timeout=5.0)
+    if diff_result.returncode != 0:
         print(
-            f"[verify-state-delta] Cannot get status against {ref!r}; treating state as changed.",
+            f"[verify-state-delta] Cannot diff against {ref!r}; treating state as changed.",
             file=sys.stderr,
         )
         return ["<unknown>"], []
-    changed = []
-    untracked = []
-    for line in result.stdout.splitlines():
-        if not line.strip():
-            continue
-        status = line[:2]
-        path = line[3:].strip()
-        if status.startswith("?"):
-            untracked.append(path)
-        else:
-            changed.append(path)
+    changed = [line.strip() for line in diff_result.stdout.splitlines() if line.strip()]
+    status_result = run(
+        ["git", "status", "--porcelain", "--untracked-files=all", "--"] + globs,
+        timeout=5.0,
+    )
+    if status_result.returncode != 0:
+        print(
+            "[verify-state-delta] Cannot list untracked files; treating state as changed.",
+            file=sys.stderr,
+        )
+        return ["<unknown>"], []
+    untracked = [
+        line[3:].strip()
+        for line in status_result.stdout.splitlines()
+        if line.startswith("??")
+    ]
     return changed, untracked
 
 

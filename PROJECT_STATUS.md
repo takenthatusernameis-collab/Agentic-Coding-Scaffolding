@@ -1,22 +1,22 @@
 # Project Status
 
-## Latest Session (2026-11-15T00:44Z)
+## Latest Session (2026-11-15T01:36Z)
 
 - `board_read`: empty (no task posted to main); executed the standing avoidable-delay task from the durable handover.
-- **Avoidable process delay removed:** `tests/test_scan_untested.py` ran the scanner CLI as a fresh subprocess for every assertion and re-scanned all 500+ modules each time. Identical invocations are now deduplicated by a memoized `run_cli(*args)` helper, and the single cold scan per mode moved into `setUpModule` (the isolated cache starts empty) so class-collection order can no longer trigger a second cold scan per mode. `TestCacheIntegration` still launches real subprocesses to exercise repeated-run cache reuse for genuine (not memoized) results.
-- Measured: `python -m pytest tests/test_scan_untested.py` ~2.34s → ~1.41s (~40% faster); `python -m unittest tests.test_scan_untested` ~1.39s → ~1.32s; full `python -m pytest tests/` ~16.82s → ~15.68s.
-- Validation: `python -m pytest tests/test_scan_untested.py` — 44 OK; each class in isolation OK; `python -m pytest tests/` — 11186 OK (skipped=4); `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean (567 files); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync.
+- **Integrity fix — `tools/verify_state_delta.py` source-delta bug.** The guard computed its tracked delta with `git status --porcelain <ref> -- <pathspecs>`, but `git status` treats a bare `<ref>` before `--` as a pathspec, so the delta was always empty on a clean tree and the verification battery was skipped even after source changed since the checkpoint. Now uses `git diff --name-only <ref>` for tracked changes and `git status --porcelain --untracked-files=all` for untracked files. Regression test `TestDeltaAcrossCommits` fails on the old form and passes on the fix.
+- **Integrity fix — `tools/refresh_scaffold.py` `--check` cache blind spot + unfinished `embedded_blocks` memoization.** HEAD was red: the prior checkpoint left an unused `from functools import lru_cache` and never re-embedded `scaffold.sh`, and the `--check` mtime fingerprint omitted the embedded `tools/refresh_scaffold.py` copy, masking the drift. Completed the memoization (`embedded_blocks` via `lru_cache`d `_find_blocks`; `anchor_for` over 571 blocks: ~33s → ~0.008s), folded every managed embedded block into `managed_copy_paths` (no cache blind spots), re-embedded `scaffold.sh`. Added `TestEmbeddedBlockCache` and `TestCheckCacheCoverage`.
+- Validation: `python -m pytest tests/` — 11195 OK (skipped=4); `python -m pytest tests/test_refresh_scaffold.py` — 38 OK; `python -m pytest tests/test_verify_state_delta.py` — 34 OK; `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` clean (567 source files); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --probe` => rc=2.
 
 ## State
 
-- Working tree: `tests/test_scan_untested.py`, `CHANGELOG.md` (+ embedded copy in `scaffold.sh`), `.kilo/handover.md`, `PROJECT_STATUS.md` pending (non-workflow; CI auto-commits).
-- `python tools/verify_state_delta.py --probe` will report verification required for the source-relevant test/doc delta.
+- Working tree: `tools/verify_state_delta.py`, `tools/refresh_scaffold.py`, `tests/test_verify_state_delta.py`, `tests/test_refresh_scaffold.py`, `CHANGELOG.md` (+ embedded copy in `scaffold.sh`) pending (non-workflow; CI auto-commits).
+- `python tools/verify_state_delta.py --probe` => rc=2 (verification required for the source-relevant delta).
 
 ## Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main.
-2. Confirm state with `python tools/verify_state_delta.py` (expect the battery to run once for the changed `tests/`+`CHANGELOG.md` delta, then a clean fast path after auto-commit).
-3. Find and remove the next highest-leverage **AVOIDABLE_PROCESS_DELAY** in CI/development workflow or tooling without weakening guarantees (no `.github/workflows/**` edits). Remaining measured candidates: `tests/test_refresh_scaffold.py` (~1.1s; `embedded_blocks` re-parses the 6 MB `scaffold.sh` on every `refresh`/`anchor_for` call) and `tests/test_scaffold_sync.py` (~1.0s; per-module substring scans over the large README/CHANGELOG). Prefer equal-coverage reductions (memoize repeated parsing, avoid redundant reads) — do not weaken assertions.
+2. Confirm state with `python tools/verify_state_delta.py` (expect the battery to run once for the changed `tools/`+`tests/`+`CHANGELOG.md` delta, then a clean fast path after auto-commit).
+3. Find and remove the next highest-leverage **AVOIDABLE_PROCESS_DELAY** in CI/development workflow or tooling without weakening guarantees (no `.github/workflows/**` edits). The two previous candidates (`tests/test_refresh_scaffold.py` parsing, `refresh_scaffold --check` cache blind spot) are resolved; measure before claiming the next one.
 4. If blocked by an external/integrity gate, record the exact release condition and do independent permitted work; do not create no-op commits.
 5. Validation: edit sources/docs first, then `refresh_scaffold`/`--check` when embedded sources changed; `scan_untested.py`, targeted tests, `make lint`, `make typecheck`; full suite when `tests/` or shared behavior changed; `python tools/verify_state_delta.py --full --record-full-suite` as appropriate.
 6. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` (before refresh when applicable), `.kilo/handover.md`, `PROJECT_STATUS.md`; post next task to `main` via `board_post` (record if self-post refused).

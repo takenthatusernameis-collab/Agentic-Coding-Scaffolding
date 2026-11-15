@@ -331,5 +331,96 @@ class TestCommandLine(unittest.TestCase):
         self.assertIn("in sync", result.stdout)
 
 
+class TestEmbeddedBlockCache(unittest.TestCase):
+    """Verify that parsing the generator is memoized and stays correct.
+
+    ``anchor_for`` re-parses the multi-megabyte generator once per block, so a
+    bootstrap that lacks all blocks used to pay for one full scan per block.
+    ``embedded_blocks`` now memoizes the parse on the text. The memoized result
+    must be identical to a fresh parse and must not be mutable by callers.
+    """
+
+    def test_the_memoized_parse_matches_a_fresh_parse(self):
+        text = (ROOT / "scaffold.sh").read_text()
+        expected = [m.group("path") for m in refresh_scaffold.HEREDOC.finditer(text)]
+        got = [m.group("path") for m in refresh_scaffold.embedded_blocks(text)]
+        self.assertEqual(got, expected)
+
+    def test_repeated_parses_of_the_same_text_are_served_from_cache(self):
+        text = (ROOT / "scaffold.sh").read_text()
+        refresh_scaffold._find_blocks.cache_clear()
+        refresh_scaffold.embedded_blocks(text)  # cold scan
+        cold = refresh_scaffold._find_blocks.cache_info()
+        refresh_scaffold.embedded_blocks(text)  # must be served from cache
+        warm = refresh_scaffold._find_blocks.cache_info()
+        self.assertEqual(cold.misses, 1)
+        self.assertEqual(cold.hits, 0)
+        self.assertEqual(warm.hits, 1, "the memoized parse re-ran the scan")
+        self.assertEqual(warm.misses, 1)
+
+    def test_the_returned_list_is_not_the_cached_object(self):
+        text = (ROOT / "scaffold.sh").read_text()
+        first = refresh_scaffold.embedded_blocks(text)
+        first.clear()  # a caller must not be able to corrupt the cache
+        second = refresh_scaffold.embedded_blocks(text)
+        self.assertTrue(second, "clearing the returned list emptied the cache")
+
+
+class TestCheckCacheCoverage(unittest.TestCase):
+    """The ``--check`` cache fingerprint must cover every embedded copy.
+
+    The fingerprint is built from ``managed_copy_paths``. When that list only
+    held the ``*_utils`` wrapper modules, a committed edit to an embedded
+    non-wrapper file such as ``tools/refresh_scaffold.py`` left the cache
+    reporting "in sync" while the generator still held the old copy. Every
+    embedded block the tool manages must therefore appear in the fingerprint.
+    """
+
+    def test_every_managed_embedded_block_is_fingerprinted(self):
+        text = (ROOT / "scaffold.sh").read_text()
+        managed = set(refresh_scaffold.managed_copy_paths())
+        embedded_managed = {
+            m.group("path")
+            for m in refresh_scaffold.embedded_blocks(text)
+            if refresh_scaffold.expected_body(m.group("path")) is not None
+        }
+        self.assertTrue(embedded_managed)
+        self.assertEqual(embedded_managed - managed, set())
+
+    def test_the_embedded_refresh_tool_is_fingerprinted(self):
+        self.assertIn("tools/refresh_scaffold.py", refresh_scaffold.managed_copy_paths())
+
+    def test_the_fingerprint_changes_when_an_embedded_tool_changes(self):
+        # The cache must notice a new mtime on an embedded non-wrapper file.
+        # Point ``SCAFFOLD``/``ROOT`` at a temporary repository so the real
+        # generator is not touched.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "tools").mkdir()
+            (root / "tools" / "refresh_scaffold.py").write_text("v1\n")
+            (root / "hello.py").write_text("x = 1\n")
+            (root / "scaffold.sh").write_text(
+                "cat > \"$OUTPUT_DIR/tools/refresh_scaffold.py\" <<'REFRESH_SCAFFOLD'\n"
+                "v1\nREFRESH_SCAFFOLD\n"
+            )
+            saved_root, saved_scaffold = refresh_scaffold.ROOT, refresh_scaffold.SCAFFOLD
+            refresh_scaffold.ROOT = root
+            refresh_scaffold.SCAFFOLD = root / "scaffold.sh"
+            try:
+                self.assertIn(
+                    "tools/refresh_scaffold.py", refresh_scaffold.managed_copy_paths()
+                )
+                before = refresh_scaffold._check_cache_fingerprint()
+                (root / "tools" / "refresh_scaffold.py").write_text("v2\n")
+                after = refresh_scaffold._check_cache_fingerprint()
+            finally:
+                refresh_scaffold.ROOT = saved_root
+                refresh_scaffold.SCAFFOLD = saved_scaffold
+            self.assertNotEqual(
+                before.get("tools/refresh_scaffold.py"),
+                after.get("tools/refresh_scaffold.py"),
+            )
+
+
 if __name__ == "__main__":
     unittest.main()

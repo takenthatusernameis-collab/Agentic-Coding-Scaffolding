@@ -58,9 +58,24 @@ HEREDOC = re.compile(
 )
 
 
+@lru_cache(maxsize=4)
+def _find_blocks(scaffold_text: str) -> tuple[re.Match[str], ...]:
+    """Return the heredoc blocks of *scaffold_text*, memoized on the text.
+
+    Parsing the multi-megabyte generator is the expensive part of a refresh:
+    ``anchor_for`` re-parses it once per missing block, so a bootstrap that
+    lacks all 542 blocks paid for 542 full scans of the whole file. The result
+    is cached on the text so repeated scans of the same generator (the same
+    string object within one refresh, or an equal copy read again) are served
+    from memory. The cache returns a tuple; ``embedded_blocks`` wraps it in a
+    fresh list so callers can never mutate the cached value.
+    """
+    return tuple(HEREDOC.finditer(scaffold_text))
+
+
 def embedded_blocks(scaffold_text: str) -> list[re.Match[str]]:
     """Return every quoted heredoc block that writes into the output directory."""
-    return list(HEREDOC.finditer(scaffold_text))
+    return list(_find_blocks(scaffold_text))
 
 
 def is_verbatim_copy(relative: str) -> bool:
@@ -156,8 +171,21 @@ def managed_copy_paths() -> list[str]:
 
     Includes all embedded wrapper module/test copies and the templated project
     documents. The list is stable so cache fingerprints are deterministic.
+
+    The verbatim blocks the generator already holds are added as well: a
+    change to any of them is a change ``refresh()`` would rewrite, so it must
+    invalidate the cache even when the file is not a ``*_utils`` module (for
+    example ``tools/refresh_scaffold.py`` or ``calculator.py``). The wrapper
+    list alone missed those, so the cache reported "in sync" while a committed
+    edit to an embedded tool had never been re-embedded into the generator.
     """
-    return sorted(set(wrapper_copies()) | set(TEMPLATED_COPIES))
+    paths = set(wrapper_copies()) | set(TEMPLATED_COPIES)
+    if SCAFFOLD.is_file():
+        for match in embedded_blocks(SCAFFOLD.read_text()):
+            relative = match.group("path")
+            if expected_body(relative) is not None:
+                paths.add(relative)
+    return sorted(paths)
 
 
 def _mtime(path: Path) -> float | None:

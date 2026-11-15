@@ -251,6 +251,71 @@ class TestMakefileVerifyTarget(unittest.TestCase):
         self.assertIn("tests.test_public_api tests.test_doctests", text)
 
 
+class TestDeltaAcrossCommits(unittest.TestCase):
+    """The source delta must see files committed between *ref* and the worktree.
+
+    Regression guard for a real bug: ``_changed_and_untracked_since`` computed
+    the tracked delta with ``git status --porcelain <ref> -- <paths>``. ``git
+    status`` does not take a commit argument; a bare ``<ref>`` before ``--`` is
+    a pathspec, so the command matched nothing and reported an empty delta on a
+    clean tree. The verification battery was then skipped even though source
+    files had changed since the checkpoint, silently advancing the checkpoint
+    past unverified code. This builds a throwaway repository with a source file
+    committed in a second commit and asserts the helper reports it.
+    """
+
+    def setUp(self):
+        self._saved_root = verify_state_delta.ROOT
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        repo = Path(self._tmp.name)
+        verify_state_delta.ROOT = repo
+
+        def git(*args: str) -> str:
+            result = subprocess.run(
+                ["git", *args], cwd=repo, capture_output=True, text=True, check=True
+            )
+            return result.stdout.strip()
+
+        git("init", "-q")
+        git("config", "user.email", "test@example.com")
+        git("config", "user.name", "test")
+        (repo / "main.py").write_text("x = 1\n")
+        git("add", ".")
+        git("commit", "-qm", "one")
+        self._first = git("rev-parse", "HEAD")
+        (repo / "main.py").write_text("x = 2\n")
+        (repo / "scaffold.sh").write_text("#!/bin/sh\n")
+        git("add", ".")
+        git("commit", "-qm", "two")
+        # A clean tree at the tip: only the committed delta should be reported.
+        assert verify_state_delta.working_tree_clean()
+
+    def tearDown(self):
+        verify_state_delta.ROOT = self._saved_root
+
+    def test_committed_source_change_is_detected_on_a_clean_tree(self):
+        changed, untracked = verify_state_delta._changed_and_untracked_since(self._first)
+        self.assertEqual(untracked, [])
+        self.assertIn("main.py", changed)
+        self.assertIn("scaffold.sh", changed)
+        self.assertTrue(verify_state_delta.source_changed_since(self._first))
+
+    def test_no_change_between_head_and_itself(self):
+        head = verify_state_delta.head()
+        changed, untracked = verify_state_delta._changed_and_untracked_since(head)
+        self.assertEqual(changed, [])
+        self.assertEqual(untracked, [])
+        self.assertFalse(verify_state_delta.source_changed_since(head))
+
+    def test_untracked_source_file_is_detected(self):
+        (Path(self._tmp.name) / "extra_utils.py").write_text("y = 1\n")
+        head = verify_state_delta.head()
+        changed, untracked = verify_state_delta._changed_and_untracked_since(head)
+        self.assertIn("extra_utils.py", untracked)
+        self.assertTrue(verify_state_delta.source_changed_since(head))
+
+
 class TestRepositoryState(unittest.TestCase):
     """Verify the helpers that read live repository state."""
 
