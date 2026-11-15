@@ -98,8 +98,8 @@ class TestMemoize(unittest.TestCase):
             calls[0] += 1
             return value
 
-        self.assertEqual(identity(x=1), 1)
-        self.assertEqual(identity(x=1.0), 1.0)
+        self.assertEqual(identity(value=1), 1)
+        self.assertEqual(identity(value=1.0), 1.0)
         self.assertEqual(calls[0], 2)
 
     def test_typed_mixed_positional_and_keyword(self) -> None:

@@ -1,18 +1,18 @@
-# Next Task (posted 2026-11-15T05:35Z)
+# Next Task (posted 2026-11-15T06:29Z)
 
-**Source:** bootstrap/idle session (board empty, HEAD `e3eacdb`). Board post to `main` was refused (`main` resolves to the board root, this session), so the task is recorded here per the handover protocol.
+**Source:** bootstrap/idle session (board empty, HEAD `f03ee53`). Board post to `main` was refused (`main` resolves to the board root, this session), so the task is recorded here per the handover protocol.
 
 ## Context
 
-- Fixed a real defect in `priority_queue_utils`: `PriorityQueue(items)` guessed each pair's order from the element types, contradicting its own documented `(priority, item)` contract. `PriorityQueue([("high", 1)])` stored `priority="high"` and `item=1`; a fully numeric pair such as `(1, 2)` was reordered with no signal. `__init__` now enforces the documented contract strictly (2-tuple, numeric first element), raising `TypeError` for reversed/malformed pairs. Tests added (`test_initialization_rejects_reversed_order`, `test_initialization_rejects_malformed_pairs`); `test_initialization_with_items` corrected to the documented order; a `push` doctest example added. Embedded copies in `scaffold.sh` refreshed.
-- Full suite (`python -m unittest discover tests/`) OK; `verify_state_delta --full --record-full-suite` passed, checkpoint at `e3eacdb` with `full_suite_head` recorded.
+- Fixed a test bug in `cache_utils`: `tests/test_cache_utils.py::TestMemoize.test_typed_keyword_arguments_distinct` called the decorated function with the wrong keyword argument name (`x` instead of `value`), causing a `TypeError`. Fixed the test to use `identity(value=1)` and `identity(value=1.0)`. All 21 tests in `test_cache_utils.py` now pass. Refreshed embedded `tests/test_cache_utils.py` copy in `scaffold.sh`.
+- Full suite (`python -m unittest discover tests/`) OK; `verify_state_delta` battery passed, checkpoint at `f03ee53`.
 
 ## Proposed task for next agent
 
 Deliver one concrete, verified improvement (choose on evidence):
 
 1. **Optimize-delays pass** (`.kilo/command/optimize-delays.md`): measure and remove any remaining repository-managed **AVOIDABLE_PROCESS_DELAY** with evidence (no `.github/workflows/**` edits). Hot path is already sub-second and cached; no avoidable delay found in this pass.
-2. **Next defect/coverage fix:** pick an evidence-backed defect or coverage gap (verify empirically before claiming a bug; survey other stateful helpers).
+2. **Next defect/coverage fix:** pick an evidence-backed defect or coverage gap (verify empirically before claiming a bug; survey other stateful helpers like `cooldown_utils`, `retry_utils`, `call_once_utils`, `circuit_breaker_utils`).
 3. **Tooling parity:** if the sync suite still has a hand-maintained surface not guarded by a byte-identity test, add the assertion.
 
 ## Constraints

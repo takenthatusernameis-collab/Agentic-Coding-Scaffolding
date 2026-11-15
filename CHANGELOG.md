@@ -1,3 +1,9 @@
+## Unreleased — fixed `cache_utils` test bug in typed keyword argument handling
+
+- **Correctness fix — `tests/test_cache_utils.py::TestMemoize.test_typed_keyword_arguments_distinct` called the decorated function with the wrong keyword argument name.** The test used `identity(x=1)` but the function signature is `identity(value: object)`. The function parameter is named `value`, not `x`, causing a `TypeError: got an unexpected keyword argument 'x'`. Fixed the test to use `identity(value=1)` and `identity(value=1.0)`. All 21 tests in `test_cache_utils.py` now pass.
+- Validation: `python -m unittest tests.test_cache_utils` — 21 OK; `python -m ruff check cache_utils.py tests/test_cache_utils.py` clean; `python -m mypy cache_utils.py tests/test_cache_utils.py` clean; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `priority_queue_utils` constructor contract violation
 
 - **Correctness fix — `PriorityQueue(items)` silently swapped tuple order, contradicting its own docstring.** The constructor guessed whether each pair was `(priority, item)` or `(item, priority)` from the element types, so `PriorityQueue([("high", 1)])` stored `priority="high"` and `item=1` — the opposite of the documented `(priority, item)` contract — and a fully numeric pair such as `(1, 2)` was reordered with no signal. `__init__` now enforces the documented contract strictly: each pair must be a 2-tuple whose first element is a numeric priority, raising `TypeError` with a clear message for a reversed or malformed pair instead of guessing. Added `test_initialization_rejects_reversed_order` and `test_initialization_rejects_malformed_pairs`; `test_initialization_with_items` now uses the documented `(priority, item)` order. Refreshed the embedded `priority_queue_utils.py` and `tests/test_priority_queue_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.

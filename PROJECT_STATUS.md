@@ -1,15 +1,15 @@
 # Project Status
 
-## Latest Session (2026-11-15T05:34Z)
+## Latest Session (2026-11-15T06:29Z)
 
-- `board_read`: empty (no task posted to main). `verify_state_delta --probe` rc=2 after prior auto-commit; `verify_state_delta` battery advanced checkpoint to `f6a59e7`. `refresh_scaffold --check` in sync, `scan_untested.py` clean.
-- **Durable work — `ring_buffer_utils.RingBuffer.from_list` empty-iterable contract clarified.** `from_list([])` with no explicit `capacity` now raises `ValueError("capacity must be provided when items is empty")` instead of the misleading `ValueError("capacity must be greater than 0")`; `from_list([], capacity=n)` remains supported. Added `test_from_list_empty_requires_capacity`, `test_from_list_empty_with_explicit_capacity`. Refreshed embedded copies in `scaffold.sh`.
-- Targeted verification: `python -m unittest tests.test_ring_buffer_utils -v` (13 OK), `python -m ruff check ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean), `python -m mypy ring_buffer_utils.py tests/test_ring_buffer_utils.py` (clean), `python tools/refresh_scaffold.py --check` (in sync). Full suite not rerun (source-local change; `tests/` changed since last recorded full-suite run per checkpoint note — consider full suite at next milestone).
+- `board_read`: empty (no task posted to main). `verify_state_delta --probe` rc=2 after prior auto-commit; `verify_state_delta` battery advanced checkpoint to `f03ee53`. `refresh_scaffold --check` in sync, `scan_untested.py` clean.
+- **Durable work — fixed `cache_utils` test bug in typed keyword argument handling.** `tests/test_cache_utils.py::TestMemoize.test_typed_keyword_arguments_distinct` called the decorated function with the wrong keyword argument name (`x` instead of `value`), causing a `TypeError`. Fixed the test to use `identity(value=1)` and `identity(value=1.0)`. All 21 tests in `test_cache_utils.py` now pass. Refreshed embedded `tests/test_cache_utils.py` copy in `scaffold.sh`.
+- Targeted verification: `python -m unittest tests.test_cache_utils` (21 OK), `python -m ruff check cache_utils.py tests/test_cache_utils.py` (clean), `python -m mypy cache_utils.py tests/test_cache_utils.py` (clean), `python tools/scan_untested.py` (clean), `python tools/refresh_scaffold.py --check` (in sync). Full suite not rerun (test-only change; `tests/` changed since last recorded full-suite run per checkpoint note).
 
 ## State
 
-- Working tree (pre-commit): `ring_buffer_utils.py`, `tests/test_ring_buffer_utils.py`, `CHANGELOG.md`, `scaffold.sh`, `.kilo/handover.md`, `PROJECT_STATUS.md` (non-workflow). CI auto-commits non-workflow changes.
-- Checkpoint: `f6a59e7` (verification battery passed this session; full-suite head recorded earlier at `e3eacdb`, `tests/` changed since then).
+- Working tree (pre-commit): `tests/test_cache_utils.py`, `CHANGELOG.md`, `scaffold.sh`, `.kilo/last_verified.checkpoint`, `PROJECT_STATUS.md` (non-workflow). CI auto-commits non-workflow changes.
+- Checkpoint: `f03ee53` (verification battery passed this session; full-suite head recorded earlier at `535b097`, `tests/` changed since then).
 
 ## Task for Next Agent
 
