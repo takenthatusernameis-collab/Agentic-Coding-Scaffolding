@@ -1,5 +1,7 @@
 """Tests for the exported-but-untested callable scanner."""
 
+from __future__ import annotations
+
 import ast
 import importlib.util
 import json
@@ -34,6 +36,53 @@ def load_tool():
 scan_untested = load_tool()
 scan_untested.CACHE_FILE = CACHE_FILE
 os.environ[scan_untested.CACHE_ENV] = str(CACHE_FILE)
+
+
+#: Memoized results of end-to-end scanner invocations, keyed by argument list.
+#: Several classes assert the same invocation (for example the default report
+#: is checked by ``TestScan``, ``TestJSONOutput`` and ``TestSummaryOutput``).
+#: Launching a fresh interpreter and re-scanning every module once per
+#: assertion dominated this suite's runtime. The CLI is deterministic for a
+#: fixed argument list, so reusing the result preserves every assertion.
+_CLI_RESULTS: dict[tuple[str, ...], subprocess.CompletedProcess[str]] = {}
+
+
+def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
+    """Run the scanner CLI once per unique argument list and reuse the result.
+
+    ``TestCacheIntegration`` deliberately bypasses this helper: it must observe
+    genuine repeated subprocess runs, not a memoized result.
+    """
+    key = tuple(args)
+    if key not in _CLI_RESULTS:
+        _CLI_RESULTS[key] = subprocess.run(
+            [sys.executable, str(TOOL), *args],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+    return _CLI_RESULTS[key]
+
+
+def setUpModule() -> None:
+    """Warm the isolated cache once so class order cannot add cold scans.
+
+    The cache file starts empty. The first end-to-end run is the genuine cold
+    scan that populates it; performing it here, once per mode, keeps the cold
+    cost to one scan per mode and lets every class observe the same warm cache
+    regardless of the order the runner collects classes in. Running the scanner
+    as a real subprocess also exercises the module's entry point.
+    """
+    CACHE_FILE.unlink(missing_ok=True)
+    for args in ([], ["--all"]):
+        subprocess.run(
+            [sys.executable, str(TOOL), *args],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
 
 
 class TestNameReferenced(unittest.TestCase):
@@ -185,34 +234,16 @@ class TestScan(unittest.TestCase):
     """Verify the scanner reports no exported-but-untested callables."""
 
     def test_the_repository_is_clean(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL)],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli()
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertIn("no exported-but-untested callables", result.stdout)
 
     def test_the_default_report_is_empty(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL)],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli()
         self.assertEqual(result.stdout.strip(), "no exported-but-untested callables")
 
     def test_the_all_flag_lists_everything(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL), "--all"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli("--all")
         # With --all the scanner lists type variables, constants, classes, and
         # interactive facades too, so it must report them and exit non-zero.
         # The old implementation ignored the flag and printed the same "no ..."
@@ -229,39 +260,21 @@ class TestJSONOutput(unittest.TestCase):
     """Verify the JSON output format."""
 
     def test_json_output_when_clean(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL), "--json"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli("--json")
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         data = json.loads(result.stdout)
         self.assertEqual(data["total"], 0)
         self.assertEqual(data["gaps"], {})
 
     def test_json_output_with_all_flag(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL), "--all", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli("--all", "--json")
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         data = json.loads(result.stdout)
         self.assertGreater(data["total"], 0)
         self.assertIn("help", data["gaps"].get("pydoc_utils.py", []))
 
     def test_json_structure_is_valid(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL), "--json"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli("--json")
         data = json.loads(result.stdout)
         self.assertIn("gaps", data)
         self.assertIn("total", data)
@@ -278,24 +291,12 @@ class TestSummaryOutput(unittest.TestCase):
     """Verify the ``--summary`` report format."""
 
     def test_summary_when_clean(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL), "--summary"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli("--summary")
         self.assertEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         self.assertEqual(result.stdout.strip(), "no exported-but-untested callables")
 
     def test_summary_collapses_names_to_counts(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL), "--all", "--summary"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli("--all", "--summary")
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         lines = result.stdout.splitlines()
         # Every module line is "name.py: <count>", not a per-name listing.
@@ -310,32 +311,13 @@ class TestSummaryOutput(unittest.TestCase):
         self.assertNotIn("  ", result.stdout)
 
     def test_summary_total_matches_json_total(self):
-        summary = subprocess.run(
-            [sys.executable, str(TOOL), "--all", "--summary"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
-        json_run = subprocess.run(
-            [sys.executable, str(TOOL), "--all", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
-        data = json.loads(json_run.stdout)
+        summary = run_cli("--all", "--summary")
+        data = json.loads(run_cli("--all", "--json").stdout)
         self.assertIn(f"{data['total']} exported-but-untested callables", summary.stdout)
         self.assertIn(f"in {len(data['gaps'])} modules", summary.stdout)
 
     def test_json_takes_precedence_over_summary(self):
-        result = subprocess.run(
-            [sys.executable, str(TOOL), "--summary", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
+        result = run_cli("--summary", "--json")
         data = json.loads(result.stdout)
         self.assertEqual(data["total"], 0)
         self.assertEqual(data["gaps"], {})
@@ -527,15 +509,12 @@ class TestCache(unittest.TestCase):
 class TestCacheIntegration(unittest.TestCase):
     """Verify the cache behaves end-to-end across subprocess runs.
 
-    The module-wide isolated cache is emptied once, here, so the two
-    population assertions observe a genuine cold scan. Everything the later
-    classes run is then served from that cache instead of re-parsing every
-    module again.
+    ``setUpModule`` performs the single cold scan per mode against the isolated
+    cache, so these tests observe an already-populated cache regardless of the
+    class order the runner collects them in. Each test still launches real
+    subprocesses (not the memoized ``run_cli``) so repeated runs are exercised
+    for genuine cache reuse rather than a cached result.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        CACHE_FILE.unlink(missing_ok=True)
 
     def test_repeated_runs_produce_identical_output_and_populate_cache(self):
         first = subprocess.run(
