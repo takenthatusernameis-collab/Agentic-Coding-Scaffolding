@@ -721,7 +721,7 @@ def color_content(color: int) -> Tuple[int, int, int]:
     return cast(Tuple[int, int, int], module.color_content(color))
 
 
-def pair_content(pair: int) -> Tuple[int, int, int]:
+def pair_content(pair: int) -> Tuple[int, int]:
     """Return the foreground and background colors of a color pair.
 
     Args:
@@ -736,7 +736,7 @@ def pair_content(pair: int) -> Tuple[int, int, int]:
     """
     _validate_int(pair, "pair")
     module = _curses_module()
-    return cast(Tuple[int, int, int], module.pair_content(pair))
+    return cast(Tuple[int, int], module.pair_content(pair))
 
 
 def color_pair(pair: int) -> int:

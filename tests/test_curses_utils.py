@@ -1,6 +1,7 @@
 """Tests for curses_utils."""
 
 import curses
+import typing
 import unittest
 from unittest import mock
 
@@ -398,6 +399,12 @@ class TestDelegation(unittest.TestCase):
                 (curses_utils.COLOR_RED, curses_utils.COLOR_BLACK),
             )
             pair_content.assert_called_once_with(1)
+
+    def test_pair_content_return_annotation_is_a_pair(self):
+        # ``curses.pair_content`` returns a ``(fg, bg)`` two-tuple; the wrapper
+        # must advertise that arity so type-checked callers are not misled.
+        hints = typing.get_type_hints(curses_utils.pair_content)
+        self.assertEqual(hints["return"], typing.Tuple[int, int])
 
     def test_pair_number_delegates(self):
         with mock.patch.object(curses_utils._curses, "pair_number") as pair_number:

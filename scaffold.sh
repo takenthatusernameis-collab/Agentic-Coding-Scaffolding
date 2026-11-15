@@ -71675,6 +71675,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `curses_utils.pair_content` return type annotation
+
+- **Correctness fix — `curses_utils.pair_content` advertised a three-element return tuple but the standard library returns a pair.** The wrapper was annotated `-> Tuple[int, int, int]` and cast the delegated result to `Tuple[int, int, int]`, while its own docstring and `curses.pair_content` itself both return a ``(fg, bg)`` two-tuple. A type-checked caller therefore believed `pair_content` yields three integers and could unpack `fg, bg, extra = pair_content(pair)` — which raises `ValueError` at runtime — or otherwise reason incorrectly about the result shape. The annotation and the `cast` now declare `Tuple[int, int]`, matching the docstring and the standard library. No runtime behavior changed: the wrapper still returns exactly what `curses.pair_content` returns. Added `test_pair_content_return_annotation_is_a_pair`, which resolves the return annotation with `typing.get_type_hints` and asserts it is `Tuple[int, int]`; it fails against the old `Tuple[int, int, int]` and passes after the fix. Refreshed the embedded `curses_utils.py` and `tests/test_curses_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_curses_utils` — OK; `python -m unittest tests.test_scaffold_sync` — OK; `python -m unittest tests.test_public_api` — OK; `python -m unittest tests.test_doctests` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m ruff check curses_utils.py tests/test_curses_utils.py` — All checks passed; `python -m mypy curses_utils.py tests/test_curses_utils.py` — Success.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `tests/test_slugify_utils.py` missing trailing newline (`make lint` failure)
 
 - **Tooling fix — `tests/test_slugify_utils.py` had drifted from its embedded copy in `scaffold.sh` and was missing the final newline, so `ruff check .` (the `make lint` target) failed with `W292 No newline at end of file`.** The defect was latent because `ruff`/`mypy` are not installed in the default CI runner, so `make lint` short-circuits with "ruff not installed" and the failure only surfaces once a developer installs the dev tools. The repository source ended at `unittest.main()` without a trailing `\n`, while the embedded copy in `scaffold.sh` correctly ended with one — an avoidable source/embedded divergence that `refresh_scaffold.py --check` did not flag because the embedded side was already correct. Restored the trailing newline in the source so the file matches its embedded copy and `ruff` passes. No behavior change to the tests themselves.
@@ -142860,7 +142866,7 @@ def color_content(color: int) -> Tuple[int, int, int]:
     return cast(Tuple[int, int, int], module.color_content(color))
 
 
-def pair_content(pair: int) -> Tuple[int, int, int]:
+def pair_content(pair: int) -> Tuple[int, int]:
     """Return the foreground and background colors of a color pair.
 
     Args:
@@ -142875,7 +142881,7 @@ def pair_content(pair: int) -> Tuple[int, int, int]:
     """
     _validate_int(pair, "pair")
     module = _curses_module()
-    return cast(Tuple[int, int, int], module.pair_content(pair))
+    return cast(Tuple[int, int], module.pair_content(pair))
 
 
 def color_pair(pair: int) -> int:
@@ -143385,6 +143391,7 @@ cat > "$OUTPUT_DIR/tests/test_curses_utils.py" <<'TEST_CURSES_UTILS'
 """Tests for curses_utils."""
 
 import curses
+import typing
 import unittest
 from unittest import mock
 
@@ -143782,6 +143789,12 @@ class TestDelegation(unittest.TestCase):
                 (curses_utils.COLOR_RED, curses_utils.COLOR_BLACK),
             )
             pair_content.assert_called_once_with(1)
+
+    def test_pair_content_return_annotation_is_a_pair(self):
+        # ``curses.pair_content`` returns a ``(fg, bg)`` two-tuple; the wrapper
+        # must advertise that arity so type-checked callers are not misled.
+        hints = typing.get_type_hints(curses_utils.pair_content)
+        self.assertEqual(hints["return"], typing.Tuple[int, int])
 
     def test_pair_number_delegates(self):
         with mock.patch.object(curses_utils._curses, "pair_number") as pair_number:
