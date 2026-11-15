@@ -39,7 +39,7 @@ def token_bytes(nbytes: int | None = None) -> bytes:
     """
     if nbytes is None:
         return secrets.token_bytes()
-    if not isinstance(nbytes, int) or nbytes < 0:
+    if isinstance(nbytes, bool) or not isinstance(nbytes, int) or nbytes < 0:
         raise ValueError("nbytes must be a non-negative integer")
     return secrets.token_bytes(nbytes)
 
@@ -59,7 +59,7 @@ def token_hex(nbytes: int | None = None) -> str:
     """
     if nbytes is None:
         return secrets.token_hex()
-    if not isinstance(nbytes, int) or nbytes < 0:
+    if isinstance(nbytes, bool) or not isinstance(nbytes, int) or nbytes < 0:
         raise ValueError("nbytes must be a non-negative integer")
     return secrets.token_hex(nbytes)
 
@@ -79,7 +79,7 @@ def token_urlsafe(nbytes: int | None = None) -> str:
     """
     if nbytes is None:
         return secrets.token_urlsafe()
-    if not isinstance(nbytes, int) or nbytes < 0:
+    if isinstance(nbytes, bool) or not isinstance(nbytes, int) or nbytes < 0:
         raise ValueError("nbytes must be a non-negative integer")
     return secrets.token_urlsafe(nbytes)
 
@@ -112,7 +112,7 @@ def randbelow(n: int) -> int:
     Raises:
         ValueError: If ``n`` is not a positive integer.
     """
-    if not isinstance(n, int) or n <= 0:
+    if isinstance(n, bool) or not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
     return secrets.randbelow(n)
 
@@ -129,7 +129,7 @@ def randbits(k: int) -> int:
     Raises:
         ValueError: If ``k`` is not a non-negative integer.
     """
-    if not isinstance(k, int) or k < 0:
+    if isinstance(k, bool) or not isinstance(k, int) or k < 0:
         raise ValueError("k must be a non-negative integer")
     return secrets.randbits(k)
 

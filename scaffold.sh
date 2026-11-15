@@ -71667,6 +71667,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `secrets_utils` accepting booleans as integer arguments
+
+- **Correctness fix — `token_bytes`, `token_hex`, `token_urlsafe`, `randbelow`, and `randbits` accepted boolean arguments instead of rejecting them.** Because `bool` is a subclass of `int`, the `isinstance(nbytes, int)` validation let `True` and `False` slip through, so `token_bytes(True)` returned a single byte and `randbelow(True)` returned `0` instead of raising `ValueError`. This violated the documented contract ("nbytes must be a non-negative integer", "n must be a positive integer") and diverged from the bool-rejection convention used elsewhere (`duration_utils`, `semver_utils`). Each validator now rejects `bool` explicitly before the integer check. Added `test_boolean_rejected` to `TestTokenBytes`, `TestTokenHex`, `TestTokenUrlsafe`, `TestRandbelow`, and `TestRandbits` (5 new tests, all failing before the fix and passing after). Refreshed the embedded `secrets_utils.py` and `tests/test_secrets_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_secrets_utils` — 34 OK; `python -m unittest discover tests/` — 11058 OK (skipped=4); `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --full` passed. (`ruff`/`mypy` unavailable in this environment.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `base64_utils.is_valid_base64` lenient validation
 
 - **Correctness fix — `is_valid_base64` reported invalid input as valid because it relied on the lenient decode path instead of strict validation.** It called `base64_decode`, whose `base64.b64decode(...)` defaults to `validate=False` and silently discards any character outside the alphabet. As a result `is_valid_base64("!!!!")`, `is_valid_base64("aGVsbG8=extra")`, `is_valid_base64("aGVsbG8=\n")`, and `is_valid_base64("aGVsbG8= ")` all returned `True`, and the `urlsafe` flag was effectively unusable: a URL-safe string such as `"-_8="` failed the `urlsafe=False` check (correct) but the `urlsafe=True` check also failed because the decoded bytes (`b"\xfb\xff"`) are not valid UTF-8, and the helper conflated "valid Base64" with "decodes to UTF-8". `is_valid_base64` now validates structurally with `base64.b64decode(encoded_bytes, altchars=..., validate=True)`, which rejects non-alphabet characters, whitespace, data after padding, and excess padding, and which accepts the URL-safe alphabet when `urlsafe=True` regardless of whether the decoded bytes are UTF-8. The docstring now documents the strict, structure-only contract and adds doctests for the rejected-alphabet and URL-safe cases. Added `test_is_valid_base64_rejects_non_alphabet`, `test_is_valid_base64_rejects_data_after_padding`, `test_is_valid_base64_rejects_excess_padding`, `test_is_valid_base64_rejects_whitespace`, and `test_is_valid_base64_urlsafe_alphabet`. Refreshed the embedded `base64_utils.py` and `tests/test_base64_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
@@ -114846,7 +114852,7 @@ def token_bytes(nbytes: int | None = None) -> bytes:
     """
     if nbytes is None:
         return secrets.token_bytes()
-    if not isinstance(nbytes, int) or nbytes < 0:
+    if isinstance(nbytes, bool) or not isinstance(nbytes, int) or nbytes < 0:
         raise ValueError("nbytes must be a non-negative integer")
     return secrets.token_bytes(nbytes)
 
@@ -114866,7 +114872,7 @@ def token_hex(nbytes: int | None = None) -> str:
     """
     if nbytes is None:
         return secrets.token_hex()
-    if not isinstance(nbytes, int) or nbytes < 0:
+    if isinstance(nbytes, bool) or not isinstance(nbytes, int) or nbytes < 0:
         raise ValueError("nbytes must be a non-negative integer")
     return secrets.token_hex(nbytes)
 
@@ -114886,7 +114892,7 @@ def token_urlsafe(nbytes: int | None = None) -> str:
     """
     if nbytes is None:
         return secrets.token_urlsafe()
-    if not isinstance(nbytes, int) or nbytes < 0:
+    if isinstance(nbytes, bool) or not isinstance(nbytes, int) or nbytes < 0:
         raise ValueError("nbytes must be a non-negative integer")
     return secrets.token_urlsafe(nbytes)
 
@@ -114919,7 +114925,7 @@ def randbelow(n: int) -> int:
     Raises:
         ValueError: If ``n`` is not a positive integer.
     """
-    if not isinstance(n, int) or n <= 0:
+    if isinstance(n, bool) or not isinstance(n, int) or n <= 0:
         raise ValueError("n must be a positive integer")
     return secrets.randbelow(n)
 
@@ -114936,7 +114942,7 @@ def randbits(k: int) -> int:
     Raises:
         ValueError: If ``k`` is not a non-negative integer.
     """
-    if not isinstance(k, int) or k < 0:
+    if isinstance(k, bool) or not isinstance(k, int) or k < 0:
         raise ValueError("k must be a non-negative integer")
     return secrets.randbits(k)
 
@@ -114996,6 +115002,12 @@ class TestTokenBytes(unittest.TestCase):
         with self.assertRaises(ValueError):
             token_bytes("16")  # type: ignore[arg-type]
 
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            token_bytes(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            token_bytes(False)  # type: ignore[arg-type]
+
 
 class TestTokenHex(unittest.TestCase):
     def test_default_length(self):
@@ -115013,6 +115025,12 @@ class TestTokenHex(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(token_hex(0), "")
+
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            token_hex(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            token_hex(False)  # type: ignore[arg-type]
 
     def test_unique(self):
         self.assertNotEqual(token_hex(16), token_hex(16))
@@ -115034,6 +115052,12 @@ class TestTokenUrlsafe(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(token_urlsafe(0), "")
+
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            token_urlsafe(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            token_urlsafe(False)  # type: ignore[arg-type]
 
     def test_unique(self):
         self.assertNotEqual(token_urlsafe(16), token_urlsafe(16))
@@ -115075,6 +115099,12 @@ class TestRandbelow(unittest.TestCase):
         with self.assertRaises(ValueError):
             randbelow(1.5)  # type: ignore[arg-type]
 
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            randbelow(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            randbelow(False)  # type: ignore[arg-type]
+
 
 class TestRandbits(unittest.TestCase):
     def test_bits(self):
@@ -115091,6 +115121,12 @@ class TestRandbits(unittest.TestCase):
             randbits(-1)
         with self.assertRaises(ValueError):
             randbits(1.5)  # type: ignore[arg-type]
+
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            randbits(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            randbits(False)  # type: ignore[arg-type]
 
 
 class TestChoice(unittest.TestCase):

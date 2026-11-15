@@ -34,6 +34,12 @@ class TestTokenBytes(unittest.TestCase):
         with self.assertRaises(ValueError):
             token_bytes("16")  # type: ignore[arg-type]
 
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            token_bytes(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            token_bytes(False)  # type: ignore[arg-type]
+
 
 class TestTokenHex(unittest.TestCase):
     def test_default_length(self):
@@ -51,6 +57,12 @@ class TestTokenHex(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(token_hex(0), "")
+
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            token_hex(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            token_hex(False)  # type: ignore[arg-type]
 
     def test_unique(self):
         self.assertNotEqual(token_hex(16), token_hex(16))
@@ -72,6 +84,12 @@ class TestTokenUrlsafe(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(token_urlsafe(0), "")
+
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            token_urlsafe(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            token_urlsafe(False)  # type: ignore[arg-type]
 
     def test_unique(self):
         self.assertNotEqual(token_urlsafe(16), token_urlsafe(16))
@@ -113,6 +131,12 @@ class TestRandbelow(unittest.TestCase):
         with self.assertRaises(ValueError):
             randbelow(1.5)  # type: ignore[arg-type]
 
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            randbelow(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            randbelow(False)  # type: ignore[arg-type]
+
 
 class TestRandbits(unittest.TestCase):
     def test_bits(self):
@@ -129,6 +153,12 @@ class TestRandbits(unittest.TestCase):
             randbits(-1)
         with self.assertRaises(ValueError):
             randbits(1.5)  # type: ignore[arg-type]
+
+    def test_boolean_rejected(self):
+        with self.assertRaises(ValueError):
+            randbits(True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            randbits(False)  # type: ignore[arg-type]
 
 
 class TestChoice(unittest.TestCase):
