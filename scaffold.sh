@@ -40966,24 +40966,33 @@ class PriorityQueue(Generic[T]):
         self._counter = 0
         if items is not None:
             for item_pair in items:
-                if isinstance(item_pair, tuple) and len(item_pair) == 2:
-                    # Could be (priority, item) or (item, priority)
-                    first, second = item_pair
-                    # Heuristic: if second is a number (int/float), it's likely (item, priority)
-                    # If first is a number, it's likely (priority, item)
-                    if isinstance(second, (int, float)) and not isinstance(first, (int, float)):
-                        item, priority = first, second
-                    elif isinstance(first, (int, float)) and not isinstance(second, (int, float)):
-                        priority, item = first, second
-                    else:
-                        # Default to (priority, item) for numeric first
-                        priority, item = first, second
-                    self.push(item, priority=float(priority))
-                else:
-                    self.push(item_pair)
+                # Enforce the documented (priority, item) contract strictly. The
+                # previous implementation guessed the order from the types, which
+                # silently swapped numeric pairs such as (1, "a") and contradicted
+                # the docstring; a wrong order is a caller error, not something to
+                # guess around.
+                if not isinstance(item_pair, tuple) or len(item_pair) != 2:
+                    raise TypeError(
+                        "initial items must be (priority, item) tuples, "
+                        f"got {item_pair!r}"
+                    )
+                priority, item = item_pair
+                if not isinstance(priority, (int, float)) or isinstance(priority, bool):
+                    raise TypeError(
+                        "the first element of an initial item must be a numeric "
+                        f"priority, got {priority!r}"
+                    )
+                self.push(item, priority)
 
     def push(self, item: T, priority: float = 10) -> None:
-        """Push an item into the queue with given priority."""
+        """Push an item into the queue with given priority.
+
+        Example:
+            >>> pq = PriorityQueue()
+            >>> pq.push("task", priority=1)
+            >>> pq.peek()
+            'task'
+        """
         heapq.heappush(self._heap, (float(priority), self._counter, item))
         self._counter += 1
 
@@ -41142,10 +41151,26 @@ class TestPriorityQueue(unittest.TestCase):
         self.assertEqual(pq.pop(), "third")
 
     def test_initialization_with_items(self):
-        pq = PriorityQueue([("high", 1), ("low", 3), ("medium", 2)])
+        # Items are (priority, item) tuples, matching the documented contract.
+        pq = PriorityQueue([(1, "high"), (2, "medium"), (3, "low")])
         self.assertEqual(pq.pop(), "high")
         self.assertEqual(pq.pop(), "medium")
         self.assertEqual(pq.pop(), "low")
+
+    def test_initialization_rejects_reversed_order(self):
+        # The constructor used to guess the tuple order from the element types,
+        # which silently swapped numeric pairs such as ("a", 1). The documented
+        # (priority, item) contract is now enforced, so a reversed pair whose
+        # priority is not numeric raises. A pair such as (1, 2) is valid: the
+        # item is simply an integer.
+        with self.assertRaises(TypeError):
+            PriorityQueue([("a", 1)])
+
+    def test_initialization_rejects_malformed_pairs(self):
+        with self.assertRaises(TypeError):
+            PriorityQueue([(1, "a", "extra")])
+        with self.assertRaises(TypeError):
+            PriorityQueue([42])  # type: ignore[list-item]
 
     def test_clear(self):
         pq = PriorityQueue()
@@ -71483,6 +71508,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `priority_queue_utils` constructor contract violation
+
+- **Correctness fix — `PriorityQueue(items)` silently swapped tuple order, contradicting its own docstring.** The constructor guessed whether each pair was `(priority, item)` or `(item, priority)` from the element types, so `PriorityQueue([("high", 1)])` stored `priority="high"` and `item=1` — the opposite of the documented `(priority, item)` contract — and a fully numeric pair such as `(1, 2)` was reordered with no signal. `__init__` now enforces the documented contract strictly: each pair must be a 2-tuple whose first element is a numeric priority, raising `TypeError` with a clear message for a reversed or malformed pair instead of guessing. Added `test_initialization_rejects_reversed_order` and `test_initialization_rejects_malformed_pairs`; `test_initialization_with_items` now uses the documented `(priority, item)` order. Refreshed the embedded `priority_queue_utils.py` and `tests/test_priority_queue_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_priority_queue_utils` — 20 OK; `python -m unittest tests.test_doctests` — doctests pass (the new `push` example); `python -m ruff check priority_queue_utils.py tests/test_priority_queue_utils.py` clean; `python -m mypy priority_queue_utils.py tests/test_priority_queue_utils.py` clean; `python tools/scan_untested.py` clean.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — improved `lru_memoize` decorator ergonomics and coverage
 
 - **`memoize_utils.lru_memoize` now has explicit decorator-form typing/documentation and direct-call coverage.** Clarified the supported forms (`@lru_memoize`, `@lru_memoize()`, `@lru_memoize(maxsize=...)`, and `lru_memoize(fn, maxsize=...)`) in the signature/docstring and validated the factory path rejects non-callables. Added tests covering bare-decorator keyword-order cache invariance, metadata/cache_clear preservation on the bare form, and direct decoration with an explicit `maxsize`. Refreshed embedded `memoize_utils.py` and `tests/test_memoize_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.

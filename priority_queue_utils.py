@@ -38,24 +38,33 @@ class PriorityQueue(Generic[T]):
         self._counter = 0
         if items is not None:
             for item_pair in items:
-                if isinstance(item_pair, tuple) and len(item_pair) == 2:
-                    # Could be (priority, item) or (item, priority)
-                    first, second = item_pair
-                    # Heuristic: if second is a number (int/float), it's likely (item, priority)
-                    # If first is a number, it's likely (priority, item)
-                    if isinstance(second, (int, float)) and not isinstance(first, (int, float)):
-                        item, priority = first, second
-                    elif isinstance(first, (int, float)) and not isinstance(second, (int, float)):
-                        priority, item = first, second
-                    else:
-                        # Default to (priority, item) for numeric first
-                        priority, item = first, second
-                    self.push(item, priority=float(priority))
-                else:
-                    self.push(item_pair)
+                # Enforce the documented (priority, item) contract strictly. The
+                # previous implementation guessed the order from the types, which
+                # silently swapped numeric pairs such as (1, "a") and contradicted
+                # the docstring; a wrong order is a caller error, not something to
+                # guess around.
+                if not isinstance(item_pair, tuple) or len(item_pair) != 2:
+                    raise TypeError(
+                        "initial items must be (priority, item) tuples, "
+                        f"got {item_pair!r}"
+                    )
+                priority, item = item_pair
+                if not isinstance(priority, (int, float)) or isinstance(priority, bool):
+                    raise TypeError(
+                        "the first element of an initial item must be a numeric "
+                        f"priority, got {priority!r}"
+                    )
+                self.push(item, priority)
 
     def push(self, item: T, priority: float = 10) -> None:
-        """Push an item into the queue with given priority."""
+        """Push an item into the queue with given priority.
+
+        Example:
+            >>> pq = PriorityQueue()
+            >>> pq.push("task", priority=1)
+            >>> pq.peek()
+            'task'
+        """
         heapq.heappush(self._heap, (float(priority), self._counter, item))
         self._counter += 1
 

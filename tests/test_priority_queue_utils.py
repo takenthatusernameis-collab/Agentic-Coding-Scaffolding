@@ -61,10 +61,26 @@ class TestPriorityQueue(unittest.TestCase):
         self.assertEqual(pq.pop(), "third")
 
     def test_initialization_with_items(self):
-        pq = PriorityQueue([("high", 1), ("low", 3), ("medium", 2)])
+        # Items are (priority, item) tuples, matching the documented contract.
+        pq = PriorityQueue([(1, "high"), (2, "medium"), (3, "low")])
         self.assertEqual(pq.pop(), "high")
         self.assertEqual(pq.pop(), "medium")
         self.assertEqual(pq.pop(), "low")
+
+    def test_initialization_rejects_reversed_order(self):
+        # The constructor used to guess the tuple order from the element types,
+        # which silently swapped numeric pairs such as ("a", 1). The documented
+        # (priority, item) contract is now enforced, so a reversed pair whose
+        # priority is not numeric raises. A pair such as (1, 2) is valid: the
+        # item is simply an integer.
+        with self.assertRaises(TypeError):
+            PriorityQueue([("a", 1)])
+
+    def test_initialization_rejects_malformed_pairs(self):
+        with self.assertRaises(TypeError):
+            PriorityQueue([(1, "a", "extra")])
+        with self.assertRaises(TypeError):
+            PriorityQueue([42])  # type: ignore[list-item]
 
     def test_clear(self):
         pq = PriorityQueue()
