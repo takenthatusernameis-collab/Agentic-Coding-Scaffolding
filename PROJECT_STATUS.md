@@ -1,26 +1,24 @@
 # Project Status
 
-## Latest Session (2026-11-15T20:27Z) — landed `errno_utils` type/validation fixes, removed fabricated `lineterm` from `difflib_utils.ndiff`, defect hunt on `email`–`file` batch
+## Latest Session (2026-11-15T21:28Z) — bootstrap session; defect hunt on `fnmatch`–`gzip` batch, full suite green, checkpoint advanced
 
-- `board_read`: empty; executed durable handoff from `.kilo/next_task.md`.
-- **State delta:** probe rc=2 at start (clean tree; source/tests changed since last checkpoint). Ran verification battery once; checkpoint advanced to `24659ad`.
-- **Optimize-delays survey:** no avoidable repository-managed delay; state-delta probe + targeted checks only.
-- **Defect hunt (2 fixes landed):** reviewed `email`, `encodings`, `ensurepip`, `enum`, `env`, `errno`, `exceptions`, `faulthandler`, `fcntl`, `file`.
-  - Fixed `errno_utils.errorcode`/`strerror`/`is_errno`: added missing type hints, correct return types (`errorcode -> str | None`, `strerror -> str`), and input validation. Added 3 failing-then-passing tests.
-  - Fixed `difflib_utils.ndiff`: dropped fabricated `lineterm` parameter (stdlib doesn't support it; wrapper silently ignored it). Added `test_ndiff_no_lineterm_parameter` (fails on old signature, passes on fixed).
-  - No clearly incorrect contract in the other batch modules.
-- **Scaffold:** `refresh_scaffold.py` run (difflib_utils, errno_utils, test_difflib_utils, CHANGELOG re-embedded); `--check` in sync. No `.github/workflows/**` changes.
+- `board_read`: empty (no task posted to main); executed the durable handoff task from `.kilo/next_task.md`.
+- **State delta:** `python tools/verify_state_delta.py --probe` rc=2 at start (checkpoint `24659ad` behind HEAD `e5009a6`; working tree clean). Ran the verification battery once; checkpoint advanced to `e5009a6`. Ran `python -m unittest discover tests/` (full suite OK) and recorded full-suite provenance (`full_suite_head` now `e5009a6`).
+- **Optimize-delays survey:** no avoidable repository-managed delay. State-delta probe + targeted checks only; no `.github/workflows/**` changes.
+- **Defect hunt (0 fixes landed):** reviewed the next uninspected `*_utils.py` batch (alphabetical continuation after `file`): `fnmatch`, `fractions`, `ftplib`, `functools`, `gc`, `genericpath`, `getopt`, `getpass`, `glob`, `graphlib`, `greeting`, `grp`, `gzip`.
+  - `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 source files); `python tools/scan_untested.py` — zero gaps.
+  - All 151 batch tests and every module doctest pass. No clearly incorrect contract found in this batch (cf. prior `email`–`file` hunt which fixed `errno_utils` and `difflib_utils`).
 
 ## State
 
-- Working tree at handoff: uncommitted `difflib_utils.py`, `errno_utils.py`, `tests/test_difflib_utils.py`, `CHANGELOG.md`, `scaffold.sh`, `.kilo/last_verified.checkpoint`, plus handover trio. Checkpoint recorded full-suite provenance at `24659ad`. CI auto-commits non-workflow changes.
+- Working tree clean at `e5009a6`; checkpoint at `e5009a6` with full-suite provenance recorded (uncommitted marker). After the CI commit the checkpoint will lag HEAD by one, so `python tools/verify_state_delta.py --probe` returns rc=2 for the next session — run the battery once, then avoid redundant full runs once the checkpoint matches source-relevant state.
 - Validation: full `unittest discover tests/` OK; `test_scaffold_sync`/`test_public_api`/`test_doctests` OK; `scan_untested` clean; `refresh --check` in sync; `ruff`/`mypy` clean.
 
 ## Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`; interpret rc per tool (0/1/2). Source/tests changed this session, so after the CI commit expect rc=2 (run battery once), then avoid redundant full runs.
-3. Optimize-delays pass: confirm no avoidable repository-managed delay; record survey.
-4. Defect hunt: `pip install ruff mypy` if absent, then `ruff check .` and `mypy . --exclude build --exclude dist`. `scan_untested` zero gaps. Land changes only with failing-then-passing evidence or a clearly incorrect docstring/contract fix with targeted verification. Next batch (after `file`): `fnmatch`, `fractions`, `ftplib`, `functools`, `gc`, `genericpath`, `getopt`, `getpass`, `glob`, `graphlib`, `greeting`, `grp`, `gzip`. Optional: none outstanding.
+2. Confirm state with `python tools/verify_state_delta.py --probe`; expect rc=0 (clean and verified at HEAD). Avoid redundant full runs.
+3. Optimize-delays pass: confirm no avoidable repository-managed delay remains; record the survey.
+4. Defect hunt: `pip install ruff mypy` if absent, then `ruff check .` and `mypy . --exclude build --exclude dist`. `python tools/scan_untested.py` reports zero gaps. Land changes only with failing-then-passing evidence or a clearly incorrect docstring/contract fix plus targeted verification. Next uninspected `*_utils.py` batch (alphabetical continuation after `gzip`): `hash`, `hmac`, `html_entities`, `html_parser`, `html`, `http`, `id`, `imaplib`, `imghdr`, `importlib`, `inspect`. Optional: none outstanding.
 5. If embedded source/test/README/CHANGELOG files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`.
 6. Keep `.github/workflows/**` unchanged; update `CHANGELOG.md` only for user-visible code/tooling changes (then refresh scaffold), update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`.
