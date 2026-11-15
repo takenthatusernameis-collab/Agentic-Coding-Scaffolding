@@ -200,11 +200,11 @@ def map_tree(func: Callable[[Any], Any], tree: Any) -> Any:
 def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     """Recursively filter a tree structure based on a predicate.
 
-    The predicate is applied to values. For dicts, only key-value pairs
-    where pred(value) is True (or based on leaf logic) are kept? This
-    implementation keeps nodes where the transformed/considered value passes;
-    for nested structures, it recursively filters and drops empty containers
-    when appropriate.
+    Leaf values are kept when ``pred(value)`` is ``True``. Dicts, lists, and
+    tuples are treated as branches: each element is filtered recursively and
+    the branch is kept only when at least one element survives, so containers
+    that become empty are dropped. Filtering a bare leaf returns the leaf when
+    it passes the predicate and ``None`` otherwise.
 
     Args:
         pred: The predicate function returning True for values to keep.
@@ -221,14 +221,6 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
         result: Dict[str, Any] = {}
         for k, v in tree.items():
             filtered = filter_tree(pred, v)
-            # Keep if filtered is not empty container or if it's a truthy leaf that passed
-            if isinstance(filtered, (dict, list, tuple)):
-                if filtered:  # non-empty
-                    result[k] = filtered
-            elif pred(v) if False else True:  # always keep if leaf passes pred? better check
-                pass  # handle below
-            # simpler: if the original v becomes filtered, keep based on whether useful
-            # but easier logic: apply pred to leaf; for containers, recurse and keep if non-empty
             if isinstance(v, (dict, list, tuple)):
                 if filtered:
                     result[k] = filtered

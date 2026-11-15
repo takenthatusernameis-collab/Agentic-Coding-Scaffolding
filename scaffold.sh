@@ -32137,6 +32137,22 @@ class TestFilterTree(unittest.TestCase):
         result = filter_tree(lambda x: x > 1, (1, 2, 3))
         self.assertEqual(result, (2, 3))
 
+    def test_filter_tree_keeps_falsy_leaf_that_passes(self):
+        result = filter_tree(lambda x: x >= 0, {"a": 0, "b": -1, "c": False})
+        self.assertEqual(result, {"a": 0, "c": False})
+
+    def test_filter_tree_drops_container_that_becomes_empty(self):
+        result = filter_tree(lambda x: x > 1, {"a": [1, 0], "b": {"c": 1}})
+        self.assertEqual(result, {})
+
+    def test_filter_tree_nested_list_of_dicts(self):
+        result = filter_tree(lambda x: x > 1, {"a": [{"b": 1}, {"c": 5}]})
+        self.assertEqual(result, {"a": [{"c": 5}]})
+
+    def test_filter_tree_scalar_returns_value_or_none(self):
+        self.assertEqual(filter_tree(lambda x: x > 1, 5), 5)
+        self.assertIsNone(filter_tree(lambda x: x > 1, 0))
+
 
 if __name__ == "__main__":
     unittest.main()
@@ -44698,11 +44714,11 @@ def map_tree(func: Callable[[Any], Any], tree: Any) -> Any:
 def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     """Recursively filter a tree structure based on a predicate.
 
-    The predicate is applied to values. For dicts, only key-value pairs
-    where pred(value) is True (or based on leaf logic) are kept? This
-    implementation keeps nodes where the transformed/considered value passes;
-    for nested structures, it recursively filters and drops empty containers
-    when appropriate.
+    Leaf values are kept when ``pred(value)`` is ``True``. Dicts, lists, and
+    tuples are treated as branches: each element is filtered recursively and
+    the branch is kept only when at least one element survives, so containers
+    that become empty are dropped. Filtering a bare leaf returns the leaf when
+    it passes the predicate and ``None`` otherwise.
 
     Args:
         pred: The predicate function returning True for values to keep.
@@ -44719,14 +44735,6 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
         result: Dict[str, Any] = {}
         for k, v in tree.items():
             filtered = filter_tree(pred, v)
-            # Keep if filtered is not empty container or if it's a truthy leaf that passed
-            if isinstance(filtered, (dict, list, tuple)):
-                if filtered:  # non-empty
-                    result[k] = filtered
-            elif pred(v) if False else True:  # always keep if leaf passes pred? better check
-                pass  # handle below
-            # simpler: if the original v becomes filtered, keep based on whether useful
-            # but easier logic: apply pred to leaf; for containers, recurse and keep if non-empty
             if isinstance(v, (dict, list, tuple)):
                 if filtered:
                     result[k] = filtered

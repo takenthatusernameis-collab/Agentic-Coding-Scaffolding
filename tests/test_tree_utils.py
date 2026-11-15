@@ -134,6 +134,22 @@ class TestFilterTree(unittest.TestCase):
         result = filter_tree(lambda x: x > 1, (1, 2, 3))
         self.assertEqual(result, (2, 3))
 
+    def test_filter_tree_keeps_falsy_leaf_that_passes(self):
+        result = filter_tree(lambda x: x >= 0, {"a": 0, "b": -1, "c": False})
+        self.assertEqual(result, {"a": 0, "c": False})
+
+    def test_filter_tree_drops_container_that_becomes_empty(self):
+        result = filter_tree(lambda x: x > 1, {"a": [1, 0], "b": {"c": 1}})
+        self.assertEqual(result, {})
+
+    def test_filter_tree_nested_list_of_dicts(self):
+        result = filter_tree(lambda x: x > 1, {"a": [{"b": 1}, {"c": 5}]})
+        self.assertEqual(result, {"a": [{"c": 5}]})
+
+    def test_filter_tree_scalar_returns_value_or_none(self):
+        self.assertEqual(filter_tree(lambda x: x > 1, 5), 5)
+        self.assertIsNone(filter_tree(lambda x: x > 1, 0))
+
 
 if __name__ == "__main__":
     unittest.main()
