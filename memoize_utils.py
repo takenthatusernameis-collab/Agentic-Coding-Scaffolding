@@ -57,29 +57,38 @@ def memoize(func: Callable[..., T]) -> Callable[..., T]:
     return wrapper
 
 
-def lru_memoize(func: Callable[..., T] = None, maxsize: int = 128) -> Callable[..., T]:  # type: ignore[assignment]
+def lru_memoize(
+    func: Callable[..., T] | None = None, maxsize: int = 128
+) -> Callable[..., T] | Callable[[Callable[..., T]], Callable[..., T]]:
     """Return a least-recently-used memoized version of ``func``.
 
     Behaves like :func:`memoize` but evicts the least recently used entry when
     the cache exceeds ``maxsize``. A ``maxsize`` of ``0`` disables caching.
 
+    Can be used as ``@lru_memoize``, ``@lru_memoize()``, or
+    ``@lru_memoize(maxsize=...)``.
+
     Args:
-        func: The function to memoize.
+        func: The function to memoize, or ``None`` when called with parameters.
         maxsize: Maximum number of cached results.
 
     Returns:
-        A callable that caches results by arguments.
+        A memoized callable, or a decorator factory when ``func`` is ``None``.
 
     Raises:
-        TypeError: If ``func`` is not callable or ``maxsize`` is not an int.
+        TypeError: If ``func`` is not callable or ``None``, or ``maxsize`` is not an int.
         ValueError: If ``maxsize`` is negative.
     """
+
     if func is None:
 
         def factory(f: Callable[..., T]) -> Callable[..., T]:
-            return lru_memoize(f, maxsize=maxsize)
+            decorated = lru_memoize(f, maxsize=maxsize)
+            if not callable(decorated):
+                raise TypeError("func must be callable")
+            return decorated  # type: ignore[return-value]
 
-        return factory  # type: ignore[return-value]
+        return factory
 
     if not callable(func):
         raise TypeError("func must be callable")

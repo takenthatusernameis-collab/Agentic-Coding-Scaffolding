@@ -97,6 +97,40 @@ class TestLruMemoize(unittest.TestCase):
         self.assertEqual(compute(5), 10)
         self.assertEqual(len(calls), 1)
 
+    def test_no_parens_kwargs_order_invariance(self):
+        calls = []
+
+        @lru_memoize
+        def compute(x: int, y: int = 0) -> int:
+            calls.append((x, y))
+            return x + y
+
+        self.assertEqual(compute(x=1, y=2), 3)
+        self.assertEqual(compute(y=2, x=1), 3)
+        self.assertEqual(len(calls), 1)
+
+    def test_no_parens_preserves_metadata(self):
+        @lru_memoize
+        def compute(x: int) -> int:
+            """Compute docstring."""
+            return x
+
+        self.assertEqual(compute.__name__, "compute")
+        self.assertEqual(compute.__doc__, "Compute docstring.")
+        self.assertTrue(callable(compute.cache_clear))  # type: ignore[attr-defined]
+
+    def test_callable_with_maxsize_argument(self):
+        calls = []
+
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        wrapped = lru_memoize(compute, maxsize=2)
+        self.assertEqual(wrapped(1), 2)
+        self.assertEqual(wrapped(1), 2)
+        self.assertEqual(len(calls), 1)
+
     def test_evicts_lru(self):
         calls = []
 

@@ -71483,6 +71483,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — improved `lru_memoize` decorator ergonomics and coverage
+
+- **`memoize_utils.lru_memoize` now has explicit decorator-form typing/documentation and direct-call coverage.** Clarified the supported forms (`@lru_memoize`, `@lru_memoize()`, `@lru_memoize(maxsize=...)`, and `lru_memoize(fn, maxsize=...)`) in the signature/docstring and validated the factory path rejects non-callables. Added tests covering bare-decorator keyword-order cache invariance, metadata/cache_clear preservation on the bare form, and direct decoration with an explicit `maxsize`. Refreshed embedded `memoize_utils.py` and `tests/test_memoize_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- Validation: `python -m unittest tests.test_memoize_utils` — 15 OK; `python -m ruff check memoize_utils.py tests/test_memoize_utils.py` clean; `python -m mypy memoize_utils.py tests/test_memoize_utils.py` clean; `python tools/scan_untested.py` clean; `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --diff` advanced checkpoint to `67bd1d2`.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed misleading error paths in retry_utils decorators
 
 - **Correctness fix — `retry_utils` decorators surfaced misleading errors for invalid arguments.** With `max_attempts=0` the wrapper's `for` loop never executed, so the wrapped function was never called and the code fell through to `raise RuntimeError("Unexpected state in retry decorator")` — a confusing message for what is really an argument problem. A negative `delay` likewise propagated a low-level `time.sleep` error ("sleep length must be non-negative") instead of an argument-validation error. All three decorators (`retry`, `retry_with_backoff`, `retry_count`) now validate `max_attempts` (must be `int` and `>= 1`), `delay`/`initial_delay` (non-negative number), `backoff`/`backoff_factor` (non-negative number), and `exceptions` (must be a `tuple`) at decoration time via a shared `_validate_retry_args` helper, raising `ValueError`/`TypeError` with clear messages. Added `TestRetryArgumentValidation` (10 cases across all three decorators) and `TestRetryBackoffDelaySchedule` (confirms `delay *= backoff` is applied between attempts); the pre-fix `max_attempts=0` case now raises `ValueError` rather than the old `RuntimeError`. Refreshed the embedded `retry_utils.py` and `tests/test_retry_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
@@ -93300,29 +93306,38 @@ def memoize(func: Callable[..., T]) -> Callable[..., T]:
     return wrapper
 
 
-def lru_memoize(func: Callable[..., T] = None, maxsize: int = 128) -> Callable[..., T]:  # type: ignore[assignment]
+def lru_memoize(
+    func: Callable[..., T] | None = None, maxsize: int = 128
+) -> Callable[..., T] | Callable[[Callable[..., T]], Callable[..., T]]:
     """Return a least-recently-used memoized version of ``func``.
 
     Behaves like :func:`memoize` but evicts the least recently used entry when
     the cache exceeds ``maxsize``. A ``maxsize`` of ``0`` disables caching.
 
+    Can be used as ``@lru_memoize``, ``@lru_memoize()``, or
+    ``@lru_memoize(maxsize=...)``.
+
     Args:
-        func: The function to memoize.
+        func: The function to memoize, or ``None`` when called with parameters.
         maxsize: Maximum number of cached results.
 
     Returns:
-        A callable that caches results by arguments.
+        A memoized callable, or a decorator factory when ``func`` is ``None``.
 
     Raises:
-        TypeError: If ``func`` is not callable or ``maxsize`` is not an int.
+        TypeError: If ``func`` is not callable or ``None``, or ``maxsize`` is not an int.
         ValueError: If ``maxsize`` is negative.
     """
+
     if func is None:
 
         def factory(f: Callable[..., T]) -> Callable[..., T]:
-            return lru_memoize(f, maxsize=maxsize)
+            decorated = lru_memoize(f, maxsize=maxsize)
+            if not callable(decorated):
+                raise TypeError("func must be callable")
+            return decorated  # type: ignore[return-value]
 
-        return factory  # type: ignore[return-value]
+        return factory
 
     if not callable(func):
         raise TypeError("func must be callable")
@@ -93453,6 +93468,40 @@ class TestLruMemoize(unittest.TestCase):
 
         self.assertEqual(compute(5), 10)
         self.assertEqual(compute(5), 10)
+        self.assertEqual(len(calls), 1)
+
+    def test_no_parens_kwargs_order_invariance(self):
+        calls = []
+
+        @lru_memoize
+        def compute(x: int, y: int = 0) -> int:
+            calls.append((x, y))
+            return x + y
+
+        self.assertEqual(compute(x=1, y=2), 3)
+        self.assertEqual(compute(y=2, x=1), 3)
+        self.assertEqual(len(calls), 1)
+
+    def test_no_parens_preserves_metadata(self):
+        @lru_memoize
+        def compute(x: int) -> int:
+            """Compute docstring."""
+            return x
+
+        self.assertEqual(compute.__name__, "compute")
+        self.assertEqual(compute.__doc__, "Compute docstring.")
+        self.assertTrue(callable(compute.cache_clear))  # type: ignore[attr-defined]
+
+    def test_callable_with_maxsize_argument(self):
+        calls = []
+
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        wrapped = lru_memoize(compute, maxsize=2)
+        self.assertEqual(wrapped(1), 2)
+        self.assertEqual(wrapped(1), 2)
         self.assertEqual(len(calls), 1)
 
     def test_evicts_lru(self):
