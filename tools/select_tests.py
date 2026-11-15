@@ -157,7 +157,7 @@ def select_tests(changed_files: list[str]) -> tuple[list[str], bool]:
     if not changed_files:
         return [], False
 
-    test_modules = set()
+    test_modules: set[str] = set()
     run_full = False
 
     for f in changed_files:

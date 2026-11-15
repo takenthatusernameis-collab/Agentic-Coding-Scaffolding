@@ -1,5 +1,6 @@
 """Tests for select_tests module."""
 
+import importlib.util
 import subprocess
 import sys
 import tempfile
@@ -18,9 +19,6 @@ def load_tool():
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
-
-
-import importlib.util
 
 select_tests = load_tool()
 
@@ -139,7 +137,14 @@ class TestMapSourceToTest(unittest.TestCase):
     """Test the source-to-test mapping logic."""
 
     def test_full_suite_triggers_root_files(self):
-        for trigger in ["Makefile", "pyproject.toml", "scaffold.sh", "README.md", "AGENTS.md", "CHANGELOG.md"]:
+        for trigger in [
+            "Makefile",
+            "pyproject.toml",
+            "scaffold.sh",
+            "README.md",
+            "AGENTS.md",
+            "CHANGELOG.md",
+        ]:
             with self.subTest(trigger=trigger):
                 result = select_tests.map_source_to_test(trigger)
                 self.assertEqual(result, "FULL_SUITE")
@@ -265,7 +270,7 @@ class TestMain(unittest.TestCase):
     def run_main(self, args: list[str]) -> tuple[int, str, str]:
         sys.argv = ["select_tests.py"] + args
         import io
-        from contextlib import redirect_stdout, redirect_stderr
+        from contextlib import redirect_stderr, redirect_stdout
 
         stdout_buf = io.StringIO()
         stderr_buf = io.StringIO()
@@ -321,7 +326,9 @@ class TestMain(unittest.TestCase):
         self.assertIn("Select relevant tests", out)
 
     def test_from_git_flag(self):
-        with mock.patch.object(select_tests, "_get_changed_and_untracked_from_git") as mock_internal:
+        with mock.patch.object(
+            select_tests, "_get_changed_and_untracked_from_git"
+        ) as mock_internal:
             mock_internal.return_value = (["abc_utils.py"], [])
             rc, out, err = self.run_main(["--from-git"])
             self.assertEqual(rc, 0)
