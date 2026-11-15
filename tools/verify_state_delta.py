@@ -310,11 +310,13 @@ def main(argv: list[str] | None = None) -> int:
                 return 0
         if marker is not None:
             # Compute the source delta once. It feeds both the optional --diff
-            # listing and the skip decision; the previous code recomputed it via
-            # source_changed_since(), paying for a second diff+status pair of
-            # subprocesses on every activation (AVOIDABLE_PROCESS_DELAY on the
-            # hot clean-tree path).
-            changed = diff_since(marker["head"]) + untracked_source_files()
+            # listing and the skip decision. ``untracked_source_files`` ignores
+            # its ref and reads the live worktree, so one
+            # ``_changed_and_untracked_since`` call returns the tracked delta
+            # from the checkpoint plus the current untracked set without a
+            # second diff+status subprocess pair.
+            tracked, untracked = _changed_and_untracked_since(marker["head"])
+            changed = tracked + untracked
             if show_diff and changed:
                 for path in sorted(set(changed)):
                     print(f"[verify-state-delta] changed: {path}")

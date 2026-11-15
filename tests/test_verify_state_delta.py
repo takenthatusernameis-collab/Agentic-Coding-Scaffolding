@@ -468,10 +468,11 @@ class TestCleanDeltaFastPath(unittest.TestCase):
 
     This is the common case in the autonomous loop: HEAD advances past the
     checkpoint while only non-source metadata (handover/status) changes. The
-    guard previously computed the source delta twice -- once to build the
-    ``--diff`` listing and again for the skip decision -- so every activation
-    paid for four git subprocesses where two suffice. The battery must also be
-    skipped, since no source-relevant file changed.
+    guard computes the tracked+untracked source delta once via
+    ``_changed_and_untracked_since`` for both the ``--diff`` listing and the
+    skip decision, so every activation pays for one diff+status pair instead of
+    recomputing wrappers separately. The battery must also be skipped when no
+    source-relevant file changed.
 
     ``MARKER`` and the subprocess-backed helpers are stubbed so the test never
     touches the real checkpoint or repository state.
@@ -483,8 +484,7 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         self._saved = (
             verify_state_delta.working_tree_clean,
             verify_state_delta.head,
-            verify_state_delta.diff_since,
-            verify_state_delta.untracked_source_files,
+            verify_state_delta._changed_and_untracked_since,
         )
 
     def tearDown(self):
@@ -493,8 +493,7 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         (
             verify_state_delta.working_tree_clean,
             verify_state_delta.head,
-            verify_state_delta.diff_since,
-            verify_state_delta.untracked_source_files,
+            verify_state_delta._changed_and_untracked_since,
         ) = self._saved
 
     def test_clean_delta_is_computed_once_and_skips_battery(self):
@@ -509,22 +508,21 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         marker.write_text('{"head": "old"}')
         verify_state_delta.MARKER = marker
 
-        diff_calls: list[str] = []
-        untracked_calls: list[bool] = []
+        delta_calls: list[str] = []
         battery_calls: list[bool] = []
 
         verify_state_delta.working_tree_clean = lambda: True
         verify_state_delta.head = lambda: "new-head"
-        verify_state_delta.diff_since = lambda ref: diff_calls.append(ref) or []
-        verify_state_delta.untracked_source_files = lambda: untracked_calls.append(True) or []
+        verify_state_delta._changed_and_untracked_since = (
+            lambda ref: delta_calls.append(ref) or ([], [])
+        )
         verify_state_delta.battery_ok = lambda: battery_calls.append(True) or True
 
         rc = verify_state_delta.main([])
 
         self.assertEqual(rc, 0)
         self.assertEqual(battery_calls, [])
-        self.assertEqual(diff_calls, ["old"])
-        self.assertEqual(untracked_calls, [True])
+        self.assertEqual(delta_calls, ["old"])
 
     def test_changed_delta_runs_the_battery_and_lists_paths_with_diff(self):
         # See ``test_clean_delta_is_computed_once_and_skips_battery``: the
@@ -539,8 +537,7 @@ class TestCleanDeltaFastPath(unittest.TestCase):
         battery_calls: list[bool] = []
         verify_state_delta.working_tree_clean = lambda: True
         verify_state_delta.head = lambda: "new-head"
-        verify_state_delta.diff_since = lambda ref: ["foo_utils.py"]
-        verify_state_delta.untracked_source_files = lambda: []
+        verify_state_delta._changed_and_untracked_since = lambda ref: (["foo_utils.py"], [])
         verify_state_delta.battery_ok = lambda: battery_calls.append(True) or True
 
         import io
