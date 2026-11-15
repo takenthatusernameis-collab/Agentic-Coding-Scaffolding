@@ -55,6 +55,44 @@ class TestCallOnce(unittest.TestCase):
         with self.assertRaises(TypeError):
             call_once(42)  # type: ignore[arg-type]
 
+    def test_exception_is_cached_not_re_invoked(self):
+        """A raising first call must not be retried on the next call.
+
+        ``call_once`` guarantees the wrapped body runs at most once, so when the
+        single invocation raises, that exception is cached and re-raised to
+        later callers without re-invoking ``func``.
+        """
+        calls = []
+
+        @call_once
+        def failing() -> int:
+            calls.append(1)
+            raise ValueError("boom")
+
+        with self.assertRaises(ValueError):
+            failing()
+        with self.assertRaises(ValueError):
+            failing()
+        # The wrapped body was invoked exactly once despite both calls raising.
+        self.assertEqual(len(calls), 1)
+
+    def test_reset_allows_fresh_invocation_after_exception(self):
+        """``reset`` clears a cached exception so the next call re-invokes."""
+        calls = []
+
+        @call_once
+        def flaky() -> int:
+            calls.append(1)
+            if len(calls) == 1:
+                raise ValueError("first attempt fails")
+            return len(calls)
+
+        with self.assertRaises(ValueError):
+            flaky()
+        flaky.reset()
+        self.assertEqual(flaky(), 2)
+        self.assertEqual(len(calls), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
