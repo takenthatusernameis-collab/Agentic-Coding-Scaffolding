@@ -58,3 +58,28 @@ class TestZipappUtils(TestCase):
             with open(fpath, "w") as f:
                 f.write("hello")
             self.assertFalse(zipapp_utils.is_zipapp_archive(fpath))
+
+    def test_is_zipapp_archive_rejects_shebang_script(self):
+        # A plain script that merely starts with a ``#!`` line is not a zipapp
+        # archive: only the shebang is present, no ZIP content follows it.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            script = os.path.join(tmpdir, "plain.py")
+            with open(script, "w") as f:
+                f.write("#!/usr/bin/env python\nprint('hi')\n")
+            self.assertFalse(zipapp_utils.is_zipapp_archive(script))
+
+    def test_is_zipapp_archive_accepts_shebang_zipapp(self):
+        # A real zipapp with an interpreter line starts with ``#!`` and only
+        # then holds the ZIP archive, so it is still detected.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "src")
+            os.makedirs(src)
+            with open(os.path.join(src, "__main__.py"), "w") as f:
+                f.write("print('hi')\n")
+            target = os.path.join(tmpdir, "app.pyz")
+            zipapp_utils.create_archive(
+                src, target, interpreter="/usr/bin/env python"
+            )
+            with open(target, "rb") as f:
+                self.assertEqual(f.read(2), b"#!")
+            self.assertTrue(zipapp_utils.is_zipapp_archive(target))

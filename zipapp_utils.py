@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import zipapp
+import zipfile
 from pathlib import Path
 from typing import Callable, Optional, Union
 
@@ -54,24 +55,15 @@ get_zipapp_interpreter = get_interpreter
 
 
 def is_zipapp_archive(path: str) -> bool:
-    """Check if a file is a zipapp archive (has shebang or is a zip)."""
+    """Check if a file is a zipapp archive.
+
+    A zipapp is a ZIP archive, optionally prefixed with a ``#!`` interpreter
+    line so the file can be executed directly. A file qualifies when its
+    content is a ZIP archive, whether the archive starts at the first byte or
+    after a leading shebang line. A plain script or text file that merely
+    starts with ``#!`` is not a zipapp and is reported as ``False``.
+    """
     try:
-        with open(path, "rb") as f:
-            header = f.read(2)
-        # Zip files start with PK\x03\x04
-        if header == b"PK":
-            return True
-        # Could also be a Python script with shebang
-        with open(path, "rb") as f:
-            first_line = f.readline()
-        if first_line.startswith(b"#!"):
-            # Might be a zipapp with shebang
-            try:
-                interp = get_interpreter(path)
-                if interp is not None:
-                    return True
-            except Exception:
-                pass
-        return False
-    except Exception:
+        return zipfile.is_zipfile(path)
+    except (OSError, ValueError):
         return False

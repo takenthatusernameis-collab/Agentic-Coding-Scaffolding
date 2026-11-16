@@ -71675,6 +71675,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `zipapp_utils.is_zipapp_archive` treating any shebang script as a zipapp; defect hunt on the `wsgiref`–`zoneinfo` batch
+
+- **Correctness fix — `zipapp_utils.is_zipapp_archive` reported `True` for every file that merely began with a `#!` interpreter line, not only for real zipapp archives.** The helper opened the file and returned `True` as soon as the first line started with `#!`, on the assumption that a shebang implied a zipapp. But `zipapp.get_interpreter` returns the interpreter text from *any* shebang line without checking that ZIP content follows, so an ordinary Python script (`#!/usr/bin/env python` then `print('hi')`) or a shell script (`#!/bin/sh`) was classified as a zipapp. `is_zipapp_archive` now asks `zipfile.is_zipfile`, which recognises a ZIP archive whether it starts at the first byte or after a leading shebang line, so a real zipapp (with or without an interpreter line) and a plain ZIP are still accepted while a bare shebang script is correctly rejected. Added `test_is_zipapp_archive_rejects_shebang_script` (fails against the old implementation and passes after) and `test_is_zipapp_archive_accepts_shebang_zipapp` (locks the shebang-prefixed zipapp case). Refreshed the embedded `zipapp_utils.py` and `tests/test_zipapp_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt — reviewed the remaining, previously uninspected batch of `*_utils.py` modules (`wsgiref`, `xdrlib`, `xml`, `xmlrpc`, `zipapp`, `zipfile`, `zipimport`, `zlib`, `zoneinfo`).** The handover had marked the defect hunt complete, but these modules had only ever been added, never reviewed. No incorrect contracts found in `wsgiref`, `xdrlib`, `xml`, `xmlrpc`, `zipfile`, `zipimport`, `zlib`, or `zoneinfo`. The `zipapp` issue above was the only defect. All batch modules pass their tests and doctests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- Validation: `python -m unittest tests.test_zipapp_utils tests.test_scaffold_sync tests.test_public_api tests.test_doctests` — 33 OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `version_utils.bump_patch` leaving lower-significance components un-reset; defect hunt on `urllib`–`webbrowser` batch
 
 - **Correctness fix — `version_utils.bump_patch` did not reset lower-significance components, so it disagreed with `bump_major`/`bump_minor` and with `bump_version`'s documented contract.** `bump_major` and `bump_minor` zero every component below the one they increment, and `bump_version` promises "the chosen component incremented and all lower-significance components reset to zero." `bump_patch`, however, incremented the patch component and left any deeper components untouched, so `bump_patch("1.2.3.4")` returned `"1.2.4.4"` and `bump_version("1.2.3.4", "patch")` returned `"1.2.4.4"` instead of `"1.2.4.0"`. Because a dotted version may hold any number of integer components (`parse_version` accepts them), a fourth-or-deeper component is of lower significance than the patch and must be reset. `bump_patch` now zeroes every component after the patch position. Added `test_bump_patch_resets_lower_components` and `test_patch_resets_lower_components` (each fails against the old implementation and passes after) plus doctest examples. Refreshed the embedded `version_utils.py` and `tests/test_version_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
@@ -138795,6 +138802,7 @@ cat > "$OUTPUT_DIR/zipapp_utils.py" <<'ZIPAPP_UTILS'
 from __future__ import annotations
 
 import zipapp
+import zipfile
 from pathlib import Path
 from typing import Callable, Optional, Union
 
@@ -138846,26 +138854,17 @@ get_zipapp_interpreter = get_interpreter
 
 
 def is_zipapp_archive(path: str) -> bool:
-    """Check if a file is a zipapp archive (has shebang or is a zip)."""
+    """Check if a file is a zipapp archive.
+
+    A zipapp is a ZIP archive, optionally prefixed with a ``#!`` interpreter
+    line so the file can be executed directly. A file qualifies when its
+    content is a ZIP archive, whether the archive starts at the first byte or
+    after a leading shebang line. A plain script or text file that merely
+    starts with ``#!`` is not a zipapp and is reported as ``False``.
+    """
     try:
-        with open(path, "rb") as f:
-            header = f.read(2)
-        # Zip files start with PK\x03\x04
-        if header == b"PK":
-            return True
-        # Could also be a Python script with shebang
-        with open(path, "rb") as f:
-            first_line = f.readline()
-        if first_line.startswith(b"#!"):
-            # Might be a zipapp with shebang
-            try:
-                interp = get_interpreter(path)
-                if interp is not None:
-                    return True
-            except Exception:
-                pass
-        return False
-    except Exception:
+        return zipfile.is_zipfile(path)
+    except (OSError, ValueError):
         return False
 ZIPAPP_UTILS
 
@@ -138931,6 +138930,31 @@ class TestZipappUtils(TestCase):
             with open(fpath, "w") as f:
                 f.write("hello")
             self.assertFalse(zipapp_utils.is_zipapp_archive(fpath))
+
+    def test_is_zipapp_archive_rejects_shebang_script(self):
+        # A plain script that merely starts with a ``#!`` line is not a zipapp
+        # archive: only the shebang is present, no ZIP content follows it.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            script = os.path.join(tmpdir, "plain.py")
+            with open(script, "w") as f:
+                f.write("#!/usr/bin/env python\nprint('hi')\n")
+            self.assertFalse(zipapp_utils.is_zipapp_archive(script))
+
+    def test_is_zipapp_archive_accepts_shebang_zipapp(self):
+        # A real zipapp with an interpreter line starts with ``#!`` and only
+        # then holds the ZIP archive, so it is still detected.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            src = os.path.join(tmpdir, "src")
+            os.makedirs(src)
+            with open(os.path.join(src, "__main__.py"), "w") as f:
+                f.write("print('hi')\n")
+            target = os.path.join(tmpdir, "app.pyz")
+            zipapp_utils.create_archive(
+                src, target, interpreter="/usr/bin/env python"
+            )
+            with open(target, "rb") as f:
+                self.assertEqual(f.read(2), b"#!")
+            self.assertTrue(zipapp_utils.is_zipapp_archive(target))
 TEST_ZIPAPP_UTILS
 
 # --- zipimport_utils.py ---
