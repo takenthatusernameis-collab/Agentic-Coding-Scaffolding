@@ -482,6 +482,7 @@ tests/test_scaffold_sync.py
 tests/test_scan_untested.py
 tests/test_sched_utils.py
 tests/test_secrets_utils.py
+tests/test_select_tests.py
 tests/test_select_utils.py
 tests/test_selectors_utils.py
 tests/test_semver_utils.py

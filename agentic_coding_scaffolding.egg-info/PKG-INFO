@@ -1033,7 +1033,7 @@ The project includes HTML parser utilities in `html_parser_utils.py` wrapping th
 
 ## HTML Entities Utilities Module
 
-The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with helpers `name_to_codepoint`/`get_entity_by_name` to look up entity names, `codepoint_to_name` to look up names from codepoints, and `decode_entity`/`unescape_entity` to decode named entities to characters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
+The project includes HTML entities utilities in `html_entities_utils.py` wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with `escape` replacing the HTML special characters (and, by default, the quote characters, so the result is safe inside an attribute delimiter) and `unescape` decoding named and numeric character references back to their characters. Both helpers validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
 
 
 ## Bytes Utilities Module
@@ -1228,7 +1228,7 @@ The project includes glob utilities in `glob_utils.py` for pathname pattern expa
 
 ## Keyword Utilities Module
 
-The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` runs the keyword module's interactive entry point. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
+The project includes keyword classification utilities in `keyword_utils.py` wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` returns the keyword module's `main` entry point if available (it was removed from the standard library in Python 3.12, so it returns `None` on current interpreters). All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
 
 ## Shlex Utilities Module
 
