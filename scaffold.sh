@@ -54739,6 +54739,61 @@ class TestRetryBackoffDelaySchedule(unittest.TestCase):
         self.assertEqual(slept, [0.1, 0.2])
 
 
+class TestRetryArgumentValidationExtended(unittest.TestCase):
+    """Contract tests for error branches of ``_validate_retry_args`` that the
+    original suite never exercised: non-numeric ``delay``/``backoff`` and
+    negative ``backoff``.
+
+    These pin the documented ``TypeError``/``ValueError`` contracts so a
+    regression in the validation guards cannot surface a misleading downstream
+    error (for example a low-level ``time.sleep`` failure for negative delay).
+    """
+
+    def test_retry_rejects_non_number_delay(self):
+        with self.assertRaises(TypeError):
+
+            @retry(max_attempts=3, delay="0.1")  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_non_number_backoff(self):
+        with self.assertRaises(TypeError):
+
+            @retry(max_attempts=3, delay=0.01, backoff="2.0")  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_rejects_negative_backoff(self):
+        with self.assertRaises(ValueError):
+
+            @retry(max_attempts=3, delay=0.01, backoff=-1.0)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_non_number_initial_delay(self):
+        with self.assertRaises(TypeError):
+
+            @retry_with_backoff(max_attempts=3, initial_delay="0.1")  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_non_number_backoff_factor(self):
+        with self.assertRaises(TypeError):
+
+            @retry_with_backoff(
+                max_attempts=3, initial_delay=0.01, backoff_factor="2.0"
+            )  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+    def test_retry_with_backoff_rejects_negative_backoff_factor(self):
+        with self.assertRaises(ValueError):
+
+            @retry_with_backoff(max_attempts=3, initial_delay=0.01, backoff_factor=-1.0)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTRETRYUTILS

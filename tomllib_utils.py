@@ -23,7 +23,26 @@ def load_toml_string(s: str) -> Any:
 
 
 def is_valid_toml(s: str) -> bool:
-    """Check if a string is valid TOML."""
+    """Check if a string is valid TOML.
+
+    Args:
+        s: The string to validate.
+
+    Returns:
+        ``True`` if *s* parses as TOML, ``False`` otherwise. Non-string input
+        is not valid TOML and returns ``False`` rather than raising, so the
+        predicate stays total the way ``duration_utils.is_valid_duration`` is.
+
+    Examples:
+        >>> is_valid_toml('key = "val"')
+        True
+        >>> is_valid_toml("key =")
+        False
+        >>> is_valid_toml(123)  # type: ignore[arg-type]
+        False
+    """
+    if not isinstance(s, str):
+        return False
     try:
         tomllib.loads(s)
         return True

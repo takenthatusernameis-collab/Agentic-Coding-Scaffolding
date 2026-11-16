@@ -33,3 +33,16 @@ class TestTomllibUtils(unittest.TestCase):
 
     def test_is_valid_toml_false(self) -> None:
         self.assertFalse(is_valid_toml("key ="))
+
+def test_is_valid_toml_rejects_non_string(self) -> None:
+        """``is_valid_toml`` treats non-string input as invalid TOML.
+
+        The predicate returns ``bool`` (like ``duration_utils.is_valid_duration``)
+        rather than raising, so a non-string is simply not valid TOML. Passing
+        an ``int`` previously fell through to ``tomllib.loads``, whose first
+        operation is ``s.replace(...)`` and which surfaced an
+        ``AttributeError`` instead of a clean ``False``.
+        """
+        self.assertFalse(is_valid_toml(123))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_toml(None))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_toml(["a", "b"]))  # type: ignore[arg-type]

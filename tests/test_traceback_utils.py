@@ -209,6 +209,13 @@ class TestClearFrames(unittest.TestCase):
             _, _, tb = sys.exc_info()
             traceback_utils.clear_frames(tb)
 
+    def test_clear_frames_rejects_non_traceback(self):
+        """``clear_frames`` validates its argument like the other helpers."""
+        with self.assertRaises(TypeError):
+            traceback_utils.clear_frames("bad")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            traceback_utils.clear_frames(None)  # type: ignore[arg-type]
+
 
 class TestExtractStack(unittest.TestCase):
     def test_extract_stack_returns_list(self):

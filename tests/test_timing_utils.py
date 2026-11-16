@@ -10,7 +10,7 @@ from timing_utils import benchmark, elapsed_time, timer
 class TestTimer(unittest.TestCase):
     """Test the timer context manager."""
 
-    def timer_context_manager(self):
+    def test_timer_context_manager(self):
         """Test that timer measures time correctly."""
         with timer("Test") as t:
             time.sleep(0.01)  # Sleep for 10ms
@@ -22,7 +22,7 @@ class TestTimer(unittest.TestCase):
         # Should be approximately 0.01 seconds (allowing for variance)
         self.assertAlmostEqual(t.elapsed, 0.01, places=1)
 
-    def timer_with_label(self):
+    def test_timer_with_label(self):
         """Test timer with custom label."""
         with patch("builtins.print") as mock_print:
             with timer("Custom Label"):
