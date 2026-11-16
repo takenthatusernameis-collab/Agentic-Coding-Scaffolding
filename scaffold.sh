@@ -72302,6 +72302,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `signal_utils` rejects `bool` signal numbers
+
+- **Correctness fix — `signal_utils` accepted `bool` where a signal number is required.** `bool` is a subclass of `int`, so every helper that validated its signal argument with `isinstance(sig, int)` accepted `True`/`False` as signal numbers: `is_valid_signal(True)` returned `True` (it resolved to signal `1`, `SIGHUP`), `get_signal_name(True)` returned `"SIGHUP"` instead of raising `TypeError`, and `get_handler`, `set_handler`, `register_handler`, `unregister_handler`, and `alarm` all operated on `SIGHUP` (or a one-second alarm) rather than rejecting the boolean, contradicting the documented "`sig` must be an int" contracts and the bool-rejection convention used elsewhere in the project. A shared `_require_signal` helper now rejects `bool` before the integer check, and `is_valid_signal` returns `False` for booleans. Added `test_is_valid_signal_rejects_bool`, `test_get_signal_name_rejects_bool`, `test_get_handler_rejects_bool`, `test_set_handler_rejects_bool`, `test_register_handler_rejects_bool`, `test_unregister_handler_rejects_bool`, and `test_alarm_rejects_bool` (all fail against the old implementation and pass after).
+- **Defect hunt (batch `set`–`socket`):** reviewed `set_utils`, `shapes`, `shelve_utils`, `shlex_utils`, `shutil_utils`, `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`, `socket_utils`. The `signal_utils` issue above was the only defect found in this pass.
+- Validation: `python -m unittest tests.test_signal_utils` — 22 OK; `python -m doctest signal_utils.py` — OK; `python -m py_compile signal_utils.py tests/test_signal_utils.py` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. (`ruff`/`mypy` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `priority_queue_utils.merge_queues` FIFO order, `rlcompleter_utils.complete` state, `selectors_utils` bool fd
 
 - **Correctness fix — `priority_queue_utils.merge_queues` reordered equal-priority items.** The merge replayed each queue's raw heap array (`for priority, _, item in q._heap`), but a binary heap array is not stored in insertion order. For a queue with priorities `2, 1, 0, 1` the heap array was `c(0), d(1), b(1), a(2)`, so the merged queue popped `c, d, b, a` instead of the insertion-ordered `c, b, d, a`; the documented FIFO tie-break ("their original insertion order is preserved by using an incrementing counter") was violated. Each queue's entries are now replayed in counter order before being pushed into the merged queue, and queues are consumed in argument order. Added `test_merge_preserves_fifo_for_equal_priorities` and `test_merge_preserves_queue_argument_order_for_equal_priorities` (both fail against the old implementation and pass after).
@@ -120257,9 +120264,20 @@ __all__: list[str] = [
 ]
 
 
+def _require_signal(sig: Any) -> int:
+    """Return ``sig`` when it is a plain integer, otherwise raise ``TypeError``.
+
+    ``bool`` is an ``int`` subclass but is never a signal number, so it is
+    rejected explicitly.
+    """
+    if isinstance(sig, bool) or not isinstance(sig, int):
+        raise TypeError("sig must be an int")
+    return sig
+
+
 def is_valid_signal(sig: Any) -> bool:
     """Return True if ``sig`` is a valid signal number on this platform."""
-    if not isinstance(sig, int):
+    if isinstance(sig, bool) or not isinstance(sig, int):
         return False
     try:
         signal.Signals(sig)
@@ -120281,8 +120299,7 @@ def get_signal_name(sig: int) -> str:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     try:
         return signal.Signals(sig).name
     except ValueError as exc:
@@ -120308,8 +120325,7 @@ def get_handler(sig: int) -> Any:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not is_valid_signal(sig):
         raise ValueError(f"invalid signal number: {sig!r}")
     return signal.getsignal(sig)
@@ -120326,8 +120342,7 @@ def set_handler(sig: int, handler: Any) -> None:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not is_valid_signal(sig):
         raise ValueError(f"invalid signal number: {sig!r}")
     signal.signal(sig, handler)
@@ -120344,8 +120359,7 @@ def register_handler(sig: int, handler: Callable[[int, Any], Any]) -> None:
         TypeError: If ``sig`` is not an int or ``handler`` is not callable.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not callable(handler):
         raise TypeError("handler must be callable")
     if not is_valid_signal(sig):
@@ -120395,8 +120409,7 @@ def unregister_handler(sig: int) -> None:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not is_valid_signal(sig):
         raise ValueError(f"invalid signal number: {sig!r}")
     signal.signal(sig, signal.SIG_DFL)
@@ -120415,7 +120428,7 @@ def alarm(seconds: int) -> int:
         TypeError: If ``seconds`` is not an int.
         ValueError: If ``seconds`` is negative.
     """
-    if not isinstance(seconds, int):
+    if isinstance(seconds, bool) or not isinstance(seconds, int):
         raise TypeError("seconds must be an int")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
@@ -120559,6 +120572,54 @@ class TestSignalUtils(unittest.TestCase):
             self.assertIs(signal.getsignal(_TEST_SIGNAL), signal.SIG_DFL)
         finally:
             signal.signal(_TEST_SIGNAL, original)
+
+    def test_is_valid_signal_rejects_bool(self):
+        # bool is an int subclass, but it is not a signal number.
+        self.assertFalse(is_valid_signal(True))
+        self.assertFalse(is_valid_signal(False))
+
+    def test_get_signal_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            get_signal_name(True)  # type: ignore[arg-type]
+
+    def test_get_handler_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            get_handler(True)  # type: ignore[arg-type]
+
+    def test_set_handler_rejects_bool(self):
+        sig = signal.SIGHUP if hasattr(signal, "SIGHUP") else signal.SIGINT
+        original = signal.getsignal(sig)
+        try:
+            with self.assertRaises(TypeError):
+                set_handler(True, suspend_handler)  # type: ignore[arg-type]
+        finally:
+            signal.signal(sig, original)
+
+    def test_register_handler_rejects_bool(self):
+        sig = signal.SIGHUP if hasattr(signal, "SIGHUP") else signal.SIGINT
+        original = signal.getsignal(sig)
+        try:
+            with self.assertRaises(TypeError):
+                register_handler(True, suspend_handler)  # type: ignore[arg-type]
+        finally:
+            signal.signal(sig, original)
+
+    def test_unregister_handler_rejects_bool(self):
+        sig = signal.SIGHUP if hasattr(signal, "SIGHUP") else signal.SIGINT
+        original = signal.getsignal(sig)
+        try:
+            with self.assertRaises(TypeError):
+                unregister_handler(True)  # type: ignore[arg-type]
+        finally:
+            signal.signal(sig, original)
+
+    def test_alarm_rejects_bool(self):
+        previous = signal.alarm(0)
+        try:
+            with self.assertRaises(TypeError):
+                alarm(True)  # type: ignore[arg-type]
+        finally:
+            signal.alarm(previous)
 
 
 if __name__ == "__main__":

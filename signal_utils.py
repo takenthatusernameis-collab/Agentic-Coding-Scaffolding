@@ -29,9 +29,20 @@ __all__: list[str] = [
 ]
 
 
+def _require_signal(sig: Any) -> int:
+    """Return ``sig`` when it is a plain integer, otherwise raise ``TypeError``.
+
+    ``bool`` is an ``int`` subclass but is never a signal number, so it is
+    rejected explicitly.
+    """
+    if isinstance(sig, bool) or not isinstance(sig, int):
+        raise TypeError("sig must be an int")
+    return sig
+
+
 def is_valid_signal(sig: Any) -> bool:
     """Return True if ``sig`` is a valid signal number on this platform."""
-    if not isinstance(sig, int):
+    if isinstance(sig, bool) or not isinstance(sig, int):
         return False
     try:
         signal.Signals(sig)
@@ -53,8 +64,7 @@ def get_signal_name(sig: int) -> str:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     try:
         return signal.Signals(sig).name
     except ValueError as exc:
@@ -80,8 +90,7 @@ def get_handler(sig: int) -> Any:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not is_valid_signal(sig):
         raise ValueError(f"invalid signal number: {sig!r}")
     return signal.getsignal(sig)
@@ -98,8 +107,7 @@ def set_handler(sig: int, handler: Any) -> None:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not is_valid_signal(sig):
         raise ValueError(f"invalid signal number: {sig!r}")
     signal.signal(sig, handler)
@@ -116,8 +124,7 @@ def register_handler(sig: int, handler: Callable[[int, Any], Any]) -> None:
         TypeError: If ``sig`` is not an int or ``handler`` is not callable.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not callable(handler):
         raise TypeError("handler must be callable")
     if not is_valid_signal(sig):
@@ -167,8 +174,7 @@ def unregister_handler(sig: int) -> None:
         TypeError: If ``sig`` is not an int.
         ValueError: If ``sig`` is not a valid signal number.
     """
-    if not isinstance(sig, int):
-        raise TypeError("sig must be an int")
+    sig = _require_signal(sig)
     if not is_valid_signal(sig):
         raise ValueError(f"invalid signal number: {sig!r}")
     signal.signal(sig, signal.SIG_DFL)
@@ -187,7 +193,7 @@ def alarm(seconds: int) -> int:
         TypeError: If ``seconds`` is not an int.
         ValueError: If ``seconds`` is negative.
     """
-    if not isinstance(seconds, int):
+    if isinstance(seconds, bool) or not isinstance(seconds, int):
         raise TypeError("seconds must be an int")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")

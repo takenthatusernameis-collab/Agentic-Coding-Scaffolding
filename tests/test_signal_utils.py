@@ -115,6 +115,54 @@ class TestSignalUtils(unittest.TestCase):
         finally:
             signal.signal(_TEST_SIGNAL, original)
 
+    def test_is_valid_signal_rejects_bool(self):
+        # bool is an int subclass, but it is not a signal number.
+        self.assertFalse(is_valid_signal(True))
+        self.assertFalse(is_valid_signal(False))
+
+    def test_get_signal_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            get_signal_name(True)  # type: ignore[arg-type]
+
+    def test_get_handler_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            get_handler(True)  # type: ignore[arg-type]
+
+    def test_set_handler_rejects_bool(self):
+        sig = signal.SIGHUP if hasattr(signal, "SIGHUP") else signal.SIGINT
+        original = signal.getsignal(sig)
+        try:
+            with self.assertRaises(TypeError):
+                set_handler(True, suspend_handler)  # type: ignore[arg-type]
+        finally:
+            signal.signal(sig, original)
+
+    def test_register_handler_rejects_bool(self):
+        sig = signal.SIGHUP if hasattr(signal, "SIGHUP") else signal.SIGINT
+        original = signal.getsignal(sig)
+        try:
+            with self.assertRaises(TypeError):
+                register_handler(True, suspend_handler)  # type: ignore[arg-type]
+        finally:
+            signal.signal(sig, original)
+
+    def test_unregister_handler_rejects_bool(self):
+        sig = signal.SIGHUP if hasattr(signal, "SIGHUP") else signal.SIGINT
+        original = signal.getsignal(sig)
+        try:
+            with self.assertRaises(TypeError):
+                unregister_handler(True)  # type: ignore[arg-type]
+        finally:
+            signal.signal(sig, original)
+
+    def test_alarm_rejects_bool(self):
+        previous = signal.alarm(0)
+        try:
+            with self.assertRaises(TypeError):
+                alarm(True)  # type: ignore[arg-type]
+        finally:
+            signal.alarm(previous)
+
 
 if __name__ == "__main__":
     unittest.main()

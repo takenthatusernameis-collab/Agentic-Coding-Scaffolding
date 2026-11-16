@@ -1,5 +1,17 @@
 # Project Status
 
+## Latest Session (2026-11-16) — defect hunt/fix: `signal_utils` rejects `bool` signal numbers
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full` (battery passed), `python -m unittest discover tests/` (11281 tests, 1 pre-existing error, 4 skipped), then `--full --record-full-suite`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):**
+  - `signal_utils` accepted `bool` where a signal number is required. Because `bool` subclasses `int`, every helper that validated with `isinstance(sig, int)` treated `True`/`False` as signal numbers: `is_valid_signal(True)` returned `True` (signal 1, `SIGHUP`), `get_signal_name(True)` returned `"SIGHUP"`, and `get_handler`, `set_handler`, `register_handler`, `unregister_handler`, and `alarm` all operated on `SIGHUP` (or set a one-second alarm) instead of raising `TypeError`. Added a shared `_require_signal` helper that rejects `bool`, and `is_valid_signal` now returns `False` for booleans. Added `test_is_valid_signal_rejects_bool`, `test_get_signal_name_rejects_bool`, `test_get_handler_rejects_bool`, `test_set_handler_rejects_bool`, `test_register_handler_rejects_bool`, `test_unregister_handler_rejects_bool`, `test_alarm_rejects_bool`.
+- **Defect hunt (batch `set`–`socket`):** reviewed `set_utils`, `shapes`, `shelve_utils`, `shlex_utils`, `shutil_utils`, `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`, `socket_utils`; the `signal_utils` issue above was the only defect found.
+- **Verification:** `python -m unittest tests.test_signal_utils` — 22 OK; `python -m doctest signal_utils.py` — OK; `python -m py_compile signal_utils.py tests/test_signal_utils.py` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11281 tests, only the pre-existing `test_quopri_utils.py` pytest-import error; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `f05ecc7`).
+- **Environment limitation:** `ruff`/`mypy`/`pytest` are not installed here. `unittest discover` shows one pre-existing error from `tests/test_quopri_utils.py` hard-importing `pytest`; unrelated to this session. Line lengths in touched files were checked manually (≤ 100).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`signal_utils.py`, `tests/test_signal_utils.py`, `CHANGELOG.md`).
+
 ## Latest Session (2026-11-16) — defect hunt/fix: `priority_queue_utils.merge_queues` FIFO, `rlcompleter_utils.complete` state, `selectors_utils` bool fd
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
@@ -80,7 +92,7 @@
 
 ## Task for Next Agent
 
-See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `seq_utils` (e.g. `set_utils`, `shapes`, `shelve_utils`, `shlex_utils`, `shutil_utils`, `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`, `socket_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
+See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `socket_utils` (e.g. `socketserver_utils`, `sort_utils`, `spwd_utils`, `sqlite3_utils`, `sre_compile_utils`, `sre_constants_utils`, `sre_parse_utils`, `ssl_utils`, `stat_utils`, `statistics_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
 
 ## Previous Session (2026-11-16) — defect hunt/fix: `concurrent_futures_utils` bool-as-int
 
