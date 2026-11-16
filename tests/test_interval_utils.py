@@ -2,6 +2,7 @@ import math
 import unittest
 
 from interval_utils import (
+    Interval,
     interval_adjacent,
     interval_clamp,
     interval_contains,
@@ -630,3 +631,12 @@ class TestBoolRejection(unittest.TestCase):
             normalize_interval(True, 5)
         with self.assertRaises(TypeError):
             normalize_interval(1, False)
+
+
+class TestIntervalAlias(unittest.TestCase):
+    def test_interval_alias_is_float_pair_tuple(self) -> None:
+        import typing
+
+        self.assertEqual(Interval, typing.Tuple[float, float])
+        self.assertIs(typing.get_origin(Interval), tuple)
+        self.assertEqual(typing.get_args(Interval), (float, float))

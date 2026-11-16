@@ -4,6 +4,8 @@ from enum_utils import (
     Enum,
     Flag,
     IntEnum,
+    IntFlag,
+    StrEnum,
     as_dict,
     as_list,
     auto,
@@ -130,3 +132,30 @@ def test_names_type_error():
         assert False
     except TypeError:
         pass
+
+
+def test_int_flag_export():
+    assert issubclass(IntFlag, int)
+    assert issubclass(IntFlag, Flag)
+
+    class Access(IntFlag):
+        READ = 1
+        WRITE = 2
+
+    assert Access.READ | Access.WRITE == 3
+
+
+def test_str_enum_export():
+    import enum as _enum
+
+    assert issubclass(StrEnum, Enum)
+    if hasattr(_enum, "StrEnum"):
+        assert issubclass(StrEnum, str)
+
+    class Level(StrEnum):
+        LOW = "low"
+        HIGH = "high"
+
+    if hasattr(_enum, "StrEnum"):
+        assert Level.LOW == "low"
+    assert Level.LOW.value == "low"

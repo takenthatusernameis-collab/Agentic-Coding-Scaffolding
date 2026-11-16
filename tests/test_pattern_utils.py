@@ -1,6 +1,7 @@
 """Tests for pattern_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from pattern_utils import (
     Factory,
@@ -10,6 +11,7 @@ from pattern_utils import (
     SingletonBase,
     Strategy,
     StrategyContext,
+    T,
 )
 
 

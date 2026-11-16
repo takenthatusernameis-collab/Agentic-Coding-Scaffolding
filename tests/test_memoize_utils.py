@@ -1,6 +1,7 @@
 import unittest
+from typing import TypeVar
 
-from memoize_utils import lru_memoize, memoize
+from memoize_utils import T, lru_memoize, memoize
 
 
 class TestMemoize(unittest.TestCase):
@@ -179,3 +180,9 @@ class TestLruMemoize(unittest.TestCase):
         compute.cache_clear()
         compute(1)
         self.assertEqual(len(calls), 2)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")

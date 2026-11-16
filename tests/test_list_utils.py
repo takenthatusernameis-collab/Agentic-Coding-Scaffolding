@@ -1,8 +1,13 @@
 """Tests for list_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from list_utils import (
+    CT,
+    K,
+    SupportsRichComparison,
+    T,
     all_where,
     chunks,
     contains,
@@ -845,3 +850,20 @@ class TestLastOrDefault(unittest.TestCase):
     def test_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             last_or_default("abc")  # type: ignore[arg-type]
+
+
+class TestExportedSymbols(unittest.TestCase):
+    def test_typevars(self) -> None:
+        for tv in (CT, K, T):
+            self.assertIsInstance(tv, TypeVar)
+        self.assertEqual(CT.__name__, "CT")
+        self.assertEqual(K.__name__, "K")
+        self.assertEqual(T.__name__, "T")
+
+    def test_ct_bound_to_protocol(self) -> None:
+        self.assertIs(CT.__bound__, SupportsRichComparison)
+        self.assertIsNone(K.__bound__)
+        self.assertIsNone(T.__bound__)
+
+    def test_supports_rich_comparison_is_protocol(self) -> None:
+        self.assertTrue(getattr(SupportsRichComparison, "_is_protocol", False))
