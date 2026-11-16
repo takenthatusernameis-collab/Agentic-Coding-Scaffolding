@@ -2,9 +2,12 @@
 
 import asyncio
 import unittest
+from typing import TypeVar
 
 from concurrent_utils import (
     ProcessPool,
+    R,
+    T,
     ThreadPool,
     _dec,
     _double,
@@ -196,6 +199,14 @@ class TestAsyncIOWrappers(unittest.TestCase):
 
         result = run_async(main())
         self.assertEqual(result, "test")
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertIsInstance(R, TypeVar)
+        self.assertEqual(R.__name__, "R")
 
 
 if __name__ == "__main__":

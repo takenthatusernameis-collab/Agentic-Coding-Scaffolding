@@ -2,8 +2,12 @@
 
 import unittest
 from collections import deque
+from typing import TypeVar
 
 from collections_utils import (
+    K,
+    T,
+    V,
     chunk,
     compact,
     deep_flatten,
@@ -173,6 +177,16 @@ class TestPartitionBy(unittest.TestCase):
     def test_partition_by_consecutive_change(self):
         result = partition_by([1, 2, 1], lambda x: x % 2)
         self.assertEqual(result, [[1], [2], [1]])
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertIsInstance(K, TypeVar)
+        self.assertEqual(K.__name__, "K")
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":

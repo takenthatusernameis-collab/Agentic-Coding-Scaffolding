@@ -1,8 +1,12 @@
 import unittest
 from dataclasses import dataclass
+from typing import TypeVar
 
 from dataclasses_utils import (
+    KT,
     MISSING,
+    T,
+    VT,
     asdict,
     astuple,
     dataclass_fields,
@@ -205,6 +209,16 @@ class TestDataclassesUtils(unittest.TestCase):
 
         self.assertIs(du_field, dc_field)
         self.assertIs(du_missing, dc_missing)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertIsInstance(KT, TypeVar)
+        self.assertEqual(KT.__name__, "KT")
+        self.assertIsInstance(VT, TypeVar)
+        self.assertEqual(VT.__name__, "VT")
 
 
 if __name__ == "__main__":
