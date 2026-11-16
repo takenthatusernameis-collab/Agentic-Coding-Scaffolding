@@ -400,5 +400,23 @@ class TestHostInformation(unittest.TestCase):
             socket_utils.is_ipv6_address(None)  # type: ignore[arg-type]
 
 
+class TestReExportedConstants(unittest.TestCase):
+    """Verify the socket constants re-exported for convenience."""
+
+    def test_address_families(self):
+        self.assertIs(socket_utils.AF_INET, socket.AF_INET)
+        self.assertIs(socket_utils.AF_INET6, socket.AF_INET6)
+        self.assertIs(socket_utils.AF_UNIX, socket.AF_UNIX)
+
+    def test_socket_types(self):
+        self.assertIs(socket_utils.SOCK_STREAM, socket.SOCK_STREAM)
+        self.assertIs(socket_utils.SOCK_DGRAM, socket.SOCK_DGRAM)
+
+    def test_shutdown_how(self):
+        self.assertIs(socket_utils.SHUT_RD, socket.SHUT_RD)
+        self.assertIs(socket_utils.SHUT_WR, socket.SHUT_WR)
+        self.assertIs(socket_utils.SHUT_RDWR, socket.SHUT_RDWR)
+
+
 if __name__ == "__main__":
     unittest.main()

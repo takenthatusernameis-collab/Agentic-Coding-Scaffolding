@@ -214,26 +214,3 @@ class TestExportedTypeVars(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-class TestFormatRemaining(unittest.TestCase):
-    def test_zero(self) -> None:
-        self.assertEqual(format_remaining(0), "0.000s")
-
-    def test_rounding(self) -> None:
-        self.assertEqual(format_remaining(1.2345), "1.234s")
-
-    def test_int(self) -> None:
-        self.assertEqual(format_remaining(5), "5.000s")
-
-    def test_type_error(self) -> None:
-        with self.assertRaises(TypeError):
-            format_remaining("1")  # type: ignore[arg-type]
-
-    def test_bool_type_error(self) -> None:
-        with self.assertRaises(TypeError):
-            format_remaining(True)  # type: ignore[arg-type]
-
-    def test_negative_value_error(self) -> None:
-        with self.assertRaises(ValueError):
-            format_remaining(-1.0)

@@ -5,8 +5,8 @@ from typing import TypeVar
 from dataclasses_utils import (
     KT,
     MISSING,
-    T,
     VT,
+    T,
     asdict,
     astuple,
     dataclass_fields,

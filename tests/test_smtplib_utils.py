@@ -4,6 +4,7 @@ import smtplib
 import socket
 import ssl
 import unittest
+from typing import Dict, Tuple
 from unittest import mock
 
 import smtplib_utils
@@ -85,6 +86,11 @@ class TestExports(unittest.TestCase):
         self.assertIs(smtplib_utils.SMTPConnectError, smtplib.SMTPConnectError)
         self.assertIs(smtplib_utils.SMTPHeloError, smtplib.SMTPHeloError)
         self.assertIs(smtplib_utils.SMTPAuthenticationError, smtplib.SMTPAuthenticationError)
+
+    def test_refused_recipients_alias(self):
+        self.assertEqual(
+            smtplib_utils.RefusedRecipients, Dict[str, Tuple[int, bytes]]
+        )
 
 
 class TestAddressHelpers(unittest.TestCase):

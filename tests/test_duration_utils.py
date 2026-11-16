@@ -2,7 +2,10 @@ import unittest
 from datetime import datetime
 
 from duration_utils import (
+    DURATION_UNITS,
     SECONDS_PER_DAY,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
     SECONDS_PER_WEEK,
     add_duration,
     duration_between,
@@ -246,6 +249,35 @@ class TestSubtractDuration(unittest.TestCase):
         dt = datetime(2024, 1, 1, 10, 0, 0)
         with self.assertRaises(ValueError):
             subtract_duration(dt, "not a duration")
+
+
+class TestDurationConstants(unittest.TestCase):
+    def test_second_aliases(self):
+        self.assertEqual(SECONDS_PER_MINUTE, 60)
+        self.assertEqual(SECONDS_PER_HOUR, 3600)
+        self.assertEqual(SECONDS_PER_DAY, 86400)
+        self.assertEqual(SECONDS_PER_WEEK, 604800)
+
+    def test_duration_units_is_a_multiplication_table(self):
+        self.assertIsInstance(DURATION_UNITS, dict)
+        self.assertEqual(DURATION_UNITS["s"], 1)
+        self.assertEqual(DURATION_UNITS["m"], SECONDS_PER_MINUTE)
+        self.assertEqual(DURATION_UNITS["h"], SECONDS_PER_HOUR)
+        self.assertEqual(DURATION_UNITS["d"], SECONDS_PER_DAY)
+        self.assertEqual(DURATION_UNITS["w"], SECONDS_PER_WEEK)
+
+    def test_duration_units_aliases_agree(self):
+        for alias, canonical in (
+            ("sec", "second"),
+            ("secs", "second"),
+            ("min", "minute"),
+            ("mins", "minute"),
+            ("hr", "hour"),
+            ("hrs", "hour"),
+            ("day", "day"),
+            ("week", "week"),
+        ):
+            self.assertEqual(DURATION_UNITS[alias], DURATION_UNITS[canonical])
 
 
 if __name__ == "__main__":

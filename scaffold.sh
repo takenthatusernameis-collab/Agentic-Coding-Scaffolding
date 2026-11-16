@@ -38381,8 +38381,13 @@ cat > "$OUTPUT_DIR/tests/test_list_utils.py" <<'TESTLISTUTILS'
 """Tests for list_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from list_utils import (
+    CT,
+    K,
+    SupportsRichComparison,
+    T,
     all_where,
     chunks,
     contains,
@@ -39225,6 +39230,23 @@ class TestLastOrDefault(unittest.TestCase):
     def test_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             last_or_default("abc")  # type: ignore[arg-type]
+
+
+class TestExportedSymbols(unittest.TestCase):
+    def test_typevars(self) -> None:
+        for tv in (CT, K, T):
+            self.assertIsInstance(tv, TypeVar)
+        self.assertEqual(CT.__name__, "CT")
+        self.assertEqual(K.__name__, "K")
+        self.assertEqual(T.__name__, "T")
+
+    def test_ct_bound_to_protocol(self) -> None:
+        self.assertIs(CT.__bound__, SupportsRichComparison)
+        self.assertIsNone(K.__bound__)
+        self.assertIsNone(T.__bound__)
+
+    def test_supports_rich_comparison_is_protocol(self) -> None:
+        self.assertTrue(getattr(SupportsRichComparison, "_is_protocol", False))
 TESTLISTUTILS
 
 # --- locale_utils.py ---
@@ -66318,8 +66340,8 @@ from typing import TypeVar
 from dataclasses_utils import (
     KT,
     MISSING,
-    T,
     VT,
+    T,
     asdict,
     astuple,
     dataclass_fields,
@@ -71212,6 +71234,7 @@ import math
 import unittest
 
 from interval_utils import (
+    Interval,
     interval_adjacent,
     interval_clamp,
     interval_contains,
@@ -71840,12 +71863,27 @@ class TestBoolRejection(unittest.TestCase):
             normalize_interval(True, 5)
         with self.assertRaises(TypeError):
             normalize_interval(1, False)
+
+
+class TestIntervalAlias(unittest.TestCase):
+    def test_interval_alias_is_float_pair_tuple(self) -> None:
+        import typing
+
+        self.assertEqual(Interval, typing.Tuple[float, float])
+        self.assertIs(typing.get_origin(Interval), tuple)
+        self.assertEqual(typing.get_args(Interval), (float, float))
 TEST_INTERVAL_UTILS
 
 
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — closed `scan_untested --all` gaps for exported constants/classes and fixed pre-existing lint/type failures
+
+- **Coverage — `tests/test_duration_utils.py`, `tests/test_socket_utils.py`, `tests/test_html_entities_utils.py`, `tests/test_sre_constants_utils.py`, `tests/test_smtplib_utils.py`: added targeted contract tests for exported symbols that `python tools/scan_untested.py --all` still reported as untested.** `duration_utils` now pins `SECONDS_PER_MINUTE`, `SECONDS_PER_HOUR`, and the `DURATION_UNITS` alias/multiplier table; `socket_utils` pins the re-exported `AF_UNIX`, `SOCK_STREAM`, `SOCK_DGRAM`, `SHUT_RD`, `SHUT_WR`, and `SHUT_RDWR` constants against the `socket` module; `html_entities_utils` pins the re-exported `codepoint2name`, `entitydefs`, and `html5` tables; `sre_constants_utils` pins `error` as an `Exception` subclass that matches the stdlib class when available; `smtplib_utils` pins the `RefusedRecipients` type alias. The `--all` gap count drops from 140 to 129. No `.github/workflows/**` changes.
+- **Maintenance — fixed pre-existing `ruff` and `mypy` failures that were failing the developer gates.** `tests/test_cooldown_utils.py` defined `TestFormatRemaining` twice (the second copy was appended after the `__main__` guard), so the duplicate class was removed; `tests/test_dataclasses_utils.py` had an unsorted import block (I001); `tests/test_pattern_utils.py` had unused `typing.TypeVar` and `pattern_utils.T` imports (F401). `python -m ruff check .` and `python -m mypy . --exclude build --exclude dist` are now clean.
+- Validation: `python -m unittest tests.test_duration_utils tests.test_socket_utils tests.test_html_entities_utils tests.test_sre_constants_utils tests.test_smtplib_utils tests.test_cooldown_utils tests.test_dataclasses_utils tests.test_pattern_utils` — 317 OK; `python -m unittest discover tests/` — 11179 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files); `python tools/refresh_scaffold.py` refreshed the embedded test copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync.
+
 ## Unreleased — raised `either_utils`/`functools_utils`/`heapq_utils`/`logging_utils`/`maybe_utils` exported TypeVar coverage
 
 - **Coverage — `tests/test_either_utils.py`, `tests/test_functools_utils.py`, `tests/test_heapq_utils.py`, `tests/test_logging_utils.py`, `tests/test_maybe_utils.py`: added `TestExportedTypeVars` tests pinning exported `TypeVar` symbols reported by `python tools/scan_untested.py --all`.** `either_utils` exports `E`, `L`, `R`, `T`, `U`; `functools_utils` exports `R`, `T`; `heapq_utils` exports `T`; `logging_utils` exports `F`; `maybe_utils` exports `E`, `T`, `U`, `V`. Functional APIs were already covered; these tests assert each export is a `TypeVar` with the expected name, closing the public-API test gap. Targeted verification: `python -m unittest tests.test_either_utils tests.test_functools_utils tests.test_heapq_utils tests.test_logging_utils tests.test_maybe_utils -v` (111 OK); `python -m ruff check` (clean); `python -m mypy` (clean). `python tools/refresh_scaffold.py` refreshed embedded test files; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -82463,7 +82501,10 @@ import unittest
 from datetime import datetime
 
 from duration_utils import (
+    DURATION_UNITS,
     SECONDS_PER_DAY,
+    SECONDS_PER_HOUR,
+    SECONDS_PER_MINUTE,
     SECONDS_PER_WEEK,
     add_duration,
     duration_between,
@@ -82707,6 +82748,35 @@ class TestSubtractDuration(unittest.TestCase):
         dt = datetime(2024, 1, 1, 10, 0, 0)
         with self.assertRaises(ValueError):
             subtract_duration(dt, "not a duration")
+
+
+class TestDurationConstants(unittest.TestCase):
+    def test_second_aliases(self):
+        self.assertEqual(SECONDS_PER_MINUTE, 60)
+        self.assertEqual(SECONDS_PER_HOUR, 3600)
+        self.assertEqual(SECONDS_PER_DAY, 86400)
+        self.assertEqual(SECONDS_PER_WEEK, 604800)
+
+    def test_duration_units_is_a_multiplication_table(self):
+        self.assertIsInstance(DURATION_UNITS, dict)
+        self.assertEqual(DURATION_UNITS["s"], 1)
+        self.assertEqual(DURATION_UNITS["m"], SECONDS_PER_MINUTE)
+        self.assertEqual(DURATION_UNITS["h"], SECONDS_PER_HOUR)
+        self.assertEqual(DURATION_UNITS["d"], SECONDS_PER_DAY)
+        self.assertEqual(DURATION_UNITS["w"], SECONDS_PER_WEEK)
+
+    def test_duration_units_aliases_agree(self):
+        for alias, canonical in (
+            ("sec", "second"),
+            ("secs", "second"),
+            ("min", "minute"),
+            ("mins", "minute"),
+            ("hr", "hour"),
+            ("hrs", "hour"),
+            ("day", "day"),
+            ("week", "week"),
+        ):
+            self.assertEqual(DURATION_UNITS[alias], DURATION_UNITS[canonical])
 
 
 if __name__ == "__main__":
@@ -83462,6 +83532,8 @@ from enum_utils import (
     Enum,
     Flag,
     IntEnum,
+    IntFlag,
+    StrEnum,
     as_dict,
     as_list,
     auto,
@@ -83588,6 +83660,33 @@ def test_names_type_error():
         assert False
     except TypeError:
         pass
+
+
+def test_int_flag_export():
+    assert issubclass(IntFlag, int)
+    assert issubclass(IntFlag, Flag)
+
+    class Access(IntFlag):
+        READ = 1
+        WRITE = 2
+
+    assert Access.READ | Access.WRITE == 3
+
+
+def test_str_enum_export():
+    import enum as _enum
+
+    assert issubclass(StrEnum, Enum)
+    if hasattr(_enum, "StrEnum"):
+        assert issubclass(StrEnum, str)
+
+    class Level(StrEnum):
+        LOW = "low"
+        HIGH = "high"
+
+    if hasattr(_enum, "StrEnum"):
+        assert Level.LOW == "low"
+    assert Level.LOW.value == "low"
 TEST_ENUM_UTILS
 
 # --- errno_utils.py ---
@@ -94043,8 +94142,9 @@ MEMOIZE_UTILS
 # --- tests/test_memoize_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_memoize_utils.py" <<'TEST_MEMOIZE_UTILS'
 import unittest
+from typing import TypeVar
 
-from memoize_utils import lru_memoize, memoize
+from memoize_utils import T, lru_memoize, memoize
 
 
 class TestMemoize(unittest.TestCase):
@@ -94223,6 +94323,12 @@ class TestLruMemoize(unittest.TestCase):
         compute.cache_clear()
         compute(1)
         self.assertEqual(len(calls), 2)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 TEST_MEMOIZE_UTILS
 
 # --- mimetypes_utils.py ---
@@ -120850,6 +120956,7 @@ import smtplib
 import socket
 import ssl
 import unittest
+from typing import Dict, Tuple
 from unittest import mock
 
 import smtplib_utils
@@ -120931,6 +121038,11 @@ class TestExports(unittest.TestCase):
         self.assertIs(smtplib_utils.SMTPConnectError, smtplib.SMTPConnectError)
         self.assertIs(smtplib_utils.SMTPHeloError, smtplib.SMTPHeloError)
         self.assertIs(smtplib_utils.SMTPAuthenticationError, smtplib.SMTPAuthenticationError)
+
+    def test_refused_recipients_alias(self):
+        self.assertEqual(
+            smtplib_utils.RefusedRecipients, Dict[str, Tuple[int, bytes]]
+        )
 
 
 class TestAddressHelpers(unittest.TestCase):
@@ -122668,6 +122780,24 @@ class TestHostInformation(unittest.TestCase):
     def test_is_ipv6_address_requires_string(self):
         with self.assertRaises(TypeError):
             socket_utils.is_ipv6_address(None)  # type: ignore[arg-type]
+
+
+class TestReExportedConstants(unittest.TestCase):
+    """Verify the socket constants re-exported for convenience."""
+
+    def test_address_families(self):
+        self.assertIs(socket_utils.AF_INET, socket.AF_INET)
+        self.assertIs(socket_utils.AF_INET6, socket.AF_INET6)
+        self.assertIs(socket_utils.AF_UNIX, socket.AF_UNIX)
+
+    def test_socket_types(self):
+        self.assertIs(socket_utils.SOCK_STREAM, socket.SOCK_STREAM)
+        self.assertIs(socket_utils.SOCK_DGRAM, socket.SOCK_DGRAM)
+
+    def test_shutdown_how(self):
+        self.assertIs(socket_utils.SHUT_RD, socket.SHUT_RD)
+        self.assertIs(socket_utils.SHUT_WR, socket.SHUT_WR)
+        self.assertIs(socket_utils.SHUT_RDWR, socket.SHUT_RDWR)
 
 
 if __name__ == "__main__":
@@ -157661,6 +157791,21 @@ class TestErrorCodes(unittest.TestCase):
             sre_constants_utils._sre_constants = original
 
 
+class TestErrorExport(unittest.TestCase):
+
+    def test_error_is_an_exception_class(self) -> None:
+        """``error`` is the regex error class, usable as an exception."""
+        assert isinstance(sre_constants_utils.error, type)
+        assert issubclass(sre_constants_utils.error, Exception)
+
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_error_matches_stdlib(self) -> None:
+        """When the module is available, ``error`` is the stdlib class."""
+        import sre_constants
+
+        assert sre_constants_utils.error is sre_constants.error
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_SRE_CONSTANTS_UTILS
@@ -159017,29 +159162,6 @@ class TestExportedTypeVars(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-
-
-class TestFormatRemaining(unittest.TestCase):
-    def test_zero(self) -> None:
-        self.assertEqual(format_remaining(0), "0.000s")
-
-    def test_rounding(self) -> None:
-        self.assertEqual(format_remaining(1.2345), "1.234s")
-
-    def test_int(self) -> None:
-        self.assertEqual(format_remaining(5), "5.000s")
-
-    def test_type_error(self) -> None:
-        with self.assertRaises(TypeError):
-            format_remaining("1")  # type: ignore[arg-type]
-
-    def test_bool_type_error(self) -> None:
-        with self.assertRaises(TypeError):
-            format_remaining(True)  # type: ignore[arg-type]
-
-    def test_negative_value_error(self) -> None:
-        with self.assertRaises(ValueError):
-            format_remaining(-1.0)
 TEST_COOLDOWN_UTILS
 
 # --- maybe_utils.py ---
@@ -160499,7 +160621,10 @@ import html
 import unittest
 
 from html_entities_utils import (
+    codepoint2name,
+    entitydefs,
     escape,
+    html5,
     is_available,
     name2codepoint,
     unescape,
@@ -160551,6 +160676,23 @@ class TestHTMLEntitiesUtils(unittest.TestCase):
     def test_unescape_rejects_non_string(self):
         with self.assertRaises(TypeError):
             unescape(123)
+
+
+class TestReExportedEntityTables(unittest.TestCase):
+    def test_codepoint2name_maps_ampersand(self):
+        self.assertIsInstance(codepoint2name, dict)
+        self.assertEqual(codepoint2name[ord("&")], "amp")
+        self.assertEqual(codepoint2name[ord("<")], "lt")
+
+    def test_entitydefs_maps_names_to_characters(self):
+        self.assertIsInstance(entitydefs, dict)
+        self.assertEqual(entitydefs["amp"], "&")
+        self.assertEqual(entitydefs["lt"], "<")
+
+    def test_html5_is_a_non_empty_mapping(self):
+        self.assertIsInstance(html5, dict)
+        self.assertIn("amp;", html5)
+        self.assertEqual(html5["amp;"], "&")
 
 
 if __name__ == "__main__":

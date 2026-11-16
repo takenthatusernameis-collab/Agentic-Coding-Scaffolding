@@ -139,5 +139,20 @@ class TestErrorCodes(unittest.TestCase):
             sre_constants_utils._sre_constants = original
 
 
+class TestErrorExport(unittest.TestCase):
+
+    def test_error_is_an_exception_class(self) -> None:
+        """``error`` is the regex error class, usable as an exception."""
+        assert isinstance(sre_constants_utils.error, type)
+        assert issubclass(sre_constants_utils.error, Exception)
+
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_error_matches_stdlib(self) -> None:
+        """When the module is available, ``error`` is the stdlib class."""
+        import sre_constants
+
+        assert sre_constants_utils.error is sre_constants.error
+
+
 if __name__ == "__main__":
     unittest.main()

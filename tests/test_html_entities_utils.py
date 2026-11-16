@@ -4,7 +4,10 @@ import html
 import unittest
 
 from html_entities_utils import (
+    codepoint2name,
+    entitydefs,
     escape,
+    html5,
     is_available,
     name2codepoint,
     unescape,
@@ -56,6 +59,23 @@ class TestHTMLEntitiesUtils(unittest.TestCase):
     def test_unescape_rejects_non_string(self):
         with self.assertRaises(TypeError):
             unescape(123)
+
+
+class TestReExportedEntityTables(unittest.TestCase):
+    def test_codepoint2name_maps_ampersand(self):
+        self.assertIsInstance(codepoint2name, dict)
+        self.assertEqual(codepoint2name[ord("&")], "amp")
+        self.assertEqual(codepoint2name[ord("<")], "lt")
+
+    def test_entitydefs_maps_names_to_characters(self):
+        self.assertIsInstance(entitydefs, dict)
+        self.assertEqual(entitydefs["amp"], "&")
+        self.assertEqual(entitydefs["lt"], "<")
+
+    def test_html5_is_a_non_empty_mapping(self):
+        self.assertIsInstance(html5, dict)
+        self.assertIn("amp;", html5)
+        self.assertEqual(html5["amp;"], "&")
 
 
 if __name__ == "__main__":
