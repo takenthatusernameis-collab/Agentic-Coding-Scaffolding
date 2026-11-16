@@ -65,9 +65,24 @@ def get_debug() -> int:
     return gc.get_debug()
 
 
-def set_threshold(threshold0: int, threshold1: int = 0, threshold2: int = 0) -> None:
-    if threshold1 == 0 and threshold2 == 0:
+def set_threshold(
+    threshold0: int,
+    threshold1: int | None = None,
+    threshold2: int | None = None,
+) -> None:
+    """Set the garbage-collection thresholds, mirroring :func:`gc.set_threshold`.
+
+    ``threshold1`` and ``threshold2`` default to ``None`` rather than ``0`` so
+    that an omitted argument leaves the corresponding threshold unchanged (as
+    the standard library does) while an explicit ``0`` still disables that
+    generation's automatic collection.
+    """
+    if threshold1 is None and threshold2 is None:
         gc.set_threshold(threshold0)
+    elif threshold1 is None:
+        raise TypeError("threshold1 must be provided when threshold2 is given")
+    elif threshold2 is None:
+        gc.set_threshold(threshold0, threshold1)
     else:
         gc.set_threshold(threshold0, threshold1, threshold2)
 

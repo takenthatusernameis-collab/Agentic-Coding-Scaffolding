@@ -1,9 +1,32 @@
 """Functional programming utilities for composing and transforming functions."""
 
+import inspect
 from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
+
+
+def _positional_argcount(func: Callable[..., Any]) -> int:
+    """Return the number of positional parameters *func* accepts.
+
+    Python functions expose this directly through ``__code__``; builtins and
+    other callables without a code object fall back to :func:`inspect.signature`
+    so that currying works for any callable (e.g. ``len``).
+    """
+    code = getattr(func, "__code__", None)
+    if code is not None:
+        return code.co_argcount
+    try:
+        signature = inspect.signature(func)
+    except (TypeError, ValueError):
+        return 0
+    return sum(
+        1
+        for parameter in signature.parameters.values()
+        if parameter.kind
+        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+    )
 
 __all__ = [
     "R",
@@ -96,8 +119,10 @@ def curry(func: Callable[..., R]) -> Callable[..., Any]:
     if not callable(func):
         raise TypeError("func must be callable")
 
+    argcount = _positional_argcount(func)
+
     def curried(*args: Any, **kwargs: Any) -> Any:
-        if len(args) + len(kwargs) >= func.__code__.co_argcount:
+        if len(args) + len(kwargs) >= argcount:
             return func(*args, **kwargs)
         return lambda *more_args, **more_kwargs: curried(*args, *more_args, **kwargs, **more_kwargs)
 

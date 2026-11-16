@@ -99,6 +99,10 @@ class TestCurry(unittest.TestCase):
         with self.assertRaises(TypeError):
             curry("not callable")  # type: ignore[arg-type]
 
+    def test_curry_builtin_function(self) -> None:
+        curried = curry(len)
+        self.assertEqual(curried([1, 2, 3]), 3)
+
 
 class TestApply(unittest.TestCase):
     def test_apply_basic(self) -> None:

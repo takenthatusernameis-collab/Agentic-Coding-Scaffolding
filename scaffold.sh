@@ -9151,9 +9151,24 @@ def get_debug() -> int:
     return gc.get_debug()
 
 
-def set_threshold(threshold0: int, threshold1: int = 0, threshold2: int = 0) -> None:
-    if threshold1 == 0 and threshold2 == 0:
+def set_threshold(
+    threshold0: int,
+    threshold1: int | None = None,
+    threshold2: int | None = None,
+) -> None:
+    """Set the garbage-collection thresholds, mirroring :func:`gc.set_threshold`.
+
+    ``threshold1`` and ``threshold2`` default to ``None`` rather than ``0`` so
+    that an omitted argument leaves the corresponding threshold unchanged (as
+    the standard library does) while an explicit ``0`` still disables that
+    generation's automatic collection.
+    """
+    if threshold1 is None and threshold2 is None:
         gc.set_threshold(threshold0)
+    elif threshold1 is None:
+        raise TypeError("threshold1 must be provided when threshold2 is given")
+    elif threshold2 is None:
+        gc.set_threshold(threshold0, threshold1)
     else:
         gc.set_threshold(threshold0, threshold1, threshold2)
 
@@ -9542,6 +9557,7 @@ cat > "$OUTPUT_DIR/tests/test_gc_utils.py" <<'TEST_GC_UTILS'
 """Tests for gc_utils."""
 
 import gc
+import unittest
 
 import gc_utils
 
@@ -9648,6 +9664,40 @@ def test_is_finalized_atomic():
 def test_is_finalized_consistent_with_stdlib():
     for obj in (1, "x", None, object()):
         assert gc_utils.is_finalized(obj) is gc.is_finalized(obj)
+
+
+class TestSetThreshold(unittest.TestCase):
+    """set_threshold must mirror ``gc.set_threshold`` argument semantics."""
+
+    def test_single_argument_sets_only_threshold0(self):
+        orig = gc.get_threshold()
+        try:
+            gc_utils.set_threshold(400)
+            self.assertEqual(gc.get_threshold()[0], 400)
+        finally:
+            gc.set_threshold(*orig)
+
+    def test_two_arguments_preserve_threshold2(self):
+        orig = gc.get_threshold()
+        try:
+            gc.set_threshold(700, 10, 10)
+            gc_utils.set_threshold(500, 5)
+            self.assertEqual(gc.get_threshold(), (500, 5, 10))
+        finally:
+            gc.set_threshold(*orig)
+
+    def test_explicit_zero_generations(self):
+        orig = gc.get_threshold()
+        try:
+            gc.set_threshold(700, 10, 10)
+            gc_utils.set_threshold(100, 0, 0)
+            self.assertEqual(gc.get_threshold(), (100, 0, 0))
+        finally:
+            gc.set_threshold(*orig)
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_GC_UTILS
 # --- calculator.py ---
 
@@ -57042,10 +57092,33 @@ CLI_UTILS
 cat > "$OUTPUT_DIR/functools_utils.py" <<'FUNCTOOLS_UTILS'
 """Functional programming utilities for composing and transforming functions."""
 
+import inspect
 from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
+
+
+def _positional_argcount(func: Callable[..., Any]) -> int:
+    """Return the number of positional parameters *func* accepts.
+
+    Python functions expose this directly through ``__code__``; builtins and
+    other callables without a code object fall back to :func:`inspect.signature`
+    so that currying works for any callable (e.g. ``len``).
+    """
+    code = getattr(func, "__code__", None)
+    if code is not None:
+        return code.co_argcount
+    try:
+        signature = inspect.signature(func)
+    except (TypeError, ValueError):
+        return 0
+    return sum(
+        1
+        for parameter in signature.parameters.values()
+        if parameter.kind
+        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+    )
 
 __all__ = [
     "R",
@@ -57138,8 +57211,10 @@ def curry(func: Callable[..., R]) -> Callable[..., Any]:
     if not callable(func):
         raise TypeError("func must be callable")
 
+    argcount = _positional_argcount(func)
+
     def curried(*args: Any, **kwargs: Any) -> Any:
-        if len(args) + len(kwargs) >= func.__code__.co_argcount:
+        if len(args) + len(kwargs) >= argcount:
             return func(*args, **kwargs)
         return lambda *more_args, **more_kwargs: curried(*args, *more_args, **kwargs, **more_kwargs)
 
@@ -57270,6 +57345,10 @@ class TestCurry(unittest.TestCase):
     def test_curry_non_callable_raises(self) -> None:
         with self.assertRaises(TypeError):
             curry("not callable")  # type: ignore[arg-type]
+
+    def test_curry_builtin_function(self) -> None:
+        curried = curry(len)
+        self.assertEqual(curried([1, 2, 3]), 3)
 
 
 class TestApply(unittest.TestCase):
@@ -72107,6 +72186,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `gc_utils.set_threshold` argument forwarding and `functools_utils.curry` builtin support
+
+- **Correctness fix — `gc_utils.set_threshold` did not forward its arguments the way `gc.set_threshold` does.** The wrapper used `threshold1: int = 0, threshold2: int = 0` and forwarded all three whenever either was non-zero. Because `0` is also a meaningful threshold (it disables automatic collection for that generation), the wrapper could not distinguish an omitted argument from an explicit `0`: `set_threshold(100, 0, 0)` silently became `gc.set_threshold(100)` (leaving generations 1 and 2 at their previous values), and `set_threshold(500, 5)` became `gc.set_threshold(500, 5, 0)` (resetting generation 2 to 0 instead of leaving it unchanged). `threshold1`/`threshold2` now default to `None`; omitted arguments leave the corresponding threshold untouched while an explicit `0` is still forwarded. Added `test_two_arguments_preserve_threshold2` and `test_explicit_zero_generations` (both fail against the old implementation and pass after).
+- **Correctness fix — `functools_utils.curry` crashed on builtins and other callables without a `__code__` object.** `curry` validated `callable(func)` but then read `func.__code__.co_argcount`, so `curry(len)` raised `AttributeError: 'builtin_function_or_method' object has no attribute '__code__'` instead of returning a curried callable. The positional-parameter count now falls back to `inspect.signature` when `__code__` is unavailable, so `curry` works for any callable. Added `test_curry_builtin_function`.
+- **Defect hunt (batch `fnmatch`–`hashlib`):** reviewed `fnmatch_utils`, `fractions_utils`, `ftplib_utils`, `functools_utils`, `gc_utils`, `genericpath_utils`, `getopt_utils`, `glob_utils`, `graphlib_utils`, `greeting_utils`, `gzip_utils`, `hash_utils`, `hashlib_utils`. The `gc_utils` and `functools_utils` issues above were the only defects found in this pass.
+- Validation: `python -m unittest tests.test_gc_utils tests.test_functools_utils` — 19 OK; `python -m doctest gc_utils.py functools_utils.py` — OK; `python -m py_compile` on touched files — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. (`ruff`/`mypy` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `errno_utils` accepting booleans as integer error codes
 
 - **Correctness fix — `errno_utils.errorcode`, `errno_utils.strerror`, `errno_utils.is_errno`, and `errno_utils.errno_name` accepted boolean error codes.** Because `bool` is a subclass of `int`, the `isinstance(code, int)` validation let `True` and `False` slip through, so `errorcode(True)` returned `"EPERM"` and `strerror(True)` returned `"Operation not permitted"` instead of raising `TypeError`. This violated the documented contract and diverged from the bool-rejection convention used elsewhere (`datetime_utils`, `secrets_utils`, `concurrent_futures_utils`). Each validator now rejects `bool` explicitly before the integer check. Added `test_errorcode_rejects_bool`, `test_strerror_rejects_bool`, `test_is_errno_rejects_bool`, and `test_errno_name_rejects_bool` (each fails against the old implementation and passes after). Refreshed the embedded `errno_utils.py` and `tests/test_errno_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.

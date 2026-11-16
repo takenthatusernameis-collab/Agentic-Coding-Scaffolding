@@ -1,5 +1,17 @@
 # Project Status
 
+## Latest Session (2026-11-16) — defect hunt/fix: `gc_utils.set_threshold` forwarding + `functools_utils.curry` builtins
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 at start (clean tree, checkpoint matched HEAD `2ccf470`); source changed, so ran the verification battery and `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests, then battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `gc_utils.set_threshold` conflated an omitted threshold with an explicit `0` (default args `0, 0`), so `set_threshold(100, 0, 0)` became `gc.set_threshold(100)` and `set_threshold(500, 5)` reset generation 2 to 0. Defaults are now `None`; omitted arguments leave the threshold untouched while explicit `0` is forwarded. Added `test_two_arguments_preserve_threshold2`, `test_explicit_zero_generations`.
+  - `functools_utils.curry` read `func.__code__.co_argcount` and crashed on builtins/callables without a code object (`curry(len)` → `AttributeError`). It now falls back to `inspect.signature`. Added `test_curry_builtin_function`.
+- **Verification:** `python -m unittest tests.test_gc_utils tests.test_functools_utils` — 19 OK; `python -m doctest gc_utils.py functools_utils.py` — OK; `python -m py_compile` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest tests.test_public_api tests.test_scaffold_sync tests.test_doctests` — 26 OK.
+- **Environment limitation:** `ruff`/`mypy`/`pytest` are not installed here. `unittest discover` shows one pre-existing error from `tests/test_quopri_utils.py` hard-importing `pytest`; unrelated to this session.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies.
+
 ## Latest Session (2026-11-16) — defect hunt/fix: `errno_utils` bool-as-int rejection
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
@@ -34,9 +46,10 @@
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`; expect rc=2 until this session's commit lands, then rc=0/1. If you change source, run `python tools/verify_state_delta.py --full --record-full-suite` at a coherent milestone.
 3. Optimize-delays pass: confirm no avoidable repository-managed delay remains; record the survey. No timestamp-only handovers/empty commits.
-4. **Continue the correctness defect hunt (failing-test-first) on `*_utils.py` modules not yet defect-hunted.** This session fixed `csv_utils.append_csv_row` delimiter handling and `datetime_utils.add_days` int validation. Reviewed/fixed `csv_utils`, `datetime_utils`; spot-checked `ctypes_utils`, `decimal_utils`, `deque_utils`, `difflib_utils` without confirmed defects. Pick the next unreviewed set (e.g. `ctypes_utils`, `curses_utils`, `data_utils`, `dbm_utils`, `decimal_utils`, `deque_utils`, `difflib_utils`, `dis_utils`, `doctest_utils`, `dumbdbm_utils`), read implementations against wrapped stdlib/contracts, look for off-by-one/boundary/reset/aliasing/bool-as-int/type-contract/dialect defects, and add a test that fails before fix and passes after.
+4. **Continue the correctness defect hunt (failing-test-first) on `*_utils.py` modules not yet defect-hunted.** This session fixed `gc_utils.set_threshold` argument forwarding and `functools_utils.curry` builtin support. Reviewed this pass: `fnmatch_utils`, `fractions_utils`, `ftplib_utils`, `functools_utils`, `gc_utils`, `genericpath_utils`, `getopt_utils`, `glob_utils`, `graphlib_utils`, `greeting_utils`, `gzip_utils`, `hash_utils`, `hashlib_utils`, `heapq_utils`, `ini_utils`, `interval_utils`, `ip_utils`. Pick the next unreviewed set (alphabetically after `ip_utils`, e.g. `itertools_utils`, `json_utils`, `keyword_utils`, `linecache_utils`, `locale_utils`, `logging_utils`, `lzma_utils`, `mailbox_utils`, `mailcap_utils`, `markdown_utils`), read implementations against wrapped stdlib/contracts, look for off-by-one/boundary/reset/aliasing/sentinel-default/bool-as-int/type-contract/dialect defects, and add a test that fails before fix and passes after.
 5. If embedded source/test/README/CHANGELOG files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`; add a `CHANGELOG.md` entry for user-visible fixes and refresh again.
 6. Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post next task to `main` via `board_post`.
+7. Optional (pre-existing, low priority): `tests/test_quopri_utils.py` is the only pytest-style test file that hard-imports `pytest`, so `python -m unittest discover tests/` (the documented fallback when pytest is absent) errors on import. Consider porting it to `unittest.TestCase` so the fallback suite is green; note that `ruff`/`mypy`/`pytest` may be unavailable in the sandbox.
 
 ## Previous Session (2026-11-16) — defect hunt/fix: `concurrent_futures_utils` bool-as-int
 

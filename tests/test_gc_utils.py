@@ -1,6 +1,7 @@
 """Tests for gc_utils."""
 
 import gc
+import unittest
 
 import gc_utils
 
@@ -107,3 +108,37 @@ def test_is_finalized_atomic():
 def test_is_finalized_consistent_with_stdlib():
     for obj in (1, "x", None, object()):
         assert gc_utils.is_finalized(obj) is gc.is_finalized(obj)
+
+
+class TestSetThreshold(unittest.TestCase):
+    """set_threshold must mirror ``gc.set_threshold`` argument semantics."""
+
+    def test_single_argument_sets_only_threshold0(self):
+        orig = gc.get_threshold()
+        try:
+            gc_utils.set_threshold(400)
+            self.assertEqual(gc.get_threshold()[0], 400)
+        finally:
+            gc.set_threshold(*orig)
+
+    def test_two_arguments_preserve_threshold2(self):
+        orig = gc.get_threshold()
+        try:
+            gc.set_threshold(700, 10, 10)
+            gc_utils.set_threshold(500, 5)
+            self.assertEqual(gc.get_threshold(), (500, 5, 10))
+        finally:
+            gc.set_threshold(*orig)
+
+    def test_explicit_zero_generations(self):
+        orig = gc.get_threshold()
+        try:
+            gc.set_threshold(700, 10, 10)
+            gc_utils.set_threshold(100, 0, 0)
+            self.assertEqual(gc.get_threshold(), (100, 0, 0))
+        finally:
+            gc.set_threshold(*orig)
+
+
+if __name__ == "__main__":
+    unittest.main()
