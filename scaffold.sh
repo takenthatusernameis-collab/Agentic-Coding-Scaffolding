@@ -11985,8 +11985,12 @@ cat > "$OUTPUT_DIR/tests/test_collections_utils.py" <<'TESTCOLLECTIONSUTILS'
 
 import unittest
 from collections import deque
+from typing import TypeVar
 
 from collections_utils import (
+    K,
+    T,
+    V,
     chunk,
     compact,
     deep_flatten,
@@ -12156,6 +12160,16 @@ class TestPartitionBy(unittest.TestCase):
     def test_partition_by_consecutive_change(self):
         result = partition_by([1, 2, 1], lambda x: x % 2)
         self.assertEqual(result, [[1], [2], [1]])
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertIsInstance(K, TypeVar)
+        self.assertEqual(K.__name__, "K")
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":
@@ -33313,8 +33327,11 @@ cat > "$OUTPUT_DIR/tests/test_data_utils.py" <<'TESTDATA'
 """Tests for data_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from data_utils import (
+    K,
+    V,
     deep_copy,
     del_nested,
     flatten_dict,
@@ -33612,6 +33629,16 @@ class TestDelNested(unittest.TestCase):
             del_nested({"a": 1}, "")
         with self.assertRaises(ValueError):
             del_nested({"a": 1}, ".")
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_k_typevar(self) -> None:
+        self.assertIsInstance(K, TypeVar)
+        self.assertEqual(K.__name__, "K")
+
+    def test_v_typevar(self) -> None:
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":
@@ -53135,9 +53162,12 @@ cat > "$OUTPUT_DIR/tests/test_concurrent_utils.py" <<'TEST_CONCURRENT_UTILS'
 
 import asyncio
 import unittest
+from typing import TypeVar
 
 from concurrent_utils import (
     ProcessPool,
+    R,
+    T,
     ThreadPool,
     _dec,
     _double,
@@ -53329,6 +53359,14 @@ class TestAsyncIOWrappers(unittest.TestCase):
 
         result = run_async(main())
         self.assertEqual(result, "test")
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertIsInstance(R, TypeVar)
+        self.assertEqual(R.__name__, "R")
 
 
 if __name__ == "__main__":
@@ -54947,8 +54985,11 @@ cat > "$OUTPUT_DIR/tests/test_dict_utils.py" <<'TESTDICTUTILS'
 """Tests for dict_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from dict_utils import (
+    K,
+    V,
     all_where,
     contains_all_keys,
     contains_all_values,
@@ -55791,6 +55832,20 @@ class TestFindWhere(unittest.TestCase):
             find_where("x", lambda k, v: True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             find_where({"a": 1}, None)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_k_typevar(self) -> None:
+        self.assertIsInstance(K, TypeVar)
+        self.assertEqual(K.__name__, "K")
+
+    def test_v_typevar(self) -> None:
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
+
+
+if __name__ == "__main__":
+    unittest.main()
 TESTDICTUTILS
 
 # --- terminal_utils.py ---
@@ -66240,9 +66295,13 @@ TESTBASE64UTILS
 cat > "$OUTPUT_DIR/tests/test_dataclasses_utils.py" <<'TESTDATACLASSESUTILS'
 import unittest
 from dataclasses import dataclass
+from typing import TypeVar
 
 from dataclasses_utils import (
+    KT,
     MISSING,
+    T,
+    VT,
     asdict,
     astuple,
     dataclass_fields,
@@ -66445,6 +66504,16 @@ class TestDataclassesUtils(unittest.TestCase):
 
         self.assertIs(du_field, dc_field)
         self.assertIs(du_missing, dc_missing)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertIsInstance(KT, TypeVar)
+        self.assertEqual(KT.__name__, "KT")
+        self.assertIsInstance(VT, TypeVar)
+        self.assertEqual(VT.__name__, "VT")
 
 
 if __name__ == "__main__":
@@ -81613,8 +81682,9 @@ DEPRECATION_UTILS
 cat > "$OUTPUT_DIR/tests/test_deprecation_utils.py" <<'TEST_DEPRECATION_UTILS'
 import unittest
 import warnings
+from typing import TypeVar
 
-from deprecation_utils import deprecated
+from deprecation_utils import T, deprecated
 
 
 class TestDeprecated(unittest.TestCase):
@@ -81677,6 +81747,12 @@ class TestDeprecated(unittest.TestCase):
     def test_non_callable_raises(self):
         with self.assertRaises(TypeError):
             deprecated(42)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -83724,11 +83800,13 @@ cat > "$OUTPUT_DIR/tests/test_exceptions_utils.py" <<'TEST_EXCEPTIONS_UTILS'
 """Tests for exceptions_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from exceptions_utils import (
     ConfigurationError,
     NotFoundError,
     PermissionError_,
+    T,
     TimeoutError_,
     ValidationError,
     catch_and_wrap,
@@ -83875,6 +83953,12 @@ class TestIsInstanceOfAny(unittest.TestCase):
 
     def test_handles_non_exceptions(self):
         self.assertFalse(is_instance_of_any("not an exception", (ValueError,)))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -158692,8 +158776,9 @@ cat > "$OUTPUT_DIR/tests/test_cooldown_utils.py" <<'TEST_COOLDOWN_UTILS'
 import threading
 import time
 import unittest
+from typing import ParamSpec, TypeVar
 
-from cooldown_utils import Cooldown, cooldown, format_remaining, is_available
+from cooldown_utils import Cooldown, P, T, cooldown, format_remaining, is_available
 
 
 class TestIsAvailable(unittest.TestCase):
@@ -158703,12 +158788,12 @@ class TestIsAvailable(unittest.TestCase):
 
 class TestCooldownInit(unittest.TestCase):
     def test_positive_interval(self) -> None:
-        cooldown = Cooldown(1.0)
-        self.assertIsInstance(cooldown, Cooldown)
+        cd = Cooldown(1.0)
+        self.assertIsInstance(cd, Cooldown)
 
     def test_integer_interval(self) -> None:
-        cooldown = Cooldown(1)
-        self.assertEqual(cooldown._interval, 1.0)
+        cd = Cooldown(1)
+        self.assertEqual(cd._interval, 1.0)
 
     def test_zero_interval_raises(self) -> None:
         with self.assertRaises(ValueError):
@@ -158729,76 +158814,76 @@ class TestCooldownInit(unittest.TestCase):
 
 class TestCooldownReady(unittest.TestCase):
     def test_ready_initially(self) -> None:
-        cooldown = Cooldown(1.0)
-        self.assertTrue(cooldown.ready())
+        cd = Cooldown(1.0)
+        self.assertTrue(cd.ready())
 
     def test_not_ready_immediately(self) -> None:
-        cooldown = Cooldown(1.0)
-        cooldown.call(lambda: None)
-        self.assertFalse(cooldown.ready())
+        cd = Cooldown(1.0)
+        cd.call(lambda: None)
+        self.assertFalse(cd.ready())
 
     def test_ready_after_interval(self) -> None:
-        cooldown = Cooldown(0.01)
-        cooldown.call(lambda: None)
+        cd = Cooldown(0.01)
+        cd.call(lambda: None)
         time.sleep(0.015)
-        self.assertTrue(cooldown.ready())
+        self.assertTrue(cd.ready())
 
 
 class TestCooldownRemaining(unittest.TestCase):
     def test_remaining_zero_initially(self) -> None:
-        cooldown = Cooldown(1.0)
-        self.assertEqual(cooldown.remaining(), 0.0)
+        cd = Cooldown(1.0)
+        self.assertEqual(cd.remaining(), 0.0)
 
     def test_remaining_after_call(self) -> None:
-        cooldown = Cooldown(1.0)
-        cooldown.call(lambda: None)
-        self.assertGreater(cooldown.remaining(), 0.0)
-        self.assertLessEqual(cooldown.remaining(), 1.0)
+        cd = Cooldown(1.0)
+        cd.call(lambda: None)
+        self.assertGreater(cd.remaining(), 0.0)
+        self.assertLessEqual(cd.remaining(), 1.0)
 
     def test_remaining_zero_after_interval(self) -> None:
-        cooldown = Cooldown(0.01)
-        cooldown.call(lambda: None)
+        cd = Cooldown(0.01)
+        cd.call(lambda: None)
         time.sleep(0.015)
-        self.assertEqual(cooldown.remaining(), 0.0)
+        self.assertEqual(cd.remaining(), 0.0)
 
 
 class TestCooldownCall(unittest.TestCase):
     def test_call_executes_func(self) -> None:
-        cooldown = Cooldown(1.0)
+        cd = Cooldown(1.0)
         calls = []
 
         def func() -> None:
             calls.append(1)
 
-        cooldown.call(func)
+        cd.call(func)
         self.assertEqual(calls, [1])
 
     def test_call_returns_result(self) -> None:
-        cooldown = Cooldown(1.0)
-        result = cooldown.call(lambda: 42)
+        cd = Cooldown(1.0)
+        result = cd.call(lambda: 42)
         self.assertEqual(result, 42)
 
     def test_call_passes_arguments(self) -> None:
-        cooldown = Cooldown(1.0)
-        result = cooldown.call(lambda a, b: a + b, 2, 3)
+        cd = Cooldown(1.0)
+        result = cd.call(lambda a, b: a + b, 2, 3)
         self.assertEqual(result, 5)
 
     def test_call_rejects_before_interval(self) -> None:
-        cooldown = Cooldown(1.0)
-        cooldown.call(lambda: None)
+        cd = Cooldown(1.0)
+        cd.call(lambda: None)
         with self.assertRaises(TimeoutError):
-            cooldown.call(lambda: None)
+            cd.call(lambda: None)
 
     def test_call_allows_after_interval(self) -> None:
-        cooldown = Cooldown(0.01)
-        cooldown.call(lambda: None)
+        cd = Cooldown(0.01)
+        cd.call(lambda: None)
         time.sleep(0.015)
-        cooldown.call(lambda: None)
+        cd.call(lambda: None)
 
     def test_call_non_callable_raises(self) -> None:
-        cooldown = Cooldown(1.0)
+        cd = Cooldown(1.0)
         with self.assertRaises(TypeError):
-            cooldown.call("not callable")  # type: ignore[arg-type]
+            cd.call("not callable")  # type: ignore[arg-type]
 
 
 class TestCooldownDecorator(unittest.TestCase):
@@ -158848,13 +158933,13 @@ class TestCooldownDecorator(unittest.TestCase):
 
 class TestCooldownThreadSafety(unittest.TestCase):
     def test_concurrent_calls_respect_interval(self) -> None:
-        cooldown = Cooldown(0.2)
+        cd = Cooldown(0.2)
         results: list[float] = []
         lock = threading.Lock()
 
         def call() -> None:
             try:
-                cooldown.call(lambda: None)
+                cd.call(lambda: None)
                 with lock:
                     results.append(time.monotonic())
             except TimeoutError:
@@ -158866,8 +158951,38 @@ class TestCooldownThreadSafety(unittest.TestCase):
         for thread in threads:
             thread.join()
 
-        # At most one call should succeed in quick succession.
         self.assertLessEqual(len(results), 1)
+
+
+class TestFormatRemaining(unittest.TestCase):
+    def test_zero(self) -> None:
+        self.assertEqual(format_remaining(0), "0.000s")
+
+    def test_rounding(self) -> None:
+        self.assertEqual(format_remaining(1.2345), "1.234s")
+
+    def test_int(self) -> None:
+        self.assertEqual(format_remaining(5), "5.000s")
+
+    def test_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            format_remaining("1")  # type: ignore[arg-type]
+
+    def test_bool_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            format_remaining(True)  # type: ignore[arg-type]
+
+    def test_negative_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(-1.0)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertIsInstance(P, ParamSpec)
+        self.assertEqual(P.__name__, "P")
 
 
 if __name__ == "__main__":

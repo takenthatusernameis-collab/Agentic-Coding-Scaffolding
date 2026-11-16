@@ -1,11 +1,13 @@
 """Tests for exceptions_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from exceptions_utils import (
     ConfigurationError,
     NotFoundError,
     PermissionError_,
+    T,
     TimeoutError_,
     ValidationError,
     catch_and_wrap,
@@ -152,6 +154,12 @@ class TestIsInstanceOfAny(unittest.TestCase):
 
     def test_handles_non_exceptions(self):
         self.assertFalse(is_instance_of_any("not an exception", (ValueError,)))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":

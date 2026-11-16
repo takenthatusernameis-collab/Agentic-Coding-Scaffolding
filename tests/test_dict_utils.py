@@ -848,3 +848,17 @@ class TestFindWhere(unittest.TestCase):
             find_where("x", lambda k, v: True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             find_where({"a": 1}, None)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_k_typevar(self) -> None:
+        self.assertIsInstance(K, TypeVar)
+        self.assertEqual(K.__name__, "K")
+
+    def test_v_typevar(self) -> None:
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
+
+
+if __name__ == "__main__":
+    unittest.main()

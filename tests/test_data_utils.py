@@ -1,8 +1,11 @@
 """Tests for data_utils module."""
 
 import unittest
+from typing import TypeVar
 
 from data_utils import (
+    K,
+    V,
     deep_copy,
     del_nested,
     flatten_dict,
@@ -300,6 +303,16 @@ class TestDelNested(unittest.TestCase):
             del_nested({"a": 1}, "")
         with self.assertRaises(ValueError):
             del_nested({"a": 1}, ".")
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_k_typevar(self) -> None:
+        self.assertIsInstance(K, TypeVar)
+        self.assertEqual(K.__name__, "K")
+
+    def test_v_typevar(self) -> None:
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
 import unittest
 import warnings
+from typing import TypeVar
 
-from deprecation_utils import deprecated
+from deprecation_utils import T, deprecated
 
 
 class TestDeprecated(unittest.TestCase):
@@ -64,6 +65,12 @@ class TestDeprecated(unittest.TestCase):
     def test_non_callable_raises(self):
         with self.assertRaises(TypeError):
             deprecated(42)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
