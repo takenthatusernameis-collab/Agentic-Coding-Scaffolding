@@ -54155,7 +54155,7 @@ from timing_utils import benchmark, elapsed_time, timer
 class TestTimer(unittest.TestCase):
     """Test the timer context manager."""
 
-    def timer_context_manager(self):
+    def test_timer_context_manager(self):
         """Test that timer measures time correctly."""
         with timer("Test") as t:
             time.sleep(0.01)  # Sleep for 10ms
@@ -54167,7 +54167,7 @@ class TestTimer(unittest.TestCase):
         # Should be approximately 0.01 seconds (allowing for variance)
         self.assertAlmostEqual(t.elapsed, 0.01, places=1)
 
-    def timer_with_label(self):
+    def test_timer_with_label(self):
         """Test timer with custom label."""
         with patch("builtins.print") as mock_print:
             with timer("Custom Label"):
@@ -131369,7 +131369,26 @@ def load_toml_string(s: str) -> Any:
 
 
 def is_valid_toml(s: str) -> bool:
-    """Check if a string is valid TOML."""
+    """Check if a string is valid TOML.
+
+    Args:
+        s: The string to validate.
+
+    Returns:
+        ``True`` if *s* parses as TOML, ``False`` otherwise. Non-string input
+        is not valid TOML and returns ``False`` rather than raising, so the
+        predicate stays total the way ``duration_utils.is_valid_duration`` is.
+
+    Examples:
+        >>> is_valid_toml('key = "val"')
+        True
+        >>> is_valid_toml("key =")
+        False
+        >>> is_valid_toml(123)  # type: ignore[arg-type]
+        False
+    """
+    if not isinstance(s, str):
+        return False
     try:
         tomllib.loads(s)
         return True
@@ -131416,6 +131435,19 @@ class TestTomllibUtils(unittest.TestCase):
 
     def test_is_valid_toml_false(self) -> None:
         self.assertFalse(is_valid_toml("key ="))
+
+def test_is_valid_toml_rejects_non_string(self) -> None:
+        """``is_valid_toml`` treats non-string input as invalid TOML.
+
+        The predicate returns ``bool`` (like ``duration_utils.is_valid_duration``)
+        rather than raising, so a non-string is simply not valid TOML. Passing
+        an ``int`` previously fell through to ``tomllib.loads``, whose first
+        operation is ``s.replace(...)`` and which surfaced an
+        ``AttributeError`` instead of a clean ``False``.
+        """
+        self.assertFalse(is_valid_toml(123))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_toml(None))  # type: ignore[arg-type]
+        self.assertFalse(is_valid_toml(["a", "b"]))  # type: ignore[arg-type]
 TEST_TOMLLIB_UTILS
 
 # --- traceback_utils.py ---
@@ -131787,6 +131819,13 @@ class TestClearFrames(unittest.TestCase):
         except AttributeError:
             _, _, tb = sys.exc_info()
             traceback_utils.clear_frames(tb)
+
+    def test_clear_frames_rejects_non_traceback(self):
+        """``clear_frames`` validates its argument like the other helpers."""
+        with self.assertRaises(TypeError):
+            traceback_utils.clear_frames("bad")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            traceback_utils.clear_frames(None)  # type: ignore[arg-type]
 
 
 class TestExtractStack(unittest.TestCase):
