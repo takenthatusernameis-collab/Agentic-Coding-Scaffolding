@@ -94,7 +94,7 @@ def validate_hex(hex_color: str) -> bool:
         False
     """
     _require_string(hex_color, "hex_color")
-    value = hex_color.lstrip("#")
+    value = hex_color[1:] if hex_color.startswith("#") else hex_color
     if len(value) != 6:
         return False
     return all(ch in _HEX_DIGITS for ch in value)
@@ -124,7 +124,7 @@ def hex_to_rgb(hex_color: str) -> _RGB:
     _require_string(hex_color, "hex_color")
     if not validate_hex(hex_color):
         raise ValueError(f"Invalid hex color: {hex_color!r}")
-    value = hex_color.lstrip("#")
+    value = hex_color[1:] if hex_color.startswith("#") else hex_color
     return (
         int(value[0:2], 16),
         int(value[2:4], 16),

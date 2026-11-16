@@ -35,6 +35,11 @@ class TestValidateHex(unittest.TestCase):
         self.assertFalse(validate_hex("#"))
         self.assertFalse(validate_hex("not-a-color"))
 
+    def test_multiple_leading_hashes_rejected(self) -> None:
+        self.assertFalse(validate_hex("##ff5733"))
+        self.assertFalse(validate_hex("###000000"))
+        self.assertFalse(validate_hex("##ffffff"))
+
     def test_non_string_raises(self) -> None:
         with self.assertRaises(TypeError):
             validate_hex(123)  # type: ignore[arg-type]
@@ -58,6 +63,12 @@ class TestHexToRgb(unittest.TestCase):
             hex_to_rgb("#ff57")
         with self.assertRaises(TypeError):
             hex_to_rgb(123)  # type: ignore[arg-type]
+
+    def test_multiple_leading_hashes_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            hex_to_rgb("##ff5733")
+        with self.assertRaises(ValueError):
+            hex_to_rgb("###000000")
 
 
 class TestRgbToHex(unittest.TestCase):

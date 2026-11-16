@@ -50151,7 +50151,7 @@ def validate_hex(hex_color: str) -> bool:
         False
     """
     _require_string(hex_color, "hex_color")
-    value = hex_color.lstrip("#")
+    value = hex_color[1:] if hex_color.startswith("#") else hex_color
     if len(value) != 6:
         return False
     return all(ch in _HEX_DIGITS for ch in value)
@@ -50181,7 +50181,7 @@ def hex_to_rgb(hex_color: str) -> _RGB:
     _require_string(hex_color, "hex_color")
     if not validate_hex(hex_color):
         raise ValueError(f"Invalid hex color: {hex_color!r}")
-    value = hex_color.lstrip("#")
+    value = hex_color[1:] if hex_color.startswith("#") else hex_color
     return (
         int(value[0:2], 16),
         int(value[2:4], 16),
@@ -50528,6 +50528,11 @@ class TestValidateHex(unittest.TestCase):
         self.assertFalse(validate_hex("#"))
         self.assertFalse(validate_hex("not-a-color"))
 
+    def test_multiple_leading_hashes_rejected(self) -> None:
+        self.assertFalse(validate_hex("##ff5733"))
+        self.assertFalse(validate_hex("###000000"))
+        self.assertFalse(validate_hex("##ffffff"))
+
     def test_non_string_raises(self) -> None:
         with self.assertRaises(TypeError):
             validate_hex(123)  # type: ignore[arg-type]
@@ -50551,6 +50556,12 @@ class TestHexToRgb(unittest.TestCase):
             hex_to_rgb("#ff57")
         with self.assertRaises(TypeError):
             hex_to_rgb(123)  # type: ignore[arg-type]
+
+    def test_multiple_leading_hashes_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            hex_to_rgb("##ff5733")
+        with self.assertRaises(ValueError):
+            hex_to_rgb("###000000")
 
 
 class TestRgbToHex(unittest.TestCase):
@@ -72030,6 +72041,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `color_utils` accepting multiple leading `#` in hex colors
+
+- **Correctness fix — `color_utils.validate_hex` and `color_utils.hex_to_rgb` accepted hex colors with more than one leading `#`, so strings that are neither ``#RRGGBB`` nor ``RRGGBB`` were reported as valid.** Both helpers stripped the prefix with `hex_color.lstrip("#")`, which removes *every* leading `#` rather than a single optional one. As a result `validate_hex("##ff5733")` and `validate_hex("###000000")` returned `True`, and `hex_to_rgb("##ff5733")` returned `(255, 87, 51)` instead of raising `ValueError`, contradicting the documented ``#RRGGBB``/``RRGGBB`` contract and letting malformed input flow into every color helper that parses hex strings (`get_luminance`, `get_contrast_ratio`, `is_accessible`, `adjust_brightness`, `blend_colors`). The prefix is now removed only when it is a single leading `#` (`hex_color[1:] if hex_color.startswith("#") else hex_color`), so a second `#` remains part of the value and the length/digit checks reject it. Added `test_multiple_leading_hashes_rejected` and `test_multiple_leading_hashes_raise` (both fail against the old implementation and pass after). Refreshed the embedded `color_utils.py` and `tests/test_color_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt — reviewed the next alphabetical batch of `*_utils.py` modules (`cli`, `cmath`, `cmd`, `code`, `codecs`, `codeop`, `collections_abc`, `collections`, `color`, `colorsys`, `compileall`).** No incorrect contracts found in `cli`, `cmath`, `cmd`, `code`, `codecs`, `codeop`, `collections_abc`, `collections`, `colorsys`, or `compileall`. The `color` issue above was the only defect. All batch modules pass their tests, their doctests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- Validation: `python -m pytest tests/test_color_utils.py -q` (40 passed); `python -m doctest color_utils.py` — OK; `python -m ruff check color_utils.py tests/test_color_utils.py` — clean; `python -m mypy color_utils.py tests/test_color_utils.py` — clean.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `builtins_utils.iterator` sentinel semantics
 
 - **Bug fix — `builtins_utils.iterator` now follows built-in `iter(callable, sentinel)` semantics when a callable and non-`None` sentinel are provided.** Previously any integer sentinel (except bool) was incorrectly treated as a repeat count, yielding `count` results of `callable()` instead of calling until the callable returned the sentinel value. This diverged from the standard library contract and could produce incorrect iteration or non-termination for normal sentinel use. The wrapper now delegates to `builtins.iter(object, sentinel)` for callable+sentinel inputs while preserving validation/error behavior for non-iterables.

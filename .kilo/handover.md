@@ -1,14 +1,14 @@
 # Handover
 
-## Latest Session (2026-11-16) — defect hunt/fix: `chunk_utils` bool size rejection
+## Latest Session (2026-11-16) — defect hunt/fix: `color_utils` multiple leading `#`
 
 - `board_read`: empty (no task posted to main); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at session start (source-relevant edits pending checkpoint from prior session). No full suite run this session; probe remains rc=2 after targeted fix/docs (source-relevant edits pending coherent full checkpoint).
-- **Optimize-delays survey:** no avoidable repository-managed delay; used state-delta probe, targeted pytest/unittest/ruff/mypy for touched files, fast `scan_untested` and `refresh_scaffold --check`. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Defect fixed (failing-test-first):** `chunk_utils.chunk`, `ichunk`, and `chunk_count` accepted `bool` `size` values (`True`/`False`) due to `bool` subclassing `int`, diverging from `chunk_pad`/`even_chunks` and module int-only contracts. Added bool-rejection tests that failed before fix, then updated implementations to reject bool sizes with `TypeError`.
-- **Verification:** `python -m pytest tests/test_chunk_utils.py -q` (34 passed), `python -m unittest tests.test_public_api -q` (OK), `python -m ruff check chunk_utils.py tests/test_chunk_utils.py` (clean), `python -m mypy chunk_utils.py tests/test_chunk_utils.py` (clean), `python tools/scan_untested.py --all` (clean).
-- **Scaffold/CHANGELOG:** added Unreleased changelog entry; `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` in sync.
-- **Defect hunt notes:** reviewed `bz2_utils`, `cache_utils`, `calendar_utils`, `call_once_utils`, `case_utils`, `cgi_utils`, `cgitb_utils`, `chunk_utils`, `circuit_breaker_utils`; no other defects found in this batch.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at session start (prior source-relevant edits pending checkpoint). Full suite run this session and `--full --record-full-suite` recorded a checkpoint at HEAD (`bb7b46f`); probe is rc=2 only because this session's edits are uncommitted (the CI auto-commit follows the session).
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe, targeted pytest/doctest/ruff/mypy for touched files, fast `scan_untested --all` and `refresh_scaffold --check`. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `color_utils.validate_hex` and `color_utils.hex_to_rgb` used `hex_color.lstrip("#")`, which strips *every* leading `#`, so `"##ff5733"` / `"###000000"` were reported valid and `hex_to_rgb("##ff5733")` returned `(255, 87, 51)` instead of raising `ValueError`. Added `test_multiple_leading_hashes_rejected` and `test_multiple_leading_hashes_raise` (both failed before the fix), then strip only a single optional leading `#`.
+- **Verification:** `python -m pytest tests/test_color_utils.py -q` (40 passed); `python -m doctest color_utils.py` (OK); `python -m ruff check color_utils.py tests/test_color_utils.py` (clean); `python -m mypy color_utils.py tests/test_color_utils.py` (clean); `python -m pytest tests/ -q` (11476 passed, 4 skipped); `python -m ruff check .` (clean); `python -m mypy . --exclude build --exclude dist` (clean, 568 files); `python tools/scan_untested.py --all` (clean).
+- **Scaffold/CHANGELOG:** added an Unreleased changelog entry; `python tools/refresh_scaffold.py` + `--check` in sync.
+- **Defect hunt notes:** reviewed `cli_utils`, `cmath_utils`, `cmd_utils`, `code_utils`, `codecs_utils`, `codeop_utils`, `collections_abc_utils`, `collections_utils`, `color_utils`, `colorsys_utils`, `compileall_utils`; only the `color_utils` defect found in this batch.
 
 ## Task for Next Agent
 
