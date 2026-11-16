@@ -70,5 +70,13 @@ class TestLinecacheUtils(unittest.TestCase):
         clearcache()
 
 
+class TestGetlineBoolLineno(unittest.TestCase):
+    def test_rejects_bool_lineno(self):
+        with self.assertRaises(TypeError):
+            getline("nonexistent_file.py", True)
+        with self.assertRaises(TypeError):
+            getline("nonexistent_file.py", False)
+
+
 if __name__ == "__main__":
     unittest.main()

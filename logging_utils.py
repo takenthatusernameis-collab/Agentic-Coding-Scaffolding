@@ -77,7 +77,7 @@ def configure_logging(
         >>> root.level
         20
     """
-    if level is not None and not isinstance(level, int):
+    if level is not None and (not isinstance(level, int) or isinstance(level, bool)):
         raise TypeError("level must be an integer or None")
     if handlers is not None and not isinstance(handlers, list):
         raise TypeError("handlers must be a list or None")

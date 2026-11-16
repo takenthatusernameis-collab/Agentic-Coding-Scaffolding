@@ -21,6 +21,8 @@ __all__ = [
 
 def extract_code_blocks(text: str) -> List[str]:
     """Extract fenced code blocks (``` ... ```) from markdown text."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
     pattern = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.DOTALL)
     return [block.strip("\n") for block in pattern.findall(text)]
 
@@ -101,6 +103,8 @@ def strip_markdown(text: str) -> str:
 
 def count_words(text: str) -> int:
     """Count whitespace-delimited words in text."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
     return len(text.split())
 
 
@@ -189,11 +193,15 @@ def has_headings(text: str) -> bool:
 
 def is_heading(line: str) -> bool:
     """Return True if line is a markdown heading."""
+    if not isinstance(line, str):
+        raise TypeError("line must be a string")
     return bool(re.match(r"^#{1,6}\s+\S", line))
 
 
 def heading_level(line: str) -> int:
     """Return heading level (1-6) or 0 if not a heading."""
+    if not isinstance(line, str):
+        raise TypeError("line must be a string")
     match = re.match(r"^(#{1,6})\s+\S", line)
     if not match:
         return 0

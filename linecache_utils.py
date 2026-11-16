@@ -15,7 +15,7 @@ __all__ = [
 def getline(filename, lineno, module_globals=None):
     if not isinstance(filename, str):
         raise TypeError("filename must be a str")
-    if not isinstance(lineno, int):
+    if not isinstance(lineno, int) or isinstance(lineno, bool):
         raise TypeError("lineno must be an int")
     return _linecache.getline(filename, lineno, module_globals)
 

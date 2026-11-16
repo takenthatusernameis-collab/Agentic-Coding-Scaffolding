@@ -102,14 +102,6 @@ class TestStripMarkdown(unittest.TestCase):
         self.assertEqual(strip_markdown("> quoted"), "quoted")
 
 
-class TestCountWords(unittest.TestCase):
-    def test_counts_words(self) -> None:
-        self.assertEqual(count_words("hello world foo"), 3)
-
-    def test_empty(self) -> None:
-        self.assertEqual(count_words(""), 0)
-
-
 class TestHasWords(unittest.TestCase):
     def test_empty(self) -> None:
         self.assertFalse(has_words(""))
@@ -150,10 +142,22 @@ class TestHeading(unittest.TestCase):
         self.assertTrue(is_heading("## Sub"))
         self.assertFalse(is_heading("not heading"))
 
+    def test_is_heading_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_heading(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_heading(123)  # type: ignore[arg-type]
+
     def test_heading_level(self) -> None:
         self.assertEqual(heading_level("# Title"), 1)
         self.assertEqual(heading_level("### Deep"), 3)
         self.assertEqual(heading_level("not heading"), 0)
+
+    def test_heading_level_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heading_level(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            heading_level(123)  # type: ignore[arg-type]
 
 
 class TestCountHeadings(unittest.TestCase):

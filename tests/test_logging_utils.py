@@ -157,5 +157,19 @@ class TestExportedTypeVars(unittest.TestCase):
         self.assertEqual(F.__name__, "F")
 
 
+class TestConfigureLoggingBoolLevel(unittest.TestCase):
+    def setUp(self):
+        root = logging.getLogger()
+        for handler in list(root.handlers):
+            root.removeHandler(handler)
+        root.setLevel(logging.WARNING)
+
+    def test_rejects_bool_level(self):
+        with self.assertRaises(TypeError):
+            configure_logging(level=True, force=True)
+        with self.assertRaises(TypeError):
+            configure_logging(level=False, force=True)
+
+
 if __name__ == "__main__":
     unittest.main()

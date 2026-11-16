@@ -16,6 +16,8 @@ __all__: list[str] = [
 
 def lzma_compress(data: bytes, preset: int = 6) -> bytes:
     """Compress bytes using lzma."""
+    if isinstance(preset, bool) or not isinstance(preset, int):
+        raise TypeError("preset must be an int")
     return lzma.compress(data, preset=preset)
 
 
@@ -35,6 +37,8 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
     Returns:
         An lzma file object.
     """
+    if preset is not None and (isinstance(preset, bool) or not isinstance(preset, int)):
+        raise TypeError("preset must be an int")
     if preset is not None and "r" not in mode:
         return lzma.open(filename, mode, preset=preset)  # type: ignore[return-value]
     return lzma.open(filename, mode)  # type: ignore[return-value]
@@ -42,6 +46,8 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
 
 def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:
     """Write data to an lzma file."""
+    if isinstance(preset, bool) or not isinstance(preset, int):
+        raise TypeError("preset must be an int")
     with lzma.open(filename, "wb", preset=preset) as f:
         f.write(data)
 
