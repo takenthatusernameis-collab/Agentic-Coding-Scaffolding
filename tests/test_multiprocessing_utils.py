@@ -116,6 +116,20 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_condition(lock="bad")  # type: ignore[arg-type]
 
 
+    def test_create_condition_accepts_lock(self):
+        lock = multiprocessing_utils.create_lock()
+        cond = multiprocessing_utils.create_condition(lock=lock)
+        assert cond is not None
+        cond.acquire()
+        cond.release()
+
+
+    def test_create_condition_accepts_rlock(self):
+        rlock = multiprocessing_utils.create_rlock()
+        cond = multiprocessing_utils.create_condition(lock=rlock)
+        assert cond is not None
+
+
     def test_create_value(self):
         val = multiprocessing_utils.create_value("i", 10)
         assert val.value == 10
@@ -123,8 +137,20 @@ class TestMultiprocessingUtils(unittest.TestCase):
         assert val.value == 20
 
 
+    def test_create_value_accepts_lock(self):
+        lock = multiprocessing_utils.create_lock()
+        val = multiprocessing_utils.create_value("i", 10, lock=lock)
+        assert val.value == 10
+
+
     def test_create_array(self):
         arr = multiprocessing_utils.create_array("i", [1, 2, 3])
+        assert list(arr) == [1, 2, 3]
+
+
+    def test_create_array_accepts_lock(self):
+        lock = multiprocessing_utils.create_lock()
+        arr = multiprocessing_utils.create_array("i", [1, 2, 3], lock=lock)
         assert list(arr) == [1, 2, 3]
 
 

@@ -7912,6 +7912,20 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_condition(lock="bad")  # type: ignore[arg-type]
 
 
+    def test_create_condition_accepts_lock(self):
+        lock = multiprocessing_utils.create_lock()
+        cond = multiprocessing_utils.create_condition(lock=lock)
+        assert cond is not None
+        cond.acquire()
+        cond.release()
+
+
+    def test_create_condition_accepts_rlock(self):
+        rlock = multiprocessing_utils.create_rlock()
+        cond = multiprocessing_utils.create_condition(lock=rlock)
+        assert cond is not None
+
+
     def test_create_value(self):
         val = multiprocessing_utils.create_value("i", 10)
         assert val.value == 10
@@ -7919,8 +7933,20 @@ class TestMultiprocessingUtils(unittest.TestCase):
         assert val.value == 20
 
 
+    def test_create_value_accepts_lock(self):
+        lock = multiprocessing_utils.create_lock()
+        val = multiprocessing_utils.create_value("i", 10, lock=lock)
+        assert val.value == 10
+
+
     def test_create_array(self):
         arr = multiprocessing_utils.create_array("i", [1, 2, 3])
+        assert list(arr) == [1, 2, 3]
+
+
+    def test_create_array_accepts_lock(self):
+        lock = multiprocessing_utils.create_lock()
+        arr = multiprocessing_utils.create_array("i", [1, 2, 3], lock=lock)
         assert list(arr) == [1, 2, 3]
 
 
@@ -8123,6 +8149,8 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from multiprocessing import Queue as MPQueue
+from multiprocessing.synchronize import Lock as _MPLock
+from multiprocessing.synchronize import RLock as _MPRLock
 from typing import Any, Callable, Iterable, Sequence
 
 
@@ -8359,7 +8387,7 @@ def create_condition(lock: Any = None, context: str | None = None) -> Any:
     Raises:
         TypeError: If lock is not a Lock/RLock or None.
     """
-    if lock is not None and not isinstance(lock, (mp.Lock, mp.RLock)):  # type: ignore[arg-type]
+    if lock is not None and not isinstance(lock, (_MPLock, _MPRLock)):
         raise TypeError("lock must be a Lock, RLock, or None")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Condition(lock)
@@ -8386,7 +8414,7 @@ def create_value(
     Raises:
         TypeError: If lock is invalid type.
     """
-    if not isinstance(lock, (bool, mp.Lock, mp.RLock)):  # type: ignore[arg-type]
+    if not isinstance(lock, (bool, _MPLock, _MPRLock)):
         raise TypeError("lock must be bool or Lock/RLock")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Value(typecode_or_type, *args, lock=lock)
@@ -8413,7 +8441,7 @@ def create_array(
     Raises:
         TypeError: If lock is invalid type.
     """
-    if not isinstance(lock, (bool, mp.Lock, mp.RLock)):  # type: ignore[arg-type]
+    if not isinstance(lock, (bool, _MPLock, _MPRLock)):
         raise TypeError("lock must be bool or Lock/RLock")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Array(typecode_or_type, size_or_initializer, lock=lock)
@@ -72242,6 +72270,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `multiprocessing_utils` rejected valid `Lock`/`RLock` objects
+
+- **Correctness fix — `multiprocessing_utils.create_condition`, `create_value`, and `create_array` could not accept a `Lock`/`RLock`.** All three validated their `lock` argument with `isinstance(lock, (mp.Lock, mp.RLock))`, but `multiprocessing.Lock` and `multiprocessing.RLock` are bound methods of the default context, not types. `isinstance` therefore raised `TypeError: isinstance() arg 2 must be a type, a tuple of types, or a union` for *every* non-`None` lock, so passing a valid lock crashed instead of being accepted (`create_condition(lock=create_lock())`, `create_value("i", 1, lock=create_lock())`, `create_array("i", [1], lock=create_lock())`). The checks now use the real `multiprocessing.synchronize.Lock`/`RLock` types, so valid locks are accepted while non-lock values still raise the documented `TypeError`. Added `test_create_condition_accepts_lock`, `test_create_condition_accepts_rlock`, `test_create_value_accepts_lock`, and `test_create_array_accepts_lock` (all fail against the old implementation and pass after).
+- **Defect hunt (batch `math`–`multiprocessing`):** reviewed `math_utils`, `memoize_utils`, `mimetypes_utils`, `mmap_utils`, `modulefinder_utils`, `multiprocessing_utils`. The `multiprocessing_utils` issue above was the only defect found in this pass.
+- Validation: `python -m unittest tests.test_multiprocessing_utils` — 34 OK; `python -m doctest multiprocessing_utils.py` — OK; `python -m py_compile multiprocessing_utils.py` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. (`ruff`/`mypy` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `gc_utils.set_threshold` argument forwarding and `functools_utils.curry` builtin support
 
 - **Correctness fix — `gc_utils.set_threshold` did not forward its arguments the way `gc.set_threshold` does.** The wrapper used `threshold1: int = 0, threshold2: int = 0` and forwarded all three whenever either was non-zero. Because `0` is also a meaningful threshold (it disables automatic collection for that generation), the wrapper could not distinguish an omitted argument from an explicit `0`: `set_threshold(100, 0, 0)` silently became `gc.set_threshold(100)` (leaving generations 1 and 2 at their previous values), and `set_threshold(500, 5)` became `gc.set_threshold(500, 5, 0)` (resetting generation 2 to 0 instead of leaving it unchanged). `threshold1`/`threshold2` now default to `None`; omitted arguments leave the corresponding threshold untouched while an explicit `0` is still forwarded. Added `test_two_arguments_preserve_threshold2` and `test_explicit_zero_generations` (both fail against the old implementation and pass after).

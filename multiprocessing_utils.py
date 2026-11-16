@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import multiprocessing as mp
 from multiprocessing import Queue as MPQueue
+from multiprocessing.synchronize import Lock as _MPLock
+from multiprocessing.synchronize import RLock as _MPRLock
 from typing import Any, Callable, Iterable, Sequence
 
 
@@ -244,7 +246,7 @@ def create_condition(lock: Any = None, context: str | None = None) -> Any:
     Raises:
         TypeError: If lock is not a Lock/RLock or None.
     """
-    if lock is not None and not isinstance(lock, (mp.Lock, mp.RLock)):  # type: ignore[arg-type]
+    if lock is not None and not isinstance(lock, (_MPLock, _MPRLock)):
         raise TypeError("lock must be a Lock, RLock, or None")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Condition(lock)
@@ -271,7 +273,7 @@ def create_value(
     Raises:
         TypeError: If lock is invalid type.
     """
-    if not isinstance(lock, (bool, mp.Lock, mp.RLock)):  # type: ignore[arg-type]
+    if not isinstance(lock, (bool, _MPLock, _MPRLock)):
         raise TypeError("lock must be bool or Lock/RLock")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Value(typecode_or_type, *args, lock=lock)
@@ -298,7 +300,7 @@ def create_array(
     Raises:
         TypeError: If lock is invalid type.
     """
-    if not isinstance(lock, (bool, mp.Lock, mp.RLock)):  # type: ignore[arg-type]
+    if not isinstance(lock, (bool, _MPLock, _MPRLock)):
         raise TypeError("lock must be bool or Lock/RLock")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Array(typecode_or_type, size_or_initializer, lock=lock)
