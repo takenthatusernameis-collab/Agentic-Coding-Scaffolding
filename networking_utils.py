@@ -88,23 +88,23 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
 
 
 def find_free_port(start: int = 1024, end: int = 65535) -> int:
-    """Return a free local TCP port by binding a temporary listener.
+    """Return a free local TCP port within the specified range.
 
-    The function binds to port 0 to let the OS assign an unused port, then
-    returns that port number. The *start* and *end* bounds are validated but
-    the OS-assigned port is returned regardless of the range.
+    The function attempts to bind to ports in the range [*start*, *end*]
+    until it finds an unused one.
 
     Args:
         start: The inclusive lower bound of the acceptable port range.
         end: The inclusive upper bound of the acceptable port range.
 
     Returns:
-        A free local TCP port number.
+        A free local TCP port number within the range.
 
     Raises:
         TypeError: If *start* or *end* is not an integer.
         ValueError: If either bound is not a valid port number, or
             *start* is greater than *end*.
+        OSError: If no free port can be found in the range.
 
     Examples:
         >>> port = find_free_port()
@@ -122,10 +122,14 @@ def find_free_port(start: int = 1024, end: int = 65535) -> int:
     if start > end:
         raise ValueError(f"start {start} must be <= end {end}")
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-        sock.bind(("127.0.0.1", 0))
-        port = cast(int, sock.getsockname()[1])
-    return port
+    for port in range(start, end + 1):
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                sock.bind(("127.0.0.1", port))
+                return port
+        except OSError:
+            continue
+    raise OSError(f"no free port found in range [{start}, {end}]")
 
 
 def resolve_hostname(hostname: str) -> str:

@@ -99,6 +99,11 @@ class TestFindFreePort(unittest.TestCase):
         with self.assertRaises(TypeError):
             find_free_port(1024, "65535")
 
+    def test_returns_port_in_range(self):
+        for _ in range(10):
+            port = find_free_port(10000, 11000)
+            self.assertTrue(10000 <= port <= 11000, f"port {port} not in range [10000, 11000]")
+
 
 class TestResolveHostname(unittest.TestCase):
     def test_resolves_localhost(self):
