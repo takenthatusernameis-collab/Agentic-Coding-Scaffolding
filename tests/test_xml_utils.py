@@ -247,5 +247,72 @@ class TestValidateWellFormed(unittest.TestCase):
             validate_well_formed(123)  # type: ignore[arg-type]
 
 
+class TestXmlTypeErrorContracts(unittest.TestCase):
+    """Cover the remaining TypeError branches the existing suite skips.
+
+    Every helper validates its Element argument first, then its scalar
+    arguments. The existing tests exercise the scalar branches but leave the
+    "not an Element" branch of several helpers untested, so a regression in
+    those guards would not be caught. These tests pin the documented error
+    contract for each uncovered branch.
+    """
+
+    def test_set_attribute_rejects_non_element(self):
+        with self.assertRaises(TypeError):
+            set_attribute("not an element", "k", "v")  # type: ignore[arg-type]
+
+    def test_get_attribute_rejects_non_element(self):
+        with self.assertRaises(TypeError):
+            get_attribute("not an element", "k")  # type: ignore[arg-type]
+
+    def test_dict_to_element_rejects_non_dict_attributes(self):
+        with self.assertRaises(TypeError):
+            dict_to_element("root", {"attributes": "not a dict"})
+
+    def test_dict_to_element_rejects_non_string_attribute_values(self):
+        with self.assertRaises(TypeError):
+            dict_to_element("root", {"attributes": {"k": 1}})  # type: ignore[dict-item]
+
+    def test_dict_to_element_rejects_non_string_attribute_keys(self):
+        with self.assertRaises(TypeError):
+            dict_to_element("root", {"attributes": {1: "v"}})  # type: ignore[dict-item]
+
+    def test_dict_to_element_rejects_non_string_text(self):
+        with self.assertRaises(TypeError):
+            dict_to_element("root", {"text": 123})
+
+    def test_dict_to_element_rejects_non_list_children(self):
+        with self.assertRaises(TypeError):
+            dict_to_element("root", {"children": "not a list"})
+
+    def test_dict_to_element_rejects_non_dict_child(self):
+        with self.assertRaises(TypeError):
+            dict_to_element("root", {"children": ["not a dict"]})  # type: ignore[list-item]
+
+    def test_dict_to_element_rejects_child_without_string_tag(self):
+        with self.assertRaises(TypeError):
+            dict_to_element("root", {"children": [{"tag": 123}]})  # type: ignore[dict-item]
+
+    def test_find_elements_rejects_non_element(self):
+        with self.assertRaises(TypeError):
+            find_elements("not an element", "child")  # type: ignore[arg-type]
+
+    def test_find_element_rejects_non_element(self):
+        with self.assertRaises(TypeError):
+            find_element("not an element", "child")  # type: ignore[arg-type]
+
+    def test_get_element_text_rejects_non_element(self):
+        with self.assertRaises(TypeError):
+            get_element_text("not an element", "child")  # type: ignore[arg-type]
+
+    def test_set_element_text_rejects_non_element(self):
+        with self.assertRaises(TypeError):
+            set_element_text("not an element", "text")  # type: ignore[arg-type]
+
+    def test_xml_to_string_rejects_non_element(self):
+        with self.assertRaises(TypeError):
+            xml_to_string("not an element")  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()
