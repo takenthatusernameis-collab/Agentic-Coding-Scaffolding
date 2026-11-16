@@ -65,6 +65,10 @@ class PriorityQueue(Generic[T]):
             >>> pq.peek()
             'task'
         """
+        if not isinstance(priority, (int, float)) or isinstance(priority, bool):
+            raise TypeError(
+                f"priority must be a number, got {priority!r}"
+            )
         heapq.heappush(self._heap, (float(priority), self._counter, item))
         self._counter += 1
 
