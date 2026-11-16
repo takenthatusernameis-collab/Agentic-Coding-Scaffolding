@@ -58,6 +58,7 @@ class TestPickleUtils(unittest.TestCase):
         self.assertTrue(is_valid_protocol(pickle.HIGHEST_PROTOCOL))
         self.assertFalse(is_valid_protocol("nope"))
         self.assertFalse(is_valid_protocol(99))
+        self.assertFalse(is_valid_protocol(True))
 
     def test_dump_load_with_explicit_protocol(self):
         buffer = io.BytesIO()
