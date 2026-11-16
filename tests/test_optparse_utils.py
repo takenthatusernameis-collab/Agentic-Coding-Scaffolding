@@ -1,5 +1,6 @@
 """Tests for the optparse utilities."""
 
+import optparse
 import sys
 import unittest
 from contextlib import redirect_stderr
@@ -475,6 +476,22 @@ class TestValuesToDict(unittest.TestCase):
     def test_values_to_dict_rejects_foreign_values(self) -> None:
         with self.assertRaises(TypeError):
             optparse_utils.values_to_dict({"file": "fallback"})  # type: ignore[arg-type]
+
+
+class TestReExportedClasses(unittest.TestCase):
+    """Verify the classes and constants re-exported from the standard library."""
+
+    def test_option_container_is_reexported(self) -> None:
+        self.assertIs(optparse_utils.OptionContainer, optparse.OptionContainer)
+
+    def test_bad_option_error_is_reexported(self) -> None:
+        self.assertIs(optparse_utils.BadOptionError, optparse.BadOptionError)
+
+    def test_unset_is_a_sentinel(self) -> None:
+        self.assertFalse(optparse_utils.UNSET)
+        self.assertEqual(repr(optparse_utils.UNSET), "<unset>")
+        # UNSET is a module-level instance of _Unset
+        self.assertIsInstance(optparse_utils.UNSET, optparse_utils._Unset)
 
 
 if __name__ == "__main__":

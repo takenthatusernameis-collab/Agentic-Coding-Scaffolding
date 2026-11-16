@@ -84,6 +84,14 @@ class TestExports(unittest.TestCase):
         self.assertEqual(telnetlib_utils.NOP, telnetlib.NOP)
         self.assertEqual(telnetlib_utils.SB, telnetlib.SB)
         self.assertEqual(telnetlib_utils.theNULL, telnetlib.theNULL)
+        self.assertEqual(telnetlib_utils.AO, telnetlib.AO)
+        self.assertEqual(telnetlib_utils.AYT, telnetlib.AYT)
+        self.assertEqual(telnetlib_utils.EC, telnetlib.EC)
+        self.assertEqual(telnetlib_utils.EL, telnetlib.EL)
+        self.assertEqual(telnetlib_utils.GA, telnetlib.GA)
+        self.assertEqual(telnetlib_utils.DM, telnetlib.DM)
+        self.assertEqual(telnetlib_utils.BRK, telnetlib.BRK)
+        self.assertEqual(telnetlib_utils.IP, telnetlib.IP)
 
     @unittest.skipUnless(TELNETLIB_AVAILABLE, "telnetlib is not available")
     def test_telnet_class_is_reexported(self):

@@ -105460,6 +105460,7 @@ OPTPARSE_UTILS
 cat > "$OUTPUT_DIR/tests/test_optparse_utils.py" <<'TEST_OPTPARSE_UTILS'
 """Tests for the optparse utilities."""
 
+import optparse
 import sys
 import unittest
 from contextlib import redirect_stderr
@@ -105935,6 +105936,22 @@ class TestValuesToDict(unittest.TestCase):
     def test_values_to_dict_rejects_foreign_values(self) -> None:
         with self.assertRaises(TypeError):
             optparse_utils.values_to_dict({"file": "fallback"})  # type: ignore[arg-type]
+
+
+class TestReExportedClasses(unittest.TestCase):
+    """Verify the classes and constants re-exported from the standard library."""
+
+    def test_option_container_is_reexported(self) -> None:
+        self.assertIs(optparse_utils.OptionContainer, optparse.OptionContainer)
+
+    def test_bad_option_error_is_reexported(self) -> None:
+        self.assertIs(optparse_utils.BadOptionError, optparse.BadOptionError)
+
+    def test_unset_is_a_sentinel(self) -> None:
+        self.assertFalse(optparse_utils.UNSET)
+        self.assertEqual(repr(optparse_utils.UNSET), "<unset>")
+        # UNSET is a module-level instance of _Unset
+        self.assertIsInstance(optparse_utils.UNSET, optparse_utils._Unset)
 
 
 if __name__ == "__main__":
@@ -132891,17 +132908,36 @@ UNITTEST_UTILS
 cat > "$OUTPUT_DIR/tests/test_unittest_utils.py" <<'TEST_UNITTEST_UTILS'
 import unittest
 
-from unittest_utils import TestCase, make_suite, run_tests
+import unittest_utils
+
+
+class TestReExportedClasses(unittest.TestCase):
+    """Verify the classes re-exported from the standard library."""
+
+    def test_test_case_is_reexported(self) -> None:
+        self.assertIs(unittest_utils.TestCase, unittest.TestCase)
+
+    def test_test_suite_is_reexported(self) -> None:
+        self.assertIs(unittest_utils.TestSuite, unittest.TestSuite)
+
+    def test_test_loader_is_reexported(self) -> None:
+        self.assertIs(unittest_utils.TestLoader, unittest.TestLoader)
+
+    def test_text_test_runner_is_reexported(self) -> None:
+        self.assertIs(unittest_utils.TextTestRunner, unittest.TextTestRunner)
+
+    def test_default_test_loader_is_reexported(self) -> None:
+        self.assertIs(unittest_utils.defaultTestLoader, unittest.defaultTestLoader)
 
 
 class TestUnittestUtils(unittest.TestCase):
     def test_make_suite_and_run(self):
-        class MyTests(TestCase):
+        class MyTests(unittest_utils.TestCase):
             def test_ok(self):
                 self.assertTrue(True)
 
-        suite = make_suite(MyTests)
-        result = run_tests(suite, verbosity=0)
+        suite = unittest_utils.make_suite(MyTests)
+        result = unittest_utils.run_tests(suite, verbosity=0)
         self.assertTrue(result.wasSuccessful())
         self.assertEqual(result.testsRun, 1)
 
@@ -157144,6 +157180,14 @@ class TestExports(unittest.TestCase):
         self.assertEqual(telnetlib_utils.NOP, telnetlib.NOP)
         self.assertEqual(telnetlib_utils.SB, telnetlib.SB)
         self.assertEqual(telnetlib_utils.theNULL, telnetlib.theNULL)
+        self.assertEqual(telnetlib_utils.AO, telnetlib.AO)
+        self.assertEqual(telnetlib_utils.AYT, telnetlib.AYT)
+        self.assertEqual(telnetlib_utils.EC, telnetlib.EC)
+        self.assertEqual(telnetlib_utils.EL, telnetlib.EL)
+        self.assertEqual(telnetlib_utils.GA, telnetlib.GA)
+        self.assertEqual(telnetlib_utils.DM, telnetlib.DM)
+        self.assertEqual(telnetlib_utils.BRK, telnetlib.BRK)
+        self.assertEqual(telnetlib_utils.IP, telnetlib.IP)
 
     @unittest.skipUnless(TELNETLIB_AVAILABLE, "telnetlib is not available")
     def test_telnet_class_is_reexported(self):
