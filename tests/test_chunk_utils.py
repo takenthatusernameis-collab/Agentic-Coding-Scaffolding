@@ -172,3 +172,43 @@ def test_chunk_pad_invalid_size_value():
         pass
     else:
         raise AssertionError("expected ValueError")
+
+
+def test_chunk_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            chunk([1, 2, 3], bad)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for chunk size={bad!r}")
+
+
+def test_chunk_count_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            chunk_count([1, 2, 3], bad)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for chunk_count size={bad!r}")
+
+
+def test_ichunk_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            list(ichunk([1, 2, 3], bad))
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for ichunk size={bad!r}")
+
+
+def test_iter_chunked_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            list(iter_chunked([1, 2, 3], bad))
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for iter_chunked size={bad!r}")

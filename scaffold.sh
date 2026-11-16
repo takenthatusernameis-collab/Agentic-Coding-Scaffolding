@@ -75265,6 +75265,12 @@ Next Planned (posted for the following agent):
 - `scaffold.sh`: refreshed embedded `case_utils.py` copy via `python tools/refresh_scaffold.py`; `--check` reports in sync.
 - Validation: `python -m doctest case_utils.py` (clean), `python -m unittest tests.test_case_utils` (59 OK), `python -m unittest tests.test_public_api` (OK). No `.github/workflows/**` changes.
 
+## Unreleased — chunk_utils size parameter bool rejection
+
+- `chunk_utils.chunk`, `chunk_utils.ichunk`, and `chunk_utils.chunk_count`: reject `bool` values for `size` with `TypeError` (consistent with `chunk_pad`/`even_chunks` and module int-only size contracts). Prevents `True`/`False` being treated as valid chunk sizes via `bool` subclassing `int`.
+- `tests/test_chunk_utils.py`: added bool-rejection coverage for `chunk`, `chunk_count`, `ichunk`, and `iter_chunked`.
+- Verification: `python -m pytest tests/test_chunk_utils.py -q` (34 passed), `python -m unittest tests.test_public_api -q` (OK), `python -m ruff check chunk_utils.py tests/test_chunk_utils.py` (clean), `python -m mypy chunk_utils.py tests/test_chunk_utils.py` (clean), `python tools/scan_untested.py --all` (clean). `python tools/refresh_scaffold.py` refreshed embedded copies; `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — dict_utils deep_merge strict validation
 
 - `dict_utils.deep_merge`: added `TypeError` validation (`d1`/`d2` must be `dict`) and clarified docstring vs `merge` (recursive). Prevents confusing `AttributeError` on non-dict inputs and aligns with module conventions.
@@ -157225,6 +157231,46 @@ def test_chunk_pad_invalid_size_value():
         pass
     else:
         raise AssertionError("expected ValueError")
+
+
+def test_chunk_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            chunk([1, 2, 3], bad)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for chunk size={bad!r}")
+
+
+def test_chunk_count_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            chunk_count([1, 2, 3], bad)
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for chunk_count size={bad!r}")
+
+
+def test_ichunk_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            list(ichunk([1, 2, 3], bad))
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for ichunk size={bad!r}")
+
+
+def test_iter_chunked_rejects_bool_size():
+    for bad in (True, False):
+        try:
+            list(iter_chunked([1, 2, 3], bad))
+        except TypeError:
+            pass
+        else:
+            raise AssertionError(f"expected TypeError for iter_chunked size={bad!r}")
 TEST_CHUNK_UTILS
 
 # --- pipes_utils.py ---
@@ -164306,7 +164352,7 @@ __all__: list[str] = [
 
 def chunk(iterable: Iterable[Any], size: int) -> List[List[Any]]:
     """Split an iterable into chunks of the given size."""
-    if not isinstance(size, int):
+    if not isinstance(size, int) or isinstance(size, bool):
         raise TypeError("size must be int")
     if size <= 0:
         raise ValueError("size must be positive")
@@ -164334,7 +164380,7 @@ def chunked(iterable: Iterable[Any], size: int) -> List[List[Any]]:
 
 def ichunk(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
     """Split an iterable into chunks yielding them lazily."""
-    if not isinstance(size, int):
+    if not isinstance(size, int) or isinstance(size, bool):
         raise TypeError("size must be int")
     if size <= 0:
         raise ValueError("size must be positive")
@@ -164362,7 +164408,7 @@ def chunk_count(iterable: Iterable[Any], size: int) -> int:
         TypeError: If ``size`` is not an int.
         ValueError: If ``size`` is not positive.
     """
-    if not isinstance(size, int):
+    if not isinstance(size, int) or isinstance(size, bool):
         raise TypeError("size must be int")
     if size <= 0:
         raise ValueError("size must be positive")

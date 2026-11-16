@@ -18,7 +18,7 @@ __all__: list[str] = [
 
 def chunk(iterable: Iterable[Any], size: int) -> List[List[Any]]:
     """Split an iterable into chunks of the given size."""
-    if not isinstance(size, int):
+    if not isinstance(size, int) or isinstance(size, bool):
         raise TypeError("size must be int")
     if size <= 0:
         raise ValueError("size must be positive")
@@ -46,7 +46,7 @@ def chunked(iterable: Iterable[Any], size: int) -> List[List[Any]]:
 
 def ichunk(iterable: Iterable[Any], size: int) -> Iterator[List[Any]]:
     """Split an iterable into chunks yielding them lazily."""
-    if not isinstance(size, int):
+    if not isinstance(size, int) or isinstance(size, bool):
         raise TypeError("size must be int")
     if size <= 0:
         raise ValueError("size must be positive")
@@ -74,7 +74,7 @@ def chunk_count(iterable: Iterable[Any], size: int) -> int:
         TypeError: If ``size`` is not an int.
         ValueError: If ``size`` is not positive.
     """
-    if not isinstance(size, int):
+    if not isinstance(size, int) or isinstance(size, bool):
         raise TypeError("size must be int")
     if size <= 0:
         raise ValueError("size must be positive")
