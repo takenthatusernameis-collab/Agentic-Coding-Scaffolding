@@ -3256,12 +3256,14 @@ cat > "$OUTPUT_DIR/tests/test_asyncio_utils.py" <<'TEST_ASYNCIO_UTILS'
 
 import asyncio
 import unittest
+from typing import TypeVar
 
 from asyncio_utils import (
     Event,
     Lock,
     Queue,
     Semaphore,
+    T,
     all_tasks,
     create_task,
     current_task,
@@ -3370,6 +3372,12 @@ class TestLoops(unittest.IsolatedAsyncioTestCase):
     def test_get_event_loop(self):
         loop = get_event_loop()
         self.assertIsInstance(loop, asyncio.AbstractEventLoop)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -50848,8 +50856,9 @@ cat > "$OUTPUT_DIR/tests/test_circuit_breaker_utils.py" <<'TESTCIRCUITBREAKERUTI
 import threading
 import time
 import unittest
+from typing import TypeVar
 
-from circuit_breaker_utils import CircuitBreaker, CircuitOpenError
+from circuit_breaker_utils import CircuitBreaker, CircuitOpenError, T
 
 
 class TestCircuitBreaker(unittest.TestCase):
@@ -51065,6 +51074,12 @@ class TestCircuitBreaker(unittest.TestCase):
         self.assertEqual(breaker.failures, 50)
 
 
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+
+
 class TestCircuitOpenError(unittest.TestCase):
     def test_is_runtime_error(self):
         self.assertTrue(issubclass(CircuitOpenError, RuntimeError))
@@ -51210,8 +51225,9 @@ cat > "$OUTPUT_DIR/tests/test_async_utils.py" <<'TEST_ASYNC_UTILS'
 
 import asyncio
 import unittest
+from typing import TypeVar
 
-from async_utils import async_sleep, gather_with_timeout, retry_async, run_in_thread
+from async_utils import T, async_sleep, gather_with_timeout, retry_async, run_in_thread
 
 
 class TestRunInThread(unittest.TestCase):
@@ -51302,6 +51318,12 @@ class TestRetryAsync(unittest.TestCase):
                 await retry_async(always_fails, max_attempts=2, delay=0.001)
 
         asyncio.run(run_test())
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -53713,8 +53735,9 @@ cat > "$OUTPUT_DIR/tests/test_cache_utils.py" <<'TESTCACHEUTILS'
 """Tests for cache_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from cache_utils import cache_info, clear_cache, memoize
+from cache_utils import F, cache_info, clear_cache, memoize
 
 
 class TestMemoize(unittest.TestCase):
@@ -53973,6 +53996,12 @@ class TestMemoizeExceptions(unittest.TestCase):
         with self.assertRaises(ValueError):
             fail(-1)
         self.assertEqual(calls[0], 3)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(F, TypeVar)
+        self.assertEqual(F.__name__, "F")
 
 
 if __name__ == "__main__":
@@ -71730,6 +71759,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — raised `async_utils`/`asyncio_utils`/`builtins_utils`/`cache_utils`/`circuit_breaker_utils` exported TypeVar coverage
+
+- **Coverage — `tests/test_async_utils.py`, `tests/test_asyncio_utils.py`, `tests/test_builtins_utils.py`, `tests/test_cache_utils.py`, `tests/test_circuit_breaker_utils.py`: added `TestExportedTypeVars` tests pinning exported `TypeVar` symbols reported by `python tools/scan_untested.py --all`.** `async_utils` exports `T`; `asyncio_utils` exports `T`; `builtins_utils` exports `K`, `S`, `T`, `V`; `cache_utils` exports `F`; `circuit_breaker_utils` exports `T`. Functional APIs were already covered; these tests assert each export is a `TypeVar` with the expected name, closing the public-API test gap. Targeted verification: `python -m unittest tests.test_async_utils tests.test_asyncio_utils tests.test_builtins_utils tests.test_cache_utils tests.test_circuit_breaker_utils -v` (88 OK); `python -m ruff check` (clean); `python -m mypy` (clean). `python tools/refresh_scaffold.py` refreshed embedded test files; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — raised `copy_utils`/`call_once_utils` exported TypeVar coverage
 
 - **Coverage — `tests/test_copy_utils.py`, `tests/test_call_once_utils.py`: added `TestExportedTypeVars` coverage for exported `TypeVar`s that `scan_untested --all` still reported as untested.** `copy_utils` exports `K`, `T`, and `V`; `call_once_utils` exports `T`. The functional wrappers were already exercised, but the exported TypeVar objects themselves were not referenced by tests, leaving the public API surface partially unpinned. Added explicit tests asserting each export is a `TypeVar` with the expected name. Targeted verification: `python -m unittest tests.test_copy_utils tests.test_call_once_utils -v` (28 OK), `python -m ruff check tests/test_copy_utils.py tests/test_call_once_utils.py` (clean), `python -m mypy tests/test_copy_utils.py tests/test_call_once_utils.py` (clean). `python tools/refresh_scaffold.py` refreshed embedded `tests/test_copy_utils.py` and `tests/test_call_once_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -153392,8 +153425,13 @@ cat > "$OUTPUT_DIR/tests/test_builtins_utils.py" <<'TEST_BUILTINS_UTILS'
 from __future__ import annotations
 
 import unittest
+from typing import TypeVar
 
 from builtins_utils import (
+    K,
+    S,
+    T,
+    V,
     absolute,
     all_true,
     any_true,
@@ -153574,6 +153612,18 @@ class TestBuiltinsUtils(unittest.TestCase):
         self.assertEqual(summation([1, 2, 3], start=10), 16)
         with self.assertRaises(TypeError):
             summation(123)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(K, TypeVar)
+        self.assertIsInstance(S, TypeVar)
+        self.assertIsInstance(T, TypeVar)
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(K.__name__, "K")
+        self.assertEqual(S.__name__, "S")
+        self.assertEqual(T.__name__, "T")
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":

@@ -3,8 +3,13 @@
 from __future__ import annotations
 
 import unittest
+from typing import TypeVar
 
 from builtins_utils import (
+    K,
+    S,
+    T,
+    V,
     absolute,
     all_true,
     any_true,
@@ -185,6 +190,18 @@ class TestBuiltinsUtils(unittest.TestCase):
         self.assertEqual(summation([1, 2, 3], start=10), 16)
         with self.assertRaises(TypeError):
             summation(123)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(K, TypeVar)
+        self.assertIsInstance(S, TypeVar)
+        self.assertIsInstance(T, TypeVar)
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(K.__name__, "K")
+        self.assertEqual(S.__name__, "S")
+        self.assertEqual(T.__name__, "T")
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":

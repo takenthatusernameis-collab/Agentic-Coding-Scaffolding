@@ -2,8 +2,9 @@
 
 import asyncio
 import unittest
+from typing import TypeVar
 
-from async_utils import async_sleep, gather_with_timeout, retry_async, run_in_thread
+from async_utils import T, async_sleep, gather_with_timeout, retry_async, run_in_thread
 
 
 class TestRunInThread(unittest.TestCase):
@@ -94,6 +95,12 @@ class TestRetryAsync(unittest.TestCase):
                 await retry_async(always_fails, max_attempts=2, delay=0.001)
 
         asyncio.run(run_test())
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":

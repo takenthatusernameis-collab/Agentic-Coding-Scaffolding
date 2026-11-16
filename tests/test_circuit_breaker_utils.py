@@ -1,8 +1,9 @@
 import threading
 import time
 import unittest
+from typing import TypeVar
 
-from circuit_breaker_utils import CircuitBreaker, CircuitOpenError
+from circuit_breaker_utils import CircuitBreaker, CircuitOpenError, T
 
 
 class TestCircuitBreaker(unittest.TestCase):
@@ -216,6 +217,12 @@ class TestCircuitBreaker(unittest.TestCase):
         self.assertEqual(len(errors), 50)
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
         self.assertEqual(breaker.failures, 50)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 class TestCircuitOpenError(unittest.TestCase):

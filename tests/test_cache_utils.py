@@ -1,8 +1,9 @@
 """Tests for cache_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from cache_utils import cache_info, clear_cache, memoize
+from cache_utils import F, cache_info, clear_cache, memoize
 
 
 class TestMemoize(unittest.TestCase):
@@ -261,6 +262,12 @@ class TestMemoizeExceptions(unittest.TestCase):
         with self.assertRaises(ValueError):
             fail(-1)
         self.assertEqual(calls[0], 3)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(F, TypeVar)
+        self.assertEqual(F.__name__, "F")
 
 
 if __name__ == "__main__":

@@ -2,12 +2,14 @@
 
 import asyncio
 import unittest
+from typing import TypeVar
 
 from asyncio_utils import (
     Event,
     Lock,
     Queue,
     Semaphore,
+    T,
     all_tasks,
     create_task,
     current_task,
@@ -116,6 +118,12 @@ class TestLoops(unittest.IsolatedAsyncioTestCase):
     def test_get_event_loop(self):
         loop = get_event_loop()
         self.assertIsInstance(loop, asyncio.AbstractEventLoop)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
