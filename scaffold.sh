@@ -71675,6 +71675,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — corrected `type_check_utils.is_typeddict` docstring contract (instances are plain `dict`s); defect hunt on `tracemalloc`–`url` batch
+
+- **Documentation/contract fix — `type_check_utils.is_typeddict` claimed to detect TypedDict *instances*, but that is impossible.** The docstring said it "detects TypedDict classes … and instances of TypedDict classes" and the function ended with a dead `return is_typeddict(type(value))` branch intended to handle instances. A TypedDict instance is a plain `dict` at runtime (`type(instance) is dict`), so it cannot be distinguished from any other dict and is correctly reported as `False` (matching `typing.is_typeddict`). The docstring's own example (`is_typeddict({"x": 1, "y": 2})` → `False`) already contradicted the prose. The docstring now documents that only TypedDict *classes* are detected and that instances are indistinguishable from plain dicts, and the misleading dead branch was replaced with a direct `return False`. Added `test_typed_dict_instance_is_not_typed_dict` (locks the corrected contract). Refreshed the embedded `type_check_utils.py` and `tests/test_type_check_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt — reviewed the next alphabetical batch of `*_utils.py` modules (`tracemalloc`, `tree`, `tty`, `type_check`, `type`, `types`, `typing`, `unicodedata`, `unittest`, `url`).** No incorrect contracts found in `tracemalloc`, `tree`, `tty`, `type`, `types`, `typing`, `unicodedata`, `unittest`, or `url`. The `type_check` issue above was the only defect. All batch modules pass their tests, their doctests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- Validation: `python -m unittest tests.test_type_check_utils` — 84 OK; `python -m doctest type_check_utils.py` — OK; `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_doctests` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `this_utils.print_zen` printing the ROT13-encoded Zen instead of the decoded text; defect hunt on `termios`–`traceback` batch
 
 - **Correctness fix — `this_utils.print_zen` printed the ROT13-encoded Zen string (`_this.s`) directly instead of the decoded, readable text.** The `this` standard library module stores the Zen of Python as an ROT13-encoded string in `this.s` and a translation table in `this.d`; the readable Zen is obtained by applying the translation table (`this.s.translate(this.d)`). The wrapper's `print_zen` docstring promises to "Print the Zen of Python to standard output," but it called `print(_this.s)`, so `print_zen()` emitted `Gur Mra bs Clguba, ol Gvz Crgref...` instead of `The Zen of Python, by Tim Peters...`. The module already provides a `decode` helper that applies the translation table, so `print_zen` now calls `print(decode(zen_of_python))`. Updated `tests/test_this_utils.py`: `test_print_zen_outputs_zen` now asserts the output equals the decoded Zen, `test_print_zen_is_decoded` checks for readable Zen substrings, and `test_print_zen_is_not_encoded` verifies the encoded text is absent (all three fail against the old implementation and pass after the fix). Refreshed the embedded `this_utils.py` and `tests/test_this_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
@@ -161889,19 +161896,24 @@ def is_namedtuple(value: object) -> bool:
 
 
 def is_typeddict(value: object) -> bool:
-    """Return True if *value* is a TypedDict class or instance.
+    """Return True if *value* is a TypedDict class.
 
     TypedDict classes are created via :class:`typing.TypedDict` and are
     dict subclasses with type annotations describing their keys. This
     helper detects TypedDict classes (by checking for the
-    ``__annotations__`` attribute and that the class is a dict subclass)
-    and instances of TypedDict classes.
+    ``__annotations__`` attribute and that the class is a dict subclass).
+
+    Note:
+        Only TypedDict *classes* are detected. An *instance* of a TypedDict
+        is a plain :class:`dict` at runtime, so it cannot be distinguished
+        from any other dict and is reported as ``False`` (mirroring
+        :func:`typing.is_typeddict`).
 
     Args:
         value: The value to check.
 
     Returns:
-        True if *value* is a TypedDict class or instance, False otherwise.
+        True if *value* is a TypedDict class, False otherwise.
 
     Examples:
         >>> from typing import TypedDict
@@ -161949,8 +161961,9 @@ def is_typeddict(value: object) -> bool:
         except Exception:
             pass
         return False
-    # For instances, check if the instance's type is a TypedDict
-    return is_typeddict(type(value))
+    # Instances of a TypedDict are plain ``dict`` objects at runtime, so they
+    # cannot be distinguished from other dicts here.
+    return False
 
 
 def is_literal(value: object) -> bool:
@@ -162307,6 +162320,16 @@ class TestTypedDictChecks(unittest.TestCase):
     def test_plain_dict_is_not_typed_dict(self) -> None:
         self.assertFalse(type_check_utils.is_typeddict({"x": 1}))
         self.assertFalse(type_check_utils.is_typeddict({}))
+
+    def test_typed_dict_instance_is_not_typed_dict(self) -> None:
+        # A TypedDict instance is a plain ``dict`` at runtime, so it is not
+        # distinguishable from any other dict and must be reported as False
+        # (mirroring ``typing.is_typeddict``).
+        class Point(TypedDict):
+            x: int
+            y: int
+
+        self.assertFalse(type_check_utils.is_typeddict(Point(x=1, y=2)))
 
     def test_non_dict_is_not_typed_dict(self) -> None:
         self.assertFalse(type_check_utils.is_typeddict([1, 2]))

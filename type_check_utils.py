@@ -418,19 +418,24 @@ def is_namedtuple(value: object) -> bool:
 
 
 def is_typeddict(value: object) -> bool:
-    """Return True if *value* is a TypedDict class or instance.
+    """Return True if *value* is a TypedDict class.
 
     TypedDict classes are created via :class:`typing.TypedDict` and are
     dict subclasses with type annotations describing their keys. This
     helper detects TypedDict classes (by checking for the
-    ``__annotations__`` attribute and that the class is a dict subclass)
-    and instances of TypedDict classes.
+    ``__annotations__`` attribute and that the class is a dict subclass).
+
+    Note:
+        Only TypedDict *classes* are detected. An *instance* of a TypedDict
+        is a plain :class:`dict` at runtime, so it cannot be distinguished
+        from any other dict and is reported as ``False`` (mirroring
+        :func:`typing.is_typeddict`).
 
     Args:
         value: The value to check.
 
     Returns:
-        True if *value* is a TypedDict class or instance, False otherwise.
+        True if *value* is a TypedDict class, False otherwise.
 
     Examples:
         >>> from typing import TypedDict
@@ -478,8 +483,9 @@ def is_typeddict(value: object) -> bool:
         except Exception:
             pass
         return False
-    # For instances, check if the instance's type is a TypedDict
-    return is_typeddict(type(value))
+    # Instances of a TypedDict are plain ``dict`` objects at runtime, so they
+    # cannot be distinguished from other dicts here.
+    return False
 
 
 def is_literal(value: object) -> bool:

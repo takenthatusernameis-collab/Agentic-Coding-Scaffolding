@@ -99,6 +99,16 @@ class TestTypedDictChecks(unittest.TestCase):
         self.assertFalse(type_check_utils.is_typeddict({"x": 1}))
         self.assertFalse(type_check_utils.is_typeddict({}))
 
+    def test_typed_dict_instance_is_not_typed_dict(self) -> None:
+        # A TypedDict instance is a plain ``dict`` at runtime, so it is not
+        # distinguishable from any other dict and must be reported as False
+        # (mirroring ``typing.is_typeddict``).
+        class Point(TypedDict):
+            x: int
+            y: int
+
+        self.assertFalse(type_check_utils.is_typeddict(Point(x=1, y=2)))
+
     def test_non_dict_is_not_typed_dict(self) -> None:
         self.assertFalse(type_check_utils.is_typeddict([1, 2]))
         self.assertFalse(type_check_utils.is_typeddict((1, 2)))
