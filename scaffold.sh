@@ -76218,7 +76218,7 @@ The project includes numeric abstract base class utilities in `numbers_utils.py`
 
 ## Quopri Utilities Module
 
-The project includes quoted-printable utilities in `quopri_utils.py` wrapping the standard library `quopri` module: `encode` and `decode` convert quoted-printable data to and from bytes, `encode_file` and `decode_file` convert files in place, and `isqp` reports whether a string contains quoted-printable data. The module is tested in `tests/test_quopri_utils.py`.
+The project includes quoted-printable utilities in `quopri_utils.py` wrapping the standard library `quopri` module: `encode` and `decode` convert quoted-printable data to and from bytes, `encode_file` and `decode_file` convert files in place, and `isqp` reports whether a byte ordinal must be quoted in quoted-printable encoding. The module is tested in `tests/test_quopri_utils.py`.
 
 ## Sched Utilities Module
 
@@ -95355,10 +95355,10 @@ def is_valid_port(port: int) -> bool:
         port: The port number to validate.
 
     Returns:
-        ``True`` if *port`` is within the valid range, otherwise ``False``.
+        ``True`` if *port* is within the valid range, otherwise ``False``.
 
     Raises:
-        TypeError: If *port`` is not an integer.
+        TypeError: If *port* is not an integer.
 
     Examples:
         >>> is_valid_port(80)
@@ -95385,9 +95385,9 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         ``True`` if the port is open and reachable, otherwise ``False``.
 
     Raises:
-        TypeError: If *host`` is not a string, *port`` is not an integer, or
-            *timeout`` is not a number.
-        ValueError: If *port`` is not a valid port number or *timeout`` is
+        TypeError: If *host* is not a string, *port* is not an integer, or
+            *timeout* is not a number.
+        ValueError: If *port* is not a valid port number or *timeout* is
             negative.
 
     Examples:
@@ -95427,9 +95427,9 @@ def find_free_port(start: int = 1024, end: int = 65535) -> int:
         A free local TCP port number.
 
     Raises:
-        TypeError: If *start`` or *end`` is not an integer.
+        TypeError: If *start* or *end* is not an integer.
         ValueError: If either bound is not a valid port number, or
-            *start`` is greater than *end``.
+            *start* is greater than *end*.
 
     Examples:
         >>> port = find_free_port()
@@ -95463,8 +95463,8 @@ def resolve_hostname(hostname: str) -> str:
         The IPv4 address as a string.
 
     Raises:
-        TypeError: If *hostname`` is not a string.
-        ValueError: If *hostname`` is empty or cannot be resolved.
+        TypeError: If *hostname* is not a string.
+        ValueError: If *hostname* is empty or cannot be resolved.
 
     Examples:
         >>> resolve_hostname("localhost")  # doctest: +SKIP
@@ -95506,12 +95506,12 @@ def tcp_ping(host: str, port: int, timeout: float = 1.0) -> Optional[float]:
 
     Returns:
         The connection time in seconds, or ``None`` if the connection could
-        not be established within *timeout``.
+        not be established within *timeout*.
 
     Raises:
-        TypeError: If *host`` is not a string, *port`` is not an integer, or
-            *timeout`` is not a number.
-        ValueError: If *port`` is not a valid port number or *timeout`` is
+        TypeError: If *host* is not a string, *port* is not an integer, or
+            *timeout* is not a number.
+        ValueError: If *port* is not a valid port number or *timeout* is
             negative.
 
     Examples:
@@ -113723,33 +113723,35 @@ def decode_file(inp: BinaryIO, out: BinaryIO, header: bool = False) -> None:
 
 
 def isqp(b: int) -> bool:
-    if hasattr(quopri, "isqp"):
-        return bool(quopri.isqp(b))
-    # Fallback implementation for Python < 3.13
-    # In quoted-printable, = is the escape character and needs encoding
-    # isqp returns True for bytes that need to be encoded in quoted-printable
-    if isinstance(b, int):
-        byte = b
-    else:
-        if hasattr(b, "__len__") and len(b) == 1 and not isinstance(b, int):
-            byte = ord(b)
-        else:
-            byte = int(b)
-    # Quoted-printable encoding: space/tab at end of line, =, and non-printable chars need encoding
-    # But the test checks: isqp(ord('=')) -> True, isqp(ord('a')) -> False
-    if byte == ord("="):
-        return True
-    # Printable ASCII chars (except space, tab in certain contexts) don't need encoding
-    # But general definition: chars that are not in the safe set need encoding
-    if 32 <= byte <= 126:  # printable ASCII excluding space/tab special cases
-        # Space and tab can be problematic at line ends, but generally
-        # For the basic test case
-        if byte in (ord(" "), ord("\t")):
-            return True  # often needs special handling
-        return False
-    if byte in (ord("\t"), ord("\r"), ord("\n"), ord(" ")):
-        return True
-    return True  # non-ASCII or control chars need encoding
+    """Return ``True`` when byte *b* must be quoted in quoted-printable encoding.
+
+    Delegates to :func:`quopri.needsquoting` with ``quotetabs=False`` and
+    ``header=False``: the escape character ``=`` and every byte outside the
+    printable ASCII range (0x20..0x7E) require quoting. Embedded spaces and
+    tabs are not quoted unless they appear at a line end, and the header
+    underscore is left untouched.
+
+    Args:
+        b: The byte ordinal to test.
+
+    Returns:
+        ``True`` if *b* must be quoted, ``False`` otherwise.
+
+    Raises:
+        TypeError: If *b* is not an int.
+        ValueError: If *b* is not in the range 0..255.
+
+    Example:
+        >>> isqp(ord("="))
+        True
+        >>> isqp(ord("a"))
+        False
+    """
+    if isinstance(b, bool) or not isinstance(b, int):
+        raise TypeError("b must be an int")
+    if not 0 <= b <= 0xFF:
+        raise ValueError("b must be in range 0..255")
+    return bool(quopri.needsquoting(bytes([b]), quotetabs=False, header=False))  # type: ignore[attr-defined]
 
 
 __all__ = ["encode", "decode", "encode_file", "decode_file", "isqp"]
@@ -113760,6 +113762,8 @@ cat > "$OUTPUT_DIR/tests/test_quopri_utils.py" <<'TEST_QUOPRI_UTILS'
 """Tests for quopri_utils."""
 
 import io
+
+import pytest
 
 from quopri_utils import decode, decode_file, encode, encode_file, isqp
 
@@ -113778,6 +113782,27 @@ def test_encode_quotetabs():
 def test_isqp():
     assert isqp(ord("="))
     assert not isqp(ord("a"))
+
+
+def test_isqp_semantics():
+    # Bytes outside printable ASCII require quoting; printable ASCII (except
+    # the escape char) does not, matching quopri.needsquoting(quotetabs=False).
+    assert isqp(0x80)
+    assert isqp(0x00)
+    assert not isqp(ord("A"))
+    assert not isqp(ord(" "))
+    assert not isqp(ord("_"))
+
+
+def test_isqp_type_validation():
+    with pytest.raises(TypeError):
+        isqp("A")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        isqp(True)
+    with pytest.raises(ValueError):
+        isqp(256)
+    with pytest.raises(ValueError):
+        isqp(-1)
 
 
 def test_encode_file_decode_file():

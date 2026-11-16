@@ -2,6 +2,8 @@
 
 import io
 
+import pytest
+
 from quopri_utils import decode, decode_file, encode, encode_file, isqp
 
 
@@ -19,6 +21,27 @@ def test_encode_quotetabs():
 def test_isqp():
     assert isqp(ord("="))
     assert not isqp(ord("a"))
+
+
+def test_isqp_semantics():
+    # Bytes outside printable ASCII require quoting; printable ASCII (except
+    # the escape char) does not, matching quopri.needsquoting(quotetabs=False).
+    assert isqp(0x80)
+    assert isqp(0x00)
+    assert not isqp(ord("A"))
+    assert not isqp(ord(" "))
+    assert not isqp(ord("_"))
+
+
+def test_isqp_type_validation():
+    with pytest.raises(TypeError):
+        isqp("A")  # type: ignore[arg-type]
+    with pytest.raises(TypeError):
+        isqp(True)
+    with pytest.raises(ValueError):
+        isqp(256)
+    with pytest.raises(ValueError):
+        isqp(-1)
 
 
 def test_encode_file_decode_file():

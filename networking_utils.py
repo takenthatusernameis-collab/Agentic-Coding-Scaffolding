@@ -30,10 +30,10 @@ def is_valid_port(port: int) -> bool:
         port: The port number to validate.
 
     Returns:
-        ``True`` if *port`` is within the valid range, otherwise ``False``.
+        ``True`` if *port* is within the valid range, otherwise ``False``.
 
     Raises:
-        TypeError: If *port`` is not an integer.
+        TypeError: If *port* is not an integer.
 
     Examples:
         >>> is_valid_port(80)
@@ -60,9 +60,9 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         ``True`` if the port is open and reachable, otherwise ``False``.
 
     Raises:
-        TypeError: If *host`` is not a string, *port`` is not an integer, or
-            *timeout`` is not a number.
-        ValueError: If *port`` is not a valid port number or *timeout`` is
+        TypeError: If *host* is not a string, *port* is not an integer, or
+            *timeout* is not a number.
+        ValueError: If *port* is not a valid port number or *timeout* is
             negative.
 
     Examples:
@@ -102,9 +102,9 @@ def find_free_port(start: int = 1024, end: int = 65535) -> int:
         A free local TCP port number.
 
     Raises:
-        TypeError: If *start`` or *end`` is not an integer.
+        TypeError: If *start* or *end* is not an integer.
         ValueError: If either bound is not a valid port number, or
-            *start`` is greater than *end``.
+            *start* is greater than *end*.
 
     Examples:
         >>> port = find_free_port()
@@ -138,8 +138,8 @@ def resolve_hostname(hostname: str) -> str:
         The IPv4 address as a string.
 
     Raises:
-        TypeError: If *hostname`` is not a string.
-        ValueError: If *hostname`` is empty or cannot be resolved.
+        TypeError: If *hostname* is not a string.
+        ValueError: If *hostname* is empty or cannot be resolved.
 
     Examples:
         >>> resolve_hostname("localhost")  # doctest: +SKIP
@@ -181,12 +181,12 @@ def tcp_ping(host: str, port: int, timeout: float = 1.0) -> Optional[float]:
 
     Returns:
         The connection time in seconds, or ``None`` if the connection could
-        not be established within *timeout``.
+        not be established within *timeout*.
 
     Raises:
-        TypeError: If *host`` is not a string, *port`` is not an integer, or
-            *timeout`` is not a number.
-        ValueError: If *port`` is not a valid port number or *timeout`` is
+        TypeError: If *host* is not a string, *port* is not an integer, or
+            *timeout* is not a number.
+        ValueError: If *port* is not a valid port number or *timeout* is
             negative.
 
     Examples:
