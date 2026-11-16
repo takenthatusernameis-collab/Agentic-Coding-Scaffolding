@@ -32,6 +32,30 @@ class TestErrnoUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             errno_name("EEXIST")
 
+    def test_errorcode_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            errorcode(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            errorcode(False)  # type: ignore[arg-type]
+
+    def test_strerror_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            strerror(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strerror(False)  # type: ignore[arg-type]
+
+    def test_is_errno_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_errno(True, "EEXIST")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_errno(False, "EEXIST")  # type: ignore[arg-type]
+
+    def test_errno_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            errno_name(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            errno_name(False)  # type: ignore[arg-type]
+
 
 if __name__ == "__main__":
     unittest.main()

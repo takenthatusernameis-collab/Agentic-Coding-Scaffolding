@@ -1,6 +1,16 @@
 # Project Status
 
-## Latest Session (2026-11-16) — defect hunt sweep: dbm_utils, decimal_utils, deque_utils, difflib_utils, dis_utils, doctest_utils, dumbdbm_utils spot-checked
+## Latest Session (2026-11-16) — defect hunt/fix: `errno_utils` bool-as-int rejection
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 at start (clean tree, checkpoint matched HEAD `8f58132`); source changed, so ran `python tools/verify_state_delta.py --full` (battery passed, checkpoint advanced to `21e9d01`) and `python -m unittest discover tests/` (full suite OK).
+- **Optimize-delays survey:** no avoidable repository-managed delay; used state-delta probe and targeted verification for the touched module, then the full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `errno_utils.errorcode`, `errno_utils.strerror`, `errno_utils.is_errno`, and `errno_utils.errno_name` accepted boolean error codes because `isinstance(code, int)` admits `bool`. Each validator now rejects `bool` explicitly before the integer check, matching the convention used by `datetime_utils`, `secrets_utils`, and `concurrent_futures_utils`. Added `test_errorcode_rejects_bool`, `test_strerror_rejects_bool`, `test_is_errno_rejects_bool`, and `test_errno_name_rejects_bool`.
+- **Verification:** `python -m unittest tests.test_errno_utils` — 12 OK; `python -m doctest errno_utils.py` — OK; `python -m ruff check errno_utils.py tests/test_errno_utils.py` — clean; `python -m mypy errno_utils.py tests/test_errno_utils.py` — clean; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full` — passed; `python -m unittest discover tests/` — OK.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies.
+
+## Previous Session (2026-11-16) — defect hunt sweep: dbm_utils, decimal_utils, deque_utils, difflib_utils, dis_utils, doctest_utils, dumbdbm_utils spot-checked
 
 - `board_read`: empty (no task posted to main); executed durable handoff from `.kilo/next_task.md`.
 - **State:** probe rc=2 at start; ran `--full --record-full-suite`, checkpoint advanced to 8f58132861aa79506fc22ccd64e5b76792a0b2c0.

@@ -72107,6 +72107,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `errno_utils` accepting booleans as integer error codes
+
+- **Correctness fix — `errno_utils.errorcode`, `errno_utils.strerror`, `errno_utils.is_errno`, and `errno_utils.errno_name` accepted boolean error codes.** Because `bool` is a subclass of `int`, the `isinstance(code, int)` validation let `True` and `False` slip through, so `errorcode(True)` returned `"EPERM"` and `strerror(True)` returned `"Operation not permitted"` instead of raising `TypeError`. This violated the documented contract and diverged from the bool-rejection convention used elsewhere (`datetime_utils`, `secrets_utils`, `concurrent_futures_utils`). Each validator now rejects `bool` explicitly before the integer check. Added `test_errorcode_rejects_bool`, `test_strerror_rejects_bool`, `test_is_errno_rejects_bool`, and `test_errno_name_rejects_bool` (each fails against the old implementation and passes after). Refreshed the embedded `errno_utils.py` and `tests/test_errno_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt (batch `email`–`file`):** reviewed `email_utils`, `encodings_utils`, `ensurepip_utils`, `enum_utils`, `env_utils`, `errno_utils`, `exceptions_utils`, `faulthandler_utils`, `fcntl_utils`, `file_utils`. No incorrect contracts found in `email_utils`, `encodings_utils`, `ensurepip_utils`, `enum_utils`, `env_utils`, `exceptions_utils`, `faulthandler_utils`, `fcntl_utils`, or `file_utils`. The `errno_utils` issue above was the only defect. All modules pass their tests, their doctests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- Validation: `python -m unittest tests.test_errno_utils` — 12 OK; `python -m doctest errno_utils.py` — OK; `python -m ruff check errno_utils.py tests/test_errno_utils.py` — clean; `python -m mypy errno_utils.py tests/test_errno_utils.py` — clean; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `csv_utils.append_csv_row` delimiter support and `datetime_utils.add_days` int validation
 
 - **Correctness fix — `csv_utils.append_csv_row` ignored the delimiter when appending rows.** The helper wrote via `csv.DictWriter` without passing a delimiter, so appending to a semicolon/pipe-delimited file (or after `write_csv(..., delimiter=";")`) emitted comma-separated rows and a header that did not match the file's dialect, corrupting round-trips/readability. `append_csv_row` now accepts an optional `delimiter` argument (default `","`) and forwards it to the writer. Added `test_append_csv_row_respects_delimiter` (fails against the old implementation and passes after). Refreshed embedded `csv_utils.py` and `tests/test_csv_utils.py` in `scaffold.sh`; `refresh_scaffold --check` in sync.
@@ -83979,19 +83986,19 @@ __all__ = [
 
 
 def errorcode(code: int) -> str | None:
-    if not isinstance(code, int):
+    if isinstance(code, bool) or not isinstance(code, int):
         raise TypeError("code must be an int")
     return _errno.errorcode.get(code)
 
 
 def strerror(code: int) -> str:
-    if not isinstance(code, int):
+    if isinstance(code, bool) or not isinstance(code, int):
         raise TypeError("code must be an int")
     return _os.strerror(code)
 
 
 def is_errno(code: int, name: str) -> bool:
-    if not isinstance(code, int):
+    if isinstance(code, bool) or not isinstance(code, int):
         raise TypeError("code must be an int")
     if not isinstance(name, str):
         raise TypeError("name must be a str")
@@ -84006,7 +84013,7 @@ def errno_code(name: str) -> int | None:
 
 
 def errno_name(code: int) -> str | None:
-    if not isinstance(code, int):
+    if isinstance(code, bool) or not isinstance(code, int):
         raise TypeError("code must be an int")
     return _errno.errorcode.get(code)
 ERRNO_UTILS
@@ -84046,6 +84053,30 @@ class TestErrnoUtils(unittest.TestCase):
     def test_errno_name_type_error(self):
         with self.assertRaises(TypeError):
             errno_name("EEXIST")
+
+    def test_errorcode_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            errorcode(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            errorcode(False)  # type: ignore[arg-type]
+
+    def test_strerror_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            strerror(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            strerror(False)  # type: ignore[arg-type]
+
+    def test_is_errno_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            is_errno(True, "EEXIST")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_errno(False, "EEXIST")  # type: ignore[arg-type]
+
+    def test_errno_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            errno_name(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            errno_name(False)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

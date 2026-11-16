@@ -1,15 +1,14 @@
 # Handover
 
-## Latest Session (2026-11-16) — defect hunt/fix: `csv_utils` append delimiter, `datetime_utils` add_days int validation
+## Latest Session (2026-11-16) — defect hunt/fix: `errno_utils` bool-as-int rejection
 
-- `board_read`: empty (no task posted to main); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at session start (prior source-relevant edits pending checkpoint). Ran full verification and `--full --record-full-suite` recorded a checkpoint at HEAD; probe will be rc=2 until this session's commit lands (CI auto-commit follows the session).
-- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe, targeted unittest/doctest/ruff/mypy for touched files, and the recorded full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Defects fixed (failing-test-first):**
-  - `csv_utils.append_csv_row` wrote with a hardcoded comma dialect, so appending to a non-comma-delimited file (e.g. after `write_csv(..., delimiter=";")`) produced malformed rows. Added `delimiter` parameter (default `","`) forwarded to `csv.DictWriter`; added `test_append_csv_row_respects_delimiter`.
-  - `datetime_utils.add_days` accepted bool/float/string offsets (`bool` is `int`, `timedelta` accepts floats) unlike `add_hours`/`add_minutes`/`add_weeks`. Now rejects non-`int`/bool with `TypeError`; added `test_add_rejects_non_int_days`.
-- **Verification:** `python -m unittest tests.test_csv_utils tests.test_datetime_utils` (OK); `python -m doctest csv_utils.py datetime_utils.py` (OK); `python -m ruff check csv_utils.py tests/test_csv_utils.py datetime_utils.py tests/test_datetime_utils.py` (clean); `python -m mypy csv_utils.py tests/test_csv_utils.py datetime_utils.py tests/test_datetime_utils.py` (clean); `python tools/refresh_scaffold.py` + `--check` (in sync); `python tools/verify_state_delta.py --full --record-full-suite` (passed, checkpoint advanced).
-- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies.
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 at start (clean tree, checkpoint matched HEAD `8f58132`). Source changed (`errno_utils.py`, `tests/test_errno_utils.py`, `CHANGELOG.md`), so ran `python tools/verify_state_delta.py --full` (battery passed, checkpoint advanced to `21e9d01`) and `python -m unittest discover tests/` (full suite OK).
+- **Optimize-delays survey:** no avoidable repository-managed delay; used state-delta probe and targeted verification for the touched module, then the full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):**
+  - `errno_utils.errorcode`, `errno_utils.strerror`, `errno_utils.is_errno`, and `errno_utils.errno_name` accepted boolean error codes because `isinstance(code, int)` admits `bool`. Each validator now rejects `bool` explicitly before the integer check, matching the convention used by `datetime_utils`, `secrets_utils`, and `concurrent_futures_utils`. Added `test_errorcode_rejects_bool`, `test_strerror_rejects_bool`, `test_is_errno_rejects_bool`, and `test_errno_name_rejects_bool` (fail before the fix, pass after).
+- **Verification:** `python -m unittest tests.test_errno_utils` (12 OK); `python -m doctest errno_utils.py` (OK); `python -m ruff check errno_utils.py tests/test_errno_utils.py` (clean); `python -m mypy errno_utils.py tests/test_errno_utils.py` (clean); `python tools/scan_untested.py` (clean); `python tools/refresh_scaffold.py` + `--check` (in sync); `python tools/verify_state_delta.py --full` (passed); `python -m unittest discover tests/` (OK).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`errno_utils.py`, `tests/test_errno_utils.py`, `CHANGELOG.md`).
 
 ## Task for Next Agent
 
