@@ -851,6 +851,9 @@ class TestIsPandigitalNumber(unittest.TestCase):
         self.assertTrue(is_pandigital_number(1162849439785405935, base=16))
         self.assertFalse(is_pandigital_number(1162849439785405934, base=16))
 
+    def test_zero_is_not_pandigital_in_base_two(self):
+        self.assertFalse(is_pandigital_number(0, base=2))
+
     def test_default_base(self):
         self.assertTrue(is_pandigital_number(1023456789))
         self.assertFalse(is_pandigital_number(12345))
@@ -1177,6 +1180,9 @@ class TestIsKaprekarNumber(unittest.TestCase):
     def test_known_kaprekar_numbers(self):
         for value in (0, 9, 45, 55, 99, 297, 703, 999, 2223):
             self.assertTrue(is_kaprekar_number(value), value)
+
+    def test_one_is_kaprekar(self):
+        self.assertTrue(is_kaprekar_number(1))
 
     def test_non_kaprekar_numbers(self):
         for value in (2, 3, 4, 5, 6, 7, 8, 10, 100, 1000):

@@ -774,7 +774,7 @@ def is_power_of(value: Number, base: Number) -> bool:
     k = 0
     cur = 1
     limit = abs(v) * abs(b)
-    while abs(cur) <= limit and k <= 64:
+    while abs(cur) <= limit:
         if cur == v:
             return True
         cur *= b

@@ -1084,8 +1084,6 @@ def is_pandigital_number(n: int, base: int = 10) -> bool:
     if n < 0:
         return False
     digits = "0123456789abcdefghijklmnopqrstuvwxyz"
-    if n == 0:
-        return base == 2
     seen: set[str] = set()
     value = n
     while value > 0:
@@ -1128,7 +1126,7 @@ def is_kaprekar_number(n: int) -> bool:
         return True
     square = n * n
     s = str(square)
-    for i in range(1, len(s)):
+    for i in range(len(s)):
         left = s[:i]
         right = s[i:]
         if right.lstrip("0") == "":

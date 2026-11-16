@@ -803,6 +803,11 @@ class TestIsPowerOf(unittest.TestCase):
         self.assertFalse(is_power_of(8, -2))
         self.assertTrue(is_power_of(1, -2))
 
+    def test_negative_base_large_exponent(self) -> None:
+        self.assertTrue(is_power_of(2**100, -2))
+        self.assertTrue(is_power_of(-(2**101), -2))
+        self.assertFalse(is_power_of(2**101, -2))
+
     def test_non_integer_values(self) -> None:
         self.assertFalse(is_power_of(8.5, 2))
         self.assertFalse(is_power_of(8, 2.5))
