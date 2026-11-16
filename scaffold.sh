@@ -53617,8 +53617,9 @@ cat > "$OUTPUT_DIR/tests/test_logging_utils.py" <<'TESTLOGUTILS'
 
 import logging
 import unittest
+from typing import TypeVar
 
-from logging_utils import configure_logging, get_logger, log_calls
+from logging_utils import F, configure_logging, get_logger, log_calls
 
 
 class TestGetLogger(unittest.TestCase):
@@ -53763,6 +53764,12 @@ class TestLogCalls(unittest.TestCase):
         with self.assertLogs("logging_utils", level="DEBUG") as cm:
             self.assertEqual(echo("hello"), "hello")
         self.assertEqual(cm.records[0].levelno, logging.DEBUG)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_f_typevar(self) -> None:
+        self.assertIsInstance(F, TypeVar)
+        self.assertEqual(F.__name__, "F")
 
 
 if __name__ == "__main__":
@@ -56915,8 +56922,9 @@ cat > "$OUTPUT_DIR/tests/test_functools_utils.py" <<'TESTFUNCTOOLSUTILS'
 """Tests for functools_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from functools_utils import apply, compose, curry, pipe
+from functools_utils import R, T, apply, compose, curry, pipe
 
 
 class TestCompose(unittest.TestCase):
@@ -57021,6 +57029,16 @@ class TestApply(unittest.TestCase):
     def test_apply_non_callable_raises(self) -> None:
         with self.assertRaises(TypeError):
             apply("not callable", 5)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_r_typevar(self) -> None:
+        self.assertIsInstance(R, TypeVar)
+        self.assertEqual(R.__name__, "R")
+
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -71828,6 +71846,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — raised `either_utils`/`functools_utils`/`heapq_utils`/`logging_utils`/`maybe_utils` exported TypeVar coverage
+
+- **Coverage — `tests/test_either_utils.py`, `tests/test_functools_utils.py`, `tests/test_heapq_utils.py`, `tests/test_logging_utils.py`, `tests/test_maybe_utils.py`: added `TestExportedTypeVars` tests pinning exported `TypeVar` symbols reported by `python tools/scan_untested.py --all`.** `either_utils` exports `E`, `L`, `R`, `T`, `U`; `functools_utils` exports `R`, `T`; `heapq_utils` exports `T`; `logging_utils` exports `F`; `maybe_utils` exports `E`, `T`, `U`, `V`. Functional APIs were already covered; these tests assert each export is a `TypeVar` with the expected name, closing the public-API test gap. Targeted verification: `python -m unittest tests.test_either_utils tests.test_functools_utils tests.test_heapq_utils tests.test_logging_utils tests.test_maybe_utils -v` (111 OK); `python -m ruff check` (clean); `python -m mypy` (clean). `python tools/refresh_scaffold.py` refreshed embedded test files; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — raised `async_utils`/`asyncio_utils`/`builtins_utils`/`cache_utils`/`circuit_breaker_utils` exported TypeVar coverage
 
 - **Coverage — `tests/test_async_utils.py`, `tests/test_asyncio_utils.py`, `tests/test_builtins_utils.py`, `tests/test_cache_utils.py`, `tests/test_circuit_breaker_utils.py`: added `TestExportedTypeVars` tests pinning exported `TypeVar` symbols reported by `python tools/scan_untested.py --all`.** `async_utils` exports `T`; `asyncio_utils` exports `T`; `builtins_utils` exports `K`, `S`, `T`, `V`; `cache_utils` exports `F`; `circuit_breaker_utils` exports `T`. Functional APIs were already covered; these tests assert each export is a `TypeVar` with the expected name, closing the public-API test gap. Targeted verification: `python -m unittest tests.test_async_utils tests.test_asyncio_utils tests.test_builtins_utils tests.test_cache_utils tests.test_circuit_breaker_utils -v` (88 OK); `python -m ruff check` (clean); `python -m mypy` (clean). `python tools/refresh_scaffold.py` refreshed embedded test files; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
@@ -88950,8 +88972,10 @@ cat > "$OUTPUT_DIR/tests/test_heapq_utils.py" <<'TEST_HEAPQ_UTILS'
 from __future__ import annotations
 
 import unittest
+from typing import TypeVar
 
 from heapq_utils import (
+    T,
     heapify,
     heappop,
     heappush,
@@ -89085,6 +89109,12 @@ class TestNsmallest(unittest.TestCase):
     def test_nsmallest_value_error(self) -> None:
         with self.assertRaises(ValueError):
             nsmallest(-1, [1, 2, 3])
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -159201,8 +159231,9 @@ cat > "$OUTPUT_DIR/tests/test_maybe_utils.py" <<'TEST_MAYBE_UTILS'
 """Tests for maybe_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from maybe_utils import Maybe
+from maybe_utils import E, Maybe, T, U, V
 
 
 class TestMaybe(unittest.TestCase):
@@ -159300,6 +159331,24 @@ class TestMaybe(unittest.TestCase):
             raise RuntimeError("boom")
 
         self.assertEqual(Maybe.some(5).map_or_else(lambda: 42, boom), 42)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_e_typevar(self) -> None:
+        self.assertIsInstance(E, TypeVar)
+        self.assertEqual(E.__name__, "E")
+
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+
+    def test_u_typevar(self) -> None:
+        self.assertIsInstance(U, TypeVar)
+        self.assertEqual(U.__name__, "U")
+
+    def test_v_typevar(self) -> None:
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":
@@ -159497,8 +159546,9 @@ cat > "$OUTPUT_DIR/tests/test_either_utils.py" <<'TEST_EITHER_UTILS'
 """Tests for either_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from either_utils import Either
+from either_utils import E, Either, L, R, T, U
 
 
 class TestEither(unittest.TestCase):
@@ -159592,6 +159642,28 @@ class TestEither(unittest.TestCase):
         self.assertNotEqual(Either.right(1), Either.right(2))
         self.assertEqual(Either.left("a"), Either.left("a"))
         self.assertNotEqual(Either.right(1), Either.left(1))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_e_typevar(self) -> None:
+        self.assertIsInstance(E, TypeVar)
+        self.assertEqual(E.__name__, "E")
+
+    def test_l_typevar(self) -> None:
+        self.assertIsInstance(L, TypeVar)
+        self.assertEqual(L.__name__, "L")
+
+    def test_r_typevar(self) -> None:
+        self.assertIsInstance(R, TypeVar)
+        self.assertEqual(R.__name__, "R")
+
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+
+    def test_u_typevar(self) -> None:
+        self.assertIsInstance(U, TypeVar)
+        self.assertEqual(U.__name__, "U")
 
 
 if __name__ == "__main__":

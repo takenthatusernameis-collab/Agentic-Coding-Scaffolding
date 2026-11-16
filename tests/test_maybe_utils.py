@@ -1,8 +1,9 @@
 """Tests for maybe_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from maybe_utils import Maybe
+from maybe_utils import E, Maybe, T, U, V
 
 
 class TestMaybe(unittest.TestCase):
@@ -100,6 +101,24 @@ class TestMaybe(unittest.TestCase):
             raise RuntimeError("boom")
 
         self.assertEqual(Maybe.some(5).map_or_else(lambda: 42, boom), 42)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_e_typevar(self) -> None:
+        self.assertIsInstance(E, TypeVar)
+        self.assertEqual(E.__name__, "E")
+
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+
+    def test_u_typevar(self) -> None:
+        self.assertIsInstance(U, TypeVar)
+        self.assertEqual(U.__name__, "U")
+
+    def test_v_typevar(self) -> None:
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":

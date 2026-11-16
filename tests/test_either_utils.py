@@ -1,8 +1,9 @@
 """Tests for either_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from either_utils import Either
+from either_utils import E, Either, L, R, T, U
 
 
 class TestEither(unittest.TestCase):
@@ -96,6 +97,28 @@ class TestEither(unittest.TestCase):
         self.assertNotEqual(Either.right(1), Either.right(2))
         self.assertEqual(Either.left("a"), Either.left("a"))
         self.assertNotEqual(Either.right(1), Either.left(1))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_e_typevar(self) -> None:
+        self.assertIsInstance(E, TypeVar)
+        self.assertEqual(E.__name__, "E")
+
+    def test_l_typevar(self) -> None:
+        self.assertIsInstance(L, TypeVar)
+        self.assertEqual(L.__name__, "L")
+
+    def test_r_typevar(self) -> None:
+        self.assertIsInstance(R, TypeVar)
+        self.assertEqual(R.__name__, "R")
+
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
+
+    def test_u_typevar(self) -> None:
+        self.assertIsInstance(U, TypeVar)
+        self.assertEqual(U.__name__, "U")
 
 
 if __name__ == "__main__":

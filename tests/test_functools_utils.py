@@ -1,8 +1,9 @@
 """Tests for functools_utils module."""
 
 import unittest
+from typing import TypeVar
 
-from functools_utils import apply, compose, curry, pipe
+from functools_utils import R, T, apply, compose, curry, pipe
 
 
 class TestCompose(unittest.TestCase):
@@ -107,6 +108,16 @@ class TestApply(unittest.TestCase):
     def test_apply_non_callable_raises(self) -> None:
         with self.assertRaises(TypeError):
             apply("not callable", 5)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_r_typevar(self) -> None:
+        self.assertIsInstance(R, TypeVar)
+        self.assertEqual(R.__name__, "R")
+
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":

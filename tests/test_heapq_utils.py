@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import unittest
+from typing import TypeVar
 
 from heapq_utils import (
+    T,
     heapify,
     heappop,
     heappush,
@@ -138,6 +140,12 @@ class TestNsmallest(unittest.TestCase):
     def test_nsmallest_value_error(self) -> None:
         with self.assertRaises(ValueError):
             nsmallest(-1, [1, 2, 3])
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_t_typevar(self) -> None:
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":

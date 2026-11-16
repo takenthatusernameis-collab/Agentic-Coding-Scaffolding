@@ -2,8 +2,9 @@
 
 import logging
 import unittest
+from typing import TypeVar
 
-from logging_utils import configure_logging, get_logger, log_calls
+from logging_utils import F, configure_logging, get_logger, log_calls
 
 
 class TestGetLogger(unittest.TestCase):
@@ -148,6 +149,12 @@ class TestLogCalls(unittest.TestCase):
         with self.assertLogs("logging_utils", level="DEBUG") as cm:
             self.assertEqual(echo("hello"), "hello")
         self.assertEqual(cm.records[0].levelno, logging.DEBUG)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_f_typevar(self) -> None:
+        self.assertIsInstance(F, TypeVar)
+        self.assertEqual(F.__name__, "F")
 
 
 if __name__ == "__main__":
