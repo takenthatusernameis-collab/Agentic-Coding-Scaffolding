@@ -80,6 +80,21 @@ class TestConcurrentFuturesUtils(unittest.TestCase):
         with process_pool_executor(max_workers=1) as ex:
             self.assertIsInstance(ex, concurrent_futures_utils.ProcessPoolExecutor)
 
+    def test_thread_pool_executor_rejects_bool_max_workers(self):
+        # ``bool`` is a subclass of ``int``, so a bare ``isinstance(n, int)``
+        # check accepts ``True``/``False`` as a worker count. The documented
+        # contract requires a positive integer, so booleans must be rejected.
+        with self.assertRaises(TypeError):
+            thread_pool_executor(max_workers=True)
+        with self.assertRaises(TypeError):
+            thread_pool_executor(max_workers=False)
+
+    def test_process_pool_executor_rejects_bool_max_workers(self):
+        with self.assertRaises(TypeError):
+            process_pool_executor(max_workers=True)
+        with self.assertRaises(TypeError):
+            process_pool_executor(max_workers=False)
+
 
 if __name__ == "__main__":
     unittest.main()

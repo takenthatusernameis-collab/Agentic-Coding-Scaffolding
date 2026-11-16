@@ -18,6 +18,16 @@ from concurrent.futures import (
 from typing import Any, Callable, Iterable, Sequence, cast
 
 
+def _validate_max_workers(max_workers: int | None) -> None:
+    """Validate *max_workers* is an int (not bool) or ``None`` and positive."""
+    if max_workers is None:
+        return
+    if isinstance(max_workers, bool) or not isinstance(max_workers, int):
+        raise TypeError("max_workers must be an int or None")
+    if max_workers <= 0:
+        raise ValueError("max_workers must be positive")
+
+
 def thread_pool_executor(max_workers: int | None = None, **kwargs: Any) -> ThreadPoolExecutor:
     """Return a :class:`~concurrent.futures.ThreadPoolExecutor`.
 
@@ -32,10 +42,7 @@ def thread_pool_executor(max_workers: int | None = None, **kwargs: Any) -> Threa
         TypeError: If ``max_workers`` is not an int or ``None``.
         ValueError: If ``max_workers`` is not positive (when provided).
     """
-    if max_workers is not None and not isinstance(max_workers, int):
-        raise TypeError("max_workers must be an int or None")
-    if max_workers is not None and max_workers <= 0:
-        raise ValueError("max_workers must be positive")
+    _validate_max_workers(max_workers)
     return ThreadPoolExecutor(max_workers=max_workers, **kwargs)
 
 
@@ -53,10 +60,7 @@ def process_pool_executor(max_workers: int | None = None, **kwargs: Any) -> Proc
         TypeError: If ``max_workers`` is not an int or ``None``.
         ValueError: If ``max_workers`` is not positive (when provided).
     """
-    if max_workers is not None and not isinstance(max_workers, int):
-        raise TypeError("max_workers must be an int or None")
-    if max_workers is not None and max_workers <= 0:
-        raise ValueError("max_workers must be positive")
+    _validate_max_workers(max_workers)
     return ProcessPoolExecutor(max_workers=max_workers, **kwargs)
 
 

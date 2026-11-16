@@ -52899,6 +52899,16 @@ from concurrent.futures import (
 from typing import Any, Callable, Iterable, Sequence, cast
 
 
+def _validate_max_workers(max_workers: int | None) -> None:
+    """Validate *max_workers* is an int (not bool) or ``None`` and positive."""
+    if max_workers is None:
+        return
+    if isinstance(max_workers, bool) or not isinstance(max_workers, int):
+        raise TypeError("max_workers must be an int or None")
+    if max_workers <= 0:
+        raise ValueError("max_workers must be positive")
+
+
 def thread_pool_executor(max_workers: int | None = None, **kwargs: Any) -> ThreadPoolExecutor:
     """Return a :class:`~concurrent.futures.ThreadPoolExecutor`.
 
@@ -52913,10 +52923,7 @@ def thread_pool_executor(max_workers: int | None = None, **kwargs: Any) -> Threa
         TypeError: If ``max_workers`` is not an int or ``None``.
         ValueError: If ``max_workers`` is not positive (when provided).
     """
-    if max_workers is not None and not isinstance(max_workers, int):
-        raise TypeError("max_workers must be an int or None")
-    if max_workers is not None and max_workers <= 0:
-        raise ValueError("max_workers must be positive")
+    _validate_max_workers(max_workers)
     return ThreadPoolExecutor(max_workers=max_workers, **kwargs)
 
 
@@ -52934,10 +52941,7 @@ def process_pool_executor(max_workers: int | None = None, **kwargs: Any) -> Proc
         TypeError: If ``max_workers`` is not an int or ``None``.
         ValueError: If ``max_workers`` is not positive (when provided).
     """
-    if max_workers is not None and not isinstance(max_workers, int):
-        raise TypeError("max_workers must be an int or None")
-    if max_workers is not None and max_workers <= 0:
-        raise ValueError("max_workers must be positive")
+    _validate_max_workers(max_workers)
     return ProcessPoolExecutor(max_workers=max_workers, **kwargs)
 
 
@@ -53114,6 +53118,21 @@ class TestConcurrentFuturesUtils(unittest.TestCase):
     def test_reexported_process_pool_executor_type(self):
         with process_pool_executor(max_workers=1) as ex:
             self.assertIsInstance(ex, concurrent_futures_utils.ProcessPoolExecutor)
+
+    def test_thread_pool_executor_rejects_bool_max_workers(self):
+        # ``bool`` is a subclass of ``int``, so a bare ``isinstance(n, int)``
+        # check accepts ``True``/``False`` as a worker count. The documented
+        # contract requires a positive integer, so booleans must be rejected.
+        with self.assertRaises(TypeError):
+            thread_pool_executor(max_workers=True)
+        with self.assertRaises(TypeError):
+            thread_pool_executor(max_workers=False)
+
+    def test_process_pool_executor_rejects_bool_max_workers(self):
+        with self.assertRaises(TypeError):
+            process_pool_executor(max_workers=True)
+        with self.assertRaises(TypeError):
+            process_pool_executor(max_workers=False)
 
 
 if __name__ == "__main__":
@@ -72041,6 +72060,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `concurrent_futures_utils` accepting booleans as `max_workers`; defect hunt on `concurrent`–`copy` batch
+
+- **Correctness fix — `concurrent_futures_utils.thread_pool_executor` and `concurrent_futures_utils.process_pool_executor` accepted boolean `max_workers` arguments.** Because `bool` is a subclass of `int`, the `isinstance(max_workers, int)` validation let `True` and `False` slip through, so `thread_pool_executor(max_workers=True)` created a single-thread executor and `process_pool_executor(max_workers=False)` created a default-sized pool instead of raising `TypeError`. This violated the documented contract ("max_workers must be an int or None") and diverged from the bool-rejection convention used elsewhere (`secrets_utils`, `duration_utils`, `semver_utils`). Both helpers now delegate to a shared `_validate_max_workers` that rejects `bool` explicitly before the integer check. Added `test_thread_pool_executor_rejects_bool_max_workers` and `test_process_pool_executor_rejects_bool_max_workers` (both fail against the old implementation and pass after). Refreshed the embedded `concurrent_futures_utils.py` and `tests/test_concurrent_futures_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt — reviewed the next alphabetical batch of `*_utils.py` modules (`concurrent_futures`, `concurrent`, `config_schema`, `config`, `configparser`, `context`, `contextlib`, `contextvars`, `cooldown`, `copy`).** No incorrect contracts found in `concurrent`, `config_schema`, `config`, `configparser`, `context`, `contextlib`, `contextvars`, `cooldown`, or `copy`. The `concurrent_futures` issue above was the only defect. All batch modules pass their tests, their doctests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- Validation: `python -m unittest tests.test_concurrent_futures_utils` — 9 OK; `python -m doctest concurrent_futures_utils.py` — OK; `python -m ruff check concurrent_futures_utils.py tests/test_concurrent_futures_utils.py` — clean; `python -m mypy concurrent_futures_utils.py tests/test_concurrent_futures_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `color_utils` accepting multiple leading `#` in hex colors
 
 - **Correctness fix — `color_utils.validate_hex` and `color_utils.hex_to_rgb` accepted hex colors with more than one leading `#`, so strings that are neither ``#RRGGBB`` nor ``RRGGBB`` were reported as valid.** Both helpers stripped the prefix with `hex_color.lstrip("#")`, which removes *every* leading `#` rather than a single optional one. As a result `validate_hex("##ff5733")` and `validate_hex("###000000")` returned `True`, and `hex_to_rgb("##ff5733")` returned `(255, 87, 51)` instead of raising `ValueError`, contradicting the documented ``#RRGGBB``/``RRGGBB`` contract and letting malformed input flow into every color helper that parses hex strings (`get_luminance`, `get_contrast_ratio`, `is_accessible`, `adjust_brightness`, `blend_colors`). The prefix is now removed only when it is a single leading `#` (`hex_color[1:] if hex_color.startswith("#") else hex_color`), so a second `#` remains part of the value and the length/digit checks reject it. Added `test_multiple_leading_hashes_rejected` and `test_multiple_leading_hashes_raise` (both fail against the old implementation and pass after). Refreshed the embedded `color_utils.py` and `tests/test_color_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
