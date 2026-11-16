@@ -1,6 +1,10 @@
 import unittest
+from typing import TypeVar
 
 from copy_utils import (
+    K,
+    T,
+    V,
     copy_dict,
     deep_copy,
     deep_copy_dict,
@@ -123,6 +127,16 @@ class TestIsSameObject(unittest.TestCase):
         a = [1, 2]
         b = [1, 2]
         self.assertFalse(is_same_object(a, b))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertIsInstance(K, TypeVar)
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertEqual(K.__name__, "K")
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":

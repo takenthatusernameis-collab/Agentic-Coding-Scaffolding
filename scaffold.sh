@@ -71730,6 +71730,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — raised `copy_utils`/`call_once_utils` exported TypeVar coverage
+
+- **Coverage — `tests/test_copy_utils.py`, `tests/test_call_once_utils.py`: added `TestExportedTypeVars` coverage for exported `TypeVar`s that `scan_untested --all` still reported as untested.** `copy_utils` exports `K`, `T`, and `V`; `call_once_utils` exports `T`. The functional wrappers were already exercised, but the exported TypeVar objects themselves were not referenced by tests, leaving the public API surface partially unpinned. Added explicit tests asserting each export is a `TypeVar` with the expected name. Targeted verification: `python -m unittest tests.test_copy_utils tests.test_call_once_utils -v` (28 OK), `python -m ruff check tests/test_copy_utils.py tests/test_call_once_utils.py` (clean), `python -m mypy tests/test_copy_utils.py tests/test_call_once_utils.py` (clean). `python tools/refresh_scaffold.py` refreshed embedded `tests/test_copy_utils.py` and `tests/test_call_once_utils.py`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — raised `xml_utils` error-branch coverage; confirmed `zipfile_utils` dead-code
 
 - **Coverage — `tests/test_xml_utils.py`: added `TestXmlTypeErrorContracts` (13 tests) pinning the documented `TypeError` contracts for every helper whose "not an Element" branch the existing suite never exercised.** The existing tests covered the scalar-argument branches (`set_attribute` with a non-string key, `get_attribute` with a non-string key/default, `dict_to_element` with a non-dict tag/data, `find_elements`/`find_element`/`xml_to_string` with a non-string xpath/declaration) but left every Element-argument guard untested, so a regression in those guards would not be caught. New tests cover the non-Element branches of `set_attribute`, `get_attribute`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, and the shape branches of `dict_to_element` (non-dict `attributes`, non-string attribute keys/values, non-string `text`, non-list `children`, non-dict child, child without a string `tag`).
@@ -77860,8 +77864,9 @@ CALL_ONCE_UTILS
 cat > "$OUTPUT_DIR/tests/test_call_once_utils.py" <<'TEST_CALL_ONCE_UTILS'
 import threading
 import unittest
+from typing import TypeVar
 
-from call_once_utils import call_once
+from call_once_utils import T, call_once
 
 
 class TestCallOnce(unittest.TestCase):
@@ -77952,6 +77957,12 @@ class TestCallOnce(unittest.TestCase):
         flaky.reset()
         self.assertEqual(flaky(), 2)
         self.assertEqual(len(calls), 2)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -80222,8 +80233,12 @@ COPY_UTILS
 # --- tests/test_copy_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_copy_utils.py" <<'TEST_COPY_UTILS'
 import unittest
+from typing import TypeVar
 
 from copy_utils import (
+    K,
+    T,
+    V,
     copy_dict,
     deep_copy,
     deep_copy_dict,
@@ -80346,6 +80361,16 @@ class TestIsSameObject(unittest.TestCase):
         a = [1, 2]
         b = [1, 2]
         self.assertFalse(is_same_object(a, b))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertIsInstance(K, TypeVar)
+        self.assertIsInstance(V, TypeVar)
+        self.assertEqual(T.__name__, "T")
+        self.assertEqual(K.__name__, "K")
+        self.assertEqual(V.__name__, "V")
 
 
 if __name__ == "__main__":

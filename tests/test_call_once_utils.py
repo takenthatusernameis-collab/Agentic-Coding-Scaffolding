@@ -1,7 +1,8 @@
 import threading
 import unittest
+from typing import TypeVar
 
-from call_once_utils import call_once
+from call_once_utils import T, call_once
 
 
 class TestCallOnce(unittest.TestCase):
@@ -92,6 +93,12 @@ class TestCallOnce(unittest.TestCase):
         flaky.reset()
         self.assertEqual(flaky(), 2)
         self.assertEqual(len(calls), 2)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(T, TypeVar)
+        self.assertEqual(T.__name__, "T")
 
 
 if __name__ == "__main__":
