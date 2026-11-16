@@ -131992,7 +131992,7 @@ class TestTomllibUtils(unittest.TestCase):
     def test_is_valid_toml_false(self) -> None:
         self.assertFalse(is_valid_toml("key ="))
 
-def test_is_valid_toml_rejects_non_string(self) -> None:
+    def test_is_valid_toml_rejects_non_string(self) -> None:
         """``is_valid_toml`` treats non-string input as invalid TOML.
 
         The predicate returns ``bool`` (like ``duration_utils.is_valid_duration``)
