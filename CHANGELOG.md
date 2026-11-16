@@ -1,3 +1,10 @@
+## Unreleased — `retry_utils` rejects bool retry parameters
+
+- **Correctness fix — `retry_utils._validate_retry_args` accepted `bool` for `max_attempts`, `delay`, and `backoff`.** `isinstance(True, int)` is `True`, so `retry(max_attempts=True)` (and `delay=True`/`backoff=True`) passed validation instead of being rejected, contradicting the documented type contracts. Each check now rejects `bool` before the integer/number check, matching the convention used elsewhere. Added regression tests.
+- **Defect hunt (batch `queue`–`retry`):** reviewed `queue_utils`, `quopri_utils`, `random_utils`, `rate_limiter_utils`, `re_utils`, `readline_utils`, `regex_utils`, `reprlib_utils`, `resource_utils`, `retry_utils`. The `retry_utils` issue above was the only defect found in this pass.
+- Validation: `python -m unittest tests.test_retry_utils` — 30 OK; `python -m doctest retry_utils.py` — OK; `python -m py_compile retry_utils.py` — OK; `python tools/refresh_scaffold.py --check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `number_utils.is_power_of` large exponents, `numbers_utils` Kaprekar/pandigital boundaries
 
 - **Correctness fix — `number_utils.is_power_of` rejected large powers of a negative base.** For a negative base (`base <= -2`) the helper walked the powers with a loop bounded by `k <= 64`, so `is_power_of(2**100, -2)` returned `False` even though `2**100 == (-2)**100`. The bound was unnecessary: the loop already terminates because `abs(cur)` grows past `limit = abs(value) * abs(base)`; removing the arbitrary `64` cap makes negative bases agree with `numbers_utils.is_power_of` for every exponent. Added `test_negative_base_large_exponent` (fails against the old implementation and passes after).

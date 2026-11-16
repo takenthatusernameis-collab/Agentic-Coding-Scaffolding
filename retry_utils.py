@@ -26,15 +26,15 @@ def _validate_retry_args(
     negative ``delay`` likewise surfaced a low-level ``time.sleep`` error
     instead of an argument problem.
     """
-    if not isinstance(max_attempts, int):
+    if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
         raise TypeError(f"max_attempts must be an int, got {type(max_attempts).__name__}")
     if max_attempts < 1:
         raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
-    if not isinstance(delay, (int, float)):
+    if isinstance(delay, bool) or not isinstance(delay, (int, float)):
         raise TypeError(f"delay must be a number, got {type(delay).__name__}")
     if delay < 0:
         raise ValueError(f"delay must be non-negative, got {delay}")
-    if not isinstance(backoff, (int, float)):
+    if isinstance(backoff, bool) or not isinstance(backoff, (int, float)):
         raise TypeError(f"backoff must be a number, got {type(backoff).__name__}")
     if backoff < 0:
         raise ValueError(f"backoff must be non-negative, got {backoff}")
