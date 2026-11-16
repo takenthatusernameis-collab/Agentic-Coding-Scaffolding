@@ -65,6 +65,73 @@ def run_cli(*args: str) -> subprocess.CompletedProcess[str]:
     return _CLI_RESULTS[key]
 
 
+def build_fixture_project(directory: Path) -> Path:
+    """Build a throwaway project the scanner treats as its root.
+
+    The scanner derives its root from the location of its own file, so copying
+    ``tools/scan_untested.py`` into ``<directory>/tools/`` makes an end-to-end
+    run scan *directory* rather than the real repository. The fixture module
+    exports a function, a constant, and a class that its test never references:
+    the default report keeps only the function, while ``--all`` widens to all
+    three, so the flag's behaviour is pinned without depending on the real
+    repository's coverage state.
+    """
+    tools = directory / "tools"
+    tools.mkdir(parents=True)
+    (tools / "scan_untested.py").write_text(TOOL.read_text())
+    (directory / "fixture_utils.py").write_text(
+        '"""Fixture module exporting a function, a constant, and a class."""\n'
+        "\n"
+        '__all__ = ["helper", "MAX_RETRIES", "Retryer"]\n'
+        "\n"
+        "\n"
+        "def helper() -> int:\n"
+        "    return 1\n"
+        "\n"
+        "\n"
+        "MAX_RETRIES = 3\n"
+        "\n"
+        "\n"
+        "class Retryer:\n"
+        "    pass\n"
+    )
+    tests = directory / "tests"
+    tests.mkdir()
+    (tests / "test_fixture_utils.py").write_text(
+        '"""Fixture test that imports the module but references no exports."""\n'
+        "\n"
+        "import unittest\n"
+        "\n"
+        "\n"
+        "class TestFixtureImports(unittest.TestCase):\n"
+        "    def test_module_imports(self) -> None:\n"
+        "        import fixture_utils  # noqa: F401\n"
+        "\n"
+        "\n"
+        'if __name__ == "__main__":\n'
+        "    unittest.main()\n"
+    )
+    return tools / "scan_untested.py"
+
+
+def run_fixture_cli(entry: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    """Run the copied scanner against its fixture root with an isolated cache.
+
+    ``entry`` is the copied ``scan_untested.py``; the cache is placed beside the
+    fixture project so each ``TemporaryDirectory`` gets a fresh, isolated cache.
+    """
+    env = dict(os.environ)
+    env[scan_untested.CACHE_ENV] = str(entry.parent.parent / "cache.json")
+    return subprocess.run(
+        [sys.executable, str(entry), *args],
+        capture_output=True,
+        text=True,
+        timeout=120,
+        check=False,
+        env=env,
+    )
+
+
 def setUpModule() -> None:
     """Warm the isolated cache once so class order cannot add cold scans.
 
@@ -243,17 +310,24 @@ class TestScan(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "no exported-but-untested callables")
 
     def test_the_all_flag_lists_everything(self):
-        result = run_cli("--all")
-        # With --all the scanner lists type variables, constants, classes, and
-        # interactive facades too, so it must report them and exit non-zero.
-        # The old implementation ignored the flag and printed the same "no ..."
-        # message as the default, which this asserts against.
-        self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
-        self.assertNotIn("no exported-but-untested callables", result.stdout)
-        self.assertIn("exported-but-untested callables", result.stdout)
-        # ``--all`` must surface known interactive facades that remain
-        # unreferenced in their module tests.
-        self.assertIn("help", result.stdout)
+        with tempfile.TemporaryDirectory() as tmp:
+            entry = build_fixture_project(Path(tmp))
+            default = run_fixture_cli(entry)
+            everything = run_fixture_cli(entry, "--all")
+        # The default report keeps only the genuine function gap.
+        self.assertEqual(default.returncode, 1, msg=default.stdout + default.stderr)
+        self.assertIn("helper", default.stdout)
+        self.assertNotIn("MAX_RETRIES", default.stdout)
+        self.assertNotIn("Retryer", default.stdout)
+        # ``--all`` widens to the constant and the class too and exits non-zero.
+        self.assertNotEqual(
+            everything.returncode, 0, msg=everything.stdout + everything.stderr
+        )
+        self.assertNotIn("no exported-but-untested callables", everything.stdout)
+        self.assertIn("exported-but-untested callables", everything.stdout)
+        self.assertIn("helper", everything.stdout)
+        self.assertIn("MAX_RETRIES", everything.stdout)
+        self.assertIn("Retryer", everything.stdout)
 
 
 class TestJSONOutput(unittest.TestCase):
@@ -267,11 +341,17 @@ class TestJSONOutput(unittest.TestCase):
         self.assertEqual(data["gaps"], {})
 
     def test_json_output_with_all_flag(self):
-        result = run_cli("--all", "--json")
+        with tempfile.TemporaryDirectory() as tmp:
+            entry = build_fixture_project(Path(tmp))
+            result = run_fixture_cli(entry, "--all", "--json")
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         data = json.loads(result.stdout)
         self.assertGreater(data["total"], 0)
-        self.assertIn("help", data["gaps"].get("pydoc_utils.py", []))
+        self.assertEqual(data["total"], 3)
+        self.assertEqual(
+            data["gaps"].get("fixture_utils.py"),
+            ["MAX_RETRIES", "Retryer", "helper"],
+        )
 
     def test_json_structure_is_valid(self):
         result = run_cli("--json")
@@ -296,7 +376,9 @@ class TestSummaryOutput(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "no exported-but-untested callables")
 
     def test_summary_collapses_names_to_counts(self):
-        result = run_cli("--all", "--summary")
+        with tempfile.TemporaryDirectory() as tmp:
+            entry = build_fixture_project(Path(tmp))
+            result = run_fixture_cli(entry, "--all", "--summary")
         self.assertNotEqual(result.returncode, 0, msg=result.stdout + result.stderr)
         lines = result.stdout.splitlines()
         # Every module line is "name.py: <count>", not a per-name listing.
@@ -311,8 +393,10 @@ class TestSummaryOutput(unittest.TestCase):
         self.assertNotIn("  ", result.stdout)
 
     def test_summary_total_matches_json_total(self):
-        summary = run_cli("--all", "--summary")
-        data = json.loads(run_cli("--all", "--json").stdout)
+        with tempfile.TemporaryDirectory() as tmp:
+            entry = build_fixture_project(Path(tmp))
+            summary = run_fixture_cli(entry, "--all", "--summary")
+            data = json.loads(run_fixture_cli(entry, "--all", "--json").stdout)
         self.assertIn(f"{data['total']} exported-but-untested callables", summary.stdout)
         self.assertIn(f"in {len(data['gaps'])} modules", summary.stdout)
 
@@ -542,26 +626,16 @@ class TestCacheIntegration(unittest.TestCase):
         self.assertIn("gaps_by_mode", entry)
 
     def test_all_mode_is_cached_per_mode(self):
-        first = subprocess.run(
-            [sys.executable, str(TOOL), "--all", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
-        second = subprocess.run(
-            [sys.executable, str(TOOL), "--all", "--json"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
-        self.assertEqual(first.returncode, 1, msg=first.stderr)
-        self.assertEqual(second.returncode, 1, msg=second.stderr)
+        with tempfile.TemporaryDirectory() as tmp:
+            entry = build_fixture_project(Path(tmp))
+            first = run_fixture_cli(entry, "--all", "--json")
+            second = run_fixture_cli(entry, "--all", "--json")
+            cache = json.loads((Path(tmp) / "cache.json").read_text())
+        self.assertNotEqual(first.returncode, 0, msg=first.stderr)
+        self.assertNotEqual(second.returncode, 0, msg=second.stderr)
         self.assertEqual(first.stdout, second.stdout)
-        data = json.loads(CACHE_FILE.read_text())
-        entry = next(iter(data["modules"].values()))
-        self.assertIn("all", entry.get("gaps_by_mode", {}))
+        entry_data = next(iter(cache["modules"].values()))
+        self.assertIn("all", entry_data.get("gaps_by_mode", {}))
 
 
 if __name__ == "__main__":

@@ -2051,6 +2051,20 @@ class TestFormatFailure(unittest.TestCase):
             doctest_utils.format_failure("not a failure")
 
 
+class TestReexportedClasses(unittest.TestCase):
+    """The re-exported doctest classes are the standard library classes."""
+
+    def test_classes_are_the_standard_library_classes(self):
+        self.assertIs(doctest_utils.DocTestRunner, doctest.DocTestRunner)
+        self.assertIs(doctest_utils.DocTestSuite, doctest.DocTestSuite)
+        self.assertIs(doctest_utils.OutputChecker, doctest.OutputChecker)
+
+    def test_output_checker_checks_output(self):
+        checker = doctest_utils.OutputChecker()
+        self.assertTrue(checker.check_output("1\n", "1\n", 0))
+        self.assertFalse(checker.check_output("1\n", "2\n", 0))
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_DOCTEST_UTILS
@@ -3060,32 +3074,41 @@ PROFILE_UTILS
 
 # --- tests/test_profile_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_profile_utils.py" <<'TEST_PROFILE_UTILS'
+import unittest
+from unittest import mock
+
 import profile_utils
 
 
-def test_new_profiler():
-    p = profile_utils.new_profiler()
-    assert isinstance(p, profile_utils.Profile)
+class TestProfileUtils(unittest.TestCase):
+    def test_new_profiler(self):
+        p = profile_utils.new_profiler()
+        self.assertIsInstance(p, profile_utils.Profile)
+
+    def test_run(self):
+        profile_utils.run("x = 1 + 2")
+
+    def test_runctx(self):
+        ns = {}
+        profile_utils.runctx("x = 1 + 2", ns, ns)
+        self.assertEqual(ns["x"], 3)
+
+    def test_run_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            profile_utils.run(123)  # type: ignore[arg-type]
+
+    def test_runctx_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            profile_utils.runctx(123, {}, {})  # type: ignore[arg-type]
+
+    def test_main_delegates_to_the_standard_library(self):
+        with mock.patch.object(profile_utils._profile, "main") as main:
+            profile_utils.main()
+            main.assert_called_once_with()
 
 
-def test_run():
-    profile_utils.run("x = 1 + 2")
-    assert True
-
-
-def test_runctx():
-    ns = {}
-    profile_utils.runctx("x = 1 + 2", ns, ns)
-    assert ns["x"] == 3
-
-
-def test_type_errors():
-    try:
-        profile_utils.run(123)
-    except TypeError:
-        pass
-    else:
-        raise AssertionError("expected TypeError")
+if __name__ == "__main__":
+    unittest.main()
 TEST_PROFILE_UTILS
 
 cat > "$OUTPUT_DIR/asyncio_utils.py" <<'ASYNCIO_UTILS'
@@ -5601,8 +5624,10 @@ CONFIG_SCHEMA
 cat > "$OUTPUT_DIR/tests/test_config_schema.py" <<'TEST_CONFIG_SCHEMA'
 """Tests for config_schema module."""
 
+import typing
 import unittest
 
+import config_schema
 from config_schema import (
     ConfigSchema,
     ConfigValidationError,
@@ -5866,6 +5891,15 @@ class TestConfigSchemaMerge(unittest.TestCase):
         self.assertIsNot(merged, base)
         self.assertEqual(len(base.fields), 1)
         self.assertEqual(len(merged.fields), 2)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(config_schema.T, typing.TypeVar)
+        self.assertEqual(config_schema.T.__name__, "T")
+
+    def test_validator_is_a_callable_alias(self):
+        self.assertEqual(config_schema.Validator, typing.Callable[[typing.Any], typing.Any])
 
 
 if __name__ == "__main__":
@@ -22962,7 +22996,9 @@ cat > "$OUTPUT_DIR/tests/test_utils.py" <<'TESTUTILS'
 """Tests for utils module."""
 
 import unittest
+from typing import TypeVar
 
+import utils
 from utils import (
     average,
     chunk,
@@ -23713,6 +23749,16 @@ class TestZipWith(unittest.TestCase):
         self.assertEqual(zip_with([], [], lambda a, b: a + b), [])
 
 
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        for name in ("T", "CT", "U", "K", "V"):
+            self.assertIsInstance(getattr(utils, name), TypeVar, name)
+            self.assertEqual(getattr(utils, name).__name__, name)
+
+    def test_comparable_is_a_protocol(self):
+        self.assertTrue(getattr(utils.Comparable, "_is_protocol", False))
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTUTILS
@@ -23723,7 +23769,9 @@ cat > "$OUTPUT_DIR/tests/test_stats.py" <<'TESTSTATS'
 
 import math
 import unittest
+from typing import TypeVar
 
+import stats
 from stats import (
     coefficient_of_range,
     coefficient_of_variation,
@@ -25892,6 +25940,12 @@ class TestTrimmedMeanValidation(unittest.TestCase):
             trimmed_mean((1, 2, 3, 4, 5), 1)  # type: ignore[arg-type]
 
 
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(stats.T, TypeVar)
+        self.assertEqual(stats.T.__name__, "T")
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTSTATS
@@ -27017,7 +27071,9 @@ cat > "$OUTPUT_DIR/tests/test_set_utils.py" <<'TESTSETUTILS'
 """Tests for set_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import set_utils
 from set_utils import (
     cartesian_product,
     count_difference,
@@ -27716,6 +27772,12 @@ class TestIsNotProperSuperset(unittest.TestCase):
             is_not_proper_superset([1, 2], 123)  # type: ignore[arg-type]
 
 
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(set_utils.T, TypeVar)
+        self.assertEqual(set_utils.T.__name__, "T")
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTSETUTILS
@@ -27724,7 +27786,9 @@ cat > "$OUTPUT_DIR/tests/test_statistics_utils.py" <<'TESTSTATISTICS'
 """Tests for statistics_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import statistics_utils
 from statistics_utils import (
     correlation,
     covariance,
@@ -27909,6 +27973,12 @@ class TestNormalize(unittest.TestCase):
     def test_normalize_raises_on_empty(self):
         with self.assertRaises(ValueError):
             normalize([])
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(statistics_utils.T, TypeVar)
+        self.assertEqual(statistics_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -32026,7 +32096,9 @@ cat > "$OUTPUT_DIR/tests/test_tree_utils.py" <<'TESTTREEUTILS'
 """Unit tests for tree_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import tree_utils
 from tree_utils import (
     delete_nested,
     filter_tree,
@@ -32174,6 +32246,14 @@ class TestFilterTree(unittest.TestCase):
     def test_filter_tree_scalar_returns_value_or_none(self):
         self.assertEqual(filter_tree(lambda x: x > 1, 5), 5)
         self.assertIsNone(filter_tree(lambda x: x > 1, 0))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(tree_utils.T, TypeVar)
+        self.assertEqual(tree_utils.T.__name__, "T")
+        self.assertIsInstance(tree_utils.U, TypeVar)
+        self.assertEqual(tree_utils.U.__name__, "U")
 
 
 if __name__ == "__main__":
@@ -36317,7 +36397,9 @@ cat > "$OUTPUT_DIR/tests/test_random_utils.py" <<'TESTRANDUTILS'
 """Tests for random_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import random_utils
 from random_utils import (
     coin_flip,
     random_bool,
@@ -36581,6 +36663,12 @@ class TestRandomChoices(unittest.TestCase):
     def test_all_zero_weights_raises(self) -> None:
         with self.assertRaises(ValueError):
             random_choices([1, 2], weights=[0, 0], k=1)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(random_utils.T, TypeVar)
+        self.assertEqual(random_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -41194,7 +41282,9 @@ cat > "$OUTPUT_DIR/tests/test_priority_queue_utils.py" <<'TEST_PRIORITY_QUEUE_UT
 """Tests for priority_queue_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import priority_queue_utils
 from priority_queue_utils import (
     PriorityQueue,
     clear_priority,
@@ -41375,6 +41465,12 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertFalse(pq1.is_empty())
         self.assertFalse(pq2.is_empty())
         self.assertFalse(pq3.is_empty())
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(priority_queue_utils.T, TypeVar)
+        self.assertEqual(priority_queue_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -45541,10 +45637,12 @@ __all__ = [
 ]
 HASHLIBUTILS
 cat > "$OUTPUT_DIR/tests/test_hashlib_utils.py" <<'HASHLIBUTESTS'
+import hashlib
 import os
 import tempfile
 import unittest
 
+import hashlib_utils
 from hashlib_utils import (
     blake2b_hash,
     blake2s_hash,
@@ -45599,6 +45697,36 @@ class TestHashlibUtils(unittest.TestCase):
             file_hash("path", chunk_size=0)
         with self.assertRaises(FileNotFoundError):
             file_hash("/nonexistent/file_xyz")
+
+
+class TestReexportedHashConstructors(unittest.TestCase):
+    """The module re-exports the :mod:`hashlib` constructors unchanged."""
+
+    DIGEST_SIZES = {
+        "sha1": 20,
+        "sha224": 28,
+        "sha256": 32,
+        "sha384": 48,
+        "sha512": 64,
+        "sha3_224": 28,
+        "sha3_256": 32,
+        "sha3_384": 48,
+        "sha3_512": 64,
+        "blake2s": 32,
+        "blake2b": 64,
+    }
+
+    def test_constructors_are_the_hashlib_objects(self):
+        for name in self.DIGEST_SIZES:
+            self.assertIs(getattr(hashlib_utils, name), getattr(hashlib, name), name)
+
+    def test_constructors_digest_matches_hashlib(self):
+        data = b"agentic scaffolding"
+        for name, size in self.DIGEST_SIZES.items():
+            expected = getattr(hashlib, name)(data).digest()
+            actual = getattr(hashlib_utils, name)(data).digest()
+            self.assertEqual(actual, expected, name)
+            self.assertEqual(len(actual), size, name)
 
 
 if __name__ == "__main__":
@@ -54243,8 +54371,10 @@ cat > "$OUTPUT_DIR/tests/test_timing_utils.py" <<'TESTTIMINGUTILS'
 
 import time
 import unittest
+from typing import TypeVar
 from unittest.mock import patch
 
+import timing_utils
 from timing_utils import benchmark, elapsed_time, timer
 
 
@@ -54377,6 +54507,12 @@ class TestBenchmarkDecorator(unittest.TestCase):
                 pass
 
 
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(timing_utils.F, TypeVar)
+        self.assertEqual(timing_utils.F.__name__, "F")
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTTIMINGUTILS
@@ -54386,7 +54522,9 @@ cat > "$OUTPUT_DIR/tests/test_rate_limiter_utils.py" <<'TESTRLUTILS'
 
 import time
 import unittest
+from typing import TypeVar
 
+import rate_limiter_utils
 from rate_limiter_utils import RateLimiter, rate_limit, token_bucket
 
 
@@ -54510,6 +54648,12 @@ class TestRateLimiter(unittest.TestCase):
             intervals = [calls[i + 1] - calls[i] for i in range(1, len(calls) - 1)]
             for interval in intervals:
                 self.assertAlmostEqual(interval, 0.05, places=1)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(rate_limiter_utils.F, TypeVar)
+        self.assertEqual(rate_limiter_utils.F.__name__, "F")
 
 
 if __name__ == "__main__":
@@ -54896,7 +55040,9 @@ TESTRETRYUTILS
 # --- tests/test_ring_buffer_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_ring_buffer_utils.py" <<'TESTRINGUTILS'
 import unittest
+from typing import TypeVar
 
+import ring_buffer_utils
 from ring_buffer_utils import (
     RingBuffer,
     append,
@@ -55004,6 +55150,12 @@ class TestRingBuffer(unittest.TestCase):
         append(rb, 1)
         append(rb, 2)
         self.assertIn("capacity=3", repr(rb))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(ring_buffer_utils.T, TypeVar)
+        self.assertEqual(ring_buffer_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -71878,6 +72030,17 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — repaired stale `scaffold.sh` embedded copies and made the `scan_untested --all` tests independent of repository coverage
+
+- **Tooling fix — the committed `scaffold.sh` had drifted out of sync with the repository sources, so the developer gates were red.** 28 embedded copies (27 `tests/test_*.py` files plus `CHANGELOG.md`) were stale: the previous session committed test and `CHANGELOG.md` edits without re-embedding them into the generator. As a result `python -m unittest discover tests/` failed 32 tests (`test_scaffold_sync.test_embedded_copies_match_repository`, the `test_refresh_scaffold` check/convergence cases, and five `test_scan_untested` cases) even though the verification battery's `refresh_scaffold.py --check` is the very check that had been skipped. `python tools/refresh_scaffold.py` regenerated the embedded copies; `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync and the scaffold-sync suite passes.
+- **Test fix — five `tests/test_scan_untested.py` cases hard-coded the assumption that `scan_untested --all` still reports gaps in this repository (asserting a non-zero exit, a positive total, and a `help` gap).** Now that `scan_untested --all` reports no exported-but-untested callables, those end-to-end assertions failed. The `--all`, `--json`, `--summary`, and per-mode cache cases now build a throwaway fixture project (a module exporting a function, a constant, and a class that its test never references) and run a copied scanner against it, so they verify the flag's behaviour — the default report keeps only the function, while `--all` widens to all three — without depending on the repository's coverage state.
+- Validation: `python -m unittest discover tests/` — 11238 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/scan_untested.py --all` — clean. No `.github/workflows/**` changes.
+
+## Unreleased — closed `scan_untested --all` gaps for `optparse_utils`, `unittest_utils`, `telnetlib_utils` re-exported symbols
+
+- **Coverage — `tests/test_optparse_utils.py`, `tests/test_unittest_utils.py`, `tests/test_telnetlib_utils.py`: added targeted contract tests for exported classes and constants that `python tools/scan_untested.py --all` still reported as untested.** `optparse_utils` now pins the re-exported `OptionContainer`, `BadOptionError`, and the `UNSET` sentinel against the standard library; `unittest_utils` pins the re-exported `TestCase`, `TestSuite`, `TestLoader`, `TextTestRunner`, and `defaultTestLoader` against the `unittest` module; `telnetlib_utils` pins the re-exported `AO`, `AYT`, `EC`, `EL`, `GA`, `DM`, `BRK`, and `IP` telnet command bytes against the standard library. The `--all` gap count drops from 129 to 114.
+- Validation: `python -m unittest tests.test_optparse_utils tests.test_unittest_utils tests.test_telnetlib_utils` — 131 OK; `python -m unittest discover tests/` — 11179 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — clean (568 files); `python tools/refresh_scaffold.py` refreshed embedded test copies; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — closed `scan_untested --all` gaps for exported constants/classes and fixed pre-existing lint/type failures
 
 - **Coverage — `tests/test_duration_utils.py`, `tests/test_socket_utils.py`, `tests/test_html_entities_utils.py`, `tests/test_sre_constants_utils.py`, `tests/test_smtplib_utils.py`: added targeted contract tests for exported symbols that `python tools/scan_untested.py --all` still reported as untested.** `duration_utils` now pins `SECONDS_PER_MINUTE`, `SECONDS_PER_HOUR`, and the `DURATION_UNITS` alias/multiplier table; `socket_utils` pins the re-exported `AF_UNIX`, `SOCK_STREAM`, `SOCK_DGRAM`, `SHUT_RD`, `SHUT_WR`, and `SHUT_RDWR` constants against the `socket` module; `html_entities_utils` pins the re-exported `codepoint2name`, `entitydefs`, and `html5` tables; `sre_constants_utils` pins `error` as an `Exception` subclass that matches the stdlib class when available; `smtplib_utils` pins the `RefusedRecipients` type alias. The `--all` gap count drops from 140 to 129. No `.github/workflows/**` changes.
@@ -87837,6 +88000,7 @@ cat > "$OUTPUT_DIR/tests/test_posixpath_utils.py" <<'TEST_POSIXPATH_UTILS'
 """Tests for posixpath_utils."""
 
 import os
+import posixpath
 import tempfile
 import unittest
 
@@ -88116,6 +88280,21 @@ class TestReExports(unittest.TestCase):
             samefile(123, 456)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             sameopenfile(True, 1)  # type: ignore[arg-type]
+
+
+class TestRemainingConstants(unittest.TestCase):
+    """The remaining re-exported constants equal the standard library values."""
+
+    def test_constants_match_posixpath(self):
+        for name in (
+            "altsep",
+            "defpath",
+            "devnull",
+            "extsep",
+            "pathsep",
+            "supports_unicode_filenames",
+        ):
+            self.assertEqual(getattr(posixpath_utils, name), getattr(posixpath, name), name)
 TEST_POSIXPATH_UTILS
 
 # --- getopt_utils.py ---
@@ -106603,7 +106782,9 @@ cat > "$OUTPUT_DIR/tests/test_pattern_utils.py" <<'TEST_PATTERN_UTILS'
 """Tests for pattern_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import pattern_utils
 from pattern_utils import (
     Factory,
     Observable,
@@ -106740,6 +106921,12 @@ class TestStrategy(unittest.TestCase):
             StrategyContext("not a strategy")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             StrategyContext(ConcreteStrategy("x")).strategy = 42  # type: ignore[assignment]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(pattern_utils.T, TypeVar)
+        self.assertEqual(pattern_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -115520,7 +115707,9 @@ cat > "$OUTPUT_DIR/tests/test_secrets_utils.py" <<'TEST_SECRETS_UTILS'
 """Unit tests for secrets_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import secrets_utils
 from secrets_utils import (
     choice,
     compare_digest,
@@ -115693,6 +115882,12 @@ class TestChoice(unittest.TestCase):
             choice([])  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             choice("")
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(secrets_utils.T, TypeVar)
+        self.assertEqual(secrets_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -117885,7 +118080,9 @@ cat > "$OUTPUT_DIR/tests/test_seq_utils.py" <<'TEST_SEQ_UTILS'
 """Unit tests for seq_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import seq_utils
 from seq_utils import (
     adjacent_pairs,
     all_where,
@@ -119181,6 +119378,12 @@ class TestIsNotEmpty(unittest.TestCase):
             is_not_empty(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_not_empty(None)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(seq_utils.T, TypeVar)
+        self.assertEqual(seq_utils.T.__name__, "T")
 TEST_SEQ_UTILS
 
 # --- shelve_utils.py ---
@@ -124459,6 +124662,27 @@ class TestSSLUtils(unittest.TestCase):
 
     def test_verify_cert_chain_accepts_a_certificate_mapping(self):
         self.assertIsNone(ssl_utils.verify_cert_chain({"subject": ()}))
+
+
+class TestReexportedConstants(unittest.TestCase):
+    """The re-exported protocol constants and verify-path type match the standard library."""
+
+    def test_protocol_constants_match_ssl(self):
+        for name in (
+            "PROTOCOL_TLS",
+            "PROTOCOL_SSLv23",
+            "PROTOCOL_TLSv1",
+            "PROTOCOL_TLSv1_1",
+            "PROTOCOL_TLSv1_3",
+        ):
+            self.assertEqual(getattr(ssl_utils, name), getattr(ssl, name, None), name)
+
+    def test_default_verify_paths_is_the_ssl_type(self):
+        self.assertIs(ssl_utils.DefaultVerifyPaths, ssl.DefaultVerifyPaths)
+        paths = ssl_utils.get_default_verify_paths()
+        self.assertIsInstance(paths, ssl_utils.DefaultVerifyPaths)
+        self.assertTrue(hasattr(paths, "cafile"))
+        self.assertTrue(hasattr(paths, "openssl_cafile"))
 TEST_SSL_UTILS
 
 # --- stat_utils.py ---
@@ -130237,7 +130461,9 @@ THREADING_UTILS
 cat > "$OUTPUT_DIR/tests/test_threading_utils.py" <<'TEST_THREADING_UTILS'
 import threading
 import unittest
+from typing import TypeVar
 
+import threading_utils
 from threading_utils import (
     active_count,
     create_bounded_semaphore,
@@ -130411,6 +130637,12 @@ class TestSynchronized(unittest.TestCase):
     def test_synchronized_invalid_lock(self):
         with self.assertRaises(TypeError):
             synchronized("not a lock")  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(threading_utils.T, TypeVar)
+        self.assertEqual(threading_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -137236,10 +137468,13 @@ WEAKREF_UTILS
 # --- tests/test_weakref_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_weakref_utils.py" <<'TEST_WEAKREF_UTILS'
 import gc
+import typing
 import unittest
 import weakref
 
+import weakref_utils
 from weakref_utils import (
+    BoundMethodProtocol,
     WeakMethod,
     WeakRef,
     create_finalizer,
@@ -137388,6 +137623,32 @@ class TestCreateFinalizer(unittest.TestCase):
         gc.collect()
         # Callback may have fired
         self.assertFalse(fin.alive)
+
+
+class TestBoundMethodProtocol(unittest.TestCase):
+    """The protocol describes the attributes of a bound method."""
+
+    def test_protocol_declares_func_and_self(self):
+        hints = typing.get_type_hints(BoundMethodProtocol)
+        self.assertIn("__func__", hints)
+        self.assertIn("__self__", hints)
+
+    def test_protocol_is_a_protocol(self):
+        self.assertTrue(getattr(BoundMethodProtocol, "_is_protocol", False))
+
+    def test_bound_method_satisfies_the_protocol(self):
+        class Target:
+            def method(self):
+                return None
+
+        self.assertTrue(hasattr(Target().method, "__func__"))
+        self.assertTrue(hasattr(Target().method, "__self__"))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(weakref_utils.T, typing.TypeVar)
+        self.assertEqual(weakref_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":
@@ -139002,6 +139263,8 @@ XMLRPC_UTILS
 # --- tests/test_xmlrpc_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_xmlrpc_utils.py" <<'TEST_XMLRPC_UTILS'
 import unittest
+import xmlrpc.client
+import xmlrpc.server
 from unittest.mock import patch
 
 import xmlrpc_utils
@@ -139294,6 +139557,25 @@ class TestXmlrpcUtils(unittest.TestCase):
         self.assertEqual(len(xmlrpc_utils.__all__), len(set(xmlrpc_utils.__all__)))
         for name in xmlrpc_utils.__all__:
             self.assertTrue(hasattr(xmlrpc_utils, name), name)
+
+
+class TestReexportedClasses(unittest.TestCase):
+    """The re-exported client and server classes are the standard library classes."""
+
+    def test_client_classes_are_the_standard_library_classes(self):
+        self.assertIs(xmlrpc_utils.Error, xmlrpc.client.Error)
+        self.assertIs(xmlrpc_utils.ProtocolError, xmlrpc.client.ProtocolError)
+        self.assertIs(xmlrpc_utils.ResponseError, xmlrpc.client.ResponseError)
+        self.assertIs(xmlrpc_utils.SafeTransport, xmlrpc.client.SafeTransport)
+        self.assertIs(xmlrpc_utils.MultiCall, xmlrpc.client.MultiCall)
+        self.assertIs(xmlrpc_utils.MultiCallIterator, xmlrpc.client.MultiCallIterator)
+        self.assertIs(xmlrpc_utils.Unmarshaller, xmlrpc.client.Unmarshaller)
+
+    def test_server_classes_are_the_standard_library_classes(self):
+        self.assertIs(
+            xmlrpc_utils.CGIXMLRPCRequestHandler,
+            xmlrpc.server.CGIXMLRPCRequestHandler,
+        )
 
 
 if __name__ == "__main__":
@@ -142384,6 +142666,7 @@ import pydoc
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import pydoc_utils
 from pydoc_utils import (
@@ -142791,6 +143074,38 @@ class TestHelpers(unittest.TestCase):
     def test_writedocs_rejects_non_string_pkgpath(self):
         with self.assertRaises(TypeError):
             writedocs("dir", pkgpath=123)  # type: ignore[arg-type]
+
+
+class TestInteractiveFacades(unittest.TestCase):
+    """The interactive facades delegate to the standard library."""
+
+    def test_cli_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "cli") as cli:
+            pydoc_utils.cli()
+            cli.assert_called_once_with()
+
+    def test_help_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "help") as help_func:
+            pydoc_utils.help()
+            help_func.assert_called_once_with()
+
+    def test_plainpager_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "plainpager") as plainpager:
+            pydoc_utils.plainpager("text")
+            plainpager.assert_called_once_with("text")
+
+    def test_plainpager_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            pydoc_utils.plainpager(123)  # type: ignore[arg-type]
+
+    def test_browse_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "browse") as browse:
+            pydoc_utils.browse(port=0, open_browser=False, hostname="localhost")
+            browse.assert_called_once_with(port=0, open_browser=False, hostname="localhost")
+
+    def test_browse_rejects_a_negative_port(self):
+        with self.assertRaises(ValueError):
+            pydoc_utils.browse(port=-1)
 
 
 if __name__ == "__main__":
@@ -144611,6 +144926,55 @@ class TestTypeValidation(unittest.TestCase):
     def test_has_key_rejects_a_non_int(self):
         with self.assertRaises(TypeError):
             curses_utils.has_key("KEY_UP")  # type: ignore[arg-type]
+
+
+@unittest.skipUnless(curses_utils.is_available(), "curses module not available")
+class TestRemainingConstantsMatchTheStandardLibrary(unittest.TestCase):
+    """Every remaining re-exported constant equals the standard library value."""
+
+    CONSTANTS = (
+        "A_ALTCHARSET",
+        "A_ATTRIBUTES",
+        "A_BLINK",
+        "A_CHARTEXT",
+        "A_DIM",
+        "A_HORIZONTAL",
+        "A_INVIS",
+        "A_ITALIC",
+        "A_LEFT",
+        "A_LOW",
+        "A_NORMAL",
+        "A_PROTECT",
+        "A_RIGHT",
+        "A_STANDOUT",
+        "A_TOP",
+        "A_UNDERLINE",
+        "A_VERTICAL",
+        "COLOR_BLUE",
+        "COLOR_CYAN",
+        "COLOR_GREEN",
+        "COLOR_MAGENTA",
+        "COLOR_WHITE",
+        "COLOR_YELLOW",
+        "KEY_BACKSPACE",
+        "KEY_END",
+        "KEY_ENTER",
+        "KEY_HOME",
+        "KEY_LEFT",
+        "KEY_MAX",
+        "KEY_MIN",
+        "KEY_RESIZE",
+        "KEY_RIGHT",
+    )
+
+    def test_constants_match_the_standard_library(self):
+        for name in self.CONSTANTS:
+            self.assertEqual(getattr(curses_utils, name), getattr(curses, name), name)
+
+    def test_termname_delegates(self):
+        with mock.patch.object(curses_utils._curses, "termname", return_value="xterm") as termname:
+            self.assertEqual(curses_utils.termname(), "xterm")
+            termname.assert_called_once_with()
 
 
 class TestMissingModule(unittest.TestCase):
@@ -146687,6 +147051,7 @@ import wsgiref.headers
 import wsgiref.simple_server
 import wsgiref.util
 import wsgiref.validate
+from typing import Any, Callable, Dict
 from unittest import mock
 
 import wsgiref_utils
@@ -147093,6 +147458,16 @@ class TestMakeServer(unittest.TestCase):
                 lambda environ, start_response: [],
                 handler_class=42,  # type: ignore[arg-type]
             )
+
+
+class TestTypeAliases(unittest.TestCase):
+    """The exported type aliases describe the documented shapes."""
+
+    def test_environment_is_a_string_mapping(self):
+        self.assertEqual(wsgiref_utils.Environment, Dict[str, Any])
+
+    def test_application_is_a_callable_alias(self):
+        self.assertEqual(wsgiref_utils.Application, Callable[..., Any])
 
 
 if __name__ == "__main__":
@@ -150930,6 +151305,38 @@ class TestDegradation(unittest.TestCase):
         self.assertIsInstance(ensurepip_utils.is_pip_installed(), bool)
 
 
+class TestBootstrapResult(unittest.TestCase):
+    """The installation record carries the documented fields."""
+
+    EXPECTED_FIELDS = (
+        "pip_version",
+        "root",
+        "upgrade",
+        "user",
+        "altinstall",
+        "default_pip",
+        "verbosity",
+    )
+
+    def test_fields(self):
+        self.assertEqual(ensurepip_utils.BootstrapResult._fields, self.EXPECTED_FIELDS)
+
+    def test_construction_and_access(self):
+        record = ensurepip_utils.BootstrapResult(
+            pip_version="24.0",
+            root=None,
+            upgrade=False,
+            user=False,
+            altinstall=False,
+            default_pip=False,
+            verbosity=0,
+        )
+        self.assertEqual(record.pip_version, "24.0")
+        self.assertIsNone(record.root)
+        self.assertEqual(record[0], "24.0")
+        self.assertEqual(record.verbosity, 0)
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_ENSUREPIP_UTILS
@@ -152836,6 +153243,7 @@ filesystem outside its own temporary directories.
 
 import os
 import tempfile
+import typing
 import unittest
 from unittest import mock
 
@@ -153148,6 +153556,25 @@ class TestExternalEntityParser(unittest.TestCase):
     def test_a_non_string_encoding_is_rejected(self):
         with self.assertRaises(TypeError):
             pyexpat_utils.external_entity_parser(mock.Mock(), 42)
+
+
+class TestPositionRecords(unittest.TestCase):
+    """The position records and the attribute alias carry the documented shape."""
+
+    def test_error_position_fields(self):
+        self.assertEqual(
+            pyexpat_utils.ErrorPosition._fields,
+            ("line", "column", "code", "byte_index"),
+        )
+
+    def test_current_position_fields(self):
+        self.assertEqual(
+            pyexpat_utils.CurrentPosition._fields,
+            ("byte_index", "line_number", "column_number"),
+        )
+
+    def test_element_attributes_is_a_string_mapping(self):
+        self.assertEqual(pyexpat_utils.ElementAttributes, typing.Dict[str, str])
 
 
 if __name__ == "__main__":
