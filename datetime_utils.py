@@ -93,8 +93,11 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
         A new datetime shifted by the given number of days.
 
     Raises:
+        TypeError: If *days* is not an int.
         ValueError: If a string argument cannot be parsed.
     """
+    if isinstance(days, bool) or not isinstance(days, int):
+        raise TypeError("days must be an int")
     dt_val = _coerce_datetime(dt, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S")
     return dt_val + timedelta(days=days)
 

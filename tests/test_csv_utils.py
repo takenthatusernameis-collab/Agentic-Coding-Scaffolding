@@ -80,3 +80,27 @@ class TestReadWriteCSV(unittest.TestCase):
         finally:
             if os.path.exists(path):
                 os.unlink(path)
+
+    def test_append_csv_row_respects_delimiter(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            write_csv(path, [{"name": "Alice", "age": "30"}], delimiter=";")
+            append_csv_row(
+                path,
+                {"name": "Bob", "age": "25"},
+                fieldnames=["name", "age"],
+                delimiter=";",
+            )
+            with open(path, encoding="utf-8") as f:
+                content = f.read()
+            self.assertIn("Alice;30", content)
+            self.assertIn("Bob;25", content)
+            self.assertNotIn("Bob,25", content)
+            loaded = read_csv(path, delimiter=";")
+            self.assertEqual(len(loaded), 2)
+            self.assertEqual(loaded[1], {"name": "Bob", "age": "25"})
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)

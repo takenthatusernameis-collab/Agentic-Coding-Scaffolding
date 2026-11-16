@@ -1,14 +1,15 @@
 # Handover
 
-## Latest Session (2026-11-16) — defect hunt/fix: `color_utils` multiple leading `#`
+## Latest Session (2026-11-16) — defect hunt/fix: `csv_utils` append delimiter, `datetime_utils` add_days int validation
 
 - `board_read`: empty (no task posted to main); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at session start (prior source-relevant edits pending checkpoint). Full suite run this session and `--full --record-full-suite` recorded a checkpoint at HEAD (`bb7b46f`); probe is rc=2 only because this session's edits are uncommitted (the CI auto-commit follows the session).
-- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe, targeted pytest/doctest/ruff/mypy for touched files, fast `scan_untested --all` and `refresh_scaffold --check`. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Defect fixed (failing-test-first):** `color_utils.validate_hex` and `color_utils.hex_to_rgb` used `hex_color.lstrip("#")`, which strips *every* leading `#`, so `"##ff5733"` / `"###000000"` were reported valid and `hex_to_rgb("##ff5733")` returned `(255, 87, 51)` instead of raising `ValueError`. Added `test_multiple_leading_hashes_rejected` and `test_multiple_leading_hashes_raise` (both failed before the fix), then strip only a single optional leading `#`.
-- **Verification:** `python -m pytest tests/test_color_utils.py -q` (40 passed); `python -m doctest color_utils.py` (OK); `python -m ruff check color_utils.py tests/test_color_utils.py` (clean); `python -m mypy color_utils.py tests/test_color_utils.py` (clean); `python -m pytest tests/ -q` (11476 passed, 4 skipped); `python -m ruff check .` (clean); `python -m mypy . --exclude build --exclude dist` (clean, 568 files); `python tools/scan_untested.py --all` (clean).
-- **Scaffold/CHANGELOG:** added an Unreleased changelog entry; `python tools/refresh_scaffold.py` + `--check` in sync.
-- **Defect hunt notes:** reviewed `cli_utils`, `cmath_utils`, `cmd_utils`, `code_utils`, `codecs_utils`, `codeop_utils`, `collections_abc_utils`, `collections_utils`, `color_utils`, `colorsys_utils`, `compileall_utils`; only the `color_utils` defect found in this batch.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at session start (prior source-relevant edits pending checkpoint). Ran full verification and `--full --record-full-suite` recorded a checkpoint at HEAD; probe will be rc=2 until this session's commit lands (CI auto-commit follows the session).
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe, targeted unittest/doctest/ruff/mypy for touched files, and the recorded full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `csv_utils.append_csv_row` wrote with a hardcoded comma dialect, so appending to a non-comma-delimited file (e.g. after `write_csv(..., delimiter=";")`) produced malformed rows. Added `delimiter` parameter (default `","`) forwarded to `csv.DictWriter`; added `test_append_csv_row_respects_delimiter`.
+  - `datetime_utils.add_days` accepted bool/float/string offsets (`bool` is `int`, `timedelta` accepts floats) unlike `add_hours`/`add_minutes`/`add_weeks`. Now rejects non-`int`/bool with `TypeError`; added `test_add_rejects_non_int_days`.
+- **Verification:** `python -m unittest tests.test_csv_utils tests.test_datetime_utils` (OK); `python -m doctest csv_utils.py datetime_utils.py` (OK); `python -m ruff check csv_utils.py tests/test_csv_utils.py datetime_utils.py tests/test_datetime_utils.py` (clean); `python -m mypy csv_utils.py tests/test_csv_utils.py datetime_utils.py tests/test_datetime_utils.py` (clean); `python tools/refresh_scaffold.py` + `--check` (in sync); `python tools/verify_state_delta.py --full --record-full-suite` (passed, checkpoint advanced).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies.
 
 ## Task for Next Agent
 

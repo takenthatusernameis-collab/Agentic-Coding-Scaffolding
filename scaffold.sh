@@ -26719,8 +26719,11 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
         A new datetime shifted by the given number of days.
 
     Raises:
+        TypeError: If *days* is not an int.
         ValueError: If a string argument cannot be parsed.
     """
+    if isinstance(days, bool) or not isinstance(days, int):
+        raise TypeError("days must be an int")
     dt_val = _coerce_datetime(dt, "%Y-%m-%d", "%Y-%m-%d %H:%M:%S")
     return dt_val + timedelta(days=days)
 
@@ -27062,6 +27065,30 @@ class TestReadWriteCSV(unittest.TestCase):
             append_csv_row(path, {"name": "Bob", "age": "25"})
             loaded = read_csv(path)
             self.assertEqual(len(loaded), 2)
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_append_csv_row_respects_delimiter(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            write_csv(path, [{"name": "Alice", "age": "30"}], delimiter=";")
+            append_csv_row(
+                path,
+                {"name": "Bob", "age": "25"},
+                fieldnames=["name", "age"],
+                delimiter=";",
+            )
+            with open(path, encoding="utf-8") as f:
+                content = f.read()
+            self.assertIn("Alice;30", content)
+            self.assertIn("Bob;25", content)
+            self.assertNotIn("Bob,25", content)
+            loaded = read_csv(path, delimiter=";")
+            self.assertEqual(len(loaded), 2)
+            self.assertEqual(loaded[1], {"name": "Bob", "age": "25"})
         finally:
             if os.path.exists(path):
                 os.unlink(path)
@@ -33849,6 +33876,14 @@ class TestAddDays(unittest.TestCase):
     def test_add_invalid_string_raises(self) -> None:
         with self.assertRaises(ValueError):
             add_days("not-a-date", 5)
+
+    def test_add_rejects_non_int_days(self) -> None:
+        with self.assertRaises(TypeError):
+            add_days("2024-01-01", 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            add_days("2024-01-01", True)
+        with self.assertRaises(TypeError):
+            add_days("2024-01-01", "1")  # type: ignore[arg-type]
 
 
 class TestAddWeeks(unittest.TestCase):
@@ -42446,15 +42481,27 @@ def write_csv_from_lists(path: str, rows: List[List[Any]], delimiter: str = ",")
         writer.writerows(rows)
 
 
-def append_csv_row(path: str, row: Dict[str, Any], fieldnames: Optional[List[str]] = None) -> None:
-    """Append a single row to CSV file."""
+def append_csv_row(
+    path: str,
+    row: Dict[str, Any],
+    fieldnames: Optional[List[str]] = None,
+    delimiter: str = ",",
+) -> None:
+    """Append a single row to a CSV file.
+
+    Args:
+        path: Path to the CSV file.
+        row: Mapping of column names to values for the row.
+        fieldnames: Column order. Defaults to ``list(row.keys())``.
+        delimiter: Field delimiter to use when writing.
+    """
     if fieldnames is None:
         fieldnames = list(row.keys())
     import os
 
     file_exists = os.path.exists(path) and os.path.getsize(path) > 0
     with open(path, "a", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=delimiter)
         if not file_exists:
             writer.writeheader()
         writer.writerow(row)
@@ -72060,6 +72107,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `csv_utils.append_csv_row` delimiter support and `datetime_utils.add_days` int validation
+
+- **Correctness fix — `csv_utils.append_csv_row` ignored the delimiter when appending rows.** The helper wrote via `csv.DictWriter` without passing a delimiter, so appending to a semicolon/pipe-delimited file (or after `write_csv(..., delimiter=";")`) emitted comma-separated rows and a header that did not match the file's dialect, corrupting round-trips/readability. `append_csv_row` now accepts an optional `delimiter` argument (default `","`) and forwards it to the writer. Added `test_append_csv_row_respects_delimiter` (fails against the old implementation and passes after). Refreshed embedded `csv_utils.py` and `tests/test_csv_utils.py` in `scaffold.sh`; `refresh_scaffold --check` in sync.
+- **Correctness fix — `datetime_utils.add_days` accepted boolean and non-integer day offsets.** Because `bool` is a subclass of `int`, `add_days(..., True)` silently added one day and `add_days(..., 1.5)` was accepted by `timedelta`, diverging from the explicit `TypeError` contract enforced by sibling helpers (`add_hours`, `add_minutes`, `add_weeks`). `add_days` now rejects non-`int`/`bool` offsets with `TypeError("days must be an int")` and raises the same for floats/strings. Added `test_add_rejects_non_int_days`. Refreshed embedded copies in `scaffold.sh`; `refresh_scaffold --check` in sync.
+- **Defect hunt (partial batch):** reviewed `csv_utils`, `ctypes_utils`, `datetime_utils`, `dbm_utils`, `decimal_utils`, `deque_utils`, `difflib_utils`, `dis_utils`, `doctest_utils` and fixed the `csv_utils`/`datetime_utils` defects above; no defects found in the others in this pass. Continue defect hunt from the next unreviewed modules.
+- Validation: `python -m unittest tests.test_csv_utils tests.test_datetime_utils` — OK; `python -m doctest csv_utils.py datetime_utils.py` — OK; `python -m ruff check` on touched files — clean; `python -m mypy` on touched files — clean; full suite + scaffold checks recorded below.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — fixed `concurrent_futures_utils` accepting booleans as `max_workers`; defect hunt on `concurrent`–`copy` batch
 
 - **Correctness fix — `concurrent_futures_utils.thread_pool_executor` and `concurrent_futures_utils.process_pool_executor` accepted boolean `max_workers` arguments.** Because `bool` is a subclass of `int`, the `isinstance(max_workers, int)` validation let `True` and `False` slip through, so `thread_pool_executor(max_workers=True)` created a single-thread executor and `process_pool_executor(max_workers=False)` created a default-sized pool instead of raising `TypeError`. This violated the documented contract ("max_workers must be an int or None") and diverged from the bool-rejection convention used elsewhere (`secrets_utils`, `duration_utils`, `semver_utils`). Both helpers now delegate to a shared `_validate_max_workers` that rejects `bool` explicitly before the integer check. Added `test_thread_pool_executor_rejects_bool_max_workers` and `test_process_pool_executor_rejects_bool_max_workers` (both fail against the old implementation and pass after). Refreshed the embedded `concurrent_futures_utils.py` and `tests/test_concurrent_futures_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.

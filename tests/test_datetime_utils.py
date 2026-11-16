@@ -121,6 +121,14 @@ class TestAddDays(unittest.TestCase):
         with self.assertRaises(ValueError):
             add_days("not-a-date", 5)
 
+    def test_add_rejects_non_int_days(self) -> None:
+        with self.assertRaises(TypeError):
+            add_days("2024-01-01", 1.5)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            add_days("2024-01-01", True)
+        with self.assertRaises(TypeError):
+            add_days("2024-01-01", "1")  # type: ignore[arg-type]
+
 
 class TestAddWeeks(unittest.TestCase):
     def test_add_positive_weeks(self) -> None:

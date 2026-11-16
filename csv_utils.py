@@ -54,15 +54,27 @@ def write_csv_from_lists(path: str, rows: List[List[Any]], delimiter: str = ",")
         writer.writerows(rows)
 
 
-def append_csv_row(path: str, row: Dict[str, Any], fieldnames: Optional[List[str]] = None) -> None:
-    """Append a single row to CSV file."""
+def append_csv_row(
+    path: str,
+    row: Dict[str, Any],
+    fieldnames: Optional[List[str]] = None,
+    delimiter: str = ",",
+) -> None:
+    """Append a single row to a CSV file.
+
+    Args:
+        path: Path to the CSV file.
+        row: Mapping of column names to values for the row.
+        fieldnames: Column order. Defaults to ``list(row.keys())``.
+        delimiter: Field delimiter to use when writing.
+    """
     if fieldnames is None:
         fieldnames = list(row.keys())
     import os
 
     file_exists = os.path.exists(path) and os.path.getsize(path) > 0
     with open(path, "a", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=delimiter)
         if not file_exists:
             writer.writeheader()
         writer.writerow(row)
