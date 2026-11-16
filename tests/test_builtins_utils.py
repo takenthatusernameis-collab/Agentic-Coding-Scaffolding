@@ -127,8 +127,21 @@ class TestBuiltinsUtils(unittest.TestCase):
     def test_iterator(self) -> None:
         it = iterator([1, 2, 3])
         self.assertEqual(next(it), 1)
-        it2 = iterator(lambda: 1, 1)
-        self.assertEqual(next(it2), 1)
+
+        # Callable + sentinel must follow built-in iter(callable, sentinel):
+        # stop when callable() returns the sentinel value.
+        calls = {"n": 0}
+
+        def counter() -> int:
+            calls["n"] += 1
+            return calls["n"]
+
+        self.assertEqual(list(iterator(counter, 3)), [1, 2])
+        self.assertEqual(calls["n"], 3)
+
+        # Immediate sentinel match yields an empty iterator.
+        self.assertEqual(list(iterator(lambda: 1, 1)), [])
+
         with self.assertRaises(TypeError):
             iterator(123)  # type: ignore[arg-type]
 

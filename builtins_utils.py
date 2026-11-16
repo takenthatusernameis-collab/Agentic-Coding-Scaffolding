@@ -336,16 +336,15 @@ def iterator(object: Any, sentinel: Any = None) -> Iterator[Any]:
         TypeError: If *object* is not a collection or callable.
     """
     if _builtins.callable(object):
-        # Check if sentinel is being used as count (for this API's tests)
-        # Test expects: iterator(lambda: 1, 1) -> next() returns 1
-        if sentinel is not None and isinstance(sentinel, int) and not isinstance(sentinel, bool):
-            # Could be count style
-            def _gen() -> Iterator[Any]:
-                count = sentinel
-                for _ in range(count):
-                    yield object()
-
-            return _gen()
+        if sentinel is None:
+            # No sentinel provided; treat callable as zero-arg iterator factory
+            # only where applicable, otherwise fall back to built-in iter().
+            try:
+                return _builtins.iter(object)
+            except TypeError as err:
+                raise TypeError(
+                    f"object must be iterable or callable, got {type(object).__name__}"
+                ) from err
         return _builtins.iter(object, sentinel)
     try:
         return _builtins.iter(object)
