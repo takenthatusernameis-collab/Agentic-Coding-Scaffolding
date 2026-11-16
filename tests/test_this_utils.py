@@ -43,14 +43,20 @@ class TestPrintZen(unittest.TestCase):
         buffer = io.StringIO()
         with redirect_stdout(buffer):
             this_utils.print_zen()
-        self.assertEqual(buffer.getvalue(), _this.s + "\n")
+        self.assertEqual(buffer.getvalue(), this_utils.decode(_this.s) + "\n")
 
-    def test_print_zen_decodes_to_zen(self) -> None:
+    def test_print_zen_is_decoded(self) -> None:
         buffer = io.StringIO()
         with redirect_stdout(buffer):
             this_utils.print_zen()
-        decoded = this_utils.decode(buffer.getvalue().rstrip("\n"))
-        self.assertIn("Beautiful is better", decoded)
+        self.assertIn("The Zen of Python", buffer.getvalue())
+        self.assertIn("Beautiful is better", buffer.getvalue())
+
+    def test_print_zen_is_not_encoded(self) -> None:
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            this_utils.print_zen()
+        self.assertNotIn("Gur Mra bs Clguba", buffer.getvalue())
 
 
 if __name__ == "__main__":

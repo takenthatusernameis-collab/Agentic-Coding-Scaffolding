@@ -39,7 +39,7 @@ def this():
 
 def print_zen():
     """Print the Zen of Python to standard output."""
-    print(_this.s)
+    print(decode(zen_of_python))
 
 
 def decode(text):

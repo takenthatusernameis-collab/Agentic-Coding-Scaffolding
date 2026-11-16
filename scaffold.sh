@@ -71675,6 +71675,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fixed `this_utils.print_zen` printing the ROT13-encoded Zen instead of the decoded text; defect hunt on `termios`–`traceback` batch
+
+- **Correctness fix — `this_utils.print_zen` printed the ROT13-encoded Zen string (`_this.s`) directly instead of the decoded, readable text.** The `this` standard library module stores the Zen of Python as an ROT13-encoded string in `this.s` and a translation table in `this.d`; the readable Zen is obtained by applying the translation table (`this.s.translate(this.d)`). The wrapper's `print_zen` docstring promises to "Print the Zen of Python to standard output," but it called `print(_this.s)`, so `print_zen()` emitted `Gur Mra bs Clguba, ol Gvz Crgref...` instead of `The Zen of Python, by Tim Peters...`. The module already provides a `decode` helper that applies the translation table, so `print_zen` now calls `print(decode(zen_of_python))`. Updated `tests/test_this_utils.py`: `test_print_zen_outputs_zen` now asserts the output equals the decoded Zen, `test_print_zen_is_decoded` checks for readable Zen substrings, and `test_print_zen_is_not_encoded` verifies the encoded text is absent (all three fail against the old implementation and pass after the fix). Refreshed the embedded `this_utils.py` and `tests/test_this_utils.py` copies in `scaffold.sh`; `refresh --check` in sync.
+- **Defect hunt — reviewed the next alphabetical batch of `*_utils.py` modules (`termios`, `textwrap`, `this`, `threading`, `time`, `timeit`, `token`, `tokenize`, `trace`, `traceback`).** No incorrect contracts found in `termios`, `textwrap`, `threading`, `time`, `timeit`, `token`, `tokenize`, `trace`, or `traceback`. The `this` issue above was the only defect. All batch modules pass their tests, `ruff check .`, `mypy . --exclude build --exclude dist`, and `scan_untested` reports zero gaps.
+- Validation: `python -m unittest tests.test_this_utils` — 7 OK; `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_doctests` — 26 OK; `python -m ruff check this_utils.py tests/test_this_utils.py` — clean; `python -m mypy this_utils.py tests/test_this_utils.py` — clean; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — bootstrap session; defect hunt on `posix`–`py_compile` batch; no defects found
 
 - **Bootstrap session** — `board_read` empty; executed the durable handoff task from `.kilo/next_task.md`.
@@ -129432,7 +129439,7 @@ def this():
 
 def print_zen():
     """Print the Zen of Python to standard output."""
-    print(_this.s)
+    print(decode(zen_of_python))
 
 
 def decode(text):
@@ -129487,14 +129494,20 @@ class TestPrintZen(unittest.TestCase):
         buffer = io.StringIO()
         with redirect_stdout(buffer):
             this_utils.print_zen()
-        self.assertEqual(buffer.getvalue(), _this.s + "\n")
+        self.assertEqual(buffer.getvalue(), this_utils.decode(_this.s) + "\n")
 
-    def test_print_zen_decodes_to_zen(self) -> None:
+    def test_print_zen_is_decoded(self) -> None:
         buffer = io.StringIO()
         with redirect_stdout(buffer):
             this_utils.print_zen()
-        decoded = this_utils.decode(buffer.getvalue().rstrip("\n"))
-        self.assertIn("Beautiful is better", decoded)
+        self.assertIn("The Zen of Python", buffer.getvalue())
+        self.assertIn("Beautiful is better", buffer.getvalue())
+
+    def test_print_zen_is_not_encoded(self) -> None:
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            this_utils.print_zen()
+        self.assertNotIn("Gur Mra bs Clguba", buffer.getvalue())
 
 
 if __name__ == "__main__":
