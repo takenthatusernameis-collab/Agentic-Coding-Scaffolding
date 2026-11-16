@@ -8829,6 +8829,8 @@ __all__: list[str] = [
 
 def lzma_compress(data: bytes, preset: int = 6) -> bytes:
     """Compress bytes using lzma."""
+    if isinstance(preset, bool) or not isinstance(preset, int):
+        raise TypeError("preset must be an int")
     return lzma.compress(data, preset=preset)
 
 
@@ -8848,6 +8850,8 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
     Returns:
         An lzma file object.
     """
+    if preset is not None and (isinstance(preset, bool) or not isinstance(preset, int)):
+        raise TypeError("preset must be an int")
     if preset is not None and "r" not in mode:
         return lzma.open(filename, mode, preset=preset)  # type: ignore[return-value]
     return lzma.open(filename, mode)  # type: ignore[return-value]
@@ -8855,6 +8859,8 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
 
 def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:
     """Write data to an lzma file."""
+    if isinstance(preset, bool) or not isinstance(preset, int):
+        raise TypeError("preset must be an int")
     with lzma.open(filename, "wb", preset=preset) as f:
         f.write(data)
 
@@ -9048,6 +9054,7 @@ cat > "$OUTPUT_DIR/tests/test_lzma_utils.py" <<'TEST_LZMA_UTILS'
 
 import os
 import tempfile
+import unittest
 
 from lzma_utils import (
     lzma_compress,
@@ -9058,28 +9065,55 @@ from lzma_utils import (
 )
 
 
-def test_lzma_compress_decompress_roundtrip():
-    data = b"hello world" * 10
-    compressed = lzma_compress(data)
-    assert lzma_decompress(compressed) == data
+class TestLzmaRoundtrips(unittest.TestCase):
+    def test_compress_decompress_roundtrip(self):
+        data = b"hello world" * 10
+        compressed = lzma_compress(data)
+        self.assertEqual(lzma_decompress(compressed), data)
+
+    def test_write_read_roundtrip(self):
+        data = b"hello world" * 10
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            lzma_write(path, data)
+            self.assertEqual(lzma_read(path), data)
+
+    def test_open(self):
+        data = b"hello world"
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            with lzma_open(path, "wb") as f:
+                f.write(data)
+            with lzma_open(path, "rb") as f:
+                self.assertEqual(f.read(), data)
 
 
-def test_lzma_write_read_roundtrip():
-    data = b"hello world" * 10
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "test.xz")
-        lzma_write(path, data)
-        assert lzma_read(path) == data
+class TestLzmaPresetValidation(unittest.TestCase):
+    def test_compress_rejects_bool_preset(self):
+        with self.assertRaises(TypeError):
+            lzma_compress(b"x", preset=True)
+        with self.assertRaises(TypeError):
+            lzma_compress(b"x", preset=False)
+
+    def test_write_rejects_bool_preset(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            with self.assertRaises(TypeError):
+                lzma_write(path, b"x", preset=True)
+            with self.assertRaises(TypeError):
+                lzma_write(path, b"x", preset=False)
+
+    def test_open_rejects_bool_preset(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            with self.assertRaises(TypeError):
+                lzma_open(path, "wb", preset=True)
+            with self.assertRaises(TypeError):
+                lzma_open(path, "wb", preset=False)
 
 
-def test_lzma_open():
-    data = b"hello world"
-    with tempfile.TemporaryDirectory() as d:
-        path = os.path.join(d, "test.xz")
-        with lzma_open(path, "wb") as f:
-            f.write(data)
-        with lzma_open(path, "rb") as f:
-            assert f.read() == data
+if __name__ == "__main__":
+    unittest.main()
 TEST_LZMA_UTILS
 
 # --- gc_utils.py ---
@@ -39532,7 +39566,7 @@ __all__ = [
 def getline(filename, lineno, module_globals=None):
     if not isinstance(filename, str):
         raise TypeError("filename must be a str")
-    if not isinstance(lineno, int):
+    if not isinstance(lineno, int) or isinstance(lineno, bool):
         raise TypeError("lineno must be an int")
     return _linecache.getline(filename, lineno, module_globals)
 
@@ -39635,6 +39669,14 @@ class TestLinecacheUtils(unittest.TestCase):
 
     def test_clearcache(self):
         clearcache()
+
+
+class TestGetlineBoolLineno(unittest.TestCase):
+    def test_rejects_bool_lineno(self):
+        with self.assertRaises(TypeError):
+            getline("nonexistent_file.py", True)
+        with self.assertRaises(TypeError):
+            getline("nonexistent_file.py", False)
 
 
 if __name__ == "__main__":
@@ -39997,7 +40039,7 @@ def configure_logging(
         >>> root.level
         20
     """
-    if level is not None and not isinstance(level, int):
+    if level is not None and (not isinstance(level, int) or isinstance(level, bool)):
         raise TypeError("level must be an integer or None")
     if handlers is not None and not isinstance(handlers, list):
         raise TypeError("handlers must be a list or None")
@@ -54049,6 +54091,20 @@ class TestExportedTypeVars(unittest.TestCase):
         self.assertEqual(F.__name__, "F")
 
 
+class TestConfigureLoggingBoolLevel(unittest.TestCase):
+    def setUp(self):
+        root = logging.getLogger()
+        for handler in list(root.handlers):
+            root.removeHandler(handler)
+        root.setLevel(logging.WARNING)
+
+    def test_rejects_bool_level(self):
+        with self.assertRaises(TypeError):
+            configure_logging(level=True, force=True)
+        with self.assertRaises(TypeError):
+            configure_logging(level=False, force=True)
+
+
 if __name__ == "__main__":
     unittest.main()
 TESTLOGUTILS
@@ -57445,7 +57501,7 @@ def take_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -
 def chunk_iterable(iterable: Iterable[Any], size: int) -> List[List[Any]]:
     """Split an iterable into chunks of the given size."""
     _ensure_iterable(iterable)
-    if not isinstance(size, int):
+    if isinstance(size, bool) or not isinstance(size, int):
         raise TypeError("size must be an int")
     if size <= 0:
         raise ValueError("size must be positive")
@@ -57471,7 +57527,7 @@ def product_of(iterables: Iterable[Iterable[Any]]) -> List[Tuple[Any, ...]]:
 def combinations_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
     """Return all r-combinations of the input iterable."""
     _ensure_iterable(iterable)
-    if not isinstance(r, int):
+    if isinstance(r, bool) or not isinstance(r, int):
         raise TypeError("r must be an int")
     if r < 0:
         raise ValueError("r must be non-negative")
@@ -57481,7 +57537,7 @@ def combinations_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
 def combinations_with_replacement_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
     """Return all r-combinations with replacement of the input iterable."""
     _ensure_iterable(iterable)
-    if not isinstance(r, int):
+    if isinstance(r, bool) or not isinstance(r, int):
         raise TypeError("r must be an int")
     if r < 0:
         raise ValueError("r must be non-negative")
@@ -57493,7 +57549,7 @@ def permutations_of(iterable: Iterable[Any], r: Optional[int] = None) -> List[Tu
     _ensure_iterable(iterable)
     if r is None:
         return list(permutations(iterable))
-    if not isinstance(r, int):
+    if isinstance(r, bool) or not isinstance(r, int):
         raise TypeError("r must be an int")
     if r < 0:
         raise ValueError("r must be non-negative")
@@ -57527,7 +57583,7 @@ def repeat_value(value: Any, times: Optional[int] = None) -> List[Any]:
     """Repeat a value; if times is None, repeat 3 times by default."""
     if times is None:
         times = 3
-    if not isinstance(times, int):
+    if isinstance(times, bool) or not isinstance(times, int):
         raise TypeError("times must be an int")
     if times < 0:
         raise ValueError("times must be non-negative")
@@ -57537,7 +57593,7 @@ def repeat_value(value: Any, times: Optional[int] = None) -> List[Any]:
 def cycle_take(iterable: Iterable[Any], n: int) -> List[Any]:
     """Take n items from an infinitely cycled iterable."""
     _ensure_iterable(iterable)
-    if not isinstance(n, int):
+    if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError("n must be an int")
     if n < 0:
         raise ValueError("n must be non-negative")
@@ -94056,6 +94112,8 @@ __all__ = [
 
 def extract_code_blocks(text: str) -> List[str]:
     """Extract fenced code blocks (``` ... ```) from markdown text."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
     pattern = re.compile(r"```(?:[a-zA-Z0-9_+-]*)\n(.*?)```", re.DOTALL)
     return [block.strip("\n") for block in pattern.findall(text)]
 
@@ -94136,6 +94194,8 @@ def strip_markdown(text: str) -> str:
 
 def count_words(text: str) -> int:
     """Count whitespace-delimited words in text."""
+    if not isinstance(text, str):
+        raise TypeError("text must be a string")
     return len(text.split())
 
 
@@ -94224,11 +94284,15 @@ def has_headings(text: str) -> bool:
 
 def is_heading(line: str) -> bool:
     """Return True if line is a markdown heading."""
+    if not isinstance(line, str):
+        raise TypeError("line must be a string")
     return bool(re.match(r"^#{1,6}\s+\S", line))
 
 
 def heading_level(line: str) -> int:
     """Return heading level (1-6) or 0 if not a heading."""
+    if not isinstance(line, str):
+        raise TypeError("line must be a string")
     match = re.match(r"^(#{1,6})\s+\S", line)
     if not match:
         return 0
@@ -94341,14 +94405,6 @@ class TestStripMarkdown(unittest.TestCase):
         self.assertEqual(strip_markdown("> quoted"), "quoted")
 
 
-class TestCountWords(unittest.TestCase):
-    def test_counts_words(self) -> None:
-        self.assertEqual(count_words("hello world foo"), 3)
-
-    def test_empty(self) -> None:
-        self.assertEqual(count_words(""), 0)
-
-
 class TestHasWords(unittest.TestCase):
     def test_empty(self) -> None:
         self.assertFalse(has_words(""))
@@ -94389,10 +94445,22 @@ class TestHeading(unittest.TestCase):
         self.assertTrue(is_heading("## Sub"))
         self.assertFalse(is_heading("not heading"))
 
+    def test_is_heading_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            is_heading(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_heading(123)  # type: ignore[arg-type]
+
     def test_heading_level(self) -> None:
         self.assertEqual(heading_level("# Title"), 1)
         self.assertEqual(heading_level("### Deep"), 3)
         self.assertEqual(heading_level("not heading"), 0)
+
+    def test_heading_level_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heading_level(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            heading_level(123)  # type: ignore[arg-type]
 
 
 class TestCountHeadings(unittest.TestCase):

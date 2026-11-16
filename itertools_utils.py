@@ -66,7 +66,7 @@ def take_while_pred(iterable: Iterable[Any], predicate: Callable[[Any], bool]) -
 def chunk_iterable(iterable: Iterable[Any], size: int) -> List[List[Any]]:
     """Split an iterable into chunks of the given size."""
     _ensure_iterable(iterable)
-    if not isinstance(size, int):
+    if isinstance(size, bool) or not isinstance(size, int):
         raise TypeError("size must be an int")
     if size <= 0:
         raise ValueError("size must be positive")
@@ -92,7 +92,7 @@ def product_of(iterables: Iterable[Iterable[Any]]) -> List[Tuple[Any, ...]]:
 def combinations_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
     """Return all r-combinations of the input iterable."""
     _ensure_iterable(iterable)
-    if not isinstance(r, int):
+    if isinstance(r, bool) or not isinstance(r, int):
         raise TypeError("r must be an int")
     if r < 0:
         raise ValueError("r must be non-negative")
@@ -102,7 +102,7 @@ def combinations_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
 def combinations_with_replacement_of(iterable: Iterable[Any], r: int) -> List[Tuple[Any, ...]]:
     """Return all r-combinations with replacement of the input iterable."""
     _ensure_iterable(iterable)
-    if not isinstance(r, int):
+    if isinstance(r, bool) or not isinstance(r, int):
         raise TypeError("r must be an int")
     if r < 0:
         raise ValueError("r must be non-negative")
@@ -114,7 +114,7 @@ def permutations_of(iterable: Iterable[Any], r: Optional[int] = None) -> List[Tu
     _ensure_iterable(iterable)
     if r is None:
         return list(permutations(iterable))
-    if not isinstance(r, int):
+    if isinstance(r, bool) or not isinstance(r, int):
         raise TypeError("r must be an int")
     if r < 0:
         raise ValueError("r must be non-negative")
@@ -148,7 +148,7 @@ def repeat_value(value: Any, times: Optional[int] = None) -> List[Any]:
     """Repeat a value; if times is None, repeat 3 times by default."""
     if times is None:
         times = 3
-    if not isinstance(times, int):
+    if isinstance(times, bool) or not isinstance(times, int):
         raise TypeError("times must be an int")
     if times < 0:
         raise ValueError("times must be non-negative")
@@ -158,7 +158,7 @@ def repeat_value(value: Any, times: Optional[int] = None) -> List[Any]:
 def cycle_take(iterable: Iterable[Any], n: int) -> List[Any]:
     """Take n items from an infinitely cycled iterable."""
     _ensure_iterable(iterable)
-    if not isinstance(n, int):
+    if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError("n must be an int")
     if n < 0:
         raise ValueError("n must be non-negative")
