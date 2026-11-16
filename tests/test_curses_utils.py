@@ -526,6 +526,55 @@ class TestTypeValidation(unittest.TestCase):
             curses_utils.has_key("KEY_UP")  # type: ignore[arg-type]
 
 
+@unittest.skipUnless(curses_utils.is_available(), "curses module not available")
+class TestRemainingConstantsMatchTheStandardLibrary(unittest.TestCase):
+    """Every remaining re-exported constant equals the standard library value."""
+
+    CONSTANTS = (
+        "A_ALTCHARSET",
+        "A_ATTRIBUTES",
+        "A_BLINK",
+        "A_CHARTEXT",
+        "A_DIM",
+        "A_HORIZONTAL",
+        "A_INVIS",
+        "A_ITALIC",
+        "A_LEFT",
+        "A_LOW",
+        "A_NORMAL",
+        "A_PROTECT",
+        "A_RIGHT",
+        "A_STANDOUT",
+        "A_TOP",
+        "A_UNDERLINE",
+        "A_VERTICAL",
+        "COLOR_BLUE",
+        "COLOR_CYAN",
+        "COLOR_GREEN",
+        "COLOR_MAGENTA",
+        "COLOR_WHITE",
+        "COLOR_YELLOW",
+        "KEY_BACKSPACE",
+        "KEY_END",
+        "KEY_ENTER",
+        "KEY_HOME",
+        "KEY_LEFT",
+        "KEY_MAX",
+        "KEY_MIN",
+        "KEY_RESIZE",
+        "KEY_RIGHT",
+    )
+
+    def test_constants_match_the_standard_library(self):
+        for name in self.CONSTANTS:
+            self.assertEqual(getattr(curses_utils, name), getattr(curses, name), name)
+
+    def test_termname_delegates(self):
+        with mock.patch.object(curses_utils._curses, "termname", return_value="xterm") as termname:
+            self.assertEqual(curses_utils.termname(), "xterm")
+            termname.assert_called_once_with()
+
+
 class TestMissingModule(unittest.TestCase):
     """Test the behaviour when the standard library module is absent."""
 

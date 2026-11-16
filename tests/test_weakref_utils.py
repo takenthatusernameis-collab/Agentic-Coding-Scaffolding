@@ -1,8 +1,11 @@
 import gc
+import typing
 import unittest
 import weakref
 
+import weakref_utils
 from weakref_utils import (
+    BoundMethodProtocol,
     WeakMethod,
     WeakRef,
     create_finalizer,
@@ -151,6 +154,32 @@ class TestCreateFinalizer(unittest.TestCase):
         gc.collect()
         # Callback may have fired
         self.assertFalse(fin.alive)
+
+
+class TestBoundMethodProtocol(unittest.TestCase):
+    """The protocol describes the attributes of a bound method."""
+
+    def test_protocol_declares_func_and_self(self):
+        hints = typing.get_type_hints(BoundMethodProtocol)
+        self.assertIn("__func__", hints)
+        self.assertIn("__self__", hints)
+
+    def test_protocol_is_a_protocol(self):
+        self.assertTrue(getattr(BoundMethodProtocol, "_is_protocol", False))
+
+    def test_bound_method_satisfies_the_protocol(self):
+        class Target:
+            def method(self):
+                return None
+
+        self.assertTrue(hasattr(Target().method, "__func__"))
+        self.assertTrue(hasattr(Target().method, "__self__"))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(weakref_utils.T, typing.TypeVar)
+        self.assertEqual(weakref_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,9 @@
 """Tests for utils module."""
 
 import unittest
+from typing import TypeVar
 
+import utils
 from utils import (
     average,
     chunk,
@@ -750,6 +752,16 @@ class TestZipWith(unittest.TestCase):
 
     def test_zip_with_empty(self) -> None:
         self.assertEqual(zip_with([], [], lambda a, b: a + b), [])
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        for name in ("T", "CT", "U", "K", "V"):
+            self.assertIsInstance(getattr(utils, name), TypeVar, name)
+            self.assertEqual(getattr(utils, name).__name__, name)
+
+    def test_comparable_is_a_protocol(self):
+        self.assertTrue(getattr(utils.Comparable, "_is_protocol", False))
 
 
 if __name__ == "__main__":

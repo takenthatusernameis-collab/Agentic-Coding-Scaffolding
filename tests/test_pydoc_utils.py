@@ -4,6 +4,7 @@ import pydoc
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import pydoc_utils
 from pydoc_utils import (
@@ -411,6 +412,38 @@ class TestHelpers(unittest.TestCase):
     def test_writedocs_rejects_non_string_pkgpath(self):
         with self.assertRaises(TypeError):
             writedocs("dir", pkgpath=123)  # type: ignore[arg-type]
+
+
+class TestInteractiveFacades(unittest.TestCase):
+    """The interactive facades delegate to the standard library."""
+
+    def test_cli_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "cli") as cli:
+            pydoc_utils.cli()
+            cli.assert_called_once_with()
+
+    def test_help_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "help") as help_func:
+            pydoc_utils.help()
+            help_func.assert_called_once_with()
+
+    def test_plainpager_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "plainpager") as plainpager:
+            pydoc_utils.plainpager("text")
+            plainpager.assert_called_once_with("text")
+
+    def test_plainpager_rejects_a_non_string(self):
+        with self.assertRaises(TypeError):
+            pydoc_utils.plainpager(123)  # type: ignore[arg-type]
+
+    def test_browse_delegates(self):
+        with mock.patch.object(pydoc_utils._pydoc, "browse") as browse:
+            pydoc_utils.browse(port=0, open_browser=False, hostname="localhost")
+            browse.assert_called_once_with(port=0, open_browser=False, hostname="localhost")
+
+    def test_browse_rejects_a_negative_port(self):
+        with self.assertRaises(ValueError):
+            pydoc_utils.browse(port=-1)
 
 
 if __name__ == "__main__":

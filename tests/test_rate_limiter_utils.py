@@ -2,7 +2,9 @@
 
 import time
 import unittest
+from typing import TypeVar
 
+import rate_limiter_utils
 from rate_limiter_utils import RateLimiter, rate_limit, token_bucket
 
 
@@ -126,6 +128,12 @@ class TestRateLimiter(unittest.TestCase):
             intervals = [calls[i + 1] - calls[i] for i in range(1, len(calls) - 1)]
             for interval in intervals:
                 self.assertAlmostEqual(interval, 0.05, places=1)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(rate_limiter_utils.F, TypeVar)
+        self.assertEqual(rate_limiter_utils.F.__name__, "F")
 
 
 if __name__ == "__main__":

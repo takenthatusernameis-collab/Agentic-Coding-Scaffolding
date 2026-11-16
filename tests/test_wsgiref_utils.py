@@ -6,6 +6,7 @@ import wsgiref.headers
 import wsgiref.simple_server
 import wsgiref.util
 import wsgiref.validate
+from typing import Any, Callable, Dict
 from unittest import mock
 
 import wsgiref_utils
@@ -412,6 +413,16 @@ class TestMakeServer(unittest.TestCase):
                 lambda environ, start_response: [],
                 handler_class=42,  # type: ignore[arg-type]
             )
+
+
+class TestTypeAliases(unittest.TestCase):
+    """The exported type aliases describe the documented shapes."""
+
+    def test_environment_is_a_string_mapping(self):
+        self.assertEqual(wsgiref_utils.Environment, Dict[str, Any])
+
+    def test_application_is_a_callable_alias(self):
+        self.assertEqual(wsgiref_utils.Application, Callable[..., Any])
 
 
 if __name__ == "__main__":

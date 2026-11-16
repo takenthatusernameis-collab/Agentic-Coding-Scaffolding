@@ -2,7 +2,9 @@
 
 import math
 import unittest
+from typing import TypeVar
 
+import stats
 from stats import (
     coefficient_of_range,
     coefficient_of_variation,
@@ -2169,6 +2171,12 @@ class TestTrimmedMeanValidation(unittest.TestCase):
     def test_trimmed_mean_not_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             trimmed_mean((1, 2, 3, 4, 5), 1)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(stats.T, TypeVar)
+        self.assertEqual(stats.T.__name__, "T")
 
 
 if __name__ == "__main__":

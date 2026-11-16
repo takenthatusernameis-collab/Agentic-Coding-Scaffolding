@@ -1,4 +1,6 @@
 import unittest
+import xmlrpc.client
+import xmlrpc.server
 from unittest.mock import patch
 
 import xmlrpc_utils
@@ -291,6 +293,25 @@ class TestXmlrpcUtils(unittest.TestCase):
         self.assertEqual(len(xmlrpc_utils.__all__), len(set(xmlrpc_utils.__all__)))
         for name in xmlrpc_utils.__all__:
             self.assertTrue(hasattr(xmlrpc_utils, name), name)
+
+
+class TestReexportedClasses(unittest.TestCase):
+    """The re-exported client and server classes are the standard library classes."""
+
+    def test_client_classes_are_the_standard_library_classes(self):
+        self.assertIs(xmlrpc_utils.Error, xmlrpc.client.Error)
+        self.assertIs(xmlrpc_utils.ProtocolError, xmlrpc.client.ProtocolError)
+        self.assertIs(xmlrpc_utils.ResponseError, xmlrpc.client.ResponseError)
+        self.assertIs(xmlrpc_utils.SafeTransport, xmlrpc.client.SafeTransport)
+        self.assertIs(xmlrpc_utils.MultiCall, xmlrpc.client.MultiCall)
+        self.assertIs(xmlrpc_utils.MultiCallIterator, xmlrpc.client.MultiCallIterator)
+        self.assertIs(xmlrpc_utils.Unmarshaller, xmlrpc.client.Unmarshaller)
+
+    def test_server_classes_are_the_standard_library_classes(self):
+        self.assertIs(
+            xmlrpc_utils.CGIXMLRPCRequestHandler,
+            xmlrpc.server.CGIXMLRPCRequestHandler,
+        )
 
 
 if __name__ == "__main__":

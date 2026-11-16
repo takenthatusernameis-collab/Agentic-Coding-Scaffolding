@@ -1,6 +1,7 @@
 """Tests for posixpath_utils."""
 
 import os
+import posixpath
 import tempfile
 import unittest
 
@@ -280,3 +281,18 @@ class TestReExports(unittest.TestCase):
             samefile(123, 456)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             sameopenfile(True, 1)  # type: ignore[arg-type]
+
+
+class TestRemainingConstants(unittest.TestCase):
+    """The remaining re-exported constants equal the standard library values."""
+
+    def test_constants_match_posixpath(self):
+        for name in (
+            "altsep",
+            "defpath",
+            "devnull",
+            "extsep",
+            "pathsep",
+            "supports_unicode_filenames",
+        ):
+            self.assertEqual(getattr(posixpath_utils, name), getattr(posixpath, name), name)

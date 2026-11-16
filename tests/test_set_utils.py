@@ -1,7 +1,9 @@
 """Tests for set_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import set_utils
 from set_utils import (
     cartesian_product,
     count_difference,
@@ -698,6 +700,12 @@ class TestIsNotProperSuperset(unittest.TestCase):
             is_not_proper_superset(123, [1, 2])  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_not_proper_superset([1, 2], 123)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(set_utils.T, TypeVar)
+        self.assertEqual(set_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

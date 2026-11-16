@@ -1,7 +1,9 @@
 """Tests for pattern_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import pattern_utils
 from pattern_utils import (
     Factory,
     Observable,
@@ -138,6 +140,12 @@ class TestStrategy(unittest.TestCase):
             StrategyContext("not a strategy")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             StrategyContext(ConcreteStrategy("x")).strategy = 42  # type: ignore[assignment]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(pattern_utils.T, TypeVar)
+        self.assertEqual(pattern_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

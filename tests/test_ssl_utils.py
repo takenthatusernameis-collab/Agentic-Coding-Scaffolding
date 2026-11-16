@@ -184,3 +184,24 @@ class TestSSLUtils(unittest.TestCase):
 
     def test_verify_cert_chain_accepts_a_certificate_mapping(self):
         self.assertIsNone(ssl_utils.verify_cert_chain({"subject": ()}))
+
+
+class TestReexportedConstants(unittest.TestCase):
+    """The re-exported protocol constants and verify-path type match the standard library."""
+
+    def test_protocol_constants_match_ssl(self):
+        for name in (
+            "PROTOCOL_TLS",
+            "PROTOCOL_SSLv23",
+            "PROTOCOL_TLSv1",
+            "PROTOCOL_TLSv1_1",
+            "PROTOCOL_TLSv1_3",
+        ):
+            self.assertEqual(getattr(ssl_utils, name), getattr(ssl, name, None), name)
+
+    def test_default_verify_paths_is_the_ssl_type(self):
+        self.assertIs(ssl_utils.DefaultVerifyPaths, ssl.DefaultVerifyPaths)
+        paths = ssl_utils.get_default_verify_paths()
+        self.assertIsInstance(paths, ssl_utils.DefaultVerifyPaths)
+        self.assertTrue(hasattr(paths, "cafile"))
+        self.assertTrue(hasattr(paths, "openssl_cafile"))

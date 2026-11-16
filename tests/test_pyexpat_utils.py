@@ -8,6 +8,7 @@ filesystem outside its own temporary directories.
 
 import os
 import tempfile
+import typing
 import unittest
 from unittest import mock
 
@@ -320,6 +321,25 @@ class TestExternalEntityParser(unittest.TestCase):
     def test_a_non_string_encoding_is_rejected(self):
         with self.assertRaises(TypeError):
             pyexpat_utils.external_entity_parser(mock.Mock(), 42)
+
+
+class TestPositionRecords(unittest.TestCase):
+    """The position records and the attribute alias carry the documented shape."""
+
+    def test_error_position_fields(self):
+        self.assertEqual(
+            pyexpat_utils.ErrorPosition._fields,
+            ("line", "column", "code", "byte_index"),
+        )
+
+    def test_current_position_fields(self):
+        self.assertEqual(
+            pyexpat_utils.CurrentPosition._fields,
+            ("byte_index", "line_number", "column_number"),
+        )
+
+    def test_element_attributes_is_a_string_mapping(self):
+        self.assertEqual(pyexpat_utils.ElementAttributes, typing.Dict[str, str])
 
 
 if __name__ == "__main__":

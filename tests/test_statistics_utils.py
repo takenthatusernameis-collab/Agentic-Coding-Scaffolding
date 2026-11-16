@@ -1,7 +1,9 @@
 """Tests for statistics_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import statistics_utils
 from statistics_utils import (
     correlation,
     covariance,
@@ -186,6 +188,12 @@ class TestNormalize(unittest.TestCase):
     def test_normalize_raises_on_empty(self):
         with self.assertRaises(ValueError):
             normalize([])
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(statistics_utils.T, TypeVar)
+        self.assertEqual(statistics_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

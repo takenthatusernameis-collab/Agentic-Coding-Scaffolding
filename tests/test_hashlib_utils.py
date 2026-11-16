@@ -1,7 +1,9 @@
+import hashlib
 import os
 import tempfile
 import unittest
 
+import hashlib_utils
 from hashlib_utils import (
     blake2b_hash,
     blake2s_hash,
@@ -56,6 +58,36 @@ class TestHashlibUtils(unittest.TestCase):
             file_hash("path", chunk_size=0)
         with self.assertRaises(FileNotFoundError):
             file_hash("/nonexistent/file_xyz")
+
+
+class TestReexportedHashConstructors(unittest.TestCase):
+    """The module re-exports the :mod:`hashlib` constructors unchanged."""
+
+    DIGEST_SIZES = {
+        "sha1": 20,
+        "sha224": 28,
+        "sha256": 32,
+        "sha384": 48,
+        "sha512": 64,
+        "sha3_224": 28,
+        "sha3_256": 32,
+        "sha3_384": 48,
+        "sha3_512": 64,
+        "blake2s": 32,
+        "blake2b": 64,
+    }
+
+    def test_constructors_are_the_hashlib_objects(self):
+        for name in self.DIGEST_SIZES:
+            self.assertIs(getattr(hashlib_utils, name), getattr(hashlib, name), name)
+
+    def test_constructors_digest_matches_hashlib(self):
+        data = b"agentic scaffolding"
+        for name, size in self.DIGEST_SIZES.items():
+            expected = getattr(hashlib, name)(data).digest()
+            actual = getattr(hashlib_utils, name)(data).digest()
+            self.assertEqual(actual, expected, name)
+            self.assertEqual(len(actual), size, name)
 
 
 if __name__ == "__main__":

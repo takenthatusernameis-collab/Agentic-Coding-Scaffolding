@@ -1,7 +1,9 @@
 """Tests for config_schema module."""
 
+import typing
 import unittest
 
+import config_schema
 from config_schema import (
     ConfigSchema,
     ConfigValidationError,
@@ -265,6 +267,15 @@ class TestConfigSchemaMerge(unittest.TestCase):
         self.assertIsNot(merged, base)
         self.assertEqual(len(base.fields), 1)
         self.assertEqual(len(merged.fields), 2)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(config_schema.T, typing.TypeVar)
+        self.assertEqual(config_schema.T.__name__, "T")
+
+    def test_validator_is_a_callable_alias(self):
+        self.assertEqual(config_schema.Validator, typing.Callable[[typing.Any], typing.Any])
 
 
 if __name__ == "__main__":

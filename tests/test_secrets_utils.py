@@ -1,7 +1,9 @@
 """Unit tests for secrets_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import secrets_utils
 from secrets_utils import (
     choice,
     compare_digest,
@@ -174,6 +176,12 @@ class TestChoice(unittest.TestCase):
             choice([])  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             choice("")
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(secrets_utils.T, TypeVar)
+        self.assertEqual(secrets_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

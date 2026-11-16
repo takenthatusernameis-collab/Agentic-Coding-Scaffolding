@@ -274,5 +274,19 @@ class TestFormatFailure(unittest.TestCase):
             doctest_utils.format_failure("not a failure")
 
 
+class TestReexportedClasses(unittest.TestCase):
+    """The re-exported doctest classes are the standard library classes."""
+
+    def test_classes_are_the_standard_library_classes(self):
+        self.assertIs(doctest_utils.DocTestRunner, doctest.DocTestRunner)
+        self.assertIs(doctest_utils.DocTestSuite, doctest.DocTestSuite)
+        self.assertIs(doctest_utils.OutputChecker, doctest.OutputChecker)
+
+    def test_output_checker_checks_output(self):
+        checker = doctest_utils.OutputChecker()
+        self.assertTrue(checker.check_output("1\n", "1\n", 0))
+        self.assertFalse(checker.check_output("1\n", "2\n", 0))
+
+
 if __name__ == "__main__":
     unittest.main()

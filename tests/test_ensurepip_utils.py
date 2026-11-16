@@ -250,5 +250,37 @@ class TestDegradation(unittest.TestCase):
         self.assertIsInstance(ensurepip_utils.is_pip_installed(), bool)
 
 
+class TestBootstrapResult(unittest.TestCase):
+    """The installation record carries the documented fields."""
+
+    EXPECTED_FIELDS = (
+        "pip_version",
+        "root",
+        "upgrade",
+        "user",
+        "altinstall",
+        "default_pip",
+        "verbosity",
+    )
+
+    def test_fields(self):
+        self.assertEqual(ensurepip_utils.BootstrapResult._fields, self.EXPECTED_FIELDS)
+
+    def test_construction_and_access(self):
+        record = ensurepip_utils.BootstrapResult(
+            pip_version="24.0",
+            root=None,
+            upgrade=False,
+            user=False,
+            altinstall=False,
+            default_pip=False,
+            verbosity=0,
+        )
+        self.assertEqual(record.pip_version, "24.0")
+        self.assertIsNone(record.root)
+        self.assertEqual(record[0], "24.0")
+        self.assertEqual(record.verbosity, 0)
+
+
 if __name__ == "__main__":
     unittest.main()

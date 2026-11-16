@@ -1,7 +1,9 @@
 """Tests for random_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import random_utils
 from random_utils import (
     coin_flip,
     random_bool,
@@ -265,6 +267,12 @@ class TestRandomChoices(unittest.TestCase):
     def test_all_zero_weights_raises(self) -> None:
         with self.assertRaises(ValueError):
             random_choices([1, 2], weights=[0, 0], k=1)
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(random_utils.T, TypeVar)
+        self.assertEqual(random_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

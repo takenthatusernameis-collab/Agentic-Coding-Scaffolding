@@ -1,6 +1,8 @@
 import threading
 import unittest
+from typing import TypeVar
 
+import threading_utils
 from threading_utils import (
     active_count,
     create_bounded_semaphore,
@@ -174,6 +176,12 @@ class TestSynchronized(unittest.TestCase):
     def test_synchronized_invalid_lock(self):
         with self.assertRaises(TypeError):
             synchronized("not a lock")  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(threading_utils.T, TypeVar)
+        self.assertEqual(threading_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,7 @@
 import unittest
+from typing import TypeVar
 
+import ring_buffer_utils
 from ring_buffer_utils import (
     RingBuffer,
     append,
@@ -107,6 +109,12 @@ class TestRingBuffer(unittest.TestCase):
         append(rb, 1)
         append(rb, 2)
         self.assertIn("capacity=3", repr(rb))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(ring_buffer_utils.T, TypeVar)
+        self.assertEqual(ring_buffer_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

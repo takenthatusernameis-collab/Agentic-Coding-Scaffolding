@@ -1,7 +1,9 @@
 """Unit tests for tree_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import tree_utils
 from tree_utils import (
     delete_nested,
     filter_tree,
@@ -149,6 +151,14 @@ class TestFilterTree(unittest.TestCase):
     def test_filter_tree_scalar_returns_value_or_none(self):
         self.assertEqual(filter_tree(lambda x: x > 1, 5), 5)
         self.assertIsNone(filter_tree(lambda x: x > 1, 0))
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevars_exported(self):
+        self.assertIsInstance(tree_utils.T, TypeVar)
+        self.assertEqual(tree_utils.T.__name__, "T")
+        self.assertIsInstance(tree_utils.U, TypeVar)
+        self.assertEqual(tree_utils.U.__name__, "U")
 
 
 if __name__ == "__main__":

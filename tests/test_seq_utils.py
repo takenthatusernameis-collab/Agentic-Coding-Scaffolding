@@ -1,7 +1,9 @@
 """Unit tests for seq_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import seq_utils
 from seq_utils import (
     adjacent_pairs,
     all_where,
@@ -1297,3 +1299,9 @@ class TestIsNotEmpty(unittest.TestCase):
             is_not_empty(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_not_empty(None)  # type: ignore[arg-type]
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(seq_utils.T, TypeVar)
+        self.assertEqual(seq_utils.T.__name__, "T")

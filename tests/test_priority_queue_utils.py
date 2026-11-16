@@ -1,7 +1,9 @@
 """Tests for priority_queue_utils module."""
 
 import unittest
+from typing import TypeVar
 
+import priority_queue_utils
 from priority_queue_utils import (
     PriorityQueue,
     clear_priority,
@@ -182,6 +184,12 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertFalse(pq1.is_empty())
         self.assertFalse(pq2.is_empty())
         self.assertFalse(pq3.is_empty())
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(priority_queue_utils.T, TypeVar)
+        self.assertEqual(priority_queue_utils.T.__name__, "T")
 
 
 if __name__ == "__main__":

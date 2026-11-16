@@ -2,8 +2,10 @@
 
 import time
 import unittest
+from typing import TypeVar
 from unittest.mock import patch
 
+import timing_utils
 from timing_utils import benchmark, elapsed_time, timer
 
 
@@ -134,6 +136,12 @@ class TestBenchmarkDecorator(unittest.TestCase):
             @benchmark(iterations=-1)
             def test_func():
                 pass
+
+
+class TestExportedTypeVars(unittest.TestCase):
+    def test_typevar_exported(self):
+        self.assertIsInstance(timing_utils.F, TypeVar)
+        self.assertEqual(timing_utils.F.__name__, "F")
 
 
 if __name__ == "__main__":
