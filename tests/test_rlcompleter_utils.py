@@ -27,6 +27,14 @@ class TestRlcompleterUtils(unittest.TestCase):
         result = complete("pri", 0, {"print": print})
         self.assertTrue(result.startswith("print"))
 
+    def test_complete_function_state_successive(self):
+        namespace = {"foobar": 1, "foobaz": 2}
+        first = complete("foo", 0, namespace)
+        second = complete("foo", 1, namespace)
+        self.assertIsNotNone(second)
+        self.assertNotEqual(first, second)
+        self.assertIsNone(complete("foo", 2, namespace))
+
     def test_complete_type_errors(self):
         with self.assertRaises(TypeError):
             complete(1, 0)

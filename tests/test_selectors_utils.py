@@ -60,6 +60,14 @@ class TestRegister(unittest.TestCase):
         finally:
             selector.close()
 
+    def test_register_rejects_bool_fileobj(self):
+        selector = create_default_selector()
+        try:
+            with self.assertRaises(TypeError):
+                register(selector, True, EVENT_READ)  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
     def test_register_invalid_events_type(self):
         selector = create_default_selector()
         try:

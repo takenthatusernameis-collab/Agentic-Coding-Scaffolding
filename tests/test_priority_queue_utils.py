@@ -185,6 +185,26 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertFalse(pq2.is_empty())
         self.assertFalse(pq3.is_empty())
 
+    def test_merge_preserves_fifo_for_equal_priorities(self):
+        # The heap array is not stored in insertion order, so replaying the raw
+        # heap reorders equal-priority items. The merged queue must still pop
+        # equal-priority items in their original insertion order.
+        pq = PriorityQueue()
+        pq.push("a", priority=2)
+        pq.push("b", priority=1)
+        pq.push("c", priority=0)
+        pq.push("d", priority=1)
+
+        merged = merge_queues(pq)
+        self.assertEqual([merged.pop() for _ in range(4)], ["c", "b", "d", "a"])
+
+    def test_merge_preserves_queue_argument_order_for_equal_priorities(self):
+        pq1 = PriorityQueue([(1, "a")])
+        pq2 = PriorityQueue([(1, "b")])
+
+        merged = merge_queues(pq1, pq2)
+        self.assertEqual([merged.pop() for _ in range(2)], ["a", "b"])
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):

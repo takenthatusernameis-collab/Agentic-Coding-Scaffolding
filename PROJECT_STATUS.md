@@ -1,5 +1,18 @@
 # Project Status
 
+## Latest Session (2026-11-16) — defect hunt/fix: `priority_queue_utils.merge_queues` FIFO, `rlcompleter_utils.complete` state, `selectors_utils` bool fd
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full` (battery passed, checkpoint `eb2c044`), `python -m unittest discover tests/` (11270 tests, 1 pre-existing error, 4 skipped), then `--full --record-full-suite`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `priority_queue_utils.merge_queues` replayed each queue's raw heap array (`for priority, _, item in q._heap`), but a binary heap array is not stored in insertion order. For priorities `2, 1, 0, 1` the array was `c(0), d(1), b(1), a(2)`, so the merged queue popped `c, d, b, a` instead of the insertion-ordered `c, b, d, a`, violating the documented FIFO tie-break. Queues are now replayed in counter (insertion) order and consumed in argument order. Added `test_merge_preserves_fifo_for_equal_priorities` and `test_merge_preserves_queue_argument_order_for_equal_priorities`.
+  - `rlcompleter_utils.complete(text, state)` built a fresh `rlcompleter.Completer` on every call, but `Completer.complete` only populates its match list when `state == 0`; a non-zero state therefore raised `AttributeError: 'Completer' object has no attribute 'matches'` instead of returning the state-th completion. The helper now primes a new completer with `state=0` before serving a non-zero state. Added `test_complete_function_state_successive`.
+  - `selectors_utils._validate_fileobj` accepted `bool` as an integer file descriptor (`isinstance(value, int)` is `True` for `bool`), so `register(selector, True, EVENT_READ)` registered fd 1 instead of raising `TypeError`. `bool` is now rejected explicitly. Added `test_register_rejects_bool_fileobj`.
+- **Verification:** `python -m unittest tests.test_priority_queue_utils tests.test_rlcompleter_utils tests.test_selectors_utils` — 54 OK; `python -m doctest priority_queue_utils.py rlcompleter_utils.py selectors_utils.py` — OK; `python -m py_compile` on touched files — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11274 tests, only the pre-existing `test_quopri_utils.py` pytest-import error; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `eb2c044`).
+- **Environment limitation:** `ruff`/`mypy`/`pytest` are not installed here. `unittest discover` shows one pre-existing error from `tests/test_quopri_utils.py` hard-importing `pytest`; unrelated to this session. Line lengths in touched files were checked manually (≤ 100).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`priority_queue_utils.py`, `rlcompleter_utils.py`, `selectors_utils.py`, their tests, and `CHANGELOG.md`).
+
 ## Latest Session (2026-11-16) — defect hunt/fix: `number_utils.is_power_of` large exponents, `numbers_utils` Kaprekar/pandigital boundaries
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
@@ -67,13 +80,7 @@
 
 ## Task for Next Agent
 
-1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`; expect rc=2 until this session's commit lands, then rc=0/1. If you change source, run `python tools/verify_state_delta.py --full --record-full-suite` at a coherent milestone.
-3. Optimize-delays pass: confirm no avoidable repository-managed delay remains; record the survey. No timestamp-only handovers/empty commits.
-4. **Continue the correctness defect hunt (failing-test-first) on `*_utils.py` modules not yet defect-hunted.** This session fixed `gc_utils.set_threshold` argument forwarding and `functools_utils.curry` builtin support. Reviewed this pass: `fnmatch_utils`, `fractions_utils`, `ftplib_utils`, `functools_utils`, `gc_utils`, `genericpath_utils`, `getopt_utils`, `glob_utils`, `graphlib_utils`, `greeting_utils`, `gzip_utils`, `hash_utils`, `hashlib_utils`, `heapq_utils`, `ini_utils`, `interval_utils`, `ip_utils`. Pick the next unreviewed set (alphabetically after `ip_utils`, e.g. `itertools_utils`, `json_utils`, `keyword_utils`, `linecache_utils`, `locale_utils`, `logging_utils`, `lzma_utils`, `mailbox_utils`, `mailcap_utils`, `markdown_utils`), read implementations against wrapped stdlib/contracts, look for off-by-one/boundary/reset/aliasing/sentinel-default/bool-as-int/type-contract/dialect defects, and add a test that fails before fix and passes after.
-5. If embedded source/test/README/CHANGELOG files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`; add a `CHANGELOG.md` entry for user-visible fixes and refresh again.
-6. Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post next task to `main` via `board_post`.
-7. Optional (pre-existing, low priority): `tests/test_quopri_utils.py` is the only pytest-style test file that hard-imports `pytest`, so `python -m unittest discover tests/` (the documented fallback when pytest is absent) errors on import. Consider porting it to `unittest.TestCase` so the fallback suite is green; note that `ruff`/`mypy`/`pytest` may be unavailable in the sandbox.
+See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `seq_utils` (e.g. `set_utils`, `shapes`, `shelve_utils`, `shlex_utils`, `shutil_utils`, `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`, `socket_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
 
 ## Previous Session (2026-11-16) — defect hunt/fix: `concurrent_futures_utils` bool-as-int
 

@@ -36,8 +36,11 @@ def _validate_fileobj(value: Any, name: str) -> None:
         name: The name of the argument (used in error messages).
 
     Raises:
-        TypeError: If value is neither an int nor an object with ``fileno``.
+        TypeError: If value is a bool, or is neither an int nor an object with
+            ``fileno``.
     """
+    if isinstance(value, bool):
+        raise TypeError(f"{name} must be a file object or integer file descriptor")
     if isinstance(value, int):
         return
     if not hasattr(value, "fileno"):

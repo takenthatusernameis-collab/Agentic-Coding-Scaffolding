@@ -31,4 +31,10 @@ def complete(text: str, state: int, namespace: dict | None = None) -> str | None
         raise TypeError("state must be an int")
     if namespace is not None and not isinstance(namespace, dict):
         raise TypeError("namespace must be a dict or None")
-    return rlcompleter.Completer(namespace).complete(text, state)
+    completer = rlcompleter.Completer(namespace)
+    if state:
+        # ``Completer.complete`` only builds its match list when ``state`` is
+        # 0, so a fresh instance must be primed before a non-zero state can be
+        # served. Without this, ``complete(text, 1)`` raised AttributeError.
+        completer.complete(text, 0)
+    return completer.complete(text, state)

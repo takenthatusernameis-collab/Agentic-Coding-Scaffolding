@@ -144,10 +144,15 @@ def create_priority_queue(items: Optional[List[Tuple[float, T]]] = None) -> Prio
 
 
 def merge_queues(*queues: PriorityQueue[T]) -> PriorityQueue[T]:
-    """Merge multiple priority queues into a single new queue."""
+    """Merge multiple priority queues into a single new queue.
+
+    Equal-priority items keep their original insertion order: queues are
+    consumed in argument order and each queue's items are replayed in the
+    order they were pushed, so the merged queue is a faithful FIFO merge.
+    """
     all_items: List[Tuple[float, T]] = []
     for q in queues:
-        for priority, _, item in q._heap:
+        for priority, _counter, item in sorted(q._heap, key=lambda entry: entry[1]):
             all_items.append((priority, item))
     return PriorityQueue(all_items)
 

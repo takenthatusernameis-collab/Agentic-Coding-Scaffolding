@@ -41421,10 +41421,15 @@ def create_priority_queue(items: Optional[List[Tuple[float, T]]] = None) -> Prio
 
 
 def merge_queues(*queues: PriorityQueue[T]) -> PriorityQueue[T]:
-    """Merge multiple priority queues into a single new queue."""
+    """Merge multiple priority queues into a single new queue.
+
+    Equal-priority items keep their original insertion order: queues are
+    consumed in argument order and each queue's items are replayed in the
+    order they were pushed, so the merged queue is a faithful FIFO merge.
+    """
     all_items: List[Tuple[float, T]] = []
     for q in queues:
-        for priority, _, item in q._heap:
+        for priority, _counter, item in sorted(q._heap, key=lambda entry: entry[1]):
             all_items.append((priority, item))
     return PriorityQueue(all_items)
 
@@ -41627,6 +41632,26 @@ class TestConvenienceFunctions(unittest.TestCase):
         self.assertFalse(pq1.is_empty())
         self.assertFalse(pq2.is_empty())
         self.assertFalse(pq3.is_empty())
+
+    def test_merge_preserves_fifo_for_equal_priorities(self):
+        # The heap array is not stored in insertion order, so replaying the raw
+        # heap reorders equal-priority items. The merged queue must still pop
+        # equal-priority items in their original insertion order.
+        pq = PriorityQueue()
+        pq.push("a", priority=2)
+        pq.push("b", priority=1)
+        pq.push("c", priority=0)
+        pq.push("d", priority=1)
+
+        merged = merge_queues(pq)
+        self.assertEqual([merged.pop() for _ in range(4)], ["c", "b", "d", "a"])
+
+    def test_merge_preserves_queue_argument_order_for_equal_priorities(self):
+        pq1 = PriorityQueue([(1, "a")])
+        pq2 = PriorityQueue([(1, "b")])
+
+        merged = merge_queues(pq1, pq2)
+        self.assertEqual([merged.pop() for _ in range(2)], ["a", "b"])
 
 
 class TestExportedTypeVars(unittest.TestCase):
@@ -72277,6 +72302,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `priority_queue_utils.merge_queues` FIFO order, `rlcompleter_utils.complete` state, `selectors_utils` bool fd
+
+- **Correctness fix — `priority_queue_utils.merge_queues` reordered equal-priority items.** The merge replayed each queue's raw heap array (`for priority, _, item in q._heap`), but a binary heap array is not stored in insertion order. For a queue with priorities `2, 1, 0, 1` the heap array was `c(0), d(1), b(1), a(2)`, so the merged queue popped `c, d, b, a` instead of the insertion-ordered `c, b, d, a`; the documented FIFO tie-break ("their original insertion order is preserved by using an incrementing counter") was violated. Each queue's entries are now replayed in counter order before being pushed into the merged queue, and queues are consumed in argument order. Added `test_merge_preserves_fifo_for_equal_priorities` and `test_merge_preserves_queue_argument_order_for_equal_priorities` (both fail against the old implementation and pass after).
+- **Correctness fix — `rlcompleter_utils.complete(text, state)` raised `AttributeError` for `state > 0`.** The helper built a fresh `rlcompleter.Completer` on every call, but `Completer.complete` only populates its match list when `state == 0`; a non-zero state on a fresh instance therefore hit `self.matches[state]` with no `matches` attribute (`AttributeError: 'Completer' object has no attribute 'matches'`) instead of returning the state-th completion. The helper now primes a new completer with `state=0` before serving a non-zero state. Added `test_complete_function_state_successive` (fails against the old implementation and passes after).
+- **Correctness fix — `selectors_utils` accepted `bool` as a file descriptor.** `_validate_fileobj` used `isinstance(value, int)`, and `bool` is a subclass of `int`, so `register(selector, True, EVENT_READ)` registered file descriptor 1 instead of raising `TypeError`, contradicting the documented "file object or integer file descriptor" contract and the bool-rejection convention used elsewhere. `bool` is now rejected explicitly. Added `test_register_rejects_bool_fileobj` (fails against the old implementation and passes after).
+- **Defect hunt (batch `ring_buffer`–`seq`):** reviewed `ring_buffer_utils`, `rlcompleter_utils`, `roman_utils`, `runpy_utils`, `sched_utils`, `secrets_utils`, `select_utils`, `selectors_utils`, `semver_utils`, `seq_utils` (plus `priority_queue_utils`). The three issues above were the only defects found in this pass.
+- Validation: `python -m unittest tests.test_priority_queue_utils tests.test_rlcompleter_utils tests.test_selectors_utils` — 54 OK; `python -m doctest priority_queue_utils.py rlcompleter_utils.py selectors_utils.py` — OK; `python -m py_compile` on touched files — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. (`ruff`/`mypy` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `retry_utils` rejects bool retry parameters
 
 - **Correctness fix — `retry_utils._validate_retry_args` accepted `bool` for `max_attempts`, `delay`, and `backoff`.** `isinstance(True, int)` is `True`, so `retry(max_attempts=True)` (and `delay=True`/`backoff=True`) passed validation instead of being rejected, contradicting the documented type contracts. Each check now rejects `bool` before the integer/number check, matching the convention used elsewhere. Added regression tests.
@@ -115656,7 +115690,13 @@ def complete(text: str, state: int, namespace: dict | None = None) -> str | None
         raise TypeError("state must be an int")
     if namespace is not None and not isinstance(namespace, dict):
         raise TypeError("namespace must be a dict or None")
-    return rlcompleter.Completer(namespace).complete(text, state)
+    completer = rlcompleter.Completer(namespace)
+    if state:
+        # ``Completer.complete`` only builds its match list when ``state`` is
+        # 0, so a fresh instance must be primed before a non-zero state can be
+        # served. Without this, ``complete(text, 1)`` raised AttributeError.
+        completer.complete(text, 0)
+    return completer.complete(text, state)
 RLCOMPLETER_UTILS
 
 # --- tests/test_rlcompleter_utils.py ---
@@ -115689,6 +115729,14 @@ class TestRlcompleterUtils(unittest.TestCase):
     def test_complete_function(self):
         result = complete("pri", 0, {"print": print})
         self.assertTrue(result.startswith("print"))
+
+    def test_complete_function_state_successive(self):
+        namespace = {"foobar": 1, "foobaz": 2}
+        first = complete("foo", 0, namespace)
+        second = complete("foo", 1, namespace)
+        self.assertIsNotNone(second)
+        self.assertNotEqual(first, second)
+        self.assertIsNone(complete("foo", 2, namespace))
 
     def test_complete_type_errors(self):
         with self.assertRaises(TypeError):
@@ -116564,8 +116612,11 @@ def _validate_fileobj(value: Any, name: str) -> None:
         name: The name of the argument (used in error messages).
 
     Raises:
-        TypeError: If value is neither an int nor an object with ``fileno``.
+        TypeError: If value is a bool, or is neither an int nor an object with
+            ``fileno``.
     """
+    if isinstance(value, bool):
+        raise TypeError(f"{name} must be a file object or integer file descriptor")
     if isinstance(value, int):
         return
     if not hasattr(value, "fileno"):
@@ -116807,6 +116858,14 @@ class TestRegister(unittest.TestCase):
         try:
             with self.assertRaises(TypeError):
                 register(selector, object(), EVENT_READ)  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
+    def test_register_rejects_bool_fileobj(self):
+        selector = create_default_selector()
+        try:
+            with self.assertRaises(TypeError):
+                register(selector, True, EVENT_READ)  # type: ignore[arg-type]
         finally:
             selector.close()
 
