@@ -383,15 +383,26 @@ increment_minor = bump_minor
 def bump_patch(version: str) -> str:
     """Bump the patch version component.
 
+    The patch component is incremented and every component of lower
+    significance (a fourth component and beyond) is reset to zero, mirroring
+    :func:`bump_major` and :func:`bump_minor`.
+
     Args:
         version: A dotted version string.
 
     Returns:
-        The version string with the patch component incremented.
+        The version string with the patch component incremented and any
+        lower-significance components reset to zero.
 
     Raises:
         TypeError: If *version* is not a string.
         ValueError: If *version* is invalid.
+
+    Examples:
+        >>> bump_patch("1.2.3")
+        '1.2.4'
+        >>> bump_patch("1.2.3.4")
+        '1.2.4.0'
     """
     if not isinstance(version, str):
         raise TypeError("version must be a string")
@@ -404,6 +415,11 @@ def bump_patch(version: str) -> str:
             parts.append(0)
         idx = 2
     parts[idx] = parts[idx] + 1
+    # Reset every component below the patch position to zero, mirroring
+    # bump_major and bump_minor so that bump_version(part="patch") honours its
+    # documented contract that all lower-significance components are reset.
+    for i in range(idx + 1, len(parts)):
+        parts[i] = 0
     return ".".join(str(p) for p in parts)
 
 

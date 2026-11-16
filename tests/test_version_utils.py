@@ -333,6 +333,13 @@ class TestBump(unittest.TestCase):
     def test_bump_patch(self):
         self.assertEqual(bump_patch("1.2.3"), "1.2.4")
 
+    def test_bump_patch_resets_lower_components(self):
+        # A fourth (or deeper) component is of lower significance than the
+        # patch component, so bumping the patch resets it to zero, matching
+        # bump_major and bump_minor.
+        self.assertEqual(bump_patch("1.2.3.4"), "1.2.4.0")
+        self.assertEqual(bump_patch("1.2.3.4.5"), "1.2.4.0.0")
+
 
 class TestVersionAliases(unittest.TestCase):
     def test_is_version_greater(self):
@@ -400,6 +407,13 @@ class TestBumpVersion(unittest.TestCase):
 
     def test_patch(self):
         self.assertEqual(bump_version("1.2.3", "patch"), "1.2.4")
+
+    def test_patch_resets_lower_components(self):
+        # bump_version documents that all lower-significance components are
+        # reset, so the patch path must agree with the major/minor paths.
+        self.assertEqual(bump_version("1.2.3.4", "patch"), "1.2.4.0")
+        self.assertEqual(bump_version("1.2.3.4", "minor"), "1.3.0.0")
+        self.assertEqual(bump_version("1.2.3.4", "major"), "2.0.0.0")
 
     def test_case_insensitive(self):
         self.assertEqual(bump_version("1.2.3", "MAJOR"), "2.0.0")
