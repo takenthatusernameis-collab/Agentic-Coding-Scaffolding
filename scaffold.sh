@@ -10386,8 +10386,8 @@ def is_perfect_square(n: int) -> bool:
         raise TypeError("n must be an int")
     if n < 0:
         raise ValueError("n must be non-negative")
-    root = int(n**0.5)
-    return root * root == n or (root + 1) * (root + 1) == n
+    root = math.isqrt(n)
+    return root * root == n
 
 
 def is_coprime(a: int, b: int) -> bool:
@@ -10931,6 +10931,24 @@ class TestIsPerfectSquare(unittest.TestCase):
             is_perfect_square(-1)
         with self.assertRaises(ValueError):
             is_perfect_square(-4)
+
+    def test_is_perfect_square_large_perfect_square(self):
+        # A large perfect square must be recognised. Float-based ``n**0.5``
+        # loses precision here (10**50 is (10**25)**2) and underflows the
+        # estimate, so the exact integer check is required.
+        self.assertTrue(is_perfect_square(10**50))
+        self.assertTrue(is_perfect_square((10**25) ** 2))
+        self.assertTrue(is_perfect_square((2**200) ** 2))
+
+    def test_is_perfect_square_large_non_square(self):
+        # A large non-square must not be misreported as a square.
+        self.assertFalse(is_perfect_square(10**50 + 1))
+
+    def test_is_perfect_square_does_not_overflow(self):
+        # ``n**0.5`` raises OverflowError for integers too large to convert to
+        # float; the exact integer check must handle arbitrarily large ints.
+        self.assertTrue(is_perfect_square(10**400))
+        self.assertFalse(is_perfect_square(10**400 + 1))
 
 
 class TestIsCoprime(unittest.TestCase):
@@ -12740,7 +12758,7 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         The area of the polygon.
 
     Raises:
-        TypeError: If vertices is not a list, a vertex is not a 2-tuple of
+        TypeError: If vertices is not iterable, a vertex is not a 2-tuple of
             numbers, or a vertex component is not a number.
         ValueError: If fewer than 3 vertices are provided.
 
@@ -12748,21 +12766,23 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         >>> polygon_area([(0, 0), (2, 0), (0, 2)])
         2.0
     """
-    if not isinstance(vertices, list):
-        raise TypeError("vertices must be a list")
-    if len(vertices) < 3:
+    try:
+        vertices_list = list(vertices)
+    except TypeError:
+        raise TypeError("vertices must be iterable")
+    if len(vertices_list) < 3:
         raise ValueError("polygon must have at least 3 vertices")
-    for vertex in vertices:
+    for vertex in vertices_list:
         if not isinstance(vertex, (tuple, list)) or len(vertex) != 2:
             raise TypeError("each vertex must be a 2-tuple of numbers")
         _require_number(vertex[0], "vertex x")
         _require_number(vertex[1], "vertex y")
-    n = len(vertices)
+    n = len(vertices_list)
     s1 = 0.0
     s2 = 0.0
     for i in range(n):
-        x1, y1 = vertices[i]
-        x2, y2 = vertices[(i + 1) % n]
+        x1, y1 = vertices_list[i]
+        x2, y2 = vertices_list[(i + 1) % n]
         s1 += x1 * y2
         s2 += y1 * x2
     return abs(s1 - s2) / 2.0
@@ -13370,8 +13390,14 @@ class TestPolygonArea(unittest.TestCase):
             polygon_area([(0, 0), (1, 1)])
 
     def test_non_list(self):
+        # tuple of tuples should work now
+        self.assertAlmostEqual(polygon_area(((0, 0), (2, 0), (0, 2))), 2.0)
+        # generator should work
+        self.assertAlmostEqual(polygon_area((v for v in [(0, 0), (2, 0), (0, 2)])), 2.0)
+
+    def test_rejects_non_sequence(self):
         with self.assertRaises(TypeError):
-            polygon_area((0, 0), (1, 1), (2, 0))  # type: ignore[arg-type]
+            polygon_area(123)  # type: ignore[arg-type]
 
     def test_vertex_not_a_pair(self):
         with self.assertRaises(TypeError):
@@ -14400,7 +14426,7 @@ def capitalize_words(s: str) -> str:
         ''
     """
     _require_string(s, "s")
-    return " ".join(word.capitalize() for word in s.split(" "))
+    return " ".join(word.capitalize() for word in s.split())
 
 
 def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) -> bool:
@@ -14438,7 +14464,7 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
     for c in s:
         if ignore_spaces and c.isspace():
             continue
-        if not c.isalnum():
+        if ignore_spaces and not c.isalnum():
             continue
         if ignore_case:
             cleaned.append(c.lower())
@@ -17328,8 +17354,16 @@ def flatten(lst: List[List[T]]) -> List[T]:
     return result
 
 
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int (not a bool)."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an integer, got {type(value).__name__}")
+    return value
+
+
 def chunk(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks of the specified size."""
+    size = _require_int(size, "size")
     if size <= 0:
         raise ValueError("Chunk size must be positive")
     return [lst[i : i + size] for i in range(0, len(lst), size)]
@@ -17427,6 +17461,7 @@ def compact(lst: List[T]) -> List[T]:
 
 def take(lst: List[T], n: int) -> List[T]:
     """Return the first n elements of a list."""
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     return lst[:n]
@@ -17434,6 +17469,7 @@ def take(lst: List[T], n: int) -> List[T]:
 
 def drop(lst: List[T], n: int) -> List[T]:
     """Return a list with the first n elements removed."""
+    n = _require_int(n, "n")
     if n <= 0:
         return list(lst)
     return lst[n:]
@@ -17441,6 +17477,7 @@ def drop(lst: List[T], n: int) -> List[T]:
 
 def tail(lst: List[T], n: int) -> List[T]:
     """Return the last n elements of a list."""
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     if n >= len(lst):
@@ -17591,13 +17628,17 @@ def has_key(d: Dict[K, Any], key: K) -> bool:
 
 def range_list(start: int, stop: Optional[int] = None, step: int = 1) -> List[int]:
     """Create a list from a range."""
-    if stop is None:
-        return list(range(start))
-    return list(range(start, stop, step))
+    start = _require_int(start, "start")
+    if stop is not None:
+        stop = _require_int(stop, "stop")
+        step = _require_int(step, "step")
+        return list(range(start, stop, step))
+    return list(range(start))
 
 
 def repeat(item: T, n: int) -> List[T]:
     """Repeat an item n times."""
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     return [item] * n
@@ -17607,6 +17648,7 @@ def sample(lst: List[T], n: int = 1) -> List[T]:
     """Return n random samples from a list (without replacement if possible)."""
     import random
 
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     if n >= len(lst):
@@ -19255,6 +19297,8 @@ def coefficient_of_range(numbers: List[T | float]) -> float:
         raise ValueError("numbers must not be empty")
     lo = min(numbers)
     hi = max(numbers)
+    if hi == lo:
+        return 0.0
     denom = hi + lo
     if denom == 0:
         raise ValueError("sum of min and max must not be zero")
@@ -20139,9 +20183,10 @@ class TestCapitalizeWords(unittest.TestCase):
     def test_capitalize_single_word(self):
         self.assertEqual(capitalize_words("python"), "Python")
 
-    def test_capitalize_preserves_extra_spaces(self):
-        # split(" ") preserves consecutive spaces as empty words
-        self.assertEqual(capitalize_words("a  b"), "A  B")
+    def test_capitalize_collapses_whitespace(self):
+        # split() collapses consecutive whitespace
+        self.assertEqual(capitalize_words("a  b"), "A B")
+        self.assertEqual(capitalize_words("  hello   world  "), "Hello World")
 
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
@@ -21880,6 +21925,16 @@ class TestNewHelpers(unittest.TestCase):
 
         self.assertTrue(is_palindrome("a b a", ignore_spaces=False))
 
+    def test_is_palindrome_ignore_spaces_false_punctuation(self):
+        from strings import is_palindrome
+
+        # With ignore_spaces=False, punctuation should NOT be ignored
+        self.assertFalse(is_palindrome("race,car", ignore_spaces=False))
+        self.assertFalse(is_palindrome("race.car", ignore_spaces=False))
+        self.assertFalse(is_palindrome("race!car", ignore_spaces=False))
+        # But spaces-only should still work for actual palindromes
+        self.assertTrue(is_palindrome("a b a", ignore_spaces=False))
+
     def test_is_palindrome_rejects_non_string(self):
         from strings import is_palindrome
 
@@ -23233,6 +23288,12 @@ class TestChunk(unittest.TestCase):
         with self.assertRaises(ValueError):
             chunk([1, 2, 3], 0)
 
+    def test_chunk_rejects_bool_size(self) -> None:
+        with self.assertRaises(TypeError):
+            chunk([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            chunk([1, 2, 3], False)
+
 
 class TestUnique(unittest.TestCase):
     def test_unique_basic(self) -> None:
@@ -23471,6 +23532,12 @@ class TestDrop(unittest.TestCase):
     def test_drop_empty(self) -> None:
         self.assertEqual(drop([], 3), [])
 
+    def test_drop_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], False)
+
 
 class TestDropWhile(unittest.TestCase):
     def test_drop_while_basic(self) -> None:
@@ -23589,6 +23656,12 @@ class TestHead(unittest.TestCase):
 
     def test_head_alias_take(self) -> None:
         self.assertEqual(head([1, 2, 3], 2), take([1, 2, 3], 2))
+
+    def test_head_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            head([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            head([1, 2, 3], False)
 
 
 class TestIncludes(unittest.TestCase):
@@ -23747,6 +23820,14 @@ class TestRangeList(unittest.TestCase):
     def test_range_list_step(self) -> None:
         self.assertEqual(range_list(0, 6, 2), [0, 2, 4])
 
+    def test_range_list_rejects_bool_args(self) -> None:
+        with self.assertRaises(TypeError):
+            range_list(True)
+        with self.assertRaises(TypeError):
+            range_list(0, 6, True)
+        with self.assertRaises(TypeError):
+            range_list(0, 6, False)
+
 
 class TestReduceList(unittest.TestCase):
     def test_reduce_list_basic(self) -> None:
@@ -23765,6 +23846,12 @@ class TestRepeat(unittest.TestCase):
 
     def test_repeat_negative(self) -> None:
         self.assertEqual(repeat("a", -1), [])
+
+    def test_repeat_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            repeat("a", True)
+        with self.assertRaises(TypeError):
+            repeat("a", False)
 
 
 class TestRest(unittest.TestCase):
@@ -23798,6 +23885,12 @@ class TestSample(unittest.TestCase):
 
     def test_sample_empty(self) -> None:
         self.assertEqual(sample([], 1), [])
+
+    def test_sample_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            sample([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            sample([1, 2, 3], False)
 
 
 class TestShuffle(unittest.TestCase):
@@ -23839,6 +23932,12 @@ class TestTail(unittest.TestCase):
     def test_tail_all(self) -> None:
         self.assertEqual(tail([1, 2], 5), [1, 2])
 
+    def test_tail_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            tail([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            tail([1, 2, 3], False)
+
 
 class TestTake(unittest.TestCase):
     def test_take_basic(self) -> None:
@@ -23849,6 +23948,12 @@ class TestTake(unittest.TestCase):
 
     def test_take_all(self) -> None:
         self.assertEqual(take([1, 2], 5), [1, 2])
+
+    def test_take_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], False)
 
 
 class TestTakeWhile(unittest.TestCase):
@@ -25752,6 +25857,11 @@ class TestCoefficientOfRange(unittest.TestCase):
     def test_zero_sum_raises(self) -> None:
         with self.assertRaises(ValueError):
             coefficient_of_range([-2, 2])
+
+    def test_identical_values(self) -> None:
+        self.assertEqual(coefficient_of_range([5, 5, 5]), 0.0)
+        self.assertEqual(coefficient_of_range([0, 0, 0]), 0.0)
+        self.assertEqual(coefficient_of_range([-3, -3]), 0.0)
 
     def test_rejects_non_list(self) -> None:
         with self.assertRaises(TypeError):
@@ -56830,7 +56940,18 @@ def format_names(names: list[str], greeting: str = "Hello") -> str:
 
     Returns:
         A string of the form "{greeting}, {name1}! {greeting}, {name2}!".
+
+    Raises:
+        TypeError: If ``names`` is not a list, contains non-str elements,
+            or if ``greeting`` is not a str.
     """
+    if not isinstance(names, list):
+        raise TypeError("names must be a list")
+    if not isinstance(greeting, str):
+        raise TypeError("greeting must be a str")
+    for name in names:
+        if not isinstance(name, str):
+            raise TypeError("names must contain only str elements")
     return " ".join(format_greeting(name, greeting) for name in names)
 
 
@@ -57073,6 +57194,18 @@ class TestGreetingUtils(unittest.TestCase):
 
     def test_format_names_empty(self):
         self.assertEqual(format_names([]), "")
+
+    def test_format_names_type_error_not_list(self):
+        with self.assertRaises(TypeError):
+            format_names("not a list")  # type: ignore[arg-type]
+
+    def test_format_names_type_error_non_str_element(self):
+        with self.assertRaises(TypeError):
+            format_names(["Alice", 123])  # type: ignore[arg-type]
+
+    def test_format_names_type_error_non_str_greeting(self):
+        with self.assertRaises(TypeError):
+            format_names(["Alice"], 5)  # type: ignore[arg-type]
 
 
 class TestFormatFarewell(unittest.TestCase):
@@ -72435,6 +72568,16 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — exact integer roots for perfect-power checks, `utils.sample` rejects `bool` `n`
+
+- **Correctness fix — `calculator.is_perfect_square` used a float square root.** It computed `root = int(n**0.5)`, which loses precision for large integers (so `is_perfect_square(10**50)` returned `False` even though `10**50 == (10**25)**2`) and raises `OverflowError` for integers too large to convert to float (`is_perfect_square(10**400)`). It now uses `math.isqrt` for an exact integer square root. Added `test_is_perfect_square_large_perfect_square`, `test_is_perfect_square_large_non_square`, and `test_is_perfect_square_does_not_overflow`.
+- **Correctness fix — `number_utils.is_pronic_number`, `number_utils.is_perfect_square`, and `number_utils.is_perfect_cube` used float roots.** All three estimated the root with a float expression (`n**0.5`, `abs(n) ** (1/3)`), which loses precision for large integers (false negatives, e.g. `is_perfect_square(10**50)`, `is_perfect_cube((10**15) ** 3)`, `is_pronic_number((10**25) * (10**25 + 1))`) and raises `OverflowError` for values too large to convert to float (and the cube correction loop could spin on a garbage estimate). They now use exact integer arithmetic (`math.isqrt` and an integer Newton cube root). Added large-value tests for each.
+- **Correctness fix — `numbers_utils.is_perfect_cube` used a float cube root.** Same defect class: `round(m ** (1.0 / 3.0))` loses precision for large integers (false negatives such as `(10**15) ** 3`) and raises `OverflowError` for huge values. It now uses the same exact integer Newton cube root. Added `test_large_perfect_cubes`.
+- **Correctness fix — `utils.sample` accepted `bool` for `n`.** Because `bool` is a subclass of `int`, `sample([1, 2, 3], True)` was silently treated as `n = 1` instead of raising `TypeError`, unlike its sibling helpers (`take`, `drop`, `tail`, `repeat`, `chunk`, `range_list`) which reject booleans via `_require_int`. `sample` now validates `n` with `_require_int`, satisfying the previously failing `test_sample_rejects_bool_n` (the prior session added that test and applied the helper to the other functions but missed `sample`, leaving the suite red).
+- **Defect hunt (second pass, float-root precision class):** grepped for `** 0.5`, `** (1/3)`, and similar float-root patterns across the source; fixed the five integer-exactness checks above. Remaining float-root uses (`calculator.sqrt`, `hypotenuse`, geometric means in `stats.py`/`statistics_utils.py`, `prime_utils` initial guesses) return floats by contract or only seed an exact loop and were left unchanged.
+- Validation: `python -m unittest tests.test_calculator tests.test_number_utils tests.test_numbers_utils tests.test_utils` — OK; `python -m doctest calculator.py number_utils.py numbers_utils.py utils.py` — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11326 OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `94f0015`).
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `config_schema` validates default values against type and validator
 
 - **Correctness fix — `ConfigSchema.validate` accepted invalid default values without validation.** When a field had a default value and the key was absent from the input config, the default was used directly without being coerced to the declared type or passed through the field's validator. This allowed schemas with invalid defaults (wrong type or violating a range/choices/regex validator) to silently produce invalid output. Defaults are now validated via `field.validate(field.default)`, and validation errors are wrapped in `ConfigValidationError` with a `default` suffix. Added `test_validate_rejects_invalid_default_type` and `test_validate_rejects_invalid_default_validator` (both fail against the old implementation and pass after).
@@ -97252,7 +97395,7 @@ def is_pronic_number(value: Number) -> bool:
     if not is_integer(value) or value < 0:
         return False
     n = int(value)
-    root = int(n**0.5)
+    root = math.isqrt(n)
     return root * (root + 1) == n or (root + 1) * (root + 2) == n
 
 
@@ -97478,12 +97621,19 @@ def is_perfect_cube(value: Number) -> bool:
     if not is_integer(value):
         return False
     n = int(value)
-    root = int(round(abs(n) ** (1.0 / 3.0)))
-    while (root + 1) ** 3 <= abs(n):
-        root += 1
-    while root**3 > abs(n):
-        root -= 1
-    return root**3 == abs(n)
+    m = abs(n)
+    if m < 2:
+        return True
+    # Exact integer cube root via Newton's method. A float ``m ** (1/3)``
+    # estimate loses precision for large integers and overflows outright for
+    # values too large to convert to float.
+    root = 1 << ((m.bit_length() + 2) // 3)
+    while True:
+        nxt = (2 * root + m // (root * root)) // 3
+        if nxt >= root:
+            break
+        root = nxt
+    return root**3 == m
 
 
 def is_perfect_square(value: Number) -> bool:
@@ -97504,12 +97654,8 @@ def is_perfect_square(value: Number) -> bool:
     n = int(value)
     if n < 0:
         return False
-    root = int(round(abs(n) ** 0.5))
-    while (root + 1) ** 2 <= abs(n):
-        root += 1
-    while root**2 > abs(n):
-        root -= 1
-    return root**2 == abs(n)
+    root = math.isqrt(n)
+    return root * root == n
 
 
 def is_power_of_two(value: Number) -> bool:
@@ -100126,6 +100272,14 @@ class TestIsPerfectCube(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_perfect_cube("x")  # type: ignore[arg-type]
 
+    def test_large_perfect_cubes(self) -> None:
+        # Large cubes must be recognised. A float ``m ** (1/3)`` estimate loses
+        # precision (10**15 is (10**5)**3) or overflows for huge integers.
+        for base in (10**5, 10**10, 10**15, 10**20, 10**25):
+            self.assertTrue(is_perfect_cube(base**3), base)
+        self.assertTrue(is_perfect_cube(10**399))
+        self.assertFalse(is_perfect_cube(10**400))
+
 
 class TestIsPerfectSquare(unittest.TestCase):
     def test_perfect_squares(self) -> None:
@@ -100147,6 +100301,14 @@ class TestIsPerfectSquare(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_perfect_square("x")  # type: ignore[arg-type]
+
+    def test_large_perfect_square(self) -> None:
+        # Large squares must be recognised. A float ``n**0.5`` estimate loses
+        # precision (10**50 == (10**25)**2) or overflows for huge integers.
+        self.assertTrue(is_perfect_square(10**50))
+        self.assertTrue(is_perfect_square((2**200) ** 2))
+        self.assertTrue(is_perfect_square(10**400))
+        self.assertFalse(is_perfect_square(10**400 + 1))
 
 
 class TestIsPowerOfTwo(unittest.TestCase):
@@ -101043,6 +101205,14 @@ class TestIsPronicNumber(unittest.TestCase):
             is_pronic_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_pronic_number(None)  # type: ignore[arg-type]
+
+    def test_large_pronic_number(self) -> None:
+        # A large pronic value n*(n+1) must be recognised. A float ``n**0.5``
+        # estimate loses precision or overflows for huge integers.
+        m = 10**25
+        self.assertTrue(is_pronic_number(m * (m + 1)))
+        self.assertTrue(is_pronic_number((10**200) * (10**200 + 1)))
+        self.assertFalse(is_pronic_number(10**50 + 1))
 
 
 class TestIsSpyNumber(unittest.TestCase):
@@ -103005,14 +103175,16 @@ def is_perfect_cube(n: int) -> bool:
     if n == 0:
         return True
     m = abs(n)
-    r = round(m ** (1.0 / 3.0))
-    # check nearby values due to floating point
-    for candidate in (r - 1, r, r + 1):
-        if candidate < 0:
-            continue
-        if candidate**3 == m:
-            return True
-    return False
+    # Exact integer cube root via Newton's method. A float ``m ** (1/3)``
+    # estimate loses precision for large integers and overflows for values too
+    # large to convert to float.
+    root = 1 << ((m.bit_length() + 2) // 3)
+    while True:
+        nxt = (2 * root + m // (root * root)) // 3
+        if nxt >= root:
+            break
+        root = nxt
+    return root**3 == m
 
 
 def is_power_of_two(n: int) -> bool:
@@ -104793,6 +104965,14 @@ class TestIsPerfectCube(unittest.TestCase):
         for value in (1.5, "27", None, True, [27]):
             with self.assertRaises(TypeError):
                 is_perfect_cube(value)
+
+    def test_large_perfect_cubes(self):
+        # Large cubes must be recognised. A float ``m ** (1/3)`` estimate loses
+        # precision (10**15 is (10**5)**3) or overflows for huge integers.
+        for base in (10**5, 10**10, 10**15, 10**20, 10**25):
+            self.assertTrue(is_perfect_cube(base**3), base)
+        self.assertTrue(is_perfect_cube((10**200) ** 3))
+        self.assertFalse(is_perfect_cube(10**50 + 1))
 
 
 class TestIsPowerOfTwo(unittest.TestCase):

@@ -471,6 +471,24 @@ class TestIsPerfectSquare(unittest.TestCase):
         with self.assertRaises(ValueError):
             is_perfect_square(-4)
 
+    def test_is_perfect_square_large_perfect_square(self):
+        # A large perfect square must be recognised. Float-based ``n**0.5``
+        # loses precision here (10**50 is (10**25)**2) and underflows the
+        # estimate, so the exact integer check is required.
+        self.assertTrue(is_perfect_square(10**50))
+        self.assertTrue(is_perfect_square((10**25) ** 2))
+        self.assertTrue(is_perfect_square((2**200) ** 2))
+
+    def test_is_perfect_square_large_non_square(self):
+        # A large non-square must not be misreported as a square.
+        self.assertFalse(is_perfect_square(10**50 + 1))
+
+    def test_is_perfect_square_does_not_overflow(self):
+        # ``n**0.5`` raises OverflowError for integers too large to convert to
+        # float; the exact integer check must handle arbitrarily large ints.
+        self.assertTrue(is_perfect_square(10**400))
+        self.assertFalse(is_perfect_square(10**400 + 1))
+
 
 class TestIsCoprime(unittest.TestCase):
     def test_is_coprime_basic(self):

@@ -1,6 +1,25 @@
 # Handover
 
-## Latest Session (2026-11-17) — defect hunt/fix: `config_schema` validates default values against type and validator
+## Latest Session (2026-11-17) — defect hunt/fix: exact integer roots + `utils.sample` bool `n`
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `94f0015`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Note on prior state:** HEAD already contained defect fixes from earlier sessions whose handover docs were stale (`utils.py` in `6c7d3bc`; `greeting_utils`/`shapes`/`stats`/`strings` in `94f0015`). `scaffold.sh` was re-synced to pick up those embedded copies. The prior `utils.py` session added `test_sample_rejects_bool_n` and `_require_int` but missed applying the helper to `sample`, so the full suite was red on that one test.
+- **Defects fixed (failing-test-first):**
+  - `calculator.is_perfect_square` used `int(n**0.5)`, which returns false negatives for large integers (`10**50`) and raises `OverflowError` for huge ones (`10**400`). Now uses `math.isqrt` (exact). Added `test_is_perfect_square_large_perfect_square`, `test_is_perfect_square_large_non_square`, `test_is_perfect_square_does_not_overflow` (all fail before, pass after).
+  - `number_utils.is_pronic_number`, `number_utils.is_perfect_square`, `number_utils.is_perfect_cube` all used float root estimates (`n**0.5`, `abs(n) ** (1/3)`): false negatives on large values and `OverflowError` (the cube correction loop could even spin). Switched to exact integer arithmetic (`math.isqrt` and an integer Newton cube root). Added large-value tests for each (fail before, pass after).
+  - `numbers_utils.is_perfect_cube` used `round(m ** (1.0 / 3.0))` — false negatives (e.g. `(10**15) ** 3`) and `OverflowError` for huge values. Same exact integer cube root. Added `test_large_perfect_cubes`.
+  - `utils.sample` accepted `bool` for `n` (`sample([1,2,3], True)` treated `True` as `1`). Applied `_require_int` to `n`; this makes the previously failing `test_sample_rejects_bool_n` pass. `head` is covered transitively via `take`.
+- **Defect hunt (second pass, float-root precision class):** grepped `** 0.5`, `** (1/3)` and similar across source; fixed the five integer-exactness checks above. Left float-by-contract / seed-only sites unchanged: `calculator.sqrt`, `calculator.hypotenuse`, `stats.geometric_mean`, `statistics_utils` geometric mean, and `prime_utils`/`number_utils`/`numbers_utils` `a_float = n ** (1/b)` initial guesses feeding exact loops. Remaining top-level modules all reviewed: `calculator.py`, `hello.py` (clean), plus `config_schema.py`/`utils.py`/`greeting_utils.py`/`shapes.py`/`stats.py`/`strings.py` from earlier sessions.
+- **Verification:** `python -m unittest tests.test_calculator tests.test_number_utils tests.test_numbers_utils tests.test_utils` — OK; `python -m doctest calculator.py number_utils.py numbers_utils.py utils.py` — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11326 OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `94f0015`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`calculator.py`, `number_utils.py`, `numbers_utils.py`, `utils.py`, their tests, and `CHANGELOG.md`; also re-synced stale `greeting_utils`/`shapes`/`stats`/`strings`/`utils` copies from prior sessions).
+
+## Task for Next Agent
+
+See `.kilo/next_task.md` (posted to `main` via `board_post`). Continue the correctness defect hunt (failing-test-first) with a fresh defect class (e.g. boundary/off-by-one, aliasing/mutation, sentinel-default, dialect/encoding) across modules that were only spot-checked in earlier sessions. The float-root precision class is now cleaned up across `calculator`, `number_utils`, and `numbers_utils`; re-verify the intentionally-left seed-only float-root sites before treating them as bugs.
+
+## Previous Session (2026-11-17) — defect hunt/fix: `config_schema` validates default values against type and validator
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
 - **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `2524de0`), then `python -m unittest discover tests/`.

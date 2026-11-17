@@ -1258,14 +1258,16 @@ def is_perfect_cube(n: int) -> bool:
     if n == 0:
         return True
     m = abs(n)
-    r = round(m ** (1.0 / 3.0))
-    # check nearby values due to floating point
-    for candidate in (r - 1, r, r + 1):
-        if candidate < 0:
-            continue
-        if candidate**3 == m:
-            return True
-    return False
+    # Exact integer cube root via Newton's method. A float ``m ** (1/3)``
+    # estimate loses precision for large integers and overflows for values too
+    # large to convert to float.
+    root = 1 << ((m.bit_length() + 2) // 3)
+    while True:
+        nxt = (2 * root + m // (root * root)) // 3
+        if nxt >= root:
+            break
+        root = nxt
+    return root**3 == m
 
 
 def is_power_of_two(n: int) -> bool:

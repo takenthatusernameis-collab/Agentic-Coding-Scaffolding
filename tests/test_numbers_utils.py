@@ -1235,6 +1235,14 @@ class TestIsPerfectCube(unittest.TestCase):
             with self.assertRaises(TypeError):
                 is_perfect_cube(value)
 
+    def test_large_perfect_cubes(self):
+        # Large cubes must be recognised. A float ``m ** (1/3)`` estimate loses
+        # precision (10**15 is (10**5)**3) or overflows for huge integers.
+        for base in (10**5, 10**10, 10**15, 10**20, 10**25):
+            self.assertTrue(is_perfect_cube(base**3), base)
+        self.assertTrue(is_perfect_cube((10**200) ** 3))
+        self.assertFalse(is_perfect_cube(10**50 + 1))
+
 
 class TestIsPowerOfTwo(unittest.TestCase):
     def test_known_powers_of_two(self):

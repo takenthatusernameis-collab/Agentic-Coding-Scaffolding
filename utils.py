@@ -385,6 +385,7 @@ def sample(lst: List[T], n: int = 1) -> List[T]:
     """Return n random samples from a list (without replacement if possible)."""
     import random
 
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     if n >= len(lst):

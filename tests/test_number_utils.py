@@ -721,6 +721,14 @@ class TestIsPerfectCube(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_perfect_cube("x")  # type: ignore[arg-type]
 
+    def test_large_perfect_cubes(self) -> None:
+        # Large cubes must be recognised. A float ``m ** (1/3)`` estimate loses
+        # precision (10**15 is (10**5)**3) or overflows for huge integers.
+        for base in (10**5, 10**10, 10**15, 10**20, 10**25):
+            self.assertTrue(is_perfect_cube(base**3), base)
+        self.assertTrue(is_perfect_cube(10**399))
+        self.assertFalse(is_perfect_cube(10**400))
+
 
 class TestIsPerfectSquare(unittest.TestCase):
     def test_perfect_squares(self) -> None:
@@ -742,6 +750,14 @@ class TestIsPerfectSquare(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_perfect_square("x")  # type: ignore[arg-type]
+
+    def test_large_perfect_square(self) -> None:
+        # Large squares must be recognised. A float ``n**0.5`` estimate loses
+        # precision (10**50 == (10**25)**2) or overflows for huge integers.
+        self.assertTrue(is_perfect_square(10**50))
+        self.assertTrue(is_perfect_square((2**200) ** 2))
+        self.assertTrue(is_perfect_square(10**400))
+        self.assertFalse(is_perfect_square(10**400 + 1))
 
 
 class TestIsPowerOfTwo(unittest.TestCase):
@@ -1638,6 +1654,14 @@ class TestIsPronicNumber(unittest.TestCase):
             is_pronic_number(True)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             is_pronic_number(None)  # type: ignore[arg-type]
+
+    def test_large_pronic_number(self) -> None:
+        # A large pronic value n*(n+1) must be recognised. A float ``n**0.5``
+        # estimate loses precision or overflows for huge integers.
+        m = 10**25
+        self.assertTrue(is_pronic_number(m * (m + 1)))
+        self.assertTrue(is_pronic_number((10**200) * (10**200 + 1)))
+        self.assertFalse(is_pronic_number(10**50 + 1))
 
 
 class TestIsSpyNumber(unittest.TestCase):
