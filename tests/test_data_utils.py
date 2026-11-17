@@ -50,6 +50,14 @@ class TestDeepCopy(unittest.TestCase):
         self.assertEqual(deep_copy(5), 5)
         self.assertEqual(deep_copy("hello"), "hello")
 
+    def test_deep_copy_propagates_deepcopy_errors(self) -> None:
+        class Undeepcopyable:
+            def __deepcopy__(self, memo: dict) -> None:
+                raise ValueError("cannot deepcopy this object")
+
+        with self.assertRaises(ValueError):
+            deep_copy(Undeepcopyable())
+
 
 class TestMergeDicts(unittest.TestCase):
     def test_merge_dicts_basic(self) -> None:

@@ -1,5 +1,15 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `data_utils.deep_copy` broad exception swallowing
+
+- `board_read`: empty (bootstrap session); established project foundation and continued the correctness defect hunt.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Ran `--full --record-full-suite` — battery passed, checkpoint advanced to `13abea2`. Then ran `python -m unittest discover tests/` — full suite OK.
+- **Optimize-delays survey:** no avoidable repository-managed delay found; used state-delta probe + targeted `tests/test_data_utils.py`/doctest/ruff/mypy during the change. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `data_utils.deep_copy` wrapped `copy.deepcopy` in a broad `except Exception` and silently fell back to `copy.copy`, returning a shallow copy when deep copy failed and violating its documented "deep copy" contract. Removed the broad catch so `copy.deepcopy` errors propagate. Added `test_deep_copy_propagates_deepcopy_errors` (fails before the fix, passes after).
+- **Defect class:** broad exception swallowing / silent fallback violating contract (fresh class; previous sweeps targeted bool-as-int, float precision, boundary/off-by-one, sentinel-default, exported exceptions).
+- **Verification:** `python -m unittest tests.test_data_utils` — 60 OK; `python -m doctest data_utils.py` — 15 passed; `python -m ruff check data_utils.py tests/test_data_utils.py` — clean; `python -m mypy data_utils.py tests/test_data_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `13abea2`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`data_utils.py`, `tests/test_data_utils.py`, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `strings.is_palindrome` sentinel-default / parameter behavior mismatch
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

@@ -22,10 +22,7 @@ __all__ = [
 
 def deep_copy(obj: Any) -> Any:
     """Create a deep copy of an object."""
-    try:
-        return copy.deepcopy(obj)
-    except Exception:
-        return copy.copy(obj)
+    return copy.deepcopy(obj)
 
 
 def merge_dicts(*dicts: Dict[Any, Any]) -> Dict[Any, Any]:

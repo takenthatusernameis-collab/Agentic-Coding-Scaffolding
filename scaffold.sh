@@ -26702,10 +26702,7 @@ __all__ = [
 
 def deep_copy(obj: Any) -> Any:
     """Create a deep copy of an object."""
-    try:
-        return copy.deepcopy(obj)
-    except Exception:
-        return copy.copy(obj)
+    return copy.deepcopy(obj)
 
 
 def merge_dicts(*dicts: Dict[Any, Any]) -> Dict[Any, Any]:
@@ -33808,6 +33805,14 @@ class TestDeepCopy(unittest.TestCase):
     def test_deep_copy_primitive(self) -> None:
         self.assertEqual(deep_copy(5), 5)
         self.assertEqual(deep_copy("hello"), "hello")
+
+    def test_deep_copy_propagates_deepcopy_errors(self) -> None:
+        class Undeepcopyable:
+            def __deepcopy__(self, memo: dict) -> None:
+                raise ValueError("cannot deepcopy this object")
+
+        with self.assertRaises(ValueError):
+            deep_copy(Undeepcopyable())
 
 
 class TestMergeDicts(unittest.TestCase):
@@ -72668,6 +72673,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `data_utils.deep_copy` no longer silently falls back to a shallow copy
+
+- **Correctness fix — `data_utils.deep_copy` swallowed all exceptions.** The helper wrapped `copy.deepcopy` in a broad `except Exception` and fell back to `copy.copy`, silently returning a shallow copy when deep copy failed and violating its documented contract. The broad catch was removed so `copy.deepcopy` errors propagate. Added `test_deep_copy_propagates_deepcopy_errors` (fails before the fix, passes after).
+- Validation: `python -m unittest tests.test_data_utils` — 60 OK; `python -m doctest data_utils.py` — 15 passed; `python -m ruff check data_utils.py tests/test_data_utils.py` — clean; `python -m mypy data_utils.py tests/test_data_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `strings.is_palindrome` no longer strips punctuation when ignoring spaces
 
 - **Correctness fix — `is_palindrome` stripped punctuation when `ignore_spaces=True`.** The helper skipped every non-alphanumeric character alongside whitespace, so `is_palindrome("race,car")` returned `True` even though `ignore_spaces` should only ignore spaces. The `ignore_spaces and not c.isalnum()` branch was removed; only whitespace is skipped when `ignore_spaces=True`, leaving punctuation as part of the palindrome check. Added `test_punctuation_not_ignored_by_default` (`is_palindrome("race,car")`, `is_palindrome("race.car")`, `is_palindrome("race!car")` all now `False`) and updated `test_ignores_spaces_but_not_punctuation` (`"A man, a plan, a canal: Panama"` is now `False`, while `"A man a plan a canal Panama"` remains `True`).
