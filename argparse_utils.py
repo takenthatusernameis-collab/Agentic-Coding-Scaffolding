@@ -1,6 +1,7 @@
 """Argument parsing utility functions."""
 
 import argparse
+import math
 from typing import Any, Callable, List, Optional
 
 __all__ = [
@@ -91,10 +92,18 @@ def int_positive(value: str) -> int:
 
 
 def float_range(minimum: float, maximum: float) -> Callable[[str], float]:
-    """argparse type factory: float within [minimum, maximum]."""
+    """argparse type factory: float within [minimum, maximum].
+
+    Rejects non-finite values (NaN, ±inf) and values outside the bounds.
+    """
 
     def _convert(value: str) -> float:
-        fv = float(value)
+        try:
+            fv = float(value)
+        except ValueError as exc:
+            raise argparse.ArgumentTypeError(f"must be a float: {value!r}") from exc
+        if not math.isfinite(fv):
+            raise argparse.ArgumentTypeError("must be a finite number")
         if fv < minimum or fv > maximum:
             raise argparse.ArgumentTypeError(f"must be between {minimum} and {maximum}")
         return fv

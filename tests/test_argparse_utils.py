@@ -51,6 +51,20 @@ def test_float_range():
         pass
     else:
         raise AssertionError("expected error")
+    try:
+        conv("nan")
+    except argparse.ArgumentTypeError:
+        pass
+    else:
+        raise AssertionError("expected error for nan")
+    try:
+        conv("-inf")
+    except argparse.ArgumentTypeError:
+        pass
+    else:
+        raise AssertionError("expected error for -inf")
+    assert conv("0.0") == 0.0
+    assert conv("1.0") == 1.0
 
 
 def test_subparsers():
