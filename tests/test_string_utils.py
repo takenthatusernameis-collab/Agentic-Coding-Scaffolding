@@ -1250,6 +1250,13 @@ class TestCosineSimilarity(unittest.TestCase):
         self.assertAlmostEqual(cosine_similarity("abc", ""), 0.0)
         self.assertAlmostEqual(cosine_similarity("", "xyz"), 0.0)
 
+    def test_single_char_identical(self):
+        self.assertAlmostEqual(cosine_similarity("a", "a"), 1.0)
+        self.assertAlmostEqual(cosine_similarity("z", "z"), 1.0)
+
+    def test_single_char_different(self):
+        self.assertAlmostEqual(cosine_similarity("a", "b"), 0.0)
+
     def test_completely_different(self):
         self.assertAlmostEqual(cosine_similarity("ab", "cd"), 0.0)
 
@@ -1273,6 +1280,13 @@ class TestJaccardSimilarity(unittest.TestCase):
     def test_one_empty(self):
         self.assertAlmostEqual(jaccard_similarity("abc", ""), 0.0)
         self.assertAlmostEqual(jaccard_similarity("", "xyz"), 0.0)
+
+    def test_single_char_identical(self):
+        self.assertAlmostEqual(jaccard_similarity("a", "a"), 1.0)
+        self.assertAlmostEqual(jaccard_similarity("z", "z"), 1.0)
+
+    def test_single_char_different(self):
+        self.assertAlmostEqual(jaccard_similarity("a", "b"), 0.0)
 
     def test_completely_different(self):
         self.assertAlmostEqual(jaccard_similarity("ab", "cd"), 0.0)

@@ -1,21 +1,19 @@
 # Project Status
 
-## Latest Session (2026-11-17) — defect hunt/fix: exact integer roots for perfect-power checks + `utils.sample` bool `n`
+## Latest Session (2026-11-17) — defect hunt/fix: `string_utils` cosine/Jaccard similarity boundary at length 1
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `94f0015`), then `python -m unittest discover tests/`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `...`), then `python -m unittest discover tests/`.
 - **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Note on prior state:** HEAD already contained fixes from earlier sessions with stale handover docs (`utils.py` in `6c7d3bc`; `greeting_utils`/`shapes`/`stats`/`strings` in `94f0015`); re-synced those embedded copies. The prior `utils.py` session left `sample` unvalidated, so `test_sample_rejects_bool_n` was red.
 - **Defects fixed (failing-test-first):**
-  - `calculator.is_perfect_square` float root (`int(n**0.5)`) → false negatives on large ints (`10**50`) and `OverflowError` (`10**400`). Now `math.isqrt`.
-  - `number_utils.is_pronic_number`, `number_utils.is_perfect_square`, `number_utils.is_perfect_cube` float roots → false negatives + `OverflowError` (cube loop could spin). Now exact integer arithmetic (`math.isqrt` + integer Newton cube root).
-  - `numbers_utils.is_perfect_cube` float `round(m ** (1/3))` → false negatives + `OverflowError`. Same exact cube root.
-  - `utils.sample` accepted `bool` `n`; applied `_require_int`, fixing the previously red `test_sample_rejects_bool_n`.
-- **Defect hunt (second pass, float-root precision class):** grepped `** 0.5`/`** (1/3)` across source; fixed the five integer-exactness checks. Left float-by-contract / seed-only sites unchanged (`calculator.sqrt`, `calculator.hypotenuse`, `stats.geometric_mean`, `statistics_utils` geometric mean, `prime_utils`/`number_utils`/`numbers_utils` `a_float = n ** (1/b)` seed guesses). All top-level non-`*_utils` modules now reviewed.
-- **Verification:** `python -m unittest tests.test_calculator tests.test_number_utils tests.test_numbers_utils tests.test_utils` — OK; `python -m doctest` on touched modules — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11326 OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `94f0015`).
-- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`calculator.py`, `number_utils.py`, `numbers_utils.py`, `utils.py`, their tests, `CHANGELOG.md`; also re-synced stale `greeting_utils`/`shapes`/`stats`/`strings`/`utils` copies).
+  - `string_utils.cosine_similarity` returned `0.0` for identical single-character strings (e.g. `"a"`, `"a"`). The bigram-based similarity produces empty vectors for `len < 2`; the function fell through to the `n1 == 0 or n2 == 0` check and returned `0.0`. Now handles `len < 2` explicitly: identical strings return `1.0`, different strings return `0.0`. Added `test_single_char_identical` and `test_single_char_different` (fail before, pass after).
+  - `string_utils.jaccard_similarity` returned `1.0` for different single-character strings (e.g. `"a"`, `"b"`). Same root cause: both have empty bigram sets, union is empty, fast path returned `1.0`. Now handles `len < 2` explicitly with the same logic. Added `test_single_char_identical` and `test_single_char_different` (fail before, pass after).
+  - Companion distance functions (`cosine_distance`, `jaccard_distance`) now also return correct values by virtue of the fixed similarity functions.
+- **Defect hunt (boundary/off-by-one class):** targeted the string similarity functions that use bigrams, which have a known boundary at string length 2 (the minimum for one bigram). The two functions above were the only defects found in this pass; other similarity functions (Levenshtein, Jaro, Hamming, Damerau-Levenshtein) handle single-character strings correctly.
+- **Verification:** `python -m unittest tests.test_string_utils` — 313 OK; `python -m doctest string_utils.py` — OK; `python -m py_compile string_utils.py tests/test_string_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11327 OK (skipped=4, 1 pre-existing `test_quopri_utils` pytest-import error); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `...`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`string_utils.py`, `tests/test_string_utils.py`, `CHANGELOG.md`).
 
-## Latest Session (2026-11-17) — defect hunt/fix: `config_schema` validates default values against type and validator
+## Latest Session (2026-11-17) — defect hunt/fix: exact integer roots for perfect-power checks + `utils.sample` rejects `bool` `n`
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
 - **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `2524de0`), then `python -m unittest discover tests/`.

@@ -1135,17 +1135,18 @@ def cosine_similarity(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
 
+    # Handle strings too short for bigrams (length < 2)
+    if text1 == text2:
+        return 1.0
+    if len(text1) < 2 or len(text2) < 2:
+        return 0.0
+
     def bigrams(text: str) -> dict[str, int]:
         counts: dict[str, int] = {}
         for i in range(len(text) - 1):
             bg = text[i : i + 2]
             counts[bg] = counts.get(bg, 0) + 1
         return counts
-
-    if not text1 and not text2:
-        return 1.0
-    if not text1 or not text2:
-        return 0.0
 
     v1 = bigrams(text1)
     v2 = bigrams(text2)
@@ -1196,13 +1197,14 @@ def jaccard_similarity(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
 
+    # Handle strings too short for bigrams (length < 2)
+    if text1 == text2:
+        return 1.0
+    if len(text1) < 2 or len(text2) < 2:
+        return 0.0
+
     def bigrams(text: str) -> set:
         return {text[i : i + 2] for i in range(len(text) - 1)}
-
-    if not text1 and not text2:
-        return 1.0
-    if not text1 or not text2:
-        return 0.0
 
     s1 = bigrams(text1)
     s2 = bigrams(text2)

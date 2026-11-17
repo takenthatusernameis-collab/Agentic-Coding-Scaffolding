@@ -29520,6 +29520,13 @@ class TestCosineSimilarity(unittest.TestCase):
         self.assertAlmostEqual(cosine_similarity("abc", ""), 0.0)
         self.assertAlmostEqual(cosine_similarity("", "xyz"), 0.0)
 
+    def test_single_char_identical(self):
+        self.assertAlmostEqual(cosine_similarity("a", "a"), 1.0)
+        self.assertAlmostEqual(cosine_similarity("z", "z"), 1.0)
+
+    def test_single_char_different(self):
+        self.assertAlmostEqual(cosine_similarity("a", "b"), 0.0)
+
     def test_completely_different(self):
         self.assertAlmostEqual(cosine_similarity("ab", "cd"), 0.0)
 
@@ -29543,6 +29550,13 @@ class TestJaccardSimilarity(unittest.TestCase):
     def test_one_empty(self):
         self.assertAlmostEqual(jaccard_similarity("abc", ""), 0.0)
         self.assertAlmostEqual(jaccard_similarity("", "xyz"), 0.0)
+
+    def test_single_char_identical(self):
+        self.assertAlmostEqual(jaccard_similarity("a", "a"), 1.0)
+        self.assertAlmostEqual(jaccard_similarity("z", "z"), 1.0)
+
+    def test_single_char_different(self):
+        self.assertAlmostEqual(jaccard_similarity("a", "b"), 0.0)
 
     def test_completely_different(self):
         self.assertAlmostEqual(jaccard_similarity("ab", "cd"), 0.0)
@@ -44923,17 +44937,18 @@ def cosine_similarity(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
 
+    # Handle strings too short for bigrams (length < 2)
+    if text1 == text2:
+        return 1.0
+    if len(text1) < 2 or len(text2) < 2:
+        return 0.0
+
     def bigrams(text: str) -> dict[str, int]:
         counts: dict[str, int] = {}
         for i in range(len(text) - 1):
             bg = text[i : i + 2]
             counts[bg] = counts.get(bg, 0) + 1
         return counts
-
-    if not text1 and not text2:
-        return 1.0
-    if not text1 or not text2:
-        return 0.0
 
     v1 = bigrams(text1)
     v2 = bigrams(text2)
@@ -44984,13 +44999,14 @@ def jaccard_similarity(text1: str, text2: str) -> float:
     _require_string(text1, "text1")
     _require_string(text2, "text2")
 
+    # Handle strings too short for bigrams (length < 2)
+    if text1 == text2:
+        return 1.0
+    if len(text1) < 2 or len(text2) < 2:
+        return 0.0
+
     def bigrams(text: str) -> set:
         return {text[i : i + 2] for i in range(len(text) - 1)}
-
-    if not text1 and not text2:
-        return 1.0
-    if not text1 or not text2:
-        return 0.0
 
     s1 = bigrams(text1)
     s2 = bigrams(text2)
@@ -72568,6 +72584,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `string_utils` cosine and Jaccard similarity handle single-character strings
+
+- **Correctness fix — `string_utils.cosine_similarity` returned `0.0` for identical single-character strings.** The bigram-based similarity uses character bigrams (overlapping pairs), so strings of length < 2 produce empty vectors. The function returned `0.0` for `cosine_similarity("a", "a")` (and any single-char identical pair) because the vector norms were zero. It now handles the `len < 2` case explicitly: identical strings return `1.0`, different strings return `0.0`. Added `test_single_char_identical` and `test_single_char_different` (both fail against the old implementation and pass after).
+- **Correctness fix — `string_utils.jaccard_similarity` returned `1.0` for different single-character strings.** Same root cause: both strings have empty bigram sets, so the union is empty and the function returned `1.0` (the "empty union" fast path). It now handles the `len < 2` case explicitly with the same logic as `cosine_similarity`. Added `test_single_char_identical` and `test_single_char_different` (both fail against the old implementation and pass after).
+- The companion distance functions (`cosine_distance`, `jaccard_distance`) now also return correct values for single-character strings by virtue of the fixed similarity functions.
+- **Defect hunt (boundary/off-by-one class):** targeted the string similarity functions that use bigrams, which have a known boundary at string length 2 (the minimum for one bigram). The two functions above were the only defects found in this pass; other similarity functions (Levenshtein, Jaro, Hamming, Damerau-Levenshtein) handle single-character strings correctly.
+- Validation: `python -m unittest tests.test_string_utils` — 313 OK; `python -m doctest string_utils.py` — OK; `python -m py_compile string_utils.py tests/test_string_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11327 OK (skipped=4, 1 pre-existing `test_quopri_utils` pytest-import error).
+- No `.github/workflows/**` changes.
+
 ## Unreleased — exact integer roots for perfect-power checks, `utils.sample` rejects `bool` `n`
 
 - **Correctness fix — `calculator.is_perfect_square` used a float square root.** It computed `root = int(n**0.5)`, which loses precision for large integers (so `is_perfect_square(10**50)` returned `False` even though `10**50 == (10**25)**2`) and raises `OverflowError` for integers too large to convert to float (`is_perfect_square(10**400)`). It now uses `math.isqrt` for an exact integer square root. Added `test_is_perfect_square_large_perfect_square`, `test_is_perfect_square_large_non_square`, and `test_is_perfect_square_does_not_overflow`.
