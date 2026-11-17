@@ -92,7 +92,7 @@ def lru_memoize(
 
     if not callable(func):
         raise TypeError("func must be callable")
-    if not isinstance(maxsize, int):
+    if isinstance(maxsize, bool) or not isinstance(maxsize, int):
         raise TypeError("maxsize must be an int")
     if maxsize < 0:
         raise ValueError("maxsize must be non-negative")

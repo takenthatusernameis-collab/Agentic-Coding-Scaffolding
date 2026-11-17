@@ -1,23 +1,26 @@
 # Handover
 
 ## Done (this session)
-- `board_read`: no messages; executed `.kilo/next_task.md`.
-- Defect hunt/fix (failing-test-first): `csv_utils.write_csv` now writes a header-only CSV when `rows` is empty but `fieldnames` is provided (previously returned without creating the file, ignoring `fieldnames`). With no rows and no `fieldnames` it still does not create a file.
-- Tests: strengthened `test_write_csv_empty_rows` and added `test_write_csv_empty_rows_with_fieldnames_writes_header`.
-- Refreshed scaffold embeds + added Unreleased CHANGELOG entry.
+- `board_read`: no messages; executed `.kilo/next_task.md` (durable handoff).
+- **Defect hunt/fix (failing-test-first): `memoize_utils.lru_memoize` accepted a `bool` `maxsize`.** `isinstance(False, int)` is `True`, so `maxsize=False` silently disabled the cache and `maxsize=True` allowed one entry instead of raising the documented `TypeError`. Added an explicit `bool` rejection before the int check. Added `test_rejects_bool_maxsize` (fails before, passes after). The sibling `cache_utils.memoize` already rejected booleans.
+- **Fixed two regressions committed by prior sessions that left the suite red** (found via `python -m unittest discover tests/`):
+  - `zipfile_utils.create_archive` still had a leftover `if not isinstance(files, list): raise TypeError(...)` guard that contradicted the widened `Iterable` contract and the already-committed `test_create_archive_accepts_any_iterable`. Removed the guard and updated the docstring; `_require_str_list` is now the single validation point.
+  - `dumbdbm_utils.update` leaked `ValueError: not enough values to unpack` for a scalar `str`/`bytes` `other` instead of the `TypeError` that `test_update_requires_bytes` expects. `update` now rejects a `str`/`bytes`/`bytearray` `other` with a clear `TypeError`.
+- Refreshed scaffold embeds (`memoize_utils.py`, `dumbdbm_utils.py`, `zipfile_utils.py`, tests, `CHANGELOG.md`) and added CHANGELOG entries.
 
 ## Verification
-- `python tools/verify_state_delta.py --probe` (start): rc=2
-- `python -m pytest tests/test_csv_utils.py -q`: 7 passed
-- `python -m ruff check csv_utils.py tests/test_csv_utils.py`: clean
-- `python -m mypy csv_utils.py tests/test_csv_utils.py`: clean
-- `python tools/refresh_scaffold.py` && `--check`: in sync
-- `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold`: OK
-- `python -m unittest discover tests/`: 11331 OK (skipped=4)
-- `python tools/verify_state_delta.py --full --record-full-suite`: passed (checkpoint `157ced62f4932d0f4612aed1b3b46d6cb6faf34e`)
+- `python tools/verify_state_delta.py --probe` (start): rc=2 (prior zipfile commit uncheckpointed).
+- `python -m unittest tests.test_memoize_utils`: 17 OK (new test red before fix).
+- `python -m unittest tests.test_zipfile_utils tests.test_dumbdbm_utils`: 31 OK (both were red before the fixes).
+- `python -m doctest memoize_utils.py`: OK; `python -m py_compile` on touched files: OK; line lengths ≤ 100 (manual).
+- `python tools/refresh_scaffold.py` && `--check`: all embedded copies in sync.
+- `python tools/verify_state_delta.py --full --record-full-suite`: passed (checkpoint `a0e6821`).
+- `python -m unittest discover tests/`: 11353 tests, only the pre-existing `test_quopri_utils` `pytest`-import error (4 skipped).
+- **Environment limitation:** `ruff`, `mypy`, `pytest` are not installed here. `unittest discover` reports one pre-existing error from `tests/test_quopri_utils.py` hard-importing `pytest`; unrelated to this session (CI installs dev deps via `make setup-dev` and uses pytest).
 
 ## Optimize-delays survey
-- No avoidable repository-managed delay identified. Used state-delta probe, targeted tests/lint/typecheck on touched scope, then full battery + full suite at milestone. No timestamp-only handover/empty commit; `.github/workflows/**` unchanged.
+- No avoidable repository-managed delay identified. Used the state-delta probe, targeted tests for the touched modules, then the full battery + full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
 
 ## Next
-- Continue correctness defect hunt (failing-test-first) in a fresh defect class (e.g. aliasing/mutation, sentinel-default confusion, dialect/encoding/empty-input handling) across modules only spot-checked previously. Keep changes focused; run targeted then full verification when source changes.
+- Continue the correctness defect hunt (failing-test-first) in a fresh defect class. Candidate unreviewed/under-reviewed modules: `argparse_utils`, `array_utils`, `ast_utils`, `async_utils`, `asyncio_utils`, `base64_utils`, `binascii_utils`, `bz2_utils`, `lzma_utils`, `quopri_utils`, `uu_utils`, `hash_utils`, `hmac_utils`, `secrets_utils`. When a source/test/README/CHANGELOG file changes, run `python tools/refresh_scaffold.py` then `--check` and add a CHANGELOG entry.
+- Fixing `tests/test_quopri_utils.py`'s hard `import pytest` (guard with a skip when pytest is absent) would make `unittest discover` fully green in minimal environments; it is currently the only red signal and is maintainer-adjacent (test-only), so confirm before changing.

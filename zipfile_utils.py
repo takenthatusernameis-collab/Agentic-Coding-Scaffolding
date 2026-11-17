@@ -97,12 +97,11 @@ def create_archive(path: Union[str, Path], files: Iterable[Union[str, Path]]) ->
         The archive path *path*.
 
     Raises:
-        TypeError: If *path* is not a str or Path or *files* is not a list of strs.
+        TypeError: If *path* is not a str or Path or *files* is not an
+            iterable of strs.
         ValueError: If *path* is empty or *files* is empty.
     """
     path_str = _as_path_str(path, "path")
-    if not isinstance(files, list):
-        raise TypeError("files must be a list of strs")
     files_list = _require_str_list(files, "files")
     if not files_list:
         raise ValueError("files must not be empty")

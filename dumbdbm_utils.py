@@ -143,6 +143,8 @@ def update(db, other: Any = None, **kwargs) -> None:
     if db is None:
         raise TypeError("db must not be None")
     if other is not None:
+        if isinstance(other, (str, bytes, bytearray)):
+            raise TypeError("other must be a mapping or an iterable of key/value pairs")
         if hasattr(other, "items"):
             for k, v in other.items():
                 db[_require_bytes(k)] = _require_bytes(v)

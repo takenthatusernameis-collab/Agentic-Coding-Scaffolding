@@ -159,6 +159,16 @@ class TestLruMemoize(unittest.TestCase):
         compute(5)
         self.assertEqual(len(calls), 2)
 
+    def test_rejects_bool_maxsize(self):
+        # ``bool`` is an ``int`` subclass, so ``isinstance(False, int)`` is
+        # True. Without an explicit check a boolean ``maxsize`` is silently
+        # accepted (``False`` disables the cache, ``True`` allows one entry),
+        # contradicting the documented ``TypeError`` for a non-int maxsize.
+        with self.assertRaises(TypeError):
+            lru_memoize(lambda x: x, maxsize=True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lru_memoize(lambda x: x, maxsize=False)  # type: ignore[arg-type]
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             lru_memoize("not callable")  # type: ignore[arg-type]

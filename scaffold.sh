@@ -6973,40 +6973,34 @@ def _as_path_str(value: object, name: str = "path") -> str:
 
 
 def _require_str_list(value: object, name: str) -> list[str]:
-    """Validate that *value* is a list of str or Path."""
-    if not isinstance(value, list):
-        raise TypeError(f"{name} must be a list of strs")
+    """Validate that *value* is an iterable of str or Path.
+
+    Any non-string iterable is accepted (``list``, ``tuple``, a generator, ...),
+    matching the ``Iterable`` contract of :func:`create_archive`. A bare string
+    is refused because it is a single path, not a sequence of paths.
+
+    Raises:
+        TypeError: if *value* is a single string, is not iterable, or holds an
+            element that is neither str nor Path.
+        ValueError: if *value* holds an empty path.
+    """
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be an iterable of strs, not a single string")
+    if not hasattr(value, "__iter__"):
+        raise TypeError(f"{name} must be an iterable of strs, got {type(value).__name__}")
+    result: list[str] = []
     for f in value:
         if not isinstance(f, (str, Path)):
-            raise TypeError(f"{name} must be a list of strs")
-    result = []
-    for f in value:
+            raise TypeError(f"{name} must be an iterable of strs")
         if isinstance(f, Path):
-            try:
-                if f == Path("") or str(f) == "":
-                    raise ValueError(f"{name} must not contain empty paths")
-            except ValueError:
-                raise
-            except Exception:
-                pass
-        if isinstance(f, str) and f == "":
-            raise ValueError(f"{name} must not contain empty paths")
-        s = str(f)
-        if s == "":
-            raise ValueError(f"{name} must not contain empty paths")
-        # Treat Path('') which becomes '.' as empty for this API
-        if isinstance(f, Path) and f == Path(""):
-            raise ValueError(f"{name} must not contain empty paths")
-        if s == "." and isinstance(f, Path):
-            # Could be Path(''); check
-            try:
-                if f == Path(""):
-                    raise ValueError(f"{name} must not contain empty paths")
-            except ValueError:
-                raise
-            except Exception:
-                pass
-        result.append(s)
+            # Path("") (and Path(".")) stringify to "."; reject them as empty.
+            if f == Path(""):
+                raise ValueError(f"{name} must not contain empty paths")
+            result.append(str(f))
+        else:
+            if f == "":
+                raise ValueError(f"{name} must not contain empty paths")
+            result.append(f)
     return result
 
 
@@ -7021,12 +7015,11 @@ def create_archive(path: Union[str, Path], files: Iterable[Union[str, Path]]) ->
         The archive path *path*.
 
     Raises:
-        TypeError: If *path* is not a str or Path or *files* is not a list of strs.
+        TypeError: If *path* is not a str or Path or *files* is not an
+            iterable of strs.
         ValueError: If *path* is empty or *files* is empty.
     """
     path_str = _as_path_str(path, "path")
-    if not isinstance(files, list):
-        raise TypeError("files must be a list of strs")
     files_list = _require_str_list(files, "files")
     if not files_list:
         raise ValueError("files must not be empty")
@@ -8764,6 +8757,17 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
         dest.mkdir()
         extract_all(p_archive, dest)
         self.assertTrue((dest / "a.txt").exists() or any(dest.rglob("a.txt")))
+
+    def test_create_archive_accepts_any_iterable(self):
+        # The signature documents ``files`` as an Iterable, so any non-string
+        # iterable (tuple, generator, ...) must be accepted, not just a list.
+        p_archive = pathlib.Path(self.archive)
+        create_archive(p_archive, (self.src,))
+        self.assertTrue(is_zipfile(p_archive))
+        self.assertEqual(len(list_names(p_archive)), 1)
+        create_archive(p_archive, (path for path in [self.src]))
+        self.assertTrue(is_zipfile(p_archive))
+        self.assertEqual(len(list_names(p_archive)), 1)
 
     def test_create_archive_type_errors(self):
         with self.assertRaises(TypeError):
@@ -72673,6 +72677,18 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `zipfile_utils.create_archive` accepts any iterable; `dumbdbm_utils.update` rejects a scalar `other`
+
+- **Correctness fix — `zipfile_utils.create_archive` still required a `list`.** The signature and `_require_str_list` were widened to accept any non-string iterable of paths (`tuple`, generator, ...), but `create_archive` kept a leftover `if not isinstance(files, list): raise TypeError("files must be a list of strs")` guard. The documented `Iterable` contract was therefore violated and the added `test_create_archive_accepts_any_iterable` failed. The redundant guard was removed (and the docstring updated) so `_require_str_list` is the single validation point.
+- **Correctness fix — `dumbdbm_utils.update` leaked a `ValueError` for a scalar `other`.** When `other` was a `str`/`bytes` (iterable but not of key/value pairs) the `for k, v in other` loop failed with a confusing `ValueError: not enough values to unpack`, instead of the `TypeError` the `test_update_requires_bytes` case expects. `update` now rejects a `str`/`bytes`/`bytearray` `other` with a clear `TypeError` before iterating.
+- Validation: `python -m unittest tests.test_zipfile_utils tests.test_dumbdbm_utils` — 31 OK; `python -m unittest discover tests/` — green apart from the pre-existing `test_quopri_utils` `pytest`-import error; `python tools/refresh_scaffold.py` + `--check` — in sync. No `.github/workflows/**` changes.
+
+## Unreleased — `memoize_utils.lru_memoize` rejects a `bool` `maxsize`
+
+- **Correctness fix — `lru_memoize` accepted a boolean `maxsize`.** Because `bool` is a subclass of `int`, the `isinstance(maxsize, int)` guard admitted `True`/`False`: `lru_memoize(func, maxsize=False)` silently disabled the cache and `maxsize=True` allowed a single entry, instead of raising `TypeError`. The parameter is documented as "Maximum number of cached results" and the docstring promises `TypeError` when `maxsize` is not an int, and the sibling `cache_utils.memoize` already rejects booleans. `lru_memoize` now rejects `bool` explicitly before the integer check. Added `test_rejects_bool_maxsize` (fails against the old implementation, passes after).
+- **Defect hunt (accepts-invalid-input class):** reviewed `memoize_utils`, `cache_utils`, `deque_utils`, `ring_buffer_utils`, `priority_queue_utils`, `list_utils`, `duration_utils`, `interval_utils`, `semver_utils`, `roman_utils`, `stats`, `tree_utils`, `graphlib_utils`, `calculator`, `argparse_utils`, `cli_utils`; the `memoize_utils` issue above was the only high-confidence defect found.
+- Validation: `python -m unittest tests.test_memoize_utils` — 17 OK; `python -m doctest memoize_utils.py` — OK; `python -m py_compile` — OK; line lengths ≤ 100 (manual; `ruff`/`mypy` not installed in this environment); `python tools/refresh_scaffold.py` + `--check` — in sync; full suite at milestone. No `.github/workflows/**` changes.
+
 ## Unreleased — `data_utils.deep_copy` no longer silently falls back to a shallow copy
 
 - **Correctness fix — `data_utils.deep_copy` swallowed all exceptions.** The helper wrapped `copy.deepcopy` in a broad `except Exception` and fell back to `copy.copy`, silently returning a shallow copy when deep copy failed and violating its documented contract. The broad catch was removed so `copy.deepcopy` errors propagate. Added `test_deep_copy_propagates_deepcopy_errors` (fails before the fix, passes after).
@@ -95162,7 +95178,7 @@ def lru_memoize(
 
     if not callable(func):
         raise TypeError("func must be callable")
-    if not isinstance(maxsize, int):
+    if isinstance(maxsize, bool) or not isinstance(maxsize, int):
         raise TypeError("maxsize must be an int")
     if maxsize < 0:
         raise ValueError("maxsize must be non-negative")
@@ -95352,6 +95368,16 @@ class TestLruMemoize(unittest.TestCase):
         compute(5)
         compute(5)
         self.assertEqual(len(calls), 2)
+
+    def test_rejects_bool_maxsize(self):
+        # ``bool`` is an ``int`` subclass, so ``isinstance(False, int)`` is
+        # True. Without an explicit check a boolean ``maxsize`` is silently
+        # accepted (``False`` disables the cache, ``True`` allows one entry),
+        # contradicting the documented ``TypeError`` for a non-int maxsize.
+        with self.assertRaises(TypeError):
+            lru_memoize(lambda x: x, maxsize=True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            lru_memoize(lambda x: x, maxsize=False)  # type: ignore[arg-type]
 
     def test_type_errors(self):
         with self.assertRaises(TypeError):
@@ -166653,6 +166679,8 @@ def update(db, other: Any = None, **kwargs) -> None:
     if db is None:
         raise TypeError("db must not be None")
     if other is not None:
+        if isinstance(other, (str, bytes, bytearray)):
+            raise TypeError("other must be a mapping or an iterable of key/value pairs")
         if hasattr(other, "items"):
             for k, v in other.items():
                 db[_require_bytes(k)] = _require_bytes(v)

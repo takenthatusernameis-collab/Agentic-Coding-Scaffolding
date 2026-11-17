@@ -1,5 +1,19 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `memoize_utils.lru_memoize` bool `maxsize` + two prior-session regressions
+
+- `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (the prior `zipfile_utils` iterable commit `a0e6821` was uncheckpointed). Ran targeted tests, then `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `a0e6821`), then full `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used state-delta probe + targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `memoize_utils.lru_memoize` accepted a `bool` `maxsize`. Because `bool` is an `int` subclass, `isinstance(maxsize, int)` admitted `True`/`False`: `maxsize=False` silently disabled the cache and `maxsize=True` allowed a single entry, contradicting the documented `TypeError` (and the sibling `cache_utils.memoize` already rejected booleans). `lru_memoize` now rejects `bool` before the int check. Added `test_rejects_bool_maxsize` (fails before, passes after).
+- **Regressions fixed (suite was red on arrival):** `python -m unittest discover tests/` surfaced two committed-but-broken changes from prior sessions:
+  - `zipfile_utils.create_archive` still had a leftover `if not isinstance(files, list): raise TypeError("files must be a list of strs")` guard that contradicted the widened `Iterable` contract and the already-committed `test_create_archive_accepts_any_iterable`. Removed the guard (docstring updated); `_require_str_list` is the single validation point.
+  - `dumbdbm_utils.update` raised `ValueError: not enough values to unpack` for a scalar `str`/`bytes` `other` instead of the `TypeError` that `test_update_requires_bytes` expects. It now rejects a `str`/`bytes`/`bytearray` `other` with a clear `TypeError`.
+- **Defect class:** accepts-invalid-input (`bool` where an `int` is required); the two regressions were incomplete prior fixes (leftover guard / wrong exception type from tuple unpacking).
+- **Verification:** `python -m unittest tests.test_memoize_utils` — 17 OK; `python -m unittest tests.test_zipfile_utils tests.test_dumbdbm_utils` — 31 OK; `python -m doctest memoize_utils.py` — OK; `python -m py_compile` on touched files — OK; line lengths ≤ 100 (manual; `ruff`/`mypy` not installed); `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11353 tests, only the pre-existing `test_quopri_utils` `pytest`-import error (4 skipped); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `a0e6821`).
+- **Environment limitation:** `ruff`, `mypy`, `pytest` are not installed here; `unittest discover` shows one pre-existing error from `tests/test_quopri_utils.py` hard-importing `pytest` (unrelated; CI installs dev deps).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entries (memoize + zipfile/dumbdbm); refreshed embedded copies (`memoize_utils.py`, `dumbdbm_utils.py`, `zipfile_utils.py`, tests, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `data_utils.deep_copy` broad exception swallowing
 
 - `board_read`: empty (bootstrap session); established project foundation and continued the correctness defect hunt.
