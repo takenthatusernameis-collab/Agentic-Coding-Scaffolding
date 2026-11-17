@@ -1,5 +1,17 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `subprocess_utils` rejects `bool` timeout
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `e2286c7`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):**
+  - `subprocess_utils.run_command`, `check_output`, and `check_call` accepted `bool` for `timeout`. The `timeout` parameter was annotated as `float | None` but had no runtime validation, so `timeout=True` (which equals `1.0`) was silently accepted instead of raising `TypeError`, contradicting the bool-rejection convention used elsewhere in the project. A shared `_require_timeout` helper now rejects `bool` before the numeric check. Added `test_run_command_rejects_bool_timeout`, `test_check_output_rejects_bool_timeout`, and `test_check_call_rejects_bool_timeout`.
+- **Defect hunt (batch `subprocess`–`tempfile`):** reviewed `subprocess_utils`, `symtable_utils`, `sys_utils`, `sysconfig_utils`, `syslog_utils`, `tabnanny_utils`, `tarfile_utils`, `telnetlib_utils`, `temp_utils`, `tempfile_utils`; the `subprocess_utils` issue above was the only defect found.
+- **Verification:** `python -m unittest tests.test_subprocess_utils` — 13 OK; `python -m doctest subprocess_utils.py` — OK; `python -m py_compile subprocess_utils.py` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11287 tests, only the pre-existing `test_quopri_utils.py` pytest-import error; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `e2286c7`).
+- **Environment limitation:** `ruff`/`mypy`/`pytest` are not installed here. `unittest discover` shows one pre-existing error from `tests/test_quopri_utils.py` hard-importing `pytest`; unrelated to this session. Line lengths in touched files were checked manually (≤ 100).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`subprocess_utils.py`, `tests/test_subprocess_utils.py`, `CHANGELOG.md`).
+
 ## Latest Session (2026-11-16) — defect hunt/fix: `socketserver_utils` reuse-address + `sre_compile_utils` bool flags
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

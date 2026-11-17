@@ -56590,6 +56590,15 @@ __all__: list[str] = [
 ]
 
 
+def _require_timeout(value: object) -> float | None:
+    """Return *value* when it is a number or None, otherwise raise ``TypeError``."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("timeout must be a number or None")
+    return float(value)
+
+
 def run_command(
     cmd: list[str] | str,
     *,
@@ -56615,16 +56624,17 @@ def run_command(
     Raises:
         subprocess.CalledProcessError: If check=True and return code is non-zero.
         subprocess.TimeoutExpired: If the command times out.
-        TypeError: If cmd is not a string or list.
+        TypeError: If cmd is not a string or list, or timeout is not a number or None.
     """
     if not isinstance(cmd, (str, list)):
         raise TypeError("cmd must be a string or list of strings")
+    validated_timeout = _require_timeout(timeout)
     return subprocess.run(
         cmd,
         capture_output=capture_output,
         text=text,
         check=check,
-        timeout=timeout,
+        timeout=validated_timeout,
         **kwargs,
     )
 
@@ -56650,11 +56660,12 @@ def check_output(
     Raises:
         subprocess.CalledProcessError: If return code is non-zero.
         subprocess.TimeoutExpired: If the command times out.
-        TypeError: If cmd is not a string or list.
+        TypeError: If cmd is not a string or list, or timeout is not a number or None.
     """
     if not isinstance(cmd, (str, list)):
         raise TypeError("cmd must be a string or list of strings")
-    return subprocess.check_output(cmd, text=text, timeout=timeout, **kwargs)
+    validated_timeout = _require_timeout(timeout)
+    return subprocess.check_output(cmd, text=text, timeout=validated_timeout, **kwargs)
 
 
 def check_call(
@@ -56676,11 +56687,12 @@ def check_call(
     Raises:
         subprocess.CalledProcessError: If return code is non-zero.
         subprocess.TimeoutExpired: If the command times out.
-        TypeError: If cmd is not a string or list.
+        TypeError: If cmd is not a string or list, or timeout is not a number or None.
     """
     if not isinstance(cmd, (str, list)):
         raise TypeError("cmd must be a string or list of strings")
-    return subprocess.check_call(cmd, timeout=timeout, **kwargs)
+    validated_timeout = _require_timeout(timeout)
+    return subprocess.check_call(cmd, timeout=validated_timeout, **kwargs)
 SUBPROCESSUTILS
 
 # --- greeting_utils.py ---
@@ -69397,6 +69409,10 @@ class TestRunCommand(unittest.TestCase):
         with self.assertRaises(TypeError):
             run_command(123)  # type: ignore[arg-type]
 
+    def test_run_command_rejects_bool_timeout(self) -> None:
+        with self.assertRaises(TypeError):
+            run_command(["true"], timeout=True)  # type: ignore[arg-type]
+
 
 class TestCheckOutput(unittest.TestCase):
     def test_check_output_echo(self) -> None:
@@ -69412,6 +69428,10 @@ class TestCheckOutput(unittest.TestCase):
         with self.assertRaises(TypeError):
             check_output(123)  # type: ignore[arg-type]
 
+    def test_check_output_rejects_bool_timeout(self) -> None:
+        with self.assertRaises(TypeError):
+            check_output(["true"], timeout=True)  # type: ignore[arg-type]
+
 
 class TestCheckCall(unittest.TestCase):
     def test_check_call_success(self) -> None:
@@ -69425,6 +69445,10 @@ class TestCheckCall(unittest.TestCase):
     def test_check_call_invalid_type(self) -> None:
         with self.assertRaises(TypeError):
             check_call(123)  # type: ignore[arg-type]
+
+    def test_check_call_rejects_bool_timeout(self) -> None:
+        with self.assertRaises(TypeError):
+            check_call(["true"], timeout=True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -72302,6 +72326,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `subprocess_utils` rejects `bool` timeout
+
+- **Correctness fix — `subprocess_utils.run_command`, `check_output`, and `check_call` accepted `bool` for `timeout`.** The `timeout` parameter was annotated as `float | None` but had no runtime validation, so `timeout=True` (which equals `1.0`) was silently accepted instead of raising `TypeError`, contradicting the bool-rejection convention used elsewhere in the project. A shared `_require_timeout` helper now rejects `bool` before the numeric check. Added `test_run_command_rejects_bool_timeout`, `test_check_output_rejects_bool_timeout`, and `test_check_call_rejects_bool_timeout` (all fail against the old implementation and pass after).
+- **Defect hunt (batch `subprocess`–`tempfile`):** reviewed `subprocess_utils`, `symtable_utils`, `sys_utils`, `sysconfig_utils`, `syslog_utils`, `tabnanny_utils`, `tarfile_utils`, `telnetlib_utils`, `temp_utils`, `tempfile_utils`. The `subprocess_utils` issue above was the only defect found in this pass.
+- Validation: `python -m unittest tests.test_subprocess_utils` — 13 OK; `python -m doctest subprocess_utils.py` — OK; `python -m py_compile subprocess_utils.py` — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. (`ruff`/`mypy`/`pytest` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `socketserver_utils` applies `allow_reuse_address` before bind, `sre_compile_utils` rejects `bool` flags
 
 - **Correctness fix — `socketserver_utils.create_tcp_server`/`create_udp_server` ignored `allow_reuse_address`.** Both helpers constructed `socketserver.TCPServer`/`UDPServer` (which binds and activates the socket inside `__init__`) and only then assigned `server.allow_reuse_address`. `allow_reuse_address` is a class attribute consulted by `server_bind`, so setting it on the instance *after* construction had no effect: even the default `allow_reuse_address=True` left `SO_REUSEADDR` unset, contradicting the documented "Whether to set SO_REUSEADDR" contract and making rapid rebinds fail with `EADDRINUSE`. The servers are now constructed with `bind_and_activate=False`, the flag is assigned, and `server_bind()`/`server_activate()` are called explicitly (with cleanup on failure). Added `test_allow_reuse_address_applied_before_bind` and `test_udp_allow_reuse_address_applied_before_bind` (both fail against the old implementation and pass after).

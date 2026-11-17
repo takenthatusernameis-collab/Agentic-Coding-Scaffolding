@@ -16,6 +16,15 @@ __all__: list[str] = [
 ]
 
 
+def _require_timeout(value: object) -> float | None:
+    """Return *value* when it is a number or None, otherwise raise ``TypeError``."""
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError("timeout must be a number or None")
+    return float(value)
+
+
 def run_command(
     cmd: list[str] | str,
     *,
@@ -41,16 +50,17 @@ def run_command(
     Raises:
         subprocess.CalledProcessError: If check=True and return code is non-zero.
         subprocess.TimeoutExpired: If the command times out.
-        TypeError: If cmd is not a string or list.
+        TypeError: If cmd is not a string or list, or timeout is not a number or None.
     """
     if not isinstance(cmd, (str, list)):
         raise TypeError("cmd must be a string or list of strings")
+    validated_timeout = _require_timeout(timeout)
     return subprocess.run(
         cmd,
         capture_output=capture_output,
         text=text,
         check=check,
-        timeout=timeout,
+        timeout=validated_timeout,
         **kwargs,
     )
 
@@ -76,11 +86,12 @@ def check_output(
     Raises:
         subprocess.CalledProcessError: If return code is non-zero.
         subprocess.TimeoutExpired: If the command times out.
-        TypeError: If cmd is not a string or list.
+        TypeError: If cmd is not a string or list, or timeout is not a number or None.
     """
     if not isinstance(cmd, (str, list)):
         raise TypeError("cmd must be a string or list of strings")
-    return subprocess.check_output(cmd, text=text, timeout=timeout, **kwargs)
+    validated_timeout = _require_timeout(timeout)
+    return subprocess.check_output(cmd, text=text, timeout=validated_timeout, **kwargs)
 
 
 def check_call(
@@ -102,8 +113,9 @@ def check_call(
     Raises:
         subprocess.CalledProcessError: If return code is non-zero.
         subprocess.TimeoutExpired: If the command times out.
-        TypeError: If cmd is not a string or list.
+        TypeError: If cmd is not a string or list, or timeout is not a number or None.
     """
     if not isinstance(cmd, (str, list)):
         raise TypeError("cmd must be a string or list of strings")
-    return subprocess.check_call(cmd, timeout=timeout, **kwargs)
+    validated_timeout = _require_timeout(timeout)
+    return subprocess.check_call(cmd, timeout=validated_timeout, **kwargs)
