@@ -1,6 +1,9 @@
 # Handover
 
 ## Done (this session)
+- Fixed silently ignored parameter: `asyncio_utils.gather` now accepts and propagates `return_exceptions`. Refreshed scaffold.
+
+## Done (this session)
 - Defect hunt/fix (failing-test-first): `filecmp_utils.cmp_directories` silently ignored its documented `shallow` flag (`filecmp.dircmp` always compares shallowly, and the flag was not propagated to subdirectories). Added a `filecmp.dircmp` subclass that forwards `shallow` to `filecmp.cmpfiles` and propagates it to subdirectories. Added deep/shallow/nested tests. Refreshed scaffold.
 
 ## Verification

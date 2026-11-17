@@ -3188,16 +3188,18 @@ def create_task(coro: Coroutine[Any, Any, T]) -> _asyncio.Task:
     return _asyncio.create_task(coro)
 
 
-async def gather(*coros: Coroutine[Any, Any, Any]) -> list[Any]:
+async def gather(*coros: Coroutine[Any, Any, Any], return_exceptions: bool = False) -> list[Any]:
     """Run *coros* concurrently and return their results in order.
 
     Args:
         *coros: Coroutines to run concurrently.
+        return_exceptions: If True, exceptions are returned as results
+            instead of being raised.
 
     Returns:
         List of results in the same order as *coros*.
     """
-    return await _asyncio.gather(*coros)
+    return await _asyncio.gather(*coros, return_exceptions=return_exceptions)
 
 
 async def sleep(seconds: float) -> None:
