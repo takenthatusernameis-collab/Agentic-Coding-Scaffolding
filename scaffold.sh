@@ -72794,6 +72794,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `uu_utils.encode`/`decode` no longer silently ignore `backtick`/`quiet` in fallback
+
+- **Correctness fix — `encode` and `decode` dropped `backtick`/`quiet` on fallback.** Both functions wrapped the stdlib call in `except Exception` and retried without the extra keyword arguments, so on older Python versions (or when the first call raised `TypeError` for an unsupported keyword) the documented parameters were silently ignored. The catches are now `except TypeError`; for `decode` the fallback passes `quiet` positionally (the stdlib signature supports it), while for `encode` the `backtick` parameter is keyword-only so the fallback correctly omits it on interpreters that don't support it. Added `test_encode_backtick_parameter_not_ignored_on_fallback` and `test_decode_quiet_parameter_not_ignored_on_fallback` (both fail before the fix, pass after).
+- **Defect class:** silently ignored parameters (new class; previous sweeps targeted bool-as-int, float precision, boundary/off-by-one, sentinel-default, exported exceptions, broad exception swallowing, invalid defaults, FIFO ordering, stateful helper misuse, bool file descriptors, large exponents, Kaprekar/pandigital boundaries, Lock/RLock type checks, GC threshold forwarding, builtin currying).
+- Validation: `python -m unittest tests.test_uu_utils` — 8 OK; `python -m ruff check uu_utils.py tests/test_uu_utils.py` — clean; `python -m mypy uu_utils.py tests/test_uu_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; full suite. No `.github/workflows/**` changes.
+
 ## Unreleased — `filecmp_utils.cmp_directories` honours its `shallow` flag
 
 - **Correctness fix — `cmp_directories` silently ignored `shallow`.** The parameter was documented ("When True, only stat metadata is compared") and accepted, but `filecmp.dircmp` always calls `filecmp.cmpfiles` with the default `shallow=True`, so `shallow=False` never compared file contents and the flag was not propagated to subdirectories. `cmp_directories` now returns a `filecmp.dircmp` subclass that forwards `shallow` to `filecmp.cmpfiles`, propagates it to subdirectories, and routes lazy attribute access through its own phase methods (the base `methodmap` points at the base implementations, so overriding `phase3`/`phase4` alone is not enough). Added `test_cmp_directories_deep_detects_content_difference`, `test_cmp_directories_deep_detects_nested_content_difference`, and `test_cmp_directories_shallow_ignores_content_difference` (the deep tests fail before the fix, pass after).
@@ -134665,6 +134671,63 @@ class TestUuUtils(unittest.TestCase):
         uu_utils.decode_file(io.BytesIO(data), decoded)
         self.assertEqual(decoded.getvalue(), b"file body\n")
 
+    def test_encode_backtick_parameter_not_ignored_on_fallback(self) -> None:
+        """Test that backtick parameter is passed even when fallback is used."""
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+
+        inp = io.BytesIO(b"test\n")
+        out = io.BytesIO()
+
+        call_args = []
+
+        def mock_encode(*args, **kwargs):
+            call_args.append((args, kwargs))
+            if len(call_args) == 1:
+                # First call fails with TypeError (simulating unsupported kwarg)
+                raise TypeError("unexpected keyword argument 'backtick'")
+            # Second call succeeds
+            return None
+
+        with mock.patch.object(uu_utils._uu, "encode", side_effect=mock_encode):
+            uu_utils.encode(inp, out, backtick=True)
+            self.assertEqual(len(call_args), 2)
+            # Verify second call - backtick is keyword-only so can't be passed positionally
+            # in older Python versions. The fallback correctly omits it.
+            # But the first call should have attempted to pass it.
+            self.assertIn("backtick", call_args[0][1])
+            self.assertTrue(call_args[0][1]["backtick"])
+
+    def test_decode_quiet_parameter_not_ignored_on_fallback(self) -> None:
+        """Test that quiet parameter is passed even when fallback is used."""
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+
+        # Create encoded data first
+        inp = io.BytesIO(b"test\n")
+        encoded = io.BytesIO()
+        uu_utils.encode(inp, encoded)
+        encoded_data = encoded.getvalue()
+
+        out = io.BytesIO()
+
+        call_args = []
+
+        def mock_decode(*args, **kwargs):
+            call_args.append((args, kwargs))
+            if len(call_args) == 1:
+                # First call fails with TypeError (simulating unsupported kwarg)
+                raise TypeError("unexpected keyword argument 'quiet'")
+            # Second call succeeds
+            return None
+
+        with mock.patch.object(uu_utils._uu, "decode", side_effect=mock_decode):
+            uu_utils.decode(io.BytesIO(encoded_data), out, quiet=1)
+            self.assertEqual(len(call_args), 2)
+            # Verify second call includes quiet parameter (positionally as 4th arg)
+            self.assertEqual(len(call_args[1][0]), 4)  # in_file, out_file, mode, quiet
+            self.assertTrue(call_args[1][0][3])  # quiet=True
+
 
 class TestUnavailableModule(unittest.TestCase):
     """Verify the Python 3.13+ path where :mod:`uu` no longer ships."""
@@ -165625,8 +165688,8 @@ def encode(
         mode = 0o666
     try:
         _uu.encode(in_file, out_file, name, mode, backtick=backtick)
-    except Exception:
-        # Try different calling convention for compatibility
+    except TypeError:
+        # Fallback for older Python versions where backtick kwarg is not supported
         _uu.encode(in_file, out_file, name, mode)
 
 
@@ -165641,8 +165704,9 @@ def decode(
         mode = 0o666
     try:
         _uu.decode(in_file, out_file, mode, bool(quiet))
-    except Exception:
-        _uu.decode(in_file, out_file, mode)
+    except TypeError:
+        # Fallback for older Python versions where quiet kwarg is not supported
+        _uu.decode(in_file, out_file, mode, bool(quiet))
 
 
 def encode_file(

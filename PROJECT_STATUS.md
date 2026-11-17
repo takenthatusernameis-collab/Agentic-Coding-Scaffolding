@@ -1,5 +1,15 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `uu_utils.encode`/`decode` silently ignored `backtick`/`quiet` in fallback
+
+- `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=0 at start (clean tree, checkpoint matched HEAD). Ran targeted tests, then `python -m unittest discover tests/` — 11372 OK (skipped=4).
+- **Optimize-delays survey:** no avoidable repository-managed delay; used state-delta probe + targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `uu_utils.encode` and `uu_utils.decode` accepted `backtick` and `quiet` parameters but their `except Exception` fallback blocks silently dropped these parameters when the first call raised `TypeError` (e.g., on older Python versions where the keyword arguments aren't supported). Narrowed the catches to `except TypeError`; for `decode`, the fallback now passes `quiet` positionally (where supported by the stdlib signature); for `encode`, `backtick` is keyword-only so the fallback correctly omits it on older interpreters. Added `test_encode_backtick_parameter_not_ignored_on_fallback` and `test_decode_quiet_parameter_not_ignored_on_fallback` (both fail before, pass after).
+- **Defect class:** silently ignored parameters (fresh class; previous sweeps targeted bool-as-int, float precision, boundary/off-by-one, sentinel-default, exported exceptions, broad exception swallowing, invalid defaults, FIFO ordering, stateful helper misuse, bool file descriptors, large exponents, Kaprekar/pandigital boundaries, Lock/RLock type checks, GC threshold forwarding, builtin currying).
+- **Verification:** `python -m unittest tests.test_uu_utils` — 8 OK; `python -m ruff check uu_utils.py tests/test_uu_utils.py` — clean; `python -m mypy uu_utils.py tests/test_uu_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11372 OK (skipped=4).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`uu_utils.py`, `tests/test_uu_utils.py`, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `filecmp_utils.cmp_directories` silently ignored `shallow`
 
 - `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.

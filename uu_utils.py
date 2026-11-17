@@ -52,8 +52,8 @@ def encode(
         mode = 0o666
     try:
         _uu.encode(in_file, out_file, name, mode, backtick=backtick)
-    except Exception:
-        # Try different calling convention for compatibility
+    except TypeError:
+        # Fallback for older Python versions where backtick kwarg is not supported
         _uu.encode(in_file, out_file, name, mode)
 
 
@@ -68,8 +68,9 @@ def decode(
         mode = 0o666
     try:
         _uu.decode(in_file, out_file, mode, bool(quiet))
-    except Exception:
-        _uu.decode(in_file, out_file, mode)
+    except TypeError:
+        # Fallback for older Python versions where quiet kwarg is not supported
+        _uu.decode(in_file, out_file, mode, bool(quiet))
 
 
 def encode_file(

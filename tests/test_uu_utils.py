@@ -43,6 +43,63 @@ class TestUuUtils(unittest.TestCase):
         uu_utils.decode_file(io.BytesIO(data), decoded)
         self.assertEqual(decoded.getvalue(), b"file body\n")
 
+    def test_encode_backtick_parameter_not_ignored_on_fallback(self) -> None:
+        """Test that backtick parameter is passed even when fallback is used."""
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+
+        inp = io.BytesIO(b"test\n")
+        out = io.BytesIO()
+
+        call_args = []
+
+        def mock_encode(*args, **kwargs):
+            call_args.append((args, kwargs))
+            if len(call_args) == 1:
+                # First call fails with TypeError (simulating unsupported kwarg)
+                raise TypeError("unexpected keyword argument 'backtick'")
+            # Second call succeeds
+            return None
+
+        with mock.patch.object(uu_utils._uu, "encode", side_effect=mock_encode):
+            uu_utils.encode(inp, out, backtick=True)
+            self.assertEqual(len(call_args), 2)
+            # Verify second call - backtick is keyword-only so can't be passed positionally
+            # in older Python versions. The fallback correctly omits it.
+            # But the first call should have attempted to pass it.
+            self.assertIn("backtick", call_args[0][1])
+            self.assertTrue(call_args[0][1]["backtick"])
+
+    def test_decode_quiet_parameter_not_ignored_on_fallback(self) -> None:
+        """Test that quiet parameter is passed even when fallback is used."""
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+
+        # Create encoded data first
+        inp = io.BytesIO(b"test\n")
+        encoded = io.BytesIO()
+        uu_utils.encode(inp, encoded)
+        encoded_data = encoded.getvalue()
+
+        out = io.BytesIO()
+
+        call_args = []
+
+        def mock_decode(*args, **kwargs):
+            call_args.append((args, kwargs))
+            if len(call_args) == 1:
+                # First call fails with TypeError (simulating unsupported kwarg)
+                raise TypeError("unexpected keyword argument 'quiet'")
+            # Second call succeeds
+            return None
+
+        with mock.patch.object(uu_utils._uu, "decode", side_effect=mock_decode):
+            uu_utils.decode(io.BytesIO(encoded_data), out, quiet=1)
+            self.assertEqual(len(call_args), 2)
+            # Verify second call includes quiet parameter (positionally as 4th arg)
+            self.assertEqual(len(call_args[1][0]), 4)  # in_file, out_file, mode, quiet
+            self.assertTrue(call_args[1][0][3])  # quiet=True
+
 
 class TestUnavailableModule(unittest.TestCase):
     """Verify the Python 3.13+ path where :mod:`uu` no longer ships."""
