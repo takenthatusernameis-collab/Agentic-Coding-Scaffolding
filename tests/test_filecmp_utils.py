@@ -41,6 +41,51 @@ class TestFilecmpUtils(unittest.TestCase):
         self.assertEqual(result.right_only, [])
         self.assertEqual(result.diff_files, [])
 
+    def _make_pair(self, content_a, content_b):
+        d1 = os.path.join(self.d, "s1")
+        d2 = os.path.join(self.d, "s2")
+        os.makedirs(d1, exist_ok=True)
+        os.makedirs(d2, exist_ok=True)
+        a = os.path.join(d1, "x.txt")
+        b = os.path.join(d2, "x.txt")
+        with open(a, "w") as f:
+            f.write(content_a)
+        with open(b, "w") as f:
+            f.write(content_b)
+        os.utime(a, (1000000, 1000000))
+        os.utime(b, (1000000, 1000000))
+        return d1, d2
+
+    def test_cmp_directories_shallow_ignores_content_difference(self):
+        d1, d2 = self._make_pair("aaaa", "bbbb")
+        result = cmp_directories(d1, d2, shallow=True)
+        self.assertEqual(result.same_files, ["x.txt"])
+        self.assertEqual(result.diff_files, [])
+
+    def test_cmp_directories_deep_detects_content_difference(self):
+        d1, d2 = self._make_pair("aaaa", "bbbb")
+        result = cmp_directories(d1, d2, shallow=False)
+        self.assertEqual(result.same_files, [])
+        self.assertEqual(result.diff_files, ["x.txt"])
+
+    def test_cmp_directories_deep_detects_nested_content_difference(self):
+        d1, d2 = self._make_pair("aaaa", "bbbb")
+        sub1 = os.path.join(d1, "sub")
+        sub2 = os.path.join(d2, "sub")
+        os.makedirs(sub1)
+        os.makedirs(sub2)
+        a = os.path.join(sub1, "y.txt")
+        b = os.path.join(sub2, "y.txt")
+        with open(a, "w") as f:
+            f.write("cccc")
+        with open(b, "w") as f:
+            f.write("dddd")
+        os.utime(a, (1000000, 1000000))
+        os.utime(b, (1000000, 1000000))
+
+        result = cmp_directories(d1, d2, shallow=False)
+        self.assertEqual(result.subdirs["sub"].diff_files, ["y.txt"])
+
     def test_cmp_directories_type_error(self):
         with self.assertRaises(TypeError):
             cmp_directories(1, 2)

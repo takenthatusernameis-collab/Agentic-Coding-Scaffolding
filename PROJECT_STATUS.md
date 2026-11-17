@@ -1,5 +1,16 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `filecmp_utils.cmp_directories` silently ignored `shallow`
+
+- `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (checkpoint behind HEAD after the prior `argparse_utils` commit `c7a847b`). Ran `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `c7a847b`), then full `python -m unittest discover tests/` (11369 tests OK).
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `cmp_directories(a, b, shallow=False, ...)` accepted and documented `shallow` but never used it: `filecmp.dircmp` always calls `filecmp.cmpfiles` with the default `shallow=True`, so content differences between same-size/same-mtime files were reported as identical and the flag was not propagated to subdirectories. `cmp_directories` now returns a `filecmp.dircmp` subclass (`_Dircmp`) that forwards `shallow` to `filecmp.cmpfiles`, propagates it to subdirectories, and routes lazy attribute access through its own phase methods (the base `methodmap` points at the base implementations, so overriding `phase3`/`phase4` alone is not enough). Added `test_cmp_directories_deep_detects_content_difference`, `test_cmp_directories_deep_detects_nested_content_difference`, and `test_cmp_directories_shallow_ignores_content_difference` (the deep tests fail before the fix, pass after).
+- **Defect hunt (silently-ignored-parameter class):** reviewed `argparse_utils`, `array_utils`, `asyncio_utils`, `base64_utils`, `binascii_utils`, `lzma_utils`, `uu_utils`, `hash_utils`, `hmac_utils`, `secrets_utils`, `shlex_utils`, `shelve_utils`, `filecmp_utils`, `fnmatch_utils`; the `filecmp_utils` issue above was the only high-confidence defect found in this pass.
+- **Verification:** `python -m unittest tests.test_filecmp_utils` — 11 OK; `python -m doctest filecmp_utils.py` — OK; `python -m py_compile filecmp_utils.py tests/test_filecmp_utils.py` — OK; `python -m ruff check` + `ruff format --check` — clean; `python -m mypy filecmp_utils.py tests/test_filecmp_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11372 tests OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `c7a847b`).
+- **Environment note:** `ruff` and `mypy` are installed in this environment (unlike earlier sessions) and both pass on the touched files.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`filecmp_utils.py`, `tests/test_filecmp_utils.py`, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `bz2_utils` rejects a `bool` `compresslevel`; `test_quopri_utils` no longer hard-imports `pytest`
 
 - `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.

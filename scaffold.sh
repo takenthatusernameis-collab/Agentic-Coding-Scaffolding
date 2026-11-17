@@ -72792,6 +72792,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `filecmp_utils.cmp_directories` honours its `shallow` flag
+
+- **Correctness fix — `cmp_directories` silently ignored `shallow`.** The parameter was documented ("When True, only stat metadata is compared") and accepted, but `filecmp.dircmp` always calls `filecmp.cmpfiles` with the default `shallow=True`, so `shallow=False` never compared file contents and the flag was not propagated to subdirectories. `cmp_directories` now returns a `filecmp.dircmp` subclass that forwards `shallow` to `filecmp.cmpfiles`, propagates it to subdirectories, and routes lazy attribute access through its own phase methods (the base `methodmap` points at the base implementations, so overriding `phase3`/`phase4` alone is not enough). Added `test_cmp_directories_deep_detects_content_difference`, `test_cmp_directories_deep_detects_nested_content_difference`, and `test_cmp_directories_shallow_ignores_content_difference` (the deep tests fail before the fix, pass after).
+- **Defect hunt (silently-ignored-parameter class):** reviewed `argparse_utils`, `array_utils`, `asyncio_utils`, `base64_utils`, `binascii_utils`, `lzma_utils`, `uu_utils`, `hash_utils`, `hmac_utils`, `secrets_utils`, `shlex_utils`, `shelve_utils`, `filecmp_utils`, `fnmatch_utils`; the `filecmp_utils` gap above was the only high-confidence defect found.
+- Validation: `python -m unittest tests.test_filecmp_utils` — 11 OK; `python -m doctest filecmp_utils.py` — OK; `python -m py_compile filecmp_utils.py tests/test_filecmp_utils.py` — OK; `python -m ruff check filecmp_utils.py tests/test_filecmp_utils.py` — clean; `python -m ruff format --check` — clean; `python -m mypy filecmp_utils.py tests/test_filecmp_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; full suite. No `.github/workflows/**` changes.
+
 ## Unreleased — `ast_utils.increment_lineno` rejects a `bool` `n`
 
 - **Correctness fix — `increment_lineno` accepted a boolean `n`.** Because `bool` is a subclass of `int`, `True`/`False` were silently accepted as line deltas 1/0 instead of raising `TypeError`. The helper now rejects `bool` explicitly before the integer check. Added `test_increment_lineno_rejects_bool` (red before the fix, green after).
@@ -86731,6 +86737,65 @@ import os
 from typing import Any, Sequence
 
 
+class _Dircmp(filecmp.dircmp):
+    """A :class:`filecmp.dircmp` that honours the ``shallow`` comparison flag.
+
+    :class:`filecmp.dircmp` always compares common files shallowly (its
+    ``methodmap`` calls :func:`filecmp.cmpfiles` with the default
+    ``shallow=True``), so the ``shallow`` argument of
+    :func:`cmp_directories` would otherwise be silently ignored. This subclass
+    forwards the flag to :func:`filecmp.cmpfiles`, propagates it to
+    subdirectories, and routes lazy attribute access through its own phase
+    methods (the base ``methodmap`` points at the base implementations, so
+    overriding ``phase3``/``phase4`` alone is not enough).
+    """
+
+    def __init__(
+        self,
+        a: str,
+        b: str,
+        ignore: Sequence[str] | None = None,
+        hide: Sequence[str] | None = None,
+        shallow: bool = True,
+    ) -> None:
+        self.shallow = shallow
+        super().__init__(a, b, ignore=ignore, hide=hide)
+
+    def __getattr__(self, attr: str) -> Any:
+        if attr in ("same_files", "diff_files", "funny_files"):
+            self.phase3()
+        elif attr == "subdirs":
+            self.phase4()
+        elif attr in ("common_dirs", "common_files", "common_funny"):
+            self.phase2()
+        elif attr in ("common", "left_only", "right_only"):
+            self.phase1()
+        elif attr in ("left_list", "right_list"):
+            self.phase0()
+        else:
+            raise AttributeError(attr)
+        return getattr(self, attr)
+
+    def phase3(self) -> None:
+        self.same_files, self.diff_files, self.funny_files = filecmp.cmpfiles(
+            self.left, self.right, self.common_files, shallow=self.shallow
+        )
+
+    def phase4(self) -> None:
+        self.subdirs = {}
+        for name in self.common_dirs:
+            a_path = os.path.join(self.left, name)
+            b_path = os.path.join(self.right, name)
+            subdir = self.__class__(a_path, b_path, self.ignore, self.hide)
+            subdir.shallow = self.shallow
+            self.subdirs[name] = subdir
+
+    def phase4_closure(self) -> None:
+        self.phase4()
+        for subdir in self.subdirs.values():
+            subdir.phase4_closure()
+
+
 def cmp_files(a: str, b: str, shallow: bool = True) -> bool:
     """Return True if files ``a`` and ``b`` are equal.
 
@@ -86756,18 +86821,20 @@ def cmp_directories(a: str, b: str, shallow: bool = True, hide: Sequence[str] | 
     Args:
         a: Path to the first directory.
         b: Path to the second directory.
-        shallow: When True, only stat metadata is compared for files.
+        shallow: When True, only stat metadata is compared for files. When
+            False, file contents are compared. The flag is propagated to
+            subdirectories.
         hide: List of names to hide from the comparison.
 
     Returns:
-        A ``filecmp.dircmp`` instance.
+        A ``filecmp.dircmp`` instance (a subclass that honours *shallow*).
 
     Raises:
         TypeError: If ``a`` or ``b`` is not a string.
     """
     if not isinstance(a, str) or not isinstance(b, str):
         raise TypeError("a and b must be strings")
-    return filecmp.dircmp(a, b, hide=None if hide is None else list(hide))
+    return _Dircmp(a, b, hide=None if hide is None else list(hide), shallow=shallow)
 
 
 def same_file(a: str, b: str) -> bool:
@@ -86824,6 +86891,51 @@ class TestFilecmpUtils(unittest.TestCase):
         self.assertEqual(result.left_only, [])
         self.assertEqual(result.right_only, [])
         self.assertEqual(result.diff_files, [])
+
+    def _make_pair(self, content_a, content_b):
+        d1 = os.path.join(self.d, "s1")
+        d2 = os.path.join(self.d, "s2")
+        os.makedirs(d1, exist_ok=True)
+        os.makedirs(d2, exist_ok=True)
+        a = os.path.join(d1, "x.txt")
+        b = os.path.join(d2, "x.txt")
+        with open(a, "w") as f:
+            f.write(content_a)
+        with open(b, "w") as f:
+            f.write(content_b)
+        os.utime(a, (1000000, 1000000))
+        os.utime(b, (1000000, 1000000))
+        return d1, d2
+
+    def test_cmp_directories_shallow_ignores_content_difference(self):
+        d1, d2 = self._make_pair("aaaa", "bbbb")
+        result = cmp_directories(d1, d2, shallow=True)
+        self.assertEqual(result.same_files, ["x.txt"])
+        self.assertEqual(result.diff_files, [])
+
+    def test_cmp_directories_deep_detects_content_difference(self):
+        d1, d2 = self._make_pair("aaaa", "bbbb")
+        result = cmp_directories(d1, d2, shallow=False)
+        self.assertEqual(result.same_files, [])
+        self.assertEqual(result.diff_files, ["x.txt"])
+
+    def test_cmp_directories_deep_detects_nested_content_difference(self):
+        d1, d2 = self._make_pair("aaaa", "bbbb")
+        sub1 = os.path.join(d1, "sub")
+        sub2 = os.path.join(d2, "sub")
+        os.makedirs(sub1)
+        os.makedirs(sub2)
+        a = os.path.join(sub1, "y.txt")
+        b = os.path.join(sub2, "y.txt")
+        with open(a, "w") as f:
+            f.write("cccc")
+        with open(b, "w") as f:
+            f.write("dddd")
+        os.utime(a, (1000000, 1000000))
+        os.utime(b, (1000000, 1000000))
+
+        result = cmp_directories(d1, d2, shallow=False)
+        self.assertEqual(result.subdirs["sub"].diff_files, ["y.txt"])
 
     def test_cmp_directories_type_error(self):
         with self.assertRaises(TypeError):
