@@ -1,52 +1,23 @@
 # Handover
 
-## Latest Session (2026-11-17) — defect hunt/fix: `string_utils` cosine/Jaccard similarity boundary at length 1
+## Done (this session)
+- `board_read`: no messages; executed `.kilo/next_task.md`.
+- Defect hunt/fix (failing-test-first): `csv_utils.write_csv` now writes a header-only CSV when `rows` is empty but `fieldnames` is provided (previously returned without creating the file, ignoring `fieldnames`). With no rows and no `fieldnames` it still does not create a file.
+- Tests: strengthened `test_write_csv_empty_rows` and added `test_write_csv_empty_rows_with_fieldnames_writes_header`.
+- Refreshed scaffold embeds + added Unreleased CHANGELOG entry.
 
-- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `...`), then `python -m unittest discover tests/`.
-- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Defects fixed (failing-test-first):**
-  - `string_utils.cosine_similarity` returned `0.0` for identical single-character strings (e.g. `"a"`, `"a"`). The bigram-based similarity produces empty vectors for `len < 2`; the function fell through to the `n1 == 0 or n2 == 0` check and returned `0.0`. Now handles `len < 2` explicitly: identical strings return `1.0`, different strings return `0.0`. Added `test_single_char_identical` and `test_single_char_different` (fail before, pass after).
-  - `string_utils.jaccard_similarity` returned `1.0` for different single-character strings (e.g. `"a"`, `"b"`). Same root cause: both have empty bigram sets, union is empty, fast path returned `1.0`. Now handles `len < 2` explicitly with the same logic. Added `test_single_char_identical` and `test_single_char_different` (fail before, pass after).
-  - Companion distance functions (`cosine_distance`, `jaccard_distance`) now also return correct values by virtue of the fixed similarity functions.
-- **Defect hunt (boundary/off-by-one class):** targeted the string similarity functions that use bigrams, which have a known boundary at string length 2 (the minimum for one bigram). The two functions above were the only defects found in this pass; other similarity functions (Levenshtein, Jaro, Hamming, Damerau-Levenshtein) handle single-character strings correctly.
-- **Verification:** `python -m unittest tests.test_string_utils` — 313 OK; `python -m doctest string_utils.py` — OK; `python -m py_compile string_utils.py tests/test_string_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11327 OK (skipped=4, 1 pre-existing `test_quopri_utils` pytest-import error); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `...`).
-- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`string_utils.py`, `tests/test_string_utils.py`, `CHANGELOG.md`).
+## Verification
+- `python tools/verify_state_delta.py --probe` (start): rc=2
+- `python -m pytest tests/test_csv_utils.py -q`: 7 passed
+- `python -m ruff check csv_utils.py tests/test_csv_utils.py`: clean
+- `python -m mypy csv_utils.py tests/test_csv_utils.py`: clean
+- `python tools/refresh_scaffold.py` && `--check`: in sync
+- `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold`: OK
+- `python -m unittest discover tests/`: 11331 OK (skipped=4)
+- `python tools/verify_state_delta.py --full --record-full-suite`: passed (checkpoint `157ced62f4932d0f4612aed1b3b46d6cb6faf34e`)
 
-## Task for Next Agent
+## Optimize-delays survey
+- No avoidable repository-managed delay identified. Used state-delta probe, targeted tests/lint/typecheck on touched scope, then full battery + full suite at milestone. No timestamp-only handover/empty commit; `.github/workflows/**` unchanged.
 
-See `.kilo/next_task.md` (posted to `main` via `board_post`). Continue the correctness defect hunt (failing-test-first) with a fresh defect class (e.g. aliasing/mutation, sentinel-default confusion, dialect/encoding handling) across modules that were only spot-checked in earlier sessions. The boundary/off-by-one class is now cleaned up for the bigram-based string similarity functions; other modules may have similar boundaries.
-
-## Previous Session (2026-11-17) — defect hunt/fix: exact integer roots + `utils.sample` bool `n`
-
-- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `2524de0`), then `python -m unittest discover tests/`.
-- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Defect fixed (failing-test-first):**
-  - `ConfigSchema.validate` accepted invalid default values without validation. When a field had a default value and the key was absent from the input config, the default was used directly without being coerced to the declared type or passed through the field's validator. This allowed schemas with invalid defaults (wrong type or violating a range/choices/regex validator) to silently produce invalid output. Defaults are now validated via `field.validate(field.default)`, and validation errors are wrapped in `ConfigValidationError` with a `default` suffix. Added `test_validate_rejects_invalid_default_type` and `test_validate_rejects_invalid_default_validator` (both fail against the old implementation and pass after).
-- **Defect hunt (top-level non-`*_utils` modules):** reviewed `config_schema.py` — the default validation issue above was the only defect found. Remaining modules to review: `calculator.py`, `hello.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py`, `greeting_utils.py`.
-- **Verification:** `python -m unittest tests.test_config_schema` — 43 OK; `python -m doctest config_schema.py` — 21 passed; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11303 tests OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `2524de0`).
-- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`config_schema.py`, `tests/test_config_schema.py`, `CHANGELOG.md`).
-
-## Task for Next Agent
-
-See `.kilo/next_task.md` (posted to `main` via `board_post`). Continue the correctness defect hunt (failing-test-first) on the remaining **top-level non-`*_utils` modules**: `calculator.py`, `hello.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py`, `greeting_utils.py`. Read implementations against their contracts/tests, look for off-by-one/boundary/reset/aliasing/sentinel-default/bool-as-int/type-contract/dialect defects, add a test that fails before the fix and passes after, then follow the scaffold/CHANGELOG workflow. If those are clean, take a second targeted pass over a defect class (e.g. bool-as-int or boundary) across modules that were only spot-checked in earlier sessions.
-
-## Previous Session (2026-11-17) — defect hunt/fix: `xdrlib_utils` exported exception subclasses nothing raises
-
-- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `a961113`), then `python -m unittest discover tests/`.
-- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Defect fixed (failing-test-first):**
-  - `xdrlib_utils.Error` and `xdrlib_utils.ConversionError` were subclasses (`class _Error(xdrlib.Error)`, `class _ConversionError(xdrlib.ConversionError, _Error)`) that nothing raised, while `Packer`/`Unpacker` were re-exported as the real `xdrlib` classes. Because a subclass never catches its base, `except xdrlib_utils.ConversionError:` did not catch the `xdrlib.ConversionError` that `xdrlib_utils.Packer().pack_uint(2**40)` raises, so the exported error surface was unusable and diverged from every other wrapper in the project (all of which re-export the stdlib exception directly). `Error`/`ConversionError` are now the standard library classes themselves, with the same `getattr` fallback for interpreters that lack `xdrlib`. Added `test_exported_errors_catch_packer_failures` (fails before, passes after).
-- **Defect hunt (batch `venv`–`zoneinfo`):** reviewed `venv_utils`, `version_utils`, `warnings_utils`, `wave_utils`, `weakref_utils`, `webbrowser_utils`, `wsgiref_utils`, `xdrlib_utils`, `xml_utils`, `xmlrpc_utils`, `zipapp_utils`, `zipfile_utils`, `zipimport_utils`, `zlib_utils`, `zoneinfo_utils`; the `xdrlib_utils` issue above was the only defect found.
-- **Verification:** `python -m unittest tests.test_xdrlib_utils` — 6 OK; `python -m doctest xdrlib_utils.py` — OK; `python -m py_compile xdrlib_utils.py tests/test_xdrlib_utils.py` — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11303 tests OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `a961113`).
-- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`xdrlib_utils.py`, `tests/test_xdrlib_utils.py`, `CHANGELOG.md`).
-
-## Previous Session (2026-11-17) — defect hunt/fix: `types_utils.is_lambda` false positives, `url_utils` query helpers drop duplicate parameters
-
-- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `ffbfab9`), then `python -m unittest discover tests/`.
-- **Defects fixed (failing-test-first):**
-  - `types_utils.is_lambda` returned `True` for every function: it tested `isinstance(obj, types.LambdaType)`, and `types.LambdaType` is an alias for `types.FunctionType`, so a regular `def` was reported as a lambda. The check now also requires `obj.__name__ == "<lambda>"`.
-  - `url_utils.add_query_param` and `url_utils.remove_query_param` silently dropped duplicate query parameters: both routed through `get_query_params`, which keeps only the first value for a repeated key. They now operate on the full `parse_qsl` pair list, preserving duplicates.
+## Next
+- Continue correctness defect hunt (failing-test-first) in a fresh defect class (e.g. aliasing/mutation, sentinel-default confusion, dialect/encoding/empty-input handling) across modules only spot-checked previously. Keep changes focused; run targeted then full verification when source changes.

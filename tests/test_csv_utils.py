@@ -36,8 +36,24 @@ class TestReadWriteCSV(unittest.TestCase):
             path = f.name
 
         try:
+            os.unlink(path)
             write_csv(path, [])
-            self.assertTrue(True)
+            self.assertFalse(os.path.exists(path))
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_write_csv_empty_rows_with_fieldnames_writes_header(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            # remove the temp file so we can verify write_csv creates it
+            os.unlink(path)
+            write_csv(path, [], fieldnames=["a", "b"])
+            self.assertTrue(os.path.exists(path))
+            with open(path, encoding="utf-8") as f:
+                self.assertEqual(f.read(), "a,b\n")
         finally:
             if os.path.exists(path):
                 os.unlink(path)

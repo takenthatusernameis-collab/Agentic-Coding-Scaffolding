@@ -27279,8 +27279,24 @@ class TestReadWriteCSV(unittest.TestCase):
             path = f.name
 
         try:
+            os.unlink(path)
             write_csv(path, [])
-            self.assertTrue(True)
+            self.assertFalse(os.path.exists(path))
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_write_csv_empty_rows_with_fieldnames_writes_header(self) -> None:
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
+            path = f.name
+
+        try:
+            # remove the temp file so we can verify write_csv creates it
+            os.unlink(path)
+            write_csv(path, [], fieldnames=["a", "b"])
+            self.assertTrue(os.path.exists(path))
+            with open(path, encoding="utf-8") as f:
+                self.assertEqual(f.read(), "a,b\n")
         finally:
             if os.path.exists(path):
                 os.unlink(path)
@@ -42820,10 +42836,14 @@ def write_csv(
     fieldnames: Optional[List[str]] = None,
     delimiter: str = ",",
 ) -> None:
-    """Write list of dictionaries to CSV file."""
-    if not rows:
-        return
+    """Write list of dictionaries to CSV file.
+
+    When ``rows`` is empty, a header row is written only if ``fieldnames`` is
+    provided; otherwise the function returns without creating a file.
+    """
     if fieldnames is None:
+        if not rows:
+            return
         fieldnames = list(rows[0].keys())
     with open(path, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=delimiter)
@@ -73487,6 +73507,12 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added `count_digits(data)` to `bytes_utils.py` as the missing integer companion to `isdigit`. The module had `isdigit` (exported in `__all__`, with tests and README documentation) but no `count_*` counterpart, so callers could not obtain the actual number of digit bytes. `count_digits` returns the count of ASCII digit bytes (``0``-``9``) in *data*; empty input returns zero. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestCountDigits` (8 tests) to `tests/test_bytes_utils.py` covering all-digits/no-digits/mixed/empty/bytearray inputs, consistency with `isdigit`, and `TypeError` paths; imported `count_digits` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
+
+- `csv_utils.write_csv`: when ``rows`` is empty, write a header-only CSV file
+  when ``fieldnames`` is provided instead of returning without creating the
+  file. Previously an explicit ``fieldnames`` argument was ignored in the
+  empty-rows case, so callers could not produce a header-only CSV.
+
 
 - `asynchat_utils.py`, `asyncore_utils.py`: added `is_available()` (exported in `__all__`) to report stdlib `asynchat`/`asyncore` module presence, aligning with the guarded-import convention used by other PEP 594/3.13-removed module wrappers.
 - `tests/test_asynchat_utils.py`, `tests/test_asyncore_utils.py`: updated `__all__`/export expectations, added `is_available()` assertions, and added reload-based unavailable-branch tests (`mock.patch.dict(sys.modules, {"asynchat": None})` / `{"asyncore": None}` + `importlib.reload`) verifying `RuntimeError` fallbacks and safe constants on missing-module paths.

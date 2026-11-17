@@ -36,10 +36,14 @@ def write_csv(
     fieldnames: Optional[List[str]] = None,
     delimiter: str = ",",
 ) -> None:
-    """Write list of dictionaries to CSV file."""
-    if not rows:
-        return
+    """Write list of dictionaries to CSV file.
+
+    When ``rows`` is empty, a header row is written only if ``fieldnames`` is
+    provided; otherwise the function returns without creating a file.
+    """
     if fieldnames is None:
+        if not rows:
+            return
         fieldnames = list(rows[0].keys())
     with open(path, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter=delimiter)

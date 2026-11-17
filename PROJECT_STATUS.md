@@ -1,5 +1,14 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `csv_utils.write_csv` header-only output with empty rows
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior/source state pending checkpoint). Source/tests changed; ran `python tools/verify_state_delta.py --full --record-full-suite` and `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay found; used state-delta probe + targeted `tests/test_csv_utils.py`/lint/typecheck during the change, then full verification battery and `unittest discover` at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `csv_utils.write_csv` returned immediately when `rows` was empty, ignoring an explicit `fieldnames` argument so callers could not produce a header-only CSV file. Now, if `fieldnames` is provided (or inferred from non-empty rows) it writes the header and any rows; with no rows and no `fieldnames` it still returns without creating a file. Updated `test_write_csv_empty_rows` and added `test_write_csv_empty_rows_with_fieldnames_writes_header`.
+- **Verification:** `python -m pytest tests/test_csv_utils.py -q` — 7 passed; `python -m ruff check csv_utils.py tests/test_csv_utils.py` — clean; `python -m mypy csv_utils.py tests/test_csv_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — OK; `python -m unittest discover tests/` — 11331 tests OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `157ced6...`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`csv_utils.py`, `tests/test_csv_utils.py`, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `string_utils` cosine/Jaccard similarity boundary at length 1
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
