@@ -32,17 +32,11 @@ Packer: Any
 Unpacker: Any
 
 if _XDRLIB_AVAILABLE:
-    _BaseError = getattr(_xdrlib, "Error", Exception)
-    _BaseConversionError = getattr(_xdrlib, "ConversionError", _BaseError)
-
-    class _Error(_BaseError):  # type: ignore[misc, valid-type]
-        pass
-
-    class _ConversionError(_BaseConversionError, _Error):  # type: ignore[misc, valid-type]
-        pass
-
-    Error = _Error
-    ConversionError = _ConversionError
+    # Re-export the standard library exception classes themselves.  The Packer
+    # and Unpacker below are the standard library classes, so they raise these
+    # exact classes; a subclass would not catch what they raise.
+    Error = getattr(_xdrlib, "Error", Exception)
+    ConversionError = getattr(_xdrlib, "ConversionError", Error)
     Packer = _xdrlib.Packer
     Unpacker = _xdrlib.Unpacker
 else:  # pragma: no cover - exercised when xdrlib is unavailable

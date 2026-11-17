@@ -30,6 +30,17 @@ class TestXdrlibUtils(unittest.TestCase):
         u = xdrlib_utils.Unpacker(data)
         self.assertEqual(u.unpack_uint(), 5)
 
+    @unittest.skipUnless(xdrlib_utils.is_available(), "xdrlib is not available")
+    def test_exported_errors_catch_packer_failures(self) -> None:
+        # The exported Error/ConversionError must be the classes the exported
+        # Packer/Unpacker actually raise, so ``except`` clauses catch them.
+        packer = xdrlib_utils.Packer()
+        with self.assertRaises(xdrlib_utils.ConversionError):
+            packer.pack_uint(2**40)
+        packer = xdrlib_utils.Packer()
+        with self.assertRaises(xdrlib_utils.Error):
+            packer.pack_uint(2**40)
+
 
 class TestUnavailableModule(unittest.TestCase):
     """Verify the Python 3.13+ path where :mod:`xdrlib` no longer ships."""

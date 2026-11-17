@@ -1,5 +1,16 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `xdrlib_utils` exported exception subclasses nothing raises
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `a961113`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):**
+  - `xdrlib_utils.Error` and `xdrlib_utils.ConversionError` were subclasses (`class _Error(xdrlib.Error)`, `class _ConversionError(xdrlib.ConversionError, _Error)`) that nothing raised, while `Packer`/`Unpacker` were re-exported as the real `xdrlib` classes. Because a subclass never catches its base, `except xdrlib_utils.ConversionError:` did not catch the `xdrlib.ConversionError` that `xdrlib_utils.Packer().pack_uint(2**40)` raises, so the exported error surface was unusable and diverged from every other wrapper in the project (all of which re-export the stdlib exception directly). `Error`/`ConversionError` are now the standard library classes themselves, with the same `getattr` fallback for interpreters that lack `xdrlib`. Added `test_exported_errors_catch_packer_failures`.
+- **Defect hunt (batch `venv`–`zoneinfo`):** reviewed `venv_utils`, `version_utils`, `warnings_utils`, `wave_utils`, `weakref_utils`, `webbrowser_utils`, `wsgiref_utils`, `xdrlib_utils`, `xml_utils`, `xmlrpc_utils`, `zipapp_utils`, `zipfile_utils`, `zipimport_utils`, `zlib_utils`, `zoneinfo_utils`; the `xdrlib_utils` issue above was the only defect found.
+- **Verification:** `python -m unittest tests.test_xdrlib_utils` — 6 OK; `python -m doctest xdrlib_utils.py` — OK; `python -m py_compile` on touched files — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11303 tests OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `a961113`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`xdrlib_utils.py`, `tests/test_xdrlib_utils.py`, `CHANGELOG.md`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `types_utils.is_lambda` false positives, `url_utils` query helpers drop duplicate parameters
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

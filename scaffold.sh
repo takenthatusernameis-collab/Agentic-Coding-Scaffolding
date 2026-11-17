@@ -72420,6 +72420,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `xdrlib_utils` exports the exception classes `Packer`/`Unpacker` actually raise
+
+- **Correctness fix — `xdrlib_utils.Error` and `xdrlib_utils.ConversionError` were subclasses that nothing raised.** The module re-exported `Packer` and `Unpacker` as the standard library classes (so they raise the standard library's `xdrlib.Error`/`xdrlib.ConversionError`), but it wrapped the exceptions in new subclasses (`class _Error(xdrlib.Error)`, `class _ConversionError(xdrlib.ConversionError, _Error)`) and exported those. Because a subclass never catches its base, `except xdrlib_utils.ConversionError:` did not catch the `xdrlib.ConversionError` that `xdrlib_utils.Packer().pack_uint(2**40)` raises, so the documented error surface was unusable. `Error` and `ConversionError` are now the standard library classes themselves (matching how every other wrapper in the project re-exports its exception), with the same `getattr` fallback for interpreters that lack `xdrlib`. Added `test_exported_errors_catch_packer_failures` (fails against the old implementation and passes after).
+- **Defect hunt (batch `venv`–`zoneinfo`):** reviewed `venv_utils`, `version_utils`, `warnings_utils`, `wave_utils`, `weakref_utils`, `webbrowser_utils`, `wsgiref_utils`, `xdrlib_utils`, `xml_utils`, `xmlrpc_utils`, `zipapp_utils`, `zipfile_utils`, `zipimport_utils`, `zlib_utils`, `zoneinfo_utils`. The `xdrlib_utils` issue above was the only defect found in this pass.
+- Validation: `python -m unittest tests.test_xdrlib_utils` — 6 OK; `python -m doctest xdrlib_utils.py` — OK; `python -m py_compile xdrlib_utils.py tests/test_xdrlib_utils.py` — OK; `python -m ruff check xdrlib_utils.py tests/test_xdrlib_utils.py` — clean; `python -m mypy xdrlib_utils.py tests/test_xdrlib_utils.py` — clean; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `types_utils.is_lambda` distinguishes lambdas from functions, `url_utils` query helpers preserve duplicate parameters
 
 - **Correctness fix — `types_utils.is_lambda` returned `True` for every function.** `types.LambdaType` is an alias for `types.FunctionType`, so the helper's `isinstance(obj, types.LambdaType)` check accepted any function and reported a regular `def` as a lambda. It now also requires the object's `__name__` to be `"<lambda>"`. Added `test_is_lambda_rejects_a_regular_function` and `test_is_lambda_accepts_a_lambda` (both fail against the old implementation and pass after).
@@ -138715,6 +138722,17 @@ class TestXdrlibUtils(unittest.TestCase):
         u = xdrlib_utils.Unpacker(data)
         self.assertEqual(u.unpack_uint(), 5)
 
+    @unittest.skipUnless(xdrlib_utils.is_available(), "xdrlib is not available")
+    def test_exported_errors_catch_packer_failures(self) -> None:
+        # The exported Error/ConversionError must be the classes the exported
+        # Packer/Unpacker actually raise, so ``except`` clauses catch them.
+        packer = xdrlib_utils.Packer()
+        with self.assertRaises(xdrlib_utils.ConversionError):
+            packer.pack_uint(2**40)
+        packer = xdrlib_utils.Packer()
+        with self.assertRaises(xdrlib_utils.Error):
+            packer.pack_uint(2**40)
+
 
 class TestUnavailableModule(unittest.TestCase):
     """Verify the Python 3.13+ path where :mod:`xdrlib` no longer ships."""
@@ -165028,17 +165046,11 @@ Packer: Any
 Unpacker: Any
 
 if _XDRLIB_AVAILABLE:
-    _BaseError = getattr(_xdrlib, "Error", Exception)
-    _BaseConversionError = getattr(_xdrlib, "ConversionError", _BaseError)
-
-    class _Error(_BaseError):  # type: ignore[misc, valid-type]
-        pass
-
-    class _ConversionError(_BaseConversionError, _Error):  # type: ignore[misc, valid-type]
-        pass
-
-    Error = _Error
-    ConversionError = _ConversionError
+    # Re-export the standard library exception classes themselves.  The Packer
+    # and Unpacker below are the standard library classes, so they raise these
+    # exact classes; a subclass would not catch what they raise.
+    Error = getattr(_xdrlib, "Error", Exception)
+    ConversionError = getattr(_xdrlib, "ConversionError", Error)
     Packer = _xdrlib.Packer
     Unpacker = _xdrlib.Unpacker
 else:  # pragma: no cover - exercised when xdrlib is unavailable
