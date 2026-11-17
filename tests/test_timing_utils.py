@@ -137,6 +137,20 @@ class TestBenchmarkDecorator(unittest.TestCase):
             def test_func():
                 pass
 
+    def test_benchmark_rejects_bool_iterations(self):
+        """Test that benchmark raises TypeError for boolean iterations."""
+        with self.assertRaises(TypeError):
+
+            @benchmark(iterations=True)
+            def test_func():
+                pass
+
+        with self.assertRaises(TypeError):
+
+            @benchmark(iterations=False)
+            def test_func():
+                pass
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):

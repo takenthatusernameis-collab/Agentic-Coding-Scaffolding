@@ -29521,6 +29521,18 @@ class TestGenerateUUID(unittest.TestCase):
         with self.assertRaises(ValueError):
             generate_uuid(version=2)
 
+    def test_generate_uuid_rejects_bool_version(self):
+        with self.assertRaises(ValueError):
+            generate_uuid(version=True)
+        with self.assertRaises(ValueError):
+            generate_uuid(version=False)
+
+    def test_is_valid_uuid_rejects_bool_version(self):
+        with self.assertRaises(TypeError):
+            is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=True)
+        with self.assertRaises(TypeError):
+            is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=False)
+
 
 class TestGenerateUUID4(unittest.TestCase):
     def test_generate_uuid4_returns_valid(self):
@@ -36973,7 +36985,7 @@ def min_length(value: Any, length: int) -> bool:
     Returns:
         True if the value meets the minimum length, False otherwise.
     """
-    if not isinstance(length, int) or length < 0:
+    if isinstance(length, bool) or not isinstance(length, int) or length < 0:
         raise ValueError("length must be a non-negative integer")
     if isinstance(value, str):
         return len(value) >= length
@@ -36993,7 +37005,7 @@ def max_length(value: Any, length: int) -> bool:
     Returns:
         True if the value meets the maximum length, False otherwise.
     """
-    if not isinstance(length, int) or length < 0:
+    if isinstance(length, bool) or not isinstance(length, int) or length < 0:
         raise ValueError("length must be a non-negative integer")
     if isinstance(value, str):
         return len(value) <= length
@@ -37016,6 +37028,8 @@ def matches_regex(value: Any, pattern: Union[str, re.Pattern], flags: int = 0) -
     """
     if not isinstance(value, str):
         raise TypeError("value must be a string")
+    if isinstance(flags, bool) or not isinstance(flags, int):
+        raise TypeError("flags must be an int")
     if isinstance(pattern, re.Pattern):
         return bool(pattern.match(value))
     elif isinstance(pattern, str):
@@ -37222,6 +37236,10 @@ class TestMinLength(unittest.TestCase):
             min_length("test", -1)
         with self.assertRaises(ValueError):
             min_length("test", "4")
+        with self.assertRaises(ValueError):
+            min_length("test", True)
+        with self.assertRaises(ValueError):
+            min_length("test", False)
 
 
 class TestMaxLength(unittest.TestCase):
@@ -37241,6 +37259,10 @@ class TestMaxLength(unittest.TestCase):
             max_length("test", -1)
         with self.assertRaises(ValueError):
             max_length("test", "4")
+        with self.assertRaises(ValueError):
+            max_length("test", True)
+        with self.assertRaises(ValueError):
+            max_length("test", False)
 
 
 class TestMatchesRegex(unittest.TestCase):
@@ -37261,6 +37283,10 @@ class TestMatchesRegex(unittest.TestCase):
             matches_regex("test", 123)
         with self.assertRaises(ValueError):
             matches_regex("test", r"[invalid")
+        with self.assertRaises(TypeError):
+            matches_regex("test", r"test", flags=True)
+        with self.assertRaises(TypeError):
+            matches_regex("test", r"test", flags=False)
 
 
 class TestIsValidHostname(unittest.TestCase):
@@ -40595,6 +40621,10 @@ def benchmark(
         Decorated function that prints timing information and returns the
         result of the final function call.
 
+    Raises:
+        TypeError: If iterations is not a positive integer.
+        ValueError: If iterations is less than 1.
+
     Examples:
         >>> @benchmark(iterations=3)  # doctest: +SKIP
         ... def slow_function():
@@ -40605,6 +40635,8 @@ def benchmark(
         >>> result  # doctest: +SKIP
         'done'
     """
+    if isinstance(iterations, bool) or not isinstance(iterations, int):
+        raise TypeError("iterations must be a positive integer")
     if iterations < 1:
         raise ValueError("iterations must be positive")
 
@@ -46234,12 +46266,11 @@ def generate_uuid(version: int = 4) -> str:
         >>> bool(re.match(pat, generate_uuid(version=4)))
         True
     """
+    if isinstance(version, bool) or version not in (1, 4):
+        raise ValueError("UUID version must be 1 or 4")
     if version == 4:
         return str(uuid.uuid4())
-    elif version == 1:
-        return str(uuid.uuid1())
-    else:
-        raise ValueError("UUID version must be 1 or 4")
+    return str(uuid.uuid1())
 
 
 def generate_uuid4() -> str:
@@ -46290,6 +46321,8 @@ def is_valid_uuid(uuid_str: str, version: Optional[int] = None) -> bool:
         >>> is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=4)
         True
     """
+    if version is not None and (isinstance(version, bool) or not isinstance(version, int)):
+        raise TypeError("version must be an int or None")
     try:
         parsed = uuid.UUID(uuid_str)
         if version is not None:
@@ -54746,6 +54779,20 @@ class TestBenchmarkDecorator(unittest.TestCase):
         with self.assertRaises(ValueError):
 
             @benchmark(iterations=-1)
+            def test_func():
+                pass
+
+    def test_benchmark_rejects_bool_iterations(self):
+        """Test that benchmark raises TypeError for boolean iterations."""
+        with self.assertRaises(TypeError):
+
+            @benchmark(iterations=True)
+            def test_func():
+                pass
+
+        with self.assertRaises(TypeError):
+
+            @benchmark(iterations=False)
             def test_func():
                 pass
 
@@ -70302,7 +70349,9 @@ def extract_placeholders(template: str) -> list[str]:
     if not isinstance(template, str):
         raise TypeError("template must be a string")
     placeholders: list[str] = []
-    format_pattern = re.compile(r"\{([^}:]+)(?::[^}]*)?\}")
+    # Field name excludes the conversion marker (!r/!s/!a) and the format
+    # spec (:...). Attribute/item access (a.b, a[0]) stays part of the name.
+    format_pattern = re.compile(r"\{([^}:!]+)(?:![rsa])?(?::[^}]*)?\}")
     for match in format_pattern.finditer(template):
         name = match.group(1)
         if name.isdigit():
@@ -70593,6 +70642,17 @@ class TestExtractPlaceholders(unittest.TestCase):
         result = extract_placeholders("Hello {0} and {1}")
         # Numeric indices should be skipped
         self.assertEqual(result, [])
+
+    def test_extract_conversion_marker_drops_conversion(self) -> None:
+        # The field name must not include the conversion marker (!r, !s, !a).
+        self.assertEqual(extract_placeholders("{a!r}"), ["a"])
+        self.assertEqual(extract_placeholders("{a!s}"), ["a"])
+        self.assertEqual(extract_placeholders("{a!r:>10}"), ["a"])
+
+    def test_extract_attribute_and_item_access(self) -> None:
+        # Attribute and item access are part of the field name.
+        self.assertEqual(extract_placeholders("{a.b}"), ["a.b"])
+        self.assertEqual(extract_placeholders("{a[0]}"), ["a[0]"])
 
     def test_empty_string(self) -> None:
         result = extract_placeholders("")
@@ -72326,6 +72386,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `timeit_utils` and `timing_utils` reject `bool` integer parameters
+
+- **Correctness fix — `timeit_utils.timeit` and `timeit_utils.repeat` accepted `bool` for `number` and `repeat`.** The parameters were annotated as `int` but had no runtime validation, so `timeit("pass", number=True)` (where `True == 1`) and `repeat("pass", repeat=True)` were silently accepted instead of raising `TypeError`, contradicting the bool-rejection convention used elsewhere in the project. A shared `_validate_positive_int` helper now rejects `bool` before the numeric check. Added `test_rejects_bool_number` and `test_rejects_bool_repeat` (all fail against the old implementation and pass after).
+- **Correctness fix — `timing_utils.benchmark` accepted `bool` for `iterations`.** The parameter was validated only with `iterations < 1`, so `iterations=True` (which equals `1`) passed validation and even produced the nonsensical output "avg of True runs" instead of raising `TypeError`. The decorator now explicitly rejects `bool` before the value check. Added `test_benchmark_rejects_bool_iterations` (fails against the old implementation and passes after).
+- **Defect hunt (batch `template`–`timing`):** reviewed `template_utils`, `terminal_utils`, `termios_utils`, `textwrap_utils`, `this_utils`, `threading_utils`, `time_utils`, `timeit_utils`, `timezone_utils`, `timing_utils`. The two issues above were the only defects found in this pass.
+- Validation: `python -m unittest tests.test_timeit_utils tests.test_timing_utils` — 20 OK; `python -m doctest timeit_utils.py timing_utils.py` — OK; `python -m py_compile` on touched files — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. (`ruff`/`mypy`/`pytest` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `subprocess_utils` rejects `bool` timeout
 
 - **Correctness fix — `subprocess_utils.run_command`, `check_output`, and `check_call` accepted `bool` for `timeout`.** The `timeout` parameter was annotated as `float | None` but had no runtime validation, so `timeout=True` (which equals `1.0`) was silently accepted instead of raising `TypeError`, contradicting the bool-rejection convention used elsewhere in the project. A shared `_require_timeout` helper now rejects `bool` before the numeric check. Added `test_run_command_rejects_bool_timeout`, `test_check_output_rejects_bool_timeout`, and `test_check_call_rejects_bool_timeout` (all fail against the old implementation and pass after).
@@ -131456,6 +131524,20 @@ def default_timer() -> float:
     return _timeit.default_timer()
 
 
+def _validate_positive_int(value: Any, name: str) -> None:
+    """Validate that *value* is a positive integer, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is not a positive integer.
+    """
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise TypeError(f"{name} must be a positive integer")
+
+
 def timeit(
     stmt: str = "pass",
     setup: str = "pass",
@@ -131474,7 +131556,11 @@ def timeit(
 
     Returns:
         Elapsed time in seconds.
+
+    Raises:
+        TypeError: If number is not a positive integer.
     """
+    _validate_positive_int(number, "number")
     return _timeit.timeit(stmt, setup=setup, timer=timer, number=number, globals=globals)
 
 
@@ -131498,7 +131584,12 @@ def repeat(
 
     Returns:
         List of elapsed times.
+
+    Raises:
+        TypeError: If repeat or number is not a positive integer.
     """
+    _validate_positive_int(repeat, "repeat")
+    _validate_positive_int(number, "number")
     return _timeit.repeat(
         stmt, setup=setup, timer=timer, repeat=repeat, number=number, globals=globals
     )
@@ -131531,6 +131622,12 @@ class TestTimeit(unittest.TestCase):
         result = timeit("x + 1", globals={"x": 5}, number=10)
         self.assertIsInstance(result, float)
 
+    def test_rejects_bool_number(self):
+        with self.assertRaises(TypeError):
+            timeit("pass", number=True)
+        with self.assertRaises(TypeError):
+            timeit("pass", number=False)
+
 
 class TestRepeat(unittest.TestCase):
     def test_basic(self):
@@ -131538,6 +131635,18 @@ class TestRepeat(unittest.TestCase):
         self.assertEqual(len(result), 3)
         for r in result:
             self.assertIsInstance(r, float)
+
+    def test_rejects_bool_repeat(self):
+        with self.assertRaises(TypeError):
+            repeat("pass", number=10, repeat=True)
+        with self.assertRaises(TypeError):
+            repeat("pass", number=10, repeat=False)
+
+    def test_rejects_bool_number(self):
+        with self.assertRaises(TypeError):
+            repeat("pass", number=True, repeat=3)
+        with self.assertRaises(TypeError):
+            repeat("pass", number=False, repeat=3)
 
 
 class TestTimer(unittest.TestCase):

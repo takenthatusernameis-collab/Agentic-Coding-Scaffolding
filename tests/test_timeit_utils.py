@@ -20,6 +20,12 @@ class TestTimeit(unittest.TestCase):
         result = timeit("x + 1", globals={"x": 5}, number=10)
         self.assertIsInstance(result, float)
 
+    def test_rejects_bool_number(self):
+        with self.assertRaises(TypeError):
+            timeit("pass", number=True)
+        with self.assertRaises(TypeError):
+            timeit("pass", number=False)
+
 
 class TestRepeat(unittest.TestCase):
     def test_basic(self):
@@ -27,6 +33,18 @@ class TestRepeat(unittest.TestCase):
         self.assertEqual(len(result), 3)
         for r in result:
             self.assertIsInstance(r, float)
+
+    def test_rejects_bool_repeat(self):
+        with self.assertRaises(TypeError):
+            repeat("pass", number=10, repeat=True)
+        with self.assertRaises(TypeError):
+            repeat("pass", number=10, repeat=False)
+
+    def test_rejects_bool_number(self):
+        with self.assertRaises(TypeError):
+            repeat("pass", number=True, repeat=3)
+        with self.assertRaises(TypeError):
+            repeat("pass", number=False, repeat=3)
 
 
 class TestTimer(unittest.TestCase):

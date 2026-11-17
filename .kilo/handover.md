@@ -1,5 +1,17 @@
 # Handover
 
+## Latest Session (2026-11-17) — defect hunt/fix: `timeit_utils` and `timing_utils` reject `bool` integer parameters
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint advanced to `709c40e`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `timeit_utils.timeit` and `timeit_utils.repeat` accepted `bool` for `number` and `repeat`. The parameters were annotated as `int` but had no runtime validation, so `timeit("pass", number=True)` (where `True == 1`) and `repeat("pass", repeat=True)` were silently accepted instead of raising `TypeError`, contradicting the bool-rejection convention used elsewhere in the project. A shared `_validate_positive_int` helper now rejects `bool` before the numeric check. Added `test_rejects_bool_number` and `test_rejects_bool_repeat` (all fail against the old implementation and pass after).
+  - `timing_utils.benchmark` accepted `bool` for `iterations`. The parameter was validated only with `iterations < 1`, so `iterations=True` (which equals `1`) passed validation and even produced the nonsensical output "avg of True runs" instead of raising `TypeError`. The decorator now explicitly rejects `bool` before the value check. Added `test_benchmark_rejects_bool_iterations` (fails against the old implementation and passes after).
+- **Defect hunt (batch `template`–`timing`):** reviewed `template_utils`, `terminal_utils`, `termios_utils`, `textwrap_utils`, `this_utils`, `threading_utils`, `time_utils`, `timeit_utils`, `timezone_utils`, `timing_utils`. The two issues above were the only defects found in this pass.
+- **Verification:** `python -m unittest tests.test_timeit_utils tests.test_timing_utils` — 20 OK; `python -m doctest timeit_utils.py timing_utils.py` — OK; `python -m py_compile` on touched files — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. (`ruff`/`mypy`/`pytest` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`timeit_utils.py`, `tests/test_timeit_utils.py`, `timing_utils.py`, `tests/test_timing_utils.py`, and `CHANGELOG.md`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `subprocess_utils` rejects `bool` timeout
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

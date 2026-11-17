@@ -80,6 +80,10 @@ def benchmark(
         Decorated function that prints timing information and returns the
         result of the final function call.
 
+    Raises:
+        TypeError: If iterations is not a positive integer.
+        ValueError: If iterations is less than 1.
+
     Examples:
         >>> @benchmark(iterations=3)  # doctest: +SKIP
         ... def slow_function():
@@ -90,6 +94,8 @@ def benchmark(
         >>> result  # doctest: +SKIP
         'done'
     """
+    if isinstance(iterations, bool) or not isinstance(iterations, int):
+        raise TypeError("iterations must be a positive integer")
     if iterations < 1:
         raise ValueError("iterations must be positive")
 

@@ -22,6 +22,20 @@ def default_timer() -> float:
     return _timeit.default_timer()
 
 
+def _validate_positive_int(value: Any, name: str) -> None:
+    """Validate that *value* is a positive integer, raising ``TypeError`` otherwise.
+
+    Args:
+        value: The value to validate.
+        name: The name of the argument (used in error messages).
+
+    Raises:
+        TypeError: If value is not a positive integer.
+    """
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise TypeError(f"{name} must be a positive integer")
+
+
 def timeit(
     stmt: str = "pass",
     setup: str = "pass",
@@ -40,7 +54,11 @@ def timeit(
 
     Returns:
         Elapsed time in seconds.
+
+    Raises:
+        TypeError: If number is not a positive integer.
     """
+    _validate_positive_int(number, "number")
     return _timeit.timeit(stmt, setup=setup, timer=timer, number=number, globals=globals)
 
 
@@ -64,7 +82,12 @@ def repeat(
 
     Returns:
         List of elapsed times.
+
+    Raises:
+        TypeError: If repeat or number is not a positive integer.
     """
+    _validate_positive_int(repeat, "repeat")
+    _validate_positive_int(number, "number")
     return _timeit.repeat(
         stmt, setup=setup, timer=timer, repeat=repeat, number=number, globals=globals
     )
