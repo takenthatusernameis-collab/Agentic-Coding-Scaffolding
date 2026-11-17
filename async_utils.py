@@ -81,6 +81,25 @@ async def async_sleep(seconds: float) -> None:
     await asyncio.sleep(seconds)
 
 
+def _validate_retry_args(max_attempts: int, delay: float) -> None:
+    """Validate ``retry_async`` arguments, raising clear errors for misuse.
+
+    Mirrors :func:`retry_utils.retry`: ``max_attempts`` must be a positive
+    integer and ``delay`` a non-negative number. ``bool`` is rejected for both
+    because it is a subclass of ``int``; without this check ``max_attempts``
+    of ``False``/``True`` silently meant zero/one attempt and a boolean
+    ``delay`` was accepted as ``0.0``/``1.0`` seconds.
+    """
+    if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
+        raise TypeError(f"max_attempts must be an int, got {type(max_attempts).__name__}")
+    if max_attempts < 1:
+        raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
+    if isinstance(delay, bool) or not isinstance(delay, (int, float)):
+        raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if delay < 0:
+        raise ValueError(f"delay must be non-negative, got {delay}")
+
+
 async def retry_async(
     func: Callable[..., Awaitable[T]],
     *args: Any,
@@ -93,14 +112,19 @@ async def retry_async(
     Args:
         func: The async function to retry.
         *args: Positional arguments for the function.
-        max_attempts: Maximum number of attempts. Defaults to 3.
-        delay: Delay between attempts in seconds. Defaults to 0.1.
+        max_attempts: Maximum number of attempts. Defaults to 3. Must be a
+            positive integer.
+        delay: Delay between attempts in seconds. Defaults to 0.1. Must be a
+            non-negative number.
         **kwargs: Keyword arguments for the function.
 
     Returns:
         The result of the function.
 
     Raises:
+        TypeError: If ``max_attempts`` is not an int or ``delay`` is not a
+            number.
+        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
         Exception: The last exception if all attempts fail.
 
     Examples:
@@ -114,6 +138,7 @@ async def retry_async(
         >>> asyncio.run(retry_async(flaky))
         'success'
     """
+    _validate_retry_args(max_attempts, delay)
     last_exception: Exception = Exception("No attempts made")
     for attempt in range(max_attempts):
         try:

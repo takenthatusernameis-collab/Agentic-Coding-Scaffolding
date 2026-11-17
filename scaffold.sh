@@ -51835,6 +51835,25 @@ async def async_sleep(seconds: float) -> None:
     await asyncio.sleep(seconds)
 
 
+def _validate_retry_args(max_attempts: int, delay: float) -> None:
+    """Validate ``retry_async`` arguments, raising clear errors for misuse.
+
+    Mirrors :func:`retry_utils.retry`: ``max_attempts`` must be a positive
+    integer and ``delay`` a non-negative number. ``bool`` is rejected for both
+    because it is a subclass of ``int``; without this check ``max_attempts``
+    of ``False``/``True`` silently meant zero/one attempt and a boolean
+    ``delay`` was accepted as ``0.0``/``1.0`` seconds.
+    """
+    if isinstance(max_attempts, bool) or not isinstance(max_attempts, int):
+        raise TypeError(f"max_attempts must be an int, got {type(max_attempts).__name__}")
+    if max_attempts < 1:
+        raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
+    if isinstance(delay, bool) or not isinstance(delay, (int, float)):
+        raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if delay < 0:
+        raise ValueError(f"delay must be non-negative, got {delay}")
+
+
 async def retry_async(
     func: Callable[..., Awaitable[T]],
     *args: Any,
@@ -51847,14 +51866,19 @@ async def retry_async(
     Args:
         func: The async function to retry.
         *args: Positional arguments for the function.
-        max_attempts: Maximum number of attempts. Defaults to 3.
-        delay: Delay between attempts in seconds. Defaults to 0.1.
+        max_attempts: Maximum number of attempts. Defaults to 3. Must be a
+            positive integer.
+        delay: Delay between attempts in seconds. Defaults to 0.1. Must be a
+            non-negative number.
         **kwargs: Keyword arguments for the function.
 
     Returns:
         The result of the function.
 
     Raises:
+        TypeError: If ``max_attempts`` is not an int or ``delay`` is not a
+            number.
+        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
         Exception: The last exception if all attempts fail.
 
     Examples:
@@ -51868,6 +51892,7 @@ async def retry_async(
         >>> asyncio.run(retry_async(flaky))
         'success'
     """
+    _validate_retry_args(max_attempts, delay)
     last_exception: Exception = Exception("No attempts made")
     for attempt in range(max_attempts):
         try:
@@ -51978,6 +52003,61 @@ class TestRetryAsync(unittest.TestCase):
                 await retry_async(always_fails, max_attempts=2, delay=0.001)
 
         asyncio.run(run_test())
+
+
+class TestRetryAsyncValidation(unittest.IsolatedAsyncioTestCase):
+    """retry_async must validate its arguments like retry_utils.retry."""
+
+    async def test_rejects_bool_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=True, delay=0)
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=False, delay=0)
+
+    async def test_rejects_non_int_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts="3", delay=0)  # type: ignore[arg-type]
+
+    async def test_rejects_zero_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=0, delay=0)
+
+    async def test_rejects_negative_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=-1, delay=0)
+
+    async def test_rejects_bool_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=2, delay=True)
+
+    async def test_rejects_non_number_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=2, delay="0.1")  # type: ignore[arg-type]
+
+    async def test_rejects_negative_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=-0.1)
 
 
 class TestExportedTypeVars(unittest.TestCase):
@@ -72677,6 +72757,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `async_utils.retry_async` validates `max_attempts` and `delay`
+
+- **Correctness fix — `retry_async` accepted invalid retry arguments silently.** The async retry helper had no argument validation, so `retry_async(func, max_attempts=False)` performed zero attempts and raised a misleading bare `Exception("No attempts made")`, `max_attempts=True` silently meant one attempt, `max_attempts=0`/`-1` fell through the same path, a boolean `delay` was accepted as `1.0`/`0.0` seconds, and a negative `delay` was silently ignored. The synchronous sibling `retry_utils.retry` already rejects all of these with a clear `TypeError`/`ValueError`. `retry_async` now validates `max_attempts` (int, not `bool`, `>= 1`) and `delay` (number, not `bool`, `>= 0`) via a new `_validate_retry_args` helper before the first attempt. Added `TestRetryAsyncValidation` covering bool/non-int/zero/negative `max_attempts` and bool/non-number/negative `delay` (red before the fix, green after).
+- **Defect hunt (async retry validation class):** reviewed the remaining under-reviewed candidates (`argparse_utils`, `array_utils`, `ast_utils`, `asyncio_utils`, `base64_utils`, `binascii_utils`, `bz2_utils`, `lzma_utils`, `quopri_utils`, `uu_utils`, `hash_utils`, `hmac_utils`, `secrets_utils`, `shlex_utils`, `shelve_utils`, `filecmp_utils`, `fnmatch_utils`); the `async_utils.retry_async` gap above was the only high-confidence defect found.
+- Validation: `python -m unittest tests.test_async_utils` — 16 OK; `python -m doctest async_utils.py` — OK; `python -m py_compile` — OK; line lengths ≤ 100 (manual; `ruff`/`mypy` not installed in this environment); `python tools/refresh_scaffold.py` + `--check` — in sync; full suite at milestone. No `.github/workflows/**` changes.
+
 ## Unreleased — `zipfile_utils.create_archive` accepts any iterable; `dumbdbm_utils.update` rejects a scalar `other`
 
 - **Correctness fix — `zipfile_utils.create_archive` still required a `list`.** The signature and `_require_str_list` were widened to accept any non-string iterable of paths (`tuple`, generator, ...), but `create_archive` kept a leftover `if not isinstance(files, list): raise TypeError("files must be a list of strs")` guard. The documented `Iterable` contract was therefore violated and the added `test_create_archive_accepts_any_iterable` failed. The redundant guard was removed (and the docstring updated) so `_require_str_list` is the single validation point.

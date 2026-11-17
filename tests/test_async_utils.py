@@ -97,6 +97,61 @@ class TestRetryAsync(unittest.TestCase):
         asyncio.run(run_test())
 
 
+class TestRetryAsyncValidation(unittest.IsolatedAsyncioTestCase):
+    """retry_async must validate its arguments like retry_utils.retry."""
+
+    async def test_rejects_bool_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=True, delay=0)
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=False, delay=0)
+
+    async def test_rejects_non_int_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts="3", delay=0)  # type: ignore[arg-type]
+
+    async def test_rejects_zero_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=0, delay=0)
+
+    async def test_rejects_negative_max_attempts(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=-1, delay=0)
+
+    async def test_rejects_bool_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=2, delay=True)
+
+    async def test_rejects_non_number_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(TypeError):
+            await retry_async(ok, max_attempts=2, delay="0.1")  # type: ignore[arg-type]
+
+    async def test_rejects_negative_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=-0.1)
+
+
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):
         self.assertIsInstance(T, TypeVar)
