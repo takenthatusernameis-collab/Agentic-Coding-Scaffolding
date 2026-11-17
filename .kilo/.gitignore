@@ -1,0 +1,12 @@
+# Kilo local state
+.kilo/cache/
+.kilo/sessions/
+.kilo/logs/
+
+# Kilo generated files
+.kilo/generated/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo

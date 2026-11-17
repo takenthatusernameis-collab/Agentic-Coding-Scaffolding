@@ -69739,587 +69739,602 @@ HANDOVER
 # --- .kilo/command/scaffold-project.md ---
 cat > "$OUTPUT_DIR/.kilo/command/scaffold-project.md" <<'SCAFFOLD'
 ---
-description: Scaffold a new project structure for agentic coding
+name: scaffold-project
+description: Scaffold a new project structure using the scaffold.sh script
 ---
 
-Generate scaffolding files for a new agentic coding project. This command creates:
+# Scaffold Project Command
 
-- `.github/workflows/main.yml` — CI workflow for the Kilo agent loop
-- `AGENTS.md` — AI agent instructions with task handover protocol
-- `README.md` — project overview and getting-started guide
-- `CHANGELOG.md` — changelog following Keep a Changelog format
-- `.pre-commit-config.yaml` — pre-commit hooks for ruff, mypy, tests, and scaffold smoke testing
-- `kilo.json` — Kilo project configuration, including the `scaffolder` subagent
-- `.kilo/agent/scaffolder.md` — subagent definition for scaffolding tasks
-- `.kilo/command/handover.md` — handover command for task handoffs
-- `.kilo/command/scaffold-project.md` — scaffold-project command documentation
-- `.kilo/skill/scaffolding-helper.md` — sample skill definition
-- `.kilo/.gitignore` — ignore patterns for the .kilo directory
-- `.gitignore` — common ignore patterns
-- `LICENSE` — MIT license file
-- `Makefile` — common developer targets (test, lint, typecheck, run, scaffold, clean, help, pre-commit-install, pre-commit-run)
-- `pyproject.toml` — Python project configuration with pytest, ruff, and mypy settings
-- `hello.py` — sample application entry point
-- `abc_utils.py` — abstract base class utilities wrapping the standard library `abc` module (`ABC`, `ABCMeta`, `abstractmethod`, `abstractclassmethod`, `abstractstaticmethod`, `abstractproperty`, `get_cache_token`, `update_abstractmethods`) with input validation
-- `aifc_utils.py` — AIFF and AIFF-C format utilities wrapping the standard library `aifc` module (`open`, `is_available`, aliases, re-exports `Aifc_read`, `Aifc_write`, `Error`) with input validation
-- `asynchat_utils.py` — asynchronous chat utilities wrapping the standard library `asynchat` module (`async_chat`, `find_prefix_at_end`, `simple_producer`, `deque`) with input validation
-- `asyncore_utils.py` — asynchronous socket services utilities wrapping the standard library `asyncore` module (`dispatcher`, `dispatcher_with_send`, `file_dispatcher`, `file_wrapper`, `loop`, `poll`, `read`, `write`, `close_all`, `select`, `poll2`, `poll3`, `socket_map`, `ExitNow`, `errorcode`, `create_dispatcher`) with input validation
-- `ossaudiodev_utils.py` — OSS audio device utilities wrapping the standard library `ossaudiodev` module (`open`, `openmixer`, re-exports `OSSAudioError`, `error`, `AFMT_S16_LE`, `SOUND_MIXER_PCM`)
-- `ast_utils.py` — abstract syntax tree utilities wrapping the standard library `ast` module (`parse`, `unparse`, `dump`, `literal_eval`, `get_docstring`, `walk`, `iter_fields`, `iter_child_nodes`, `find_all`, `fix_missing_locations`, `increment_lineno`, `copy_location`, `node_to_string`) with input validation
-- `pickle_utils.py` — object serialization utilities wrapping the standard library `pickle` module (`dump`, `dumps`, `load`, `loads`, `pickler`, `unpickler`, `is_valid_protocol`, `validate_protocol`) with input validation
-- `pickletools_utils.py` — pickletools utilities wrapping the standard library `pickletools` module (`dis`, `genops`, `optimize`, `get_opcode_info`, `list_opcodes`, `is_opcode`, `get_pickle_size`, `decode_long`, `encode_long`)
-- `marshal_utils.py` — object serialization utilities wrapping the standard library `marshal` module (`dumps`, `loads`, `dump`, `load`, `get_version`) with input validation
-- `pkgutil_utils.py` — package and module discovery utilities wrapping the standard library `pkgutil` module (`iter_modules`, `walk_packages`, `get_data`, `read_text`, `resolve_name`, `iter_importers`, `extend_path`, `find_spec`) with input validation
-- `unicodedata_utils.py` — unicode character database utilities wrapping the standard library `unicodedata` module (`unicodedata_lookup`, `unicodedata_name`, `unicodedata_normalize`, `unicodedata_category`, `unicodedata_bidirectional`, `unicodedata_combining`, `unicodedata_east_asian_width`, `unicodedata_mirrored`, `unicodedata_decimal`, `unicodedata_digit`, `unicodedata_numeric`) with input validation
-- `unittest_utils.py` — unittest utilities (TestCase, TestSuite, make_suite, run_tests, main)
-- `tomllib_utils.py` — TOML parsing utilities wrapping the standard library `tomllib` module (`read_toml`, `load_toml_string`, `is_valid_toml`) with input validation
-- `token_utils.py` — python token constant utilities wrapping the standard library `token` module (`is_eof`, `is_nonterminal`, `is_terminal`, `tok_name`, `exact_token_types`, `n_tokens`, `nt_offset`) with input validation
-- `sched_utils.py` — scheduler utilities wrapping the standard library `sched` module (`scheduler`, `enter`, `enterabs`, `cancel`, `empty`, `run`, `queue`) with input validation
-- `quopri_utils.py` — quoted-printable encoding and decoding utilities wrapping the standard library `quopri` module (`encode`, `decode`, `encode_file`, `decode_file`, `isqp`) with input validation
-- `numbers_utils.py` — numeric abstract base class utilities wrapping the standard library `numbers` module (`Number`, `Complex`, `Real`, `Rational`, `Integral`, `is_number`, `is_integral`, `is_sphenic_number`, `abundance`, `are_amicable`, `is_amicable_number`) with input validation
-- `netrc_utils.py` — netrc utilities wrapping the standard library `netrc` module (`netrc`, `NetrcParseError`) with input validation
-- `getopt_utils.py` — command line option parsing utilities wrapping the standard library `getopt` module (`getopt`, `gnu_getopt`, `GetoptError`) with input validation
-- `filecmp_utils.py` — file comparison utilities wrapping the standard library `filecmp` module (`cmp_files`, `cmp_directories`, `same_file`) with input validation
-- `errno_utils.py` — system error number utilities wrapping the standard library `errno` module (`errorcode`, `strerror`, `is_errno`) with input validation
-- `dis_utils.py` — bytecode disassembly utilities wrapping the standard library `dis` module (`dis`, `disassemble`, `show_code`, `get_instructions`, `code_info`, `findlinestarts`, `findlabels`) with input validation
-- `contextvars_utils.py` — context variable utilities wrapping the standard library `contextvars` module (`ContextVar`, `Token`, `Context`, `copy_context`) with input validation
-- `configparser_utils.py` — INI configuration file parsing utilities wrapping the standard library `configparser` module (`load_config`, `save_config`, `get_sections`, `get_options`, `read_files`, `write_config`) with input validation
-- `shelve_utils.py` — persistent key/value storage utilities wrapping the standard library `shelve` module (`open_shelf`, `close`, `sync`, `keys`, `get`, `set_value`, `delete`, `contains`, `is_shelf`) with input validation
-- `zlib_utils.py` — zlib compression and checksum utilities wrapping the standard library `zlib` module (`zlib_compress`, `zlib_decompress`, `zlib_compressobj`, `zlib_decompressobj`, `zlib_crc32`, `zlib_adler32`) with input validation
-- `cmd_utils.py` — command interpreter utilities wrapping the standard library `cmd` module (`identchars`, `prompt_default`, `main`) with input validation
-- `this_utils.py` — Zen of Python utilities wrapping the standard library `this` module (`zen_of_python`, `translation_table`, `cipher_index`, `this`, `print_zen`) with input validation
-- `tokenize_utils.py` — source tokenization utilities wrapping the standard library `tokenize` module (`tokenize_source, tokenize_file, generate_tokens, untokenize, token_name, token_type, detect_encoding, significant_tokens, is_comment, is_string, is_number, is_name, is_keyword`) with input validation
-- `socket_utils.py` — low-level socket utilities wrapping the standard library `socket` module (`create_socket, create_tcp_socket, create_udp_socket, socket_address, resolve_address, connect_socket, create_connection, bind_socket, listen_socket, accept_connection, send_all, send_to, receive_bytes, receive_from, set_timeout, get_timeout, set_nonblocking, set_reuse_address, set_keepalive, shutdown_socket, close_socket, get_socket_name, get_peer_name, socket_family_name, socket_type_name, error_name, get_hostname, has_ipv6, is_ipv6_address`) with input validation
-- `sysconfig_utils.py` — build configuration utilities wrapping the standard library `sysconfig` module (`get_config_vars`, `get_config_var`, `has_config_var`, `list_config_var_names`, `get_paths`, `get_path`, `get_platform`, `get_python_version`, `get_default_scheme`, `get_preferred_scheme`, `get_scheme_names`, `is_python_build`, `get_config_h_filename`, `get_makefile_filename`) with input validation
-- `mimetypes_utils.py` — MIME type detection utilities wrapping the standard library `mimetypes` module (`guess_type, guess_extension, guess_all_extensions, type_for_extension, add_type, init_database, normalize_extension, is_valid_mime_type, mime_category, is_text_mime_type`) with input validation
-- `code_utils.py` — interactive console utilities wrapping the standard library `code` module (`interact`, `compile_command`, `console_class`, `interpreter_class`) with input validation
-- `codeop_utils.py` — utilities for compiling possibly-incomplete Python source wrapping the standard library `codeop` module (`compile_command`, `Compile`, `CommandCompiler`) with input validation
-- `copyreg_utils.py` — pickle support registration utilities wrapping the standard library `copyreg` module (`add_extension`, `remove_extension`, `clear_extension_cache`, `constructor`, `dispatch_table`, `pickle`) with input validation
-- `fileinput_utils.py` — file input iteration utilities wrapping the standard library `fileinput` module (`read_lines`, `count_lines`, `filenames`) with input validation
-- `ftplib_utils.py` — ftplib utilities wrapping the standard library `ftplib` module (FTP, FTP_TLS, create_ftp, create_ftp_tls, connect_ftp, parse257, parse150, parse227, parse229)
-- `fnmatch_utils.py` — filename pattern matching utilities wrapping the standard library `fnmatch` module (`match`, `match_case`, `filter_names`, `translate`) with input validation
-- `getpass_utils.py` — secure password input utilities wrapping the standard library `getpass` module (`getpass`, `getuser`) with input validation
-- `poplib_utils.py` — poplib utilities wrapping the standard library `poplib` module (POP3, POP3_SSL, create_pop3, create_pop3_ssl, connect_pop3)
-- `webbrowser_utils.py` — web browser utilities wrapping the standard library `webbrowser` module (open_url, open_new, open_new_tab, get_controller, register_browser, register_standard_browsers) with input validation
-- `xmlrpc_utils.py` — XML-RPC utilities wrapping the standard library `xmlrpc` package (dumps_value, loads_value, build_request, parse_method_call, parse_method_response, marshal_params, unmarshal_params, create_marshaller, create_transport, create_proxy, create_dispatcher, register_function, register_instance, register_introspection_functions, register_multicall_functions, resolve_dotted_attribute, list_public_methods, create_server, create_multi_path_server) with input validation
-- `syslog_utils.py` — system logging utilities wrapping the standard library `syslog` module (open_log, log_message, close_log, set_log_mask, log_mask, log_upto, priority_name, priority_names, facility_name, facility_names, option_names, is_available) with input validation
-- `faulthandler_utils.py` — fault handler utilities wrapping the standard library `faulthandler` module (enable, disable, is_enabled, dump_traceback, dump_traceback_later, cancel_dump_traceback_later, register, unregister) with input validation
-- `resource_utils.py` — resource usage utilities wrapping the standard library `resource` module (get_rlimit, set_rlimit, prlimit, get_rusage, get_page_size, limit_names, limit_value, limit_name, usage_names, usage_as_dict, is_available) with input validation
-- `pwd_utils.py` — password database utilities wrapping the standard library `pwd` module (getpwuid, getpwnam, getpwall) with input validation
-- `grp_utils.py` — group database utilities wrapping the standard library `grp` module (getgrgid, getgrnam, getgrall) with input validation
-- `termios_utils.py` — terminal attribute utilities wrapping the standard library `termios` module (get_attributes, set_attributes, make_raw, make_cbreak, set_read_timeout, set_blocking, get_window_size, set_window_size, drain, flush, pause_output, resume_output, send_break, control_character_names, baud_rates, is_available) with input validation
-- `fcntl_utils.py` — file control utilities wrapping the standard library `fcntl` module (flock, lockf, control, ioctl, duplicate_fd, file_lock, unlock, get_descriptor_flags, set_descriptor_flags, get_file_status_flags, set_file_status_flags, is_cloexec, lock_kind, lock_modes, is_available) with input validation
-- `pty_utils.py` — pseudo-terminal utilities wrapping the standard library `pty` module (openpty, open_terminal, master_open, slave_open, fork, spawn, is_available) with input validation, a `ForkResult` named tuple, and re-exported constants
-- `stringprep_utils.py` — string preparation utilities wrapping the standard library `stringprep` module (table_names, map_table_names, in_table, map_table, is_unassigned, is_mapped_to_nothing, is_prohibited, is_allowed, is_bidi_allowed, map_text, find_problems, is_preparable) with input validation and read-only table mappings
-- `site_utils.py` — site configuration utilities wrapping the standard library `site` module (`get_site_packages`, `get_site_prefixes`, `get_user_base`, `get_user_site_packages`, `get_enable_user_site`, `is_user_site_enabled`, `check_enable_user_site`, `make_path`, `remove_duplicate_paths`, `add_site_dir`, `add_site_packages`, `add_user_site_packages`) with input validation
-- `tabnanny_utils.py` — tabnanny utilities wrapping the standard library `tabnanny` module (check, process_tokens, NannyNag) with input validation
-- `encodings_utils.py` — encoding name utilities wrapping the standard library `encodings` module (normalize_encoding, is_known_encoding, is_alias, encoding_aliases, all_aliases, all_encodings) with input validation and the read-only `ALIASES` mapping
-- `zipimport_utils.py` — Zip archive import utilities wrapping the standard library `zipimport` module (zip_importer, archive_names, get_source, get_code, get_filename, get_data, is_package, find_spec, invalidate_caches) with input validation and the re-exported `ZipImportError`
-- `genericpath_utils.py` — Generic path utilities wrapping the standard library `genericpath` module (exists, isfile, isdir, islink, commonprefix, getsize, getmtime, getatime, getctime, samefile, sameopenfile, samestat, ALLOW_MISSING) with input validation
-- `posixpath_utils.py` — Posixpath utilities wrapping the standard library `posixpath` module with POSIX path operations and the helper `is_rooted`
-- `ntpath_utils.py` — Windows path utilities wrapping the standard library `ntpath` module (abspath, basename, commonpath, commonprefix, dirname, join, normcase, normpath, realpath, relpath, split, splitdrive, splitroot, splitext, expanduser, expandvars, has_drive, is_unc_path, is_device_path, to_slashes, to_backslashes) with input validation
-- `nturl2path_utils.py` — URL to pathname conversions wrapping the standard library `nturl2path` module (`url2pathname`, `pathname2url`)
-- `curses_utils.py` — terminal handling utilities wrapping the standard library `curses` module (`initscr`, `endwin`, `cbreak`, `echo`, `raw`, `colors`) with input validation
-- `bdb_utils.py` — debugger framework utilities wrapping the standard library `bdb` module (`create_bdb`, `set_breakpoint`, `clear_breakpoint`, `clear_breakpoints`, `clear_all_breakpoints`, `get_breakpoints`, `get_breakpoint`, `get_file_breakpoints`, `enable_breakpoint`, `disable_breakpoint`, `is_breakpoint_enabled`, `breakpoint_hits`, `canonical_filename`, `effective_breakpoint`, `checkfuncname`) with input validation and the re-exported classes `Bdb` and `Breakpoint`
-- `pdb_utils.py` — interactive debugger utilities wrapping the standard library `pdb` module (`create_pdb`, `set_trace`, `post_mortem`, `pm`, `run`, `runeval`, `runctx`, `runcall`) with input validation and the re-exported class `Pdb`
-- `ipaddress_utils.py` — IP address utilities wrapping the standard library `ipaddress` module (ip_address, ip_network, ip_interface, is_valid_address, is_valid_network, is_valid_interface, address_version, to_packed, from_packed, network_hosts, subnets, summarize_addresses, network_overlaps, address_within, common_prefix_length, next_address, previous_address, sort_addresses) with input validation and the re-exported address classes and errors
-- `pydoc_utils.py` — Documentation utilities wrapping the standard library `pydoc` module (`render_doc`, `doc`, `writedoc`, `writedocs`, `apropos`, `locate`, `resolve`, `safeimport`, `importfile`, `getdoc`, `synopsis`, `source_synopsis`, `describe`, `classify_class_attrs`, `classname`, `parentname`, `visiblename`, `isdata`, `ispackage`, `ispath`, `allmethods`, `splitdoc`, `stripid`, `replace`, `cram`, `plain`, `cli`, `help`, `getpager`, `plainpager`, `browse`) with input validation, and the re-exported classes `Doc`, `HTMLDoc`, `HTMLRepr`, `Helper`, `ModuleScanner`, `Repr`, `TextDoc`, and `TextRepr` together with the error `ErrorDuringImport`
-- `wsgiref_utils.py` — WSGI utilities wrapping the standard library `wsgiref` package (`setup_testing_defaults`, `guess_scheme`, `application_uri`, `request_uri`, `shift_path_info`, `is_hop_by_hop`, `build_headers`, `header_values`, `encode_headers`, `file_wrapper`, `check_environ`, `environ_errors`, `validator`, `demo_app`, `make_server`) with input validation, and the re-exported classes `Headers`, `FileWrapper`, `WSGIServer`, and `WSGIRequestHandler` together with the warning `WSGIWarning`
-- `antigravity_utils.py` — antigravity utilities wrapping the standard library `antigravity` module (`geohash`, `fly`, `get_xkcd_url`) with input validation
-- `pydoc_data_utils.py` — documentation topic utilities wrapping the standard library `pydoc_data` package (`count_topics`, `get_topic`, `get_topic_names`, `get_topic_section`, `get_topic_sections`, `get_topic_title`, `get_topics`, `get_topics_subset`, `has_topic`, `search_topics`, `wrap_topic`) with input validation
-- `pathlib_utils.py` — path manipulation utilities wrapping the standard library `pathlib` module (`ensure_dir`, `join`, `exists`, `is_file`, `is_dir`, `read_text`, `write_text`, `glob`, `rglob`, `suffix`, `stem`, `parent`) with input validation
-- `runpy_utils.py` — Python module execution utilities wrapping the standard library `runpy` module (`run_module`, `run_path`) with input validation
-- `ssl_utils.py` — SSL/TLS utilities wrapping the standard library `ssl` module (`create_default_context`, `create_context`, `match_hostname`, `get_server_certificate`, `get_server_certificate_tuple`, `cert_time_to_seconds`, `verify_cert_chain`, `get_default_verify_paths`, `is_tls_version_supported`, `get_cert_subject`, `get_cert_issuer`, `get_cert_san`, `cert_is_valid_at_time`) with input validation
-- `tarfile_utils.py` — tar archive utilities wrapping the standard library `tarfile` module (`tarfile_open`, `tarfile_add`, `tarfile_list`, `tarfile_extract`, `tarfile_extractall`, `tarfile_create`) with input validation
-- `types_utils.py` — dynamic type creation utilities wrapping the standard library `types` module (`new_class`, `new_function`, `is_function`, `is_method`, `is_generator`, `is_coroutine`, `is_lambda`, `simple_namespace`) with input validation
-- `zoneinfo_utils.py` — IANA timezone utilities wrapping the standard library `zoneinfo` module (`zoneinfo_get`, `zoneinfo_available_timezones`) with input validation
-- `opcode_utils.py` — Opcode utilities wrapping the standard library `opcode` module (stack effect computation and opcode classification helpers)
-- `array_utils.py` — array utilities wrapping the standard library `array` module (`array_create`, `array_fromlist`, `array_tolist`, `array_append`, `array_extend`, `array_insert`, `array_pop`, `array_remove`, `array_reverse`, `array_buffer_info`, `array_byteswap`, `array_count`, `array_index`) with input validation
-- `calendar_utils.py` — calendar utilities (`is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, `is_weekend`, `add_months`)
-- `chunk_utils.py` — IFF chunk utilities wrapping the standard library `chunk` module (`build_chunk`, `chunk_name`, `is_available`, `iter_chunks`, `open_chunk`, `peek_chunk`, `read_chunk`, `read_chunks`, `skip_chunk`, `write_chunk`) with input validation
-- `cgi_utils.py` — CGI utilities wrapping the standard library `cgi` module (`FieldStorage`, `MiniFieldStorage`, `escape`, `parse`, `parse_header`, `parse_multipart`, `parse_qs`, `parse_qsl`, `is_available`) with input validation
-- `pipes_utils.py` — Pipeline utilities wrapping the standard library `pipes` module (`quote`, `quote_command`, `create_template`, `is_available`, `make_pipeline`, `step_kinds`) with input validation
-- `argcomplete_utils.py` — wrapping the standard library `argcomplete` module: `autocomplete` enables shell tab completion for an argparse parser, `get_completer` creates a choices completer for static options, `get_files_completer` creates a file system completer, and `is_available` reports whether argcomplete is installed. All functions validate their inputs and raise `TypeError` or `ImportError` on invalid arguments. The module is tested in `tests/test_argcomplete_utils.py`.
-- `tests/test_argcomplete_utils.py` — unit tests for `argcomplete_utils.py`
-- `argparse_utils.py` — wrapping the standard library `argparse` module: `make_parser` creates an `ArgumentParser` with common defaults, `add_flag` adds a boolean store_true flag, `add_option` adds a single-value option, `add_positional` adds a positional argument, `add_subparsers` adds subcommands support, `parse_args` parses arguments, `int_positive` validates positive integers, and `float_range` creates a float range validator. The module is tested in `tests/test_argparse_utils.py`.
-- `tests/test_argparse_utils.py` — unit tests for `argparse_utils.py`
-- `backoff_utils.py` — : `constant_backoff`, `exponential_backoff`, and `backoff_delay`. The module is tested in `tests/test_backoff_utils.py`.
-- `tests/test_backoff_utils.py` — unit tests for `backoff_utils.py`
-- `base64_utils.py` — : `base64_encode` and `base64_decode` for standard and URL-safe Base64, `base64_encode_bytes` and `base64_decode_bytes` for raw bytes, `hex_encode` and `hex_decode` for hexadecimal, and `is_valid_base64` / `is_valid_hex` for validation. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_base64_utils.py`.
-- `tests/test_base64_utils.py` — unit tests for `base64_utils.py`
-- `bisect_utils.py` — for binary search on sorted sequences, wrapping the standard library `bisect` module: `bisect_left` and `bisect_right` return the insertion point to the left or right of existing entries, `insort_left` and `insort_right` insert elements while maintaining sort order, and `find_leftmost` / `find_rightmost` return the index of the first or last occurrence of a value (or `None` when absent). All functions accept an optional `lo`/`hi` range and validate their inputs. The module is tested in `tests/test_bisect_utils.py`.
-- `tests/test_bisect_utils.py` — unit tests for `bisect_utils.py`
-- `builtins_utils.py` — wrapping the standard library `builtins` module: `absolute`, `all_true`, `any_true`, `ascii_str`, `binary_string`, `boolean`, `callable_object`, `character`, `divmod_pair`, `format_value`, `get_hash`, `hex_string`, `is_instance`, `is_subclass`, `iterator`, `length`, `maximum`, `minimum`, `octal_string`, `ordinal`, `power`, `representation`, `round_number`, `sorted_list`, `summation` are provided with validation. The module is tested in `tests/test_builtins_utils.py`.
-- `tests/test_builtins_utils.py` — unit tests for `builtins_utils.py`
-- `bytes_utils.py` — for working with raw bytes: `to_hex` returns the hexadecimal representation of bytes, `from_hex` decodes a hex string back into bytes, `xor` XORs data with a repeating key, `chunk` splits bytes into fixed-size chunks, `concat` concatenates bytes-like objects, `repeat` repeats bytes, `reverse` returns reversed bytes, `contains` checks containment and `not_contains` reports its boolean negation, `index_of` returns the first index of a subsequence (or -1), `index` returns the first index of a subsequence (raising `ValueError` when absent), `rfind` returns the highest index of a subsequence (or -1), `starts_with`/`ends_with` test prefixes/suffixes, `removeprefix`/`removesuffix` strip a matching prefix/suffix, `upper`/`lower`/`capitalize`/`title`/`swapcase`/`casefold` apply case transformations, `join` joins an iterable with a separator, `expandtabs` expands tabs, `isalnum`/`count_alnum`/`has_alnum`/`isalpha`/`count_alpha`/`has_alpha`/`isascii`/`count_ascii`/`has_ascii`/`isdigit`/`count_digits`/`has_digits`/`islower`/`count_lower`/`has_lower`/`isspace`/`count_space`/`has_space`/`istitle`/`count_title`/`has_title`/`isupper`/`count_upper`/`has_upper`/`isprintable`/`count_printable`/`has_printable` are predicates and their integer/boolean companions, and `decode_ascii`/`encode_ascii` convert between bytes and ASCII strings, `maketrans`/`translate` build and apply a 256-byte translation table, `to_int`/`from_int` convert between bytes and integers with configurable byte order and signedness, `bit_count` returns the total number of set bits and `has_set_bits` reports whether any bit is set, `is_power_of_two` tests whether exactly one bit is set, `is_zero` tests whether all bytes are zero and `is_not_zero` reports its boolean negation, `is_all_ones` tests whether every byte is 0xff and `is_not_all_ones` reports its boolean negation, and `lowest_set_bit` returns the position of the least significant set bit (or -1 when none is set), and `highest_set_bit` returns the position of the most significant set bit (or -1 when none is set), `count_null_bytes` counts the number of zero bytes, and `count_null_byte` is the singular alias, and `has_null_byte`/`has_null_bytes` report whether any zero byte is present, `count_non_null_bytes` counts the number of non-zero bytes, `count_non_null_byte` is the singular alias, and `has_non_null_byte`/`has_non_null_bytes` report whether any non-zero byte is present. `count_alpha` counts ASCII alphabetic bytes and `has_alpha` reports whether any is present; `count_digits` counts the number of ASCII digit bytes, and `has_digits` reports whether any digit byte is present. `isprintable` tests whether every byte is in the ASCII printable range (0x20-0x7E, False for empty), and `isidentifier` tests whether the ASCII-decoded bytes form a valid Python identifier. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_bytes_utils.py`.
-- `tests/test_bytes_utils.py` — unit tests for `bytes_utils.py`
-- `case_utils.py` — : `kebab_case` converts text to kebab-case, `pascal_case` converts text to PascalCase, `constant_case` converts text to CONSTANT_CASE, `snake_case` converts text to snake_case, `camel_case` converts text to camelCase, `screaming_snake_case` is an alias for `constant_case`, `spinal_case` is an alias for `kebab_case`, `train_case` is an alias for `pascal_case`, `dot_case` converts text to dot.case, `slash_case` converts text to slash/case, `title_case` converts text to Title Case, `sentence_case` converts text to sentence case, and `convert_case(text, case)` dispatches to any of the above converters by case name (e.g. ``"snake"``, ``"camel"``, ``"pascal"``). Words are split on whitespace, separators, and case transitions such as camelCase and PascalCase boundaries. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_case_utils.py`.
-- `tests/test_case_utils.py` — unit tests for `case_utils.py`
-- `cgitb_utils.py` — wrapping the standard library `cgitb` module: `enable` enables the traceback handler, `disable` disables it, `reset` resets the state, `lookup` looks up an object, `scanvars` scans variables for a frame, `handler` handles an exception, `text` formats a traceback as text, `html` formats a traceback as HTML, `small` formats a small report, `strong` formats a strong report, `grey` formats a grey report, `pink` formats a pink report, `blue` formats a blue report, `reset` resets formatting, `enable` enables the handler, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `cgitb` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_cgitb_utils.py`.
-- `tests/test_cgitb_utils.py` — unit tests for `cgitb_utils.py`
-- `compileall_utils.py` — wrapping the standard library `compileall` module: `compile_file` byte-compiles a single Python source file and reports whether the compilation succeeded; `compile_dir` byte-compiles every source file below a directory, with an optional recursion limit, a worker count, a skip pattern, and the legacy bytecode layout; `compile_path` byte-compiles the modules found on ``sys.path``; `main` runs the ``compileall`` command-line interface and returns its exit code, restoring ``sys.argv`` afterwards; and `pyc_path` reports the PEP 3147 cache location the compiler would use for a source file without creating it. The invalidation mode accepts either a ``PycInvalidationMode`` member or its name, with dashes or underscores. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_compileall_utils.py`.
-- `tests/test_compileall_utils.py` — unit tests for `compileall_utils.py`
-- `cprofile_utils.py` — wrapping the standard library `cProfile` module: `new_profiler` creates a profiler, `run` profiles a single statement, `runctx` profiles a statement in given namespaces, `runcall` profiles a single call and returns its result, and `profile_call` returns the result of a profiled call together with its statistics. The helper `collect_stats` returns the statistics a profiler collected, `format_report` returns the report of a profiling run as text, `dump_stats` writes the statistics of a profiling run to a file, and `main` runs the command-line interface of the standard library. The class `Profile` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the report of a profiling run is returned as text instead of being printed to the standard output, a profiled call returns its statistics together with its result, and a timer that does not return the integer number of ticks the profiler needs is rejected with a clear message instead of failing inside the profiler. The module is tested in `tests/test_cprofile_utils.py`.
-- `tests/test_cprofile_utils.py` — unit tests for `cprofile_utils.py`
-- `crypt_utils.py` — wrapping the standard library `crypt` module: `crypt` hashes a password with a salt, `mksalt` creates a salt for a method, `hash_password` hashes a password with a salt of its own, `verify` reports whether a password matches a stored hash, `identify_method` reports the method a hash was created with, `is_hash` reports whether a value looks like a hash, `methods` lists the methods the interpreter supports, and `is_available` reports whether the interpreter ships the module. The constants `METHOD_BLOWFISH`, `METHOD_CRYPT`, `METHOD_MD5`, `METHOD_SHA256`, and `METHOD_SHA512` are re-exported. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a password is compared with a hash in constant time, the method of a hash is identified without the password, the salt is created together with the hash that uses it, and the supported methods can be listed. The `crypt` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers that hash a password raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_crypt_utils.py`.
-- `tests/test_crypt_utils.py` — unit tests for `crypt_utils.py`
-- `decimal_utils.py` — for precise decimal number operations using the standard library `decimal` module: `to_decimal`, `add`, `subtract`, `multiply`, `divide`, `power`, `quantize`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, and `is_zero`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_decimal_utils.py`.
-- `tests/test_decimal_utils.py` — unit tests for `decimal_utils.py`
-- `difflib_utils.py` — for sequence comparison and diffing using the standard library `difflib` module: `get_close_matches` finds close matches for a word, `ratio` returns the similarity ratio between two strings, `unified_diff` and `context_diff` produce unified/context diffs between sequences of lines, and `ndiff` produces a human-readable delta. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_difflib_utils.py`.
-- `tests/test_difflib_utils.py` — unit tests for `difflib_utils.py`
-- `duration_utils.py` — for parsing, formatting, and converting time durations: `parse_duration` parses human-readable duration strings (e.g. `"1h30m"`, `"90s"`, `"2.5 days"`) into total seconds, `format_duration` renders seconds as a compact human-readable string, `seconds_to_hms` and `hms_to_seconds` convert between seconds and `(hours, minutes, seconds)`, `to_seconds` combines time components into seconds, `duration_between` computes the `timedelta` between two datetimes, `add_duration` adds a parsed duration to a datetime, and `subtract_duration` subtracts a parsed duration from a datetime. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_duration_utils.py`.
-- `tests/test_duration_utils.py` — unit tests for `duration_utils.py`
-- `ensurepip_utils.py` — wrapping the standard library `ensurepip` package: `bootstrap` installs the `pip` the interpreter carries and returns a `BootstrapResult` record of the installation, `pip_version` reports the version of the bundled `pip` as text, `bundled_wheel` returns the path of the wheel the interpreter carries, `is_pip_installed` reports whether the running interpreter can import `pip` without importing it, `run_cli` runs the command-line interface of the standard library and returns its exit code, and `is_available` reports whether the interpreter ships the package. The record of an installation holds its `pip_version`, `root`, `upgrade`, `user`, `altinstall`, `default_pip`, and `verbosity`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the installation returns a record instead of nothing, the wheel the interpreter carries is located, the presence of `pip` is reported without importing it, and the command-line interface returns its exit code instead of terminating the interpreter. The installation uses the wheel the interpreter was built with, so it never reaches the network, and the tests of the project patch the standard library instead, so the suite installs no package. The module is tested in `tests/test_ensurepip_utils.py`.
-- `tests/test_ensurepip_utils.py` — unit tests for `ensurepip_utils.py`
-- `fractions_utils.py` — for exact rational number operations using the standard library `fractions` module: `to_fraction`, `add`, `subtract`, `multiply`, `divide`, `power`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`, `is_integer`, `numerator`, `denominator`, `to_float`, and `from_float`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_fractions_utils.py`.
-- `tests/test_fractions_utils.py` — unit tests for `fractions_utils.py`
-- `gettext_utils.py` — wrapping the standard library `gettext` module: `gettext` translates a message in the current domain, `dgettext` translates a message in a named domain, `ngettext` and `dngettext` select singular or plural translations based on a count, `textdomain` sets or gets the current message domain, `bindtextdomain` binds a domain to a locale directory, and `install` installs the translation function into Python's builtins namespace. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_gettext_utils.py`.
-- `tests/test_gettext_utils.py` — unit tests for `gettext_utils.py`
-- `glob_utils.py` — for pathname pattern expansion wrapping the standard library `glob` module: `glob_pattern` returns a list of paths matching a pattern, `iglob` returns an iterator over matching paths, `escape` escapes special characters in a pathname so it can be matched literally, and `has_magic` reports whether a pathname contains glob special characters. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_glob_utils.py`.
-- `tests/test_glob_utils.py` — unit tests for `glob_utils.py`
-- `graphlib_utils.py` — for topological sorting and cycle detection of directed graphs using the standard library `graphlib` module: `topological_sort` returns nodes in dependency order, `has_cycle` detects cycles, `dependency_order` orders items by their dependencies, and `is_valid_ordering` validates a candidate ordering. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_graphlib_utils.py`.
-- `tests/test_graphlib_utils.py` — unit tests for `graphlib_utils.py`
-- `greeting_utils.py` — : `format_greeting` renders a greeting for a person, `format_names` renders a greeting for a list of people, `format_farewell` renders a farewell for a person, and `format_encouragement` renders an encouragement message for a person. The module is tested in `tests/test_greeting_utils.py`.
-- `tests/test_greeting_utils.py` — unit tests for `greeting_utils.py`
-- `gzip_utils.py` — wrapping the standard library `gzip` module: `gzip_compress` compresses bytes with optional compression level, `gzip_decompress` decompresses gzip-compressed bytes, `gzip_open` opens a gzip file, `gzip_write` writes bytes to a gzip file, and `gzip_read` reads and decompresses a gzip file. The module is tested in `tests/test_gzip_utils.py`.
-- `tests/test_gzip_utils.py` — unit tests for `gzip_utils.py`
-- `heapq_utils.py` — wrapping the standard library `heapq` module: `heapify`, `heappush`, `heappop`, `heapreplace`, `heappushpop`, `merge`, `nlargest`, and `nsmallest`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_heapq_utils.py`.
-- `tests/test_heapq_utils.py` — unit tests for `heapq_utils.py`
-- `hostname_utils.py` — : `is_valid_hostname` validates an RFC 1123 hostname, `normalize_hostname` lowercases and strips a trailing dot, `get_local_hostname` returns the local machine hostname, `is_fully_qualified` reports whether a hostname is fully qualified, and `split_hostname` returns the DNS labels. All functions validate their inputs and raise ``TypeError`` or ``ValueError`` on invalid arguments. The module is tested in `tests/test_hostname_utils.py`.
-- `tests/test_hostname_utils.py` — unit tests for `hostname_utils.py`
-- `html_entities_utils.py` — wrapping the standard library `html.entities` module: `name2codepoint`, `codepoint2name`, `entitydefs`, and `html5` are re-exported, with `escape` replacing the HTML special characters (and, by default, the quote characters, so the result is safe inside an attribute delimiter) and `unescape` decoding named and numeric character references back to their characters. Both helpers validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_html_entities_utils.py`.
-- `tests/test_html_entities_utils.py` — unit tests for `html_entities_utils.py`
-- `html_parser_utils.py` — wrapping the standard library `html.parser` module: `HTMLParser` is re-exported for custom parsing, `strip_tags` removes all HTML tags leaving only text content, and `parse_html` creates and feeds a parser with optional custom handlers for start/end tags, data, comments, entities, declarations, and processing instructions. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_html_parser_utils.py`.
-- `tests/test_html_parser_utils.py` — unit tests for `html_parser_utils.py`
-- `imaplib_utils.py` — wrapping the standard library `imaplib` module: `create_imap4` builds an `IMAP4` client, `create_imap4_ssl` builds an `IMAP4_SSL` client, `create_imap4_stream` builds an `IMAP4_stream` client for a local command, `parse_capabilities` reads the capability names a server advertises, `has_capability` reports whether a capability is advertised, `parse_flags` reads the flags of a `FLAGS` response, `parse_fetch_flags` extracts the flags from a `FETCH` response, `format_flags` renders flags in the wire format, `parse_internaldate` reads an `INTERNALDATE` value, `format_internaldate` renders a timestamp as an `INTERNALDATE` value, and `int_to_ap` converts an integer into its `A`-`P` digit representation. `IMAP4`, `IMAP4_SSL`, `IMAP4_stream`, `IMAP4Error`, `IMAP4AbortError`, `IMAP4ReadOnlyError`, `CRLF`, `IMAP4_PORT`, and `IMAP4_SSL_PORT` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_imaplib_utils.py`.
-- `tests/test_imaplib_utils.py` — unit tests for `imaplib_utils.py`
-- `imghdr_utils.py` — wrapping the standard library `imghdr` module: `what` returns the format of an image that is given as a path or as a binary stream, `detect` returns the format of a header that is already in memory, `matching_formats` returns every format a header matches instead of only the first one, `is_image` reports whether a file holds an image, `read_header` reads the header of a file and restores the position of a stream, `supported_formats` lists the formats the interpreter recognizes, `register_test` registers a detection function, `unregister_test` removes one again, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: a header can be inspected without a file, every matching format can be listed, the formats the interpreter knows can be listed, and a detection function can be registered and removed again. The standard library recognizes the format `jpeg`, `png`, `gif`, `tiff`, `rgb`, `pbm`, `pgm`, `ppm`, `rast`, `xbm`, `bmp`, `webp`, and `exr`. The `imghdr` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The wrapper only reads the file it is given and never writes to the filesystem, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_imghdr_utils.py`.
-- `tests/test_imghdr_utils.py` — unit tests for `imghdr_utils.py`
-- `interval_utils.py` — : `normalize_interval` orders the bounds of an interval, `is_valid_interval` reports whether the bounds are ordered, `interval_contains` tests for containment, `interval_overlaps` tests for overlap, `interval_intersection` and `interval_union` combine two intervals, `merge_intervals` collapses overlapping intervals, `interval_length` measures the span, `interval_midpoint` returns the center of an interval, `interval_distance` reports the gap between two intervals, `interval_adjacent` reports whether two intervals touch back-to-back at a single shared endpoint, `interval_is_subset` tests whether one interval lies within another, `interval_shift` translates an interval by a constant, and `interval_symmetric_difference` returns the portions of two intervals that are not shared. The module is tested in `tests/test_interval_utils.py`.
-- `tests/test_interval_utils.py` — unit tests for `interval_utils.py`
-- `keyword_utils.py` — wrapping the standard library `keyword` module: `is_keyword` reports whether a word is a Python keyword, `is_soft_keyword` reports whether a word is a Python soft keyword (such as `match` and `_`), `kwlist` returns a copy of the list of keywords, `softkwlist` returns a copy of the list of soft keywords, and `main` runs the keyword module's interactive entry point. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_keyword_utils.py`.
-- `tests/test_keyword_utils.py` — unit tests for `keyword_utils.py`
-- `mailbox_utils.py` — wrapping the standard library `mailbox` module: factory helpers for mbox/Maildir/MH/MMDF/Babyl mailboxes and message objects, plus exception type checks. The module is tested in `tests/test_mailbox_utils.py`.
-- `tests/test_mailbox_utils.py` — unit tests for `mailbox_utils.py`
-- `mailcap_utils.py` — wrapping the standard library `mailcap` module: `getcaps`, `list_mailcap_files`, `read_mailcap_file`, `parse_line`, `parse_field`, `find_match`, `lookup`, `subst`, and `find_param`. The module is tested in `tests/test_mailcap_utils.py`.
-- `tests/test_mailcap_utils.py` — unit tests for `mailcap_utils.py`
-- `markdown_utils.py` — for working with Markdown text: `extract_code_blocks` extracts fenced code blocks (``` ... ```), `count_code_blocks` counts them, `has_code_blocks` reports whether any are present, `strip_markdown` removes common Markdown formatting while keeping readable text, `count_words` counts whitespace-delimited words, `has_words` reports whether any words are present, `is_heading` detects Markdown headings, `heading_level` returns the heading level (1-6) or 0 if not a heading, `count_headings` counts heading lines, and `has_headings` reports whether any are present. All functions validate their inputs and raise `TypeError` for non-string arguments. The module is tested in `tests/test_markdown_utils.py`.
-- `tests/test_markdown_utils.py` — unit tests for `markdown_utils.py`
-- `modulefinder_utils.py` — wrapping the standard library `modulefinder` module: `load_script` analyses a script statically and returns the module finder that holds the result; `find_dependencies` returns the sorted names of every module the script imports; `find_modules` maps every dependency to the file it was found in; `missing_modules` returns the imports that could not be resolved; `missing_importers` names the modules that import those unresolved names; `module_path` returns the file a single dependency was found in; `is_package` reports whether a dependency is a package; and `report` returns the textual dependency report instead of printing it. The analysis is purely static: the script is never imported and never executed. `Module` and `ModuleFinder` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_modulefinder_utils.py`.
-- `tests/test_modulefinder_utils.py` — unit tests for `modulefinder_utils.py`
-- `networking_utils.py` — for TCP port and host operations: `is_valid_port` validates port numbers (1-65535), `is_port_open` checks whether a TCP port is reachable on a host, `find_free_port` returns an unused local TCP port, `resolve_hostname` resolves a hostname to its IPv4 address, `get_local_ip` returns the local machine's IPv4 address, and `tcp_ping` measures TCP connection latency. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_networking_utils.py`.
-- `tests/test_networking_utils.py` — unit tests for `networking_utils.py`
-- `nntplib_utils.py` — wrapping the standard library `nntplib` module: `NNTP` and `NNTP_SSL` provide NNTP client connections, `create_nntp` and `create_nntp_ssl` create connections with input validation, `GroupInfo` and `ArticleInfo` are re-exported records, and the constants and errors are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `nntplib` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_nntplib_utils.py`.
-- `tests/test_nntplib_utils.py` — unit tests for `nntplib_utils.py`
-- `number_utils.py` — for common numeric operations: `clamp` restricts a value to a closed interval, `round_to` rounds a value to a given number of decimal places (banker's rounding), `round_half_up` rounds a value to a given number of decimal places rounding halves away from zero, `is_integer` tests whether a value is integral, `format_number` formats a number with thousands separators and fixed decimals, `percentage` returns a part as a percentage of a total formatted as a string, `lerp` linearly interpolates between two values, `sign` returns the sign of a number, and `is_even`, `is_odd`, `is_negative`, `is_positive`, `is_zero`, `is_non_negative`, `is_non_positive`, `is_between`, `is_close`, `is_finite`, `is_infinite`, and `is_nan` test integer-valued, parity, sign, range, and special floating-point properties; `digit_sum` returns the sum of the decimal digits of an integer; `digit_count` returns the number of decimal digits of an integer; `is_perfect_number` tests whether a positive integer is a perfect number (equal to the sum of its proper divisors); `aliquot_sum` returns the sum of the proper divisors of a positive integer; `is_perfect_cube` tests whether a positive integer is a perfect cube; `is_perfect_square` tests whether a non-negative integer is a perfect square; `is_power_of_two` tests whether a positive integer is a power of two; `is_power_of` tests whether a value is an integer power of a given base (supporting positive/negative bases and the 0/1/-1 edge cases); `is_powerful_number` tests whether every prime factor's square divides the number (powerful numbers include 1, 4, 8, 9, 16, 25, 27, 32, 36, ...); `is_power_of` tests whether a value is an integer power of a given base (supporting positive/negative bases and the 0/1/-1 edge cases); `is_prime` tests whether an integer greater than 1 is prime (0, 1, and negatives are not prime); `is_mersenne_number` tests whether a positive integer is a Mersenne number (of the form 2^p - 1 for some non-negative integer p); `is_mersenne_prime` tests whether a number is a Mersenne prime (a prime of the form 2^p - 1 with prime *p*, e.g. 3, 7, 31, 127); `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64, 125); `is_palindromic_number` tests whether an integer is palindromic in base 10; `digital_root` returns the recursive digital root of an integer; `is_triangular_number` tests whether an integer is a triangular number; `is_automorphic_number` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625); `is_happy_number` tests whether an integer is a happy number (repeatedly summing the squares of its decimal digits eventually reaches 1); `is_armstrong_number` tests whether an integer is an Armstrong (narcissistic) number; `is_harshad_number` tests whether a positive integer is a Harshad (Niven) number (divisible by the sum of its decimal digits); `is_neon_number` tests whether a non-negative integer is a neon number (the sum of the digits of its square equals the number itself, e.g. 0, 1, 9); `is_strong_number` tests whether a positive integer is a strong number (the sum of the factorials of its decimal digits equals the number itself, e.g. 1, 2, 145, 40585); `is_fibonacci_number` tests whether a non-negative integer is a Fibonacci number (using the closed-form identity that 5n²+4 or 5n²-4 is a perfect square); `is_lucas_number` tests whether an integer is a Lucas number (the sequence defined by L(0)=2, L(1)=1, L(n)=L(n-1)+L(n-2), e.g. 2, 1, 3, 4, 7, 11, 18, 29); `is_pronic_number` tests whether a non-negative integer is a pronic number (a product of two consecutive integers, n*(n+1), e.g. 0, 2, 6, 12, 20); `is_abundant_number` tests whether a positive integer is an abundant number (the sum of its proper divisors exceeds the number itself, e.g. 12, 18, 20); `is_deficient_number` tests whether a positive integer is a deficient number (the sum of its proper divisors is less than the number itself, e.g. 1, 2, 4, 8); `gcd` returns the greatest common divisor of two integers; `lcm` returns the least common multiple of two integers; `ceil_div` returns the ceiling of the division of two integers; `is_divisible_by` and `is_multiple_of` test divisibility; `divides` is an alias for `is_divisible_by`; `is_coprime` reports whether two integers share no common positive factor other than 1; `safe_divide` divides two numbers, returning 0.0 when the denominator is zero; `map_range` and `remap` map a value from one range to another; `is_kaprekar_number` tests whether a non-negative integer is a Kaprekar number (its square can be split into two parts that sum to the number, e.g. 9, 45, 297, 703); `is_ugly_number` tests whether a positive integer's only prime factors are 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15); `is_squarefree_number` tests whether a positive integer is squarefree (not divisible by any perfect square greater than 1). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_number_utils.py`.
-- `tests/test_number_utils.py` — unit tests for `number_utils.py`
-- `operator_utils.py` — for common functional operations: `identity`, `negate`, arithmetic operators `add`, `subtract`, `multiply`, `divide`, `power`, and `modulo`, plus `clamp` to bound a value to a range and `between` to test membership in an interval (inclusive by default). All functions are generic over their arguments. The module is tested in `tests/test_operator_utils.py`.
-- `tests/test_operator_utils.py` — unit tests for `operator_utils.py`
-- `optparse_utils.py` — wrapping the standard library `optparse` module: `make_parser` creates an `OptionParser` with validated metadata; `add_option` adds an option to a parser or to an option group; `add_flag` adds a boolean flag; `add_count_option` adds an option that counts its occurrences; and `add_option_group` creates an option group. `parse_args` parses a command line and returns the parsed values together with the remaining arguments, and it can either keep the standard library behaviour of printing a usage message and terminating the interpreter or raise `OptionParseError` instead. `get_option`, `has_option`, and `remove_option` query and change the registered options; `get_default_values` and `set_defaults` work with the default values; `get_usage`, `format_usage`, `format_help`, `format_option_help`, and `get_prog_name` render the help text; `dest_for` returns the destination attribute the standard library derives from an option string; `string_type`, `int_type`, `float_type`, and `choice_type` are value converters; and `values_to_dict` turns the parsed values into a plain dictionary. `Option`, `OptionParser`, `OptionGroup`, `OptionContainer`, `Values`, `OptionError`, `OptionValueError`, `OptionConflictError`, `BadOptionError`, `SUPPRESS_HELP`, and `SUPPRESS_USAGE` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_optparse_utils.py`.
-- `tests/test_optparse_utils.py` — unit tests for `optparse_utils.py`
-- `os_utils.py` — for inspecting the platform and environment: `get_platform_info` returns system/release/version/machine/processor/Python details, `get_cpu_count` reports the available CPU count, `get_disk_usage` reports total/used/free/percent disk usage, `get_user_home` and `get_username` return the current user's home and login name, `find_executable` locates an executable on ``PATH``, `expand_path` expands ``~`` and environment variables to an absolute path, and `is_executable` checks whether a path exists and is executable. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_os_utils.py`.
-- `tests/test_os_utils.py` — unit tests for `os_utils.py`
-- `plistlib_utils.py` — wrapping the standard library `plistlib` module: `plist_load` loads a plist from a binary file object, `plist_loads` loads a plist from bytes, `plist_dump` writes an object as a plist to a binary file object, and `plist_dumps` serializes an object to plist bytes. The module is tested in `tests/test_plistlib_utils.py`.
-- `tests/test_plistlib_utils.py` — unit tests for `plistlib_utils.py`
-- `posix_utils.py` — wrapping the standard library `posix` module: `open_fd` opens a path and returns the descriptor of the open file, `close_fd` closes a descriptor, `read_fd` reads up to a number of bytes, `read_exactly` reads until the requested number of bytes arrived, `write_fd` writes bytes, `write_all` writes until every byte left, `seek_fd` moves the position of a descriptor, `read_at` and `write_at` read and write at an offset without moving the position, `duplicate_fd` and `duplicate_fd_to` copy a descriptor, `create_pipe` creates a pipe, `is_terminal` reports whether a descriptor is a terminal, `is_blocking` and `set_blocking` report and change the blocking mode, `is_inheritable` and `set_inheritable` report and change the inheritable flag, `sync_fd` and `sync_data` write a file to the storage device, `truncate_fd` sets the length of a file, and `terminal_size` reports the size of a terminal. The filesystem is reported by `file_info`, which returns the metadata of a file as one `FileInfo` record, by `file_mode` and `file_size`, by `device_number` and `make_device`, which translate between a device number and its major and minor number, and by `path_accessible`, `is_readable`, `is_writable`, and `is_executable`. The filesystem is changed by `create_directory`, which creates the missing parents of a directory, by `remove_directory`, `delete_file`, and `remove_path`, which removes a path whatever it is, by `rename_path`, `create_hard_link`, `create_symbolic_link`, and `read_symbolic_link`, by `change_owner` and `change_mode`, and by `set_umask`, which reports the mask it replaced. The extended attributes of a file are read and written by `read_xattr`, `write_xattr`, `list_xattrs`, and `remove_xattr`. The scheduling of a process is reported by `scheduler_policy`, `scheduler_policy_name`, `scheduler_priorities`, `scheduler_parameters`, `affinity_mask`, and `yield_cpu`, and the wait status of a process is turned into an exit code by `exit_code_of` and into a readable sentence by `describe_wait_status`. The system itself is reported by `uname`, `cpu_count`, `load_average`, `process_times`, `system_limit`, `system_limits`, `system_configuration`, `login_name`, `terminal_device`, and `error_message`. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds seven conveniences to the standard library: a descriptor is read until the requested number of bytes arrived and written until every byte left, a directory is created together with its parents, a path is removed whatever it is, the metadata of a file is returned as one record, the scheduling policy is reported by name, a wait status is turned into a readable sentence, and the limits of the system are reported by name. The `posix` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The wrapper never forks a process and never touches a path it was not given, so the tests of the project create every file in a temporary directory of their own. The module is tested in `tests/test_posix_utils.py`.
-- `tests/test_posix_utils.py` — unit tests for `posix_utils.py`
-- `prime_utils.py` — for prime-related operations: `is_prime` checks whether an integer is prime, `is_composite` returns `True` if an integer is composite (a positive integer with more than two divisors; 0, 1, negatives, and primes are not composite), `prime_factors` returns the prime factors of an integer, `nth_prime` returns the nth prime (1-indexed), `primes_up_to` returns all primes up to a limit, `is_coprime` checks whether two integers are coprime (alias `coprime`), `is_circular_prime` tests whether a prime remains prime under every cyclic rotation of its decimal digits, `is_chen_prime` tests whether a prime is a Chen prime (a prime *p* such that *p + 2 is either prime or semiprime), `next_prime` returns the smallest prime greater than or equal to a lower bound, `prev_prime` returns the largest prime less than or equal to an upper bound, `is_perfect_square` tests whether a non-negative integer is a perfect square, `is_power_of_two` tests whether a positive integer is a power of two (1, 2, 4, ...), `is_semiprime` tests whether an integer is a semiprime (product of exactly two prime factors counting multiplicity), `is_squarefree` tests whether an integer is squarefree, `is_prime_power` tests whether a number is a prime power, `is_emirp` tests whether a prime is an emirp, `is_twin_prime` tests whether a prime is a twin prime, `is_palindromic_prime` tests whether a prime is palindromic in base 10, `is_mersenne_prime` tests whether a number is a Mersenne prime, `is_sophie_germain_prime` tests whether a prime is a Sophie Germain prime, `is_safe_prime` tests whether a prime is a safe prime, `sum_of_proper_divisors` returns the sum of proper divisors, `aliquot_sum` is an alias, `is_perfect_number`, `is_abundant_number`, and `is_deficient_number` classify numbers by their abundance, `is_cousin_prime` tests whether a prime differs by 4 from another prime, `is_sexy_prime` tests whether a prime differs by 6 from another prime, `radical` returns the product of the distinct prime factors of an integer (rad(n)), `prime_count` returns the number of primes less than or equal to a limit (the prime counting function π(*n*), returning 0 for any input below 2), `primorial` returns the product of all primes less than or equal to *n* (*n#*), `primes_between` returns all prime numbers in the inclusive range [*lower*, *upper*], `count_prime_factors` returns the total number of prime factors with multiplicity (Ω(n); `total_prime_factors` is an alias), `has_prime_factors` is the boolean companion to `count_prime_factors`, returning ``True`` when *n* has at least one prime factor and ``False`` for *n* equal to 1, `count_distinct_prime_factors` returns the number of distinct prime factors (ω(n); `distinct_prime_factors` is an alias), `has_distinct_prime_factors` is its boolean companion, returning ``True`` when *n* has at least one distinct prime factor and ``False`` when *n* is 1, and `largest_prime_factor` returns the largest prime factor of an integer, `is_automorphic` tests whether a non-negative integer is automorphic (its square ends with the decimal representation of the number itself, e.g. 5, 6, 25, 76, 376, 625), `is_truncatable_prime` tests whether a prime remains prime when digits are removed one at a time from either the left or the right (a two-sided truncatable prime, e.g. 3797), `is_pythagorean_prime` tests whether a prime is a Pythagorean prime (a prime of the form 4k + 1), `is_wilson_prime` tests whether a prime *p* satisfies the Wilson congruence modulo *p*² ((p - 1)! ≡ -1 (mod p**2)); the only known Wilson primes are 5, 13, and 563, `is_carmichael_number` tests whether a composite squarefree integer with at least three prime factors satisfies Korselt's criterion (a Fermat pseudoprime to every base coprime to *n*; the smallest is 561), `is_korselt_number` tests whether a composite squarefree integer *n* satisfies Korselt's criterion (for every prime factor *p* of *n*, *p - 1* divides *n - 1*), and `is_giuga_number` tests whether a composite squarefree integer *n* is a Giuga number (for every prime factor *p* of *n*, *p* divides *n // p - 1*; the smallest is 30), `is_fermat_pseudoprime` tests whether a composite integer *n* satisfies `base ** (n - 1) ≡ 1 (mod n)` for a given *base* (default 2; the smallest such base-2 pseudoprime is 341), `is_amicable` tests whether *n* belongs to an amicable pair — two distinct positive integers where each equals the sum of the proper divisors of the other (e.g. 220 and 284) — returning False for perfect numbers and numbers below 2, and `is_perfect_power` tests whether a positive integer > 1 can be expressed as an integer power of another integer with exponent >= 2 (e.g. 16, 36, 64). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_prime_utils.py`. `is_powerful_number` tests whether a positive integer is powerful (for every prime factor *p*, *p*² also divides *n*; e.g. 4, 8, 9, 36, 72), returning True for 1 and False for numbers below 1 and for squarefree composites. `is_fermat_number` tests whether a positive integer is a Fermat number (of the form 2^(2^k) + 1; e.g. 3, 5, 17, 257, 65537), `is_strong_prime` tests whether a prime is a strong prime (a prime greater than the arithmetic mean of its nearest primes above and below, i.e. closer to the next prime than to the previous one; the first few are 11, 17, 29, 37, 41, 59, 67, 71, 79, 97, ...), `is_balanced_prime` tests whether a prime equals the arithmetic mean of its two nearest primes (e.g. 5, 53, 157, 173, 211, ...), and `is_weak_prime` tests whether a prime is less than the arithmetic mean of its two nearest primes (e.g. 7, 13, 19, 23, 31, ...), returning False for non-primes and small primes outside the definitions. `is_super_prime` tests whether a prime's position in the sequence of primes is itself prime (e.g. 3, 5, 11, 17, 31, ...), returning False for non-primes. `is_ugly_number` tests whether a positive integer's prime factors are limited to 2, 3, and 5 (e.g. 1, 2, 3, 4, 5, 6, 8, 9, 10, ...), returning False for numbers with other prime factors and for non-positive integers. `is_happy_prime` tests whether a number is both prime and happy (a happy number reaches 1 when iteratively replaced by the sum of squares of its digits; examples include 7, 13, 19, 23, 31, 37, 79, 97, 103, 139), returning False for numbers that are prime but unhappy (including 2, 3, and 5, which fall into the 4 -> 16 -> 37 -> 58 -> 89 -> 145 -> 42 -> 20 -> 4 loop), for composites, and for 1. `is_cuban_prime` tests whether a prime is a cuban prime — a prime of the form `3*y**2 + 3*y + 1` for some integer `y >= 1` (e.g. 7, 19, 37, 61, 127, 271, 331, ...), returning False for non-primes and for primes not of that form. `is_proth_prime` tests whether a prime is a Proth prime — a Proth number is `k * 2**m + 1` where *k* is odd and `k < 2**m` (e.g. 3, 5, 13, 17, 41, 97, 113, 193, 241, 257, ...), returning False for non-primes and primes not of that form.
-- `tests/test_prime_utils.py` — unit tests for `prime_utils.py`
-- `profile_utils.py` — wrapping the standard library `profile` module: `run` profiles a single statement, `runctx` profiles a statement in given namespaces, `new_profiler` creates a new profiler instance, `Profile` is the profiler class, and `main` runs the profile module's command-line entry point. All functions validate their inputs and raise `TypeError` on invalid arguments. The module is tested in `tests/test_profile_utils.py`.
-- `tests/test_profile_utils.py` — unit tests for `profile_utils.py`
-- `pstats_utils.py` — wrapping the standard library `pstats` module: `new_stats` creates `Stats` objects from profile files, `load_stats` loads statistics, `add_stats` merges statistics, `print_stats` prints reports, `sort_stats` sorts results, `strip_dirs` removes path prefixes, `reverse_order` reverses sort order, and `dump_stats` saves statistics to files. `Stats` and `SortKey` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pstats_utils.py`.
-- `tests/test_pstats_utils.py` — unit tests for `pstats_utils.py`
-- `py_compile_utils.py` — wrapping the standard library `py_compile` module: `compile_file` / `py_compile_file` byte-compile one Python source file to bytecode and return the resulting ``.pyc`` path, with optional explicit target name, display name, raise-on-error flag, optimization level, and invalidation mode; `parse_invalidation_mode` and `get_invalidation_mode` resolve a ``PycInvalidationMode`` from a string, enum, or ``None`` (falling back to the interpreter's default); `is_pyc_file` reports whether a path looks like a compiled bytecode file; and `main` runs the ``py_compile`` command-line interface. The module re-exports ``py_compile.PyCompileError`` as `PyCompileError` and ``py_compile.PycInvalidationMode`` as `PycInvalidationMode`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_py_compile_utils.py`.
-- `tests/test_py_compile_utils.py` — unit tests for `py_compile_utils.py`
-- `pyclbr_utils.py` — wrapping the standard library `pyclbr` module: `read_module` returns the classes defined in a module, `read_module_ex` returns both its classes and its top-level functions, and `class_names`, `function_names`, `find_class`, `find_function`, `has_class`, `has_function`, `is_class`, and `is_function` query the result. The analysis is purely static: the source is read but never imported or executed, so the module is safe to inspect from a test suite. `Class` and `Function` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyclbr_utils.py`.
-- `tests/test_pyclbr_utils.py` — unit tests for `pyclbr_utils.py`
-- `pyexpat_utils.py` — wrapping the standard library `pyexpat` module: `ParserCreate` creates a parser, `parse_text` and `parse_file` parse a document from text or a file, `error_string` describes an error code, `version_info` reports the expat library version, and `is_available` reports whether the interpreter ships the module. The parser reports the position of an error through `error_position` and its current position through `current_position`, both returned as named tuples. The helpers `set_base`, `get_base`, `set_param_entity_parsing`, and `external_entity_parser` configure the parser, while `set_start_element_handler`, `set_end_element_handler`, `set_character_data_handler`, and `set_processing_instruction_handler` set the event handlers. The `attribute_mapping` helper normalizes element attributes into a plain dictionary. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_pyexpat_utils.py`.
-- `tests/test_pyexpat_utils.py` — unit tests for `pyexpat_utils.py`
-- `readline_utils.py` — wrapping the standard library `readline` module: `add_history` adds a line to the history, `clear_history` removes every entry, `get_history_item` reads the entry at a position, `remove_history_item` removes the entry at a position and returns it, `replace_history_item` replaces the entry at a position and returns the entry it replaced, `history_items` returns every entry of the history as a list, and `search_history` returns the entries that start with a prefix. The helpers that touch a file always name the file they touch: `read_history_file` loads a history file, `write_history_file` writes the history to a file, `append_history_file` appends the last entries of the history to a file, and `read_init_file` executes an init file, while `default_history_file` reports the history file the standard library uses by default. The helpers of the editor are `parse_and_bind`, `set_history_length`, `get_history_length`, `get_current_history_length`, `set_completer`, `get_completer`, `set_completer_delims`, `get_completer_delims`, `set_startup_hook`, `set_pre_input_hook`, `set_completion_display_matches_hook`, `get_completion_type`, `get_begidx`, `get_endidx`, `get_line_buffer`, `insert_text`, `redisplay`, and `set_auto_history`. The helper `make_completer` returns a completer for a fixed list of words, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds four conveniences to the standard library: the history is returned as a list, the positions of the history are numbered the same way everywhere, the helpers that touch a file always name the file they touch, and a completer for a list of words is offered. The standard library reads an entry by its one-based position but removes and replaces it by its zero-based position, so the wrapper numbers every position the same way, with the one-based number. The `readline` module only exists on Unix-like platforms, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The helpers that touch a file only touch the file they are given, so the tests of the project create every file in a temporary directory of their own and the suite never reads the history file of the user. The module is tested in `tests/test_readline_utils.py`.
-- `tests/test_readline_utils.py` — unit tests for `readline_utils.py`
-- `select_utils.py` — wrapping the standard library `select` module: `select` waits for file descriptors to become readable, writable, or exceptional with input validation, `create_poller` builds a `select.poll` object, `poll_register` registers a file descriptor with an event mask, and `poll_poll` polls for pending events. `PIPE_BUF` is re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_select_utils.py`.
-- `tests/test_select_utils.py` — unit tests for `select_utils.py`
-- `selectors_utils.py` — wrapping the standard library `selectors` module for I/O multiplexing: `create_default_selector` returns a platform-default selector, `register` and `unregister` monitor or stop monitoring file objects for read/write events, `select` waits until registered file objects are ready, `get_key` and `get_map` inspect registrations, and `close_selector` releases resources. Event masks `EVENT_READ` and `EVENT_WRITE` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` for invalid arguments. The module is tested in `tests/test_selectors_utils.py`.
-- `tests/test_selectors_utils.py` — unit tests for `selectors_utils.py`
-- `semver_utils.py` — : the `SemanticVersion` class parses and compares version strings, `parse_semver` parses a semantic version, `compare_semver` compares two versions, `bump_major`, `bump_minor`, and `bump_patch` increment a version component, and `is_valid_semver` reports whether a string is a valid semantic version. The module is tested in `tests/test_semver_utils.py`.
-- `tests/test_semver_utils.py` — unit tests for `semver_utils.py`
-- `seq_utils.py` — for common sequence operations: `first`, `last`, `first_or_default`, `last_or_default`, `nth`, and `nth_or_default` retrieve elements by position (returning `None`/default when absent or out of range); `head` and `tail` return leading or trailing elements; `take` and `drop` return or skip the first `n` elements; `take_last` and `drop_last` return or skip the last `n` elements (companions to `take`/`drop`); `split_at` divides a sequence at an index; `take_while` and `drop_while` consume elements based on a predicate; `interleave` round-robins elements from multiple sequences; `adjacent_pairs` forms consecutive pairs; `flatten` removes one level of nesting; `chunk` splits a sequence into fixed-size chunks; `unique` removes duplicates preserving first-occurrence order (`distinct` is an alias); `is_sorted` checks ascending or descending order with an optional key; `count_occurrences` returns how many elements equal a given value; `has_where` reports whether at least one element satisfies a predicate; `all_where` reports whether every element satisfies a predicate (vacuously `True` for an empty sequence, matching Python `all` semantics); `none_where` reports whether no element satisfies a predicate (the negation companion to `has_where`); `find` returns the first element satisfying a predicate (or `None` when absent); `find_index` returns the 0-based index of the first element satisfying a predicate (or `None` when absent); `find_last` returns the last element satisfying a predicate (or `None` when absent); `find_last_index` returns the 0-based index of the last element satisfying a predicate (or `None` when absent); `index_of` returns the 0-based index of the first matching element (or `None` when absent); and `last_index_of` returns the 0-based index of the last matching element (or `None` when absent); `count_where` returns how many elements satisfy a predicate; `count_unique` returns the number of distinct elements in a sequence; `has_all_unique` reports whether every element is distinct (reusing `count_unique`); `partition` splits a sequence into `(matching, not_matching)` lists by a predicate, preserving order within each list; `reverse` returns a new list with the elements of a sequence in reverse order; `is_empty`/`is_not_empty` report whether a sequence has no/any elements. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_seq_utils.py`.
-- `tests/test_seq_utils.py` — unit tests for `seq_utils.py`
-- `shlex_utils.py` — wrapping the standard library `shlex` module: `split` splits a shell-like string into a list of tokens, `quote` returns a shell-escaped version of a string, and `join` joins a sequence of tokens back into a single shell-escaped string. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_shlex_utils.py`.
-- `tests/test_shlex_utils.py` — unit tests for `shlex_utils.py`
-- `shutil_utils.py` — wrapping the standard library `shutil` module: `copy_file` and `copy_tree` copy files and directories, `move` moves a path, `remove_tree` deletes a directory tree, `disk_usage` reports disk usage for a path, `make_archive` and `unpack_archive` build and expand archives, and `which` locates an executable on `PATH`. The module is tested in `tests/test_shutil_utils.py`.
-- `tests/test_shutil_utils.py` — unit tests for `shutil_utils.py`
-- `slugify_utils.py` — : `slugify` and `is_slug`. The module is tested in `tests/test_slugify_utils.py`.
-- `tests/test_slugify_utils.py` — unit tests for `slugify_utils.py`
-- `smtplib_utils.py` — wrapping the standard library `smtplib` module: `quoteaddr` quotes an address the way a server expects it; `quote_string` quotes a string so that it can be used inside a header; `quote_data` quotes a message body so that it cannot end the message early; `parse_address` splits an address into its display name and its address; `address_only` returns an address without its display name; `format_address` formats a display name and an address as a single header value; `getfqdn` returns the fully qualified domain name of a host; `parse_response` parses a raw server reply into its code and its message; and `parse_ehlo_features` parses the service extensions a server announced in its EHLO reply. `build_message` assembles a complete `email.message.EmailMessage` from plain values and guesses the media type of an attachment from its file name. `create_smtp`, `create_smtp_ssl`, and `create_lmtp` build the standard library clients, and `send_message` and `send_text` send a message with a client the caller already owns. `SMTP`, `SMTP_SSL`, `LMTP`, and the standard library error classes are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module never opens a connection on its own, so the caller stays in control of when a connection is attempted and the test suite stays hermetic. The module is tested in `tests/test_smtplib_utils.py`.
-- `tests/test_smtplib_utils.py` — unit tests for `smtplib_utils.py`
-- `sndhdr_utils.py` — wrapping the standard library `sndhdr` module: `what` returns the format of a sound file, `whathdr` returns the format and parameters, `tests` lists the test functions, `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sndhdr` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sndhdr_utils.py`.
-- `tests/test_sndhdr_utils.py` — unit tests for `sndhdr_utils.py`
-- `socketserver_utils.py` — wrapping the standard library `socketserver` module for building TCP/UDP servers: `create_tcp_server` and `create_udp_server` create validated server instances, `handle_one_request` processes a single request, `serve_forever` blocks serving requests, `shutdown_server` and `close_server` stop and release a server, and `get_server_address` / `is_serving` inspect bound address and serving state. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_socketserver_utils.py`.
-- `tests/test_socketserver_utils.py` — unit tests for `socketserver_utils.py`
-- `spwd_utils.py` — wrapping the standard library `spwd` module: `getspnam` looks up a user's shadow entry, `getspall` returns all shadow entries, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `spwd` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_spwd_utils.py`.
-- `tests/test_spwd_utils.py` — unit tests for `spwd_utils.py`
-- `sqlite3_utils.py` — wrapping the standard library `sqlite3` module: `connect` opens a connection (defaulting to an in-memory database), `execute` and `executemany` run SQL statements with optional parameters, `fetch_all`, `fetch_one`, and `fetch_many` return query results, `create_table` creates a table if it does not exist, `insert_row` inserts a row and returns its id, `query` returns rows as dictionaries keyed by column name, and `table_exists` checks whether a table exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sqlite3_utils.py`.
-- `tests/test_sqlite3_utils.py` — unit tests for `sqlite3_utils.py`
-- `sre_compile_utils.py` — wrapping the standard library `sre_compile` module: `compile` compiles a pattern, `isstring` checks if an object is a string, `compile_pattern` compiles a regex pattern, `dis` disassembles a pattern, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sre_compile` module is an internal implementation detail, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_compile_utils.py`.
-- `tests/test_sre_compile_utils.py` — unit tests for `sre_compile_utils.py`
-- `sre_constants_utils.py` — wrapping the standard library `sre_constants` module: `get_opcodes` returns the opcodes if available, `opcodenames` returns a mapping of opcode numbers to names, `lookup_opcode` resolves an opcode number to its name, `op_code` resolves an opcode name to its number, `assert_valid_flags` validates regex flags, `get_all` returns all public constants, `error_codes` returns error codes if available, and `is_available` reports whether the interpreter ships the module. Common constants such as `LITERAL`, `BRANCH`, `ANY`, `MAXCODE`, and the `SRE_FLAG_*` flags are re-exported when available. The exception class `error` is re-exported. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_constants_utils.py`.
-- `tests/test_sre_constants_utils.py` — unit tests for `sre_constants_utils.py`
-- `sre_parse_utils.py` — wrapping the standard library `sre_parse` module: `parse_pattern` parses a regular expression pattern into a `SubPattern` tree, `parse_template` parses a replacement template, `pattern_width` reports the minimum and maximum width of a pattern, `pattern_dump` returns the text dump of a parsed tree, and `is_available` reports whether the interpreter ships the module. The classes `SubPattern` and `State` together with the exception `error` are re-exported, and common constants such as `LITERAL`, `BRANCH`, `CHARSET`, `GROUPREF`, `SUBPATTERN`, and the `SRE_FLAG_*` flags are re-exported when available. All functions validate their inputs and raise :class:`TypeError` on invalid arguments. The module degrades gracefully and helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sre_parse_utils.py`.
-- `tests/test_sre_parse_utils.py` — unit tests for `sre_parse_utils.py`
-- `struct_utils.py` — wrapping the standard library `struct` module: `pack` and `unpack` convert between values and bytes, `pack_into` and `unpack_from` read/write at a buffer offset, `calcsize` reports the byte size of a format string, and `is_valid_format` validates a format string. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid input. The module is tested in `tests/test_struct_utils.py`.
-- `tests/test_struct_utils.py` — unit tests for `struct_utils.py`
-- `sunau_utils.py` — wrapping the standard library `sunau` module: `open` opens a Sun AU file and returns an `Au_read` or `Au_write` object, `open_au` is an alias for `open`, `open_read` opens a file for reading, and `open_write` opens a file for writing. The convenience aliases `open_sunau`, `read_sunau`, and `write_sunau` are also provided. The classes `Au_read` and `Au_write` together with the error `Error` are re-exported from the standard library, and `is_available` reports whether the interpreter ships the module. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The `sunau` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers raise :class:`RuntimeError` when the module is missing. The module is tested in `tests/test_sunau_utils.py`.
-- `tests/test_sunau_utils.py` — unit tests for `sunau_utils.py`
-- `symtable_utils.py` — wrapping the standard library `symtable` module: `build_symbol_table` builds the symbol table of a block of source code, `lookup_symbol_table` analyses the source file of an importable module, `scope_type` reports whether a scope is a module, function, class, annotation, or comprehension, `scope_identifiers` lists the names bound in a scope, `child_scopes` and `iter_scopes` walk the nested scope tree, `find_scope` locates a nested scope by name, `describe_scope` summarizes a scope, `symbol_info` and `symbol_flags` describe how a symbol is used, `namespace_names` lists the names bound in the namespace a symbol introduces, and `free_variables`, `global_names`, `local_names`, `parameter_names`, `imported_names`, `assigned_names`, `referenced_names`, and `nonlocal_names` collect the names of a scope by usage. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_symtable_utils.py`.
-- `tests/test_symtable_utils.py` — unit tests for `symtable_utils.py`
-- `sys_utils.py` — for inspecting the interpreter and runtime environment: `get_python_version` returns the version as a dictionary, `get_python_version_string` returns the full version string, `get_executable` returns the interpreter path, `get_argv` returns command-line arguments, `get_platform` returns the platform identifier, `get_path` returns the module search path, `get_recursion_limit`/`set_recursion_limit` read and set the recursion limit, `get_stdout_encoding`/`get_stderr_encoding`/`get_stdin_encoding` report stream encodings, `is_interactive` detects interactive sessions, `get_frame_info` inspects a stack frame, and `get_refcount` returns an object's reference count. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_sys_utils.py`.
-- `tests/test_sys_utils.py` — unit tests for `sys_utils.py`
-- `telnetlib_utils.py` — wrapping the standard library `telnetlib` module: `create_telnet` creates a client, `connect_telnet` creates a client and opens the connection, `read_until` and `read_until_text` read the data of a connection up to a marker, `read_all` reads the data until the peer closes the connection, `read_some` reads at least one byte, `read_eager` and `read_very_eager` read without waiting for more than one round trip, `read_lazy` and `read_very_lazy` read without waiting at all, `read_sb_data` reads the data of a subnegotiation, `write` writes bytes and reports the number of bytes that reached the peer, `send_line` writes a line and ends it, `expect` and `expect_text` read until one of a list of patterns matched, `close` closes the connection, `escape_iac` doubles every byte that introduces a command, `strip_iac` removes the commands of the protocol from a payload, `command_name` and `option_name` report the name of a command or an option, and `is_available` reports whether the interpreter ships the module. The client class `Telnet` is re-exported, and the constants `IAC`, `DONT`, `DO`, `WONT`, `WILL`, `SE`, `NOP`, `DM`, `BRK`, `IP`, `AO`, `AYT`, `EC`, `EL`, `GA`, `SB`, and `theNULL` are re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds six conveniences to the standard library: the data of a connection can be read as text, a line can be sent in one call, the number of bytes that reached the peer is reported, the telnet commands can be removed from a payload or escaped in one, and the name of a command or an option can be looked up. The `telnetlib` module was deprecated in Python 3.11 and removed in Python 3.13 as part of :pep:`594`, so the import degrades gracefully and the helpers that need it raise :class:`RuntimeError` when the module is missing, while the helpers that only work on the protocol itself keep working. The tests of the project talk to a server of the loopback interface of their own, so the suite never reaches the network. The module is tested in `tests/test_telnetlib_utils.py`.
-- `tests/test_telnetlib_utils.py` — unit tests for `telnetlib_utils.py`
-- `temp_utils.py` — for creating, writing, reading, and cleaning up temporary filesystem resources: `create_temp_file` and `create_temp_dir` create named temp files/directories, `temp_file` and `temp_dir` are context managers that remove resources on exit, `write_temp_file` and `read_temp_file` read/write temp file contents, `cleanup_temp_path` removes a temp file or directory, `is_temp_path` checks whether a path lives under the system temp directory, and `temp_path_exists` reports whether a path exists. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_temp_utils.py`.
-- `tests/test_temp_utils.py` — unit tests for `temp_utils.py`
-- `template_utils.py` — for rendering and substituting variables in template strings: `render_template` renders a template using `str.format()` style placeholders, `substitute` renders a template using `string.Template` style placeholders, `safe_substitute` renders a template without raising on missing placeholders, `render_from_dict` renders a template from a mapping of variables, `has_placeholders` checks whether a template contains any placeholders, `count_placeholders` returns the number of distinct placeholder names, and `extract_placeholders` returns the placeholder names found in a template. The module supports both `str.format()` style and `string.Template` style placeholders and is tested in `tests/test_template_utils.py`.
-- `tests/test_template_utils.py` — unit tests for `template_utils.py`
-- `textwrap_utils.py` — for wrapping, shortening, dedenting, indenting, and filling text using the standard library `textwrap` module: `wrap_text`, `shorten_text`, `dedent_text`, `indent_text`, and `fill_text`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_textwrap_utils.py`.
-- `tests/test_textwrap_utils.py` — unit tests for `textwrap_utils.py`
-- `time_utils.py` — for working with timestamps and durations: `now_epoch` returns the current Unix timestamp in seconds, `now_iso` returns the current UTC time as an ISO 8601 string, `epoch_to_iso` converts a Unix timestamp to an ISO 8601 UTC string, and `iso_to_epoch` parses an ISO 8601 string into a Unix timestamp (returning `None` for invalid input); `format_duration` formats a non-negative number of seconds as a human-readable `Hh Mm Ss` string. The module is tested in `tests/test_time_utils.py`.
-- `tests/test_time_utils.py` — unit tests for `time_utils.py`
-- `timezone_utils.py` — for working with IANA time zones using the standard library `zoneinfo` module: `get_timezone` looks up a `ZoneInfo` by name, `is_valid_timezone` validates an identifier, `get_utc_now` returns the current UTC time, `get_local_timezone` returns the system local zone, `convert_datetime` converts datetimes between zones, `format_datetime` renders a datetime for a zone, `utc_offset` reports the UTC offset, `is_dst` reports daylight saving time status, and `get_common_timezones` / `get_all_timezones` list zone identifiers. All functions validate their inputs and raise `TypeError` for invalid arguments. The module is tested in `tests/test_timezone_utils.py`.
-- `tests/test_timezone_utils.py` — unit tests for `timezone_utils.py`
-- `trace_utils.py` — wrapping the standard library `trace` module: `new_tracer` creates a tracer that counts the executed lines, `run_traced` runs a callable under a tracer and returns its result together with the coverage results, `run_script_traced` runs a Python script under a tracer and returns its exit code, `counted_lines` maps every recorded line to the number of times it was executed, `line_counts` groups those counts by file, `called_functions` lists the functions that were called, `call_relationships` lists the recorded calling relationships, `is_ignored_filename` reports whether a file is left out of the coverage report, `merge_results` merges the counts of two runs, `write_coverage_report` writes the coverage report, `summarize_coverage` returns a per file coverage summary, `format_coverage_summary` renders that summary as a table, and `clear_counts` discards the counts recorded by a tracer. The module also re-exports `Trace`, `CoverageResults`, and `PRAGMA_NOCOVER`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_trace_utils.py`.
-- `tests/test_trace_utils.py` — unit tests for `trace_utils.py`
-- `tty_utils.py` — wrapping the standard library `tty` module: `cfmakeraw` and `cfmakecbreak` change the terminal mode of a file descriptor to raw or cbreak mode, `setraw` and `setcbreak` set the terminal of a file descriptor to raw or cbreak mode with an optional `when` flag, and the module is tested in `tests/test_tty_utils.py`.
-- `tests/test_tty_utils.py` — unit tests for `tty_utils.py`
-- `type_check_utils.py` — : `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `is_type_var`, `is_function`, `is_method`, `is_classmethod`, `is_staticmethod`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, `coerce_to_bool`, `coerce_to_bytes`. The module is tested in `tests/test_type_check_utils.py`.
-- `tests/test_type_check_utils.py` — unit tests for `type_check_utils.py`
-- `uu_utils.py` — wrapping the standard library `uu` module: `uu_encode` writes the uuencoded form of a payload to a file, `uu_decode` decodes a uuencoded file back into bytes, `encode_uu` and `decode_uu` do the same entirely in memory, `parse_uu_header` reads the `begin <mode> <name>` header, and `is_uuencoded` reports whether a payload carries such a header. `DEFAULT_FILE_MODE` is the permission mask recorded in the header when the caller does not pick one. Unlike the standard library decoder, the helpers never derive an output filename from the header, so nothing is written to the working directory unless an explicit destination is given. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The standard library `uu` module was removed in Python 3.13, so the helpers raise `RuntimeError` when the interpreter no longer ships it. The module is tested in `tests/test_uu_utils.py`.
-- `tests/test_uu_utils.py` — unit tests for `uu_utils.py`
-- `venv_utils.py` — wrapping the standard library `venv` package: `create_environment` creates a virtual environment and returns a description of it, `describe_environment` describes an environment that already exists, `read_configuration` returns the settings of the configuration file of an environment as a mapping, `is_environment` reports whether a directory holds an environment, `environment_paths` returns the directories of an environment the way the standard library computes them, `environment_python` returns the interpreter of an environment, `activation_scripts` returns the scripts that activate an environment, `find_environments` returns the environments of a directory tree, and `run_cli` runs the command-line interface of the standard library and returns its exit code. The class `EnvBuilder` is re-exported from the standard library. All functions validate their inputs and raise :class:`TypeError` or :class:`ValueError` on invalid arguments. The wrapper adds three conveniences to the standard library: the creation of an environment returns a description of the result instead of nothing, the directories of an environment are computed without creating it, and the environments of a directory tree are found. The helpers that create an environment write to the directory they are given and nothing else, and the helpers that only read an environment never write to it, so the tests of the project create every environment in a temporary directory of their own and the suite never installs a package and never reaches the network. The module is tested in `tests/test_venv_utils.py`.
-- `tests/test_venv_utils.py` — unit tests for `venv_utils.py`
-- `version_utils.py` — for parsing, comparing, normalizing, sorting, and bumping dotted version strings: `parse_version` parses a dotted version string into a tuple of integers, `compare_versions` compares two version strings returning -1/0/1, `count_components` returns the number of dot-separated components in a version string, `is_valid_version` returns `True` if a value is a non-empty dotted string of digit components, `get_major_version`/`get_minor_version`/`get_patch_version` extract individual components (returning 0 if missing), `normalize_version` pads or truncates a version to a fixed component count, `sort_versions` sorts a list of version strings in ascending order, `max_version`/`min_version` return the greatest/least version from a list, `bump_major`/`bump_minor`/`bump_patch` increment a specific component (resetting lower-significance components to zero), and `bump_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), and `decrement_major`/`decrement_minor`/`decrement_patch` decrement a specific component (resetting lower-significance components to zero and raising `ValueError` when the component is already 0), and `decrement_version` dispatches to one of those three based on a `part` argument (`"major"`, `"minor"`, or `"patch"`, defaulting to `"patch"`), `is_prerelease`/`get_prerelease` detect and extract prerelease suffixes (separated by `-`), `get_build_metadata` extracts build metadata (separated by `+`), and `has_build_metadata` is a lightweight boolean companion that reports whether a version string carries any build metadata suffix, `count_build_metadata_identifiers` counts dot-separated build metadata identifiers and `has_build_metadata_identifiers` reports whether any are present, `count_prerelease_identifiers` counts dot-separated prerelease identifiers and `has_prerelease_identifiers` reports whether any are present (ignoring build metadata), and `has_metadata` is a convenience boolean that reports whether a version string carries prerelease or build metadata, and `strip_prerelease`/`strip_build_metadata`/`strip_metadata` remove suffixes, `is_stable` returns `True` when the major version component is at least 1, and `is_initial_release` returns `True` when the major version component is 0, and `is_compatible` returns `True` when two versions share the same major version component, and `is_version_at_least`/`is_version_at_most`/`is_version_between` report whether a version satisfies lower/upper/bounded comparisons (with aliases `at_least`/`at_most`/`between`/`is_between`), and `is_dev_version` returns `True` when the prerelease tag starts with `dev` (case-insensitive). All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_version_utils.py`.
-- `tests/test_version_utils.py` — unit tests for `version_utils.py`
-- `warnings_utils.py` — wrapping the standard library `warnings` module: `warn` emits a warning message with an optional category and stacklevel, `simplefilter` sets the global warning filter action, `catch_warnings` is a context manager that captures warnings emitted within its scope, `filterwarnings` adds a warning filter entry, and `resetwarnings` clears all warning filters. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_warnings_utils.py`.
-- `tests/test_warnings_utils.py` — unit tests for `warnings_utils.py`
-- `wave_utils.py` — wrapping the standard library `wave` module: `open_read` and `open_write` open WAV files for reading and writing, `wave_info` returns the audio parameters as a dictionary, `read_frames` and `write_frames` transfer raw frame data, `create_writer` builds a configured :class:`wave.Wave_write`, and `get_params`/`set_params` plus the per-field setters inspect and adjust channel count, sample width, frame rate, frame count, and compression type. `Error`, `WAVE_FORMAT_PCM`, and `WAVE_FORMAT_EXTENSIBLE` are re-exported. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_wave_utils.py`.
-- `tests/test_wave_utils.py` — unit tests for `wave_utils.py`
-- `weakref_utils.py` — wrapping the standard library `weakref` module: `WeakRef` and `WeakMethod` are re-exported, `create_weakref` creates a weak reference to an object, `create_proxy` creates a transparent proxy, `get_object` resolves a reference to its target, `is_alive` reports whether the target still exists, and `create_finalizer` registers a callback for when the target is collected. The module is tested in `tests/test_weakref_utils.py`.
-- `tests/test_weakref_utils.py` — unit tests for `weakref_utils.py`
-- `xdrlib_utils.py` — wrapping the standard library `xdrlib` module: `pack_uint` and `unpack_uint` encode and decode 32-bit unsigned integers; `pack_int` and `unpack_int` do the same for signed integers; `pack_enum` and `unpack_enum` encode enumeration values; `pack_bool` and `unpack_bool` encode booleans; `pack_uhyper`, `unpack_uhyper`, `pack_hyper`, and `unpack_hyper` handle 64-bit integers; `pack_float`, `unpack_float`, `pack_double`, and `unpack_double` handle floating point numbers; `pack_string`, `unpack_string`, `pack_bytes`, `unpack_bytes`, `pack_opaque`, and `unpack_opaque` handle length-prefixed data; `pack_fstring`, `unpack_fstring`, `pack_fopaque`, and `unpack_fopaque` handle fixed length data; `pack_array`, `unpack_array`, `pack_farray`, and `unpack_farray` handle arrays; `pack_list` and `unpack_list` handle terminated lists; and `pack_uint_array` and `unpack_uint_array` are pre-wired helpers for arrays of unsigned integers. `Packer`, `Unpacker`, `Error`, and `ConversionError` are re-exported from the standard library. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments, and a truncated payload raises `ValueError` instead of `EOFError`. The encoding is pure computation, so the module never opens a network connection or spawns a process. The standard library `xdrlib` module was removed in Python 3.13, so the helpers raise `RuntimeError` when the interpreter no longer ships it. The module is tested in `tests/test_xdrlib_utils.py`.
-- `tests/test_xdrlib_utils.py` — unit tests for `xdrlib_utils.py`
-- `xml_utils.py` — for parsing XML documents and strings, building XML elements, converting between elements and dictionaries, querying with XPath, and serializing elements back to strings using the standard library `xml.etree.ElementTree` module: `parse_xml`, `parse_xml_string`, `build_xml`, `add_child`, `set_attribute`, `get_attribute`, `element_to_dict`, `dict_to_element`, `find_elements`, `find_element`, `get_element_text`, `set_element_text`, `xml_to_string`, and `validate_well_formed`. All functions validate their inputs and raise `TypeError` or `ValueError` on invalid arguments. The module is tested in `tests/test_xml_utils.py`.
-- `tests/test_xml_utils.py` — unit tests for `xml_utils.py`
+This command scaffolds a new project structure using the scaffold.sh generator script.
 
-- `tests/test_chunk_utils.py` — unit tests for `chunk_utils.py`
-- `tests/test_cgi_utils.py` — unit tests for `cgi_utils.py`
-- `tests/test_pipes_utils.py` — unit tests for `pipes_utils.py`
-- `cmath_utils.py` — complex mathematics utilities wrapping the standard library `cmath` module (`phase`, `polar`, `rect`, `exp`, `log`, `log10`, `sqrt`, `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `sinh`, `cosh`, `tanh`, `asinh`, `acosh`, `atanh`, `isfinite`, `isinf`, `isnan`, `isclose`)
-- `sort_utils.py` — sorting utility functions (`is_sorted`, `bubble_sort`, `merge_sort`, `nth_largest`, `top_n`)
-- `threading_utils.py` — threading utilities wrapping the standard library `threading` module (`create_lock`, `create_rlock`, `create_semaphore`, `create_bounded_semaphore`, `create_event`, `create_condition`, `create_timer`, `create_thread`, `current_thread`, `active_count`, `enumerate_threads`, `synchronized`) with input validation
-- `binascii_utils.py` — binary-to-ASCII encoding and decoding utilities wrapping the standard library `binascii` module (`hexlify`, `unhexlify`, `b2a_base64`, `a2b_base64`, `b2a_uu`, `a2b_uu`, `b2a_qp`, `a2b_qp`, `crc32`, `adler32`, `crc_hqx`) with input validation
-- `importlib_utils.py` — importlib utilities
-- `atexit_utils.py` — atexit utilities for registering and managing exit handlers
-- `multiprocessing_utils.py` — multiprocessing utilities for pools, processes, locks, queues, and shared memory (dynamic import, reload, spec inspection, metadata, resources)
-- `zipfile_utils.py` — ZIP archive utilities wrapping the standard library `zipfile` module (`create_archive`, `list_names`, `extract_all`, `is_zipfile`) with input validation
-- `zipapp_utils.py` — Zipapp utilities wrapping the standard library `zipapp` module (`create_archive`, `create_zipapp`, `get_interpreter`, `get_zipapp_interpreter`, `is_zipapp_archive`) with input validation and the re-exported `ZipAppError`
-- `bz2_utils.py` — BZ2 compression utilities wrapping the standard library `bz2` module (`bz2_compress`, `bz2_decompress`, `bz2_open`, `bz2_write`, `bz2_read`)
-- `lzma_utils.py` — LZMA compression utilities wrapping the standard library `lzma` module (`lzma_compress`, `lzma_decompress`, `lzma_open`, `lzma_write`, `lzma_read`)
-- `gc_utils.py` — GC utilities wrapping the standard library `gc` module (`enable`, `disable`, `isenabled`, `collect`, `get_count`, `get_stats`, `get_objects`, `get_referents`, `get_referrers`, `set_threshold`, `get_threshold`, `set_debug`, `get_debug`)
-- `calculator.py` — simple calculator module with arithmetic operations
-- `config_utils.py` — configuration utilities for JSON file management
-- `collections_abc_utils.py` — utilities wrapping `collections.abc` abstract base classes (is_* checks for iterables, mappings, sequences, callables, awaitables, and more)
-- `collections_utils.py` — collection utilities (chunk, flatten, deep_flatten, windowed, uniq, frequency, merge_dicts, and more)
-- `shapes.py` — geometry utilities for areas, perimeters, and surface/volume of common 2D and 3D shapes
-- `strings.py` — string utilities for text operations: reverse, case conversion, validation helpers (including `is_whitespace`, `is_space`, `is_printable`, `is_identifier`, `is_ascii`, `is_hex`), and slicing/formatting utilities
-- `utils.py` — general utility helper functions
-- `stats.py` — statistical utility functions
-- `math_utils.py` — mathematical utility functions
-- `roman_utils.py` — Roman numeral conversion utilities (`to_roman`, `from_roman`, `is_valid_roman`) with input validation
-- `mmap_utils.py` — utilities wrapping the standard library mmap module
-- `stat_utils.py` — stat file type/mode utilities (`file_mode`, `file_type`, `is_directory`, `is_regular_file`, `is_symlink`, `is_socket`, `is_fifo`, `is_device`, `filemode`, `stat_info`) wrapping stdlib stat and os.stat
-- `statistics_utils.py` — statistical utility functions (harmonic mean, geometric mean, median_even, percentile, covariance, correlation, z-score, normalize)
-- `string_utils.py` — advanced string manipulation utilities (slugify, camel_to_snake, snake_to_camel, pluralize, truncate, wrap_text, wrap_words, indent_text, remove_extra_whitespace, remove_blank_lines, truncate_words, title_case, dedent_text)
-- `data_utils.py` — data utility functions
-- `datetime_utils.py` — date and time utility functions
-- `dbm_utils.py` — database utilities wrapping stdlib dbm (open/close, read/write/delete records, key listing)
-- `dumbdbm_utils.py` — database utilities wrapping stdlib dbm.dumb (open/close, read/write/delete records, key listing)
-- `file_utils.py` — file and path utility functions
-- `url_utils.py` — URL and web utility functions
-- `urllib_utils.py` — URL parsing utilities wrapping the standard library `urllib.parse` module
-- `uuid_utils.py` — UUID utility functions for generating and validating UUIDs
-- `prompt_utils.py` — Prompt utility functions for working with text prompts
-- `random_utils.py` — random number generation and sampling utilities
-- `re_utils.py` — regular expression utilities
-- `rlcompleter_utils.py` — interactive tab completion utilities wrapping the standard library `rlcompleter` module (`Completer`, `complete`) with input validation
-- `tempfile_utils.py` — temporary file and directory utilities
-- `validation_utils.py` — input validation utilities
-- `crypto_utils.py` — cryptographic utilities
-- `list_utils.py` — advanced list manipulation utilities
-- `locale_utils.py` — locale utility functions for working with locale identifiers and language tags
-- `env_utils.py` — environment variable handling utilities
-- `logging_utils.py` — logging configuration and helper utilities
-- `cache_utils.py` — caching utilities for memoizing function results
-- `memoize_utils.py` — memoization utilities (`memoize` decorator) that caches function return values keyed by call arguments with a `cache_clear` method
-- `maybe_utils.py` — Maybe/Option type utilities for functional programming patterns (`Maybe` with `some`, `nothing`, `from_optional` and methods `is_some`, `is_nothing`, `unwrap`, `unwrap_or`, `unwrap_or_else`, `map`, `flat_map`, `and_then`, `filter`, `or_else`)
-- `either_utils.py` — Either/Result type utilities for functional programming patterns (`Either` with `right`, `left`, `ok`, `err`, `from_optional` and methods `is_right`, `is_left`, `unwrap`, `unwrap_left`, `unwrap_or`, `unwrap_or_else`, `map`, `map_left`, `flat_map`, `and_then`, `filter`, `or_else`, `fold`, `swap`)
-- `context_utils.py` — context manager utilities (`chdir`, `temp_environ`, `redirect_stdout`, `redirect_stderr`, `suppress`) for temporarily altering the runtime environment
-- `itertools_utils.py` — iteration helpers (`chain_iterables`, `flatten_once`, `take_while_pred`, `chunk_iterable`, `product_of`, `combinations_of`) wrapping the standard library `itertools` module with input validation
-- `tests/test_itertools_utils.py` — unit tests for `itertools_utils.py`
-- `timing_utils.py` — performance measurement helpers
-- `timeit_utils.py` — wrapper for stdlib timeit
-- `async_utils.py` — asynchronous utility functions
-- `asyncio_utils.py` — utilities wrapping the standard library asyncio module
-- `deprecation_utils.py` — deprecation utilities (`deprecated` decorator) with optional version, replacement, and message that emit a `DeprecationWarning` on each invocation
-- `deque_utils.py` — double-ended queue utilities wrapping `collections.deque` with helpers to append/pop from both ends, extend, rotate, clear, count, remove, reverse, copy, index, insert, query length/maxlen, and convert to/from iterables
-- `bit_utils.py` — bitwise utility functions for working with binary representations of integers
-- `call_once_utils.py` — call-once execution utilities ensuring a function runs only a single time
-- `concurrent_utils.py` — concurrent execution utilities (ThreadPool, ProcessPool, asyncio)
-- `concurrent_futures_utils.py` — `concurrent.futures` wrappers with validation
-- `priority_queue_utils.py` — heap-based priority queue implementation
-- `queue_utils.py` — queue utilities wrapping the standard library `queue` module with a FIFO `Queue` class and functional helpers (`create`, `enqueue`, `dequeue`, `peek`, `is_empty`, `size`)
-- `rate_limiter_utils.py` — rate limiting utilities (token bucket algorithm)
-- `retry_utils.py` — retry utilities with exponential backoff and jitter
-- `ring_buffer_utils.py` — fixed-size circular (ring) buffer utilities
-- `secrets_utils.py` — Cryptographically secure secrets and token utilities (`token_bytes`, `token_hex`, `token_urlsafe`, `compare_digest`, `randbelow`, `randbits`, `choice`)
-- `tests/test_hello.py` — unit tests for `hello.py`
-- `tests/test_calculator.py` — unit tests for `calculator.py`
-- `tests/test_config_utils.py` — unit tests for the config utilities module
-- `tests/test_collections_abc_utils.py` — unit tests for `collections_abc_utils.py`
-- `tests/test_collections_utils.py` — unit tests for `collections_utils.py`
-- `tests/test_compression_utils.py` — unit tests for `compression_utils.py`
-- `tests/test_shapes.py` — unit tests for `shapes.py`
-- `tests/test_strings.py` — unit tests for `strings.py`
-- `tests/test_utils.py` — unit tests for `utils.py`
-- `tests/test_stats.py` — unit tests for `stats.py`
-- `tests/test_roman_utils.py` — unit tests for `roman_utils.py`
-- `tests/test_math_utils.py` — unit tests for `math_utils.py`
-- `tests/test_mmap_utils.py` — unit tests for `mmap_utils.py`
-- `tests/test_stat_utils.py` — unit tests for `stat_utils.py`
-- `tests/test_statistics_utils.py` — unit tests for `statistics_utils.py`
-- `tests/test_string_utils.py` — unit tests for `string_utils.py`
-- `tree_utils.py` — tree and nested structure utilities (get/set/delete nested, flatten/unflatten, map/filter)
-- `tests/test_tree_utils.py` — unit tests for `tree_utils.py`
-- `type_utils.py` — type introspection utilities (is_optional, is_union, is_generic, get_type_args, type_name, is_subclass_safe)
-- `tests/test_type_utils.py` — unit tests for the type utilities module
-- `path_utils.py` — path manipulation utilities (join, normalize, components, extensions)
-- `tests/test_path_utils.py` — unit tests for `path_utils.py`
-- `color_utils.py` — color manipulation utilities (hex/rgb/hsl, luminance, contrast, accessibility)
-- `colorsys_utils.py` — colorsys utilities wrapping the standard library colorsys module (RGB/HSL conversions, color math)
-- `tests/test_colorsys_utils.py` — unit tests for `colorsys_utils.py`
-- `circuit_breaker_utils.py` — circuit breaker resilience utilities (`CircuitBreaker`, `CircuitOpenError`) implementing the circuit breaker pattern with thread-safe `CLOSED`/`OPEN`/`HALF_OPEN` state transitions, failure threshold, recovery timeout, and expected-exception filtering
-- `pattern_utils.py` — design pattern utilities (Singleton, Factory, Observer, Strategy)
-- `tests/test_color_utils.py` — unit tests for `color_utils.py`
-- `tests/test_circuit_breaker_utils.py` — unit tests for `circuit_breaker_utils.py`
-- `tests/test_pattern_utils.py` — unit tests for `pattern_utils.py`
-- `regex_utils.py` — regular expression utilities (`compile_pattern`, `is_valid_pattern`, `match_pattern`, `search_pattern`, `find_all`, `replace_pattern`, `split_pattern`, `escape_pattern`, `extract_groups`, `named_groups`)
-- `tests/test_regex_utils.py` — unit tests for `regex_utils.py`
-- `tests/test_scaffold.py` — unit tests for `scaffold.sh`
-- `tests/test_secrets_utils.py` — unit tests for `secrets_utils.py`
-- `contextlib_utils.py` — contextlib utility functions wrapping stdlib contextlib
-- `tests/test_contextlib_utils.py` — unit tests for `contextlib_utils.py`
-- `functools_utils.py` — functional programming utilities (compose, pipe, curry, apply)
-- `tests/test_functools_utils.py` — unit tests for `functools_utils.py`
-- `config_schema.py` — typed configuration schema utilities (`SchemaField`, `ConfigSchema`, validators)
-- `tests/test_config_schema.py` — unit tests for `config_schema.py`
-- `cooldown_utils.py` — cooldown and throttling utilities for rate-limiting function calls (`cooldown`, `Cooldown`, `is_available`)
-- `tests/test_cooldown_utils.py` — unit tests for `cooldown_utils.py`
-- `ctypes_utils.py` — ctypes utility functions wrapping the standard library `ctypes` module (fundamental C types, `Structure`, `Union`, `POINTER`, `Array`, `CFUNCTYPE`, `sizeof`, `alignment`, `addressof`, `pointer`, `byref`, `cast`, `memmove`, `memset`, `string_at`, `create_string_buffer`, `create_unicode_buffer`, `get_errno`, `set_errno`, `get_last_error`, `set_last_error`, `find_library`)
-- `tests/test_ctypes_utils.py` — unit tests for `ctypes_utils.py`
-- `copy_utils.py` — copy utilities (`shallow_copy`, `deep_copy`, `copy_dict`, `deep_copy_dict`, `merge_copy`, `is_same_object`) wrapping stdlib copy module
-- `tests/test_copy_utils.py` — unit tests for `copy_utils.py`
-- `dataclasses_utils.py` — dataclass utilities (is_dataclass, asdict/astuple, fields, replace, make_dataclass)
-- `tests/test_dataclasses_utils.py` — unit tests for `dataclasses_utils.py`
-- `exceptions_utils.py` — custom exception classes and error handling utilities
-- `tests/test_exceptions_utils.py` — unit tests for `exceptions_utils.py`
-- `email_utils.py` — email utilities wrapping the standard library `email.utils` module (`email_formatdate`, `email_parsedate`, `email_parseaddr`, `email_formataddr`, `email_getaddresses`, `email_make_msgid`, `email_quote`, `email_unquote`, `email_format_datetime`)
-- `tests/test_email_utils.py` — unit tests for `email_utils.py`
-- `enum_utils.py` — enum utilities for working with Python `enum.Enum` classes (`enum_to_dict`, `get_enum_member`, `is_enum_member`, `list_enum_members`, `enum_value_from_name`, `enum_name_from_value`) with input validation
-- `tests/test_enum_utils.py` — unit tests for `enum_utils.py`
-- `io_utils.py` — line-oriented and atomic input/output utilities (`read_lines`, `write_lines`, `append_text`, `atomic_write_text`, `stream_copy`, `count_lines`, `iter_lines`)
-- `ini_utils.py` — INI configuration file utilities (`load_config`, `save_config`, `get_config_value`, `set_config_value`, `merge_configs`, `list_sections`, `has_section`, `get_section`)
-- `compression_utils.py` — compression and decompression utilities (gzip, bz2, zip, tar)
-- `ip_utils.py` — IP address validation and manipulation utilities (IPv4/IPv6, conversion, properties, subnet checks)
-- `tests/test_ip_utils.py` — unit tests for `ip_utils.py`
-- `tests/test_io_utils.py` — unit tests for `io_utils.py`
-- `linecache_utils.py` — line cache utilities (`getline`, `getlines`, `updatecache`, `clearcache`) wrapping stdlib linecache
-- `tests/test_linecache_utils.py` — unit tests for `linecache_utils.py`
-- `pprint_utils.py` — pretty-printing utilities wrapping stdlib pprint (`pformat`, `pprint`, `isreadable`, `isrecursive`, `saferepr`)
-- `tests/test_pprint_utils.py` — unit tests for `pprint_utils.py`
-- `reprlib_utils.py` — reprlib utilities wrapping stdlib reprlib (`repr`, `get_ident`, `recursive_repr`, `Repr`)
-- `codecs_utils.py` — codecs utilities wrapping stdlib codecs
-- `tests/test_reprlib_utils.py` — unit tests for `reprlib_utils.py`
-- `traceback_utils.py` — traceback utilities wrapping stdlib traceback (`format_exception`, `format_exception_only`, `extract_stack`, `format_stack`, `format_exc`)
-- `tests/test_traceback_utils.py` — unit tests for `traceback_utils.py`
-- `tracemalloc_utils.py` — tracemalloc memory tracing utilities wrapping stdlib tracemalloc (`is_tracing`, `get_traced_memory`, `get_traceback_limit`, `start`, `stop`, `clear_traces`)
-- `tests/test_tracemalloc_utils.py` — unit tests for `tracemalloc_utils.py`
-- `doctest_utils.py` — doctest utilities wrapping the standard library `doctest` module (`parse_doctests`, `find_doctests`, `run_string_examples`, `run_docstring_examples`, `run_module_examples`, `run_file_examples`, `summarize_results`, `format_failure`) with input validation
-- `tests/test_doctest_utils.py` — unit tests for `doctest_utils.py`
-- `tools/refresh_scaffold.py` — maintainer tool that rewrites the file copies embedded in `scaffold.sh` from the repository sources
-- `typing_utils.py` — typing utilities wrapping stdlib typing (`get_type_hints`, `get_origin`, `get_args`, `is_typeddict`) with re-exports of `overload`, `Final`, `Literal`, and `ClassVar`
-- `tests/test_typing_utils.py` — unit tests for `typing_utils.py`
-- `tests/test_ini_utils.py` — unit tests for `ini_utils.py`
-- `tests/test_data_utils.py` — unit tests for `data_utils.py`
-- `tests/test_datetime_utils.py` — unit tests for `datetime_utils.py`
-- `tests/test_dbm_utils.py` — unit tests for `dbm_utils.py`
-- `tests/test_dumbdbm_utils.py` — unit tests for `dumbdbm_utils.py`
-- `tests/test_file_utils.py` — unit tests for `file_utils.py`
-- `tests/test_url_utils.py` — unit tests for `url_utils.py`
-- `tests/test_urllib_utils.py` — unit tests for `urllib_utils.py`
-- `tests/test_uuid_utils.py` — unit tests for `uuid_utils.py`
-- `tests/test_prompt_utils.py` — unit tests for `prompt_utils.py`
-- `tests/test_random_utils.py` — unit tests for `random_utils.py`
-- `tests/test_re_utils.py` — unit tests for `re_utils.py`
-- `tests/test_rlcompleter_utils.py` — unit tests for `rlcompleter_utils.py`
-- `tests/test_tempfile_utils.py` — unit tests for `tempfile_utils.py`
-- `tests/test_validation_utils.py` — unit tests for `validation_utils.py`
-- `tests/test_crypto_utils.py` — unit tests for `crypto_utils.py`
-- `tests/test_list_utils.py` — unit tests for `list_utils.py`
-- `tests/test_locale_utils.py` — unit tests for `locale_utils.py`
-- `tests/test_env_utils.py` — unit tests for `env_utils.py`
-- `tests/test_logging_utils.py` — unit tests for `logging_utils.py`
-- `tests/test_cache_utils.py` — unit tests for `cache_utils.py`
-- `tests/test_memoize_utils.py` — unit tests for `memoize_utils.py`
-- `tests/test_maybe_utils.py` — unit tests for `maybe_utils.py`
-- `tests/test_either_utils.py` — unit tests for `either_utils.py`
-- `tests/test_context_utils.py` — unit tests for `context_utils.py`
-- `tests/test_timing_utils.py` — unit tests for `timing_utils.py`
-- `tests/test_timeit_utils.py` — unit tests for `timeit_utils.py`
-- `tests/test_abc_utils.py` — unit tests for `abc_utils.py`
-- `tests/test_aifc_utils.py` — unit tests for `aifc_utils.py`
-- `tests/test_ossaudiodev_utils.py` — unit tests for `ossaudiodev_utils.py`
-- `tests/test_ast_utils.py` — unit tests for `ast_utils.py`
-- `tests/test_pickle_utils.py` — unit tests for `pickle_utils.py`
-- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
-- `tests/test_pickletools_utils.py` — unit tests for `pickletools_utils.py`
-- `tests/test_marshal_utils.py` — unit tests for `marshal_utils.py`
-- `tests/test_pkgutil_utils.py` — unit tests for `pkgutil_utils.py`
-- `tests/test_unicodedata_utils.py` — unit tests for `unicodedata_utils.py`
-- `tests/test_unittest_utils.py` — unit tests for `unittest_utils.py`
-- `tests/test_tomllib_utils.py` — unit tests for `tomllib_utils.py`
-- `tests/test_token_utils.py` — unit tests for `token_utils.py`
-- `tests/test_sched_utils.py` — unit tests for `sched_utils.py`
-- `tests/test_quopri_utils.py` — unit tests for `quopri_utils.py`
-- `tests/test_numbers_utils.py` — unit tests for `numbers_utils.py`
-- `tests/test_netrc_utils.py` — unit tests for `netrc_utils.py`
-- `tests/test_getopt_utils.py` — unit tests for `getopt_utils.py`
-- `tests/test_filecmp_utils.py` — unit tests for `filecmp_utils.py`
-- `tests/test_errno_utils.py` — unit tests for `errno_utils.py`
-- `tests/test_dis_utils.py` — unit tests for `dis_utils.py`
-- `tests/test_contextvars_utils.py` — unit tests for `contextvars_utils.py`
-- `tests/test_configparser_utils.py` — unit tests for `configparser_utils.py`
-- `tests/test_shelve_utils.py` — unit tests for `shelve_utils.py`
-- `tests/test_zlib_utils.py` — unit tests for `zlib_utils.py`
-- `tests/test_cmd_utils.py` — unit tests for `cmd_utils.py`
-- `tests/test_this_utils.py` — unit tests for `this_utils.py`
-- `tests/test_tokenize_utils.py` — unit tests for `tokenize_utils.py`
-- `tests/test_socket_utils.py` — unit tests for `socket_utils.py`
-- `tests/test_sysconfig_utils.py` — unit tests for `sysconfig_utils.py`
-- `tests/test_mimetypes_utils.py` — unit tests for `mimetypes_utils.py`
-- `tests/test_code_utils.py` — unit tests for `code_utils.py`
-- `tests/test_codeop_utils.py` — unit tests for `codeop_utils.py`
-- `tests/test_copyreg_utils.py` — unit tests for `copyreg_utils.py`
-- `tests/test_fileinput_utils.py` — unit tests for `fileinput_utils.py`
-- `tests/test_fnmatch_utils.py` — unit tests for `fnmatch_utils.py`
-- `tests/test_ftplib_utils.py` — unit tests for `ftplib_utils.py`
-- `tests/test_getpass_utils.py` — unit tests for `getpass_utils.py`
-- `tests/test_pathlib_utils.py` — unit tests for `pathlib_utils.py`
-- `tests/test_poplib_utils.py` — unit tests for `poplib_utils.py`
-- `tests/test_webbrowser_utils.py` — unit tests for `webbrowser_utils.py`
-- `tests/test_xmlrpc_utils.py` — unit tests for `xmlrpc_utils.py`
-- `tests/test_syslog_utils.py` — unit tests for `syslog_utils.py`
-- `tests/test_faulthandler_utils.py` — unit tests for `faulthandler_utils.py`
-- `tests/test_resource_utils.py` — unit tests for `resource_utils.py`
-- `tests/test_pwd_utils.py` — unit tests for `pwd_utils.py`
-- `tests/test_grp_utils.py` — unit tests for `grp_utils.py`
-- `tests/test_termios_utils.py` — unit tests for `termios_utils.py`
-- `tests/test_fcntl_utils.py` — unit tests for `fcntl_utils.py`
-- `tests/test_pty_utils.py` — unit tests for `pty_utils.py`
-- `tests/test_stringprep_utils.py` — unit tests for `stringprep_utils.py`
-- `tests/test_site_utils.py` — unit tests for `site_utils.py`
-- `tests/test_tabnanny_utils.py` — unit tests for `tabnanny_utils.py`
-- `tests/test_encodings_utils.py` — unit tests for `encodings_utils.py`
-- `tests/test_zipimport_utils.py` — unit tests for `zipimport_utils.py`
-- `tests/test_genericpath_utils.py` — unit tests for `genericpath_utils.py`
-- `tests/test_posixpath_utils.py` — unit tests for `posixpath_utils.py`
-- `tests/test_ntpath_utils.py` — unit tests for `ntpath_utils.py`
-- `tests/test_nturl2path_utils.py` — unit tests for `nturl2path_utils.py`
-- `tests/test_curses_utils.py` — unit tests for `curses_utils.py`
-- `tests/test_bdb_utils.py` — unit tests for `bdb_utils.py`
-- `tests/test_pdb_utils.py` — unit tests for `pdb_utils.py`
-- `tests/test_ipaddress_utils.py` — unit tests for `ipaddress_utils.py`
-- `tests/test_pydoc_utils.py` — unit tests for `pydoc_utils.py`
-- `tests/test_wsgiref_utils.py` — unit tests for `wsgiref_utils.py`
-- `tests/test_antigravity_utils.py` — unit tests for `antigravity_utils.py`
-- `tests/test_pydoc_data_utils.py` — unit tests for `pydoc_data_utils.py`
-- `tests/test_runpy_utils.py` — unit tests for `runpy_utils.py`
-- `tests/test_ssl_utils.py` — unit tests for `ssl_utils.py`
-- `tests/test_tarfile_utils.py` — unit tests for `tarfile_utils.py`
-- `tests/test_types_utils.py` — unit tests for `types_utils.py`
-- `tests/test_zoneinfo_utils.py` — unit tests for `zoneinfo_utils.py`
-- `tests/test_opcode_utils.py` — unit tests for `opcode_utils.py`
-- `tests/test_array_utils.py` — unit tests for `array_utils.py`
-- `tests/test_calendar_utils.py` — unit tests for `calendar_utils.py`
-- `tests/test_cmath_utils.py` — unit tests for `cmath_utils.py`
-- `tests/test_sort_utils.py` — unit tests for `sort_utils.py`
-- `tests/test_threading_utils.py` — unit tests for `threading_utils.py`
-- `tests/test_codecs_utils.py` — unit tests for `codecs_utils.py`
-- `tests/test_binascii_utils.py` — unit tests for `binascii_utils.py`
-- `tests/test_importlib_utils.py` — unit tests for `importlib_utils.py`
-- `tests/test_atexit_utils.py` — unit tests for `atexit_utils.py`
-- `tests/test_multiprocessing_utils.py` — unit tests for `multiprocessing_utils.py`
-- `tests/test_zipfile_utils.py` — unit tests for `zipfile_utils.py`
-- `tests/test_zipapp_utils.py` — unit tests for `zipapp_utils.py`
-- `tests/test_bz2_utils.py` — unit tests for `bz2_utils.py`
-- `tests/test_lzma_utils.py` — unit tests for `lzma_utils.py`
-- `tests/test_gc_utils.py` — unit tests for `gc_utils.py`
-- `tests/test_async_utils.py` — unit tests for `async_utils.py`
-- `tests/test_asyncio_utils.py` — unit tests for `asyncio_utils.py`
-- `tests/test_asynchat_utils.py` — unit tests for `asynchat_utils.py`
-- `tests/test_asyncore_utils.py` — unit tests for `asyncore_utils.py`
-- `tests/test_bit_utils.py` — unit tests for `bit_utils.py`
-- `tests/test_deprecation_utils.py` — unit tests for `deprecation_utils.py`
-- `tests/test_deque_utils.py` — unit tests for `deque_utils.py`
-- `tests/test_call_once_utils.py` — unit tests for `call_once_utils.py`
-- `tests/test_concurrent_utils.py` — unit tests for `concurrent_utils.py`
-- `tests/test_concurrent_futures_utils.py` — unit tests for `concurrent_futures_utils.py`
-- `tests/test_priority_queue_utils.py` — unit tests for `priority_queue_utils.py`
-- `tests/test_queue_utils.py` — unit tests for `queue_utils.py`
-- `tests/test_rate_limiter_utils.py` — unit tests for `rate_limiter_utils.py`
-- `tests/test_retry_utils.py` — unit tests for `retry_utils.py`
-- `tests/test_ring_buffer_utils.py` — unit tests for `ring_buffer_utils.py`
-- `dict_utils.py` — dictionary utilities (deep merge, flatten/unflatten, safe get, invert, filter)
-- `tests/test_dict_utils.py` — unit tests for `dict_utils.py`
-- `json_utils.py` — JSON utility functions (read/write/parse/dump/validate)
-- `tests/test_json_utils.py` — unit tests for `json_utils.py`
-- `csv_utils.py` — CSV utility functions (read/write/append as dicts or lists)
-- `tests/test_csv_utils.py` — unit tests for `csv_utils.py`
-- `set_utils.py` — set operation utilities (subset, superset, intersection, union, difference, symmetric_difference, cartesian_product, power_set)
-- `tests/test_set_utils.py` — unit tests for `set_utils.py`
-- `terminal_utils.py` — terminal output utilities (ANSI color, progress bars, clear screen, prompts)
-- `tests/test_terminal_utils.py` — unit tests for `terminal_utils.py`
-- `subprocess_utils.py` — subprocess utilities (`run_command`, `check_output`, `check_call`) using the standard library `subprocess` module with input validation
-- `tests/test_subprocess_utils.py` — unit tests for `subprocess_utils.py`
-- `cli_utils.py` — command-line interface utilities (argparse parser, argument parsing, exit-code wrapping)
-- `tests/test_cli_utils.py` — unit tests for `cli_utils.py`
-- `hash_utils.py` — hashing and checksum utilities (MD5, SHA1, SHA256, SHA512, CRC32, file hashing)
-- `hmac_utils.py` — HMAC-based message authentication utilities (MD5, SHA1, SHA256, SHA512) with constant-time verification
-- `tests/test_hash_utils.py` — unit tests for `hash_utils.py`
-- `tests/test_hmac_utils.py`
-- `hashlib_utils.py` — hash utilities wrapping the standard library `hashlib` module (`md5_hash`, `sha1_hash`, `sha256_hash`, `sha512_hash`, `sha3_256_hash`, `sha3_512_hash`, `blake2b_hash`, `blake2s_hash`, `file_hash`) with input validation
-- `tests/test_hashlib_utils.py` — unit tests for `hashlib_utils.py`
-- `platform_utils.py` — platform utilities wrapping the standard library `platform` module (system, release, version, machine, processor, node, Python build/compiler/revision/implementation/version, uname, and platform identification with validation)
-- `tests/test_platform_utils.py` — unit tests for `platform_utils.py`
-- `signal_utils.py` — signal utilities wrapping the standard library `signal` module (alarm, pause, register_handler, register_int_handler, register_term_handler, set_handler, get_handler, get_signal_name, is_valid_signal, signal_names, interrupt_handler, suspend_handler, unregister_handler, signal_info) with input validation
-- `tests/test_signal_utils.py` — unit tests for `signal_utils.py`
-- `tests/test_hmac_utils.py` — unit tests for `hmac_utils.py`
-- `tests/test_id_utils.py` — unit tests for `id_utils.py`
-- `http_utils.py` — HTTP status codes and response handling utilities (`status_code_category`, `status_message`, `is_informational`, `is_success`, `is_redirection`, `is_client_error`, `is_server_error`, `is_error`)
-- `id_utils.py` — Identifier generation and validation utilities (`generate_id`, `new_id`, `is_valid_id`) for short URL-safe random identifiers with input validation
-- `inspect_utils.py` — callable and object introspection utilities (`get_callable_name`, `is_callable`, `is_async_callable`, `get_signature`, `get_parameter_names`, `get_parameter_kinds`, `count_parameters`, `has_parameter`, `bind_arguments`, `is_builtin`, `get_source_file`, `get_source_lines`) using the standard library `inspect` module
-- `tests/test_inspect_utils.py` — unit tests for `inspect_utils.py`
-- `tests/test_http_utils.py` — unit tests for `http_utils.py`
-- `html_utils.py` — HTML escaping, unescaping, and tag-stripping utilities (`escape_html`, `unescape_html`, `strip_tags`, `escape_attribute`)
-- `tests/test_html_utils.py` — unit tests for `html_utils.py`
+## Usage
+
+```
+/scaffold-project <project-name> [output-dir]
+```
+
+## Description
+
+The scaffold.sh script generates a complete agentic coding project template with:
+
+- GitHub Actions workflow (Kilo agent loop)
+- AGENTS.md with project-specific instructions
+- README.md for the new project
+- CHANGELOG.md following Keep a Changelog format
+- Project name substituted into README, agent instructions, and changelog
+- .pre-commit-config.yaml with ruff, mypy, unittest, and scaffold hooks
+- kilo.json configuration with the scaffolder subagent
+- .kilo/agent/scaffolder.md, .kilo/command/handover.md, .kilo/command/scaffold-project.md, .kilo/skill/scaffolding-helper.md
+- .kilo/.gitignore
+- .gitignore
+- LICENSE — MIT license file
+- Makefile with common developer targets
+- pyproject.toml for Python project configuration and dependencies
+- hello.py — Sample application entry point
+- Comprehensive utility modules wrapping Python standard library
+
+## Generated Modules
+
+- `abc_utils.py` —
+- `tests/test_abc_utils.py` —
+- `aifc_utils.py` —
+- `tests/test_aifc_utils.py` —
+- `antigravity_utils.py` —
+- `tests/test_antigravity_utils.py` —
+- `argcomplete_utils.py` —
+- `tests/test_argcomplete_utils.py` —
+- `argparse_utils.py` —
+- `tests/test_argparse_utils.py` —
+- `array_utils.py` —
+- `tests/test_array_utils.py` —
+- `ast_utils.py` —
+- `tests/test_ast_utils.py` —
+- `async_utils.py` —
+- `tests/test_async_utils.py` —
+- `asynchat_utils.py` —
+- `tests/test_asynchat_utils.py` —
+- `asyncio_utils.py` —
+- `tests/test_asyncio_utils.py` —
+- `asyncore_utils.py` —
+- `tests/test_asyncore_utils.py` —
+- `atexit_utils.py` —
+- `tests/test_atexit_utils.py` —
+- `backoff_utils.py` —
+- `tests/test_backoff_utils.py` —
+- `base64_utils.py` —
+- `tests/test_base64_utils.py` —
+- `bdb_utils.py` —
+- `tests/test_bdb_utils.py` —
+- `binascii_utils.py` —
+- `tests/test_binascii_utils.py` —
+- `bisect_utils.py` —
+- `tests/test_bisect_utils.py` —
+- `bit_utils.py` —
+- `tests/test_bit_utils.py` —
+- `builtins_utils.py` —
+- `tests/test_builtins_utils.py` —
+- `bytes_utils.py` —
+- `tests/test_bytes_utils.py` —
+- `bz2_utils.py` —
+- `tests/test_bz2_utils.py` —
+- `cache_utils.py` —
+- `tests/test_cache_utils.py` —
+- `calendar_utils.py` —
+- `tests/test_calendar_utils.py` —
+- `call_once_utils.py` —
+- `tests/test_call_once_utils.py` —
+- `case_utils.py` —
+- `tests/test_case_utils.py` —
+- `cgi_utils.py` —
+- `tests/test_cgi_utils.py` —
+- `cgitb_utils.py` —
+- `tests/test_cgitb_utils.py` —
+- `chunk_utils.py` —
+- `tests/test_chunk_utils.py` —
+- `circuit_breaker_utils.py` —
+- `tests/test_circuit_breaker_utils.py` —
+- `cli_utils.py` —
+- `tests/test_cli_utils.py` —
+- `cmath_utils.py` —
+- `tests/test_cmath_utils.py` —
+- `cmd_utils.py` —
+- `tests/test_cmd_utils.py` —
+- `code_utils.py` —
+- `tests/test_code_utils.py` —
+- `codecs_utils.py` —
+- `tests/test_codecs_utils.py` —
+- `codeop_utils.py` —
+- `tests/test_codeop_utils.py` —
+- `collections_utils.py` —
+- `tests/test_collections_utils.py` —
+- `collections_abc_utils.py` —
+- `tests/test_collections_abc_utils.py` —
+- `color_utils.py` —
+- `tests/test_color_utils.py` —
+- `colorsys_utils.py` —
+- `tests/test_colorsys_utils.py` —
+- `compileall_utils.py` —
+- `tests/test_compileall_utils.py` —
+- `compression_utils.py` —
+- `tests/test_compression_utils.py` —
+- `concurrent_utils.py` —
+- `tests/test_concurrent_utils.py` —
+- `concurrent_futures_utils.py` —
+- `tests/test_concurrent_futures_utils.py` —
+- `config_utils.py` —
+- `tests/test_config_utils.py` —
+- `configparser_utils.py` —
+- `tests/test_configparser_utils.py` —
+- `context_utils.py` —
+- `tests/test_context_utils.py` —
+- `contextlib_utils.py` —
+- `tests/test_contextlib_utils.py` —
+- `contextvars_utils.py` —
+- `tests/test_contextvars_utils.py` —
+- `cooldown_utils.py` —
+- `tests/test_cooldown_utils.py` —
+- `copy_utils.py` —
+- `tests/test_copy_utils.py` —
+- `copyreg_utils.py` —
+- `tests/test_copyreg_utils.py` —
+- `cprofile_utils.py` —
+- `tests/test_cprofile_utils.py` —
+- `crypt_utils.py` —
+- `tests/test_crypt_utils.py` —
+- `crypto_utils.py` —
+- `tests/test_crypto_utils.py` —
+- `csv_utils.py` —
+- `tests/test_csv_utils.py` —
+- `ctypes_utils.py` —
+- `tests/test_ctypes_utils.py` —
+- `curses_utils.py` —
+- `tests/test_curses_utils.py` —
+- `data_utils.py` —
+- `tests/test_data_utils.py` —
+- `dataclasses_utils.py` —
+- `tests/test_dataclasses_utils.py` —
+- `datetime_utils.py` —
+- `tests/test_datetime_utils.py` —
+- `dbm_utils.py` —
+- `tests/test_dbm_utils.py` —
+- `decimal_utils.py` —
+- `tests/test_decimal_utils.py` —
+- `deprecation_utils.py` —
+- `tests/test_deprecation_utils.py` —
+- `deque_utils.py` —
+- `tests/test_deque_utils.py` —
+- `dict_utils.py` —
+- `tests/test_dict_utils.py` —
+- `difflib_utils.py` —
+- `tests/test_difflib_utils.py` —
+- `dis_utils.py` —
+- `tests/test_dis_utils.py` —
+- `doctest_utils.py` —
+- `tests/test_doctest_utils.py` —
+- `dumbdbm_utils.py` —
+- `tests/test_dumbdbm_utils.py` —
+- `duration_utils.py` —
+- `tests/test_duration_utils.py` —
+- `either_utils.py` —
+- `tests/test_either_utils.py` —
+- `email_utils.py` —
+- `tests/test_email_utils.py` —
+- `encodings_utils.py` —
+- `tests/test_encodings_utils.py` —
+- `ensurepip_utils.py` —
+- `tests/test_ensurepip_utils.py` —
+- `enum_utils.py` —
+- `tests/test_enum_utils.py` —
+- `env_utils.py` —
+- `tests/test_env_utils.py` —
+- `errno_utils.py` —
+- `tests/test_errno_utils.py` —
+- `exceptions_utils.py` —
+- `tests/test_exceptions_utils.py` —
+- `faulthandler_utils.py` —
+- `tests/test_faulthandler_utils.py` —
+- `fcntl_utils.py` —
+- `tests/test_fcntl_utils.py` —
+- `file_utils.py` —
+- `tests/test_file_utils.py` —
+- `filecmp_utils.py` —
+- `tests/test_filecmp_utils.py` —
+- `fileinput_utils.py` —
+- `tests/test_fileinput_utils.py` —
+- `fnmatch_utils.py` —
+- `tests/test_fnmatch_utils.py` —
+- `fractions_utils.py` —
+- `tests/test_fractions_utils.py` —
+- `ftplib_utils.py` —
+- `tests/test_ftplib_utils.py` —
+- `functools_utils.py` —
+- `tests/test_functools_utils.py` —
+- `gc_utils.py` —
+- `tests/test_gc_utils.py` —
+- `genericpath_utils.py` —
+- `tests/test_genericpath_utils.py` —
+- `getopt_utils.py` —
+- `tests/test_getopt_utils.py` —
+- `getpass_utils.py` —
+- `tests/test_getpass_utils.py` —
+- `gettext_utils.py` —
+- `tests/test_gettext_utils.py` —
+- `glob_utils.py` —
+- `tests/test_glob_utils.py` —
+- `graphlib_utils.py` —
+- `tests/test_graphlib_utils.py` —
+- `greeting_utils.py` —
+- `tests/test_greeting_utils.py` —
+- `grp_utils.py` —
+- `tests/test_grp_utils.py` —
+- `gzip_utils.py` —
+- `tests/test_gzip_utils.py` —
+- `hash_utils.py` —
+- `tests/test_hash_utils.py` —
+- `hashlib_utils.py` —
+- `tests/test_hashlib_utils.py` —
+- `heapq_utils.py` —
+- `tests/test_heapq_utils.py` —
+- `hmac_utils.py` —
+- `tests/test_hmac_utils.py` —
+- `hostname_utils.py` —
+- `tests/test_hostname_utils.py` —
+- `html_utils.py` —
+- `tests/test_html_utils.py` —
+- `html_entities_utils.py` —
+- `tests/test_html_entities_utils.py` —
+- `html_parser_utils.py` —
+- `tests/test_html_parser_utils.py` —
+- `http_utils.py` —
+- `tests/test_http_utils.py` —
+- `id_utils.py` —
+- `tests/test_id_utils.py` —
+- `imaplib_utils.py` —
+- `tests/test_imaplib_utils.py` —
+- `imghdr_utils.py` —
+- `tests/test_imghdr_utils.py` —
+- `importlib_utils.py` —
+- `tests/test_importlib_utils.py` —
+- `ini_utils.py` —
+- `tests/test_ini_utils.py` —
+- `inspect_utils.py` —
+- `tests/test_inspect_utils.py` —
+- `interval_utils.py` —
+- `tests/test_interval_utils.py` —
+- `io_utils.py` —
+- `tests/test_io_utils.py` —
+- `ip_utils.py` —
+- `tests/test_ip_utils.py` —
+- `ipaddress_utils.py` —
+- `tests/test_ipaddress_utils.py` —
+- `itertools_utils.py` —
+- `tests/test_itertools_utils.py` —
+- `json_utils.py` —
+- `tests/test_json_utils.py` —
+- `keyword_utils.py` —
+- `tests/test_keyword_utils.py` —
+- `linecache_utils.py` —
+- `tests/test_linecache_utils.py` —
+- `list_utils.py` —
+- `tests/test_list_utils.py` —
+- `locale_utils.py` —
+- `tests/test_locale_utils.py` —
+- `logging_utils.py` —
+- `tests/test_logging_utils.py` —
+- `lzma_utils.py` —
+- `tests/test_lzma_utils.py` —
+- `mailbox_utils.py` —
+- `tests/test_mailbox_utils.py` —
+- `mailcap_utils.py` —
+- `tests/test_mailcap_utils.py` —
+- `markdown_utils.py` —
+- `tests/test_markdown_utils.py` —
+- `marshal_utils.py` —
+- `tests/test_marshal_utils.py` —
+- `math_utils.py` —
+- `tests/test_math_utils.py` —
+- `maybe_utils.py` —
+- `tests/test_maybe_utils.py` —
+- `memoize_utils.py` —
+- `tests/test_memoize_utils.py` —
+- `mimetypes_utils.py` —
+- `tests/test_mimetypes_utils.py` —
+- `mmap_utils.py` —
+- `tests/test_mmap_utils.py` —
+- `modulefinder_utils.py` —
+- `tests/test_modulefinder_utils.py` —
+- `multiprocessing_utils.py` —
+- `tests/test_multiprocessing_utils.py` —
+- `netrc_utils.py` —
+- `tests/test_netrc_utils.py` —
+- `networking_utils.py` —
+- `tests/test_networking_utils.py` —
+- `nntplib_utils.py` —
+- `tests/test_nntplib_utils.py` —
+- `ntpath_utils.py` —
+- `tests/test_ntpath_utils.py` —
+- `nturl2path_utils.py` —
+- `tests/test_nturl2path_utils.py` —
+- `number_utils.py` —
+- `tests/test_number_utils.py` —
+- `numbers_utils.py` —
+- `tests/test_numbers_utils.py` —
+- `opcode_utils.py` —
+- `tests/test_opcode_utils.py` —
+- `operator_utils.py` —
+- `tests/test_operator_utils.py` —
+- `optparse_utils.py` —
+- `tests/test_optparse_utils.py` —
+- `os_utils.py` —
+- `tests/test_os_utils.py` —
+- `ossaudiodev_utils.py` —
+- `tests/test_ossaudiodev_utils.py` —
+- `path_utils.py` —
+- `tests/test_path_utils.py` —
+- `pathlib_utils.py` —
+- `tests/test_pathlib_utils.py` —
+- `pattern_utils.py` —
+- `tests/test_pattern_utils.py` —
+- `pdb_utils.py` —
+- `tests/test_pdb_utils.py` —
+- `pickle_utils.py` —
+- `tests/test_pickle_utils.py` —
+- `pickletools_utils.py` —
+- `tests/test_pickletools_utils.py` —
+- `pipes_utils.py` —
+- `tests/test_pipes_utils.py` —
+- `pkgutil_utils.py` —
+- `tests/test_pkgutil_utils.py` —
+- `platform_utils.py` —
+- `tests/test_platform_utils.py` —
+- `plistlib_utils.py` —
+- `tests/test_plistlib_utils.py` —
+- `poplib_utils.py` —
+- `tests/test_poplib_utils.py` —
+- `posix_utils.py` —
+- `tests/test_posix_utils.py` —
+- `posixpath_utils.py` —
+- `tests/test_posixpath_utils.py` —
+- `pprint_utils.py` —
+- `tests/test_pprint_utils.py` —
+- `prime_utils.py` —
+- `tests/test_prime_utils.py` —
+- `priority_queue_utils.py` —
+- `tests/test_priority_queue_utils.py` —
+- `profile_utils.py` —
+- `tests/test_profile_utils.py` —
+- `prompt_utils.py` —
+- `tests/test_prompt_utils.py` —
+- `pstats_utils.py` —
+- `tests/test_pstats_utils.py` —
+- `pty_utils.py` —
+- `tests/test_pty_utils.py` —
+- `pwd_utils.py` —
+- `tests/test_pwd_utils.py` —
+- `py_compile_utils.py` —
+- `tests/test_py_compile_utils.py` —
+- `pyclbr_utils.py` —
+- `tests/test_pyclbr_utils.py` —
+- `pydoc_utils.py` —
+- `tests/test_pydoc_utils.py` —
+- `pydoc_data_utils.py` —
+- `tests/test_pydoc_data_utils.py` —
+- `pyexpat_utils.py` —
+- `tests/test_pyexpat_utils.py` —
+- `queue_utils.py` —
+- `tests/test_queue_utils.py` —
+- `quopri_utils.py` —
+- `tests/test_quopri_utils.py` —
+- `random_utils.py` —
+- `tests/test_random_utils.py` —
+- `rate_limiter_utils.py` —
+- `tests/test_rate_limiter_utils.py` —
+- `re_utils.py` —
+- `tests/test_re_utils.py` —
+- `readline_utils.py` —
+- `tests/test_readline_utils.py` —
+- `regex_utils.py` —
+- `tests/test_regex_utils.py` —
+- `reprlib_utils.py` —
+- `tests/test_reprlib_utils.py` —
+- `resource_utils.py` —
+- `tests/test_resource_utils.py` —
+- `retry_utils.py` —
+- `tests/test_retry_utils.py` —
+- `ring_buffer_utils.py` —
+- `tests/test_ring_buffer_utils.py` —
+- `rlcompleter_utils.py` —
+- `tests/test_rlcompleter_utils.py` —
+- `roman_utils.py` —
+- `tests/test_roman_utils.py` —
+- `runpy_utils.py` —
+- `tests/test_runpy_utils.py` —
+- `sched_utils.py` —
+- `tests/test_sched_utils.py` —
+- `secrets_utils.py` —
+- `tests/test_secrets_utils.py` —
+- `select_utils.py` —
+- `tests/test_select_utils.py` —
+- `selectors_utils.py` —
+- `tests/test_selectors_utils.py` —
+- `semver_utils.py` —
+- `tests/test_semver_utils.py` —
+- `seq_utils.py` —
+- `tests/test_seq_utils.py` —
+- `set_utils.py` —
+- `tests/test_set_utils.py` —
+- `shelve_utils.py` —
+- `tests/test_shelve_utils.py` —
+- `shlex_utils.py` —
+- `tests/test_shlex_utils.py` —
+- `shutil_utils.py` —
+- `tests/test_shutil_utils.py` —
+- `signal_utils.py` —
+- `tests/test_signal_utils.py` —
+- `site_utils.py` —
+- `tests/test_site_utils.py` —
+- `slugify_utils.py` —
+- `tests/test_slugify_utils.py` —
+- `smtplib_utils.py` —
+- `tests/test_smtplib_utils.py` —
+- `sndhdr_utils.py` —
+- `tests/test_sndhdr_utils.py` —
+- `socket_utils.py` —
+- `tests/test_socket_utils.py` —
+- `socketserver_utils.py` —
+- `tests/test_socketserver_utils.py` —
+- `sort_utils.py` —
+- `tests/test_sort_utils.py` —
+- `spwd_utils.py` —
+- `tests/test_spwd_utils.py` —
+- `sqlite3_utils.py` —
+- `tests/test_sqlite3_utils.py` —
+- `sre_compile_utils.py` —
+- `tests/test_sre_compile_utils.py` —
+- `sre_constants_utils.py` —
+- `tests/test_sre_constants_utils.py` —
+- `sre_parse_utils.py` —
+- `tests/test_sre_parse_utils.py` —
+- `ssl_utils.py` —
+- `tests/test_ssl_utils.py` —
+- `stat_utils.py` —
+- `tests/test_stat_utils.py` —
+- `statistics_utils.py` —
+- `tests/test_statistics_utils.py` —
+- `string_utils.py` —
+- `tests/test_string_utils.py` —
+- `stringprep_utils.py` —
+- `tests/test_stringprep_utils.py` —
+- `struct_utils.py` —
+- `tests/test_struct_utils.py` —
+- `subprocess_utils.py` —
+- `tests/test_subprocess_utils.py` —
+- `sunau_utils.py` —
+- `tests/test_sunau_utils.py` —
+- `symtable_utils.py` —
+- `tests/test_symtable_utils.py` —
+- `sys_utils.py` —
+- `tests/test_sys_utils.py` —
+- `sysconfig_utils.py` —
+- `tests/test_sysconfig_utils.py` —
+- `syslog_utils.py` —
+- `tests/test_syslog_utils.py` —
+- `tabnanny_utils.py` —
+- `tests/test_tabnanny_utils.py` —
+- `tarfile_utils.py` —
+- `tests/test_tarfile_utils.py` —
+- `telnetlib_utils.py` —
+- `tests/test_telnetlib_utils.py` —
+- `temp_utils.py` —
+- `tests/test_temp_utils.py` —
+- `tempfile_utils.py` —
+- `tests/test_tempfile_utils.py` —
+- `template_utils.py` —
+- `tests/test_template_utils.py` —
+- `terminal_utils.py` —
+- `tests/test_terminal_utils.py` —
+- `termios_utils.py` —
+- `tests/test_termios_utils.py` —
+- `textwrap_utils.py` —
+- `tests/test_textwrap_utils.py` —
+- `this_utils.py` —
+- `tests/test_this_utils.py` —
+- `threading_utils.py` —
+- `tests/test_threading_utils.py` —
+- `time_utils.py` —
+- `tests/test_time_utils.py` —
+- `timeit_utils.py` —
+- `tests/test_timeit_utils.py` —
+- `timezone_utils.py` —
+- `tests/test_timezone_utils.py` —
+- `timing_utils.py` —
+- `tests/test_timing_utils.py` —
+- `token_utils.py` —
+- `tests/test_token_utils.py` —
+- `tokenize_utils.py` —
+- `tests/test_tokenize_utils.py` —
+- `tomllib_utils.py` —
+- `tests/test_tomllib_utils.py` —
+- `trace_utils.py` —
+- `tests/test_trace_utils.py` —
+- `traceback_utils.py` —
+- `tests/test_traceback_utils.py` —
+- `tracemalloc_utils.py` —
+- `tests/test_tracemalloc_utils.py` —
+- `tree_utils.py` —
+- `tests/test_tree_utils.py` —
+- `tty_utils.py` —
+- `tests/test_tty_utils.py` —
+- `type_utils.py` —
+- `tests/test_type_utils.py` —
+- `type_check_utils.py` —
+- `tests/test_type_check_utils.py` —
+- `types_utils.py` —
+- `tests/test_types_utils.py` —
+- `typing_utils.py` —
+- `tests/test_typing_utils.py` —
+- `unicodedata_utils.py` —
+- `tests/test_unicodedata_utils.py` —
+- `unittest_utils.py` —
+- `tests/test_unittest_utils.py` —
+- `url_utils.py` —
+- `tests/test_url_utils.py` —
+- `urllib_utils.py` —
+- `tests/test_urllib_utils.py` —
+- `uu_utils.py` —
+- `tests/test_uu_utils.py` —
+- `uuid_utils.py` —
+- `tests/test_uuid_utils.py` —
+- `validation_utils.py` —
+- `tests/test_validation_utils.py` —
+- `venv_utils.py` —
+- `tests/test_venv_utils.py` —
+- `version_utils.py` —
+- `tests/test_version_utils.py` —
+- `warnings_utils.py` —
+- `tests/test_warnings_utils.py` —
+- `wave_utils.py` —
+- `tests/test_wave_utils.py` —
+- `weakref_utils.py` —
+- `tests/test_weakref_utils.py` —
+- `webbrowser_utils.py` —
+- `tests/test_webbrowser_utils.py` —
+- `wsgiref_utils.py` —
+- `tests/test_wsgiref_utils.py` —
+- `xdrlib_utils.py` —
+- `tests/test_xdrlib_utils.py` —
+- `xml_utils.py` —
+- `tests/test_xml_utils.py` —
+- `xmlrpc_utils.py` —
+- `tests/test_xmlrpc_utils.py` —
+- `zipapp_utils.py` —
+- `tests/test_zipapp_utils.py` —
+- `zipfile_utils.py` —
+- `tests/test_zipfile_utils.py` —
+- `zipimport_utils.py` —
+- `tests/test_zipimport_utils.py` —
+- `zlib_utils.py` —
+- `tests/test_zlib_utils.py` —
+- `zoneinfo_utils.py` —
+- `tests/test_zoneinfo_utils.py` —
+
+## Parameters
+
+- `project-name`: The name of the new project (used for directory name and substitutions)
+- `output-dir`: Optional output directory (defaults to current directory)
+
+## Example
+
+```
+/scaffold-project my-new-project ./projects
+```
+
+## Notes
+
+After running scaffold.sh, you should:
+1. Run `make refresh-scaffold` to sync embedded copies in scaffold.sh
+2. Run `make pre-commit-install` to install pre-commit hooks
+3. Run `make test` to verify the generated project works
 SCAFFOLD
 
 

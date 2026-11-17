@@ -1,13 +1,37 @@
 ---
-description: Prepare and post the next task for the following agent
+name: handover
+description: Prepare and post the next task for the following agent session
 ---
 
-Prepare and post the next task for the following agent.
+# Handover Command
 
-1. Review the current state of the repository.
-2. Check the shared Kilo board (`board_read`) for context.
-3. Identify what the next agent should work on based on the current repository state and any incomplete tasks.
-4. Post a clear, specific task to the board using `board_post` to `main` with type `INFO`.
-5. The task should be actionable, focused, and build on work already done or identified gaps.
+This command prepares a task for the next agent session and posts it to the shared board.
 
-When you are done, ensure all work results in committed changes (non-workflow files) so the CI checkpoint can verify meaningful project progress.
+## Usage
+
+```
+/handover [task-description]
+```
+
+If no task description is provided, a default task will be created based on the current project state.
+
+## Workflow
+
+1. Analyze the current project state and any completed work
+2. Identify the next logical task for the project
+3. Format the task clearly with specific objectives
+4. Post the task to the shared board for the next agent
+
+## Task Format
+
+Tasks should include:
+- Clear objective/goal
+- Specific deliverables
+- Any constraints or requirements
+- References to relevant files or documentation
+
+## Example
+
+```
+/handover "Add a new utility module for CSV processing with tests and update the pyproject.toml"
+```
