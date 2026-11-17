@@ -91,8 +91,16 @@ def flatten(lst: List[List[T]]) -> List[T]:
     return result
 
 
+def _require_int(value: object, name: str) -> int:
+    """Validate that *value* is an int (not a bool)."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an integer, got {type(value).__name__}")
+    return value
+
+
 def chunk(lst: List[T], size: int) -> List[List[T]]:
     """Split a list into chunks of the specified size."""
+    size = _require_int(size, "size")
     if size <= 0:
         raise ValueError("Chunk size must be positive")
     return [lst[i : i + size] for i in range(0, len(lst), size)]
@@ -190,6 +198,7 @@ def compact(lst: List[T]) -> List[T]:
 
 def take(lst: List[T], n: int) -> List[T]:
     """Return the first n elements of a list."""
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     return lst[:n]
@@ -197,6 +206,7 @@ def take(lst: List[T], n: int) -> List[T]:
 
 def drop(lst: List[T], n: int) -> List[T]:
     """Return a list with the first n elements removed."""
+    n = _require_int(n, "n")
     if n <= 0:
         return list(lst)
     return lst[n:]
@@ -204,6 +214,7 @@ def drop(lst: List[T], n: int) -> List[T]:
 
 def tail(lst: List[T], n: int) -> List[T]:
     """Return the last n elements of a list."""
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     if n >= len(lst):
@@ -354,13 +365,17 @@ def has_key(d: Dict[K, Any], key: K) -> bool:
 
 def range_list(start: int, stop: Optional[int] = None, step: int = 1) -> List[int]:
     """Create a list from a range."""
-    if stop is None:
-        return list(range(start))
-    return list(range(start, stop, step))
+    start = _require_int(start, "start")
+    if stop is not None:
+        stop = _require_int(stop, "stop")
+        step = _require_int(step, "step")
+        return list(range(start, stop, step))
+    return list(range(start))
 
 
 def repeat(item: T, n: int) -> List[T]:
     """Repeat an item n times."""
+    n = _require_int(n, "n")
     if n <= 0:
         return []
     return [item] * n

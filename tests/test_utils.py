@@ -93,6 +93,12 @@ class TestChunk(unittest.TestCase):
         with self.assertRaises(ValueError):
             chunk([1, 2, 3], 0)
 
+    def test_chunk_rejects_bool_size(self) -> None:
+        with self.assertRaises(TypeError):
+            chunk([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            chunk([1, 2, 3], False)
+
 
 class TestUnique(unittest.TestCase):
     def test_unique_basic(self) -> None:
@@ -331,6 +337,12 @@ class TestDrop(unittest.TestCase):
     def test_drop_empty(self) -> None:
         self.assertEqual(drop([], 3), [])
 
+    def test_drop_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            drop([1, 2, 3], False)
+
 
 class TestDropWhile(unittest.TestCase):
     def test_drop_while_basic(self) -> None:
@@ -449,6 +461,12 @@ class TestHead(unittest.TestCase):
 
     def test_head_alias_take(self) -> None:
         self.assertEqual(head([1, 2, 3], 2), take([1, 2, 3], 2))
+
+    def test_head_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            head([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            head([1, 2, 3], False)
 
 
 class TestIncludes(unittest.TestCase):
@@ -607,6 +625,14 @@ class TestRangeList(unittest.TestCase):
     def test_range_list_step(self) -> None:
         self.assertEqual(range_list(0, 6, 2), [0, 2, 4])
 
+    def test_range_list_rejects_bool_args(self) -> None:
+        with self.assertRaises(TypeError):
+            range_list(True)
+        with self.assertRaises(TypeError):
+            range_list(0, 6, True)
+        with self.assertRaises(TypeError):
+            range_list(0, 6, False)
+
 
 class TestReduceList(unittest.TestCase):
     def test_reduce_list_basic(self) -> None:
@@ -625,6 +651,12 @@ class TestRepeat(unittest.TestCase):
 
     def test_repeat_negative(self) -> None:
         self.assertEqual(repeat("a", -1), [])
+
+    def test_repeat_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            repeat("a", True)
+        with self.assertRaises(TypeError):
+            repeat("a", False)
 
 
 class TestRest(unittest.TestCase):
@@ -658,6 +690,12 @@ class TestSample(unittest.TestCase):
 
     def test_sample_empty(self) -> None:
         self.assertEqual(sample([], 1), [])
+
+    def test_sample_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            sample([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            sample([1, 2, 3], False)
 
 
 class TestShuffle(unittest.TestCase):
@@ -699,6 +737,12 @@ class TestTail(unittest.TestCase):
     def test_tail_all(self) -> None:
         self.assertEqual(tail([1, 2], 5), [1, 2])
 
+    def test_tail_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            tail([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            tail([1, 2, 3], False)
+
 
 class TestTake(unittest.TestCase):
     def test_take_basic(self) -> None:
@@ -709,6 +753,12 @@ class TestTake(unittest.TestCase):
 
     def test_take_all(self) -> None:
         self.assertEqual(take([1, 2], 5), [1, 2])
+
+    def test_take_rejects_bool_n(self) -> None:
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], True)
+        with self.assertRaises(TypeError):
+            take([1, 2, 3], False)
 
 
 class TestTakeWhile(unittest.TestCase):
