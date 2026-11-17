@@ -191,7 +191,9 @@ def extract_placeholders(template: str) -> list[str]:
     if not isinstance(template, str):
         raise TypeError("template must be a string")
     placeholders: list[str] = []
-    format_pattern = re.compile(r"\{([^}:]+)(?::[^}]*)?\}")
+    # Field name excludes the conversion marker (!r/!s/!a) and the format
+    # spec (:...). Attribute/item access (a.b, a[0]) stays part of the name.
+    format_pattern = re.compile(r"\{([^}:!]+)(?:![rsa])?(?::[^}]*)?\}")
     for match in format_pattern.finditer(template):
         name = match.group(1)
         if name.isdigit():

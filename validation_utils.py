@@ -145,7 +145,7 @@ def min_length(value: Any, length: int) -> bool:
     Returns:
         True if the value meets the minimum length, False otherwise.
     """
-    if not isinstance(length, int) or length < 0:
+    if isinstance(length, bool) or not isinstance(length, int) or length < 0:
         raise ValueError("length must be a non-negative integer")
     if isinstance(value, str):
         return len(value) >= length
@@ -165,7 +165,7 @@ def max_length(value: Any, length: int) -> bool:
     Returns:
         True if the value meets the maximum length, False otherwise.
     """
-    if not isinstance(length, int) or length < 0:
+    if isinstance(length, bool) or not isinstance(length, int) or length < 0:
         raise ValueError("length must be a non-negative integer")
     if isinstance(value, str):
         return len(value) <= length
@@ -188,6 +188,8 @@ def matches_regex(value: Any, pattern: Union[str, re.Pattern], flags: int = 0) -
     """
     if not isinstance(value, str):
         raise TypeError("value must be a string")
+    if isinstance(flags, bool) or not isinstance(flags, int):
+        raise TypeError("flags must be an int")
     if isinstance(pattern, re.Pattern):
         return bool(pattern.match(value))
     elif isinstance(pattern, str):

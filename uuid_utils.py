@@ -34,12 +34,11 @@ def generate_uuid(version: int = 4) -> str:
         >>> bool(re.match(pat, generate_uuid(version=4)))
         True
     """
+    if isinstance(version, bool) or version not in (1, 4):
+        raise ValueError("UUID version must be 1 or 4")
     if version == 4:
         return str(uuid.uuid4())
-    elif version == 1:
-        return str(uuid.uuid1())
-    else:
-        raise ValueError("UUID version must be 1 or 4")
+    return str(uuid.uuid1())
 
 
 def generate_uuid4() -> str:
@@ -90,6 +89,8 @@ def is_valid_uuid(uuid_str: str, version: Optional[int] = None) -> bool:
         >>> is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=4)
         True
     """
+    if version is not None and (isinstance(version, bool) or not isinstance(version, int)):
+        raise TypeError("version must be an int or None")
     try:
         parsed = uuid.UUID(uuid_str)
         if version is not None:

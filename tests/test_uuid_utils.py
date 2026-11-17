@@ -30,6 +30,18 @@ class TestGenerateUUID(unittest.TestCase):
         with self.assertRaises(ValueError):
             generate_uuid(version=2)
 
+    def test_generate_uuid_rejects_bool_version(self):
+        with self.assertRaises(ValueError):
+            generate_uuid(version=True)
+        with self.assertRaises(ValueError):
+            generate_uuid(version=False)
+
+    def test_is_valid_uuid_rejects_bool_version(self):
+        with self.assertRaises(TypeError):
+            is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=True)
+        with self.assertRaises(TypeError):
+            is_valid_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479", version=False)
+
 
 class TestGenerateUUID4(unittest.TestCase):
     def test_generate_uuid4_returns_valid(self):

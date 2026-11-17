@@ -159,6 +159,10 @@ class TestMinLength(unittest.TestCase):
             min_length("test", -1)
         with self.assertRaises(ValueError):
             min_length("test", "4")
+        with self.assertRaises(ValueError):
+            min_length("test", True)
+        with self.assertRaises(ValueError):
+            min_length("test", False)
 
 
 class TestMaxLength(unittest.TestCase):
@@ -178,6 +182,10 @@ class TestMaxLength(unittest.TestCase):
             max_length("test", -1)
         with self.assertRaises(ValueError):
             max_length("test", "4")
+        with self.assertRaises(ValueError):
+            max_length("test", True)
+        with self.assertRaises(ValueError):
+            max_length("test", False)
 
 
 class TestMatchesRegex(unittest.TestCase):
@@ -198,6 +206,10 @@ class TestMatchesRegex(unittest.TestCase):
             matches_regex("test", 123)
         with self.assertRaises(ValueError):
             matches_regex("test", r"[invalid")
+        with self.assertRaises(TypeError):
+            matches_regex("test", r"test", flags=True)
+        with self.assertRaises(TypeError):
+            matches_regex("test", r"test", flags=False)
 
 
 class TestIsValidHostname(unittest.TestCase):

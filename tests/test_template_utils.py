@@ -251,6 +251,17 @@ class TestExtractPlaceholders(unittest.TestCase):
         # Numeric indices should be skipped
         self.assertEqual(result, [])
 
+    def test_extract_conversion_marker_drops_conversion(self) -> None:
+        # The field name must not include the conversion marker (!r, !s, !a).
+        self.assertEqual(extract_placeholders("{a!r}"), ["a"])
+        self.assertEqual(extract_placeholders("{a!s}"), ["a"])
+        self.assertEqual(extract_placeholders("{a!r:>10}"), ["a"])
+
+    def test_extract_attribute_and_item_access(self) -> None:
+        # Attribute and item access are part of the field name.
+        self.assertEqual(extract_placeholders("{a.b}"), ["a.b"])
+        self.assertEqual(extract_placeholders("{a[0]}"), ["a[0]"])
+
     def test_empty_string(self) -> None:
         result = extract_placeholders("")
         self.assertEqual(result, [])
