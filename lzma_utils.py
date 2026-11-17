@@ -37,11 +37,11 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
     Returns:
         An lzma file object.
     """
-    if preset is not None and (isinstance(preset, bool) or not isinstance(preset, int)):
-        raise TypeError("preset must be an int")
     if preset is not None and "r" not in mode:
-        return lzma.open(filename, mode, preset=preset)  # type: ignore[return-value]
-    return lzma.open(filename, mode)  # type: ignore[return-value]
+        if isinstance(preset, bool) or not isinstance(preset, int):
+            raise TypeError("preset must be an int")
+        return lzma.open(filename, mode, preset=preset)
+    return lzma.open(filename, mode)
 
 
 def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:

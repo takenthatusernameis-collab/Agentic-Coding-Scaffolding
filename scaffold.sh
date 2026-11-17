@@ -8928,11 +8928,11 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
     Returns:
         An lzma file object.
     """
-    if preset is not None and (isinstance(preset, bool) or not isinstance(preset, int)):
-        raise TypeError("preset must be an int")
     if preset is not None and "r" not in mode:
-        return lzma.open(filename, mode, preset=preset)  # type: ignore[return-value]
-    return lzma.open(filename, mode)  # type: ignore[return-value]
+        if isinstance(preset, bool) or not isinstance(preset, int):
+            raise TypeError("preset must be an int")
+        return lzma.open(filename, mode, preset=preset)
+    return lzma.open(filename, mode)
 
 
 def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:
@@ -9212,6 +9212,16 @@ class TestLzmaPresetValidation(unittest.TestCase):
                 lzma_open(path, "wb", preset=True)
             with self.assertRaises(TypeError):
                 lzma_open(path, "wb", preset=False)
+
+    def test_open_read_ignores_bool_preset(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            with lzma_open(path, "wb") as f:
+                f.write(b"hello")
+            with lzma_open(path, "rb", preset=True) as f:
+                self.assertEqual(f.read(), b"hello")
+            with lzma_open(path, "rb", preset=False) as f:
+                self.assertEqual(f.read(), b"hello")
 
 
 if __name__ == "__main__":

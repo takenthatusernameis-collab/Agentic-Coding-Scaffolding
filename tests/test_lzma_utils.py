@@ -59,6 +59,16 @@ class TestLzmaPresetValidation(unittest.TestCase):
             with self.assertRaises(TypeError):
                 lzma_open(path, "wb", preset=False)
 
+    def test_open_read_ignores_bool_preset(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "test.xz")
+            with lzma_open(path, "wb") as f:
+                f.write(b"hello")
+            with lzma_open(path, "rb", preset=True) as f:
+                self.assertEqual(f.read(), b"hello")
+            with lzma_open(path, "rb", preset=False) as f:
+                self.assertEqual(f.read(), b"hello")
+
 
 if __name__ == "__main__":
     unittest.main()
