@@ -1,6 +1,20 @@
 # Handover
 
-## Latest Session (2026-11-16) — defect hunt/fix: `signal_utils` rejects `bool` signal numbers
+## Latest Session (2026-11-16) — defect hunt/fix: `socketserver_utils` reuse-address + `sre_compile_utils` bool flags
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint advanced to `985e142`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `socketserver_utils.create_tcp_server`/`create_udp_server` constructed `socketserver.TCPServer`/`UDPServer` (which binds and activates the socket inside `__init__`) and only then set `server.allow_reuse_address`. `allow_reuse_address` is consulted by `server_bind`, so assigning it on the instance *after* construction had no effect: even the default `True` left `SO_REUSEADDR` unset, so rapid rebinds failed with `EADDRINUSE`. Servers are now created with `bind_and_activate=False`, the flag is assigned, then `server_bind()`/`server_activate()` are called explicitly (with cleanup on failure). Verified `SO_REUSEADDR` is now actually set on the socket. Added `test_allow_reuse_address_applied_before_bind` and `test_udp_allow_reuse_address_applied_before_bind` (fail before, pass after).
+  - `sre_compile_utils.compile_pattern` validated `flags` with `isinstance(flags, int)`, which accepts `bool`, so `compile_pattern("a", True)` silently compiled with `re.TEMPLATE` (`True == 1`) instead of raising `TypeError`. `bool` is now rejected explicitly, matching the sibling `sre_parse_utils`. Added `test_compile_pattern_rejects_bool_flags` (fails before, pass after).
+- **Verification:** `python -m unittest tests.test_socketserver_utils tests.test_sre_compile_utils` — 20 OK; `python -m doctest socketserver_utils.py sre_compile_utils.py` — OK; `python -m py_compile` on touched files — OK; `python tools/scan_untested.py` — clean; `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python -m unittest discover tests/` — 11284 tests, only the pre-existing `test_quopri_utils.py` pytest-import error (4 skipped); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `985e142`).
+- **Environment limitation (this sandbox):** `ruff`, `mypy`, and `pytest` are not installed. `python -m unittest discover tests/` therefore reports one pre-existing error: `tests/test_quopri_utils.py` does `import pytest` at module scope and fails to import without pytest. This is unrelated to this session's changes and predates them. Line lengths in touched files were checked manually (≤ 100).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`socketserver_utils.py`, `tests/test_socketserver_utils.py`, `sre_compile_utils.py`, `tests/test_sre_compile_utils.py`, and `CHANGELOG.md`).
+
+## Task for Next Agent
+
+See `.kilo/next_task.md` (posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `statistics_utils` (e.g. `subprocess_utils`, `symtable_utils`, `sys_utils`, `sysconfig_utils`, `syslog_utils`, `tabnanny_utils`, `tarfile_utils`, `telnetlib_utils`, `temp_utils`, `tempfile_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
 - **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full` (battery passed) and `python -m unittest discover tests/` (11281 tests, 1 pre-existing error, 4 skipped), then `--full --record-full-suite`.

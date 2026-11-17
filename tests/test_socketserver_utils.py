@@ -3,6 +3,7 @@
 import socketserver
 import threading
 import unittest
+from unittest import mock
 
 from socketserver_utils import (
     close_server,
@@ -57,6 +58,29 @@ class TestCreateTcpServer(unittest.TestCase):
         with self.assertRaises(TypeError):
             create_tcp_server(("127.0.0.1", 0), object())  # type: ignore[arg-type]
 
+    def test_allow_reuse_address_applied_before_bind(self):
+        observed = {}
+        original_bind = socketserver.TCPServer.server_bind
+
+        def recording_bind(self):
+            observed["allow_reuse_address"] = self.allow_reuse_address
+
+        try:
+            with mock.patch.object(
+                socketserver.TCPServer, "server_bind", recording_bind
+            ), mock.patch.object(
+                socketserver.TCPServer, "server_activate", lambda self: None
+            ):
+                server = create_tcp_server(
+                    ("127.0.0.1", 0), _Handler, allow_reuse_address=True
+                )
+                try:
+                    self.assertIs(observed.get("allow_reuse_address"), True)
+                finally:
+                    close_server(server)
+        finally:
+            self.assertIs(socketserver.TCPServer.server_bind, original_bind)
+
 
 class TestCreateUdpServer(unittest.TestCase):
     def test_create_udp_server_valid(self):
@@ -73,6 +97,25 @@ class TestCreateUdpServer(unittest.TestCase):
             create_udp_server(("127.0.0.1", "8080"), _Handler)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             create_udp_server(("127.0.0.1", 0), object())  # type: ignore[arg-type]
+
+    def test_udp_allow_reuse_address_applied_before_bind(self):
+        observed = {}
+
+        def recording_bind(self):
+            observed["allow_reuse_address"] = self.allow_reuse_address
+
+        with mock.patch.object(
+            socketserver.UDPServer, "server_bind", recording_bind
+        ), mock.patch.object(
+            socketserver.UDPServer, "server_activate", lambda self: None
+        ):
+            server = create_udp_server(
+                ("127.0.0.1", 0), _Handler, allow_reuse_address=True
+            )
+            try:
+                self.assertIs(observed.get("allow_reuse_address"), True)
+            finally:
+                close_server(server)
 
 
 class TestServerInspection(unittest.TestCase):

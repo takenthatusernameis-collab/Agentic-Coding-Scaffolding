@@ -72302,6 +72302,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `socketserver_utils` applies `allow_reuse_address` before bind, `sre_compile_utils` rejects `bool` flags
+
+- **Correctness fix — `socketserver_utils.create_tcp_server`/`create_udp_server` ignored `allow_reuse_address`.** Both helpers constructed `socketserver.TCPServer`/`UDPServer` (which binds and activates the socket inside `__init__`) and only then assigned `server.allow_reuse_address`. `allow_reuse_address` is a class attribute consulted by `server_bind`, so setting it on the instance *after* construction had no effect: even the default `allow_reuse_address=True` left `SO_REUSEADDR` unset, contradicting the documented "Whether to set SO_REUSEADDR" contract and making rapid rebinds fail with `EADDRINUSE`. The servers are now constructed with `bind_and_activate=False`, the flag is assigned, and `server_bind()`/`server_activate()` are called explicitly (with cleanup on failure). Added `test_allow_reuse_address_applied_before_bind` and `test_udp_allow_reuse_address_applied_before_bind` (both fail against the old implementation and pass after).
+- **Correctness fix — `sre_compile_utils.compile_pattern` accepted `bool` flags.** The validation used `isinstance(flags, int)`, and `bool` is a subclass of `int`, so `compile_pattern("a", True)` silently compiled with `re.TEMPLATE` (`True == 1`) instead of raising `TypeError`, contradicting the module's "input validation" contract and the sibling `sre_parse_utils`, which already rejects `bool` flags. `bool` is now rejected explicitly. Added `test_compile_pattern_rejects_bool_flags` (fails against the old implementation and passes after).
+- **Defect hunt (batch `socketserver`–`statistics`):** reviewed `socketserver_utils`, `sort_utils`, `spwd_utils`, `sqlite3_utils`, `sre_compile_utils`, `sre_constants_utils`, `sre_parse_utils`, `ssl_utils`, `stat_utils`, `statistics_utils`. The two issues above were the only defects found in this pass.
+- Validation: `python -m unittest tests.test_socketserver_utils tests.test_sre_compile_utils` — 20 OK; `python -m doctest socketserver_utils.py sre_compile_utils.py` — OK; `python -m py_compile` on touched files — OK; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. (`ruff`/`mypy`/`pytest` are not installed in this environment; line lengths verified ≤ 100 manually.)
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `signal_utils` rejects `bool` signal numbers
 
 - **Correctness fix — `signal_utils` accepted `bool` where a signal number is required.** `bool` is a subclass of `int`, so every helper that validated its signal argument with `isinstance(sig, int)` accepted `True`/`False` as signal numbers: `is_valid_signal(True)` returned `True` (it resolved to signal `1`, `SIGHUP`), `get_signal_name(True)` returned `"SIGHUP"` instead of raising `TypeError`, and `get_handler`, `set_handler`, `register_handler`, `unregister_handler`, and `alarm` all operated on `SIGHUP` (or a one-second alarm) rather than rejecting the boolean, contradicting the documented "`sig` must be an int" contracts and the bool-rejection convention used elsewhere in the project. A shared `_require_signal` helper now rejects `bool` before the integer check, and `is_valid_signal` returns `False` for booleans. Added `test_is_valid_signal_rejects_bool`, `test_get_signal_name_rejects_bool`, `test_get_handler_rejects_bool`, `test_set_handler_rejects_bool`, `test_register_handler_rejects_bool`, `test_unregister_handler_rejects_bool`, and `test_alarm_rejects_bool` (all fail against the old implementation and pass after).
@@ -123569,8 +123577,16 @@ def create_tcp_server(
         and issubclass(handler_class, socketserver.BaseRequestHandler)
     ):
         raise TypeError("handler_class must be a BaseRequestHandler subclass")
-    server = socketserver.TCPServer(address, handler_class)
+    server = socketserver.TCPServer(address, handler_class, bind_and_activate=False)
+    # ``allow_reuse_address`` is consulted by ``server_bind``; it must be set
+    # before the socket is bound, otherwise the flag has no effect.
     server.allow_reuse_address = allow_reuse_address
+    try:
+        server.server_bind()
+        server.server_activate()
+    except Exception:
+        server.server_close()
+        raise
     return server
 
 
@@ -123590,8 +123606,16 @@ def create_udp_server(
         and issubclass(handler_class, socketserver.BaseRequestHandler)
     ):
         raise TypeError("handler_class must be a BaseRequestHandler subclass")
-    server = socketserver.UDPServer(address, handler_class)
+    server = socketserver.UDPServer(address, handler_class, bind_and_activate=False)
+    # ``allow_reuse_address`` is consulted by ``server_bind``; it must be set
+    # before the socket is bound, otherwise the flag has no effect.
     server.allow_reuse_address = allow_reuse_address
+    try:
+        server.server_bind()
+        server.server_activate()
+    except Exception:
+        server.server_close()
+        raise
     return server
 
 
@@ -123651,6 +123675,7 @@ cat > "$OUTPUT_DIR/tests/test_socketserver_utils.py" <<'TEST_SOCKETSERVER_UTILS'
 import socketserver
 import threading
 import unittest
+from unittest import mock
 
 from socketserver_utils import (
     close_server,
@@ -123705,6 +123730,29 @@ class TestCreateTcpServer(unittest.TestCase):
         with self.assertRaises(TypeError):
             create_tcp_server(("127.0.0.1", 0), object())  # type: ignore[arg-type]
 
+    def test_allow_reuse_address_applied_before_bind(self):
+        observed = {}
+        original_bind = socketserver.TCPServer.server_bind
+
+        def recording_bind(self):
+            observed["allow_reuse_address"] = self.allow_reuse_address
+
+        try:
+            with mock.patch.object(
+                socketserver.TCPServer, "server_bind", recording_bind
+            ), mock.patch.object(
+                socketserver.TCPServer, "server_activate", lambda self: None
+            ):
+                server = create_tcp_server(
+                    ("127.0.0.1", 0), _Handler, allow_reuse_address=True
+                )
+                try:
+                    self.assertIs(observed.get("allow_reuse_address"), True)
+                finally:
+                    close_server(server)
+        finally:
+            self.assertIs(socketserver.TCPServer.server_bind, original_bind)
+
 
 class TestCreateUdpServer(unittest.TestCase):
     def test_create_udp_server_valid(self):
@@ -123721,6 +123769,25 @@ class TestCreateUdpServer(unittest.TestCase):
             create_udp_server(("127.0.0.1", "8080"), _Handler)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             create_udp_server(("127.0.0.1", 0), object())  # type: ignore[arg-type]
+
+    def test_udp_allow_reuse_address_applied_before_bind(self):
+        observed = {}
+
+        def recording_bind(self):
+            observed["allow_reuse_address"] = self.allow_reuse_address
+
+        with mock.patch.object(
+            socketserver.UDPServer, "server_bind", recording_bind
+        ), mock.patch.object(
+            socketserver.UDPServer, "server_activate", lambda self: None
+        ):
+            server = create_udp_server(
+                ("127.0.0.1", 0), _Handler, allow_reuse_address=True
+            )
+            try:
+                self.assertIs(observed.get("allow_reuse_address"), True)
+            finally:
+                close_server(server)
 
 
 class TestServerInspection(unittest.TestCase):
@@ -159204,7 +159271,7 @@ def is_available() -> bool:
 
 def compile_pattern(pattern: Any, flags: int = 0) -> Any:
     """Compile a pattern using :func:`sre_compile.compile`."""
-    if not isinstance(flags, int):
+    if isinstance(flags, bool) or not isinstance(flags, int):
         raise TypeError(f"flags must be int, got {type(flags).__name__}")
     mod = _sre_compile_module()
     return mod.compile(pattern, flags)
@@ -159237,6 +159304,10 @@ class TestSreCompileUtils(unittest.TestCase):
     def test_compile_pattern_validates_flags(self)-> None:
         with self.assertRaises(TypeError):
             sre_compile_utils.compile_pattern("abc", "bad")  # type: ignore[arg-type]
+
+    def test_compile_pattern_rejects_bool_flags(self)-> None:
+        with self.assertRaises(TypeError):
+            sre_compile_utils.compile_pattern("abc", True)  # type: ignore[arg-type]
 
 
     def test_degradation_without_module(self)-> None:

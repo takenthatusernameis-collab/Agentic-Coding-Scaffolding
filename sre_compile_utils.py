@@ -42,7 +42,7 @@ def is_available() -> bool:
 
 def compile_pattern(pattern: Any, flags: int = 0) -> Any:
     """Compile a pattern using :func:`sre_compile.compile`."""
-    if not isinstance(flags, int):
+    if isinstance(flags, bool) or not isinstance(flags, int):
         raise TypeError(f"flags must be int, got {type(flags).__name__}")
     mod = _sre_compile_module()
     return mod.compile(pattern, flags)

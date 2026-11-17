@@ -49,8 +49,16 @@ def create_tcp_server(
         and issubclass(handler_class, socketserver.BaseRequestHandler)
     ):
         raise TypeError("handler_class must be a BaseRequestHandler subclass")
-    server = socketserver.TCPServer(address, handler_class)
+    server = socketserver.TCPServer(address, handler_class, bind_and_activate=False)
+    # ``allow_reuse_address`` is consulted by ``server_bind``; it must be set
+    # before the socket is bound, otherwise the flag has no effect.
     server.allow_reuse_address = allow_reuse_address
+    try:
+        server.server_bind()
+        server.server_activate()
+    except Exception:
+        server.server_close()
+        raise
     return server
 
 
@@ -70,8 +78,16 @@ def create_udp_server(
         and issubclass(handler_class, socketserver.BaseRequestHandler)
     ):
         raise TypeError("handler_class must be a BaseRequestHandler subclass")
-    server = socketserver.UDPServer(address, handler_class)
+    server = socketserver.UDPServer(address, handler_class, bind_and_activate=False)
+    # ``allow_reuse_address`` is consulted by ``server_bind``; it must be set
+    # before the socket is bound, otherwise the flag has no effect.
     server.allow_reuse_address = allow_reuse_address
+    try:
+        server.server_bind()
+        server.server_activate()
+    except Exception:
+        server.server_close()
+        raise
     return server
 
 

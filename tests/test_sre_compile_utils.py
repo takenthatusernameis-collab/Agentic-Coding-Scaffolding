@@ -24,6 +24,10 @@ class TestSreCompileUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             sre_compile_utils.compile_pattern("abc", "bad")  # type: ignore[arg-type]
 
+    def test_compile_pattern_rejects_bool_flags(self)-> None:
+        with self.assertRaises(TypeError):
+            sre_compile_utils.compile_pattern("abc", True)  # type: ignore[arg-type]
+
 
     def test_degradation_without_module(self)-> None:
         original = sre_compile_utils._sre_compile
