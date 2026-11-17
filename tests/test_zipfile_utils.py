@@ -155,6 +155,17 @@ class TestZipfileUtilsBoundary(unittest.TestCase):
         extract_all(p_archive, dest)
         self.assertTrue((dest / "a.txt").exists() or any(dest.rglob("a.txt")))
 
+    def test_create_archive_accepts_any_iterable(self):
+        # The signature documents ``files`` as an Iterable, so any non-string
+        # iterable (tuple, generator, ...) must be accepted, not just a list.
+        p_archive = pathlib.Path(self.archive)
+        create_archive(p_archive, (self.src,))
+        self.assertTrue(is_zipfile(p_archive))
+        self.assertEqual(len(list_names(p_archive)), 1)
+        create_archive(p_archive, (path for path in [self.src]))
+        self.assertTrue(is_zipfile(p_archive))
+        self.assertEqual(len(list_names(p_archive)), 1)
+
     def test_create_archive_type_errors(self):
         with self.assertRaises(TypeError):
             create_archive(123, [self.src])  # type: ignore[arg-type]

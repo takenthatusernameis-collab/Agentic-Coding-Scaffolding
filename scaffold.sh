@@ -166515,6 +166515,14 @@ from __future__ import annotations
 import dbm.dumb as _dumbdbm
 from typing import Any
 
+
+def _require_bytes(value: object, name: str = "value") -> bytes:
+    """Validate that *value* is bytes."""
+    if not isinstance(value, (bytes, bytearray, memoryview)):
+        raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+    return bytes(value)
+
+
 __all__ = [
     "dumbdbm",
     "error",
@@ -166580,27 +166588,31 @@ def close(db) -> None:
         close_fn()
 
 
-def get(db, key: bytes | str, default: Any = None) -> Any:
+def get(db, key: bytes, default: Any = None) -> Any:
     """Get a value from a dumbdbm database with an optional default."""
     if db is None:
         raise TypeError("db must not be None")
+    key = _require_bytes(key)
     try:
         return db[key]
     except KeyError:
         return default
 
 
-def set(db, key: bytes | str, value: bytes | str) -> None:
+def set(db, key: bytes, value: bytes) -> None:
     """Set a value in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
+    key = _require_bytes(key)
+    value = _require_bytes(value)
     db[key] = value
 
 
-def delete(db, key: bytes | str) -> None:
+def delete(db, key: bytes) -> None:
     """Delete a key from a dumbdbm database if present."""
     if db is None:
         raise TypeError("db must not be None")
+    key = _require_bytes(key)
     try:
         del db[key]
     except KeyError:
@@ -166611,42 +166623,21 @@ def keys(db) -> list[bytes]:
     """Return all keys in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
-    try:
-        return list(db.keys())
-    except Exception:
-        return []
+    return list(db.keys())
 
 
 def items(db) -> list[tuple[bytes, bytes]]:
     """Return all items in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
-    try:
-        return list(db.items())
-    except Exception:
-        result = []
-        for k in keys(db):
-            try:
-                result.append((k, db[k]))
-            except Exception:
-                continue
-        return result
+    return list(db.items())
 
 
 def values(db) -> list[bytes]:
     """Return all values in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
-    try:
-        return list(db.values())
-    except Exception:
-        result = []
-        for k in keys(db):
-            try:
-                result.append(db[k])
-            except Exception:
-                continue
-        return result
+    return list(db.values())
 
 
 def clear(db) -> None:
@@ -166654,10 +166645,7 @@ def clear(db) -> None:
     if db is None:
         raise TypeError("db must not be None")
     for k in list(keys(db)):
-        try:
-            del db[k]
-        except Exception:
-            pass
+        del db[k]
 
 
 def update(db, other: Any = None, **kwargs) -> None:
@@ -166667,12 +166655,14 @@ def update(db, other: Any = None, **kwargs) -> None:
     if other is not None:
         if hasattr(other, "items"):
             for k, v in other.items():
-                db[k] = v
+                db[_require_bytes(k)] = _require_bytes(v)
         else:
             for k, v in other:
-                db[k] = v
+                db[_require_bytes(k)] = _require_bytes(v)
     for k, v in kwargs.items():
-        db[k] = v
+        if isinstance(k, str):
+            k = k.encode()
+        db[_require_bytes(k)] = _require_bytes(v)
 
 
 def is_available() -> bool:
@@ -166685,6 +166675,7 @@ cat > "$OUTPUT_DIR/tests/test_dumbdbm_utils.py" <<'TEST_DUMBDBM_UTILS'
 import os
 import tempfile
 import unittest
+from unittest.mock import MagicMock
 
 import dumbdbm_utils
 
@@ -166761,6 +166752,69 @@ class TestDumbdbmUtils(unittest.TestCase):
                     os.unlink(path + ext)
                 except FileNotFoundError:
                     pass
+
+    def test_keys_propagates_exception(self):
+        """keys() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.keys.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.keys(mock_db)
+
+    def test_items_propagates_exception(self):
+        """items() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.items.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.items(mock_db)
+
+    def test_values_propagates_exception(self):
+        """values() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.values.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.values(mock_db)
+
+    def test_clear_propagates_exception(self):
+        """clear() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.keys.return_value = [b"key1"]
+        mock_db.__delitem__.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.clear(mock_db)
+
+    def test_set_requires_bytes(self):
+        """set() should require bytes for key and value."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.set(mock_db, "key", b"value")
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.set(mock_db, b"key", "value")
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.set(mock_db, "key", "value")
+
+    def test_get_requires_bytes_key(self):
+        """get() should require bytes for key."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.get(mock_db, "key")
+
+    def test_delete_requires_bytes_key(self):
+        """delete() should require bytes for key."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.delete(mock_db, "key")
+
+    def test_update_requires_bytes(self):
+        """update() should require bytes for keys and values."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, {"key": b"value"})
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, {b"key": "value"})
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, key="value")
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, key=b"value", other="value")
 
 
 if __name__ == "__main__":

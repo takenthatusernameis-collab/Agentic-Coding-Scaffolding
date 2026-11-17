@@ -55,40 +55,34 @@ def _as_path_str(value: object, name: str = "path") -> str:
 
 
 def _require_str_list(value: object, name: str) -> list[str]:
-    """Validate that *value* is a list of str or Path."""
-    if not isinstance(value, list):
-        raise TypeError(f"{name} must be a list of strs")
+    """Validate that *value* is an iterable of str or Path.
+
+    Any non-string iterable is accepted (``list``, ``tuple``, a generator, ...),
+    matching the ``Iterable`` contract of :func:`create_archive`. A bare string
+    is refused because it is a single path, not a sequence of paths.
+
+    Raises:
+        TypeError: if *value* is a single string, is not iterable, or holds an
+            element that is neither str nor Path.
+        ValueError: if *value* holds an empty path.
+    """
+    if isinstance(value, (str, bytes)):
+        raise TypeError(f"{name} must be an iterable of strs, not a single string")
+    if not hasattr(value, "__iter__"):
+        raise TypeError(f"{name} must be an iterable of strs, got {type(value).__name__}")
+    result: list[str] = []
     for f in value:
         if not isinstance(f, (str, Path)):
-            raise TypeError(f"{name} must be a list of strs")
-    result = []
-    for f in value:
+            raise TypeError(f"{name} must be an iterable of strs")
         if isinstance(f, Path):
-            try:
-                if f == Path("") or str(f) == "":
-                    raise ValueError(f"{name} must not contain empty paths")
-            except ValueError:
-                raise
-            except Exception:
-                pass
-        if isinstance(f, str) and f == "":
-            raise ValueError(f"{name} must not contain empty paths")
-        s = str(f)
-        if s == "":
-            raise ValueError(f"{name} must not contain empty paths")
-        # Treat Path('') which becomes '.' as empty for this API
-        if isinstance(f, Path) and f == Path(""):
-            raise ValueError(f"{name} must not contain empty paths")
-        if s == "." and isinstance(f, Path):
-            # Could be Path(''); check
-            try:
-                if f == Path(""):
-                    raise ValueError(f"{name} must not contain empty paths")
-            except ValueError:
-                raise
-            except Exception:
-                pass
-        result.append(s)
+            # Path("") (and Path(".")) stringify to "."; reject them as empty.
+            if f == Path(""):
+                raise ValueError(f"{name} must not contain empty paths")
+            result.append(str(f))
+        else:
+            if f == "":
+                raise ValueError(f"{name} must not contain empty paths")
+            result.append(f)
     return result
 
 
