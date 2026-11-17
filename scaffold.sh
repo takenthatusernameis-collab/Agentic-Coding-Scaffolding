@@ -84291,10 +84291,10 @@ def get_member(enum_cls: Type[enum.Enum], name: str) -> enum.Enum:
         raise TypeError("enum_cls must be an Enum class")
     if not isinstance(name, str):
         raise TypeError("name must be a string")
-    try:
-        return getattr(enum_cls, name)  # type: ignore[no-any-return]
-    except AttributeError as exc:
-        raise AttributeError(f"{enum_cls.__name__} has no member named {name!r}") from exc
+    members = enum_cls.__members__
+    if name not in members:
+        raise AttributeError(f"{enum_cls.__name__} has no member named {name!r}")
+    return members[name]  # type: ignore[no-any-return]
 
 
 def get_member_name(member: enum.Enum) -> str:
@@ -84416,7 +84416,7 @@ def has_name(enum_cls: Type[enum.Enum], name: str) -> bool:
         raise TypeError("enum_cls must be an Enum class")
     if not isinstance(name, str):
         raise TypeError("name must be a string")
-    return hasattr(enum_cls, name)
+    return name in enum_cls.__members__
 
 
 def has_value(enum_cls: Type[enum.Enum], value: Any) -> bool:
@@ -84535,6 +84535,23 @@ def test_has_name():
 def test_has_value():
     assert has_value(Color, 2) is True
     assert has_value(Color, 99) is False
+
+
+def test_has_name_rejects_non_member_attributes():
+    assert has_name(Color, "RED") is True
+    assert has_name(Color, "GREEN") is True
+    assert has_name(Color, "__members__") is False
+    assert has_name(Color, "mro") is False
+    assert has_name(Color, "name") is False
+
+
+def test_get_member_rejects_non_member_attributes():
+    assert get_member(Color, "RED") is Color.RED
+    try:
+        get_member(Color, "__members__")
+        assert False, "get_member should reject non-member attributes"
+    except AttributeError:
+        pass
 
 
 def test_int_enum():

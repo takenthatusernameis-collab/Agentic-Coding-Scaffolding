@@ -1,5 +1,12 @@
 """Failing-test-first verification of enum_utils.has_name / get_member."""
-from enum_utils import Enum, has_name, get_member, get_member_name
+from enum_utils import Enum, get_member, get_member_name, has_name
+
+__all__ = [
+    "Color",
+    "test_has_name_rejects_non_member_attributes",
+    "test_get_member_rejects_non_member_attributes",
+    "test_get_member_name_rejects_non_member",
+]
 
 
 class Color(Enum):
