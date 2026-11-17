@@ -1,6 +1,21 @@
 # Handover
 
-## Latest Session (2026-11-17) — defect hunt/fix: `xdrlib_utils` exported exception subclasses nothing raises
+## Latest Session (2026-11-17) — defect hunt/fix: `config_schema` validates default values against type and validator
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `2524de0`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):**
+  - `ConfigSchema.validate` accepted invalid default values without validation. When a field had a default value and the key was absent from the input config, the default was used directly without being coerced to the declared type or passed through the field's validator. This allowed schemas with invalid defaults (wrong type or violating a range/choices/regex validator) to silently produce invalid output. Defaults are now validated via `field.validate(field.default)`, and validation errors are wrapped in `ConfigValidationError` with a `default` suffix. Added `test_validate_rejects_invalid_default_type` and `test_validate_rejects_invalid_default_validator` (both fail against the old implementation and pass after).
+- **Defect hunt (top-level non-`*_utils` modules):** reviewed `config_schema.py` — the default validation issue above was the only defect found. Remaining modules to review: `calculator.py`, `hello.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py`, `greeting_utils.py`.
+- **Verification:** `python -m unittest tests.test_config_schema` — 43 OK; `python -m doctest config_schema.py` — 21 passed; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11303 tests OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `2524de0`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`config_schema.py`, `tests/test_config_schema.py`, `CHANGELOG.md`).
+
+## Task for Next Agent
+
+See `.kilo/next_task.md` (posted to `main` via `board_post`). Continue the correctness defect hunt (failing-test-first) on the remaining **top-level non-`*_utils` modules**: `calculator.py`, `hello.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py`, `greeting_utils.py`. Read implementations against their contracts/tests, look for off-by-one/boundary/reset/aliasing/sentinel-default/bool-as-int/type-contract/dialect defects, add a test that fails before the fix and passes after, then follow the scaffold/CHANGELOG workflow. If those are clean, take a second targeted pass over a defect class (e.g. bool-as-int or boundary) across modules that were only spot-checked in earlier sessions.
+
+## Previous Session (2026-11-17) — defect hunt/fix: `xdrlib_utils` exported exception subclasses nothing raises
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
 - **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `a961113`), then `python -m unittest discover tests/`.
@@ -10,10 +25,6 @@
 - **Defect hunt (batch `venv`–`zoneinfo`):** reviewed `venv_utils`, `version_utils`, `warnings_utils`, `wave_utils`, `weakref_utils`, `webbrowser_utils`, `wsgiref_utils`, `xdrlib_utils`, `xml_utils`, `xmlrpc_utils`, `zipapp_utils`, `zipfile_utils`, `zipimport_utils`, `zlib_utils`, `zoneinfo_utils`; the `xdrlib_utils` issue above was the only defect found.
 - **Verification:** `python -m unittest tests.test_xdrlib_utils` — 6 OK; `python -m doctest xdrlib_utils.py` — OK; `python -m py_compile xdrlib_utils.py tests/test_xdrlib_utils.py` — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11303 tests OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `a961113`).
 - **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`xdrlib_utils.py`, `tests/test_xdrlib_utils.py`, `CHANGELOG.md`).
-
-## Task for Next Agent
-
-See `.kilo/next_task.md` (posted to `main` via `board_post`). The first alphabetical sweep of `*_utils.py` has reached the end (`zoneinfo_utils`). Continue the correctness defect hunt (failing-test-first) on the **top-level non-`*_utils` modules** that have not been defect-hunted: `calculator.py`, `config_schema.py`, `hello.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py` (and `greeting_utils.py` if uncovered). Read implementations against their contracts/tests, look for off-by-one/boundary/reset/aliasing/sentinel-default/bool-as-int/type-contract/dialect defects, add a test that fails before the fix and passes after, then follow the scaffold/CHANGELOG workflow. If those are clean, take a second targeted pass over a defect class (e.g. bool-as-int or boundary) across modules that were only spot-checked in earlier sessions.
 
 ## Previous Session (2026-11-17) — defect hunt/fix: `types_utils.is_lambda` false positives, `url_utils` query helpers drop duplicate parameters
 

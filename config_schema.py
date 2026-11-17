@@ -527,7 +527,10 @@ class ConfigSchema:
                 if field.required:
                     raise ConfigValidationError(f"required field {name!r} is missing")
                 if field.has_default:
-                    result[name] = field.default
+                    try:
+                        result[name] = field.validate(field.default)
+                    except (TypeError, ValueError) as exc:
+                        raise ConfigValidationError(f"field {name!r} default: {exc}") from exc
                 continue
             try:
                 result[name] = field.validate(config[name])

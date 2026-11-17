@@ -187,6 +187,18 @@ class TestConfigSchemaValidate(unittest.TestCase):
         self.assertEqual(config["debug"], False)
         self.assertEqual(config["secret"], "s3cr3t")
 
+    def test_validate_rejects_invalid_default_type(self):
+        schema = ConfigSchema([SchemaField("port", int, default="not-a-number")])
+        with self.assertRaises(ConfigValidationError):
+            schema.validate({})
+
+    def test_validate_rejects_invalid_default_validator(self):
+        schema = ConfigSchema(
+            [SchemaField("port", int, default=99999, validator=range_validator(1, 65535))]
+        )
+        with self.assertRaises(ConfigValidationError):
+            schema.validate({})
+
     def test_validate_missing_required_field(self):
         with self.assertRaises(ConfigValidationError):
             self.schema.validate({"host": "example.com"})

@@ -1,5 +1,16 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `config_schema` validates default values against type and validator
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `2524de0`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched module, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):**
+  - `ConfigSchema.validate` accepted invalid default values without validation. When a field had a default value and the key was absent from the input config, the default was used directly without being coerced to the declared type or passed through the field's validator. This allowed schemas with invalid defaults (wrong type or violating a range/choices/regex validator) to silently produce invalid output. Defaults are now validated via `field.validate(field.default)`, and validation errors are wrapped in `ConfigValidationError` with a `default` suffix. Added `test_validate_rejects_invalid_default_type` and `test_validate_rejects_invalid_default_validator` (both fail against the old implementation and pass after).
+- **Defect hunt (top-level non-`*_utils` modules):** reviewed `config_schema.py` — the default validation issue above was the only defect found. Remaining modules to review: `calculator.py`, `hello.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py`, `greeting_utils.py`.
+- **Verification:** `python -m unittest tests.test_config_schema` — 43 OK; `python -m doctest config_schema.py` — 21 passed; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11303 tests OK (skipped=4); `python -m unittest tests.test_scaffold_sync tests.test_public_api tests.test_scaffold tests.test_refresh_scaffold` — 66 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `2524de0`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`config_schema.py`, `tests/test_config_schema.py`, `CHANGELOG.md`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `xdrlib_utils` exported exception subclasses nothing raises
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

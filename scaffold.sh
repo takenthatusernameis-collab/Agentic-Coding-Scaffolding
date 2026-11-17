@@ -5588,7 +5588,10 @@ class ConfigSchema:
                 if field.required:
                     raise ConfigValidationError(f"required field {name!r} is missing")
                 if field.has_default:
-                    result[name] = field.default
+                    try:
+                        result[name] = field.validate(field.default)
+                    except (TypeError, ValueError) as exc:
+                        raise ConfigValidationError(f"field {name!r} default: {exc}") from exc
                 continue
             try:
                 result[name] = field.validate(config[name])
@@ -5825,6 +5828,18 @@ class TestConfigSchemaValidate(unittest.TestCase):
         self.assertEqual(config["port"], 8080)
         self.assertEqual(config["debug"], False)
         self.assertEqual(config["secret"], "s3cr3t")
+
+    def test_validate_rejects_invalid_default_type(self):
+        schema = ConfigSchema([SchemaField("port", int, default="not-a-number")])
+        with self.assertRaises(ConfigValidationError):
+            schema.validate({})
+
+    def test_validate_rejects_invalid_default_validator(self):
+        schema = ConfigSchema(
+            [SchemaField("port", int, default=99999, validator=range_validator(1, 65535))]
+        )
+        with self.assertRaises(ConfigValidationError):
+            schema.validate({})
 
     def test_validate_missing_required_field(self):
         with self.assertRaises(ConfigValidationError):
@@ -72420,6 +72435,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `config_schema` validates default values against type and validator
+
+- **Correctness fix — `ConfigSchema.validate` accepted invalid default values without validation.** When a field had a default value and the key was absent from the input config, the default was used directly without being coerced to the declared type or passed through the field's validator. This allowed schemas with invalid defaults (wrong type or violating a range/choices/regex validator) to silently produce invalid output. Defaults are now validated via `field.validate(field.default)`, and validation errors are wrapped in `ConfigValidationError` with a `default` suffix. Added `test_validate_rejects_invalid_default_type` and `test_validate_rejects_invalid_default_validator` (both fail against the old implementation and pass after).
+- Validation: `python -m unittest tests.test_config_schema` — 43 OK; `python -m doctest config_schema.py` — 21 passed; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/refresh_scaffold.py` + `--check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `xdrlib_utils` exports the exception classes `Packer`/`Unpacker` actually raise
 
 - **Correctness fix — `xdrlib_utils.Error` and `xdrlib_utils.ConversionError` were subclasses that nothing raised.** The module re-exported `Packer` and `Unpacker` as the standard library classes (so they raise the standard library's `xdrlib.Error`/`xdrlib.ConversionError`), but it wrapped the exceptions in new subclasses (`class _Error(xdrlib.Error)`, `class _ConversionError(xdrlib.ConversionError, _Error)`) and exported those. Because a subclass never catches its base, `except xdrlib_utils.ConversionError:` did not catch the `xdrlib.ConversionError` that `xdrlib_utils.Packer().pack_uint(2**40)` raises, so the documented error surface was unusable. `Error` and `ConversionError` are now the standard library classes themselves (matching how every other wrapper in the project re-exports its exception), with the same `getattr` fallback for interpreters that lack `xdrlib`. Added `test_exported_errors_catch_packer_failures` (fails against the old implementation and passes after).
