@@ -80157,6 +80157,10 @@ def compile_command(source, filename="<input>", symbol="single"):
     """Compile a command (wrapping ``code.compile_command``)."""
     if not isinstance(source, str):
         raise TypeError("source must be a str")
+    if not isinstance(filename, str):
+        raise TypeError("filename must be a str")
+    if symbol not in ("single", "exec", "eval"):
+        raise ValueError("symbol must be one of 'single', 'exec', 'eval'")
     return _code.compile_command(source, filename=filename, symbol=symbol)
 
 
