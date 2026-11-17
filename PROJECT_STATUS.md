@@ -1,5 +1,14 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `strings.is_palindrome` sentinel-default / parameter behavior mismatch
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed (`strings.py`, `tests/test_strings.py`), scaffold refreshed (`make refresh-scaffold` + `--check` in sync).
+- **Optimize-delays survey:** no avoidable repository-managed delay found; used state-delta probe + targeted `tests/test_strings.py`/doctest/lint/typecheck during the change. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `strings.is_palindrome` with `ignore_spaces=True` stripped punctuation alongside whitespace (the `ignore_spaces and not c.isalnum()` branch), so `is_palindrome("race,car")` returned `True`. Removed that branch so only whitespace is ignored; punctuation remains part of the palindrome check. Added `test_punctuation_not_ignored_by_default` (`is_palindrome("race,car")`, `is_palindrome("race.car")`, `is_palindrome("race!car")` → `False`) and updated `test_ignores_spaces_but_not_punctuation` (`"A man, a plan, a canal: Panama"` → `False`; `"A man a plan a canal Panama"` → `True`).
+- **Verification:** `python -m pytest tests/test_strings.py -q` — 679 passed, 98 subtests passed; `python -m doctest strings.py` — 345 passed; `make lint` — clean; `make typecheck` — clean (569 files); `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — OK.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`strings.py`, `tests/test_strings.py`, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `csv_utils.write_csv` header-only output with empty rows
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

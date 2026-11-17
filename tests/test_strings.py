@@ -168,8 +168,11 @@ class TestIsPalindrome(unittest.TestCase):
     def test_case_insensitive(self):
         self.assertTrue(is_palindrome("RaceCar"))
 
-    def test_ignores_non_alphanumeric(self):
-        self.assertTrue(is_palindrome("A man, a plan, a canal: Panama"))
+    def test_ignores_spaces_but_not_punctuation(self):
+        # ignore_spaces=True ignores whitespace but NOT punctuation
+        self.assertFalse(is_palindrome("A man, a plan, a canal: Panama"))
+        # Spaces-only palindrome still works
+        self.assertTrue(is_palindrome("A man a plan a canal Panama"))
 
     def test_empty_is_palindrome(self):
         self.assertTrue(is_palindrome(""))
@@ -2402,6 +2405,13 @@ class TestNewHelpers(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             is_palindrome(123)  # type: ignore[arg-type]
+
+    def test_punctuation_not_ignored_by_default(self):
+        # By default (ignore_spaces=True), only whitespace is ignored;
+        # punctuation is part of the palindrome check.
+        self.assertFalse(is_palindrome("race,car"))
+        self.assertFalse(is_palindrome("race.car"))
+        self.assertFalse(is_palindrome("race!car"))
 
     def test_reverse_words(self):
         from strings import reverse_words

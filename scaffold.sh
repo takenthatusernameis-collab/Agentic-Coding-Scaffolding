@@ -14464,8 +14464,6 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
     for c in s:
         if ignore_spaces and c.isspace():
             continue
-        if ignore_spaces and not c.isalnum():
-            continue
         if ignore_case:
             cleaned.append(c.lower())
         else:
@@ -19706,8 +19704,11 @@ class TestIsPalindrome(unittest.TestCase):
     def test_case_insensitive(self):
         self.assertTrue(is_palindrome("RaceCar"))
 
-    def test_ignores_non_alphanumeric(self):
-        self.assertTrue(is_palindrome("A man, a plan, a canal: Panama"))
+    def test_ignores_spaces_but_not_punctuation(self):
+        # ignore_spaces=True ignores whitespace but NOT punctuation
+        self.assertFalse(is_palindrome("A man, a plan, a canal: Panama"))
+        # Spaces-only palindrome still works
+        self.assertTrue(is_palindrome("A man a plan a canal Panama"))
 
     def test_empty_is_palindrome(self):
         self.assertTrue(is_palindrome(""))
@@ -21940,6 +21941,13 @@ class TestNewHelpers(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             is_palindrome(123)  # type: ignore[arg-type]
+
+    def test_punctuation_not_ignored_by_default(self):
+        # By default (ignore_spaces=True), only whitespace is ignored;
+        # punctuation is part of the palindrome check.
+        self.assertFalse(is_palindrome("race,car"))
+        self.assertFalse(is_palindrome("race.car"))
+        self.assertFalse(is_palindrome("race!car"))
 
     def test_reverse_words(self):
         from strings import reverse_words
@@ -72619,6 +72627,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `strings.is_palindrome` no longer strips punctuation when ignoring spaces
+
+- **Correctness fix — `is_palindrome` stripped punctuation when `ignore_spaces=True`.** The helper skipped every non-alphanumeric character alongside whitespace, so `is_palindrome("race,car")` returned `True` even though `ignore_spaces` should only ignore spaces. The `ignore_spaces and not c.isalnum()` branch was removed; only whitespace is skipped when `ignore_spaces=True`, leaving punctuation as part of the palindrome check. Added `test_punctuation_not_ignored_by_default` (`is_palindrome("race,car")`, `is_palindrome("race.car")`, `is_palindrome("race!car")` all now `False`) and updated `test_ignores_spaces_but_not_punctuation` (`"A man, a plan, a canal: Panama"` is now `False`, while `"A man a plan a canal Panama"` remains `True`).
+- **Defect hunt (sentinel-default / parameter behavior mismatch class):** `ignore_spaces` was documented as "ignore whitespace only" but also stripped punctuation; this was the only defect found in `strings.py` in this pass.
+- Validation: `python -m pytest tests/test_strings.py -q` — 679 passed, 98 subtests passed; `python -m doctest strings.py` — 345 passed; `make lint` — clean; `make typecheck` — clean (569 files); `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — OK. No `.github/workflows/**` changes.
+
 ## Unreleased — `string_utils` cosine and Jaccard similarity handle single-character strings
 
 - **Correctness fix — `string_utils.cosine_similarity` returned `0.0` for identical single-character strings.** The bigram-based similarity uses character bigrams (overlapping pairs), so strings of length < 2 produce empty vectors. The function returned `0.0` for `cosine_similarity("a", "a")` (and any single-char identical pair) because the vector norms were zero. It now handles the `len < 2` case explicitly: identical strings return `1.0`, different strings return `0.0`. Added `test_single_char_identical` and `test_single_char_different` (both fail against the old implementation and pass after).

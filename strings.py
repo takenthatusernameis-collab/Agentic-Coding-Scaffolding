@@ -616,8 +616,6 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
     for c in s:
         if ignore_spaces and c.isspace():
             continue
-        if ignore_spaces and not c.isalnum():
-            continue
         if ignore_case:
             cleaned.append(c.lower())
         else:
