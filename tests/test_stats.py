@@ -1841,6 +1841,11 @@ class TestCoefficientOfRange(unittest.TestCase):
         with self.assertRaises(ValueError):
             coefficient_of_range([-2, 2])
 
+    def test_identical_values(self) -> None:
+        self.assertEqual(coefficient_of_range([5, 5, 5]), 0.0)
+        self.assertEqual(coefficient_of_range([0, 0, 0]), 0.0)
+        self.assertEqual(coefficient_of_range([-3, -3]), 0.0)
+
     def test_rejects_non_list(self) -> None:
         with self.assertRaises(TypeError):
             coefficient_of_range((1, 2, 3))  # type: ignore[arg-type]

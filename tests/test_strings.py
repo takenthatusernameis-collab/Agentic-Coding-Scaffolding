@@ -645,9 +645,10 @@ class TestCapitalizeWords(unittest.TestCase):
     def test_capitalize_single_word(self):
         self.assertEqual(capitalize_words("python"), "Python")
 
-    def test_capitalize_preserves_extra_spaces(self):
-        # split(" ") preserves consecutive spaces as empty words
-        self.assertEqual(capitalize_words("a  b"), "A  B")
+    def test_capitalize_collapses_whitespace(self):
+        # split() collapses consecutive whitespace
+        self.assertEqual(capitalize_words("a  b"), "A B")
+        self.assertEqual(capitalize_words("  hello   world  "), "Hello World")
 
     def test_rejects_non_string(self):
         with self.assertRaises(TypeError):
@@ -2384,6 +2385,16 @@ class TestNewHelpers(unittest.TestCase):
     def test_is_palindrome_ignore_spaces_false(self):
         from strings import is_palindrome
 
+        self.assertTrue(is_palindrome("a b a", ignore_spaces=False))
+
+    def test_is_palindrome_ignore_spaces_false_punctuation(self):
+        from strings import is_palindrome
+
+        # With ignore_spaces=False, punctuation should NOT be ignored
+        self.assertFalse(is_palindrome("race,car", ignore_spaces=False))
+        self.assertFalse(is_palindrome("race.car", ignore_spaces=False))
+        self.assertFalse(is_palindrome("race!car", ignore_spaces=False))
+        # But spaces-only should still work for actual palindromes
         self.assertTrue(is_palindrome("a b a", ignore_spaces=False))
 
     def test_is_palindrome_rejects_non_string(self):

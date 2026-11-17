@@ -236,8 +236,14 @@ class TestPolygonArea(unittest.TestCase):
             polygon_area([(0, 0), (1, 1)])
 
     def test_non_list(self):
+        # tuple of tuples should work now
+        self.assertAlmostEqual(polygon_area(((0, 0), (2, 0), (0, 2))), 2.0)
+        # generator should work
+        self.assertAlmostEqual(polygon_area((v for v in [(0, 0), (2, 0), (0, 2)])), 2.0)
+
+    def test_rejects_non_sequence(self):
         with self.assertRaises(TypeError):
-            polygon_area((0, 0), (1, 1), (2, 0))  # type: ignore[arg-type]
+            polygon_area(123)  # type: ignore[arg-type]
 
     def test_vertex_not_a_pair(self):
         with self.assertRaises(TypeError):

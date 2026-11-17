@@ -40,6 +40,18 @@ class TestGreetingUtils(unittest.TestCase):
     def test_format_names_empty(self):
         self.assertEqual(format_names([]), "")
 
+    def test_format_names_type_error_not_list(self):
+        with self.assertRaises(TypeError):
+            format_names("not a list")  # type: ignore[arg-type]
+
+    def test_format_names_type_error_non_str_element(self):
+        with self.assertRaises(TypeError):
+            format_names(["Alice", 123])  # type: ignore[arg-type]
+
+    def test_format_names_type_error_non_str_greeting(self):
+        with self.assertRaises(TypeError):
+            format_names(["Alice"], 5)  # type: ignore[arg-type]
+
 
 class TestFormatFarewell(unittest.TestCase):
     def test_default(self):

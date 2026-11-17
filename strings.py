@@ -578,7 +578,7 @@ def capitalize_words(s: str) -> str:
         ''
     """
     _require_string(s, "s")
-    return " ".join(word.capitalize() for word in s.split(" "))
+    return " ".join(word.capitalize() for word in s.split())
 
 
 def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) -> bool:
@@ -616,7 +616,7 @@ def is_palindrome(s: str, ignore_case: bool = True, ignore_spaces: bool = True) 
     for c in s:
         if ignore_spaces and c.isspace():
             continue
-        if not c.isalnum():
+        if ignore_spaces and not c.isalnum():
             continue
         if ignore_case:
             cleaned.append(c.lower())

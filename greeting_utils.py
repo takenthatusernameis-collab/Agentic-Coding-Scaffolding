@@ -35,7 +35,18 @@ def format_names(names: list[str], greeting: str = "Hello") -> str:
 
     Returns:
         A string of the form "{greeting}, {name1}! {greeting}, {name2}!".
+
+    Raises:
+        TypeError: If ``names`` is not a list, contains non-str elements,
+            or if ``greeting`` is not a str.
     """
+    if not isinstance(names, list):
+        raise TypeError("names must be a list")
+    if not isinstance(greeting, str):
+        raise TypeError("greeting must be a str")
+    for name in names:
+        if not isinstance(name, str):
+            raise TypeError("names must contain only str elements")
     return " ".join(format_greeting(name, greeting) for name in names)
 
 

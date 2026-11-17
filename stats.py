@@ -1435,6 +1435,8 @@ def coefficient_of_range(numbers: List[T | float]) -> float:
         raise ValueError("numbers must not be empty")
     lo = min(numbers)
     hi = max(numbers)
+    if hi == lo:
+        return 0.0
     denom = hi + lo
     if denom == 0:
         raise ValueError("sum of min and max must not be zero")

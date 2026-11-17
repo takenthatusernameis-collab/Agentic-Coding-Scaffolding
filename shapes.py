@@ -381,7 +381,7 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         The area of the polygon.
 
     Raises:
-        TypeError: If vertices is not a list, a vertex is not a 2-tuple of
+        TypeError: If vertices is not iterable, a vertex is not a 2-tuple of
             numbers, or a vertex component is not a number.
         ValueError: If fewer than 3 vertices are provided.
 
@@ -389,21 +389,23 @@ def polygon_area(vertices: List[tuple[float, float]]) -> float:
         >>> polygon_area([(0, 0), (2, 0), (0, 2)])
         2.0
     """
-    if not isinstance(vertices, list):
-        raise TypeError("vertices must be a list")
-    if len(vertices) < 3:
+    try:
+        vertices_list = list(vertices)
+    except TypeError:
+        raise TypeError("vertices must be iterable")
+    if len(vertices_list) < 3:
         raise ValueError("polygon must have at least 3 vertices")
-    for vertex in vertices:
+    for vertex in vertices_list:
         if not isinstance(vertex, (tuple, list)) or len(vertex) != 2:
             raise TypeError("each vertex must be a 2-tuple of numbers")
         _require_number(vertex[0], "vertex x")
         _require_number(vertex[1], "vertex y")
-    n = len(vertices)
+    n = len(vertices_list)
     s1 = 0.0
     s2 = 0.0
     for i in range(n):
-        x1, y1 = vertices[i]
-        x2, y2 = vertices[(i + 1) % n]
+        x1, y1 = vertices_list[i]
+        x2, y2 = vertices_list[(i + 1) % n]
         s1 += x1 * y2
         s2 += y1 * x2
     return abs(s1 - s2) / 2.0
