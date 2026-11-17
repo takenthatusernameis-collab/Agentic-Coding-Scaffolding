@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+from unittest.mock import MagicMock
 
 import dumbdbm_utils
 
@@ -77,6 +78,69 @@ class TestDumbdbmUtils(unittest.TestCase):
                     os.unlink(path + ext)
                 except FileNotFoundError:
                     pass
+
+    def test_keys_propagates_exception(self):
+        """keys() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.keys.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.keys(mock_db)
+
+    def test_items_propagates_exception(self):
+        """items() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.items.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.items(mock_db)
+
+    def test_values_propagates_exception(self):
+        """values() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.values.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.values(mock_db)
+
+    def test_clear_propagates_exception(self):
+        """clear() should propagate exceptions from the underlying database."""
+        mock_db = MagicMock()
+        mock_db.keys.return_value = [b"key1"]
+        mock_db.__delitem__.side_effect = RuntimeError("database corrupted")
+        with self.assertRaises(RuntimeError):
+            dumbdbm_utils.clear(mock_db)
+
+    def test_set_requires_bytes(self):
+        """set() should require bytes for key and value."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.set(mock_db, "key", b"value")
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.set(mock_db, b"key", "value")
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.set(mock_db, "key", "value")
+
+    def test_get_requires_bytes_key(self):
+        """get() should require bytes for key."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.get(mock_db, "key")
+
+    def test_delete_requires_bytes_key(self):
+        """delete() should require bytes for key."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.delete(mock_db, "key")
+
+    def test_update_requires_bytes(self):
+        """update() should require bytes for keys and values."""
+        mock_db = MagicMock()
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, {"key": b"value"})
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, {b"key": "value"})
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, key="value")
+        with self.assertRaises(TypeError):
+            dumbdbm_utils.update(mock_db, key=b"value", other="value")
 
 
 if __name__ == "__main__":

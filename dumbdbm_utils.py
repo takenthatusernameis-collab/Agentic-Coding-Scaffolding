@@ -5,6 +5,14 @@ from __future__ import annotations
 import dbm.dumb as _dumbdbm
 from typing import Any
 
+
+def _require_bytes(value: object, name: str = "value") -> bytes:
+    """Validate that *value* is bytes."""
+    if not isinstance(value, (bytes, bytearray, memoryview)):
+        raise TypeError(f"{name} must be bytes, got {type(value).__name__}")
+    return bytes(value)
+
+
 __all__ = [
     "dumbdbm",
     "error",
@@ -70,27 +78,31 @@ def close(db) -> None:
         close_fn()
 
 
-def get(db, key: bytes | str, default: Any = None) -> Any:
+def get(db, key: bytes, default: Any = None) -> Any:
     """Get a value from a dumbdbm database with an optional default."""
     if db is None:
         raise TypeError("db must not be None")
+    key = _require_bytes(key)
     try:
         return db[key]
     except KeyError:
         return default
 
 
-def set(db, key: bytes | str, value: bytes | str) -> None:
+def set(db, key: bytes, value: bytes) -> None:
     """Set a value in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
+    key = _require_bytes(key)
+    value = _require_bytes(value)
     db[key] = value
 
 
-def delete(db, key: bytes | str) -> None:
+def delete(db, key: bytes) -> None:
     """Delete a key from a dumbdbm database if present."""
     if db is None:
         raise TypeError("db must not be None")
+    key = _require_bytes(key)
     try:
         del db[key]
     except KeyError:
@@ -101,42 +113,21 @@ def keys(db) -> list[bytes]:
     """Return all keys in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
-    try:
-        return list(db.keys())
-    except Exception:
-        return []
+    return list(db.keys())
 
 
 def items(db) -> list[tuple[bytes, bytes]]:
     """Return all items in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
-    try:
-        return list(db.items())
-    except Exception:
-        result = []
-        for k in keys(db):
-            try:
-                result.append((k, db[k]))
-            except Exception:
-                continue
-        return result
+    return list(db.items())
 
 
 def values(db) -> list[bytes]:
     """Return all values in a dumbdbm database."""
     if db is None:
         raise TypeError("db must not be None")
-    try:
-        return list(db.values())
-    except Exception:
-        result = []
-        for k in keys(db):
-            try:
-                result.append(db[k])
-            except Exception:
-                continue
-        return result
+    return list(db.values())
 
 
 def clear(db) -> None:
@@ -144,10 +135,7 @@ def clear(db) -> None:
     if db is None:
         raise TypeError("db must not be None")
     for k in list(keys(db)):
-        try:
-            del db[k]
-        except Exception:
-            pass
+        del db[k]
 
 
 def update(db, other: Any = None, **kwargs) -> None:
@@ -157,12 +145,14 @@ def update(db, other: Any = None, **kwargs) -> None:
     if other is not None:
         if hasattr(other, "items"):
             for k, v in other.items():
-                db[k] = v
+                db[_require_bytes(k)] = _require_bytes(v)
         else:
             for k, v in other:
-                db[k] = v
+                db[_require_bytes(k)] = _require_bytes(v)
     for k, v in kwargs.items():
-        db[k] = v
+        if isinstance(k, str):
+            k = k.encode()
+        db[_require_bytes(k)] = _require_bytes(v)
 
 
 def is_available() -> bool:
