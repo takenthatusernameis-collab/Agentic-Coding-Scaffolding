@@ -57224,7 +57224,7 @@ def _positional_argcount(func: Callable[..., Any]) -> int:
     """
     code = getattr(func, "__code__", None)
     if code is not None:
-        return code.co_argcount
+        return code.co_argcount  # type: ignore[no-any-return]
     try:
         signature = inspect.signature(func)
     except (TypeError, ValueError):

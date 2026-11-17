@@ -1320,7 +1320,7 @@ The project includes numeric abstract base class utilities in `numbers_utils.py`
 
 ## Quopri Utilities Module
 
-The project includes quoted-printable utilities in `quopri_utils.py` wrapping the standard library `quopri` module: `encode` and `decode` convert quoted-printable data to and from bytes, `encode_file` and `decode_file` convert files in place, and `isqp` reports whether a string contains quoted-printable data. The module is tested in `tests/test_quopri_utils.py`.
+The project includes quoted-printable utilities in `quopri_utils.py` wrapping the standard library `quopri` module: `encode` and `decode` convert quoted-printable data to and from bytes, `encode_file` and `decode_file` convert files in place, and `isqp` reports whether a byte ordinal must be quoted in quoted-printable encoding. The module is tested in `tests/test_quopri_utils.py`.
 
 ## Sched Utilities Module
 
