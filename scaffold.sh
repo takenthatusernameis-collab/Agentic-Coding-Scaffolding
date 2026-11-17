@@ -2308,7 +2308,7 @@ def run_script_traced(
         if requested is None:
             exit_code = 0
         elif isinstance(requested, int):
-            exit_code = requested
+            exit_code = int(requested)
         else:
             print(requested, file=sys.stderr)
             exit_code = 1
@@ -2714,6 +2714,21 @@ class TestRunScriptTraced(unittest.TestCase):
             script = write_script(directory, "import sys\nsys.exit()\n")
             exit_code, _ = trace_utils.run_script_traced(script)
         self.assertEqual(exit_code, 0)
+
+    def test_run_script_traced_coerces_a_bool_exit_code_to_int(self):
+        # ``sys.exit(True)``/``sys.exit(False)`` are documented to exit with the
+        # integer status 1/0; the helper must report an ``int`` rather than the
+        # ``bool`` it was handed.
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory, "import sys\nsys.exit(True)\n")
+            exit_code, _ = trace_utils.run_script_traced(script)
+        self.assertEqual(exit_code, 1)
+        self.assertIs(type(exit_code), int)
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory, "import sys\nsys.exit(False)\n")
+            exit_code, _ = trace_utils.run_script_traced(script)
+        self.assertEqual(exit_code, 0)
+        self.assertIs(type(exit_code), int)
 
     def test_run_script_traced_reports_a_message_exit_code(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -72386,6 +72401,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `tokenize_utils.tokenize_file` accepts path-like objects, `trace_utils.run_script_traced` reports an `int` exit code
+
+- **Correctness fix — `tokenize_utils.tokenize_file` rejected path-like objects.** The helper validated its argument with `isinstance(path, (str, Path))`, so a `pathlib.PurePath` or any other `os.PathLike` (both valid inputs that `tokenize.open` and `pathlib.Path` accept) raised `TypeError` instead of being tokenized, contradicting the documented "If *path* is neither a string nor a path-like object" contract. The check now accepts `os.PathLike` (which `Path` already satisfies). Added `test_tokenize_file_accepts_pure_path` and `test_tokenize_file_accepts_os_pathlike` (both fail against the old implementation and pass after).
+- **Correctness fix — `trace_utils.run_script_traced` returned a `bool` exit code for `sys.exit(True)`/`sys.exit(False)`.** The `SystemExit` handler used `isinstance(requested, int)`, and `bool` is a subclass of `int`, so a script calling `sys.exit(True)` produced `True` (and `sys.exit(False)` produced `False`) instead of the integer status the helper documents. A real interpreter exits with `1`/`0` for those calls. The handler now coerces the value with `int(...)`. Added `test_run_script_traced_coerces_a_bool_exit_code_to_int` (fails against the old implementation and passes after).
+- **Defect hunt (batch `token`–`type`):** reviewed `token_utils`, `tokenize_utils`, `tomllib_utils`, `trace_utils`, `traceback_utils`, `tracemalloc_utils`, `tree_utils`, `tty_utils`, `type_check_utils`, `type_utils`. The two issues above were the only defects found in this pass.
+- Validation: `python -m unittest tests.test_tokenize_utils tests.test_trace_utils` — 94 OK; `python -m doctest tokenize_utils.py trace_utils.py` — OK; `python -m py_compile` on touched files — OK; `python -m ruff check` and `python -m mypy` — clean; `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `timeit_utils` and `timing_utils` reject `bool` integer parameters
 
 - **Correctness fix — `timeit_utils.timeit` and `timeit_utils.repeat` accepted `bool` for `number` and `repeat`.** The parameters were annotated as `int` but had no runtime validation, so `timeit("pass", number=True)` (where `True == 1`) and `repeat("pass", repeat=True)` were silently accepted instead of raising `TypeError`, contradicting the bool-rejection convention used elsewhere in the project. A shared `_validate_positive_int` helper now rejects `bool` before the numeric check. Added `test_rejects_bool_number` and `test_rejects_bool_repeat` (all fail against the old implementation and pass after).
@@ -132187,6 +132210,7 @@ from __future__ import annotations
 
 import io
 import keyword
+import os
 import token as _token
 import tokenize as _tokenize
 from collections.abc import Iterable
@@ -132256,7 +132280,7 @@ def tokenize_source(source: str) -> List[TokenInfo]:
     return list(_tokenize.generate_tokens(io.StringIO(text).readline))
 
 
-def tokenize_file(path: Union[str, Path]) -> List[TokenInfo]:
+def tokenize_file(path: Union[str, os.PathLike]) -> List[TokenInfo]:
     """Tokenize the Python source file at *path*.
 
     The file is decoded using the encoding declared by its cookie or by the
@@ -132272,8 +132296,8 @@ def tokenize_file(path: Union[str, Path]) -> List[TokenInfo]:
         TypeError: If *path* is neither a string nor a path-like object.
         FileNotFoundError: If *path* does not exist.
     """
-    if not isinstance(path, (str, Path)):
-        raise TypeError(f"path must be a string or Path, got {type(path).__name__}")
+    if not isinstance(path, (str, os.PathLike)):
+        raise TypeError(f"path must be a string or path-like object, got {type(path).__name__}")
     file_path = Path(path)
     with _tokenize.open(file_path) as handle:
         text = handle.read()
@@ -132424,7 +132448,7 @@ import codecs
 import io
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import tokenize_utils
 
@@ -132470,6 +132494,24 @@ class TestTokenizeFile(unittest.TestCase):
 
     def test_tokenize_file_accepts_string_path(self):
         tokens = tokenize_utils.tokenize_file(str(self.path))
+        self.assertIn("x", [tok.string for tok in tokens])
+
+    def test_tokenize_file_accepts_pure_path(self):
+        # ``PurePath`` is path-like (``os.PathLike``) but is not a ``Path``
+        # instance, so the docstring's "string or path-like object" contract
+        # requires it to be accepted.
+        tokens = tokenize_utils.tokenize_file(PurePath(self.path))
+        self.assertIn("x", [tok.string for tok in tokens])
+
+    def test_tokenize_file_accepts_os_pathlike(self):
+        class PathLike:
+            def __init__(self, path):
+                self._path = path
+
+            def __fspath__(self):
+                return self._path
+
+        tokens = tokenize_utils.tokenize_file(PathLike(str(self.path)))
         self.assertIn("x", [tok.string for tok in tokens])
 
     def test_tokenize_file_missing_file(self):

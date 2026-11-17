@@ -235,7 +235,7 @@ def run_script_traced(
         if requested is None:
             exit_code = 0
         elif isinstance(requested, int):
-            exit_code = requested
+            exit_code = int(requested)
         else:
             print(requested, file=sys.stderr)
             exit_code = 1

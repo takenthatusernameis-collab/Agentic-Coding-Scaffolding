@@ -4,7 +4,7 @@ import codecs
 import io
 import tempfile
 import unittest
-from pathlib import Path
+from pathlib import Path, PurePath
 
 import tokenize_utils
 
@@ -50,6 +50,24 @@ class TestTokenizeFile(unittest.TestCase):
 
     def test_tokenize_file_accepts_string_path(self):
         tokens = tokenize_utils.tokenize_file(str(self.path))
+        self.assertIn("x", [tok.string for tok in tokens])
+
+    def test_tokenize_file_accepts_pure_path(self):
+        # ``PurePath`` is path-like (``os.PathLike``) but is not a ``Path``
+        # instance, so the docstring's "string or path-like object" contract
+        # requires it to be accepted.
+        tokens = tokenize_utils.tokenize_file(PurePath(self.path))
+        self.assertIn("x", [tok.string for tok in tokens])
+
+    def test_tokenize_file_accepts_os_pathlike(self):
+        class PathLike:
+            def __init__(self, path):
+                self._path = path
+
+            def __fspath__(self):
+                return self._path
+
+        tokens = tokenize_utils.tokenize_file(PathLike(str(self.path)))
         self.assertIn("x", [tok.string for tok in tokens])
 
     def test_tokenize_file_missing_file(self):

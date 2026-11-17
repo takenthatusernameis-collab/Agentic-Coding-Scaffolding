@@ -170,6 +170,21 @@ class TestRunScriptTraced(unittest.TestCase):
             exit_code, _ = trace_utils.run_script_traced(script)
         self.assertEqual(exit_code, 0)
 
+    def test_run_script_traced_coerces_a_bool_exit_code_to_int(self):
+        # ``sys.exit(True)``/``sys.exit(False)`` are documented to exit with the
+        # integer status 1/0; the helper must report an ``int`` rather than the
+        # ``bool`` it was handed.
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory, "import sys\nsys.exit(True)\n")
+            exit_code, _ = trace_utils.run_script_traced(script)
+        self.assertEqual(exit_code, 1)
+        self.assertIs(type(exit_code), int)
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory, "import sys\nsys.exit(False)\n")
+            exit_code, _ = trace_utils.run_script_traced(script)
+        self.assertEqual(exit_code, 0)
+        self.assertIs(type(exit_code), int)
+
     def test_run_script_traced_reports_a_message_exit_code(self):
         with tempfile.TemporaryDirectory() as directory:
             script = write_script(directory, "import sys\nsys.exit('bye')\n")

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import keyword
+import os
 import token as _token
 import tokenize as _tokenize
 from collections.abc import Iterable
@@ -79,7 +80,7 @@ def tokenize_source(source: str) -> List[TokenInfo]:
     return list(_tokenize.generate_tokens(io.StringIO(text).readline))
 
 
-def tokenize_file(path: Union[str, Path]) -> List[TokenInfo]:
+def tokenize_file(path: Union[str, os.PathLike]) -> List[TokenInfo]:
     """Tokenize the Python source file at *path*.
 
     The file is decoded using the encoding declared by its cookie or by the
@@ -95,8 +96,8 @@ def tokenize_file(path: Union[str, Path]) -> List[TokenInfo]:
         TypeError: If *path* is neither a string nor a path-like object.
         FileNotFoundError: If *path* does not exist.
     """
-    if not isinstance(path, (str, Path)):
-        raise TypeError(f"path must be a string or Path, got {type(path).__name__}")
+    if not isinstance(path, (str, os.PathLike)):
+        raise TypeError(f"path must be a string or path-like object, got {type(path).__name__}")
     file_path = Path(path)
     with _tokenize.open(file_path) as handle:
         text = handle.read()

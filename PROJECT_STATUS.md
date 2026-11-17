@@ -1,5 +1,17 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `tokenize_utils` path-like paths, `trace_utils` bool exit code
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `8727f11`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `tokenize_utils.tokenize_file` validated its argument with `isinstance(path, (str, Path))`, so a `pathlib.PurePath` or any other `os.PathLike` (valid inputs that `tokenize.open` and `pathlib.Path` accept) raised `TypeError`, contradicting the documented "string or path-like object" contract. The check now accepts `os.PathLike` (which `Path` already satisfies). Added `test_tokenize_file_accepts_pure_path` and `test_tokenize_file_accepts_os_pathlike`.
+  - `trace_utils.run_script_traced` returned a `bool` exit code for `sys.exit(True)`/`sys.exit(False)`: the `SystemExit` handler used `isinstance(requested, int)` and `bool` is an `int` subclass, so it returned `True`/`False` instead of the documented integer status (a real interpreter exits `1`/`0`). The handler now coerces with `int(...)`. Added `test_run_script_traced_coerces_a_bool_exit_code_to_int`.
+- **Defect hunt (batch `token`–`type`):** reviewed `token_utils`, `tokenize_utils`, `tomllib_utils`, `trace_utils`, `traceback_utils`, `tracemalloc_utils`, `tree_utils`, `tty_utils`, `type_check_utils`, `type_utils`; the two issues above were the only defects found.
+- **Verification:** `python -m unittest tests.test_tokenize_utils tests.test_trace_utils` — 94 OK; `python -m doctest tokenize_utils.py trace_utils.py` — OK; `python -m py_compile` on touched files — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11297 tests OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `8727f11`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`tokenize_utils.py`, `tests/test_tokenize_utils.py`, `trace_utils.py`, `tests/test_trace_utils.py`, `CHANGELOG.md`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `timeit_utils` and `timing_utils` reject `bool` integer parameters
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
@@ -129,7 +141,7 @@
 
 ## Task for Next Agent
 
-See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `socket_utils` (e.g. `socketserver_utils`, `sort_utils`, `spwd_utils`, `sqlite3_utils`, `sre_compile_utils`, `sre_constants_utils`, `sre_parse_utils`, `ssl_utils`, `stat_utils`, `statistics_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
+See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `type_utils` (e.g. `types_utils`, `typing_utils`, `unicodedata_utils`, `unittest_utils`, `url_utils`, `urllib_utils`, `utils`, `uu_utils`, `uuid_utils`, `validation_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
 
 ## Previous Session (2026-11-16) — defect hunt/fix: `concurrent_futures_utils` bool-as-int
 

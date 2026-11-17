@@ -1,14 +1,17 @@
 # Handover
 
-## Latest Session (2026-11-17) — bootstrap session; project foundation verified
+## Latest Session (2026-11-17) — defect hunt/fix: `tokenize_utils` path-like paths, `trace_utils` bool exit code
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
-- **State:** `python tools/verify_state_delta.py --probe` rc=1 (checkpoint matches HEAD `d835665`); no redundant battery run required.
-- **Optimize-delays survey:** no avoidable repository-managed delay; `make test` skips redundant runs on probe rc=0/1; `refresh_scaffold --check` and `scan_untested` are cached sub-second.
-- **Verification:** `make test` — public API smoke test and doctests pass; `make lint` — clean; `make typecheck` — clean (568 files); `make test-full` — 11294 tests OK (skipped=4); `python tools/refresh_scaffold.py --check` — in sync; `python tools/scan_untested.py` — clean.
-- **Defect hunt:** confirmed no defects in previously reviewed batch `template_utils`–`timing_utils` (previous session fixed `timeit_utils` and `timing_utils` bool acceptance).
-- No source or test files changed; no scaffold refresh required.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `8727f11`), then `python -m unittest discover tests/` (11297 tests, skipped=4).
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `tokenize_utils.tokenize_file` validated its argument with `isinstance(path, (str, Path))`, so a `pathlib.PurePath` or any other `os.PathLike` (valid inputs that `tokenize.open` and `pathlib.Path` accept) raised `TypeError`, contradicting the documented "string or path-like object" contract. The check now accepts `os.PathLike` (which `Path` already satisfies). Added `test_tokenize_file_accepts_pure_path` and `test_tokenize_file_accepts_os_pathlike` (fail before, pass after).
+  - `trace_utils.run_script_traced` returned a `bool` exit code for `sys.exit(True)`/`sys.exit(False)`: the `SystemExit` handler used `isinstance(requested, int)` and `bool` is an `int` subclass, so it returned `True`/`False` instead of the documented integer status (a real interpreter exits `1`/`0`). The handler now coerces with `int(...)`. Added `test_run_script_traced_coerces_a_bool_exit_code_to_int` (fails before, passes after).
+- **Defect hunt (batch `token`–`type`):** reviewed `token_utils`, `tokenize_utils`, `tomllib_utils`, `trace_utils`, `traceback_utils`, `tracemalloc_utils`, `tree_utils`, `tty_utils`, `type_check_utils`, `type_utils`; the two issues above were the only defects found.
+- **Verification:** `python -m unittest tests.test_tokenize_utils tests.test_trace_utils` — 94 OK; `python -m doctest tokenize_utils.py trace_utils.py` — OK; `python -m py_compile` on touched files — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11297 tests OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `8727f11`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`tokenize_utils.py`, `tests/test_tokenize_utils.py`, `trace_utils.py`, `tests/test_trace_utils.py`, `CHANGELOG.md`).
 
 ## Task for Next Agent
 
-See `.kilo/next_task.md` (posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `timing_utils` (e.g. `token_utils`, `tokenize_utils`, `tomllib_utils`, `trace_utils`, `traceback_utils`, `tracemalloc_utils`, `tree_utils`, `tty_utils`, `type_check_utils`, `type_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
+See `.kilo/next_task.md` (posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `type_utils` (e.g. `types_utils`, `typing_utils`, `unicodedata_utils`, `unittest_utils`, `url_utils`, `urllib_utils`, `utils`, `uu_utils`, `uuid_utils`, `validation_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
