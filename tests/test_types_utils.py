@@ -85,6 +85,15 @@ class TestTypesUtils(unittest.TestCase):
         self.assertTrue(is_lambda(lambda x: x))
         self.assertFalse(is_lambda(42))
 
+    def test_is_lambda_rejects_a_regular_function(self):
+        def regular():
+            pass
+
+        self.assertFalse(is_lambda(regular))
+
+    def test_is_lambda_accepts_a_lambda(self):
+        self.assertTrue(is_lambda(lambda: None))
+
     def test_simple_namespace(self):
         ns = simple_namespace(a=1, b=2)
         self.assertEqual(ns.a, 1)

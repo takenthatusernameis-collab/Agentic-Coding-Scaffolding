@@ -1,5 +1,17 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `types_utils.is_lambda` false positives, `url_utils` query helpers drop duplicate parameters
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior source-relevant edits pending checkpoint). Source changed, so ran `python tools/verify_state_delta.py --full --record-full-suite` (battery passed, checkpoint `ffbfab9`), then `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used the state-delta probe and targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  - `types_utils.is_lambda` returned `True` for every function: it tested `isinstance(obj, types.LambdaType)`, and `types.LambdaType` is an alias for `types.FunctionType`, so a regular `def` was reported as a lambda. The check now also requires `obj.__name__ == "<lambda>"`. Added `test_is_lambda_rejects_a_regular_function` and `test_is_lambda_accepts_a_lambda`.
+  - `url_utils.add_query_param` and `url_utils.remove_query_param` silently dropped duplicate query parameters: both routed through `get_query_params`, which keeps only the first value for a repeated key, so editing one parameter rewrote the query and discarded every other occurrence (e.g. `?a=1&a=2` became `?a=1`). They now operate on the full `parse_qsl` pair list, preserving duplicates and only replacing or removing the targeted key. Added `test_add_param_preserves_duplicate_values`, `test_add_param_replaces_all_occurrences_on_update`, and `test_remove_preserves_duplicate_values_of_other_keys`.
+- **Defect hunt (batch `types`–`validation`):** reviewed `types_utils`, `typing_utils`, `unicodedata_utils`, `unittest_utils`, `url_utils`, `urllib_utils`, `utils`, `uu_utils`, `uuid_utils`, `validation_utils`; the two issues above were the only defects found.
+- **Verification:** `python -m unittest tests.test_types_utils tests.test_url_utils` — 48 OK; `python -m doctest types_utils.py url_utils.py` — OK; `python -m py_compile` on touched files — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11302 tests OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `ffbfab9`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`types_utils.py`, `tests/test_types_utils.py`, `url_utils.py`, `tests/test_url_utils.py`, `CHANGELOG.md`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `tokenize_utils` path-like paths, `trace_utils` bool exit code
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
@@ -141,7 +153,7 @@
 
 ## Task for Next Agent
 
-See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `type_utils` (e.g. `types_utils`, `typing_utils`, `unicodedata_utils`, `unittest_utils`, `url_utils`, `urllib_utils`, `utils`, `uu_utils`, `uuid_utils`, `validation_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
+See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the correctness defect hunt on the next unreviewed `*_utils.py` modules alphabetically after `validation_utils` (e.g. `venv_utils`, `version_utils`, `warnings_utils`, `wave_utils`, `weakref_utils`, `webbrowser_utils`, `wsgiref_utils`, `xdrlib_utils`, `xml_utils`, `xmlrpc_utils`, `zipapp_utils`, `zipfile_utils`, `zipimport_utils`, `zlib_utils`, `zoneinfo_utils`), following the failing-test-first protocol and the scaffold/CHANGELOG workflow.
 
 ## Previous Session (2026-11-16) — defect hunt/fix: `concurrent_futures_utils` bool-as-int
 

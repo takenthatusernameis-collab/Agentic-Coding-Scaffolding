@@ -100,6 +100,14 @@ class TestAddQueryParam(unittest.TestCase):
         result = add_query_param("https://example.com", "count", 42)
         self.assertIn("count=42", result)
 
+    def test_add_param_preserves_duplicate_values(self) -> None:
+        result = add_query_param("https://example.com?a=1&a=2&b=3", "c", "4")
+        self.assertEqual(result, "https://example.com?a=1&a=2&b=3&c=4")
+
+    def test_add_param_replaces_all_occurrences_on_update(self) -> None:
+        result = add_query_param("https://example.com?a=1&a=2", "a", "3")
+        self.assertEqual(result, "https://example.com?a=3")
+
 
 class TestRemoveQueryParam(unittest.TestCase):
     def test_remove_existing(self) -> None:
@@ -115,6 +123,10 @@ class TestRemoveQueryParam(unittest.TestCase):
         result = remove_query_param("https://example.com?a=1", "a")
         self.assertNotIn("a=1", result)
         self.assertNotIn("?", result)
+
+    def test_remove_preserves_duplicate_values_of_other_keys(self) -> None:
+        result = remove_query_param("https://example.com?a=1&a=2&b=3", "b")
+        self.assertEqual(result, "https://example.com?a=1&a=2")
 
 
 class TestBuildUrl(unittest.TestCase):

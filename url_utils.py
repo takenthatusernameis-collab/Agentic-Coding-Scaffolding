@@ -1,7 +1,7 @@
 """URL and web utility functions."""
 
 from typing import Dict, List, Optional, Union
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
 __all__ = [
     "add_query_param",
@@ -101,9 +101,13 @@ def add_query_param(url: str, key: str, value: Union[str, int, float]) -> str:
         The updated URL with the query parameter set.
     """
     parsed = urlparse(url)
-    params = get_query_params(url)
-    params[key] = str(value)
-    new_query = urlencode(params)
+    pairs = [
+        (name, item)
+        for name, item in parse_qsl(parsed.query, keep_blank_values=True)
+        if name != key
+    ]
+    pairs.append((key, str(value)))
+    new_query = urlencode(pairs)
     return urlunparse(parsed._replace(query=new_query))
 
 
@@ -120,9 +124,12 @@ def remove_query_param(url: str, key: str) -> str:
         The URL with the specified query parameter removed.
     """
     parsed = urlparse(url)
-    params = get_query_params(url)
-    params.pop(key, None)
-    new_query = urlencode(params) if params else ""
+    pairs = [
+        (name, item)
+        for name, item in parse_qsl(parsed.query, keep_blank_values=True)
+        if name != key
+    ]
+    new_query = urlencode(pairs)
     return urlunparse(parsed._replace(query=new_query))
 
 

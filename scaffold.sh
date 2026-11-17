@@ -35133,7 +35133,7 @@ cat > "$OUTPUT_DIR/url_utils.py" <<'URLUTILS'
 """URL and web utility functions."""
 
 from typing import Dict, List, Optional, Union
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse, urlunparse
 
 __all__ = [
     "add_query_param",
@@ -35233,9 +35233,13 @@ def add_query_param(url: str, key: str, value: Union[str, int, float]) -> str:
         The updated URL with the query parameter set.
     """
     parsed = urlparse(url)
-    params = get_query_params(url)
-    params[key] = str(value)
-    new_query = urlencode(params)
+    pairs = [
+        (name, item)
+        for name, item in parse_qsl(parsed.query, keep_blank_values=True)
+        if name != key
+    ]
+    pairs.append((key, str(value)))
+    new_query = urlencode(pairs)
     return urlunparse(parsed._replace(query=new_query))
 
 
@@ -35252,9 +35256,12 @@ def remove_query_param(url: str, key: str) -> str:
         The URL with the specified query parameter removed.
     """
     parsed = urlparse(url)
-    params = get_query_params(url)
-    params.pop(key, None)
-    new_query = urlencode(params) if params else ""
+    pairs = [
+        (name, item)
+        for name, item in parse_qsl(parsed.query, keep_blank_values=True)
+        if name != key
+    ]
+    new_query = urlencode(pairs)
     return urlunparse(parsed._replace(query=new_query))
 
 
@@ -35394,6 +35401,14 @@ class TestAddQueryParam(unittest.TestCase):
         result = add_query_param("https://example.com", "count", 42)
         self.assertIn("count=42", result)
 
+    def test_add_param_preserves_duplicate_values(self) -> None:
+        result = add_query_param("https://example.com?a=1&a=2&b=3", "c", "4")
+        self.assertEqual(result, "https://example.com?a=1&a=2&b=3&c=4")
+
+    def test_add_param_replaces_all_occurrences_on_update(self) -> None:
+        result = add_query_param("https://example.com?a=1&a=2", "a", "3")
+        self.assertEqual(result, "https://example.com?a=3")
+
 
 class TestRemoveQueryParam(unittest.TestCase):
     def test_remove_existing(self) -> None:
@@ -35409,6 +35424,10 @@ class TestRemoveQueryParam(unittest.TestCase):
         result = remove_query_param("https://example.com?a=1", "a")
         self.assertNotIn("a=1", result)
         self.assertNotIn("?", result)
+
+    def test_remove_preserves_duplicate_values_of_other_keys(self) -> None:
+        result = remove_query_param("https://example.com?a=1&a=2&b=3", "b")
+        self.assertEqual(result, "https://example.com?a=1&a=2")
 
 
 class TestBuildUrl(unittest.TestCase):
@@ -72401,6 +72420,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `types_utils.is_lambda` distinguishes lambdas from functions, `url_utils` query helpers preserve duplicate parameters
+
+- **Correctness fix — `types_utils.is_lambda` returned `True` for every function.** `types.LambdaType` is an alias for `types.FunctionType`, so the helper's `isinstance(obj, types.LambdaType)` check accepted any function and reported a regular `def` as a lambda. It now also requires the object's `__name__` to be `"<lambda>"`. Added `test_is_lambda_rejects_a_regular_function` and `test_is_lambda_accepts_a_lambda` (both fail against the old implementation and pass after).
+- **Correctness fix — `url_utils.add_query_param` and `url_utils.remove_query_param` silently dropped duplicate query parameters.** Both helpers routed through `get_query_params`, which keeps only the first value for a repeated key, so editing one parameter rewrote the query and discarded every other occurrence (for example `?a=1&a=2` became `?a=1`). They now operate on the full `parse_qsl` pair list, preserving duplicates and only replacing or removing the targeted key. Added `test_add_param_preserves_duplicate_values`, `test_add_param_replaces_all_occurrences_on_update`, and `test_remove_preserves_duplicate_values_of_other_keys` (all fail against the old implementation and pass after).
+- **Defect hunt (batch `types`–`validation`):** reviewed `types_utils`, `typing_utils`, `unicodedata_utils`, `unittest_utils`, `url_utils`, `urllib_utils`, `utils`, `uu_utils`, `uuid_utils`, `validation_utils`. The two issues above were the only defects found in this pass.
+- Validation: `python -m unittest tests.test_types_utils tests.test_url_utils` — 48 OK; `python -m doctest types_utils.py url_utils.py` — OK; `python -m py_compile` on touched files — OK; `make lint` — clean; `make typecheck` — clean (568 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `tokenize_utils.tokenize_file` accepts path-like objects, `trace_utils.run_script_traced` reports an `int` exit code
 
 - **Correctness fix — `tokenize_utils.tokenize_file` rejected path-like objects.** The helper validated its argument with `isinstance(path, (str, Path))`, so a `pathlib.PurePath` or any other `os.PathLike` (both valid inputs that `tokenize.open` and `pathlib.Path` accept) raised `TypeError` instead of being tokenized, contradicting the documented "If *path* is neither a string nor a path-like object" contract. The check now accepts `os.PathLike` (which `Path` already satisfies). Added `test_tokenize_file_accepts_pure_path` and `test_tokenize_file_accepts_os_pathlike` (both fail against the old implementation and pass after).
@@ -133425,7 +133452,7 @@ def is_coroutine(obj: Any) -> bool:
 
 
 def is_lambda(obj: Any) -> bool:
-    return isinstance(obj, types.LambdaType)
+    return isinstance(obj, types.LambdaType) and getattr(obj, "__name__", None) == "<lambda>"
 
 
 def simple_namespace(**kwargs: Any) -> types.SimpleNamespace:
@@ -133520,6 +133547,15 @@ class TestTypesUtils(unittest.TestCase):
     def test_is_lambda(self):
         self.assertTrue(is_lambda(lambda x: x))
         self.assertFalse(is_lambda(42))
+
+    def test_is_lambda_rejects_a_regular_function(self):
+        def regular():
+            pass
+
+        self.assertFalse(is_lambda(regular))
+
+    def test_is_lambda_accepts_a_lambda(self):
+        self.assertTrue(is_lambda(lambda: None))
 
     def test_simple_namespace(self):
         ns = simple_namespace(a=1, b=2)

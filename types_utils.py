@@ -71,7 +71,7 @@ def is_coroutine(obj: Any) -> bool:
 
 
 def is_lambda(obj: Any) -> bool:
-    return isinstance(obj, types.LambdaType)
+    return isinstance(obj, types.LambdaType) and getattr(obj, "__name__", None) == "<lambda>"
 
 
 def simple_namespace(**kwargs: Any) -> types.SimpleNamespace:
