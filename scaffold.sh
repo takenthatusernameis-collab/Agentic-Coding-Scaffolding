@@ -8849,6 +8849,8 @@ __all__: list[str] = [
 
 def bz2_compress(data: bytes, compresslevel: int = 9) -> bytes:
     """Compress bytes using bz2."""
+    if isinstance(compresslevel, bool) or not isinstance(compresslevel, int):
+        raise TypeError("compresslevel must be an int")
     return bz2.compress(data, compresslevel=compresslevel)
 
 
@@ -8859,11 +8861,15 @@ def bz2_decompress(data: bytes) -> bytes:
 
 def bz2_open(filename: str, mode: str = "rb", compresslevel: int = 9) -> IO[bytes] | IO[str]:
     """Open a bz2 file."""
+    if isinstance(compresslevel, bool) or not isinstance(compresslevel, int):
+        raise TypeError("compresslevel must be an int")
     return bz2.open(filename, mode, compresslevel=compresslevel)  # type: ignore[return-value]
 
 
 def bz2_write(filename: str, data: bytes, compresslevel: int = 9) -> None:
     """Write data to a bz2 file."""
+    if isinstance(compresslevel, bool) or not isinstance(compresslevel, int):
+        raise TypeError("compresslevel must be an int")
     with bz2.open(filename, "wb", compresslevel=compresslevel) as f:
         f.write(data)
 
@@ -8979,6 +8985,14 @@ class TestBz2Utils(unittest.TestCase):
             compressed = bz2_compress(data, compresslevel=level)
             assert bz2_decompress(compressed) == data
 
+    def test_bz2_compress_rejects_bool_compresslevel(self):
+        # bool is a subclass of int; without an explicit check True/False are
+        # silently accepted as levels 1/0 instead of raising TypeError.
+        with self.assertRaises(TypeError):
+            bz2_compress(b"data", compresslevel=True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bz2_compress(b"data", compresslevel=False)  # type: ignore[arg-type]
+
 
     def test_bz2_decompress_invalid_data_raises(self):
         with self.assertRaises(Exception):
@@ -9034,6 +9048,22 @@ class TestBz2Utils(unittest.TestCase):
             path = os.path.join(d, "level.bz2")
             bz2_write(path, data, compresslevel=1)
             assert bz2_read(path) == data
+
+    def test_bz2_write_rejects_bool_compresslevel(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "bool.bz2")
+            with self.assertRaises(TypeError):
+                bz2_write(path, b"data", compresslevel=True)  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                bz2_write(path, b"data", compresslevel=False)  # type: ignore[arg-type]
+
+    def test_bz2_open_rejects_bool_compresslevel(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "bool.bz2")
+            with self.assertRaises(TypeError):
+                bz2_open(path, "wb", compresslevel=True)  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                bz2_open(path, "wb", compresslevel=False)  # type: ignore[arg-type]
 
 
     def test_bz2_read_missing_file_raises(self):
@@ -72757,6 +72787,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `bz2_utils` rejects a `bool` `compresslevel`
+
+- **Correctness fix — `bz2_compress`, `bz2_open`, and `bz2_write` accepted a boolean `compresslevel`.** Because `bool` is a subclass of `int`, `True`/`False` were silently accepted as compression levels 1/0 instead of raising `TypeError`. The sibling `lzma_utils` wrappers already reject booleans for their `preset` parameter. All three `bz2_utils` helpers now reject `bool` explicitly before the integer check. Added `test_bz2_compress_rejects_bool_compresslevel`, `test_bz2_write_rejects_bool_compresslevel`, and `test_bz2_open_rejects_bool_compresslevel` (red before the fix, green after).
+- **Defect hunt (accepts-invalid-input class):** reviewed `bz2_utils`, `lzma_utils`, `quopri_utils`, `uu_utils`, `shlex_utils`, `shelve_utils`, `filecmp_utils`, `fnmatch_utils`, `array_utils`, `ast_utils`, `asyncio_utils`, `base64_utils`, `binascii_utils`, `hash_utils`, `hmac_utils`, `secrets_utils`, `argparse_utils`; the `bz2_utils` gap above was the only high-confidence defect found.
+- Validation: `python -m unittest tests.test_bz2_utils` — 25 OK; `python -m py_compile bz2_utils.py tests/test_bz2_utils.py` — OK; line lengths ≤ 100 (manual; `ruff`/`mypy` not installed in this environment); `python tools/refresh_scaffold.py` + `--check` — in sync; full suite at milestone. No `.github/workflows/**` changes.
+
 ## Unreleased — `async_utils.retry_async` validates `max_attempts` and `delay`
 
 - **Correctness fix — `retry_async` accepted invalid retry arguments silently.** The async retry helper had no argument validation, so `retry_async(func, max_attempts=False)` performed zero attempts and raised a misleading bare `Exception("No attempts made")`, `max_attempts=True` silently meant one attempt, `max_attempts=0`/`-1` fell through the same path, a boolean `delay` was accepted as `1.0`/`0.0` seconds, and a negative `delay` was silently ignored. The synchronous sibling `retry_utils.retry` already rejects all of these with a clear `TypeError`/`ValueError`. `retry_async` now validates `max_attempts` (int, not `bool`, `>= 1`) and `delay` (number, not `bool`, `>= 0`) via a new `_validate_retry_args` helper before the first attempt. Added `TestRetryAsyncValidation` covering bool/non-int/zero/negative `max_attempts` and bool/non-number/negative `delay` (red before the fix, green after).
@@ -77104,7 +77140,7 @@ The project includes codecs utilities in `codecs_utils.py` wrapping the standard
 
 ## Bz2 Utilities Module
 
-The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the standard library `bz2` module: `bz2_compress` compresses bytes with an optional compression level, `bz2_decompress` decompresses bz2-compressed bytes, `bz2_open` opens a bz2 file in binary or text mode with an optional compression level, `bz2_write` writes bytes to a bz2 file, and `bz2_read` reads and decompresses a bz2 file. The module is tested in `tests/test_bz2_utils.py`, which covers round-trips (empty, single-byte, and large inputs), every valid compression level, invalid bz2 data and non-bytes `TypeError` paths, out-of-range `ValueError` paths, missing-file and directory cases, text mode, pathlib paths, and compress idempotency.
+The project includes BZ2 compression utilities in `bz2_utils.py` wrapping the standard library `bz2` module: `bz2_compress` compresses bytes with an optional compression level, `bz2_decompress` decompresses bz2-compressed bytes, `bz2_open` opens a bz2 file in binary or text mode with an optional compression level, `bz2_write` writes bytes to a bz2 file, and `bz2_read` reads and decompresses a bz2 file. The module is tested in `tests/test_bz2_utils.py`, which covers round-trips (empty, single-byte, and large inputs), every valid compression level, invalid bz2 data and non-bytes `TypeError` paths, out-of-range `ValueError` paths, missing-file and directory cases, text mode, pathlib paths, and compress idempotency. The compression-level parameters of `bz2_compress`, `bz2_open`, and `bz2_write` reject a `bool` `compresslevel` (which would otherwise be silently accepted as levels 1/0) with a `TypeError`.
 
 ## Gzip Utilities Module
 
@@ -115351,58 +115387,63 @@ cat > "$OUTPUT_DIR/tests/test_quopri_utils.py" <<'TEST_QUOPRI_UTILS'
 """Tests for quopri_utils."""
 
 import io
+import unittest
 
-import pytest
+try:
+    import pytest
+except ImportError:  # pragma: no cover - pytest is an optional dev dependency
+    pytest = None
 
 from quopri_utils import decode, decode_file, encode, encode_file, isqp
 
 
-def test_encode_decode_roundtrip():
-    data = b"Hello World = test\r\n"
-    enc = encode(data)
-    assert decode(enc) == data
+@unittest.skipIf(pytest is None, "pytest is required for this test")
+class TestQuopriUtils(unittest.TestCase):
+    def test_encode_decode_roundtrip(self):
+        data = b"Hello World = test\r\n"
+        enc = encode(data)
+        assert decode(enc) == data
+
+    def test_encode_quotetabs(self):
+        enc = encode(b"a\tb", quotetabs=True)
+        assert b"=09" in enc
+
+    def test_isqp(self):
+        assert isqp(ord("="))
+        assert not isqp(ord("a"))
+
+    def test_isqp_semantics(self):
+        # Bytes outside printable ASCII require quoting; printable ASCII (except
+        # the escape char) does not, matching quopri.needsquoting(quotetabs=False).
+        assert isqp(0x80)
+        assert isqp(0x00)
+        assert not isqp(ord("A"))
+        assert not isqp(ord(" "))
+        assert not isqp(ord("_"))
+
+    def test_isqp_type_validation(self):
+        with pytest.raises(TypeError):
+            isqp("A")  # type: ignore[arg-type]
+        with pytest.raises(TypeError):
+            isqp(True)
+        with pytest.raises(ValueError):
+            isqp(256)
+        with pytest.raises(ValueError):
+            isqp(-1)
+
+    def test_encode_file_decode_file(self):
+        inp = io.BytesIO(b"hi = there")
+        out = io.BytesIO()
+        encode_file(inp, out)
+        out.seek(0)
+        inp2 = io.BytesIO(out.read())
+        out2 = io.BytesIO()
+        decode_file(inp2, out2)
+        assert out2.getvalue() == b"hi = there"
 
 
-def test_encode_quotetabs():
-    enc = encode(b"a\tb", quotetabs=True)
-    assert b"=09" in enc
-
-
-def test_isqp():
-    assert isqp(ord("="))
-    assert not isqp(ord("a"))
-
-
-def test_isqp_semantics():
-    # Bytes outside printable ASCII require quoting; printable ASCII (except
-    # the escape char) does not, matching quopri.needsquoting(quotetabs=False).
-    assert isqp(0x80)
-    assert isqp(0x00)
-    assert not isqp(ord("A"))
-    assert not isqp(ord(" "))
-    assert not isqp(ord("_"))
-
-
-def test_isqp_type_validation():
-    with pytest.raises(TypeError):
-        isqp("A")  # type: ignore[arg-type]
-    with pytest.raises(TypeError):
-        isqp(True)
-    with pytest.raises(ValueError):
-        isqp(256)
-    with pytest.raises(ValueError):
-        isqp(-1)
-
-
-def test_encode_file_decode_file():
-    inp = io.BytesIO(b"hi = there")
-    out = io.BytesIO()
-    encode_file(inp, out)
-    out.seek(0)
-    inp2 = io.BytesIO(out.read())
-    out2 = io.BytesIO()
-    decode_file(inp2, out2)
-    assert out2.getvalue() == b"hi = there"
+if __name__ == "__main__":
+    unittest.main()
 TEST_QUOPRI_UTILS
 
 # --- reprlib_utils.py ---

@@ -39,6 +39,14 @@ class TestBz2Utils(unittest.TestCase):
             compressed = bz2_compress(data, compresslevel=level)
             assert bz2_decompress(compressed) == data
 
+    def test_bz2_compress_rejects_bool_compresslevel(self):
+        # bool is a subclass of int; without an explicit check True/False are
+        # silently accepted as levels 1/0 instead of raising TypeError.
+        with self.assertRaises(TypeError):
+            bz2_compress(b"data", compresslevel=True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            bz2_compress(b"data", compresslevel=False)  # type: ignore[arg-type]
+
 
     def test_bz2_decompress_invalid_data_raises(self):
         with self.assertRaises(Exception):
@@ -94,6 +102,22 @@ class TestBz2Utils(unittest.TestCase):
             path = os.path.join(d, "level.bz2")
             bz2_write(path, data, compresslevel=1)
             assert bz2_read(path) == data
+
+    def test_bz2_write_rejects_bool_compresslevel(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "bool.bz2")
+            with self.assertRaises(TypeError):
+                bz2_write(path, b"data", compresslevel=True)  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                bz2_write(path, b"data", compresslevel=False)  # type: ignore[arg-type]
+
+    def test_bz2_open_rejects_bool_compresslevel(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "bool.bz2")
+            with self.assertRaises(TypeError):
+                bz2_open(path, "wb", compresslevel=True)  # type: ignore[arg-type]
+            with self.assertRaises(TypeError):
+                bz2_open(path, "wb", compresslevel=False)  # type: ignore[arg-type]
 
 
     def test_bz2_read_missing_file_raises(self):

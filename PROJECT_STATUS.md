@@ -1,5 +1,17 @@
 # Project Status
 
+## Latest Session (2026-11-17) — defect hunt/fix: `bz2_utils` rejects a `bool` `compresslevel`; `test_quopri_utils` no longer hard-imports `pytest`
+
+- `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (prior session commit `9c62a0b` uncheckpointed). Ran targeted tests, then `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `9c62a0b`), then full `python -m unittest discover tests/`.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used state-delta probe + targeted tests for the touched modules, then the battery/full suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `bz2_utils` accepted a `bool` `compresslevel`. Because `bool` is an `int` subclass, `isinstance(compresslevel, int)` admitted `True`/`False`: `compresslevel=True` silently meant level 1 and `compresslevel=False` meant level 0, contradicting the documented `TypeError` (and the sibling `lzma_utils` wrappers already rejected booleans for `preset`). `bz2_compress`, `bz2_open`, and `bz2_write` now reject `bool` before the int check. Added `test_bz2_compress_rejects_bool_compresslevel`, `test_bz2_write_rejects_bool_compresslevel`, and `test_bz2_open_rejects_bool_compresslevel` (red before, green after).
+- **Test-harness fix (test-only, no coverage loss):** `tests/test_quopri_utils.py` hard-imported `pytest`, so the whole module failed to load in minimal environments and `python -m unittest discover tests/` was the only red signal. The import is now optional (`try/except ImportError` → `pytest = None`) and the test class is decorated with `@unittest.skipIf(pytest is None, "pytest is required for this test")`, so the module is skipped rather than erroring when pytest is absent and runs normally when it is installed.
+- **Defect class:** accepts-invalid-input (`bool` where an `int` is required); the quopri change is a test-only robustness fix that makes the suite green everywhere.
+- **Verification:** `python -m unittest tests.test_bz2_utils` — 25 OK; `python -m unittest tests.test_quopri_utils` — 6 tests, 5 run + 1 skipped (pytest absent); `python -m py_compile bz2_utils.py tests/test_bz2_utils.py tests/test_quopri_utils.py` — OK; line lengths ≤ 100 (manual; `ruff`/`mypy` not installed); `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m unittest discover tests/` — 11368 tests, OK (skipped=10); `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `9c62a0b`).
+- **Environment limitation:** `ruff`, `mypy`, `pytest` are not installed here; `unittest discover` is now fully green.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entries (bz2 + quopri); refreshed embedded copies (`bz2_utils.py`, `tests/test_bz2_utils.py`, `tests/test_quopri_utils.py`, `README.md`, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `memoize_utils.lru_memoize` bool `maxsize` + two prior-session regressions
 
 - `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.

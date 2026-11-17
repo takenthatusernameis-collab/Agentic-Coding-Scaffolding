@@ -16,6 +16,8 @@ __all__: list[str] = [
 
 def bz2_compress(data: bytes, compresslevel: int = 9) -> bytes:
     """Compress bytes using bz2."""
+    if isinstance(compresslevel, bool) or not isinstance(compresslevel, int):
+        raise TypeError("compresslevel must be an int")
     return bz2.compress(data, compresslevel=compresslevel)
 
 
@@ -26,11 +28,15 @@ def bz2_decompress(data: bytes) -> bytes:
 
 def bz2_open(filename: str, mode: str = "rb", compresslevel: int = 9) -> IO[bytes] | IO[str]:
     """Open a bz2 file."""
+    if isinstance(compresslevel, bool) or not isinstance(compresslevel, int):
+        raise TypeError("compresslevel must be an int")
     return bz2.open(filename, mode, compresslevel=compresslevel)  # type: ignore[return-value]
 
 
 def bz2_write(filename: str, data: bytes, compresslevel: int = 9) -> None:
     """Write data to a bz2 file."""
+    if isinstance(compresslevel, bool) or not isinstance(compresslevel, int):
+        raise TypeError("compresslevel must be an int")
     with bz2.open(filename, "wb", compresslevel=compresslevel) as f:
         f.write(data)
 
