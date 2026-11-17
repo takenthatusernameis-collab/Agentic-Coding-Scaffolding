@@ -93,6 +93,23 @@ def test_has_value():
     assert has_value(Color, 99) is False
 
 
+def test_has_name_rejects_non_member_attributes():
+    assert has_name(Color, "RED") is True
+    assert has_name(Color, "GREEN") is True
+    assert has_name(Color, "__members__") is False
+    assert has_name(Color, "mro") is False
+    assert has_name(Color, "name") is False
+
+
+def test_get_member_rejects_non_member_attributes():
+    assert get_member(Color, "RED") is Color.RED
+    try:
+        get_member(Color, "__members__")
+        assert False, "get_member should reject non-member attributes"
+    except AttributeError:
+        pass
+
+
 def test_int_enum():
     assert isinstance(Status.OK, int)
     assert Status.OK + 1 == 201
