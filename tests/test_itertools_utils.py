@@ -326,6 +326,20 @@ class TestZipStrictIterables(unittest.TestCase):
         with self.assertRaises(TypeError):
             zip_strict_iterables([1, 2], 42)
 
+    def test_unequal_length_generators_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables(iter([1, 2, 3]), iter(["a", "b"]))
+
+    def test_unequal_length_generator_and_list_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables((x for x in [1, 2, 3]), ["a", "b"])
+
+    def test_equal_length_generators(self):
+        self.assertEqual(
+            zip_strict_iterables(iter([1, 2, 3]), iter(["a", "b", "c"])),
+            [(1, "a"), (2, "b"), (3, "c")],
+        )
+
 
 class TestDropWhilePred(unittest.TestCase):
     def test_basic(self):

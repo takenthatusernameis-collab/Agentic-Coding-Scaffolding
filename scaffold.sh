@@ -11743,11 +11743,10 @@ def least_common(iterable: Iterable[T], n: Optional[int] = None) -> List[Tuple[T
         [(1, 1)]
     """
     counter = Counter(iterable)
-    items = counter.most_common()  # all sorted desc
-    items_reversed = list(reversed(items))
+    items = sorted(counter.items(), key=lambda kv: kv[1])
     if n is None:
-        return items_reversed
-    return items_reversed[:n]
+        return items
+    return items[:n]
 
 
 def merge_dicts(*dicts: Dict[K, V]) -> Dict[K, V]:
@@ -11765,8 +11764,9 @@ def merge_dicts(*dicts: Dict[K, V]) -> Dict[K, V]:
     """
     result: Dict[K, V] = {}
     for d in dicts:
-        if isinstance(d, dict):
-            result.update(d)
+        if not isinstance(d, dict):
+            raise TypeError(f"all arguments must be dicts, got {type(d).__name__}")
+        result.update(d)
     return result
 
 
@@ -12306,12 +12306,32 @@ class TestMostLeastCommon(unittest.TestCase):
         result = least_common([1, 2, 2, 3, 3, 3], n=1)
         self.assertEqual(result, [(1, 1)])
 
+    def test_least_common_tie_preserves_first_seen_order(self):
+        self.assertEqual(
+            least_common([1, 2, 3]),
+            [(1, 1), (2, 1), (3, 1)],
+        )
+
+    def test_least_common_tie_with_varying_counts(self):
+        self.assertEqual(
+            least_common([3, 2, 1, 1, 2, 3, 3], n=3),
+            [(2, 2), (1, 2), (3, 3)],
+        )
+
 
 class TestMergeDicts(unittest.TestCase):
     def test_merge_dicts_basic(self):
         result = merge_dicts({"a": 1}, {"b": 2}, {"a": 3})
         self.assertEqual(result["a"], 3)
         self.assertEqual(result["b"], 2)
+
+    def test_non_dict_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            merge_dicts({"a": 1}, "not a dict")
+
+    def test_non_dict_first_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            merge_dicts("not a dict", {"a": 1})
 
 
 class TestToDeque(unittest.TestCase):
@@ -26692,8 +26712,9 @@ def merge_dicts(*dicts: Dict[Any, Any]) -> Dict[Any, Any]:
     """Merge multiple dictionaries, later values override earlier ones."""
     result: Dict[Any, Any] = {}
     for d in dicts:
-        if d:
-            result.update(d)
+        if not isinstance(d, dict):
+            raise TypeError(f"all arguments must be dicts, got {type(d).__name__}")
+        result.update(d)
     return result
 
 
@@ -33805,6 +33826,13 @@ class TestMergeDicts(unittest.TestCase):
     def test_merge_dicts_empty(self) -> None:
         self.assertEqual(merge_dicts(), {})
         self.assertEqual(merge_dicts({}, {"a": 1}), {"a": 1})
+
+    def test_merge_dicts_empty_dict_is_kept(self) -> None:
+        self.assertEqual(merge_dicts({"a": 1}, {}), {"a": 1})
+
+    def test_merge_dicts_non_dict_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            merge_dicts({"a": 1}, "not a dict")  # type: ignore[arg-type]
 
 
 class TestPick(unittest.TestCase):
@@ -57864,7 +57892,7 @@ def product_of(iterables: Iterable[Iterable[Any]]) -> List[Tuple[Any, ...]]:
     """Compute the Cartesian product of the given iterables."""
     _ensure_iterable(iterables)
     lists = [list(x) for x in iterables]
-    for original in iterables:
+    for original in lists:
         _ensure_iterable(original)
     return list(product(*lists))
 
@@ -58085,11 +58113,10 @@ def zip_strict_iterables(*iterables: Iterable[Any]) -> List[Tuple[Any, ...]]:
         return []
     for it in iterables:
         _ensure_iterable(it)
-    zipped = list(zip(*iterables))
-    lengths = [len(list(it)) for it in iterables]
-    if len(set(lengths)) > 1:
+    lists = [list(it) for it in iterables]
+    if len(set(len(lst) for lst in lists)) > 1:
         raise ValueError("iterables must all be the same length")
-    return zipped
+    return [tuple(items) for items in zip(*lists)]
 
 
 def batched_iterable(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:
@@ -59091,6 +59118,20 @@ class TestZipStrictIterables(unittest.TestCase):
     def test_non_iterable_raises_type_error(self):
         with self.assertRaises(TypeError):
             zip_strict_iterables([1, 2], 42)
+
+    def test_unequal_length_generators_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables(iter([1, 2, 3]), iter(["a", "b"]))
+
+    def test_unequal_length_generator_and_list_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            zip_strict_iterables((x for x in [1, 2, 3]), ["a", "b"])
+
+    def test_equal_length_generators(self):
+        self.assertEqual(
+            zip_strict_iterables(iter([1, 2, 3]), iter(["a", "b", "c"])),
+            [(1, "a"), (2, "b"), (3, "c")],
+        )
 
 
 class TestDropWhilePred(unittest.TestCase):

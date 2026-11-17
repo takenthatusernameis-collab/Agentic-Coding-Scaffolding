@@ -32,8 +32,9 @@ def merge_dicts(*dicts: Dict[Any, Any]) -> Dict[Any, Any]:
     """Merge multiple dictionaries, later values override earlier ones."""
     result: Dict[Any, Any] = {}
     for d in dicts:
-        if d:
-            result.update(d)
+        if not isinstance(d, dict):
+            raise TypeError(f"all arguments must be dicts, got {type(d).__name__}")
+        result.update(d)
     return result
 
 

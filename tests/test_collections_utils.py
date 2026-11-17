@@ -126,12 +126,32 @@ class TestMostLeastCommon(unittest.TestCase):
         result = least_common([1, 2, 2, 3, 3, 3], n=1)
         self.assertEqual(result, [(1, 1)])
 
+    def test_least_common_tie_preserves_first_seen_order(self):
+        self.assertEqual(
+            least_common([1, 2, 3]),
+            [(1, 1), (2, 1), (3, 1)],
+        )
+
+    def test_least_common_tie_with_varying_counts(self):
+        self.assertEqual(
+            least_common([3, 2, 1, 1, 2, 3, 3], n=3),
+            [(2, 2), (1, 2), (3, 3)],
+        )
+
 
 class TestMergeDicts(unittest.TestCase):
     def test_merge_dicts_basic(self):
         result = merge_dicts({"a": 1}, {"b": 2}, {"a": 3})
         self.assertEqual(result["a"], 3)
         self.assertEqual(result["b"], 2)
+
+    def test_non_dict_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            merge_dicts({"a": 1}, "not a dict")
+
+    def test_non_dict_first_raises_type_error(self):
+        with self.assertRaises(TypeError):
+            merge_dicts("not a dict", {"a": 1})
 
 
 class TestToDeque(unittest.TestCase):

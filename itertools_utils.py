@@ -84,7 +84,7 @@ def product_of(iterables: Iterable[Iterable[Any]]) -> List[Tuple[Any, ...]]:
     """Compute the Cartesian product of the given iterables."""
     _ensure_iterable(iterables)
     lists = [list(x) for x in iterables]
-    for original in iterables:
+    for original in lists:
         _ensure_iterable(original)
     return list(product(*lists))
 
@@ -305,11 +305,10 @@ def zip_strict_iterables(*iterables: Iterable[Any]) -> List[Tuple[Any, ...]]:
         return []
     for it in iterables:
         _ensure_iterable(it)
-    zipped = list(zip(*iterables))
-    lengths = [len(list(it)) for it in iterables]
-    if len(set(lengths)) > 1:
+    lists = [list(it) for it in iterables]
+    if len(set(len(lst) for lst in lists)) > 1:
         raise ValueError("iterables must all be the same length")
-    return zipped
+    return [tuple(items) for items in zip(*lists)]
 
 
 def batched_iterable(iterable: Iterable[Any], n: int) -> List[Tuple[Any, ...]]:

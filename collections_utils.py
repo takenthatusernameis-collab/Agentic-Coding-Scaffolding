@@ -251,11 +251,10 @@ def least_common(iterable: Iterable[T], n: Optional[int] = None) -> List[Tuple[T
         [(1, 1)]
     """
     counter = Counter(iterable)
-    items = counter.most_common()  # all sorted desc
-    items_reversed = list(reversed(items))
+    items = sorted(counter.items(), key=lambda kv: kv[1])
     if n is None:
-        return items_reversed
-    return items_reversed[:n]
+        return items
+    return items[:n]
 
 
 def merge_dicts(*dicts: Dict[K, V]) -> Dict[K, V]:
@@ -273,8 +272,9 @@ def merge_dicts(*dicts: Dict[K, V]) -> Dict[K, V]:
     """
     result: Dict[K, V] = {}
     for d in dicts:
-        if isinstance(d, dict):
-            result.update(d)
+        if not isinstance(d, dict):
+            raise TypeError(f"all arguments must be dicts, got {type(d).__name__}")
+        result.update(d)
     return result
 
 

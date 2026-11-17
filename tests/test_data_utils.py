@@ -68,6 +68,13 @@ class TestMergeDicts(unittest.TestCase):
         self.assertEqual(merge_dicts(), {})
         self.assertEqual(merge_dicts({}, {"a": 1}), {"a": 1})
 
+    def test_merge_dicts_empty_dict_is_kept(self) -> None:
+        self.assertEqual(merge_dicts({"a": 1}, {}), {"a": 1})
+
+    def test_merge_dicts_non_dict_raises_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            merge_dicts({"a": 1}, "not a dict")  # type: ignore[arg-type]
+
 
 class TestPick(unittest.TestCase):
     def test_pick_basic(self) -> None:
