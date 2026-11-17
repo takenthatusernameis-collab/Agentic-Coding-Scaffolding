@@ -1,9 +1,7 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`; expect rc=2 until this session's commit lands (CI auto-commits), then rc=0/1. If you change source, run `python tools/verify_state_delta.py --full --record-full-suite` at a coherent milestone.
-3. Optimize-delays pass: confirm no avoidable repository-managed delay remains; record the survey. No timestamp-only handovers/empty commits.
-4. **Continue the correctness defect hunt (failing-test-first).** The `bz2_utils` bool-`compresslevel` fix is complete, and the `test_quopri_utils` hard `import pytest` is now optional (skip when pytest is absent), so `python -m unittest discover tests/` is fully green in minimal environments. Pick a fresh defect class and sweep modules that have never been reviewed or were only spot-checked. Under-reviewed candidates: `argparse_utils`, `array_utils`, `ast_utils`, `asyncio_utils`, `base64_utils`, `binascii_utils`, `lzma_utils`, `uu_utils`, `hash_utils`, `hmac_utils`, `secrets_utils`, `shlex_utils`, `shelve_utils`, `filecmp_utils`, `fnmatch_utils`. Read implementations against their docstrings/tests; add a test that fails before the fix and passes after.
-5. If embedded source/test/README/CHANGELOG files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`; add a `CHANGELOG.md` entry for user-visible fixes and refresh again.
-6. Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`.
-7. Environment note: `ruff`, `mypy`, `pytest` are NOT installed in this sandbox (`make lint`/`make typecheck` need `make setup-dev`); verify with `python -m unittest`, `python -m doctest`, and manual line-length ≤ 100. `python -m unittest discover tests/` is now fully green (11368 tests, OK, skipped=10).
+2. Confirm state with `python tools/verify_state_delta.py --probe`.
+3. Continue the correctness defect hunt (failing-test-first) in a fresh defect class. Candidate unreviewed modules: `argparse_utils`, `array_utils`, `asyncio_utils`, `base64_utils`, `binascii_utils`, `lzma_utils`, `uu_utils`, `hash_utils`, `hmac_utils`, `secrets_utils`, `shlex_utils`, `shelve_utils`, `filecmp_utils`, `fnmatch_utils`.
+4. If embedded source/test/README/CHANGELOG files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`; add a `CHANGELOG.md` entry.
+5. Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`.

@@ -85,6 +85,11 @@ class TestAstUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             increment_lineno(node, "a")
 
+    def test_increment_lineno_rejects_bool(self):
+        node = parse("x = 1")
+        with self.assertRaises(TypeError):
+            increment_lineno(node, True)
+
     def test_copy_location(self):
         n1 = ast.Assign(targets=[ast.Name(id="x", ctx=ast.Store())], value=ast.Constant(value=1))
         n2 = ast.Assign(targets=[ast.Name(id="y", ctx=ast.Store())], value=ast.Constant(value=2))

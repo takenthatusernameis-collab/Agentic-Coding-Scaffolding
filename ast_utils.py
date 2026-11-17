@@ -88,7 +88,7 @@ def fix_missing_locations(node):
 
 
 def increment_lineno(node, n=1):
-    if not isinstance(n, int):
+    if isinstance(n, bool) or not isinstance(n, int):
         raise TypeError("n must be an int")
     return _ast.increment_lineno(node, n=n)
 

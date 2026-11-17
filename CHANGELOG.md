@@ -1,3 +1,8 @@
+## Unreleased — `ast_utils.increment_lineno` rejects a `bool` `n`
+
+- **Correctness fix — `increment_lineno` accepted a boolean `n`.** Because `bool` is a subclass of `int`, `True`/`False` were silently accepted as line deltas 1/0 instead of raising `TypeError`. The helper now rejects `bool` explicitly before the integer check. Added `test_increment_lineno_rejects_bool` (red before the fix, green after).
+- Validation: `python -m unittest tests.test_ast_utils` — 18 OK; `python -m py_compile ast_utils.py tests/test_ast_utils.py` — OK; line lengths ≤ 100 (manual; `ruff`/`mypy` not installed in this environment); `python tools/refresh_scaffold.py` + `--check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `bz2_utils` rejects a `bool` `compresslevel`
 
 - **Correctness fix — `bz2_compress`, `bz2_open`, and `bz2_write` accepted a boolean `compresslevel`.** Because `bool` is a subclass of `int`, `True`/`False` were silently accepted as compression levels 1/0 instead of raising `TypeError`. The sibling `lzma_utils` wrappers already reject booleans for their `preset` parameter. All three `bz2_utils` helpers now reject `bool` explicitly before the integer check. Added `test_bz2_compress_rejects_bool_compresslevel`, `test_bz2_write_rejects_bool_compresslevel`, and `test_bz2_open_rejects_bool_compresslevel` (red before the fix, green after).
