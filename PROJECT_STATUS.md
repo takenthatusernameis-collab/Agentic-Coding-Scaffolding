@@ -387,3 +387,11 @@ See `.kilo/next_task.md` (also posted to `main` via `board_post`). Continue the 
 ## Previous Session (2026-11-16) — defect hunt/fix: `concurrent_futures_utils` bool-as-int
 
 - Fixed `concurrent_futures_utils.thread_pool_executor`/`process_pool_executor` accepting boolean `max_workers` (now rejected via shared validator). Added regression tests; verified (9 OK, doctest/ruff/mypy/scan clean). Reviewed batch `concurrent_futures_utils`, `concurrent_utils`, `config_schema`, `config_utils`, `configparser_utils`, `context_utils`, `contextlib_utils`, `contextvars_utils`, `cooldown_utils`, `copy_utils` with only the `concurrent_futures_utils` defect found.
+
+## Latest Session (2026-11-18) — int-bool validation leads already fixed; no new defect found
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** checkpoint advanced to `0d18438` via `verify_state_delta --full`.
+- **Defect hunt:** confirmed `reprlib_utils`, `hashlib_utils`, `marshal_utils`, and `sre_constants_utils` already reject `bool` for int parameters; no genuine defect in that class. Broader `isinstance(.*int)`-without-`bool` sweep across `*_utils.py` returned no candidates.
+- **Result:** no source/test changes; no scaffold refresh needed.
+- **Next:** hand correctness hunt to float/numeric edge-case validation or off-by-one class.
