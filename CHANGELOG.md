@@ -1,3 +1,9 @@
+## Unreleased — `calendar_utils` rejects `bool` integer parameters
+
+- **Correctness fix — `calendar_utils` accepted `bool` where an `int` is required.** Because `bool` subclasses `int`, `is_leap_year(True)`, `days_in_month(2024, True)`, `month_name(True)`, `day_name(True)`, `month_calendar(2024, False)`, `weekdays_in_month(True, 1)`, `weekend_days_in_month(2024, True)`, `first_day_of_month(True, 1)`, and `add_months(d, True)` all silently passed `isinstance(x, int)` validation instead of raising `TypeError`, contradicting the bool-rejection convention used across the project (e.g. `errno_utils`, `signal_utils`, `bz2_utils`). Every int validator now rejects `bool` explicitly. Added `TestBoolRejection` with 14 tests (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input (`bool` where an `int` is required) in a `*_utils.py` module (continuing the wrong-validation/edge-case defect hunt).
+- Validation: `python -m unittest tests.test_calendar_utils` — 34 OK; `python -m doctest calendar_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+
 ## Unreleased — `number_utils.is_power_of` honors the documented zero-base special case
 
 - **Correctness fix — `is_power_of(1, 0)` returned `False` despite the docstring.** The helper's `b == 0` branch returned `v == 0`, so `is_power_of(1, 0)` was `False`. The docstring documents two special cases: ``is_power_of(0, 0)`` is ``True`` and ``is_power_of(1, base)`` is ``True`` for any integer *base* because ``base**0 == 1``. Since ``0**0 == 1`` by the same convention, the zero base now also accepts ``v == 1``. Added `test_one_is_power_of_any_base` (fails before the fix, passes after) and corrected the `test_base_zero` assertion.

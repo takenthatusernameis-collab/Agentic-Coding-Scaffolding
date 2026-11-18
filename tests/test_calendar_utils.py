@@ -73,6 +73,66 @@ def test_type_errors():
         raise AssertionError("expected TypeError")
 
 
+class TestBoolRejection(unittest.TestCase):
+    def test_is_leap_year_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            m.is_leap_year(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            m.is_leap_year(False)  # type: ignore[arg-type]
+
+    def test_days_in_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.days_in_month(True, 2)  # type: ignore[arg-type]
+
+    def test_days_in_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.days_in_month(2024, True)  # type: ignore[arg-type]
+
+    def test_first_day_of_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.first_day_of_month(True, 1)  # type: ignore[arg-type]
+
+    def test_first_day_of_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.first_day_of_month(2024, False)  # type: ignore[arg-type]
+
+    def test_month_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            m.month_name(True)  # type: ignore[arg-type]
+
+    def test_day_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            m.day_name(True)  # type: ignore[arg-type]
+
+    def test_month_calendar_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.month_calendar(True, 1)  # type: ignore[arg-type]
+
+    def test_month_calendar_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.month_calendar(2024, False)  # type: ignore[arg-type]
+
+    def test_weekdays_in_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.weekdays_in_month(True, 1)  # type: ignore[arg-type]
+
+    def test_weekdays_in_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.weekdays_in_month(2024, True)  # type: ignore[arg-type]
+
+    def test_weekend_days_in_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.weekend_days_in_month(True, 1)  # type: ignore[arg-type]
+
+    def test_weekend_days_in_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.weekend_days_in_month(2024, False)  # type: ignore[arg-type]
+
+    def test_add_months_rejects_bool_months(self):
+        with self.assertRaises(TypeError):
+            m.add_months(datetime.date(2024, 1, 1), True)  # type: ignore[arg-type]
+
+
 class TestMonthCalendar(unittest.TestCase):
     def test_basic_grid(self):
         self.assertEqual(

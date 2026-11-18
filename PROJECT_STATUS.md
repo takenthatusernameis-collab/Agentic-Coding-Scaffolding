@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — `calendar_utils` rejects `bool` integer parameters
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree, checkpoint behind HEAD on `.kilo/`-only bookkeeping); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `4770958`.
+- **Defect hunt (wrong validation / edge-case behavior):** surveyed `*_utils.py` modules that validate ints with `isinstance(x, int)` but without an explicit `bool` rejection. Confirmed a genuine defect in `calendar_utils`: `is_leap_year`, `days_in_month`, `first_day_of_month`, `month_name`, `day_name`, `month_calendar`, `weekdays_in_month`, `weekend_days_in_month`, and `add_months` all silently admitted `bool` for `int` parameters instead of raising `TypeError`, contradicting the bool-rejection convention established across `errno_utils`, `signal_utils`, `bz2_utils`, `version_utils`, etc. Related candidates noted for the next pass: `reprlib_utils`, `hashlib_utils`, `marshal_utils`, `sre_constants_utils` (same `isinstance(.*int)`-without-`bool` pattern; verify intentionality before fixing).
+- **Defect fixed (failing-test-first):** added `isinstance(x, bool)` rejection to every int validator in `calendar_utils.py`; added `TestBoolRejection` (14 tests) to `tests/test_calendar_utils.py` — all fail before the fix, pass after.
+- **Verification:** `python -m unittest tests.test_calendar_utils` — 34 OK; `python -m doctest calendar_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync (refreshed `calendar_utils.py`, `tests/test_calendar_utils.py`, `CHANGELOG.md`); full suite `python -m unittest discover tests/` — 11418 OK (skipped=10, pre-existing). `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies in `scaffold.sh`; updated `.kilo/handover.md`, `.kilo/next_task.md`, and this file.
+
 ## Latest Session (2026-11-18) — `number_utils.is_power_of` honors the documented zero-base special case
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

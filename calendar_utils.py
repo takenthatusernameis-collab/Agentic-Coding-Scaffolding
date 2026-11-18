@@ -22,13 +22,14 @@ __all__ = [
 
 
 def is_leap_year(year: int) -> bool:
-    if not isinstance(year, int):
+    if not isinstance(year, int) or isinstance(year, bool):
         raise TypeError("year must be an int")
     return calendar.isleap(year)
 
 
 def days_in_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -36,7 +37,8 @@ def days_in_month(year: int, month: int) -> int:
 
 
 def first_day_of_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -44,7 +46,7 @@ def first_day_of_month(year: int, month: int) -> int:
 
 
 def month_name(month: int) -> str:
-    if not isinstance(month, int):
+    if not isinstance(month, int) or isinstance(month, bool):
         raise TypeError("month must be an int")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -52,7 +54,7 @@ def month_name(month: int) -> str:
 
 
 def day_name(weekday: int) -> str:
-    if not isinstance(weekday, int):
+    if not isinstance(weekday, int) or isinstance(weekday, bool):
         raise TypeError("weekday must be an int")
     if weekday < 0 or weekday > 6:
         raise ValueError("weekday must be between 0 and 6")
@@ -60,7 +62,8 @@ def day_name(weekday: int) -> str:
 
 
 def month_calendar(year: int, month: int) -> List[List[int]]:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -68,7 +71,8 @@ def month_calendar(year: int, month: int) -> List[List[int]]:
 
 
 def weekdays_in_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -82,7 +86,8 @@ def weekdays_in_month(year: int, month: int) -> int:
 
 
 def weekend_days_in_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -104,7 +109,7 @@ def is_weekend(d) -> bool:
 def add_months(d, months: int):
     if not hasattr(d, "year") or not hasattr(d, "month") or not hasattr(d, "day"):
         raise TypeError("d must be a date or datetime")
-    if not isinstance(months, int):
+    if not isinstance(months, int) or isinstance(months, bool):
         raise TypeError("months must be an int")
     year = d.year + (d.month - 1 + months) // 12
     month = (d.month - 1 + months) % 12 + 1

@@ -72819,6 +72819,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `calendar_utils` rejects `bool` integer parameters
+
+- **Correctness fix — `calendar_utils` accepted `bool` where an `int` is required.** Because `bool` subclasses `int`, `is_leap_year(True)`, `days_in_month(2024, True)`, `month_name(True)`, `day_name(True)`, `month_calendar(2024, False)`, `weekdays_in_month(True, 1)`, `weekend_days_in_month(2024, True)`, `first_day_of_month(True, 1)`, and `add_months(d, True)` all silently passed `isinstance(x, int)` validation instead of raising `TypeError`, contradicting the bool-rejection convention used across the project (e.g. `errno_utils`, `signal_utils`, `bz2_utils`). Every int validator now rejects `bool` explicitly. Added `TestBoolRejection` with 14 tests (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input (`bool` where an `int` is required) in a `*_utils.py` module (continuing the wrong-validation/edge-case defect hunt).
+- Validation: `python -m unittest tests.test_calendar_utils` — 34 OK; `python -m doctest calendar_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+
 ## Unreleased — `number_utils.is_power_of` honors the documented zero-base special case
 
 - **Correctness fix — `is_power_of(1, 0)` returned `False` despite the docstring.** The helper's `b == 0` branch returned `v == 0`, so `is_power_of(1, 0)` was `False`. The docstring documents two special cases: ``is_power_of(0, 0)`` is ``True`` and ``is_power_of(1, base)`` is ``True`` for any integer *base* because ``base**0 == 1``. Since ``0**0 == 1`` by the same convention, the zero base now also accepts ``v == 1``. Added `test_one_is_power_of_any_base` (fails before the fix, passes after) and corrected the `test_base_zero` assertion.
@@ -78909,13 +78915,14 @@ __all__ = [
 
 
 def is_leap_year(year: int) -> bool:
-    if not isinstance(year, int):
+    if not isinstance(year, int) or isinstance(year, bool):
         raise TypeError("year must be an int")
     return calendar.isleap(year)
 
 
 def days_in_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -78923,7 +78930,8 @@ def days_in_month(year: int, month: int) -> int:
 
 
 def first_day_of_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -78931,7 +78939,7 @@ def first_day_of_month(year: int, month: int) -> int:
 
 
 def month_name(month: int) -> str:
-    if not isinstance(month, int):
+    if not isinstance(month, int) or isinstance(month, bool):
         raise TypeError("month must be an int")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -78939,7 +78947,7 @@ def month_name(month: int) -> str:
 
 
 def day_name(weekday: int) -> str:
-    if not isinstance(weekday, int):
+    if not isinstance(weekday, int) or isinstance(weekday, bool):
         raise TypeError("weekday must be an int")
     if weekday < 0 or weekday > 6:
         raise ValueError("weekday must be between 0 and 6")
@@ -78947,7 +78955,8 @@ def day_name(weekday: int) -> str:
 
 
 def month_calendar(year: int, month: int) -> List[List[int]]:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -78955,7 +78964,8 @@ def month_calendar(year: int, month: int) -> List[List[int]]:
 
 
 def weekdays_in_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -78969,7 +78979,8 @@ def weekdays_in_month(year: int, month: int) -> int:
 
 
 def weekend_days_in_month(year: int, month: int) -> int:
-    if not isinstance(year, int) or not isinstance(month, int):
+    if (not isinstance(year, int) or isinstance(year, bool)
+            or not isinstance(month, int) or isinstance(month, bool)):
         raise TypeError("year and month must be ints")
     if month < 1 or month > 12:
         raise ValueError("month must be between 1 and 12")
@@ -78991,7 +79002,7 @@ def is_weekend(d) -> bool:
 def add_months(d, months: int):
     if not hasattr(d, "year") or not hasattr(d, "month") or not hasattr(d, "day"):
         raise TypeError("d must be a date or datetime")
-    if not isinstance(months, int):
+    if not isinstance(months, int) or isinstance(months, bool):
         raise TypeError("months must be an int")
     year = d.year + (d.month - 1 + months) // 12
     month = (d.month - 1 + months) % 12 + 1
@@ -79105,6 +79116,66 @@ def test_type_errors():
         pass
     else:
         raise AssertionError("expected TypeError")
+
+
+class TestBoolRejection(unittest.TestCase):
+    def test_is_leap_year_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            m.is_leap_year(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            m.is_leap_year(False)  # type: ignore[arg-type]
+
+    def test_days_in_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.days_in_month(True, 2)  # type: ignore[arg-type]
+
+    def test_days_in_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.days_in_month(2024, True)  # type: ignore[arg-type]
+
+    def test_first_day_of_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.first_day_of_month(True, 1)  # type: ignore[arg-type]
+
+    def test_first_day_of_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.first_day_of_month(2024, False)  # type: ignore[arg-type]
+
+    def test_month_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            m.month_name(True)  # type: ignore[arg-type]
+
+    def test_day_name_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            m.day_name(True)  # type: ignore[arg-type]
+
+    def test_month_calendar_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.month_calendar(True, 1)  # type: ignore[arg-type]
+
+    def test_month_calendar_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.month_calendar(2024, False)  # type: ignore[arg-type]
+
+    def test_weekdays_in_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.weekdays_in_month(True, 1)  # type: ignore[arg-type]
+
+    def test_weekdays_in_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.weekdays_in_month(2024, True)  # type: ignore[arg-type]
+
+    def test_weekend_days_in_month_rejects_bool_year(self):
+        with self.assertRaises(TypeError):
+            m.weekend_days_in_month(True, 1)  # type: ignore[arg-type]
+
+    def test_weekend_days_in_month_rejects_bool_month(self):
+        with self.assertRaises(TypeError):
+            m.weekend_days_in_month(2024, False)  # type: ignore[arg-type]
+
+    def test_add_months_rejects_bool_months(self):
+        with self.assertRaises(TypeError):
+            m.add_months(datetime.date(2024, 1, 1), True)  # type: ignore[arg-type]
 
 
 class TestMonthCalendar(unittest.TestCase):
