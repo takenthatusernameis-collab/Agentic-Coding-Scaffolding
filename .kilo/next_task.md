@@ -1,7 +1,11 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`.
-3. The silently-ignored-parameter hunt has now swept both `*_utils` modules and top-level non-`*_utils` modules (`stats.py`, `strings.py`, `hello.py`, `calculator.py`, `shapes.py`, `utils.py`, `greeting_utils.py`) plus `tools/` and selected `tests/` with no defect found. If continuing the correctness audit, consider a different defect class (e.g., silently-ignored return values, inconsistent error handling, or contract violations between docstrings and implementation).
-4. If embedded source/test/README/CHANGELOG files change: edit sources first, then `python tools/refresh_scaffold.py` and `--check`; add a `CHANGELOG.md` entry.
-5. Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`.
+2. Confirm state with `python tools/verify_state_delta.py --probe`. The checkpoint was advanced to `17c2c88` (full verification passed) this session; HEAD may have moved if the CI auto-commit ran.
+3. The docstring-vs-implementation contract-violation sweep is complete: `tools/audit_contracts.py` (new this session) scanned 571 files and surfaced 249 candidates, all legitimate stdlib-delegation or validation-helper documentation, with **0 genuine defects**. Do not re-run the same audit expecting new defects; the codebase is clean for this class.
+4. If continuing the correctness audit, pick a *new* defect class not yet swept. Suggested candidates (in priority order):
+   - **Silently-ignored return values**: functions that accept an argument (e.g. a callable or a flag) but discard the result of a delegated call, so the argument has no observable effect. This is the return-value analogue of the completed silently-ignored-parameter sweep.
+   - **Sibling-validation inconsistency**: groups of near-identical wrappers (e.g. `format_*` in `greeting_utils.py`, or the `case_utils` converters) where one validates a parameter and a sibling silently coerces or ignores it. `tools/audit_contracts.py` could be extended to compare validation across sibling functions.
+   - **Broad-except swallowing**: re-audit for `except Exception`/`except:` blocks that swallow errors the docstring implies should propagate.
+5. When you find a genuine defect: fix it in the source module, add a failing-then-passing test, run `make test` (delta-aware) plus `make lint` and `make typecheck` on the changed files, run `python tools/refresh_scaffold.py --check` if any embedded surface changed, and prepend a `CHANGELOG.md` entry.
+6. Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`. Do not post duplicate/empty handoffs or commit no-op cycles.

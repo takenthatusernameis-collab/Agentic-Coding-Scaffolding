@@ -1,7 +1,7 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test test-full lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest setup-dev
+.PHONY: test test-full lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest setup-dev audit-contracts
 
 ## Install the project with its development dependencies (ruff, mypy, pytest)
 ## Fresh checkouts and CI runners start without ruff/mypy, so `make lint` and
@@ -96,6 +96,11 @@ verify:
 	@echo "Running state-delta verification..."
 	@python tools/verify_state_delta.py
 
+## Audit docstring ``Raises:`` clauses against the exceptions each function raises
+audit-contracts:
+	@echo "Auditing docstring Raises: clauses..."
+	@python tools/audit_contracts.py
+
 ## Install pre-commit hooks into .git/hooks
 pre-commit-install:
 	@echo "Installing pre-commit hooks..."
@@ -141,6 +146,7 @@ help:
 	@echo "  scaffold  Scaffold a new project using scaffold.sh"
 	@echo "  refresh-scaffold  Refresh the copies embedded in scaffold.sh from the repository sources"
 	@echo "  verify           Run the bounded state-delta verification pass (foundation checks)"
+	@echo "  audit-contracts  Audit docstring Raises: clauses against actual raises"
 	@echo "  clean            Remove build artifacts"
 	@echo "  help       Show this help message"
 	@echo "  pre-commit-install  Install pre-commit hooks into .git/hooks"
