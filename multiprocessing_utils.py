@@ -77,7 +77,7 @@ def create_pool(processes: int | None = None, context: str | None = None) -> mp.
     Raises:
         TypeError: If inputs are not of expected types.
     """
-    if processes is not None and not isinstance(processes, int):
+    if processes is not None and (not isinstance(processes, int) or isinstance(processes, bool)):
         raise TypeError("processes must be an int or None")
     if context is not None and not isinstance(context, str):
         raise TypeError("context must be a string or None")
@@ -107,7 +107,7 @@ def pool_map(
     """
     if not callable(func):
         raise TypeError("func must be callable")
-    if chunksize is not None and not isinstance(chunksize, int):
+    if chunksize is not None and (not isinstance(chunksize, int) or isinstance(chunksize, bool)):
         raise TypeError("chunksize must be an int or None")
     with create_pool(processes=processes) as pool:
         return pool.map(func, iterable, chunksize=chunksize)
@@ -135,7 +135,7 @@ def pool_starmap(
     """
     if not callable(func):
         raise TypeError("func must be callable")
-    if chunksize is not None and not isinstance(chunksize, int):
+    if chunksize is not None and (not isinstance(chunksize, int) or isinstance(chunksize, bool)):
         raise TypeError("chunksize must be an int or None")
     with create_pool(processes=processes) as pool:
         return pool.starmap(func, iterable, chunksize=chunksize)
@@ -155,7 +155,7 @@ def create_queue(maxsize: int = 0, context: str | None = None) -> mp.Queue:
     Raises:
         TypeError: If maxsize is not an int.
     """
-    if not isinstance(maxsize, int):
+    if not isinstance(maxsize, int) or isinstance(maxsize, bool):
         raise TypeError("maxsize must be an int")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Queue(maxsize)
@@ -214,7 +214,7 @@ def create_semaphore(value: int = 1, context: str | None = None) -> Any:
     Raises:
         TypeError: If value is not an int.
     """
-    if not isinstance(value, int):
+    if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError("value must be an int")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Semaphore(value)

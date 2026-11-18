@@ -65,6 +65,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_queue(maxsize="5")  # type: ignore[arg-type]
 
 
+    def test_create_queue_rejects_bool_maxsize(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_queue(maxsize=True)  # type: ignore[arg-type]
+
+
     def test_create_simple_queue(self):
         q = multiprocessing_utils.create_simple_queue()
         assert q is not None
@@ -96,6 +101,16 @@ class TestMultiprocessingUtils(unittest.TestCase):
     def test_create_semaphore_type_errors(self):
         with self.assertRaises(TypeError):
             multiprocessing_utils.create_semaphore(value="1")  # type: ignore[arg-type]
+
+
+    def test_create_semaphore_rejects_bool_value(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
+
+
+    def test_create_semaphore_rejects_bool_value(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
 
 
     def test_create_event(self):
@@ -210,6 +225,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.pool_map(_mp_iden, [1, 2], chunksize="1")  # type: ignore[arg-type]
 
 
+    def test_pool_map_rejects_bool_chunksize(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.pool_map(_mp_iden, [1, 2], chunksize=True)  # type: ignore[arg-type]
+
+
     def test_pool_starmap(self):
         def add2(a, b):
             return a + b
@@ -229,6 +249,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.pool_starmap(_mp_add, [(1, 2)], chunksize="1")  # type: ignore[arg-type]
 
 
+    def test_pool_starmap_rejects_bool_chunksize(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.pool_starmap(_mp_add, [(1, 2)], chunksize=True)  # type: ignore[arg-type]
+
+
     def test_create_pool(self):
         pool = multiprocessing_utils.create_pool(processes=2)
         assert pool is not None
@@ -241,6 +266,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_pool(processes="2")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             multiprocessing_utils.create_pool(context=123)  # type: ignore[arg-type]
+
+
+    def test_create_pool_rejects_bool_processes(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_pool(processes=True)  # type: ignore[arg-type]
 
 
     def test_is_forking_spawn_forkserver(self):

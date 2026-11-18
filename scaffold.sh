@@ -7908,6 +7908,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_queue(maxsize="5")  # type: ignore[arg-type]
 
 
+    def test_create_queue_rejects_bool_maxsize(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_queue(maxsize=True)  # type: ignore[arg-type]
+
+
     def test_create_simple_queue(self):
         q = multiprocessing_utils.create_simple_queue()
         assert q is not None
@@ -7939,6 +7944,16 @@ class TestMultiprocessingUtils(unittest.TestCase):
     def test_create_semaphore_type_errors(self):
         with self.assertRaises(TypeError):
             multiprocessing_utils.create_semaphore(value="1")  # type: ignore[arg-type]
+
+
+    def test_create_semaphore_rejects_bool_value(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
+
+
+    def test_create_semaphore_rejects_bool_value(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
 
 
     def test_create_event(self):
@@ -8053,6 +8068,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.pool_map(_mp_iden, [1, 2], chunksize="1")  # type: ignore[arg-type]
 
 
+    def test_pool_map_rejects_bool_chunksize(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.pool_map(_mp_iden, [1, 2], chunksize=True)  # type: ignore[arg-type]
+
+
     def test_pool_starmap(self):
         def add2(a, b):
             return a + b
@@ -8072,6 +8092,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.pool_starmap(_mp_add, [(1, 2)], chunksize="1")  # type: ignore[arg-type]
 
 
+    def test_pool_starmap_rejects_bool_chunksize(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.pool_starmap(_mp_add, [(1, 2)], chunksize=True)  # type: ignore[arg-type]
+
+
     def test_create_pool(self):
         pool = multiprocessing_utils.create_pool(processes=2)
         assert pool is not None
@@ -8084,6 +8109,11 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_pool(processes="2")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             multiprocessing_utils.create_pool(context=123)  # type: ignore[arg-type]
+
+
+    def test_create_pool_rejects_bool_processes(self):
+        with self.assertRaises(TypeError):
+            multiprocessing_utils.create_pool(processes=True)  # type: ignore[arg-type]
 
 
     def test_is_forking_spawn_forkserver(self):
@@ -8265,7 +8295,7 @@ def create_pool(processes: int | None = None, context: str | None = None) -> mp.
     Raises:
         TypeError: If inputs are not of expected types.
     """
-    if processes is not None and not isinstance(processes, int):
+    if processes is not None and (not isinstance(processes, int) or isinstance(processes, bool)):
         raise TypeError("processes must be an int or None")
     if context is not None and not isinstance(context, str):
         raise TypeError("context must be a string or None")
@@ -8295,7 +8325,7 @@ def pool_map(
     """
     if not callable(func):
         raise TypeError("func must be callable")
-    if chunksize is not None and not isinstance(chunksize, int):
+    if chunksize is not None and (not isinstance(chunksize, int) or isinstance(chunksize, bool)):
         raise TypeError("chunksize must be an int or None")
     with create_pool(processes=processes) as pool:
         return pool.map(func, iterable, chunksize=chunksize)
@@ -8323,7 +8353,7 @@ def pool_starmap(
     """
     if not callable(func):
         raise TypeError("func must be callable")
-    if chunksize is not None and not isinstance(chunksize, int):
+    if chunksize is not None and (not isinstance(chunksize, int) or isinstance(chunksize, bool)):
         raise TypeError("chunksize must be an int or None")
     with create_pool(processes=processes) as pool:
         return pool.starmap(func, iterable, chunksize=chunksize)
@@ -8343,7 +8373,7 @@ def create_queue(maxsize: int = 0, context: str | None = None) -> mp.Queue:
     Raises:
         TypeError: If maxsize is not an int.
     """
-    if not isinstance(maxsize, int):
+    if not isinstance(maxsize, int) or isinstance(maxsize, bool):
         raise TypeError("maxsize must be an int")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Queue(maxsize)
@@ -8402,7 +8432,7 @@ def create_semaphore(value: int = 1, context: str | None = None) -> Any:
     Raises:
         TypeError: If value is not an int.
     """
-    if not isinstance(value, int):
+    if not isinstance(value, int) or isinstance(value, bool):
         raise TypeError("value must be an int")
     ctx = get_context(context) if context else mp.get_context()
     return ctx.Semaphore(value)

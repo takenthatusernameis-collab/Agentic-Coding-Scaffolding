@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — `multiprocessing_utils` rejects `bool` integer parameters
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (clean tree, checkpoint `4770958` behind HEAD `d98292a` — only `.kilo/` bookkeeping had changed since). Ran `python tools/verify_state_delta.py --full` — passed, checkpoint advanced to `d98292a`.
+- **Defect hunt (wrong validation / edge-case behavior):** re-ran the `isinstance(.*int)`-without-`bool`-rejection sweep across all `*_utils.py` modules. The four leads from the prior handoff (`reprlib_utils`, `hashlib_utils`, `marshal_utils`, `sre_constants_utils`) were already fixed in `d98292a` (each validator now rejects `bool` and has a corresponding test) — confirmed by `git show d98292a` and by the passing test modules, so they are ruled out as open defects this pass. The sweep then found a genuine open defect in `multiprocessing_utils`: `create_pool`, `pool_map`, `pool_starmap`, `create_queue`, and `create_semaphore` all validated ints with `isinstance(x, int)` but without an explicit `bool` rejection, contradicting the project-wide bool-rejection convention.
+- **Defect fixed (failing-test-first):** added `isinstance(x, bool)` rejection to every int validator in `multiprocessing_utils.py`; added 5 tests to `tests/test_multiprocessing_utils.py` — `test_create_pool_rejects_bool_processes`, `test_pool_map_rejects_bool_chunksize`, `test_pool_starmap_rejects_bool_chunksize`, `test_create_queue_rejects_bool_maxsize`, `test_create_semaphore_rejects_bool_value` — all fail before the fix, pass after.
+- **Verification:** `python -m unittest tests.test_multiprocessing_utils` — 39 OK; `python -m doctest multiprocessing_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync (refreshed `multiprocessing_utils.py`, `tests/test_multiprocessing_utils.py`, `CHANGELOG.md`); full suite `python -m unittest discover tests/` — 11440 OK (skipped=10, pre-existing). `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies in `scaffold.sh`; updated `.kilo/handover.md`, `.kilo/next_task.md`, and this file.
+
 ## Latest Session (2026-11-18) — `calendar_utils` rejects `bool` integer parameters
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
