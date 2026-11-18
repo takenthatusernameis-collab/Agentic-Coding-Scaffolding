@@ -251,6 +251,7 @@ trace_utils.py
 traceback_utils.py
 tracemalloc_utils.py
 tree_utils.py
+ttl_cache_utils.py
 tty_utils.py
 type_check_utils.py
 type_utils.py
@@ -296,6 +297,7 @@ tests/test_asynchat_utils.py
 tests/test_asyncio_utils.py
 tests/test_asyncore_utils.py
 tests/test_atexit_utils.py
+tests/test_audit_contracts.py
 tests/test_backoff_utils.py
 tests/test_base64_utils.py
 tests/test_bdb_utils.py
@@ -541,6 +543,7 @@ tests/test_trace_utils.py
 tests/test_traceback_utils.py
 tests/test_tracemalloc_utils.py
 tests/test_tree_utils.py
+tests/test_ttl_cache_utils.py
 tests/test_tty_utils.py
 tests/test_type_check_utils.py
 tests/test_type_utils.py

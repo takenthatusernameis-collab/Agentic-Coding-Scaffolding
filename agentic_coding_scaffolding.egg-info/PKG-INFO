@@ -119,6 +119,7 @@ itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatte
 
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
+ttl_cache_utils.py          # Time-to-live cache utilities with automatic expiry
 async_utils.py            # Asynchronous utility functions
 asyncio_utils.py     # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
 bit_utils.py              # Bitwise utility functions for working with binary representations (set/leading/trailing zero counts, power-of-two, shifts, rotates, bit access, parity)
@@ -504,6 +505,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_time_utils.py          # Tests for time_utils.py
   test_timezone_utils.py      # Tests for timezone_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
+  test_ttl_cache_utils.py     # Tests for ttl_cache_utils.py
   test_timeit_utils.py        # Tests for timeit_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
@@ -799,6 +801,7 @@ The project includes a lightweight memoization utilities module in `memoize_util
 ## Timing Utilities Module
 
 The project includes a performance measurement utilities module in `timing_utils.py` with helpers for measuring and benchmarking code execution: `timer` is a context manager for timing code blocks, `elapsed_time` calculates elapsed time since a start time, and `benchmark` is a decorator that runs a function multiple times and reports average execution time. The module is tested in `tests/test_timing_utils.py`.
+The project includes a time-to-live cache utilities module in `ttl_cache_utils.py` with a `TTLCache` mapping whose entries expire after a configured time-to-live and a `ttl_cache` decorator factory for memoizing function calls with per-entry TTL expiry. Expired entries are treated as absent and evicted lazily on access. The module is tested in `tests/test_ttl_cache_utils.py`.
 
 The project includes a `timeit_utils.py` module wrapping the standard library `timeit` with `timeit`, `repeat`, `default_timer`, and `Timer`. The module is tested in `tests/test_timeit_utils.py`.
 

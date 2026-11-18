@@ -577,6 +577,8 @@ class TestScaffoldKiloJson(unittest.TestCase):
             "tests/test_timezone_utils.py",
             "timing_utils.py",
             "tests/test_timing_utils.py",
+            "ttl_cache_utils.py",
+            "tests/test_ttl_cache_utils.py",
             "token_utils.py",
             "tests/test_token_utils.py",
             "tokenize_utils.py",

@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — scaffold sync: embedded pyproject.toml refreshed for ttl_cache_utils
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 (source-relevant changes to `scaffold.sh` and `tests/test_scaffold.py`); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `067f1a8`.
+- **Optimize-delays survey:** stale embedded `pyproject.toml` template in `scaffold.sh` was the only avoidable delay (missing `ttl_cache_utils` module registered in `pyproject.toml` but not in the embedded template). Refreshed the embedded template and updated `tests/test_scaffold.py` assertions. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Full verification battery:** `python -m unittest discover tests/` — 11466 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success, 573 source files; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `067f1a8`).
+- **Defect-hunt status:** all defect classes swept with no open defect remaining (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts via `tools/audit_contracts.py`, float/numeric edge cases, off-by-one boundaries). Handing off to routine maintenance / regression monitoring rather than opening a new defect class.
+- **Changes:** `.kilo/last_verified.checkpoint` advanced to HEAD; `scaffold.sh` (embedded `pyproject.toml` synced), `tests/test_scaffold.py` (added `ttl_cache_utils` assertions), `tests/test_ttl_cache_utils.py` (mypy suppressions for dynamic decorator attributes); `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md` updated; next task posted to `main` via `board_post`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-18) — full verification battery green; no open defect class
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

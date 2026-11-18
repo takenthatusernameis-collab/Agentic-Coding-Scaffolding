@@ -4791,6 +4791,7 @@ py-modules = [
     "color_utils",
     "circuit_breaker_utils",
     "timing_utils",
+    "ttl_cache_utils",
     "timeit_utils",
     "unittest_utils",
     "async_utils",
@@ -169438,9 +169439,9 @@ class TestTTLCache(unittest.TestCase):
         cache["a"] = 1
         self.assertEqual(cache["a"], 1)
         time.sleep(0.02)
-        self.assertFalse("a" in cache)
         with self.assertRaises(Expired):
             cache["a"]
+        self.assertFalse("a" in cache)
         self.assertIsNone(cache.get("a"))
 
     def test_lru_eviction(self) -> None:
@@ -169474,6 +169475,8 @@ class TestTTLCache(unittest.TestCase):
         cache = TTLCache(ttl=60)
         cache["a"] = 1
         cache["a"]  # hit
+        with self.assertRaises(KeyError):
+            cache["missing"]  # miss
         info = cache.cache_info()
         self.assertEqual(info["hits"], 1)
         self.assertEqual(info["misses"], 1)
@@ -169492,7 +169495,7 @@ class TestTTLCache(unittest.TestCase):
         with self.assertRaises(TypeError):
             TTLCache(ttl=True)
         with self.assertRaises(TypeError):
-            TTLCache(ttl="10")
+            TTLCache(ttl="10")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             TTLCache(ttl=-1)
         with self.assertRaises(TypeError):
@@ -169520,11 +169523,11 @@ class TestTTLCacheDecorator(unittest.TestCase):
             return x
 
         compute(1)
-        self.assertEqual(compute.cache_info()["hits"], 0)
+        self.assertEqual(compute.cache_info()["hits"], 0)  # type: ignore[attr-defined]
         compute(1)
-        self.assertEqual(compute.cache_info()["hits"], 1)
-        compute.cache_clear()
-        self.assertEqual(compute.cache_info()["currsize"], 0)
+        self.assertEqual(compute.cache_info()["hits"], 1)  # type: ignore[attr-defined]
+        compute.cache_clear()  # type: ignore[attr-defined]
+        self.assertEqual(compute.cache_info()["currsize"], 0)  # type: ignore[attr-defined]
 
     def test_validation(self) -> None:
         with self.assertRaises(TypeError):
@@ -169675,10 +169678,12 @@ class TTLCache:
 
     def __getitem__(self, key: Any) -> Any:
         if key not in self._data:
+            self._misses += 1
             raise KeyError(key)
         if self._expired(key):
             self._remove(key)
             self._expired_count += 1
+            self._misses += 1
             raise Expired(key)
         self._hits += 1
         self._touch(key)
@@ -169730,7 +169735,7 @@ class TTLCache:
 
     def __iter__(self):
         self._purge_expired()
-        return iter(self._order)
+        return iter(list(self._order))
 
     def keys(self) -> list[Any]:
         return [key for key in self]

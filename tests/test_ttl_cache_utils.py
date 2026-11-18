@@ -111,7 +111,7 @@ class TestTTLCache(unittest.TestCase):
         with self.assertRaises(TypeError):
             TTLCache(ttl=True)
         with self.assertRaises(TypeError):
-            TTLCache(ttl="10")
+            TTLCache(ttl="10")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             TTLCache(ttl=-1)
         with self.assertRaises(TypeError):
@@ -139,11 +139,11 @@ class TestTTLCacheDecorator(unittest.TestCase):
             return x
 
         compute(1)
-        self.assertEqual(compute.cache_info()["hits"], 0)
+        self.assertEqual(compute.cache_info()["hits"], 0)  # type: ignore[attr-defined]
         compute(1)
-        self.assertEqual(compute.cache_info()["hits"], 1)
-        compute.cache_clear()
-        self.assertEqual(compute.cache_info()["currsize"], 0)
+        self.assertEqual(compute.cache_info()["hits"], 1)  # type: ignore[attr-defined]
+        compute.cache_clear()  # type: ignore[attr-defined]
+        self.assertEqual(compute.cache_info()["currsize"], 0)  # type: ignore[attr-defined]
 
     def test_validation(self) -> None:
         with self.assertRaises(TypeError):
