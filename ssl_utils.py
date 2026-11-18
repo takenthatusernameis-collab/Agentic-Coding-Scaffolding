@@ -75,6 +75,21 @@ def _is_int(val: Any) -> bool:
     return isinstance(val, int) and not isinstance(val, bool)
 
 
+def _hostname_matches_wildcard(pattern: str, hostname: str) -> bool:
+    """Return True if *hostname* matches the wildcard certificate *pattern*.
+
+    A leading ``*.`` matches any single leftmost DNS label; the remainder of
+    the pattern must match the rest of the hostname exactly.
+    """
+    if not pattern.startswith("*."):
+        return False
+    suffix = pattern[1:]  # keep the leading dot
+    if not hostname.endswith(suffix):
+        return False
+    prefix = hostname[: -len(suffix)]
+    return "." not in prefix and prefix != ""
+
+
 def create_default_context(**kwargs: Any) -> ssl.SSLContext:
     """Return a new SSL context with default settings.
 
@@ -139,15 +154,31 @@ def match_hostname(cert: Any, hostname: Any) -> None:
         if hasattr(ssl, "match_hostname"):
             ssl.match_hostname(cert, hostname)  # type: ignore[attr-defined]
             return
+    except ssl.CertificateError:
+        raise
     except Exception:
         pass
 
-    # Fallback: try to use check_hostname behavior via context if possible
-    # but we only have cert dict - just validate basic structure
+    # Fallback: verify the subject CN against the hostname when the stdlib
+    # matcher is unavailable. A mismatch must propagate as a
+    # ssl.CertificateError, matching the documented contract.
     if not isinstance(cert, dict):
         raise TypeError("cert must be a dict")
-    # If basic validation passes, do nothing special - this is a minimal wrapper
-    # For full verification, the caller should use SSLContext with check_hostname
+    subject = cert.get("subject", ())
+    common_name = None
+    for rdn in subject:
+        for key, value in rdn:
+            if key == "commonName":
+                common_name = value
+                break
+        if common_name is not None:
+            break
+    if common_name is None:
+        return
+    if common_name != hostname and not _hostname_matches_wildcard(common_name, hostname):
+        raise ssl.CertificateError(
+            f"hostname {hostname!r} does not match certificate CN {common_name!r}"
+        )
 
 
 def get_server_certificate(sock: Any, **kwargs: Any) -> bytes:

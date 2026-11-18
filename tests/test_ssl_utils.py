@@ -162,6 +162,45 @@ class TestSSLUtils(unittest.TestCase):
     def test_match_hostname_accepts_a_certificate_mapping(self):
         self.assertIsNone(ssl_utils.match_hostname({"subject": ()}, "example.com"))
 
+    def test_match_hostname_propagates_a_mismatch(self):
+        if hasattr(ssl, "match_hostname"):
+            with mock.patch.object(
+                ssl_utils.ssl, "match_hostname", create=True, side_effect=ssl.CertificateError()
+            ):
+                with self.assertRaises(ssl.CertificateError):
+                    ssl_utils.match_hostname({"subject": ()}, "example.com")
+        else:
+            with self.assertRaises(ssl.CertificateError):
+                ssl_utils.match_hostname(
+                    {"subject": ((("commonName", "wrong.example"),),)}, "example.com"
+                )
+
+    def test_match_hostname_fallback_rejects_a_mismatched_cn(self):
+        if hasattr(ssl, "match_hostname"):
+            self.skipTest("fallback path only runs when ssl.match_hostname is unavailable")
+        with self.assertRaises(ssl.CertificateError):
+            ssl_utils.match_hostname(
+                {"subject": ((("commonName", "wrong.example"),),)}, "example.com"
+            )
+
+    def test_match_hostname_fallback_accepts_a_matching_cn(self):
+        if hasattr(ssl, "match_hostname"):
+            self.skipTest("fallback path only runs when ssl.match_hostname is unavailable")
+        self.assertIsNone(
+            ssl_utils.match_hostname(
+                {"subject": ((("commonName", "example.com"),),)}, "example.com"
+            )
+        )
+
+    def test_match_hostname_fallback_accepts_a_wildcard_cn(self):
+        if hasattr(ssl, "match_hostname"):
+            self.skipTest("fallback path only runs when ssl.match_hostname is unavailable")
+        self.assertIsNone(
+            ssl_utils.match_hostname(
+                {"subject": ((("commonName", "*.example.com"),),)}, "sub.example.com"
+            )
+        )
+
     def test_get_server_certificate_returns_bytes(self):
         with mock.patch.object(ssl_utils.ssl, "get_server_certificate", return_value="PEMDATA"):
             self.assertEqual(ssl_utils.get_server_certificate(object()), b"PEMDATA")
