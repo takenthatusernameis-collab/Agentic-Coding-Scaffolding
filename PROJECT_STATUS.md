@@ -1,4 +1,14 @@
-## Latest Session (2026-11-18) — broad-except swallowing sweep: `ssl_utils.match_hostname` swallows mismatches
+## Latest Session (2026-11-18) — broad-except swallowing sweep: `enum_utils.has_value` masks comparison errors
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (checkpoint behind HEAD due to `.kilo/`-only bookkeeping movement); ran `python tools/verify_state_delta.py --full` — passed (checkpoint advanced to HEAD). No `.github/workflows/**` changes.
+- **Optimize-delays survey:** no avoidable repository-managed delay. Used state-delta probe/full verification to establish checkpoint, targeted module verification during the fix, then refreshed scaffold and re-checked sync. No timestamp-only handoff or empty commit.
+- **Defect fixed (failing-test-first):** `enum_utils.has_value` wrapped membership comparison in `try/except Exception` and returned `False` on any error. This swallowed real comparison failures (e.g. a member value whose `__eq__` raises) and could incorrectly report absence when an earlier non-matching member comparison errored. The broad catch was removed so comparison errors propagate; normal value checks are unchanged. Added `test_has_value_propagates_value_comparison_errors` and `test_has_value_propagates_errors_from_member_comparisons` (fail before the fix, pass after).
+- **Defect class:** broad-except swallowing / incorrect fallback (continuing the broad-except audit of remaining `*_utils.py` sites).
+- **Verification:** targeted `tests.test_enum_utils` function run — all tests pass; `python -m ruff check enum_utils.py tests/test_enum_utils.py` — clean; `python -m mypy enum_utils.py tests/test_enum_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync.
+- **Pre-existing (not introduced this session):** `ruff` E501 in `terminal_utils.py:59`, `ruff` W292 in `tests/test_quopri_utils.py`, and a `mypy` import-not-found for `pytest` in `tests/test_quopri_utils.py` (pytest not installed in this environment).
+
+
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
 - **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (checkpoint `570b05f` behind HEAD `8d530a8` — only `.kilo/` bookkeeping had changed since). Ran `python tools/verify_state_delta.py --full` — passed, checkpoint advanced to `8d530a8`.

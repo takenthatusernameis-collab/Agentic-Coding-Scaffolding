@@ -1,4 +1,10 @@
-## Unreleased — `ssl_utils.match_hostname` propagates hostname mismatches instead of swallowing them
+## Unreleased — `enum_utils.has_value` no longer swallows member comparison errors
+
+- **Correctness fix — `has_value` masked comparison failures as `False`.** The helper iterated members with `any(m.value == value ...)` inside a broad `except Exception` and returned `False` on any error. This silently swallowed real comparison failures (for example a member value whose `__eq__` raises) and could incorrectly report absence when an error occurred while checking a non-matching member. Comparison errors now propagate, while normal membership checks remain unchanged. Added `test_has_value_propagates_value_comparison_errors` and `test_has_value_propagates_errors_from_member_comparisons` (both fail before the fix, pass after).
+- **Defect class:** broad-except swallowing / incorrect fallback (continuing the broad-except audit in `*_utils.py`).
+- Validation: `python3` targeted run of `tests.test_enum_utils` functions — pass; `python -m ruff check enum_utils.py tests/test_enum_utils.py` — clean; `python -m mypy enum_utils.py tests/test_enum_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. No `.github/workflows/**` changes.
+
+
 
 - **Correctness fix — `match_hostname` swallowed every exception.** The docstring documents that a hostname mismatch propagates `ssl.CertificateError`, but the `try/except` around the stdlib call caught `except Exception` and fell through to a no-op fallback, so a mismatched certificate silently returned `None` instead of raising. The `ssl.CertificateError` branch now re-raises, and the fallback (used only when `ssl.match_hostname` is unavailable, e.g. some 3.12 builds) now performs real CN matching against the certificate subject — exact match or a single-leftmost-label wildcard — and raises `ssl.CertificateError` on mismatch. Added `test_match_hostname_propagates_a_mismatch`, `test_match_hostname_fallback_rejects_a_mismatched_cn`, `test_match_hostname_fallback_accepts_a_matching_cn`, and `test_match_hostname_fallback_accepts_a_wildcard_cn` (all fail before the fix, pass after).
 - **Defect class:** broad-except swallowing / contract violation (the `except Exception` swallowed an error the docstring promised would propagate). Found during the sibling-validation / broad-except sweep.

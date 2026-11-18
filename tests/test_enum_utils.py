@@ -93,6 +93,46 @@ def test_has_value():
     assert has_value(Color, 99) is False
 
 
+def test_has_value_propagates_value_comparison_errors():
+    class ExplodingEq:
+        def __eq__(self, other):
+            raise RuntimeError("boom")
+
+        def __hash__(self):
+            return 0
+
+    try:
+        has_value(Color, ExplodingEq())
+        assert False, "comparison errors should propagate"
+    except RuntimeError:
+        pass
+
+
+def test_has_value_propagates_errors_from_member_comparisons():
+    class BadEq:
+        def __eq__(self, other):
+            if other is self:
+                return True
+            raise RuntimeError("boom")
+
+        def __hash__(self):
+            return 7
+
+    class WithBad(Enum):
+        BAD = BadEq()
+        GOOD = 2
+
+    # Matching a member whose value compares equal to the query still works.
+    assert has_value(WithBad, WithBad.BAD.value) is True
+    # A comparison error raised while checking a member must not be swallowed
+    # and reported as absence.
+    try:
+        has_value(WithBad, 2)
+        assert False, "comparison errors should not be swallowed"
+    except RuntimeError:
+        pass
+
+
 def test_has_name_rejects_non_member_attributes():
     assert has_name(Color, "RED") is True
     assert has_name(Color, "GREEN") is True

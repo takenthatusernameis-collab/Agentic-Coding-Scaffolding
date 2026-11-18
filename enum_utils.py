@@ -213,7 +213,4 @@ def has_value(enum_cls: Type[enum.Enum], value: Any) -> bool:
     """
     if not isinstance(enum_cls, enum.EnumMeta):
         raise TypeError("enum_cls must be an Enum class")
-    try:
-        return any(m.value == value for m in enum_cls)
-    except Exception:
-        return False
+    return any(m.value == value for m in enum_cls)
