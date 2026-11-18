@@ -863,8 +863,9 @@ def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -
 
     A companion to :func:`truncate_lines` and :func:`wrap_prompt` that adds a
     leading prefix to each line. Blank lines are left untouched when
-    *skip_blank* is True (the default), which is useful for indenting code
-    blocks without turning empty lines into lines of whitespace.
+    *skip_blank* is True, which is useful for indenting code blocks without
+    turning empty lines into lines of whitespace. The default is False, so
+    every line receives the prefix by default.
 
     Args:
         text: The text to indent.
@@ -2466,7 +2467,7 @@ def count_consonants(text: str) -> int:
         0
     """
     _require_string(text, "text")
-    return sum(1 for ch in text if ch.isalpha() and ch.lower() not in "aeiou")
+    return sum(1 for ch in text if (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou")
 
 
 def count_lowercase(text: str) -> int:
@@ -2820,7 +2821,7 @@ def has_consonants(text: str) -> bool:
         False
     """
     _require_string(text, "text")
-    return any(ch.isalpha() and ch.lower() not in "aeiou" for ch in text)
+    return any((("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou" for ch in text)
 
 
 def count_whitespace(text: str) -> int:

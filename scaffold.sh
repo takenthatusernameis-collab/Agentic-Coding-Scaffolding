@@ -72875,6 +72875,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `multiprocessing_utils` rejects `bool` integer parameters
+
+- **Correctness fix — `multiprocessing_utils` accepted `bool` where an `int` is required.** `create_pool(processes=True)`, `pool_map(..., chunksize=True)`, `pool_starmap(..., chunksize=True)`, `create_queue(maxsize=True)`, `create_semaphore(value=True)`, and `create_semaphore(value=False)` all silently passed `isinstance(x, int)` validation instead of raising `TypeError`, contradicting the bool-rejection convention used across the project (e.g. `errno_utils`, `signal_utils`, `bz2_utils`, `calendar_utils`). Each int validator now rejects `bool` explicitly. Added `test_create_pool_rejects_bool_processes`, `test_pool_map_rejects_bool_chunksize`, `test_pool_starmap_rejects_bool_chunksize`, `test_create_queue_rejects_bool_maxsize`, and `test_create_semaphore_rejects_bool_value` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input (`bool` where an `int` is required) in a `*_utils.py` module (continuing the wrong-validation/edge-case defect hunt).
+- Validation: `python -m unittest tests.test_multiprocessing_utils` — 39 OK; `python -m doctest multiprocessing_utils.py` — OK; `python -m unittest discover tests/` — 11440 OK (10 skipped, pre-existing); `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+
 ## Unreleased — `calendar_utils` rejects `bool` integer parameters
 
 - **Correctness fix — `calendar_utils` accepted `bool` where an `int` is required.** Because `bool` subclasses `int`, `is_leap_year(True)`, `days_in_month(2024, True)`, `month_name(True)`, `day_name(True)`, `month_calendar(2024, False)`, `weekdays_in_month(True, 1)`, `weekend_days_in_month(2024, True)`, `first_day_of_month(True, 1)`, and `add_months(d, True)` all silently passed `isinstance(x, int)` validation instead of raising `TypeError`, contradicting the bool-rejection convention used across the project (e.g. `errno_utils`, `signal_utils`, `bz2_utils`). Every int validator now rejects `bool` explicitly. Added `TestBoolRejection` with 14 tests (all fail before the fix, pass after).
