@@ -107,13 +107,31 @@ def chunk(lst: List[T], size: int) -> List[List[T]]:
 
 
 def unique(lst: List[T]) -> List[T]:
-    """Return a list of unique elements preserving order."""
+    """Return a list of unique elements preserving order.
+
+    Hashable elements use a set for efficiency; unhashable elements fall back
+    to linear membership checks so lists, dicts, and other unhashable values
+    are deduplicated correctly.
+
+    Examples:
+        >>> unique([1, 2, 2, 3])
+        [1, 2, 3]
+        >>> unique([[1], [1], [2]])
+        [[1], [2]]
+    """
     seen: Set[Any] = set()
+    unhashable: List[T] = []
     result: List[T] = []
     for item in lst:
-        if item not in seen:
+        try:
+            if item in seen:
+                continue
             seen.add(item)
-            result.append(item)
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
+        result.append(item)
     return result
 
 

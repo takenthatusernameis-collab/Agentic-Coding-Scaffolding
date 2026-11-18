@@ -110,6 +110,12 @@ class TestUnique(unittest.TestCase):
     def test_unique_all_unique(self) -> None:
         self.assertEqual(unique([1, 2, 3]), [1, 2, 3])
 
+    def test_unique_accepts_unhashable_elements(self) -> None:
+        self.assertEqual(unique([[1], [1], [2]]), [[1], [2]])
+
+    def test_unique_accepts_mixed_hashable_and_unhashable(self) -> None:
+        self.assertEqual(unique([1, [1], 1, [1], [2], 2]), [1, [1], [2], 2])
+
 
 class TestDedupe(unittest.TestCase):
     def test_dedupe_basic(self) -> None:
@@ -120,6 +126,9 @@ class TestDedupe(unittest.TestCase):
 
     def test_dedupe_matches_unique(self) -> None:
         self.assertEqual(dedupe([1, 2, 2, 3]), unique([1, 2, 2, 3]))
+
+    def test_dedupe_accepts_unhashable_elements(self) -> None:
+        self.assertEqual(dedupe([[1], [1], [2]]), [[1], [2]])
 
 
 class TestIsEmpty(unittest.TestCase):

@@ -433,6 +433,20 @@ class TestUniquePreserveOrder(unittest.TestCase):
         with self.assertRaises(TypeError):
             unique_preserve_order("not a list")  # type: ignore[arg-type]
 
+    def test_unique_preserve_order_unhashable_elements(self) -> None:
+        self.assertEqual(unique_preserve_order([[1], [1], [2]]), [[1], [2]])
+
+    def test_unique_preserve_order_mixed_hashable_and_unhashable(self) -> None:
+        self.assertEqual(
+            unique_preserve_order([1, [1], 1, [1], [2], 2]), [1, [1], [2], 2]
+        )
+
+    def test_unique_preserve_order_consistency_with_count_unique(self) -> None:
+        for lst in ([[1], [2], [1]], [1, [1], 1, [1], [2], 2], []):
+            self.assertEqual(
+                len(unique_preserve_order(lst)), count_unique(lst)  # type: ignore[arg-type]
+            )
+
 
 class TestFindIndex(unittest.TestCase):
     def test_find_index_basic(self) -> None:

@@ -609,6 +609,10 @@ def flatten(lst: List[List[T]]) -> List[T]:
 def unique_preserve_order(lst: List[T]) -> List[T]:
     """Return a new list with duplicates removed while preserving order.
 
+    Elements are compared by equality; hashable elements use a set for
+    efficiency, and unhashable elements fall back to linear membership
+    checks (mirroring :func:`count_unique`).
+
     Args:
         lst: The list to deduplicate.
 
@@ -625,15 +629,23 @@ def unique_preserve_order(lst: List[T]) -> List[T]:
         ['a', 'b']
         >>> unique_preserve_order([])
         []
+        >>> unique_preserve_order([[1], [1], [2]])
+        [[1], [2]]
     """
     if not isinstance(lst, list):
         raise TypeError("lst must be a list")
-    seen = set()
+    seen: set = set()
+    unhashable: List[T] = []
     result: List[T] = []
     for item in lst:
-        if item in seen:
-            continue
-        seen.add(item)
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
         result.append(item)
     return result
 

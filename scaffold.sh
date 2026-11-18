@@ -17483,13 +17483,31 @@ def chunk(lst: List[T], size: int) -> List[List[T]]:
 
 
 def unique(lst: List[T]) -> List[T]:
-    """Return a list of unique elements preserving order."""
+    """Return a list of unique elements preserving order.
+
+    Hashable elements use a set for efficiency; unhashable elements fall back
+    to linear membership checks so lists, dicts, and other unhashable values
+    are deduplicated correctly.
+
+    Examples:
+        >>> unique([1, 2, 2, 3])
+        [1, 2, 3]
+        >>> unique([[1], [1], [2]])
+        [[1], [2]]
+    """
     seen: Set[Any] = set()
+    unhashable: List[T] = []
     result: List[T] = []
     for item in lst:
-        if item not in seen:
+        try:
+            if item in seen:
+                continue
             seen.add(item)
-            result.append(item)
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
+        result.append(item)
     return result
 
 
@@ -23425,6 +23443,12 @@ class TestUnique(unittest.TestCase):
     def test_unique_all_unique(self) -> None:
         self.assertEqual(unique([1, 2, 3]), [1, 2, 3])
 
+    def test_unique_accepts_unhashable_elements(self) -> None:
+        self.assertEqual(unique([[1], [1], [2]]), [[1], [2]])
+
+    def test_unique_accepts_mixed_hashable_and_unhashable(self) -> None:
+        self.assertEqual(unique([1, [1], 1, [1], [2], 2]), [1, [1], [2], 2])
+
 
 class TestDedupe(unittest.TestCase):
     def test_dedupe_basic(self) -> None:
@@ -23435,6 +23459,9 @@ class TestDedupe(unittest.TestCase):
 
     def test_dedupe_matches_unique(self) -> None:
         self.assertEqual(dedupe([1, 2, 2, 3]), unique([1, 2, 2, 3]))
+
+    def test_dedupe_accepts_unhashable_elements(self) -> None:
+        self.assertEqual(dedupe([[1], [1], [2]]), [[1], [2]])
 
 
 class TestIsEmpty(unittest.TestCase):
@@ -38519,6 +38546,10 @@ def flatten(lst: List[List[T]]) -> List[T]:
 def unique_preserve_order(lst: List[T]) -> List[T]:
     """Return a new list with duplicates removed while preserving order.
 
+    Elements are compared by equality; hashable elements use a set for
+    efficiency, and unhashable elements fall back to linear membership
+    checks (mirroring :func:`count_unique`).
+
     Args:
         lst: The list to deduplicate.
 
@@ -38535,15 +38566,23 @@ def unique_preserve_order(lst: List[T]) -> List[T]:
         ['a', 'b']
         >>> unique_preserve_order([])
         []
+        >>> unique_preserve_order([[1], [1], [2]])
+        [[1], [2]]
     """
     if not isinstance(lst, list):
         raise TypeError("lst must be a list")
-    seen = set()
+    seen: set = set()
+    unhashable: List[T] = []
     result: List[T] = []
     for item in lst:
-        if item in seen:
-            continue
-        seen.add(item)
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
         result.append(item)
     return result
 
@@ -39409,6 +39448,20 @@ class TestUniquePreserveOrder(unittest.TestCase):
     def test_unique_preserve_order_non_list_raises(self) -> None:
         with self.assertRaises(TypeError):
             unique_preserve_order("not a list")  # type: ignore[arg-type]
+
+    def test_unique_preserve_order_unhashable_elements(self) -> None:
+        self.assertEqual(unique_preserve_order([[1], [1], [2]]), [[1], [2]])
+
+    def test_unique_preserve_order_mixed_hashable_and_unhashable(self) -> None:
+        self.assertEqual(
+            unique_preserve_order([1, [1], 1, [1], [2], 2]), [1, [1], [2], 2]
+        )
+
+    def test_unique_preserve_order_consistency_with_count_unique(self) -> None:
+        for lst in ([[1], [2], [1]], [1, [1], 1, [1], [2], 2], []):
+            self.assertEqual(
+                len(unique_preserve_order(lst)), count_unique(lst)  # type: ignore[arg-type]
+            )
 
 
 class TestFindIndex(unittest.TestCase):
@@ -72876,6 +72929,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `list_utils.unique_preserve_order` and `utils.unique`/`dedupe` accept unhashable elements
+
+- **Correctness fix — the remaining dedupe helpers raised an undocumented `TypeError` for unhashable elements.** `list_utils.unique_preserve_order([[1], [1], [2]])` and `utils.unique`/`utils.dedupe` crashed with `TypeError: unhashable type: 'list'`, even though `unique_preserve_order` documents `TypeError` only when the argument is not a list, and its siblings `count_unique`, `count_duplicates`, `has_all_unique`, and `has_duplicates` already deduplicate unhashable elements through a linear-membership fallback. Both helpers now use the same hashable-set plus unhashable-list strategy, so deduplication works for lists, dicts, and other unhashable values. `itertools_utils.unique_everseen` was audited and left unchanged: it is a direct transcription of the set-based stdlib recipe (its docstring says "Remember all seen elements") and its sibling `unique_justseen` is the documented unhashable-friendly variant. Added `test_unique_preserve_order_unhashable_elements`, `test_unique_preserve_order_mixed_hashable_and_unhashable`, `test_unique_preserve_order_consistency_with_count_unique`, `test_unique_accepts_unhashable_elements`, `test_unique_accepts_mixed_hashable_and_unhashable`, and `test_dedupe_accepts_unhashable_elements` (all fail before the fix, pass after).
+- **Defect class:** wrong validation / edge-case behavior in dedupe helpers — an undocumented exception for a valid input that sibling helpers already handle.
+- Validation: `python -m unittest tests.test_utils tests.test_list_utils` — 410 OK; `python -m doctest utils.py list_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+
 ## Unreleased — `seq_utils.unique` accepts unhashable elements
 
 - **Correctness fix — `seq_utils.unique` raised an undocumented `TypeError` for unhashable elements.** `unique([[1], [1], [2]])` and `distinct(...)` crashed with `TypeError: unhashable type: 'list'` even though both are documented to raise `TypeError` only when the argument is not a sequence, and the sibling helpers `count_unique`, `count_duplicates`, and `has_duplicates` already support unhashable elements through a linear-membership fallback (`has_duplicates` is documented as the boolean companion to `unique` yet succeeded where `unique` failed). `unique` now uses the same hashable-set plus unhashable-list strategy, so deduplication works for lists, dicts, and other unhashable values. Added `test_unique_accepts_unhashable_elements`, `test_unique_accepts_mixed_hashable_and_unhashable`, and `test_unique_matches_count_unique_for_unhashable` (all fail before the fix, pass after).
