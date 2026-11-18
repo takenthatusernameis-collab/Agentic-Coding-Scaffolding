@@ -56746,7 +56746,7 @@ def supports_color(stream: Optional[TextIO] = None) -> bool:
     return True
 
 
-def colorize(text: str, color: str = "white", bold: bool = False) -> str:
+def colorize(text: str, color: str = "white", bold: bool = False, stream: Optional[TextIO] = None) -> str:
     """Wrap *text* in ANSI color escape codes.
 
     Args:
@@ -56770,7 +56770,7 @@ def colorize(text: str, color: str = "white", bold: bool = False) -> str:
         raise ValueError(
             f"unsupported color {color!r}; supported colors are {sorted(_VALID_COLORS)!r}"
         )
-    if not supports_color():
+    if not supports_color(stream):
         return text
     codes = [_COLOR_CODES[color]]
     if bold:
@@ -56794,7 +56794,7 @@ def print_colored(
     """
     if stream is None:
         stream = sys.stdout
-    stream.write(colorize(text, color=color, bold=bold) + "\n")
+    stream.write(colorize(text, color=color, bold=bold, stream=stream) + "\n")
     stream.flush()
 
 
