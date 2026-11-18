@@ -2,11 +2,11 @@
 
 ## Done (this session)
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 (checkpoint `067f1a8` behind HEAD `45ca3d1`; drift included `scaffold.sh`, `tests/test_scaffold.py`, `tests/test_ttl_cache_utils.py`). Ran the full battery and re-anchored the checkpoint.
-- **Optimize-delays survey:** the only avoidable delay was the stale checkpoint left by the prior session's unrecorded battery; one full verification pass removed it. No repeated discovery, no timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
-- **Full verification battery:** `python -m unittest discover tests/` — 11466 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success, 573 source files; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `45ca3d1`).
-- **Defect-hunt status:** all defect classes swept with no open defect remaining (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts via `tools/audit_contracts.py`, float/numeric edge cases, off-by-one boundaries). Routine monitoring only.
-- **Changes:** `.kilo/last_verified.checkpoint` advanced to HEAD; `.kilo/handover.md`, `PROJECT_STATUS.md` updated; next task posted to `main` via `board_post`. No source/test changes this session. No `.github/workflows/**` changes.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree; only `.kilo/` bookkeeping moved since checkpoint `45ca3d1`), so no redundant battery was required before edits.
+- **Optimize-delays survey:** skipped a repeated full discovery pass because the probe proved the tree was already verified; the one real integrity gap found below was fixed with targeted tests instead of a full re-audit.
+- **Suite-integrity fix:** `test_enum_defect.py` lived at the repository root, outside `testpaths = ["tests"]` (pytest) and outside `python -m unittest discover tests/`, so its three cases never ran while duplicating `tests/test_enum_utils.py` coverage. Removed the stray file and added `TestSuiteLayout.test_no_test_modules_outside_tests_directory` in `tests/test_select_tests.py` so a future root-level `test_*.py` fails the suite instead of escaping collection.
+- **Verification:** `python -m unittest tests.test_select_tests tests.test_public_api tests.test_enum_utils` — 67 OK; `ruff`/`mypy` on `tests/test_select_tests.py` — clean; `python tools/scan_untested.py` — no untested callables; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — 11467 OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+- **Changes:** deleted `test_enum_defect.py`, added the layout guard test, refreshed the embedded `CHANGELOG.md` copy, updated `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`; next task posted to `main` via `board_post`.
 
 ## Next
 - Continue routine maintenance / regression monitoring: run the verification battery periodically —
@@ -15,7 +15,7 @@
   - `python -m mypy . --exclude build --exclude dist`
   - `python tools/refresh_scaffold.py --check`
   - `python tools/verify_state_delta.py --full --record-full-suite`
-- The defect-hunt sweeps (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts via `tools/audit_contracts.py`, float/numeric edge cases, off-by-one boundaries) are complete with no open defect class. Do not open a new defect class unless a genuine regression is found; hand off to routine monitoring instead.
+- The defect-hunt sweeps (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts via `tools/audit_contracts.py`, float/numeric edge cases, off-by-one boundaries) are complete with no open defect class. Do not open a new defect class unless a genuine regression is found.
 - Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`. Do not post duplicate/empty handoffs or commit no-op cycles.
 
 ## Latest Session (2026-11-18) — scaffold sync: embedded pyproject.toml refreshed for ttl_cache_utils

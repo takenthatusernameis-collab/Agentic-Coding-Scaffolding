@@ -501,5 +501,25 @@ class TestGitRangeRegression(unittest.TestCase):
         self.assertEqual(untracked, [])
 
 
+class TestSuiteLayout(unittest.TestCase):
+    """Every test module must live under ``tests/`` so it is actually collected.
+
+    Regression guard for a real gap: a ``test_*.py`` file at the repository root
+    is outside both the pytest ``testpaths`` setting (``tests``) and the
+    documented ``python -m unittest discover tests/`` command, so it never runs
+    in CI or local verification. A root-level duplicate of three
+    ``tests/test_enum_utils.py`` cases sat uncollected until it was removed;
+    any future stray test file must be moved into ``tests/`` instead.
+    """
+
+    def test_no_test_modules_outside_tests_directory(self):
+        stray = sorted(path.name for path in ROOT.glob("test_*.py") if path.is_file())
+        self.assertEqual(
+            stray,
+            [],
+            f"test modules outside tests/ are never collected: {stray}",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — removed uncollected root-level test module; added suite-layout guard
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, only `.kilo/` bookkeeping moved since checkpoint `45ca3d1`; no redundant full re-audit needed before edits.
+- **Optimize-delays survey:** the state-delta probe removed a repeated discovery pass; the actual gap (a test module that never runs) was closed with one targeted fix and targeted tests rather than another full defect sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Integrity gap fixed:** `test_enum_defect.py` sat at the repository root, outside `testpaths = ["tests"]` and outside `python -m unittest discover tests/`, so CI never executed it; its three cases duplicate coverage already present in `tests/test_enum_utils.py`. Deleted the stray file and added `TestSuiteLayout.test_no_test_modules_outside_tests_directory` to `tests/test_select_tests.py` as a guard.
+- **Verification:** `python -m unittest tests.test_select_tests tests.test_public_api tests.test_enum_utils` — 67 OK; `python -m ruff check tests/test_select_tests.py` — clean; `python -m mypy tests/test_select_tests.py` — clean; `python tools/scan_untested.py` — no untested callables; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — 11467 OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed the embedded `CHANGELOG.md` copy in `scaffold.sh`.
+
 ## Latest Session (2026-11-18) — routine verification battery green; checkpoint re-anchored at HEAD
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
