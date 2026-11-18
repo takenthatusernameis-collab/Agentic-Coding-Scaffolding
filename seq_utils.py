@@ -641,6 +641,10 @@ def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
 def unique(sequence: Sequence[T]) -> List[T]:
     """Return a list of unique elements from ``sequence`` preserving order.
 
+    Elements are compared by equality; hashable elements use a set for
+    efficiency, and unhashable elements fall back to linear membership
+    checks, matching :func:`count_unique` and :func:`count_duplicates`.
+
     Args:
         sequence: The sequence to deduplicate.
 
@@ -659,14 +663,22 @@ def unique(sequence: Sequence[T]) -> List[T]:
         []
         >>> unique("aba")
         ['a', 'b']
+        >>> unique([[1], [1], [2]])
+        [[1], [2]]
     """
     _require_sequence(sequence)
     seen: set = set()
+    unhashable: List[T] = []
     result: List[T] = []
     for item in sequence:
-        if item in seen:
-            continue
-        seen.add(item)
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
         result.append(item)
     return result
 

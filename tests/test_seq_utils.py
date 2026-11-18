@@ -525,6 +525,17 @@ class TestUnique(unittest.TestCase):
         with self.assertRaises(TypeError):
             unique(123)  # type: ignore[arg-type]
 
+    def test_unique_accepts_unhashable_elements(self):
+        self.assertEqual(unique([[1], [1], [2]]), [[1], [2]])
+        self.assertEqual(distinct([[1], [2], [1]]), [[1], [2]])
+
+    def test_unique_accepts_mixed_hashable_and_unhashable(self):
+        self.assertEqual(unique([1, [1], 1, [1], 2]), [1, [1], 2])
+
+    def test_unique_matches_count_unique_for_unhashable(self):
+        seq = [[1], [2], [1], [3], [2]]
+        self.assertEqual(len(unique(seq)), count_unique(seq))
+
 
 class TestFlatten(unittest.TestCase):
     def test_flatten_basic(self):

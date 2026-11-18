@@ -47570,8 +47570,9 @@ def indent_lines(text: str, prefix: str = "    ", *, skip_blank: bool = False) -
 
     A companion to :func:`truncate_lines` and :func:`wrap_prompt` that adds a
     leading prefix to each line. Blank lines are left untouched when
-    *skip_blank* is True (the default), which is useful for indenting code
-    blocks without turning empty lines into lines of whitespace.
+    *skip_blank* is True, which is useful for indenting code blocks without
+    turning empty lines into lines of whitespace. The default is False, so
+    every line receives the prefix by default.
 
     Args:
         text: The text to indent.
@@ -49173,7 +49174,7 @@ def count_consonants(text: str) -> int:
         0
     """
     _require_string(text, "text")
-    return sum(1 for ch in text if ch.isalpha() and ch.lower() not in "aeiou")
+    return sum(1 for ch in text if (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou")
 
 
 def count_lowercase(text: str) -> int:
@@ -49527,7 +49528,7 @@ def has_consonants(text: str) -> bool:
         False
     """
     _require_string(text, "text")
-    return any(ch.isalpha() and ch.lower() not in "aeiou" for ch in text)
+    return any((("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou" for ch in text)
 
 
 def count_whitespace(text: str) -> int:
@@ -72875,6 +72876,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `seq_utils.unique` accepts unhashable elements
+
+- **Correctness fix — `seq_utils.unique` raised an undocumented `TypeError` for unhashable elements.** `unique([[1], [1], [2]])` and `distinct(...)` crashed with `TypeError: unhashable type: 'list'` even though both are documented to raise `TypeError` only when the argument is not a sequence, and the sibling helpers `count_unique`, `count_duplicates`, and `has_duplicates` already support unhashable elements through a linear-membership fallback (`has_duplicates` is documented as the boolean companion to `unique` yet succeeded where `unique` failed). `unique` now uses the same hashable-set plus unhashable-list strategy, so deduplication works for lists, dicts, and other unhashable values. Added `test_unique_accepts_unhashable_elements`, `test_unique_accepts_mixed_hashable_and_unhashable`, and `test_unique_matches_count_unique_for_unhashable` (all fail before the fix, pass after).
+- **Defect class:** wrong validation / edge-case behavior in a `*_utils.py` module — an undocumented exception for a valid input that sibling helpers already handle.
+- Validation: `python -m unittest tests.test_seq_utils` — 245 OK; `python -m doctest seq_utils.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+
 ## Unreleased — `multiprocessing_utils` rejects `bool` integer parameters
 
 - **Correctness fix — `multiprocessing_utils` accepted `bool` where an `int` is required.** `create_pool(processes=True)`, `pool_map(..., chunksize=True)`, `pool_starmap(..., chunksize=True)`, `create_queue(maxsize=True)`, `create_semaphore(value=True)`, and `create_semaphore(value=False)` all silently passed `isinstance(x, int)` validation instead of raising `TypeError`, contradicting the bool-rejection convention used across the project (e.g. `errno_utils`, `signal_utils`, `bz2_utils`, `calendar_utils`). Each int validator now rejects `bool` explicitly. Added `test_create_pool_rejects_bool_processes`, `test_pool_map_rejects_bool_chunksize`, `test_pool_starmap_rejects_bool_chunksize`, `test_create_queue_rejects_bool_maxsize`, and `test_create_semaphore_rejects_bool_value` (all fail before the fix, pass after).
@@ -118798,6 +118805,10 @@ def chunk(sequence: Sequence[T], size: int) -> List[List[T]]:
 def unique(sequence: Sequence[T]) -> List[T]:
     """Return a list of unique elements from ``sequence`` preserving order.
 
+    Elements are compared by equality; hashable elements use a set for
+    efficiency, and unhashable elements fall back to linear membership
+    checks, matching :func:`count_unique` and :func:`count_duplicates`.
+
     Args:
         sequence: The sequence to deduplicate.
 
@@ -118816,14 +118827,22 @@ def unique(sequence: Sequence[T]) -> List[T]:
         []
         >>> unique("aba")
         ['a', 'b']
+        >>> unique([[1], [1], [2]])
+        [[1], [2]]
     """
     _require_sequence(sequence)
     seen: set = set()
+    unhashable: List[T] = []
     result: List[T] = []
     for item in sequence:
-        if item in seen:
-            continue
-        seen.add(item)
+        try:
+            if item in seen:
+                continue
+            seen.add(item)
+        except TypeError:
+            if item in unhashable:
+                continue
+            unhashable.append(item)
         result.append(item)
     return result
 
@@ -120165,6 +120184,17 @@ class TestUnique(unittest.TestCase):
     def test_unique_type_error(self):
         with self.assertRaises(TypeError):
             unique(123)  # type: ignore[arg-type]
+
+    def test_unique_accepts_unhashable_elements(self):
+        self.assertEqual(unique([[1], [1], [2]]), [[1], [2]])
+        self.assertEqual(distinct([[1], [2], [1]]), [[1], [2]])
+
+    def test_unique_accepts_mixed_hashable_and_unhashable(self):
+        self.assertEqual(unique([1, [1], 1, [1], 2]), [1, [1], 2])
+
+    def test_unique_matches_count_unique_for_unhashable(self):
+        seq = [[1], [2], [1], [3], [2]]
+        self.assertEqual(len(unique(seq)), count_unique(seq))
 
 
 class TestFlatten(unittest.TestCase):
