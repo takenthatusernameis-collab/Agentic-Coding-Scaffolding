@@ -6,7 +6,7 @@ import unittest
 try:
     import pytest
 except ImportError:  # pragma: no cover - pytest is an optional dev dependency
-    pytest = None
+    pytest = None  # type: ignore[assignment]
 
 from quopri_utils import decode, decode_file, encode, encode_file, isqp
 

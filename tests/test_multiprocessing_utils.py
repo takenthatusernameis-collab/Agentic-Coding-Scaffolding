@@ -108,11 +108,6 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
 
 
-    def test_create_semaphore_rejects_bool_value(self):
-        with self.assertRaises(TypeError):
-            multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
-
-
     def test_create_event(self):
         ev = multiprocessing_utils.create_event()
         assert ev is not None

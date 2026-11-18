@@ -7951,11 +7951,6 @@ class TestMultiprocessingUtils(unittest.TestCase):
             multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
 
 
-    def test_create_semaphore_rejects_bool_value(self):
-        with self.assertRaises(TypeError):
-            multiprocessing_utils.create_semaphore(value=True)  # type: ignore[arg-type]
-
-
     def test_create_event(self):
         ev = multiprocessing_utils.create_event()
         assert ev is not None
@@ -39460,7 +39455,7 @@ class TestUniquePreserveOrder(unittest.TestCase):
     def test_unique_preserve_order_consistency_with_count_unique(self) -> None:
         for lst in ([[1], [2], [1]], [1, [1], 1, [1], [2], 2], []):
             self.assertEqual(
-                len(unique_preserve_order(lst)), count_unique(lst)  # type: ignore[arg-type]
+                len(unique_preserve_order(lst)), count_unique(lst)  # type: ignore[misc]
             )
 
 
@@ -49227,7 +49222,12 @@ def count_consonants(text: str) -> int:
         0
     """
     _require_string(text, "text")
-    return sum(1 for ch in text if (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou")
+    vowels = "aeiou"
+    return sum(
+        1
+        for ch in text
+        if (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in vowels
+    )
 
 
 def count_lowercase(text: str) -> int:
@@ -49581,7 +49581,11 @@ def has_consonants(text: str) -> bool:
         False
     """
     _require_string(text, "text")
-    return any((("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou" for ch in text)
+    vowels = "aeiou"
+    return any(
+        (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in vowels
+        for ch in text
+    )
 
 
 def count_whitespace(text: str) -> int:
@@ -56864,7 +56868,12 @@ def supports_color(stream: Optional[TextIO] = None) -> bool:
     return True
 
 
-def colorize(text: str, color: str = "white", bold: bool = False, stream: Optional[TextIO] = None) -> str:
+def colorize(
+    text: str,
+    color: str = "white",
+    bold: bool = False,
+    stream: Optional[TextIO] = None,
+) -> str:
     """Wrap *text* in ANSI color escape codes.
 
     Args:
@@ -115865,7 +115874,7 @@ import unittest
 try:
     import pytest
 except ImportError:  # pragma: no cover - pytest is an optional dev dependency
-    pytest = None
+    pytest = None  # type: ignore[assignment]
 
 from quopri_utils import decode, decode_file, encode, encode_file, isqp
 

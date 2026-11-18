@@ -444,7 +444,7 @@ class TestUniquePreserveOrder(unittest.TestCase):
     def test_unique_preserve_order_consistency_with_count_unique(self) -> None:
         for lst in ([[1], [2], [1]], [1, [1], 1, [1], [2], 2], []):
             self.assertEqual(
-                len(unique_preserve_order(lst)), count_unique(lst)  # type: ignore[arg-type]
+                len(unique_preserve_order(lst)), count_unique(lst)  # type: ignore[misc]
             )
 
 

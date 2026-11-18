@@ -56,7 +56,12 @@ def supports_color(stream: Optional[TextIO] = None) -> bool:
     return True
 
 
-def colorize(text: str, color: str = "white", bold: bool = False, stream: Optional[TextIO] = None) -> str:
+def colorize(
+    text: str,
+    color: str = "white",
+    bold: bool = False,
+    stream: Optional[TextIO] = None,
+) -> str:
     """Wrap *text* in ANSI color escape codes.
 
     Args:

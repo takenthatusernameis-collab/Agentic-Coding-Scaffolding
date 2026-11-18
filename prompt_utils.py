@@ -2467,7 +2467,12 @@ def count_consonants(text: str) -> int:
         0
     """
     _require_string(text, "text")
-    return sum(1 for ch in text if (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou")
+    vowels = "aeiou"
+    return sum(
+        1
+        for ch in text
+        if (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in vowels
+    )
 
 
 def count_lowercase(text: str) -> int:
@@ -2821,7 +2826,11 @@ def has_consonants(text: str) -> bool:
         False
     """
     _require_string(text, "text")
-    return any((("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in "aeiou" for ch in text)
+    vowels = "aeiou"
+    return any(
+        (("a" <= ch <= "z") or ("A" <= ch <= "Z")) and ch.lower() not in vowels
+        for ch in text
+    )
 
 
 def count_whitespace(text: str) -> int:
