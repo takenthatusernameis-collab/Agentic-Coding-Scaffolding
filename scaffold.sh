@@ -6705,7 +6705,7 @@ def dumps(obj: Any, version: int = marshal.version) -> bytes:
         ValueError: If version is out of range [0, marshal.version].
         ValueError: If the object cannot be marshaled by marshal.
     """
-    if not isinstance(version, int):
+    if not isinstance(version, int) or isinstance(version, bool):
         raise TypeError(f"version must be an int, got {type(version).__name__}")
     if version < 0 or version > marshal.version:
         raise ValueError(f"version must be between 0 and {marshal.version}, got {version}")
@@ -6760,7 +6760,7 @@ def dump(obj: Any, file: Any, version: int = marshal.version) -> None:
         raise AttributeError("file must have a 'write' method")
     if not callable(file.write):
         raise TypeError("file.write must be callable")
-    if not isinstance(version, int):
+    if not isinstance(version, int) or isinstance(version, bool):
         raise TypeError(f"version must be an int, got {type(version).__name__}")
     if version < 0 or version > marshal.version:
         raise ValueError(f"version must be between 0 and {marshal.version}, got {version}")
@@ -6919,6 +6919,20 @@ class TestMarshalUtils(unittest.TestCase):
     def test_get_version(self):
         self.assertIsInstance(get_version(), int)
         self.assertEqual(get_version(), marshal.version)
+
+
+class TestBoolRejection(unittest.TestCase):
+    def test_dumps_rejects_bool_version(self):
+        with self.assertRaises(TypeError):
+            dumps("x", version=True)  # type: ignore[arg-type]
+
+    def test_dump_rejects_bool_version(self):
+        with self.assertRaises(TypeError):
+            dump("x", io.BytesIO(), version=True)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()
 TEST_MARSHAL_UTILS
 
 # --- zipfile_utils.py ---
@@ -46117,7 +46131,7 @@ def file_hash(path: str, algorithm: str = "sha256", chunk_size: int = 8192) -> b
         raise TypeError("path must be a string")
     if not isinstance(algorithm, str):
         raise TypeError("algorithm must be a string")
-    if not isinstance(chunk_size, int):
+    if not isinstance(chunk_size, int) or isinstance(chunk_size, bool):
         raise TypeError("chunk_size must be an int")
     if chunk_size <= 0:
         raise ValueError("chunk_size must be positive")
@@ -46253,6 +46267,18 @@ class TestReexportedHashConstructors(unittest.TestCase):
             actual = getattr(hashlib_utils, name)(data).digest()
             self.assertEqual(actual, expected, name)
             self.assertEqual(len(actual), size, name)
+
+
+class TestBoolRejection(unittest.TestCase):
+    def test_file_hash_rejects_bool_chunk_size(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(b"test")
+            path = f.name
+        try:
+            with self.assertRaises(TypeError):
+                file_hash(path, chunk_size=True)  # type: ignore[arg-type]
+        finally:
+            os.unlink(path)
 
 
 if __name__ == "__main__":
@@ -115833,35 +115859,35 @@ class Repr(_reprlib.Repr):
     ):
         if (
             maxlevel is not None
-            and not isinstance(maxlevel, int)
-            or (isinstance(maxlevel, int) and maxlevel < 0)
+            and (not isinstance(maxlevel, int) or isinstance(maxlevel, bool))
+            or (isinstance(maxlevel, int) and not isinstance(maxlevel, bool) and maxlevel < 0)
         ):
             raise TypeError("maxlevel must be a non-negative int or None")
-        if not isinstance(maxtuple, int) or maxtuple < 0:
+        if not isinstance(maxtuple, int) or isinstance(maxtuple, bool) or maxtuple < 0:
             raise TypeError("maxtuple must be a non-negative int")
-        if not isinstance(maxlist, int) or maxlist < 0:
+        if not isinstance(maxlist, int) or isinstance(maxlist, bool) or maxlist < 0:
             raise TypeError("maxlist must be a non-negative int")
-        if not isinstance(maxarray, int) or maxarray < 0:
+        if not isinstance(maxarray, int) or isinstance(maxarray, bool) or maxarray < 0:
             raise TypeError("maxarray must be a non-negative int")
-        if not isinstance(maxdict, int) or maxdict < 0:
+        if not isinstance(maxdict, int) or isinstance(maxdict, bool) or maxdict < 0:
             raise TypeError("maxdict must be a non-negative int")
-        if not isinstance(maxset, int) or maxset < 0:
+        if not isinstance(maxset, int) or isinstance(maxset, bool) or maxset < 0:
             raise TypeError("maxset must be a non-negative int")
-        if not isinstance(maxfrozenset, int) or maxfrozenset < 0:
+        if not isinstance(maxfrozenset, int) or isinstance(maxfrozenset, bool) or maxfrozenset < 0:
             raise TypeError("maxfrozenset must be a non-negative int")
-        if not isinstance(maxdeque, int) or maxdeque < 0:
+        if not isinstance(maxdeque, int) or isinstance(maxdeque, bool) or maxdeque < 0:
             raise TypeError("maxdeque must be a non-negative int")
-        if not isinstance(maxstring, int) or maxstring < 0:
+        if not isinstance(maxstring, int) or isinstance(maxstring, bool) or maxstring < 0:
             raise TypeError("maxstring must be a non-negative int")
-        if not isinstance(maxlong, int) or maxlong < 0:
+        if not isinstance(maxlong, int) or isinstance(maxlong, bool) or maxlong < 0:
             raise TypeError("maxlong must be a non-negative int")
-        if not isinstance(maxother, int) or maxother < 0:
+        if not isinstance(maxother, int) or isinstance(maxother, bool) or maxother < 0:
             raise TypeError("maxother must be a non-negative int")
         if not isinstance(fillvalue, str):
             raise TypeError("fillvalue must be a string")
-        if indent is not None and not isinstance(indent, (int, str)):
+        if indent is not None and (not isinstance(indent, (int, str)) or isinstance(indent, bool)):
             raise TypeError("indent must be int, str, or None")
-        if isinstance(indent, int) and indent < 0:
+        if isinstance(indent, int) and not isinstance(indent, bool) and indent < 0:
             raise ValueError("indent must be non-negative")
         super().__init__(
             maxlevel=maxlevel,
@@ -115930,6 +115956,56 @@ class TestReprlibUtils(unittest.TestCase):
     def test_repr_indent_negative(self):
         with self.assertRaises(ValueError):
             Repr(indent=-1)
+
+
+class TestBoolRejection(unittest.TestCase):
+    def test_repr_rejects_bool_maxlevel(self):
+        with self.assertRaises(TypeError):
+            Repr(maxlevel=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxtuple(self):
+        with self.assertRaises(TypeError):
+            Repr(maxtuple=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxlist(self):
+        with self.assertRaises(TypeError):
+            Repr(maxlist=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxarray(self):
+        with self.assertRaises(TypeError):
+            Repr(maxarray=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxdict(self):
+        with self.assertRaises(TypeError):
+            Repr(maxdict=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxset(self):
+        with self.assertRaises(TypeError):
+            Repr(maxset=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxfrozenset(self):
+        with self.assertRaises(TypeError):
+            Repr(maxfrozenset=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxdeque(self):
+        with self.assertRaises(TypeError):
+            Repr(maxdeque=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxstring(self):
+        with self.assertRaises(TypeError):
+            Repr(maxstring=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxlong(self):
+        with self.assertRaises(TypeError):
+            Repr(maxlong=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxother(self):
+        with self.assertRaises(TypeError):
+            Repr(maxother=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_indent(self):
+        with self.assertRaises(TypeError):
+            Repr(indent=True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -159880,7 +159956,7 @@ except Exception:
 
 def assert_valid_flags(flags: Any, module: Any = None) -> None:
     """Validate regex flags."""
-    if not isinstance(flags, int):
+    if not isinstance(flags, int) or isinstance(flags, bool):
         raise TypeError(f"flags must be int, got {type(flags).__name__}")
     if _sre_constants is not None and hasattr(_sre_constants, "assert_valid_flags"):
         _sre_constants.assert_valid_flags(flags, module)
@@ -159911,7 +159987,7 @@ def opcodenames() -> Dict[int, str]:
 
 def lookup_opcode(code: Any) -> str:
     """Look up the name of an opcode."""
-    if not isinstance(code, int):
+    if not isinstance(code, int) or isinstance(code, bool):
         raise TypeError(f"code must be int, got {type(code).__name__}")
     names = opcodenames()
     if code in names:
@@ -160108,6 +160184,17 @@ class TestErrorExport(unittest.TestCase):
         import sre_constants
 
         assert sre_constants_utils.error is sre_constants.error
+
+
+class TestBoolRejection(unittest.TestCase):
+
+    def test_assert_valid_flags_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sre_constants_utils.assert_valid_flags(True)  # type: ignore[arg-type]
+
+    def test_lookup_opcode_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sre_constants_utils.lookup_opcode(True)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

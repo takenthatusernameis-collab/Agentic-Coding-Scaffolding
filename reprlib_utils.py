@@ -38,35 +38,35 @@ class Repr(_reprlib.Repr):
     ):
         if (
             maxlevel is not None
-            and not isinstance(maxlevel, int)
-            or (isinstance(maxlevel, int) and maxlevel < 0)
+            and (not isinstance(maxlevel, int) or isinstance(maxlevel, bool))
+            or (isinstance(maxlevel, int) and not isinstance(maxlevel, bool) and maxlevel < 0)
         ):
             raise TypeError("maxlevel must be a non-negative int or None")
-        if not isinstance(maxtuple, int) or maxtuple < 0:
+        if not isinstance(maxtuple, int) or isinstance(maxtuple, bool) or maxtuple < 0:
             raise TypeError("maxtuple must be a non-negative int")
-        if not isinstance(maxlist, int) or maxlist < 0:
+        if not isinstance(maxlist, int) or isinstance(maxlist, bool) or maxlist < 0:
             raise TypeError("maxlist must be a non-negative int")
-        if not isinstance(maxarray, int) or maxarray < 0:
+        if not isinstance(maxarray, int) or isinstance(maxarray, bool) or maxarray < 0:
             raise TypeError("maxarray must be a non-negative int")
-        if not isinstance(maxdict, int) or maxdict < 0:
+        if not isinstance(maxdict, int) or isinstance(maxdict, bool) or maxdict < 0:
             raise TypeError("maxdict must be a non-negative int")
-        if not isinstance(maxset, int) or maxset < 0:
+        if not isinstance(maxset, int) or isinstance(maxset, bool) or maxset < 0:
             raise TypeError("maxset must be a non-negative int")
-        if not isinstance(maxfrozenset, int) or maxfrozenset < 0:
+        if not isinstance(maxfrozenset, int) or isinstance(maxfrozenset, bool) or maxfrozenset < 0:
             raise TypeError("maxfrozenset must be a non-negative int")
-        if not isinstance(maxdeque, int) or maxdeque < 0:
+        if not isinstance(maxdeque, int) or isinstance(maxdeque, bool) or maxdeque < 0:
             raise TypeError("maxdeque must be a non-negative int")
-        if not isinstance(maxstring, int) or maxstring < 0:
+        if not isinstance(maxstring, int) or isinstance(maxstring, bool) or maxstring < 0:
             raise TypeError("maxstring must be a non-negative int")
-        if not isinstance(maxlong, int) or maxlong < 0:
+        if not isinstance(maxlong, int) or isinstance(maxlong, bool) or maxlong < 0:
             raise TypeError("maxlong must be a non-negative int")
-        if not isinstance(maxother, int) or maxother < 0:
+        if not isinstance(maxother, int) or isinstance(maxother, bool) or maxother < 0:
             raise TypeError("maxother must be a non-negative int")
         if not isinstance(fillvalue, str):
             raise TypeError("fillvalue must be a string")
-        if indent is not None and not isinstance(indent, (int, str)):
+        if indent is not None and (not isinstance(indent, (int, str)) or isinstance(indent, bool)):
             raise TypeError("indent must be int, str, or None")
-        if isinstance(indent, int) and indent < 0:
+        if isinstance(indent, int) and not isinstance(indent, bool) and indent < 0:
             raise ValueError("indent must be non-negative")
         super().__init__(
             maxlevel=maxlevel,

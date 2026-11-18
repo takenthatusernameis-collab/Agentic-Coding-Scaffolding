@@ -154,5 +154,16 @@ class TestErrorExport(unittest.TestCase):
         assert sre_constants_utils.error is sre_constants.error
 
 
+class TestBoolRejection(unittest.TestCase):
+
+    def test_assert_valid_flags_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sre_constants_utils.assert_valid_flags(True)  # type: ignore[arg-type]
+
+    def test_lookup_opcode_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            sre_constants_utils.lookup_opcode(True)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

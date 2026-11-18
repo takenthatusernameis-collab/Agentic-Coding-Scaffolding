@@ -90,5 +90,17 @@ class TestReexportedHashConstructors(unittest.TestCase):
             self.assertEqual(len(actual), size, name)
 
 
+class TestBoolRejection(unittest.TestCase):
+    def test_file_hash_rejects_bool_chunk_size(self):
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            f.write(b"test")
+            path = f.name
+        try:
+            with self.assertRaises(TypeError):
+                file_hash(path, chunk_size=True)  # type: ignore[arg-type]
+        finally:
+            os.unlink(path)
+
+
 if __name__ == "__main__":
     unittest.main()

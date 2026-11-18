@@ -26,7 +26,7 @@ def dumps(obj: Any, version: int = marshal.version) -> bytes:
         ValueError: If version is out of range [0, marshal.version].
         ValueError: If the object cannot be marshaled by marshal.
     """
-    if not isinstance(version, int):
+    if not isinstance(version, int) or isinstance(version, bool):
         raise TypeError(f"version must be an int, got {type(version).__name__}")
     if version < 0 or version > marshal.version:
         raise ValueError(f"version must be between 0 and {marshal.version}, got {version}")
@@ -81,7 +81,7 @@ def dump(obj: Any, file: Any, version: int = marshal.version) -> None:
         raise AttributeError("file must have a 'write' method")
     if not callable(file.write):
         raise TypeError("file.write must be callable")
-    if not isinstance(version, int):
+    if not isinstance(version, int) or isinstance(version, bool):
         raise TypeError(f"version must be an int, got {type(version).__name__}")
     if version < 0 or version > marshal.version:
         raise ValueError(f"version must be between 0 and {marshal.version}, got {version}")

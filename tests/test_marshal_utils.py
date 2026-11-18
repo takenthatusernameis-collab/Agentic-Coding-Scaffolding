@@ -110,3 +110,17 @@ class TestMarshalUtils(unittest.TestCase):
     def test_get_version(self):
         self.assertIsInstance(get_version(), int)
         self.assertEqual(get_version(), marshal.version)
+
+
+class TestBoolRejection(unittest.TestCase):
+    def test_dumps_rejects_bool_version(self):
+        with self.assertRaises(TypeError):
+            dumps("x", version=True)  # type: ignore[arg-type]
+
+    def test_dump_rejects_bool_version(self):
+        with self.assertRaises(TypeError):
+            dump("x", io.BytesIO(), version=True)  # type: ignore[arg-type]
+
+
+if __name__ == "__main__":
+    unittest.main()

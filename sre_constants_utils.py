@@ -160,7 +160,7 @@ except Exception:
 
 def assert_valid_flags(flags: Any, module: Any = None) -> None:
     """Validate regex flags."""
-    if not isinstance(flags, int):
+    if not isinstance(flags, int) or isinstance(flags, bool):
         raise TypeError(f"flags must be int, got {type(flags).__name__}")
     if _sre_constants is not None and hasattr(_sre_constants, "assert_valid_flags"):
         _sre_constants.assert_valid_flags(flags, module)
@@ -191,7 +191,7 @@ def opcodenames() -> Dict[int, str]:
 
 def lookup_opcode(code: Any) -> str:
     """Look up the name of an opcode."""
-    if not isinstance(code, int):
+    if not isinstance(code, int) or isinstance(code, bool):
         raise TypeError(f"code must be int, got {type(code).__name__}")
     names = opcodenames()
     if code in names:

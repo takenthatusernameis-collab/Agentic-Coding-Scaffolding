@@ -39,5 +39,55 @@ class TestReprlibUtils(unittest.TestCase):
             Repr(indent=-1)
 
 
+class TestBoolRejection(unittest.TestCase):
+    def test_repr_rejects_bool_maxlevel(self):
+        with self.assertRaises(TypeError):
+            Repr(maxlevel=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxtuple(self):
+        with self.assertRaises(TypeError):
+            Repr(maxtuple=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxlist(self):
+        with self.assertRaises(TypeError):
+            Repr(maxlist=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxarray(self):
+        with self.assertRaises(TypeError):
+            Repr(maxarray=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxdict(self):
+        with self.assertRaises(TypeError):
+            Repr(maxdict=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxset(self):
+        with self.assertRaises(TypeError):
+            Repr(maxset=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxfrozenset(self):
+        with self.assertRaises(TypeError):
+            Repr(maxfrozenset=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxdeque(self):
+        with self.assertRaises(TypeError):
+            Repr(maxdeque=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxstring(self):
+        with self.assertRaises(TypeError):
+            Repr(maxstring=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxlong(self):
+        with self.assertRaises(TypeError):
+            Repr(maxlong=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_maxother(self):
+        with self.assertRaises(TypeError):
+            Repr(maxother=True)  # type: ignore[arg-type]
+
+    def test_repr_rejects_bool_indent(self):
+        with self.assertRaises(TypeError):
+            Repr(indent=True)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

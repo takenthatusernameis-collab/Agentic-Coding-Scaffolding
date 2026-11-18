@@ -94,7 +94,7 @@ def file_hash(path: str, algorithm: str = "sha256", chunk_size: int = 8192) -> b
         raise TypeError("path must be a string")
     if not isinstance(algorithm, str):
         raise TypeError("algorithm must be a string")
-    if not isinstance(chunk_size, int):
+    if not isinstance(chunk_size, int) or isinstance(chunk_size, bool):
         raise TypeError("chunk_size must be an int")
     if chunk_size <= 0:
         raise ValueError("chunk_size must be positive")
