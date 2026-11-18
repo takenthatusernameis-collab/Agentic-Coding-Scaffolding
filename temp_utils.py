@@ -43,7 +43,7 @@ def create_temp_file(
     prefix: Optional[str] = None,
     dir: Optional[Union[str, Path]] = None,
     text: bool = False,
-    delete: bool = True,
+    delete: bool = False,
 ) -> str:
     """Create a named temporary file and return its path.
 
@@ -96,8 +96,8 @@ def create_temp_file(
         text=text,
     )
     os.close(fd)
-    # The file is intentionally left on disk. The caller removes it with
-    # :func:`cleanup_temp_path` when done; ``delete`` records that intent.
+    if delete:
+        os.remove(path)
     return path
 
 
@@ -105,7 +105,7 @@ def create_temp_dir(
     suffix: Optional[str] = None,
     prefix: Optional[str] = None,
     dir: Optional[Union[str, Path]] = None,
-    delete: bool = True,
+    delete: bool = False,
 ) -> str:
     """Create a temporary directory and return its path.
 
@@ -114,8 +114,8 @@ def create_temp_dir(
         prefix: Optional directory name prefix.
         dir: Optional parent directory. Defaults to the system temporary
             directory.
-        delete: Whether the directory should be removed when cleaned up via
-            :func:`cleanup_temp_path`.
+        delete: Whether to remove the directory immediately after creation.
+            Pass ``False`` to keep the directory on disk.
 
     Returns:
         The absolute path to the created temporary directory.
@@ -142,11 +142,14 @@ def create_temp_dir(
     if not isinstance(delete, bool):
         raise TypeError("delete must be a bool")
 
-    return tempfile.mkdtemp(
+    path = tempfile.mkdtemp(
         suffix=suffix,
         prefix=prefix,
         dir=str(dir) if dir is not None else None,
     )
+    if delete:
+        shutil.rmtree(path)
+    return path
 
 
 @contextmanager

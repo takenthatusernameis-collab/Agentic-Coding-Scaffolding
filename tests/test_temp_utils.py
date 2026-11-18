@@ -49,6 +49,10 @@ class TestCreateTempFile(unittest.TestCase):
         cleanup_temp_path(path)
         self.assertFalse(os.path.exists(path))
 
+    def test_delete_true_removes_file(self):
+        path = create_temp_file(suffix=".txt", prefix="demo_", delete=True)
+        self.assertFalse(os.path.exists(path))
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             create_temp_file(suffix=123)  # type: ignore[arg-type]
@@ -90,6 +94,10 @@ class TestCreateTempDir(unittest.TestCase):
             create_temp_dir(dir=123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             create_temp_dir(delete="yes")  # type: ignore[arg-type]
+
+    def test_delete_true_removes_directory(self):
+        path = create_temp_dir(suffix="_suf", prefix="demo_", delete=True)
+        self.assertFalse(os.path.exists(path))
 
 
 class TestTempFileContextManager(unittest.TestCase):

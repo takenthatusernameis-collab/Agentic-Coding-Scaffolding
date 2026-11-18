@@ -72804,6 +72804,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `temp_utils.create_temp_file`/`create_temp_dir` honor `delete`
+
+- **Correctness fix — `delete` was silently ignored.** Both helpers accepted and validated a `delete` flag but never acted on it: `create_temp_file` passed every argument except `delete` to `tempfile.mkstemp` (which has no `delete` parameter), and `create_temp_dir` passed every argument except `delete` to `tempfile.mkdtemp`, so the created file or directory was always left on disk regardless of the flag, contradicting the documented "removed on close" contract. `delete=True` now removes the file/directory immediately after creation; `delete=False` (the new default) keeps it on disk, preserving the previous default behavior. Added `test_delete_true_removes_file` and `test_delete_true_removes_directory` (fail before the fix, pass after).
+- **Defect class:** silently ignored parameters (continuing the sweep; previous sessions targeted `uu_utils`, `filecmp_utils`, `color_utils`, `csv_utils`, and others).
+- Validation: `python -m unittest tests.test_temp_utils` — 37 OK; `python -m doctest temp_utils.py` — OK; `python -m ruff check temp_utils.py tests/test_temp_utils.py` — clean; `python -m mypy temp_utils.py tests/test_temp_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; full suite. No `.github/workflows/**` changes.
+
 ## Unreleased — `uu_utils.encode`/`decode` no longer silently ignore `backtick`/`quiet` in fallback
 
 - **Correctness fix — `encode` and `decode` dropped `backtick`/`quiet` on fallback.** Both functions wrapped the stdlib call in `except Exception` and retried without the extra keyword arguments, so on older Python versions (or when the first call raised `TypeError` for an unsupported keyword) the documented parameters were silently ignored. The catches are now `except TypeError`; for `decode` the fallback passes `quiet` positionally (the stdlib signature supports it), while for `encode` the `backtick` parameter is keyword-only so the fallback correctly omits it on interpreters that don't support it. Added `test_encode_backtick_parameter_not_ignored_on_fallback` and `test_decode_quiet_parameter_not_ignored_on_fallback` (both fail before the fix, pass after).
@@ -129691,7 +129697,7 @@ def create_temp_file(
     prefix: Optional[str] = None,
     dir: Optional[Union[str, Path]] = None,
     text: bool = False,
-    delete: bool = True,
+    delete: bool = False,
 ) -> str:
     """Create a named temporary file and return its path.
 
@@ -129744,8 +129750,8 @@ def create_temp_file(
         text=text,
     )
     os.close(fd)
-    # The file is intentionally left on disk. The caller removes it with
-    # :func:`cleanup_temp_path` when done; ``delete`` records that intent.
+    if delete:
+        os.remove(path)
     return path
 
 
@@ -129753,7 +129759,7 @@ def create_temp_dir(
     suffix: Optional[str] = None,
     prefix: Optional[str] = None,
     dir: Optional[Union[str, Path]] = None,
-    delete: bool = True,
+    delete: bool = False,
 ) -> str:
     """Create a temporary directory and return its path.
 
@@ -129762,8 +129768,8 @@ def create_temp_dir(
         prefix: Optional directory name prefix.
         dir: Optional parent directory. Defaults to the system temporary
             directory.
-        delete: Whether the directory should be removed when cleaned up via
-            :func:`cleanup_temp_path`.
+        delete: Whether to remove the directory immediately after creation.
+            Pass ``False`` to keep the directory on disk.
 
     Returns:
         The absolute path to the created temporary directory.
@@ -129790,11 +129796,14 @@ def create_temp_dir(
     if not isinstance(delete, bool):
         raise TypeError("delete must be a bool")
 
-    return tempfile.mkdtemp(
+    path = tempfile.mkdtemp(
         suffix=suffix,
         prefix=prefix,
         dir=str(dir) if dir is not None else None,
     )
+    if delete:
+        shutil.rmtree(path)
+    return path
 
 
 @contextmanager
@@ -130084,6 +130093,10 @@ class TestCreateTempFile(unittest.TestCase):
         cleanup_temp_path(path)
         self.assertFalse(os.path.exists(path))
 
+    def test_delete_true_removes_file(self):
+        path = create_temp_file(suffix=".txt", prefix="demo_", delete=True)
+        self.assertFalse(os.path.exists(path))
+
     def test_type_errors(self):
         with self.assertRaises(TypeError):
             create_temp_file(suffix=123)  # type: ignore[arg-type]
@@ -130125,6 +130138,10 @@ class TestCreateTempDir(unittest.TestCase):
             create_temp_dir(dir=123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             create_temp_dir(delete="yes")  # type: ignore[arg-type]
+
+    def test_delete_true_removes_directory(self):
+        path = create_temp_dir(suffix="_suf", prefix="demo_", delete=True)
+        self.assertFalse(os.path.exists(path))
 
 
 class TestTempFileContextManager(unittest.TestCase):

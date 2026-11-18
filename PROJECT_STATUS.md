@@ -1,5 +1,15 @@
 # Project Status
 
+## Latest Session (2026-11-18) — defect hunt/fix: `temp_utils.create_temp_file`/`create_temp_dir` honor `delete`
+
+- `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (source-relevant edits pending checkpoint). Ran `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `5deb789`), then `python -m pytest tests/ -q` — 11605 passed (skipped=4), 4284 subtests passed.
+- **Optimize-delays survey:** no avoidable repository-managed delay; used state-delta probe + targeted `tests/test_temp_utils.py`/doctest/lint/typecheck during the change, then full verification battery and pytest suite at a coherent milestone. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `temp_utils.create_temp_file` and `temp_utils.create_temp_dir` accepted and validated a `delete` flag but never acted on it: `create_temp_file` forwarded every argument except `delete` to `tempfile.mkstemp` (which has no `delete` parameter) and `create_temp_dir` forwarded every argument except `delete` to `tempfile.mkdtemp`, so the created file/directory was always left on disk regardless of the flag, contradicting the documented "removed on close" contract. `delete=True` now removes the file/directory immediately after creation; `delete=False` (the new default) keeps it on disk, preserving the previous default behavior. Added `test_delete_true_removes_file` and `test_delete_true_removes_directory` (fail before the fix, pass after).
+- **Defect class:** silently ignored parameters (continuing the sweep; previous sessions targeted `uu_utils`, `filecmp_utils`, `color_utils`, `csv_utils`, and others).
+- **Verification:** `python -m unittest tests.test_temp_utils` — 37 OK; `python -m doctest temp_utils.py` — OK; `python -m ruff check temp_utils.py tests/test_temp_utils.py` — clean; `python -m mypy temp_utils.py tests/test_temp_utils.py` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync; `python -m pytest tests/ -q` — 11605 passed (skipped=4), 4284 subtests passed; `python tools/verify_state_delta.py --full --record-full-suite` — passed (checkpoint `5deb789`).
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded copies (`temp_utils.py`, `tests/test_temp_utils.py`, `CHANGELOG.md`, `scaffold.sh`).
+
 ## Latest Session (2026-11-17) — defect hunt/fix: `uu_utils.encode`/`decode` silently ignored `backtick`/`quiet` in fallback
 
 - `board_read`: empty (no handover message); executed durable handoff from `.kilo/next_task.md`.
