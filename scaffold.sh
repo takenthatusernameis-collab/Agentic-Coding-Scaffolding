@@ -1166,6 +1166,16 @@ def check_cache_hit() -> bool:
             return False
         cached_paths = cache.get("managed_paths")
         if isinstance(cached_paths, list):
+            # The cached path list is trusted only when every element is the
+            # string the tool wrote. A partially written or foreign cache
+            # (for example ``"managed_paths": [1, 2]``) would otherwise reach
+            # ``_check_cache_fingerprint``, which evaluates ``ROOT / relative``
+            # for each entry and raises ``TypeError`` out of ``--check``
+            # instead of falling back to a full comparison. An invalid list is
+            # treated as a cache miss, the same way ``load_check_cache`` and
+            # ``scan_untested.load_cache`` reject the shape they did not write.
+            if not all(isinstance(path, str) for path in cached_paths):
+                return False
             return expected == _check_cache_fingerprint(cached_paths)
     return expected == _check_cache_fingerprint()
 
@@ -72943,6 +72953,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `refresh_scaffold.check_cache_hit` rejects a cache with non-string `managed_paths`
+
+- **Tooling fix — a malformed ``--check`` cache raised ``TypeError`` instead of missing.** `check_cache_hit` read `managed_paths` from the parsed cache file and fed it to `_check_cache_fingerprint`, which evaluates `ROOT / relative` for each entry. A valid-JSON cache whose `managed_paths` list held non-strings (for example `"managed_paths": [1, 2]`, with a matching `root_mtime`) therefore raised `TypeError` out of `--check` instead of falling back to a full comparison and reporting the cache as stale. The list is now validated element-by-element: a list that contains any non-string element is treated as a cache miss, mirroring how `scan_untested.load_cache` shape-validates its `modules` dict and how `load_check_cache` rejects a non-object top level. Added `test_a_cache_with_non_string_managed_paths_is_a_miss`, `test_a_cache_with_mixed_element_types_is_a_miss`, `test_a_cache_with_string_managed_paths_still_hits`, and `test_a_cache_with_empty_managed_paths_is_a_miss` (all fail before the fix, pass after).
+- **Defect class:** robustness/contract violation in the repository verification tooling — an unusable persistent cache was trusted instead of treated as missing.
+- Validation: `python -m unittest tests.test_refresh_scaffold` — 42 OK; `python -m ruff check tools/refresh_scaffold.py tests/test_refresh_scaffold.py` — clean; `python -m mypy tools/refresh_scaffold.py tests/test_refresh_scaffold.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `verify_state_delta` treats an unusable checkpoint marker as missing
 
 - **Tooling fix — a valid-JSON marker without a usable `head` crashed the guard.** `tools/verify_state_delta.py` documented (in `probe_decision` and in the module docstring) that a missing or malformed marker makes the guard run the verification battery, and `read_marker()` returned `None` for absent or unparseable JSON. It returned *any* parsed object otherwise, so a partially written or hand-edited `{"full_suite_head": "..."}` marker (or `{"head": 12}`) reached `probe_decision()`/`main()`, which indexed `marker["head"]` and raised `KeyError` — breaking every activation instead of simply forcing a fresh verification. A non-string `full_suite_head` similarly crashed the note that slices `marker["full_suite_head"][:12]`. `read_marker()` now accepts only a JSON object whose `head` is a non-empty string and whose optional `full_suite_head` is a string, and returns `None` for every other shape (including non-object JSON, which previously relied on a stripped `assert`). Added `test_read_returns_none_when_head_is_missing`, `test_read_returns_none_when_head_is_not_a_string`, `test_read_returns_none_when_head_is_empty`, `test_read_returns_none_when_full_suite_head_is_not_a_string`, `test_read_returns_none_for_non_object_json`, `test_probe_requires_verification_for_a_marker_without_head`, and `test_main_runs_the_battery_for_a_marker_without_head` (all fail before the fix, pass after).

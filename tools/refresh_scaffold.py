@@ -247,6 +247,16 @@ def check_cache_hit() -> bool:
             return False
         cached_paths = cache.get("managed_paths")
         if isinstance(cached_paths, list):
+            # The cached path list is trusted only when every element is the
+            # string the tool wrote. A partially written or foreign cache
+            # (for example ``"managed_paths": [1, 2]``) would otherwise reach
+            # ``_check_cache_fingerprint``, which evaluates ``ROOT / relative``
+            # for each entry and raises ``TypeError`` out of ``--check``
+            # instead of falling back to a full comparison. An invalid list is
+            # treated as a cache miss, the same way ``load_check_cache`` and
+            # ``scan_untested.load_cache`` reject the shape they did not write.
+            if not all(isinstance(path, str) for path in cached_paths):
+                return False
             return expected == _check_cache_fingerprint(cached_paths)
     return expected == _check_cache_fingerprint()
 

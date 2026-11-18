@@ -422,5 +422,58 @@ class TestCheckCacheCoverage(unittest.TestCase):
             )
 
 
+class TestCheckCacheHitValidation(unittest.TestCase):
+    """The ``--check`` cache fast path must trust only well-formed entries.
+
+    ``check_cache_hit`` reads ``managed_paths`` from the parsed cache and feeds
+    it to ``_check_cache_fingerprint``, which evaluates ``ROOT / relative`` for
+    each entry. A cache whose ``managed_paths`` list holds non-strings (for
+    example ``[1, 2]``) therefore raised ``TypeError`` out of ``--check``
+    instead of falling back to a full comparison and reporting the cache as a
+    miss. The list is validated the same way ``scan_untested.load_cache``
+    validates its ``modules`` dict: the consumer trusts only the shape it
+    wrote.
+    """
+
+    def _write_cache(self, managed_paths):
+        cache = {
+            "status": "in_sync",
+            "fingerprint": refresh_scaffold._check_cache_fingerprint(
+                refresh_scaffold.managed_copy_paths()
+            ),
+            "managed_paths": managed_paths,
+            "root_mtime": refresh_scaffold._mtime(refresh_scaffold.ROOT),
+        }
+        refresh_scaffold.save_check_cache(cache)
+
+    def test_a_cache_with_non_string_managed_paths_is_a_miss(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            refresh_scaffold.CACHE_FILE = Path(tmp) / "cache.json"
+            self._write_cache([1, 2])
+            # A malformed cache entry must not raise; it falls back to a full
+            # comparison, which reports the cache as stale.
+            self.assertFalse(refresh_scaffold.check_cache_hit())
+
+    def test_a_cache_with_mixed_element_types_is_a_miss(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            refresh_scaffold.CACHE_FILE = Path(tmp) / "cache.json"
+            self._write_cache(["a", 3, None])
+            self.assertFalse(refresh_scaffold.check_cache_hit())
+
+    def test_a_cache_with_string_managed_paths_still_hits(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            refresh_scaffold.CACHE_FILE = Path(tmp) / "cache.json"
+            self._write_cache(refresh_scaffold.managed_copy_paths())
+            self.assertTrue(refresh_scaffold.check_cache_hit())
+
+    def test_a_cache_with_empty_managed_paths_is_a_miss(self):
+        # An empty list is not the managed path list the tool wrote, so the
+        # fast path must not trust it and report a hit.
+        with tempfile.TemporaryDirectory() as tmp:
+            refresh_scaffold.CACHE_FILE = Path(tmp) / "cache.json"
+            self._write_cache([])
+            self.assertFalse(refresh_scaffold.check_cache_hit())
+
+
 if __name__ == "__main__":
     unittest.main()
