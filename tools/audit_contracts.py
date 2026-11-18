@@ -176,8 +176,12 @@ def raises_closure(
     return result
 
 
-def audit_source(source: str, filename: str) -> Tuple[List[dict], bool]:
+def audit_source(source: str, filename: str, depth: int = 3) -> Tuple[List[dict], bool]:
     """Audit one source string.
+
+    *depth* bounds how many levels of same-module helper calls are followed when
+    checking whether a documented exception is actually raised. It defaults to
+    the CLI default so direct callers keep the documented behaviour.
 
     Returns ``(issues, syntax_ok)``. Each issue is a dict with ``function``,
     ``exception``, and ``line`` keys. ``syntax_ok`` is ``False`` when the source
@@ -196,7 +200,7 @@ def audit_source(source: str, filename: str) -> Tuple[List[dict], bool]:
         documented = documented_raises(doc)
         if not documented:
             continue
-        raised = raises_closure(node, index, 3)
+        raised = raises_closure(node, index, depth)
         for exc_name, offset in documented.items():
             if exc_name not in raised:
                 issues.append(
@@ -224,7 +228,7 @@ def audit_paths(paths: Iterable[Path], depth: int = 3) -> Tuple[List[dict], List
         except OSError as exc:  # pragma: no cover - defensive
             syntax_errors.append(f"{path}: {exc}")
             continue
-        file_issues, ok = audit_source(source, str(path))
+        file_issues, ok = audit_source(source, str(path), depth=depth)
         if not ok:
             syntax_errors.append(f"{path}: could not parse")
             continue

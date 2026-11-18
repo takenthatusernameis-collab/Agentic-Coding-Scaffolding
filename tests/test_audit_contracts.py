@@ -4,11 +4,29 @@ import importlib.util
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOL = ROOT / "tools" / "audit_contracts.py"
+
+#: A module whose documented exception is only raised one same-module helper
+#: call below the audited function. Such a case is invisible at depth 0 and
+#: detected at the default depth, which makes it a cheap probe for whether the
+#: configured depth actually reaches the audit.
+HELPER_RAISED_SOURCE = (
+    "def require(x):\n"
+    "    raise TypeError('bad')\n"
+    "\n"
+    "def f(x):\n"
+    "    '''Summary.\n"
+    "\n"
+    "    Raises:\n"
+    "        TypeError: If x is wrong.\n"
+    "    '''\n"
+    "    require(x)\n"
+)
 
 
 def load_tool():
@@ -182,6 +200,33 @@ class TestAuditSource(unittest.TestCase):
         self.assertEqual(issues, [])
 
 
+class TestDepthPropagation(unittest.TestCase):
+    """Verify the configured helper-call depth reaches the audit."""
+
+    def test_audit_source_honours_a_zero_depth(self):
+        issues, ok = audit_contracts.audit_source(
+            HELPER_RAISED_SOURCE, "m.py", depth=0
+        )
+        self.assertTrue(ok)
+        self.assertEqual([issue["exception"] for issue in issues], ["TypeError"])
+
+    def test_audit_source_follows_helpers_at_the_default_depth(self):
+        issues, ok = audit_contracts.audit_source(HELPER_RAISED_SOURCE, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual(issues, [])
+
+    def test_audit_paths_honours_the_depth(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.py"
+            path.write_text(HELPER_RAISED_SOURCE)
+            shallow, shallow_errors = audit_contracts.audit_paths([path], depth=0)
+            deep, deep_errors = audit_contracts.audit_paths([path], depth=3)
+        self.assertEqual(shallow_errors, [])
+        self.assertEqual(deep_errors, [])
+        self.assertEqual(len(shallow), 1)
+        self.assertEqual(deep, [])
+
+
 class TestFormatText(unittest.TestCase):
     """Verify the human-readable report."""
 
@@ -227,6 +272,17 @@ class TestCli(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["issues"], [])
+
+    def test_the_depth_flag_changes_the_reported_issues(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "sample.py"
+            path.write_text(HELPER_RAISED_SOURCE)
+            default = self._run("--json", str(path))
+            shallow = self._run("--json", "--depth", "0", str(path))
+        self.assertEqual(default.returncode, 0, default.stderr)
+        self.assertEqual(shallow.returncode, 0, shallow.stderr)
+        self.assertEqual(json.loads(default.stdout)["issues"], [])
+        self.assertEqual(len(json.loads(shallow.stdout)["issues"]), 1)
 
 
 if __name__ == "__main__":

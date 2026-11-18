@@ -1,3 +1,8 @@
+## Unreleased — `audit_contracts --depth` is forwarded to the audit again
+
+- **Tooling fix — the documented `--depth` flag had no effect on the report.** `audit_paths()` accepted a `depth` argument and `main()` passed `args.depth` into it, but the per-file call was `audit_source(source, str(path))` while `audit_source` hardcoded `raises_closure(node, index, 3)`. The parameter was therefore validated (a negative value is rejected) and then silently ignored: `--depth 0` and `--depth 3` produced identical output. `audit_source` now takes a `depth` parameter (default 3, so direct callers are unchanged) and `audit_paths` forwards it, so the flag bounds the same-module helper traversal it documents. On `case_utils.py`, `--depth 0` now reports the 10 helper-raised contracts that the default depth correctly suppresses.
+- **Tests:** `test_audit_source_honours_a_zero_depth`, `test_audit_source_follows_helpers_at_the_default_depth`, `test_audit_paths_honours_the_depth`, and `test_the_depth_flag_changes_the_reported_issues` fail before the fix and pass after.
+
 ## Unreleased — routine verification battery green; no open defect class
 
 - **Maintenance — all verification checks pass with no source changes.** `python tools/verify_state_delta.py --probe` rc=0 confirmed prior verification still valid; full battery (`pytest tests/`, `ruff check .`, `mypy .`, `refresh_scaffold.py --check`, `verify_state_delta.py --full --record-full-suite`) executed and passed. Defect-hunt sweeps (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts, float/numeric edge cases, off-by-one boundaries) complete with no open defect class.
