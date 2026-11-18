@@ -13,6 +13,13 @@
 - Fix genuine violations failing-test-first; run targeted tests + `python -m ruff check`/`python -m mypy` on changed files when available; `python tools/refresh_scaffold.py --check` if any embedded surface changed; prepend `CHANGELOG.md` Unreleased entries for fixes; run `python tools/verify_state_delta.py --full --record-full-suite` at a coherent milestone.
 - Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`; post the next task to `main` via `board_post`. Do not post duplicate/empty handoffs or commit no-op cycles.
 
+## Latest Session (2026-11-18) — top-level non-`*_utils` audit pass (no genuine defect found)
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2; ran `--full` to advance checkpoint to HEAD `d8f1328` before edits.
+- **Defect hunt:** audited `calculator.py`, `config_schema.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py` for silently ignored parameters and docstring-vs-implementation contract violations; ran `tools/audit_contracts.py` (top-level non-`*_utils` candidates in `config_schema.coerce`/`validate` reviewed as documented delegation). All doctests pass; no genuine defect found in this pass.
+- **Verification:** `python tools/verify_state_delta.py --full` — passed. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-18) — `list_utils.unique_preserve_order` and `utils.unique`/`dedupe` accept unhashable elements
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
