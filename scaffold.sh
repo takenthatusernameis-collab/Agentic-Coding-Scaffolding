@@ -18176,11 +18176,8 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
     j = bisect.bisect_right(data, x)  # count of elements <= x
     cf = i
     f = j - i
-    try:
-        interval_f = float(interval)
-        x_f = float(x)
-    except Exception:
-        raise TypeError("Value cannot be converted to a float")
+    interval_f = float(interval)
+    x_f = float(x)
     L = x_f - interval_f / 2.0
     return L + interval_f * (n / 2 - cf) / f
 
@@ -24451,6 +24448,14 @@ class TestMedianGrouped(unittest.TestCase):
             median_grouped([1, 2, 3], interval=0)
         with self.assertRaises(ValueError):
             median_grouped([1, 2, 3], interval=-1)
+
+    def test_median_grouped_propagates_interval_conversion_errors(self) -> None:
+        class BadFloat(float):
+            def __float__(self) -> float:
+                raise RuntimeError("boom-float")
+
+        with self.assertRaises(RuntimeError):
+            median_grouped([1.0, 2.0, 3.0], interval=BadFloat(1.0))
 
     def test_mode_basic(self) -> None:
         self.assertEqual(mode([1, 2, 2, 3, 4]), 2)
@@ -72814,6 +72819,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `stats.median_grouped` no longer remaps interval conversion errors
+
+- **Correctness fix — `median_grouped` swallowed conversion failures as `TypeError`.** After validating the input list and interval, the helper converted the median pivot and interval with `float(...)` inside a broad `except Exception` and re-raised `TypeError("Value cannot be converted to a float")`. This remapped unrelated failures from pathological numeric `__float__` implementations (for example `RuntimeError`) to `TypeError`, masking the real error and violating the documented contract. The broad catch was removed so conversion errors propagate while normal grouped-median behavior is unchanged. Added `test_median_grouped_propagates_interval_conversion_errors` (fails before the fix, passes after).
+- **Defect class:** broad-except swallowing / incorrect fallback in a top-level non-`*_utils.py` module (continuing the correctness defect hunt after the `*_utils.py` broad-except audit closed).
+- Validation: `python -m unittest tests.test_stats.TestMedianGrouped` — 17 OK; `python -m unittest tests.test_stats` — 504 OK; `python -m doctest stats.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+
 ## Unreleased — `enum_utils.has_value` no longer swallows member comparison errors
 
 - **Correctness fix — `has_value` masked comparison failures as `False`.** The helper iterated members with `any(m.value == value ...)` inside a broad `except Exception` and returned `False` on any error. This silently swallowed real comparison failures (for example a member value whose `__eq__` raises) and could incorrectly report absence when an error occurred while checking a non-matching member. Comparison errors now propagate, while normal membership checks remain unchanged. Added `test_has_value_propagates_value_comparison_errors` and `test_has_value_propagates_errors_from_member_comparisons` (both fail before the fix, pass after).

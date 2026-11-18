@@ -1,3 +1,13 @@
+## Latest Session (2026-11-18) — `stats.median_grouped` no longer remaps interval conversion errors
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 at start (clean tree, checkpoint behind HEAD on `.kilo/`-only bookkeeping); ran `python tools/verify_state_delta.py --full` to advance checkpoint to HEAD before edits.
+- **Top-level non-`*_utils.py` audit (broad/silent exception swallow class):** scanned `calculator`, `config_schema`, `hello`, `shapes`, `stats`, `strings`, `utils`, `test_enum_defect.py`. Only `stats.median_grouped` had a broad `except Exception` that violated its contract.
+- **Defect fixed (failing-test-first):** `stats.median_grouped` converted `interval`/pivot with `float(...)` inside `except Exception` and re-raised `TypeError("Value cannot be converted to a float")`, remapping unrelated conversion failures (e.g. pathological `__float__` raising `RuntimeError`) and masking the real error. Removed the broad catch so conversion errors propagate while normal grouped-median behavior is unchanged. Added `test_median_grouped_propagates_interval_conversion_errors`.
+- **Audit note:** `python tools/audit_contracts.py` on top-level non-`*_utils.py` modules reported 6 low-signal candidates (`shapes.point_in_rectangle`, `config_schema` coerce/validate delegation paths); inspected as delegation/documentation-signal cases, no confirmed defect in this pass.
+- **Verification:** `python -m unittest tests.test_stats.TestMedianGrouped` — 17 OK; `python -m unittest tests.test_stats` — 504 OK; `python -m doctest stats.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded `stats.py`, `tests/test_stats.py`, and `CHANGELOG.md` in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-18) — broad-except audit complete across all `*_utils.py`; no genuine defect found
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

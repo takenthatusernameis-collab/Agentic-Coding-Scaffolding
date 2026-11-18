@@ -353,6 +353,14 @@ class TestMedianGrouped(unittest.TestCase):
         with self.assertRaises(ValueError):
             median_grouped([1, 2, 3], interval=-1)
 
+    def test_median_grouped_propagates_interval_conversion_errors(self) -> None:
+        class BadFloat(float):
+            def __float__(self) -> float:
+                raise RuntimeError("boom-float")
+
+        with self.assertRaises(RuntimeError):
+            median_grouped([1.0, 2.0, 3.0], interval=BadFloat(1.0))
+
     def test_mode_basic(self) -> None:
         self.assertEqual(mode([1, 2, 2, 3, 4]), 2)
 

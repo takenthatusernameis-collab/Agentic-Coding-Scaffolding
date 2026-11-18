@@ -1,14 +1,15 @@
 # Handover
 
 ## Done (this session)
-- Bootstrap session (`board_read` empty). Executed durable handoff from `.kilo/next_task.md` (continue broad-except swallowing audit).
-- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree; checkpoint behind HEAD on `.kilo/`-only bookkeeping; no source-relevant change since checkpoint).
-- **Broad-except audit COMPLETE:** audited the remaining un-audited sites from `.kilo/next_task.md` — `importlib_utils`, `email_utils`, `zipfile_utils`, `weakref_utils`, `marshal_utils`, `either_utils`, `maybe_utils`, `retry_utils`, `backoff_utils`, `sre_parse_utils`, `sre_constants_utils`, `uuid_utils` — plus the other `except Exception` carriers not yet confirmed (`async_utils`, `crypt_utils`, `type_utils`, `typing_utils`). Every site is an intentional defensive pattern (legacy-stdlib availability guards, version-compat shims, documented fallback/return-None contracts, marshal `ValueError` re-raises, either/maybe capture-into-Left/Nothing, retry `raise last_exception`, `is_subclass_safe` safe-issubclass) or narrow; none violate a documented contract. **No genuine defect found.** The broad-except swallowing / incorrect-fallback defect class is closed.
-- **Verification:** `python tools/verify_state_delta.py --probe` — rc=1. No source/test/README/CHANGELOG changes made (audit only), so `python tools/refresh_scaffold.py` + `--check` was not required.
+- `board_read`: empty (bootstrap session). Executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 at start (clean tree, checkpoint behind HEAD on `.kilo/`-only bookkeeping); ran `python tools/verify_state_delta.py --full` to advance checkpoint to HEAD before edits.
+- **Top-level non-`*_utils.py` audit (broad/silent exception swallow class):** scanned `calculator`, `config_schema`, `hello`, `shapes`, `stats`, `strings`, `utils`, `test_enum_defect.py` for bare/broad exception handling and obvious contract violations. Found one genuine defect in `stats.median_grouped`.
+- **Defect fixed (failing-test-first):** `stats.median_grouped` converted `interval`/pivot with `float(...)` inside `except Exception` and re-raised `TypeError("Value cannot be converted to a float")`, remapping unrelated conversion failures (e.g. pathological `__float__` raising `RuntimeError`) and masking the real error. Removed the broad catch so conversion errors propagate while normal behavior is unchanged. Added `test_median_grouped_propagates_interval_conversion_errors`.
+- **Audit note:** `python tools/audit_contracts.py` on top-level non-`*_utils.py` modules reported 6 low-signal candidates (`shapes.point_in_rectangle`, `config_schema` coerce/validate delegation paths) — all appear to be delegation/documentation-signal cases, not confirmed defects in this pass.
+- **Verification:** `python -m unittest tests.test_stats.TestMedianGrouped` — 17 OK; `python -m unittest tests.test_stats` — 504 OK; `python -m doctest stats.py` — OK; `python tools/refresh_scaffold.py` + `--check` — in sync. `ruff`/`mypy` not installed in this environment.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded `stats.py`, `tests/test_stats.py`, and `CHANGELOG.md` in `scaffold.sh`.
 
 ## Next
-- Hand the correctness defect hunt to the next class: audit top-level non-`*_utils.py` modules and any remaining silent-exception-swallowing sites for contract violations; fix genuine violations failing-test-first.
-- If no genuine defect is found, record the completed audit and hand the hunt to the following defect class.
-- No `.github/workflows/**` changes were made.
-
-(End of file)
+- Continue the correctness defect hunt in top-level non-`*_utils.py` modules (`calculator`, `config_schema`, `hello`, `shapes`, `stats`, `strings`, `utils`, `test_enum_defect.py`) for other classes: silently-ignored parameters, wrong validation/edge-case behavior, incorrect fallbacks, and genuine docstring-vs-implementation mismatches (review the `audit_contracts.py` candidates with source evidence).
+- Fix genuine violations failing-test-first; run targeted tests + doctests (+ ruff/mypy if available) on changed files, refresh scaffold/check when embedded surfaces change, and add `CHANGELOG.md` Unreleased entries for fixes.
+- Run full verification battery at a coherent milestone; keep `.github/workflows/**` unchanged; do not post duplicate/empty handoffs or commit no-op cycles.

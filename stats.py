@@ -245,11 +245,8 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
     j = bisect.bisect_right(data, x)  # count of elements <= x
     cf = i
     f = j - i
-    try:
-        interval_f = float(interval)
-        x_f = float(x)
-    except Exception:
-        raise TypeError("Value cannot be converted to a float")
+    interval_f = float(interval)
+    x_f = float(x)
     L = x_f - interval_f / 2.0
     return L + interval_f * (n / 2 - cf) / f
 
