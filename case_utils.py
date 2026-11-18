@@ -250,7 +250,17 @@ def title_case(text: str) -> str:
 
 
 def sentence_case(text: str) -> str:
-    """Convert *text* to Sentence case (first word capitalized, rest lowercase)."""
+    """Convert *text* to Sentence case (first word capitalized, rest lowercase).
+
+    Args:
+        text: The string to convert.
+
+    Returns:
+        The Sentence case form of *text*.
+
+    Raises:
+        TypeError: If *text* is not a string.
+    """
     _require_string(text, "text")
     words = _split_words(text)
     if not words:

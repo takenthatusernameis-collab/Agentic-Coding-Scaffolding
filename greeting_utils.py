@@ -22,7 +22,14 @@ def format_greeting(name: str, greeting: str = "Hello") -> str:
 
     Returns:
         A string of the form "{greeting}, {name}!".
+
+    Raises:
+        TypeError: If ``name`` or ``greeting`` is not a str.
     """
+    if not isinstance(name, str):
+        raise TypeError("name must be a str")
+    if not isinstance(greeting, str):
+        raise TypeError("greeting must be a str")
     return f"{greeting}, {name}!"
 
 
