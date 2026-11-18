@@ -1,3 +1,9 @@
+## Unreleased — `number_utils.is_power_of` honors the documented zero-base special case
+
+- **Correctness fix — `is_power_of(1, 0)` returned `False` despite the docstring.** The helper's `b == 0` branch returned `v == 0`, so `is_power_of(1, 0)` was `False`. The docstring documents two special cases: ``is_power_of(0, 0)`` is ``True`` and ``is_power_of(1, base)`` is ``True`` for any integer *base* because ``base**0 == 1``. Since ``0**0 == 1`` by the same convention, the zero base now also accepts ``v == 1``. Added `test_one_is_power_of_any_base` (fails before the fix, passes after) and corrected the `test_base_zero` assertion.
+- **Defect class:** docstring-vs-implementation contract violation in a `*_utils.py` module (continuing the correctness defect hunt after the broad-except and silently-ignored-parameter sweeps closed).
+- Validation: `python -m unittest tests.test_number_utils.TestIsPowerOf` — 10 OK; `python -m unittest tests.test_number_utils` — 353 OK; `python -m doctest number_utils.py` — OK; `python tools/refresh_scaffold.py --check` — in sync. `ruff`/`mypy` not installed in this environment. No `.github/workflows/**` changes.
+
 ## Unreleased — `stats.median_grouped` no longer remaps interval conversion errors
 
 - **Correctness fix — `median_grouped` swallowed conversion failures as `TypeError`.** After validating the input list and interval, the helper converted the median pivot and interval with `float(...)` inside a broad `except Exception` and re-raised `TypeError("Value cannot be converted to a float")`. This remapped unrelated failures from pathological numeric `__float__` implementations (for example `RuntimeError`) to `TypeError`, masking the real error and violating the documented contract. The broad catch was removed so conversion errors propagate while normal grouped-median behavior is unchanged. Added `test_median_grouped_propagates_interval_conversion_errors` (fails before the fix, passes after).

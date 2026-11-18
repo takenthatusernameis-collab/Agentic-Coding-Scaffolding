@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — `number_utils.is_power_of` honors the documented zero-base special case
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 at start (clean tree, checkpoint `3f533e1` behind HEAD `043833d` on `.kilo/`-only bookkeeping); ran `python tools/verify_state_delta.py --full` to advance checkpoint to HEAD before edits.
+- **Defect fixed (failing-test-first):** `number_utils.is_power_of(1, 0)` returned `False` despite the docstring. The `b == 0` branch returned `v == 0`, so `is_power_of(1, 0)` was `False`. The docstring documents two special cases: `is_power_of(0, 0)` is `True` and `is_power_of(1, base)` is `True` for any integer base because `base**0 == 1`. Since `0**0 == 1` by the same convention, the zero base now also accepts `v == 1`. Added `test_one_is_power_of_any_base` (fails before the fix, passes after) and corrected the `test_base_zero` assertion.
+- **Defect class:** docstring-vs-implementation contract violation in a `*_utils.py` module (continuing the correctness defect hunt after the broad-except and silently-ignored-parameter sweeps closed).
+- **Verification:** `python -m unittest tests.test_number_utils.TestIsPowerOf` — 10 OK; `python -m unittest tests.test_number_utils` — 353 OK; `python -m doctest number_utils.py` — OK; `python tools/refresh_scaffold.py --check` — in sync; full suite `python -m unittest discover tests/` — 11404 OK (10 skipped, pre-existing). `ruff`/`mypy` not installed in this environment.
+- **Scaffold/CHANGELOG:** added Unreleased changelog entry; refreshed embedded `number_utils.py`, `tests/test_number_utils.py`, `CHANGELOG.md`, and `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-18) — `stats.median_grouped` no longer remaps interval conversion errors
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

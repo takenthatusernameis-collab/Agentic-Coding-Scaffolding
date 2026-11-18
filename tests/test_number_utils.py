@@ -802,8 +802,16 @@ class TestIsPowerOf(unittest.TestCase):
 
     def test_base_zero(self) -> None:
         self.assertTrue(is_power_of(0, 0))
-        self.assertFalse(is_power_of(1, 0))
+        self.assertTrue(is_power_of(1, 0))
         self.assertFalse(is_power_of(5, 0))
+
+    def test_one_is_power_of_any_base(self) -> None:
+        # The docstring contract: ``is_power_of(1, base)`` is ``True`` for any
+        # integer base, because ``base**0 == 1``. The zero base was a
+        # regression: ``is_power_of(1, 0)`` returned ``False`` even though the
+        # documented special case says it is ``True``.
+        for base in (0, 1, -1, 2, -2, 3, -3, 5, 7, 100, -100):
+            self.assertTrue(is_power_of(1, base), f"1 should be a power of {base}")
 
     def test_base_minus_one(self) -> None:
         self.assertTrue(is_power_of(1, -1))

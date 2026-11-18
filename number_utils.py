@@ -759,7 +759,11 @@ def is_power_of(value: Number, base: Number) -> bool:
     v = int(value)
     b = int(base)
     if b == 0:
-        return v == 0
+        # ``0**0`` is documented as ``True`` (a special case), and
+        # ``is_power_of(1, base)`` is ``True`` for any integer base because
+        # ``base**0 == 1``; ``0**0 == 1`` is the degenerate case that makes
+        # ``is_power_of(1, 0)`` true. Any other value is not a power of zero.
+        return v == 0 or v == 1
     if b == 1:
         return v == 1
     if b == -1:
