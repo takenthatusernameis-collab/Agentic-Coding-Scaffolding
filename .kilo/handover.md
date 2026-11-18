@@ -2,11 +2,11 @@
 
 ## Done (this session)
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
-- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree; only `.kilo/` bookkeeping moved since checkpoint `45ca3d1`), so no redundant battery was required before edits.
-- **Optimize-delays survey:** skipped a repeated full discovery pass because the probe proved the tree was already verified; the one real integrity gap found below was fixed with targeted tests instead of a full re-audit.
-- **Suite-integrity fix:** `test_enum_defect.py` lived at the repository root, outside `testpaths = ["tests"]` (pytest) and outside `python -m unittest discover tests/`, so its three cases never ran while duplicating `tests/test_enum_utils.py` coverage. Removed the stray file and added `TestSuiteLayout.test_no_test_modules_outside_tests_directory` in `tests/test_select_tests.py` so a future root-level `test_*.py` fails the suite instead of escaping collection.
-- **Verification:** `python -m unittest tests.test_select_tests tests.test_public_api tests.test_enum_utils` — 67 OK; `ruff`/`mypy` on `tests/test_select_tests.py` — clean; `python tools/scan_untested.py` — no untested callables; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — 11467 OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
-- **Changes:** deleted `test_enum_defect.py`, added the layout guard test, refreshed the embedded `CHANGELOG.md` copy, updated `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`; next task posted to `main` via `board_post`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, HEAD `64e186f` a bookkeeping-only anchor of verified checkpoint `c00261a`; no re-audit needed before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; checkpoint drift was `.kilo/`-only bookkeeping, so the pass went straight to one targeted defect check in the most recent source instead of another broad sweep. No timestamp-only handover, no no-op commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `TTLCache.clear` documents "Remove all entries and reset statistics", and the decorator's `cache_clear` hook mirrors `functools.lru_cache.cache_clear` (which resets stats), but `clear()` only emptied `_data`/`_expires_at`/`_order`. After a clear, `cache_info()` still reported stale `hits`/`misses`/`expired`. `clear()` now zeroes `_hits`, `_misses`, and `_expired_count`.
+- **Verification:** new `test_clear_resets_statistics` plus extended `test_cache_clear_and_info` fail before the fix and pass after; `python -m unittest tests.test_ttl_cache_utils` — 18 OK; `python -m doctest ttl_cache_utils.py` — OK; `ruff`/`mypy` on both files — clean; full suite `python -m unittest discover tests/` — 11468 OK (skipped=4); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed at `64e186f`.
+- **Changes:** `ttl_cache_utils.py`, `tests/test_ttl_cache_utils.py`, `CHANGELOG.md`, refreshed embedded copies in `scaffold.sh`, `.kilo/last_verified.checkpoint`, `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`; next task posted to `main` via `board_post`.
 
 ## Next
 - Continue routine maintenance / regression monitoring: run the verification battery periodically —
@@ -15,8 +15,16 @@
   - `python -m mypy . --exclude build --exclude dist`
   - `python tools/refresh_scaffold.py --check`
   - `python tools/verify_state_delta.py --full --record-full-suite`
-- The defect-hunt sweeps (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts via `tools/audit_contracts.py`, float/numeric edge cases, off-by-one boundaries) are complete with no open defect class. Do not open a new defect class unless a genuine regression is found.
+- The defect-hunt sweeps (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts via `tools/audit_contracts.py`, float/numeric edge cases, off-by-one boundaries) are complete with no open defect class. Newly added modules deserve a first contract pass before the class is declared closed again.
 - Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`. Do not post duplicate/empty handoffs or commit no-op cycles.
+
+## Latest Session (2026-11-18) — `TTLCache.clear` resets statistics as documented
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree, bookkeeping-only drift since checkpoint `c00261a`), so no repeated full discovery pass was run.
+- **Defect fixed (failing-test-first):** `TTLCache.clear` is documented as "Remove all entries and reset statistics" and `ttl_cache`'s `cache_clear` mirrors `functools.lru_cache.cache_clear`, which resets stats, yet `clear()` left `_hits`, `_misses`, and `_expired_count` intact. `cache_info()` therefore reported stale counters after `clear()`/`cache_clear()`. `clear()` now zeroes all three counters; added `test_clear_resets_statistics` and post-`cache_clear` counter assertions in `test_cache_clear_and_info` (both fail before the fix, pass after).
+- **Verification:** `python -m unittest tests.test_ttl_cache_utils` — 18 OK; `python -m doctest ttl_cache_utils.py` — OK; `python -m ruff check ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m mypy ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m unittest discover tests/` — 11468 OK (skipped=4); `python tools/refresh_scaffold.py` + `--check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+- **Scaffold/CHANGELOG:** added an Unreleased changelog entry; refreshed the embedded copies in `scaffold.sh`; updated `.kilo/handover.md`, `.kilo/next_task.md`, and `PROJECT_STATUS.md`.
 
 ## Latest Session (2026-11-18) — scaffold sync: embedded pyproject.toml refreshed for ttl_cache_utils
 

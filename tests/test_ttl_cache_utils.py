@@ -87,6 +87,22 @@ class TestTTLCache(unittest.TestCase):
         self.assertEqual(len(cache), 0)
         self.assertEqual(cache.cache_info()["currsize"], 0)
 
+    def test_clear_resets_statistics(self) -> None:
+        cache = TTLCache(ttl=0.01)
+        cache["a"] = 1
+        cache["a"]  # hit
+        with self.assertRaises(KeyError):
+            cache["missing"]  # miss
+        time.sleep(0.02)
+        self.assertFalse("a" in cache)  # expired
+        self.assertEqual(cache.cache_info()["expired"], 1)
+        cache.clear()
+        info = cache.cache_info()
+        self.assertEqual(info["hits"], 0)
+        self.assertEqual(info["misses"], 0)
+        self.assertEqual(info["expired"], 0)
+        self.assertEqual(info["currsize"], 0)
+
     def test_cache_info(self) -> None:
         cache = TTLCache(ttl=60)
         cache["a"] = 1
@@ -144,6 +160,8 @@ class TestTTLCacheDecorator(unittest.TestCase):
         self.assertEqual(compute.cache_info()["hits"], 1)  # type: ignore[attr-defined]
         compute.cache_clear()  # type: ignore[attr-defined]
         self.assertEqual(compute.cache_info()["currsize"], 0)  # type: ignore[attr-defined]
+        self.assertEqual(compute.cache_info()["hits"], 0)  # type: ignore[attr-defined]
+        self.assertEqual(compute.cache_info()["misses"], 0)  # type: ignore[attr-defined]
 
     def test_validation(self) -> None:
         with self.assertRaises(TypeError):

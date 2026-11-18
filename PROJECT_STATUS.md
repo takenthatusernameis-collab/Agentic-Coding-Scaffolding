@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — `TTLCache.clear` resets statistics as documented
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, `.kilo/`-bookkeeping-only drift since checkpoint `c00261a`; no redundant full re-audit before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe proved prior verification still valid, so the pass made one targeted contract check in the newest module instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Integrity gap fixed:** `TTLCache.clear` documents "Remove all entries and reset statistics" and the decorator's `cache_clear` mirrors `functools.lru_cache.cache_clear` (which resets stats), but `clear()` only emptied the storage structures, leaving `hits`/`misses`/`expired` stale in `cache_info()`. `clear()` now zeroes `_hits`, `_misses`, and `_expired_count`.
+- **Verification:** `python -m unittest tests.test_ttl_cache_utils` — 18 OK (new `test_clear_resets_statistics` and extended `test_cache_clear_and_info` fail before the fix, pass after); `python -m doctest ttl_cache_utils.py` — OK; `python -m ruff check ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m mypy ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m unittest discover tests/` — 11468 OK (skipped=4); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed at `64e186f`.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed the embedded `ttl_cache_utils.py`, `tests/test_ttl_cache_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`.
+
 ## Latest Session (2026-11-18) — removed uncollected root-level test module; added suite-layout guard
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).

@@ -72943,6 +72943,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `TTLCache.clear` resets statistics as documented
+
+- **Correctness fix — `TTLCache.clear` left the counters intact.** The method is documented as "Remove all entries and reset statistics", and `functools.lru_cache.cache_clear` (the model for the `ttl_cache` decorator's `cache_clear` hook) also resets its statistics, yet `clear()` only emptied `_data`, `_expires_at`, and `_order`. A cache that recorded hits, misses, or expiries therefore reported stale `hits`/`misses`/`expired` values from `cache_info()` after `clear()`/`cache_clear()`. `clear()` now zeroes `_hits`, `_misses`, and `_expired_count`, so `cache_info()` starts from a clean slate. Added `test_clear_resets_statistics` and extended `test_cache_clear_and_info` with the post-`cache_clear` counter assertions (both fail before the fix, pass after).
+- **Defect class:** docstring-vs-implementation contract violation in the most recent `*_utils.py` module (routine regression monitoring follow-up).
+- Validation: `python -m unittest tests.test_ttl_cache_utils` — 18 OK; `python -m doctest ttl_cache_utils.py` — OK; `python -m ruff check ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m mypy ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — removed uncollected root-level `test_enum_defect.py`, guarded the test layout
 
 - **Cleanup / integrity guard — a test module outside `tests/` was never executed.** `test_enum_defect.py` sat at the repository root, so neither `pytest` (confined by `testpaths = ["tests"]` in `pyproject.toml`) nor the documented `python -m unittest discover tests/` command collected it; CI and local verification silently ignored its three cases, which duplicate `test_has_name_rejects_non_member_attributes`, `test_get_member_rejects_non_member_attributes`, and `test_get_member_name_type_error` in `tests/test_enum_utils.py`. The stray file was deleted and `tests/test_select_tests.py` gained `TestSuiteLayout.test_no_test_modules_outside_tests_directory`, which fails if any `test_*.py` exists outside `tests/`, so a future stray test file cannot escape collection again.
@@ -169477,6 +169483,22 @@ class TestTTLCache(unittest.TestCase):
         self.assertEqual(len(cache), 0)
         self.assertEqual(cache.cache_info()["currsize"], 0)
 
+    def test_clear_resets_statistics(self) -> None:
+        cache = TTLCache(ttl=0.01)
+        cache["a"] = 1
+        cache["a"]  # hit
+        with self.assertRaises(KeyError):
+            cache["missing"]  # miss
+        time.sleep(0.02)
+        self.assertFalse("a" in cache)  # expired
+        self.assertEqual(cache.cache_info()["expired"], 1)
+        cache.clear()
+        info = cache.cache_info()
+        self.assertEqual(info["hits"], 0)
+        self.assertEqual(info["misses"], 0)
+        self.assertEqual(info["expired"], 0)
+        self.assertEqual(info["currsize"], 0)
+
     def test_cache_info(self) -> None:
         cache = TTLCache(ttl=60)
         cache["a"] = 1
@@ -169534,6 +169556,8 @@ class TestTTLCacheDecorator(unittest.TestCase):
         self.assertEqual(compute.cache_info()["hits"], 1)  # type: ignore[attr-defined]
         compute.cache_clear()  # type: ignore[attr-defined]
         self.assertEqual(compute.cache_info()["currsize"], 0)  # type: ignore[attr-defined]
+        self.assertEqual(compute.cache_info()["hits"], 0)  # type: ignore[attr-defined]
+        self.assertEqual(compute.cache_info()["misses"], 0)  # type: ignore[attr-defined]
 
     def test_validation(self) -> None:
         with self.assertRaises(TypeError):
@@ -169769,6 +169793,9 @@ class TTLCache:
         self._data.clear()
         self._expires_at.clear()
         self._order.clear()
+        self._hits = 0
+        self._misses = 0
+        self._expired_count = 0
 
     def cache_info(self) -> dict[str, Any]:
         """Return cache statistics: hits, misses, maxsize, currsize, expired."""

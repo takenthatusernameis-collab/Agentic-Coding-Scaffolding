@@ -219,6 +219,9 @@ class TTLCache:
         self._data.clear()
         self._expires_at.clear()
         self._order.clear()
+        self._hits = 0
+        self._misses = 0
+        self._expired_count = 0
 
     def cache_info(self) -> dict[str, Any]:
         """Return cache statistics: hits, misses, maxsize, currsize, expired."""
