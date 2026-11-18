@@ -104,6 +104,7 @@ py-modules = [
     "color_utils",
     "circuit_breaker_utils",
     "timing_utils",
+    "ttl_cache_utils",
     "timeit_utils",
     "unittest_utils",
     "async_utils",

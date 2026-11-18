@@ -166,6 +166,7 @@
 #   - itertools_utils.py — # Iteration helpers wrapping itertools (chain, flatten, chunk, product, combinations, permutations, etc.)
 
 #   - timing_utils.py — # Performance measurement helpers
+#   - ttl_cache_utils.py — # Time-to-live cache utilities with automatic expiry
 
 #   - async_utils.py — # Asynchronous utility functions
 
@@ -701,6 +702,7 @@
 #   - test_timezone_utils.py — # Tests for timezone_utils.py
 
 #   - test_timing_utils.py — # Tests for timing_utils.py
+#   - tests/test_ttl_cache_utils.py — # Tests for ttl_cache_utils.py
 
 #   - test_tree_utils.py — # Tests for tree_utils.py
 
@@ -70588,6 +70590,8 @@ The scaffold.sh script generates a complete agentic coding project template with
 - `tests/test_timezone_utils.py` —
 - `timing_utils.py` —
 - `tests/test_timing_utils.py` —
+- `ttl_cache_utils.py` —
+- `tests/test_ttl_cache_utils.py` —
 - `token_utils.py` —
 - `tests/test_token_utils.py` —
 - `tokenize_utils.py` —
@@ -72938,6 +72942,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `ttl_cache_utils` time-to-live cache utilities
+
+- **New module — `ttl_cache_utils` provides a TTL cache with automatic expiry.** Added `ttl_cache_utils.py`, a `TTLCache` mapping whose entries expire after a configured time-to-live (with LRU eviction when `maxsize` is set) plus a `ttl_cache` decorator factory for memoizing function calls with per-entry TTL expiry, and `tests/test_ttl_cache_utils.py` covering set/get, expiration, LRU eviction, TTL refresh, and input validation. All public helpers are exported through `__all__` and documented with doctest examples.
+- Validation: `python -m unittest tests.test_ttl_cache_utils` — OK; `python -m doctest ttl_cache_utils.py` — OK; `make lint` — clean; `make typecheck` — clean; `python tools/refresh_scaffold.py` + `--check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `list_utils.unique_preserve_order` and `utils.unique`/`dedupe` accept unhashable elements
 
 - **Correctness fix — the remaining dedupe helpers raised an undocumented `TypeError` for unhashable elements.** `list_utils.unique_preserve_order([[1], [1], [2]])` and `utils.unique`/`utils.dedupe` crashed with `TypeError: unhashable type: 'list'`, even though `unique_preserve_order` documents `TypeError` only when the argument is not a list, and its siblings `count_unique`, `count_duplicates`, `has_all_unique`, and `has_duplicates` already deduplicate unhashable elements through a linear-membership fallback. Both helpers now use the same hashable-set plus unhashable-list strategy, so deduplication works for lists, dicts, and other unhashable values. `itertools_utils.unique_everseen` was audited and left unchanged: it is a direct transcription of the set-based stdlib recipe (its docstring says "Remember all seen elements") and its sibling `unique_justseen` is the documented unhashable-friendly variant. Added `test_unique_preserve_order_unhashable_elements`, `test_unique_preserve_order_mixed_hashable_and_unhashable`, `test_unique_preserve_order_consistency_with_count_unique`, `test_unique_accepts_unhashable_elements`, `test_unique_accepts_mixed_hashable_and_unhashable`, and `test_dedupe_accepts_unhashable_elements` (all fail before the fix, pass after).
@@ -76606,6 +76615,7 @@ itertools_utils.py         # Iteration helpers wrapping itertools (chain, flatte
 
 timing_utils.py           # Performance measurement helpers
 timeit_utils.py           # Wrapper for stdlib timeit
+ttl_cache_utils.py          # Time-to-live cache utilities with automatic expiry
 async_utils.py            # Asynchronous utility functions
 asyncio_utils.py     # Utilities wrapping the standard library asyncio module (run, create_task, gather, sleep, to_thread, wait_for)
 bit_utils.py              # Bitwise utility functions for working with binary representations (set/leading/trailing zero counts, power-of-two, shifts, rotates, bit access, parity)
@@ -76991,6 +77001,7 @@ test_sort_utils.py          # Tests for sort_utils.py
   test_time_utils.py          # Tests for time_utils.py
   test_timezone_utils.py      # Tests for timezone_utils.py
   test_timing_utils.py        # Tests for timing_utils.py
+  test_ttl_cache_utils.py     # Tests for ttl_cache_utils.py
   test_timeit_utils.py        # Tests for timeit_utils.py
   test_tree_utils.py          # Tests for tree_utils.py
   test_type_utils.py          # Tests for type_utils.py
@@ -77286,6 +77297,7 @@ The project includes a lightweight memoization utilities module in `memoize_util
 ## Timing Utilities Module
 
 The project includes a performance measurement utilities module in `timing_utils.py` with helpers for measuring and benchmarking code execution: `timer` is a context manager for timing code blocks, `elapsed_time` calculates elapsed time since a start time, and `benchmark` is a decorator that runs a function multiple times and reports average execution time. The module is tested in `tests/test_timing_utils.py`.
+The project includes a time-to-live cache utilities module in `ttl_cache_utils.py` with a `TTLCache` mapping whose entries expire after a configured time-to-live and a `ttl_cache` decorator factory for memoizing function calls with per-entry TTL expiry. Expired entries are treated as absent and evicted lazily on access. The module is tested in `tests/test_ttl_cache_utils.py`.
 
 The project includes a `timeit_utils.py` module wrapping the standard library `timeit` with `timeit`, `repeat`, `default_timer`, and `Timer`. The module is tested in `tests/test_timeit_utils.py`.
 
@@ -169366,6 +169378,454 @@ def is_available() -> bool:
     """Return True if the standard library :mod:`asyncore` module is available."""
     return _ASYNCHORE_AVAILABLE
 ASYNCORE_UTILS
+
+# --- tests/test_ttl_cache_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_ttl_cache_utils.py" <<'TEST_TTL_CACHE_UTILS'
+"""Tests for ttl_cache_utils module."""
+
+import time
+import unittest
+
+from ttl_cache_utils import Expired, TTLCache, ttl_cache
+
+
+class TestTTLCache(unittest.TestCase):
+    def test_set_and_get(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        self.assertEqual(cache["a"], 1)
+
+    def test_get_missing_raises_keyerror(self) -> None:
+        cache = TTLCache(ttl=60)
+        with self.assertRaises(KeyError):
+            cache["missing"]
+
+    def test_get_returns_default(self) -> None:
+        cache = TTLCache(ttl=60)
+        self.assertIsNone(cache.get("missing"))
+        self.assertEqual(cache.get("missing", "fallback"), "fallback")
+
+    def test_contains(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        self.assertTrue("a" in cache)
+        self.assertFalse("b" in cache)
+
+    def test_len(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache["b"] = 2
+        self.assertEqual(len(cache), 2)
+
+    def test_delitem(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        del cache["a"]
+        self.assertFalse("a" in cache)
+        with self.assertRaises(KeyError):
+            del cache["a"]
+
+    def test_pop(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        self.assertEqual(cache.pop("a"), 1)
+        self.assertFalse("a" in cache)
+        self.assertIsNone(cache.pop("missing"))
+        self.assertEqual(cache.pop("missing", "default"), "default")
+
+    def test_expiration(self) -> None:
+        cache = TTLCache(ttl=0.01)
+        cache["a"] = 1
+        self.assertEqual(cache["a"], 1)
+        time.sleep(0.02)
+        self.assertFalse("a" in cache)
+        with self.assertRaises(Expired):
+            cache["a"]
+        self.assertIsNone(cache.get("a"))
+
+    def test_lru_eviction(self) -> None:
+        cache = TTLCache(ttl=60, maxsize=2)
+        cache["a"] = 1
+        cache["b"] = 2
+        cache["a"]  # touch "a", making "b" the least-recently-used entry
+        cache["c"] = 3  # evicts "b"
+        self.assertFalse("b" in cache)
+        self.assertTrue("a" in cache)
+        self.assertTrue("c" in cache)
+        self.assertEqual(len(cache), 2)
+
+    def test_expire_refreshes_ttl(self) -> None:
+        cache = TTLCache(ttl=0.01)
+        cache["a"] = 1
+        time.sleep(0.02)
+        cache.expire("a", 60)
+        self.assertTrue("a" in cache)
+        with self.assertRaises(KeyError):
+            cache.expire("missing", 60)
+
+    def test_clear(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache.clear()
+        self.assertEqual(len(cache), 0)
+        self.assertEqual(cache.cache_info()["currsize"], 0)
+
+    def test_cache_info(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache["a"]  # hit
+        info = cache.cache_info()
+        self.assertEqual(info["hits"], 1)
+        self.assertEqual(info["misses"], 1)
+        self.assertEqual(info["currsize"], 1)
+
+    def test_iter_keys_values_items(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache["b"] = 2
+        self.assertEqual(sorted(cache.keys()), ["a", "b"])
+        self.assertEqual(sorted(cache.values()), [1, 2])
+        self.assertEqual(sorted(cache.items()), [("a", 1), ("b", 2)])
+        self.assertEqual(list(cache), ["a", "b"])
+
+    def test_validation(self) -> None:
+        with self.assertRaises(TypeError):
+            TTLCache(ttl=True)
+        with self.assertRaises(TypeError):
+            TTLCache(ttl="10")
+        with self.assertRaises(ValueError):
+            TTLCache(ttl=-1)
+        with self.assertRaises(TypeError):
+            TTLCache(ttl=10, maxsize=True)
+        with self.assertRaises(ValueError):
+            TTLCache(ttl=10, maxsize=0)
+
+
+class TestTTLCacheDecorator(unittest.TestCase):
+    def test_caches_result(self) -> None:
+        calls: list[int] = []
+
+        @ttl_cache(ttl=60)
+        def compute(x: int) -> int:
+            calls.append(x)
+            return x * 2
+
+        self.assertEqual(compute(5), 10)
+        self.assertEqual(compute(5), 10)
+        self.assertEqual(calls, [5])
+
+    def test_cache_clear_and_info(self) -> None:
+        @ttl_cache(ttl=60)
+        def compute(x: int) -> int:
+            return x
+
+        compute(1)
+        self.assertEqual(compute.cache_info()["hits"], 0)
+        compute(1)
+        self.assertEqual(compute.cache_info()["hits"], 1)
+        compute.cache_clear()
+        self.assertEqual(compute.cache_info()["currsize"], 0)
+
+    def test_validation(self) -> None:
+        with self.assertRaises(TypeError):
+            ttl_cache(ttl=True)
+        with self.assertRaises(ValueError):
+            ttl_cache(ttl=-1)
+
+
+if __name__ == "__main__":
+    unittest.main()
+TEST_TTL_CACHE_UTILS
+
+# --- ttl_cache_utils.py ---
+cat > "$OUTPUT_DIR/ttl_cache_utils.py" <<'TTL_CACHE_UTILS'
+"""Time-to-live cache utilities.
+
+This module provides a :class:`TTLCache` mapping whose entries expire after a
+configured time-to-live, and a :func:`ttl_cache` decorator factory that memoizes
+a function call with per-entry TTL expiry. Expired entries are treated as absent
+and are evicted lazily on access (and proactively when the cache is full).
+
+Example:
+    >>> cache = TTLCache(ttl=60, maxsize=2)
+    >>> cache["a"] = 1
+    >>> cache["b"] = 2
+    >>> cache["a"]
+    1
+    >>> "c" in cache
+    False
+    >>> len(cache)
+    2
+    >>> cache["c"] = 3
+    >>> "b" in cache
+    False
+    >>> cache["a"]
+    1
+    >>> cache.clear()
+    >>> len(cache)
+    0
+"""
+
+from __future__ import annotations
+
+import functools
+import time
+from typing import Any, Callable, Optional, TypeVar, cast
+
+F = TypeVar("F", bound=Callable[..., Any])
+
+__all__ = ["Expired", "F", "TTLCache", "ttl_cache"]
+
+
+class Expired(KeyError):
+    """Raised when a cache entry has expired and is treated as absent."""
+
+
+class TTLCache:
+    """A mapping whose entries expire after a fixed time-to-live.
+
+    Args:
+        ttl: Time-to-live in seconds for every entry. Must be a non-negative
+            number.
+        maxsize: Maximum number of entries to retain. When full, the
+            least-recently-used entry is evicted. Pass ``None`` for unbounded.
+
+    Raises:
+        TypeError: If ``ttl`` is not a number or ``maxsize`` is not an int or
+            ``None`` (booleans are rejected).
+        ValueError: If ``ttl`` is negative or ``maxsize`` is not positive.
+
+    Example:
+        >>> cache = TTLCache(ttl=10, maxsize=2)
+        >>> cache["x"] = 1
+        >>> cache["y"] = 2
+        >>> cache["x"]
+        1
+    """
+
+    __slots__ = (
+        "_ttl",
+        "_maxsize",
+        "_data",
+        "_expires_at",
+        "_order",
+        "_hits",
+        "_misses",
+        "_expired_count",
+    )
+
+    def __init__(self, ttl: float, maxsize: Optional[int] = 128) -> None:
+        if isinstance(ttl, bool) or not isinstance(ttl, (int, float)):
+            raise TypeError("ttl must be a number")
+        if ttl < 0:
+            raise ValueError("ttl must be non-negative")
+        if maxsize is not None and (isinstance(maxsize, bool) or not isinstance(maxsize, int)):
+            raise TypeError("maxsize must be an integer or None")
+        if maxsize is not None and maxsize < 1:
+            raise ValueError("maxsize must be a positive integer or None")
+        self._ttl = float(ttl)
+        self._maxsize = maxsize
+        self._data: dict[Any, Any] = {}
+        self._expires_at: dict[Any, float] = {}
+        self._order: list[Any] = []
+        self._hits = 0
+        self._misses = 0
+        self._expired_count = 0
+
+    def _now(self) -> float:
+        return time.monotonic()
+
+    def _expired(self, key: Any) -> bool:
+        return key in self._expires_at and self._now() >= self._expires_at[key]
+
+    def _touch(self, key: Any) -> None:
+        if key in self._data:
+            self._order.remove(key)
+            self._order.append(key)
+
+    def _remove(self, key: Any) -> None:
+        self._data.pop(key, None)
+        self._expires_at.pop(key, None)
+        if key in self._order:
+            self._order.remove(key)
+
+    def _purge_expired(self) -> None:
+        now = self._now()
+        for key in list(self._data):
+            if key in self._expires_at and now >= self._expires_at[key]:
+                self._remove(key)
+                self._expired_count += 1
+
+    def _evict_if_needed(self) -> None:
+        if self._maxsize is None or len(self._data) <= self._maxsize:
+            return
+        for old_key in list(self._order):
+            if old_key in self._data:
+                self._remove(old_key)
+                return
+
+    def __contains__(self, key: object) -> bool:
+        if key not in self._data:
+            return False
+        if self._expired(key):
+            self._remove(key)
+            self._expired_count += 1
+            return False
+        return True
+
+    def __getitem__(self, key: Any) -> Any:
+        if key not in self._data:
+            raise KeyError(key)
+        if self._expired(key):
+            self._remove(key)
+            self._expired_count += 1
+            raise Expired(key)
+        self._hits += 1
+        self._touch(key)
+        return self._data[key]
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        """Return the value for *key*, or *default* when missing or expired."""
+        try:
+            return self[key]
+        except KeyError:
+            return default
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self._purge_expired()
+        if key in self._data:
+            self._data[key] = value
+            self._expires_at[key] = self._now() + self._ttl
+            self._touch(key)
+            return
+        self._data[key] = value
+        self._expires_at[key] = self._now() + self._ttl
+        self._order.append(key)
+        self._evict_if_needed()
+
+    def __delitem__(self, key: Any) -> None:
+        if key not in self._data:
+            raise KeyError(key)
+        if self._expired(key):
+            self._remove(key)
+            self._expired_count += 1
+            raise KeyError(key)
+        self._remove(key)
+
+    def pop(self, key: Any, default: Any = None) -> Any:
+        """Remove *key* and return its value, or *default* when missing/expired."""
+        if key not in self._data:
+            return default
+        if self._expired(key):
+            self._remove(key)
+            self._expired_count += 1
+            return default
+        value = self._data[key]
+        self._remove(key)
+        return value
+
+    def __len__(self) -> int:
+        self._purge_expired()
+        return len(self._data)
+
+    def __iter__(self):
+        self._purge_expired()
+        return iter(self._order)
+
+    def keys(self) -> list[Any]:
+        return [key for key in self]
+
+    def values(self) -> list[Any]:
+        return [self[key] for key in self]
+
+    def items(self) -> list[tuple[Any, Any]]:
+        return [(key, self[key]) for key in self]
+
+    def expire(self, key: Any, ttl: Optional[float] = None) -> None:
+        """Set (or refresh) the time-to-live for *key* in seconds."""
+        if key not in self._data:
+            raise KeyError(key)
+        if ttl is None:
+            ttl = self._ttl
+        if isinstance(ttl, bool) or not isinstance(ttl, (int, float)):
+            raise TypeError("ttl must be a number")
+        if ttl < 0:
+            raise ValueError("ttl must be non-negative")
+        self._expires_at[key] = self._now() + float(ttl)
+
+    def clear(self) -> None:
+        """Remove all entries and reset statistics."""
+        self._data.clear()
+        self._expires_at.clear()
+        self._order.clear()
+
+    def cache_info(self) -> dict[str, Any]:
+        """Return cache statistics: hits, misses, maxsize, currsize, expired."""
+        self._purge_expired()
+        return {
+            "hits": self._hits,
+            "misses": self._misses,
+            "maxsize": self._maxsize,
+            "currsize": len(self._data),
+            "expired": self._expired_count,
+        }
+
+
+def ttl_cache(
+    ttl: float, maxsize: Optional[int] = 128
+) -> Callable[[F], F]:
+    """Decorator factory that memoizes a function with TTL expiry.
+
+    Args:
+        ttl: Time-to-live in seconds for each cached result.
+        maxsize: Maximum number of cached results.
+
+    Raises:
+        TypeError: If ``ttl`` is not a number or ``maxsize`` is not an int or
+            ``None`` (booleans rejected).
+        ValueError: If ``ttl`` is negative or ``maxsize`` is not positive.
+
+    Example:
+        >>> @ttl_cache(ttl=60)
+        ... def add(a: int, b: int) -> int:
+        ...     return a + b
+        >>> add(1, 2)
+        3
+        >>> add(1, 2)
+        3
+        >>> add.cache_info()["hits"]
+        1
+    """
+    if isinstance(ttl, bool) or not isinstance(ttl, (int, float)):
+        raise TypeError("ttl must be a number")
+    if ttl < 0:
+        raise ValueError("ttl must be non-negative")
+    if maxsize is not None and (isinstance(maxsize, bool) or not isinstance(maxsize, int)):
+        raise TypeError("maxsize must be an integer or None")
+    if maxsize is not None and maxsize < 1:
+        raise ValueError("maxsize must be a positive integer or None")
+
+    cache = TTLCache(ttl=ttl, maxsize=maxsize)
+
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            key = (args, tuple(sorted(kwargs.items())))
+            try:
+                return cache[key]
+            except KeyError:
+                pass
+            result = func(*args, **kwargs)
+            cache[key] = result
+            return result
+
+        wrapper.cache = cache  # type: ignore[attr-defined]
+        wrapper.cache_clear = cache.clear  # type: ignore[attr-defined]
+        wrapper.cache_info = cache.cache_info  # type: ignore[attr-defined]
+        return cast(F, wrapper)
+
+    return decorator
+TTL_CACHE_UTILS
 
 
 
