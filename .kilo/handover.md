@@ -2,13 +2,13 @@
 
 ## Done (this session)
 - Bootstrap session (`board_read` empty). Executed durable handoff from `.kilo/next_task.md` (continue broad-except swallowing audit).
-- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (embedded `CHANGELOG.md` copy in `scaffold.sh` was stale relative to the repo, still showing `ssl_utils` on top). Ran `make refresh-scaffold` (refreshed embedded `CHANGELOG.md`), then `python tools/verify_state_delta.py --full` — passed, checkpoint advanced to HEAD `1c21d6e`.
-- **Broad-except audit:** audited the candidate sites from `.kilo/next_task.md` — `multiprocessing_utils` (`_worker`/`run_in_process`), `mailbox_utils` (`open_mailbox`/`get_message`/`add_message`/`remove_message`), `type_check_utils` (TypedDict/Literal/TypeVar), `tarfile_utils._as_path_str`, `graphlib_utils` add-node suppression, `mmap_utils.create_file_mmap`, `wave_utils.create_writer`/`_mark_closed`, `terminal_utils` size/color fallbacks, `atexit_utils` `clear`/`get_registered`, plus `cli_utils`, `crypto_utils`, `number_utils`, `socketserver_utils`, `template_utils`, `dis_utils`. Every `except Exception` site is an intentional defensive pattern (cleanup-and-re-raise, documented fallback, version-compat shim, exception marshalling across processes, or best-effort internal access); none violate a documented contract. **No genuine defect found.**
-- **Verification:** `python tools/verify_state_delta.py --full` — passed; `python tools/refresh_scaffold.py --check` — in sync.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree; checkpoint behind HEAD on `.kilo/`-only bookkeeping; no source-relevant change since checkpoint).
+- **Broad-except audit COMPLETE:** audited the remaining un-audited sites from `.kilo/next_task.md` — `importlib_utils`, `email_utils`, `zipfile_utils`, `weakref_utils`, `marshal_utils`, `either_utils`, `maybe_utils`, `retry_utils`, `backoff_utils`, `sre_parse_utils`, `sre_constants_utils`, `uuid_utils` — plus the other `except Exception` carriers not yet confirmed (`async_utils`, `crypt_utils`, `type_utils`, `typing_utils`). Every site is an intentional defensive pattern (legacy-stdlib availability guards, version-compat shims, documented fallback/return-None contracts, marshal `ValueError` re-raises, either/maybe capture-into-Left/Nothing, retry `raise last_exception`, `is_subclass_safe` safe-issubclass) or narrow; none violate a documented contract. **No genuine defect found.** The broad-except swallowing / incorrect-fallback defect class is closed.
+- **Verification:** `python tools/verify_state_delta.py --probe` — rc=1. No source/test/README/CHANGELOG changes made (audit only), so `python tools/refresh_scaffold.py` + `--check` was not required.
 
 ## Next
-- Continue the broad-except swallowing audit on the remaining un-audited `*_utils.py` sites (e.g. `importlib_utils`, `email_utils`, `zipfile_utils`, `weakref_utils`, `marshal_utils`, `either_utils`, `maybe_utils`, `retry_utils`, `backoff_utils`, `sre_parse_utils`, `sre_constants_utils`, `uuid_utils`), treating availability guards/import fallbacks and documented retry/fallback behavior as intentional unless a documented contract is violated.
-- If no genuine defect is found, record the completed audit and hand the hunt to the next defect class.
+- Hand the correctness defect hunt to the next class: audit top-level non-`*_utils.py` modules and any remaining silent-exception-swallowing sites for contract violations; fix genuine violations failing-test-first.
+- If no genuine defect is found, record the completed audit and hand the hunt to the following defect class.
 - No `.github/workflows/**` changes were made.
 
 (End of file)

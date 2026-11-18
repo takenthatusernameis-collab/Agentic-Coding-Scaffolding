@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — broad-except audit complete across all `*_utils.py`; no genuine defect found
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree; checkpoint behind HEAD on `.kilo/`-only bookkeeping; no source-relevant change since checkpoint).
+- **Broad-except audit complete:** audited every remaining `except Exception` carrier in `*_utils.py` — `importlib_utils`, `email_utils`, `zipfile_utils`, `weakref_utils`, `marshal_utils`, `either_utils`, `maybe_utils`, `retry_utils`, `backoff_utils`, `sre_parse_utils`, `sre_constants_utils`, `uuid_utils` — plus `async_utils`, `crypt_utils`, `type_utils`, `typing_utils`. Every site is an intentional defensive pattern (legacy-stdlib availability guards, version-compat shims, documented fallback/return-None contracts, marshal `ValueError` re-raises, either/maybe capture-into-Left/Nothing, retry `raise last_exception`, `is_subclass_safe` safe-`issubclass`) or narrow; none violate a documented contract. **No genuine defect found.** The broad-except swallowing / incorrect-fallback defect class is closed.
+- **Verification:** `python tools/verify_state_delta.py --probe` — rc=1. No source/test/README/CHANGELOG changes made (audit only), so `python tools/refresh_scaffold.py` + `--check` was not required.
+- **Scaffold/CHANGELOG:** no entry (no fix made). Updated `.kilo/handover.md`, `.kilo/next_task.md`, and this file; handed the correctness defect hunt to the next class. No `.github/workflows/**` changes.
+
+
 ## Latest Session (2026-11-18) — broad-except audit: no genuine defect found; stale scaffold sync repaired
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
