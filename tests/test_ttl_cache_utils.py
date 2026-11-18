@@ -123,6 +123,38 @@ class TestTTLCache(unittest.TestCase):
         self.assertEqual(sorted(cache.items()), [("a", 1), ("b", 2)])
         self.assertEqual(list(cache), ["a", "b"])
 
+    def test_views_do_not_change_statistics(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache["b"] = 2
+        cache.keys()
+        cache.values()
+        cache.items()
+        info = cache.cache_info()
+        self.assertEqual(info["hits"], 0)
+        self.assertEqual(info["misses"], 0)
+        self.assertEqual(info["currsize"], 2)
+
+    def test_views_do_not_expire_entries_mid_iteration(self) -> None:
+        class SteppingCache(TTLCache):
+            def __init__(self, ttl: float) -> None:
+                super().__init__(ttl=ttl)
+                self.time = 0.0
+                self.step = 0.0
+
+            def _now(self) -> float:
+                self.time += self.step
+                return self.time
+
+        for method in ("values", "items"):
+            cache = SteppingCache(ttl=10)
+            cache["a"] = 1
+            cache["b"] = 2
+            cache.step = 4.0
+            result = getattr(cache, method)()
+            self.assertEqual(len(result), 2, msg=method)
+            self.assertEqual(cache.cache_info()["hits"], 0, msg=method)
+
     def test_validation(self) -> None:
         with self.assertRaises(TypeError):
             TTLCache(ttl=True)

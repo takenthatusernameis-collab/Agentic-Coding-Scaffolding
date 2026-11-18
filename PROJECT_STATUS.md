@@ -1,3 +1,12 @@
+## Latest Session (2026-11-18) — `TTLCache.values`/`items` no longer count hits or raise `Expired` while iterating
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 — checkpoint `64e186f` behind HEAD `8284437` (prior session's verified `TTLCache.clear` fix plus bookkeeping); no redundant full re-audit before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the only drift was the prior session's verified commit, so the pass made one targeted contract check in the newest module instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Integrity gap fixed:** `TTLCache.values()` and `items()` produced their lists with `self[key]`, routing each element through `__getitem__`. Introspection therefore increased `hits` once per entry (`hits` rose by 4 after `values()` + `items()` on two entries) even though no lookup occurred, while `keys()` and `list(cache)` left the counters untouched. The same routing could raise `Expired` out of `values()`/`items()` when an entry crossed its deadline between the `__iter__` purge and its read. Both views now read `_data` directly after the purge and carry docstrings.
+- **Verification:** `test_views_do_not_change_statistics` and `test_views_do_not_expire_entries_mid_iteration` fail before the fix, pass after; `python -m unittest tests.test_ttl_cache_utils` — 20 OK; `python -m doctest ttl_cache_utils.py` — OK; `python -m ruff check ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m mypy ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m unittest discover tests/` — 11470 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed at `8284437`.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed the embedded `ttl_cache_utils.py`, `tests/test_ttl_cache_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`.
+
 ## Latest Session (2026-11-18) — `TTLCache.clear` resets statistics as documented
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).

@@ -194,13 +194,16 @@ class TTLCache:
         return iter(list(self._order))
 
     def keys(self) -> list[Any]:
+        """Return a list of live keys without affecting cache statistics."""
         return [key for key in self]
 
     def values(self) -> list[Any]:
-        return [self[key] for key in self]
+        """Return a list of live values without affecting cache statistics."""
+        return [self._data[key] for key in self]
 
     def items(self) -> list[tuple[Any, Any]]:
-        return [(key, self[key]) for key in self]
+        """Return a list of live ``(key, value)`` pairs without affecting statistics."""
+        return [(key, self._data[key]) for key in self]
 
     def expire(self, key: Any, ttl: Optional[float] = None) -> None:
         """Set (or refresh) the time-to-live for *key* in seconds."""

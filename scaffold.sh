@@ -72943,6 +72943,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `TTLCache.values`/`items` no longer count hits or raise `Expired` while iterating
+
+- **Correctness fix — introspecting `TTLCache` mutated its statistics.** `values()` and `items()` built their results with `self[key]`, routing every element through `__getitem__`. Reading the cache therefore incremented `_hits` once per entry (`hits` jumped by 4 after `values()` + `items()` on two entries) even though no lookup had occurred, unlike `keys()` and `list(cache)`, which do not touch the counters. The same routing made `values()`/`items()` raise `Expired` if an entry crossed its deadline between the purge in `__iter__` and its own read, so simple introspection could fail unpredictably near expiry. Both views now read the live values directly after the iterator's purge, so they report the current contents without affecting `cache_info()` and without raising mid-iteration. Added `test_views_do_not_change_statistics` and `test_views_do_not_expire_entries_mid_iteration` (both fail before the fix, pass after).
+- **Defect class:** statistics integrity / lazy-expiry contract violation in the most recent `*_utils.py` module (routine regression monitoring follow-up).
+- Validation: `python -m unittest tests.test_ttl_cache_utils` — 20 OK; `python -m doctest ttl_cache_utils.py` — OK; `python -m ruff check ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python -m mypy ttl_cache_utils.py tests/test_ttl_cache_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `TTLCache.clear` resets statistics as documented
 
 - **Correctness fix — `TTLCache.clear` left the counters intact.** The method is documented as "Remove all entries and reset statistics", and `functools.lru_cache.cache_clear` (the model for the `ttl_cache` decorator's `cache_clear` hook) also resets its statistics, yet `clear()` only emptied `_data`, `_expires_at`, and `_order`. A cache that recorded hits, misses, or expiries therefore reported stale `hits`/`misses`/`expired` values from `cache_info()` after `clear()`/`cache_clear()`. `clear()` now zeroes `_hits`, `_misses`, and `_expired_count`, so `cache_info()` starts from a clean slate. Added `test_clear_resets_statistics` and extended `test_cache_clear_and_info` with the post-`cache_clear` counter assertions (both fail before the fix, pass after).
@@ -169519,6 +169525,38 @@ class TestTTLCache(unittest.TestCase):
         self.assertEqual(sorted(cache.items()), [("a", 1), ("b", 2)])
         self.assertEqual(list(cache), ["a", "b"])
 
+    def test_views_do_not_change_statistics(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache["b"] = 2
+        cache.keys()
+        cache.values()
+        cache.items()
+        info = cache.cache_info()
+        self.assertEqual(info["hits"], 0)
+        self.assertEqual(info["misses"], 0)
+        self.assertEqual(info["currsize"], 2)
+
+    def test_views_do_not_expire_entries_mid_iteration(self) -> None:
+        class SteppingCache(TTLCache):
+            def __init__(self, ttl: float) -> None:
+                super().__init__(ttl=ttl)
+                self.time = 0.0
+                self.step = 0.0
+
+            def _now(self) -> float:
+                self.time += self.step
+                return self.time
+
+        for method in ("values", "items"):
+            cache = SteppingCache(ttl=10)
+            cache["a"] = 1
+            cache["b"] = 2
+            cache.step = 4.0
+            result = getattr(cache, method)()
+            self.assertEqual(len(result), 2, msg=method)
+            self.assertEqual(cache.cache_info()["hits"], 0, msg=method)
+
     def test_validation(self) -> None:
         with self.assertRaises(TypeError):
             TTLCache(ttl=True)
@@ -169768,13 +169806,16 @@ class TTLCache:
         return iter(list(self._order))
 
     def keys(self) -> list[Any]:
+        """Return a list of live keys without affecting cache statistics."""
         return [key for key in self]
 
     def values(self) -> list[Any]:
-        return [self[key] for key in self]
+        """Return a list of live values without affecting cache statistics."""
+        return [self._data[key] for key in self]
 
     def items(self) -> list[tuple[Any, Any]]:
-        return [(key, self[key]) for key in self]
+        """Return a list of live ``(key, value)`` pairs without affecting statistics."""
+        return [(key, self._data[key]) for key in self]
 
     def expire(self, key: Any, ttl: Optional[float] = None) -> None:
         """Set (or refresh) the time-to-live for *key* in seconds."""
