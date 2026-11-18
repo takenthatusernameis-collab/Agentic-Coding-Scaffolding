@@ -1,3 +1,9 @@
+## Unreleased — `utils.range_list` honors `step` when `stop` is omitted
+
+- **Correctness fix — `step` was silently ignored without `stop`.** `range_list(start, stop=None, step=1)` only validated and applied `step` inside the `stop is not None` branch, so `range_list(6, step=2)` returned `[0,1,2,3,4,5]` instead of `[0,2,4]`. `step` is now validated unconditionally and applied via `range(0, start, step)` when `stop` is omitted. Added `test_range_list_step_without_stop` (fails before, passes after).
+- **Defect class:** silently ignored parameters in top-level non-`*_utils` modules (continuing the sweep).
+- Validation: `python -m unittest tests.test_utils` — 187 OK; `python tools/refresh_scaffold.py` + `--check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `temp_utils.create_temp_file`/`create_temp_dir` honor `delete`
 
 - **Correctness fix — `delete` was silently ignored.** Both helpers accepted and validated a `delete` flag but never acted on it: `create_temp_file` passed every argument except `delete` to `tempfile.mkstemp` (which has no `delete` parameter), and `create_temp_dir` passed every argument except `delete` to `tempfile.mkdtemp`, so the created file or directory was always left on disk regardless of the flag, contradicting the documented "removed on close" contract. `delete=True` now removes the file/directory immediately after creation; `delete=False` (the new default) keeps it on disk, preserving the previous default behavior. Added `test_delete_true_removes_file` and `test_delete_true_removes_directory` (fail before the fix, pass after).

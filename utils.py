@@ -366,11 +366,11 @@ def has_key(d: Dict[K, Any], key: K) -> bool:
 def range_list(start: int, stop: Optional[int] = None, step: int = 1) -> List[int]:
     """Create a list from a range."""
     start = _require_int(start, "start")
+    step = _require_int(step, "step")
     if stop is not None:
         stop = _require_int(stop, "stop")
-        step = _require_int(step, "step")
         return list(range(start, stop, step))
-    return list(range(start))
+    return list(range(0, start, step))
 
 
 def repeat(item: T, n: int) -> List[T]:

@@ -625,6 +625,9 @@ class TestRangeList(unittest.TestCase):
     def test_range_list_step(self) -> None:
         self.assertEqual(range_list(0, 6, 2), [0, 2, 4])
 
+    def test_range_list_step_without_stop(self) -> None:
+        self.assertEqual(range_list(6, step=2), [0, 2, 4])
+
     def test_range_list_rejects_bool_args(self) -> None:
         with self.assertRaises(TypeError):
             range_list(True)
