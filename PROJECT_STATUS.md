@@ -1,3 +1,14 @@
+## Latest Session (2026-11-18) — broad-except audit: no genuine defect found; stale scaffold sync repaired
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start (embedded `CHANGELOG.md` copy in `scaffold.sh` was stale, still showing `ssl_utils` on top while the repo CHANGELOG shows `enum_utils`). Ran `make refresh-scaffold` — refreshed embedded `CHANGELOG.md`; then `python tools/verify_state_delta.py --full` — passed, checkpoint advanced to HEAD `1c21d6e`. No `.github/workflows/**` changes.
+- **Optimize-delays survey:** the stale embedded copy was a real, avoidable process delay blocking state verification; removing it (refresh-scaffold) unblocked the checkpoint. No timestamp-only handoff or empty commit.
+- **Broad-except audit:** audited `multiprocessing_utils`, `mailbox_utils`, `type_check_utils`, `tarfile_utils`, `graphlib_utils`, `mmap_utils`, `wave_utils`, `terminal_utils`, `atexit_utils`, `cli_utils`, `crypto_utils`, `number_utils`, `socketserver_utils`, `template_utils`, `dis_utils`. Every `except Exception` site is an intentional defensive pattern (cleanup-and-re-raise, documented fallback, version-compat shim, exception marshalling across processes, best-effort internal access); none violate a documented contract. **No genuine defect found.** Consistent with prior sweeps where most broad-except sites are intentional.
+- **Verification:** `python tools/verify_state_delta.py --full` — passed; `python tools/refresh_scaffold.py --check` — in sync.
+- **Changes:** `scaffold.sh` (embedded `CHANGELOG.md` synced to repo), `.kilo/last_verified.checkpoint` advanced to HEAD. Pre-existing (not introduced this session): `ruff` E501 in `terminal_utils.py:59`, `ruff` W292 in `tests/test_quopri_utils.py`, and a `mypy` import-not-found for `pytest` in `tests/test_quopri_utils.py` (pytest not installed in this environment).
+- **Scaffold/CHANGELOG:** no new Unreleased entry (no source fix); updated `.kilo/handover.md`, `.kilo/next_task.md`, and this file.
+
+
 ## Latest Session (2026-11-18) — broad-except swallowing sweep: `enum_utils.has_value` masks comparison errors
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
