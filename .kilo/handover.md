@@ -2,10 +2,10 @@
 
 ## Done (this session)
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
-- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, no source-relevant change since checkpoint `248d850`; HEAD `b83eac5` is CI bookkeeping only.
-- **Optimize-delays survey:** no avoidable repository-managed delay; probe confirmed prior verification still valid, so no redundant full re-audit before edits. No timestamp-only handover, no no-op commit, no `.github/workflows/**` changes.
-- **Verification battery:** `python -m unittest discover tests/` — 11470 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
-- **Defect-hunt status:** all defect classes swept (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts via `tools/audit_contracts.py`, float/numeric edge cases, off-by-one boundaries); no open defect class.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, no source-relevant change since checkpoint `248d850`; HEAD `c12b652` moved only `.kilo/` + `PROJECT_STATUS.md`. Prior battery was therefore still valid and was not repeated before the edit.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed the redundant full discovery pass, and the session spent its work on a real robustness defect in the verification tooling instead of another broad sweep. No timestamp-only handover, no no-op commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `tools/verify_state_delta.read_marker()` returned *any* parsed JSON object, so a valid-JSON marker without a usable `head` (e.g. a partially written `{"full_suite_head": "..."}`, or `{"head": 12}`) reached `probe_decision()`/`main()`, which indexed `marker["head"]` and raised `KeyError`, breaking every activation instead of forcing a fresh verification as documented. A non-string `full_suite_head` likewise crashed the note slicing `marker["full_suite_head"][:12]`, and non-object JSON relied on an `assert` that `python -O` strips. `read_marker()` now accepts only a JSON object whose `head` is a non-empty string and whose optional `full_suite_head` is a string; every other shape is treated as a missing marker.
+- **Verification:** 7 new tests in `tests/test_verify_state_delta.py` fail before the fix and pass after; `python -m unittest tests.test_verify_state_delta` — 39 OK; `python -m ruff check tools/verify_state_delta.py tests/test_verify_state_delta.py` — clean; `python -m mypy tools/verify_state_delta.py tests/test_verify_state_delta.py` — clean; `python -m unittest discover tests/` — 11477 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/scan_untested.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
 
 ## Next
 - Continue routine maintenance / regression monitoring: run the verification battery periodically —
@@ -14,7 +14,8 @@
   - `python -m mypy . --exclude build --exclude dist`
   - `python tools/refresh_scaffold.py --check`
   - `python tools/verify_state_delta.py --full --record-full-suite`
-- The defect-hunt sweeps are complete with no open defect class. Newly added modules deserve a first contract pass before the class is declared closed again.
+- **Specific lead (same persistent-state family, not yet fixed):** `tools/refresh_scaffold.check_cache_hit()` trusts the element types of a parsed cache file. `load_check_cache()` only requires a top-level object, and `_check_cache_fingerprint(cached_paths)` then does `ROOT / relative` for each entry, so a valid-JSON `.kilo/refresh_scaffold_cache.json` with `"managed_paths": [1, 2]` (plus a matching `root_mtime`) raises `TypeError` out of `--check`. Confirm with a failing test before fixing, and check the other cache consumers (`.kilo/scan_untested_cache.json` is already shape-validated in `load_cache`) for the same pattern.
+- The defect-hunt sweeps over library modules are complete with no open defect class. Newly added modules deserve a first contract pass before the class is declared closed again.
 - Keep `.github/workflows/**` unchanged; update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`, and post the next task to `main` via `board_post`. Do not post duplicate/empty handoffs or commit no-op cycles.
 
 ## Latest Session (2026-11-18) — routine verification battery green; no open defect class

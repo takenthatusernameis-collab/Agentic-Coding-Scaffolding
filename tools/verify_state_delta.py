@@ -97,14 +97,30 @@ def head() -> str:
 
 
 def read_marker() -> dict | None:
+    """Return the checkpoint marker, or ``None`` when it is absent or unusable.
+
+    A marker is usable only when it is a JSON object whose ``head`` is a
+    non-empty string and whose optional ``full_suite_head`` is a string. Any
+    other shape (a partially written file, a hand-edited checkpoint, an older
+    schema, or a JSON list) is treated exactly like a missing marker, so the
+    callers force a fresh verification instead of raising ``KeyError`` or
+    ``TypeError`` from ``marker["head"]`` and ``marker["full_suite_head"]``.
+    """
     if not MARKER.is_file():
         return None
     try:
         data = json.loads(MARKER.read_text())
-        assert isinstance(data, dict)
-        return data
     except (ValueError, OSError):
         return None
+    if not isinstance(data, dict):
+        return None
+    marker_head = data.get("head")
+    if not isinstance(marker_head, str) or not marker_head:
+        return None
+    full_suite_head = data.get("full_suite_head")
+    if full_suite_head is not None and not isinstance(full_suite_head, str):
+        return None
+    return data
 
 
 def write_marker(data: dict) -> None:

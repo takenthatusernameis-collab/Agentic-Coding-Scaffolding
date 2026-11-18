@@ -228,6 +228,100 @@ class TestMarker(unittest.TestCase):
             verify_state_delta.write_marker({"head": "deadbeef"})
             self.assertEqual(verify_state_delta.read_marker(), {"head": "deadbeef"})
 
+    def test_read_returns_none_when_head_is_missing(self):
+        # A syntactically valid marker without a ``head`` used to be returned
+        # as-is, so ``probe_decision`` and ``main`` raised ``KeyError`` when
+        # they indexed ``marker["head"]`` instead of forcing a verification.
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = Path(tmp) / "last_verified.checkpoint"
+            marker.write_text('{"full_suite_head": "deadbeef"}')
+            verify_state_delta.MARKER = marker
+            self.assertIsNone(verify_state_delta.read_marker())
+
+    def test_read_returns_none_when_head_is_not_a_string(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = Path(tmp) / "last_verified.checkpoint"
+            marker.write_text('{"head": 12}')
+            verify_state_delta.MARKER = marker
+            self.assertIsNone(verify_state_delta.read_marker())
+
+    def test_read_returns_none_when_head_is_empty(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = Path(tmp) / "last_verified.checkpoint"
+            marker.write_text('{"head": ""}')
+            verify_state_delta.MARKER = marker
+            self.assertIsNone(verify_state_delta.read_marker())
+
+    def test_read_returns_none_when_full_suite_head_is_not_a_string(self):
+        # ``main`` slices ``marker["full_suite_head"][:12]`` in its note, so a
+        # non-string provenance value must not be trusted either.
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = Path(tmp) / "last_verified.checkpoint"
+            marker.write_text('{"head": "deadbeef", "full_suite_head": 12}')
+            verify_state_delta.MARKER = marker
+            self.assertIsNone(verify_state_delta.read_marker())
+
+    def test_read_returns_none_for_non_object_json(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = Path(tmp) / "last_verified.checkpoint"
+            marker.write_text('["deadbeef"]')
+            verify_state_delta.MARKER = marker
+            self.assertIsNone(verify_state_delta.read_marker())
+
+
+class TestCorruptMarkerConsumers(unittest.TestCase):
+    """An unusable marker must force verification, not crash the guard.
+
+    ``read_marker`` treats a missing or malformed marker as "no checkpoint".
+    A marker that is valid JSON but lacks a usable ``head`` follows the same
+    path now; previously it reached ``probe_decision``/``main`` and raised
+    ``KeyError: 'head'``, so a partially written or hand-edited checkpoint
+    broke every activation rather than triggering a fresh verification.
+    """
+
+    def setUp(self):
+        self._saved_marker = verify_state_delta.MARKER
+        self._saved_working_tree_clean = verify_state_delta.working_tree_clean
+        self._saved_head = verify_state_delta.head
+        self._saved_battery_ok = verify_state_delta.battery_ok
+        self._saved_changed = verify_state_delta._changed_and_untracked_since
+
+    def tearDown(self):
+        verify_state_delta.MARKER = self._saved_marker
+        verify_state_delta.working_tree_clean = self._saved_working_tree_clean
+        verify_state_delta.head = self._saved_head
+        verify_state_delta.battery_ok = self._saved_battery_ok
+        verify_state_delta._changed_and_untracked_since = self._saved_changed
+
+    def test_probe_requires_verification_for_a_marker_without_head(self):
+        tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(tmpdir.cleanup)
+        marker = Path(tmpdir.name) / "last_verified.checkpoint"
+        marker.write_text('{"full_suite_head": "deadbeef"}')
+        verify_state_delta.MARKER = marker
+        verify_state_delta.working_tree_clean = lambda: True
+        verify_state_delta.head = lambda: "new-head"
+
+        self.assertEqual(verify_state_delta.probe_decision(), 2)
+
+    def test_main_runs_the_battery_for_a_marker_without_head(self):
+        tmpdir = tempfile.TemporaryDirectory()
+        self.addCleanup(tmpdir.cleanup)
+        marker = Path(tmpdir.name) / "last_verified.checkpoint"
+        marker.write_text('{"full_suite_head": "deadbeef"}')
+        verify_state_delta.MARKER = marker
+        verify_state_delta.working_tree_clean = lambda: True
+        verify_state_delta.head = lambda: "new-head"
+        battery_calls: list[bool] = []
+        verify_state_delta.battery_ok = lambda: battery_calls.append(True) or True
+        verify_state_delta._changed_and_untracked_since = lambda ref: ([], [])
+
+        rc = verify_state_delta.main([])
+
+        self.assertEqual(rc, 0)
+        self.assertEqual(battery_calls, [True])
+        self.assertEqual(verify_state_delta.read_marker(), {"head": "new-head"})
+
 
 class TestMakefileVerifyTarget(unittest.TestCase):
     """Verify the ``make verify`` target agrees with the battery.
