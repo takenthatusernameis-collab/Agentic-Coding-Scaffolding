@@ -72953,6 +72953,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — routine verification battery green; no open defect class
+
+- **Maintenance — all verification checks pass with no source changes.** `python tools/verify_state_delta.py --probe` rc=0 confirmed prior verification still valid; full battery (`pytest tests/`, `ruff check .`, `mypy .`, `refresh_scaffold.py --check`, `verify_state_delta.py --full --record-full-suite`) executed and passed. Defect-hunt sweeps (bool-as-int, broad-except swallowing, silently ignored parameters, docstring-vs-implementation contracts, float/numeric edge cases, off-by-one boundaries) complete with no open defect class.
+- **Defect class:** none — routine monitoring only.
+- No `.github/workflows/**` changes.
+
 ## Unreleased — `refresh_scaffold.check_cache_hit` rejects a cache with non-string `managed_paths`
 
 - **Tooling fix — a malformed ``--check`` cache raised ``TypeError`` instead of missing.** `check_cache_hit` read `managed_paths` from the parsed cache file and fed it to `_check_cache_fingerprint`, which evaluates `ROOT / relative` for each entry. A valid-JSON cache whose `managed_paths` list held non-strings (for example `"managed_paths": [1, 2]`, with a matching `root_mtime`) therefore raised `TypeError` out of `--check` instead of falling back to a full comparison and reporting the cache as stale. The list is now validated element-by-element: a list that contains any non-string element is treated as a cache miss, mirroring how `scan_untested.load_cache` shape-validates its `modules` dict and how `load_check_cache` rejects a non-object top level. Added `test_a_cache_with_non_string_managed_paths_is_a_miss`, `test_a_cache_with_mixed_element_types_is_a_miss`, `test_a_cache_with_string_managed_paths_still_hits`, and `test_a_cache_with_empty_managed_paths_is_a_miss` (all fail before the fix, pass after).
