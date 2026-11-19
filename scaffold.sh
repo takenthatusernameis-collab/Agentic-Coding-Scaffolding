@@ -37724,16 +37724,25 @@ def matches_regex(value: Any, pattern: Union[str, re.Pattern], flags: int = 0) -
     Args:
         value: The string to check.
         pattern: The regex pattern (string or compiled Pattern).
-        flags: Regex flags (optional).
+        flags: Regex flags (optional). Must not be used with a compiled pattern.
 
     Returns:
         True if the string matches the pattern, False otherwise.
+
+    Raises:
+        TypeError: If *value* is not a string, *flags* is not an int, or *pattern*
+            is neither a string nor a compiled Pattern.
+        ValueError: If *pattern* is a string that does not compile, or if *flags*
+            is provided together with a compiled pattern (flags cannot be applied
+            to an already-compiled pattern).
     """
     if not isinstance(value, str):
         raise TypeError("value must be a string")
     if isinstance(flags, bool) or not isinstance(flags, int):
         raise TypeError("flags must be an int")
     if isinstance(pattern, re.Pattern):
+        if flags != 0:
+            raise ValueError("flags cannot be used with a compiled pattern")
         return bool(pattern.match(value))
     elif isinstance(pattern, str):
         try:
@@ -38002,6 +38011,13 @@ class TestMatchesRegex(unittest.TestCase):
             matches_regex("test", r"test", flags=True)
         with self.assertRaises(TypeError):
             matches_regex("test", r"test", flags=False)
+
+    def test_matches_regex_compiled_pattern_rejects_flags(self):
+        # Flags cannot be applied to an already-compiled pattern; they must be
+        # rejected instead of silently ignored.
+        pattern = re.compile(r"^test$")
+        with self.assertRaises(ValueError):
+            matches_regex("test", pattern, flags=re.IGNORECASE)
 
 
 class TestIsValidHostname(unittest.TestCase):

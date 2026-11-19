@@ -2,10 +2,10 @@
 
 ## Done (this session)
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md`.
-- State probe rc=2 at start (checkpoint behind HEAD); ran `verify_state_delta --full --record-full-suite` — passed, checkpoint advanced.
-- Refreshed stale embedded scaffold copies (`circuit_breaker_utils.py`, `tests/test_circuit_breaker_utils.py`, `tree_utils.py`, `tests/test_tree_utils.py`) via `make refresh-scaffold`; `--check` now clean.
-- Reviewed `either_utils`: no input-validation defect found; existing tests pass.
-- Verification: unittest discover 11544 OK; ruff clean; mypy success; scaffold check clean; verify_state_delta full passed.
+- State probe rc=0 at start (clean tree, HEAD verified); ran `verify_state_delta --full --record-full-suite` — passed, checkpoint advanced.
+- Found and fixed silently ignored parameter defect in `validation_utils.matches_regex`: `flags` parameter was ignored when a compiled `re.Pattern` was passed. Added validation to raise `ValueError` when flags are provided with a compiled pattern.
+- Wrote failing test first (`test_matches_regex_compiled_pattern_rejects_flags`), then fixed implementation, then refreshed scaffold copies.
+- Verification: unittest discover 11554 OK; ruff clean; mypy success; scaffold check clean; verify_state_delta full passed.
 
 ## Next
 - Continue targeted defect hunt on remaining hand-rolled modules not yet test-verified (focus on accepts-invalid-input, silently ignored parameters, docstring-vs-implementation contracts, boundary/off-by-one). Write the failing test first.

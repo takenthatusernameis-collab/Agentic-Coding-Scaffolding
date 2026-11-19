@@ -223,6 +223,13 @@ class TestMatchesRegex(unittest.TestCase):
         with self.assertRaises(TypeError):
             matches_regex("test", r"test", flags=False)
 
+    def test_matches_regex_compiled_pattern_rejects_flags(self):
+        # Flags cannot be applied to an already-compiled pattern; they must be
+        # rejected instead of silently ignored.
+        pattern = re.compile(r"^test$")
+        with self.assertRaises(ValueError):
+            matches_regex("test", pattern, flags=re.IGNORECASE)
+
 
 class TestIsValidHostname(unittest.TestCase):
     def test_valid_hostnames(self):

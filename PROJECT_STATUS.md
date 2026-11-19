@@ -1,3 +1,15 @@
+## Latest Session (2026-11-19) — defect fix: `validation_utils.matches_regex` rejects flags with compiled pattern
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=0 at start (clean tree, HEAD verified); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced.
+- **Optimize-delays survey:** no avoidable repository-managed delay; probe confirmed prior verification state, spent work on one real defect instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `validation_utils.matches_regex` silently ignored the `flags` parameter when a compiled `re.Pattern` was passed (flags cannot be applied to an already-compiled pattern). Added validation to raise `ValueError` when `flags != 0` is provided together with a compiled pattern. Wrote failing test `test_matches_regex_compiled_pattern_rejects_flags` first, then fixed implementation.
+- **Defect class:** silently ignored parameters in a hand-rolled `*_utils` module.
+- **Tests:** `python -m unittest tests.test_validation_utils` — 27 OK.
+- **Verification:** `python -m unittest discover tests/` — 11554 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync (refreshed embedded `validation_utils.py`, `tests/test_validation_utils.py`); `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** `scaffold.sh` refreshed (embedded `validation_utils`, `tests/test_validation_utils` copies synced); no source-relevant `.github/workflows/**` changes.
+- **Board:** only `main` (self) present; `board_post` to self refused, so next task recorded in `.kilo/handover.md` and `.kilo/next_task.md`.
+
 ## Latest Session (2026-11-19) — defect fix: `sort_utils.top_n`/`nth_largest` validate `n` and reject bool
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).
