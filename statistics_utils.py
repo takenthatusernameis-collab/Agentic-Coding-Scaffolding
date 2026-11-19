@@ -42,8 +42,12 @@ def harmonic_mean(numbers: List[T | float]) -> float:
     # Check for zeros
     if any(x == 0 for x in numbers):
         raise ValueError("Harmonic mean is undefined for values equal to zero")
-    reciprocal_sum = sum(1.0 / x for x in numbers)
-    return len(numbers) / reciprocal_sum
+    # Scale by the smallest magnitude so every reciprocal stays at or below 1;
+    # otherwise a tiny input (e.g. 1e-320) overflows ``1.0 / x`` to ``inf`` and
+    # the mean collapses to ``0.0``.
+    scale = min(abs(x) for x in numbers)
+    scaled_reciprocal_sum = math.fsum(scale / x for x in numbers)
+    return float(len(numbers) * scale / scaled_reciprocal_sum)
 
 
 def geometric_mean(numbers: List[T | float]) -> float:
@@ -71,9 +75,15 @@ def geometric_mean(numbers: List[T | float]) -> float:
     # Check for negatives
     if any(x < 0 for x in numbers):
         raise ValueError("Geometric mean is undefined for negative numbers")
+    if any(x == 0 for x in numbers):
+        return 0.0
     product = 1.0
     for x in numbers:
         product *= x
+    # A product that overflows to ``inf`` or underflows to ``0.0`` would make
+    # the root wrong, so fall back to the numerically stable log-space form.
+    if not math.isfinite(product) or product == 0.0:
+        return float(math.exp(math.fsum(math.log(x) for x in numbers) / len(numbers)))
     return float(product ** (1.0 / len(numbers)))
 
 

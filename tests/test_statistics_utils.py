@@ -1,5 +1,6 @@
 """Tests for statistics_utils module."""
 
+import math
 import unittest
 from typing import TypeVar
 
@@ -31,6 +32,11 @@ class TestHarmonicMean(unittest.TestCase):
         with self.assertRaises(ValueError):
             harmonic_mean([1, 0, 3])
 
+    def test_harmonic_mean_tiny_values_do_not_underflow(self):
+        result = harmonic_mean([1e-320, 1e-320])
+        self.assertGreater(result, 0.0)
+        self.assertAlmostEqual(result / 1e-320, 1.0, places=12)
+
 
 class TestGeometricMean(unittest.TestCase):
     def test_geometric_mean_basic(self):
@@ -46,6 +52,16 @@ class TestGeometricMean(unittest.TestCase):
     def test_geometric_mean_raises_on_negative(self):
         with self.assertRaises(ValueError):
             geometric_mean([1, -2, 3])
+
+    def test_geometric_mean_large_values_do_not_overflow(self):
+        result = geometric_mean([1e200, 1e200, 1e200])
+        self.assertTrue(math.isfinite(result))
+        self.assertAlmostEqual(result / 1e200, 1.0, places=12)
+
+    def test_geometric_mean_small_values_do_not_underflow(self):
+        result = geometric_mean([1e-200, 1e-200, 1e-200])
+        self.assertGreater(result, 0.0)
+        self.assertAlmostEqual(result / 1e-200, 1.0, places=12)
 
 
 class TestMedianEven(unittest.TestCase):
