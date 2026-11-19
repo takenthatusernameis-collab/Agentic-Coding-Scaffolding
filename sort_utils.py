@@ -196,7 +196,24 @@ def merge_sort(items, *, key=None, reverse=False):
 
 
 def nth_largest(items, n, *, key=None):
-    """Return the n-th largest element (1-based)."""
+    """Return the n-th largest element (1-based).
+
+    Args:
+        items: An iterable of comparable elements.
+        n: The 1-based rank of the element to return. Must be a non-bool
+            integer of at least 1.
+        key: A function that extracts a comparison key from each element.
+            Defaults to the identity function.
+
+    Returns:
+        The n-th largest element of *items* according to *key*.
+
+    Raises:
+        TypeError: If *n* is not an integer (booleans are rejected).
+        ValueError: If *n* is less than 1 or exceeds the number of items.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an integer")
     if n < 1:
         raise ValueError("n must be at least 1")
     sorted_items = merge_sort(items, key=key, reverse=True)
@@ -206,5 +223,25 @@ def nth_largest(items, n, *, key=None):
 
 
 def top_n(items, n, *, key=None, reverse=True):
-    """Return the top n items sorted by key."""
+    """Return the top n items sorted by key.
+
+    Args:
+        items: An iterable of comparable elements.
+        n: The number of top items to return. Must be a non-bool integer of
+            at least 0; zero returns an empty list.
+        key: A function that extracts a comparison key from each element.
+            Defaults to the identity function.
+        reverse: If True (default), return the largest items first.
+
+    Returns:
+        A list of the top *n* items of *items* sorted according to *key*.
+
+    Raises:
+        TypeError: If *n* is not an integer (booleans are rejected).
+        ValueError: If *n* is negative.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
     return merge_sort(items, key=key, reverse=reverse)[:n]

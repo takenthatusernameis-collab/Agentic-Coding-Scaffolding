@@ -84146,8 +84146,8 @@ DURATION_UNITS: dict[str, float] = {
     "weeks": 604800,
 }
 
-# Matches a number followed by an optional unit, e.g. "1h30m", "90s", "2.5 days".
-_DURATION_PATTERN = re.compile(r"(\d+(?:\.\d+)?)\s*([a-zA-Z]+)")
+# Matches a number followed by an optional unit, e.g. "1h30m", "90s", "2.5 days", ".5s".
+_DURATION_PATTERN = re.compile(r"(\d+\.?\d*|\.\d+)\s*([a-zA-Z]+)")
 
 # Largest units first so the formatter greets the biggest applicable unit.
 _ORDERED_UNITS: tuple[tuple[str, float], ...] = (
@@ -84579,6 +84579,11 @@ class TestParseDuration(unittest.TestCase):
         self.assertEqual(parse_duration("1 week 2 days"), 9 * SECONDS_PER_DAY)
 
     def test_float_value(self):
+        self.assertEqual(parse_duration("1.5h"), 5400.0)
+
+    def test_float_value_with_leading_dot(self):
+        self.assertEqual(parse_duration(".5s"), 0.5)
+        self.assertEqual(parse_duration(".5 seconds"), 0.5)
         self.assertEqual(parse_duration("1.5h"), 5400.0)
 
     def test_empty_string_raises(self):
@@ -125816,7 +125821,24 @@ def merge_sort(items, *, key=None, reverse=False):
 
 
 def nth_largest(items, n, *, key=None):
-    """Return the n-th largest element (1-based)."""
+    """Return the n-th largest element (1-based).
+
+    Args:
+        items: An iterable of comparable elements.
+        n: The 1-based rank of the element to return. Must be a non-bool
+            integer of at least 1.
+        key: A function that extracts a comparison key from each element.
+            Defaults to the identity function.
+
+    Returns:
+        The n-th largest element of *items* according to *key*.
+
+    Raises:
+        TypeError: If *n* is not an integer (booleans are rejected).
+        ValueError: If *n* is less than 1 or exceeds the number of items.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an integer")
     if n < 1:
         raise ValueError("n must be at least 1")
     sorted_items = merge_sort(items, key=key, reverse=True)
@@ -125826,7 +125848,27 @@ def nth_largest(items, n, *, key=None):
 
 
 def top_n(items, n, *, key=None, reverse=True):
-    """Return the top n items sorted by key."""
+    """Return the top n items sorted by key.
+
+    Args:
+        items: An iterable of comparable elements.
+        n: The number of top items to return. Must be a non-bool integer of
+            at least 0; zero returns an empty list.
+        key: A function that extracts a comparison key from each element.
+            Defaults to the identity function.
+        reverse: If True (default), return the largest items first.
+
+    Returns:
+        A list of the top *n* items of *items* sorted according to *key*.
+
+    Raises:
+        TypeError: If *n* is not an integer (booleans are rejected).
+        ValueError: If *n* is negative.
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an integer")
+    if n < 0:
+        raise ValueError("n must be non-negative")
     return merge_sort(items, key=key, reverse=reverse)[:n]
 SORT_UTILS
 
@@ -125858,6 +125900,31 @@ class TestSortUtils(unittest.TestCase):
 
     def test_nth_largest(self):
         self.assertEqual(sort_utils.nth_largest([1, 2, 3], 2), 2)
+
+
+class TestSortValidation(unittest.TestCase):
+    def test_top_n_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            sort_utils.top_n([1, 2, 3], -1)
+
+    def test_top_n_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.top_n([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_top_n_rejects_float_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.top_n([1, 2, 3], 1.5)  # type: ignore[arg-type]
+
+    def test_top_n_zero_returns_empty(self):
+        self.assertEqual(sort_utils.top_n([1, 2, 3], 0), [])
+
+    def test_nth_largest_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.nth_largest([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_nth_largest_rejects_float_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.nth_largest([1, 2, 3], 1.5)  # type: ignore[arg-type]
 
 
 class TestInsertionSort(unittest.TestCase):

@@ -26,6 +26,31 @@ class TestSortUtils(unittest.TestCase):
         self.assertEqual(sort_utils.nth_largest([1, 2, 3], 2), 2)
 
 
+class TestSortValidation(unittest.TestCase):
+    def test_top_n_rejects_negative_n(self):
+        with self.assertRaises(ValueError):
+            sort_utils.top_n([1, 2, 3], -1)
+
+    def test_top_n_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.top_n([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_top_n_rejects_float_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.top_n([1, 2, 3], 1.5)  # type: ignore[arg-type]
+
+    def test_top_n_zero_returns_empty(self):
+        self.assertEqual(sort_utils.top_n([1, 2, 3], 0), [])
+
+    def test_nth_largest_rejects_bool_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.nth_largest([1, 2, 3], True)  # type: ignore[arg-type]
+
+    def test_nth_largest_rejects_float_n(self):
+        with self.assertRaises(TypeError):
+            sort_utils.nth_largest([1, 2, 3], 1.5)  # type: ignore[arg-type]
+
+
 class TestInsertionSort(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(sort_utils.insertion_sort([3, 1, 2]), [1, 2, 3])
