@@ -1,3 +1,14 @@
+## Latest Session (2026-11-19) — defect fix: `shapes` geometry functions reject boolean dimensions
+
+- `board_read`: `.kilo/next_task.md` durable handoff executed (targeted defect hunt on hand-rolled modules earlier sweeps missed); board lists only `main` (self).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 — checkpoint behind HEAD; ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD. `make refresh-scaffold` repaired stale embedded `shapes.py`/`tests/test_shapes.py` copies before any new edit, and again after the `_require_number` tweak.
+- **Optimize-delays survey:** no avoidable repository-managed delay; probe removed redundant discovery; targeted the `shapes.py` bool-admission gap from the untouched candidates list with a failing-test-first fix.
+- **Defect fixed (failing-test-first):** `shapes.py` geometry functions (`circle_area`, `rectangle_area`, `circle_diameter`, `triangle_heron_area`, and 13 others) accepted `True`/`False` as dimensions because they only checked `< 0` without type validation, contradicting the project-wide bool-rejection convention. Every numeric parameter now passes through `_require_number`, which rejects `bool`/non-numeric input with `TypeError`; `_require_number` no longer coerces to `float` so integer doctests are unchanged.
+- **Tests:** `TestTypeValidation.test_functions_reject_bool_radius_and_dimensions` (17 cases, red before the fix, green after).
+- **Defect class:** accepts-invalid-input (`bool` where a number is required).
+- **Verification:** `python -m unittest tests.test_shapes` — 125 OK; `python -m doctest shapes.py` — OK; `python -m ruff check shapes.py tests/test_shapes.py` — clean; `python -m mypy shapes.py tests/test_shapes.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `shapes.py`, `tests/test_shapes.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — defect fix: `statistics_utils.normalize` rejects non-finite values
 
 - `board_read`: empty (bootstrap session); executed the durable handoff in `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).

@@ -686,5 +686,36 @@ class TestPointInRectangle(unittest.TestCase):
             point_in_rectangle((1, 1), 0, 0, 3, 0)
 
 
+class TestTypeValidation(unittest.TestCase):
+    """Hand-rolled geometry functions must reject non-numeric (bool) input,
+    matching the rest of the module (e.g. sphere_surface_area, polygon_area)
+    which already raise TypeError for booleans."""
+
+    def test_functions_reject_bool_radius_and_dimensions(self):
+        cases = [
+            (circle_area, (True,)),
+            (circle_perimeter, (False,)),
+            (circle_diameter, (True,)),
+            (rectangle_area, (True, 4)),
+            (rectangle_perimeter, (3, False)),
+            (rectangle_diagonal, (True, 4)),
+            (triangle_area, (True, 3)),
+            (triangle_perimeter, (True, 4, 5)),
+            (triangle_heron_area, (True, 4, 5)),
+            (square_area, (True,)),
+            (square_perimeter, (False,)),
+            (rhombus_area, (True, 8)),
+            (rhombus_perimeter, (True,)),
+            (trapezoid_area, (True, 6, 5)),
+            (parallelogram_area, (True, 5)),
+            (parallelogram_perimeter, (True, 6)),
+            (ellipse_area, (True, 1)),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__, args=args):
+                with self.assertRaises(TypeError):
+                    func(*args)  # type: ignore[arg-type]
+
+
 if __name__ == "__main__":
     unittest.main()

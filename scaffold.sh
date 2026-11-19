@@ -12650,7 +12650,7 @@ def _require_number(value: object, name: str) -> float:
     """Validate that *value* is a real number (int or float, not bool)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number, got {type(value).__name__}")
-    return float(value)
+    return value
 
 
 def circle_area(radius: float) -> float:
@@ -12666,6 +12666,7 @@ def circle_area(radius: float) -> float:
         >>> circle_area(1)
         3.141592653589793
     """
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return math.pi * radius**2
@@ -12678,8 +12679,10 @@ def circle_perimeter(radius: float) -> float:
         radius: The radius of the circle.
 
     Raises:
+        TypeError: If radius is not a number.
         ValueError: If radius is negative.
     """
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return 2 * math.pi * radius
@@ -12695,6 +12698,8 @@ def rectangle_area(length: float, width: float) -> float:
     Raises:
         ValueError: If length or width is negative.
     """
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return length * width
@@ -12708,8 +12713,11 @@ def rectangle_perimeter(length: float, width: float) -> float:
         width: The width of the rectangle.
 
     Raises:
+        TypeError: If length or width is not a number.
         ValueError: If length or width is negative.
     """
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return 2 * (length + width)
@@ -12725,6 +12733,10 @@ def triangle_area(base: float, height: float) -> float:
     Raises:
         ValueError: If base or height is negative.
     """
+    base = _require_number(base, "base")
+    height = _require_number(height, "height")
+    base = _require_number(base, "base")
+    height = _require_number(height, "height")
     if base < 0 or height < 0:
         raise ValueError("Base and height cannot be negative.")
     return 0.5 * base * height
@@ -12739,8 +12751,12 @@ def triangle_perimeter(side_a: float, side_b: float, side_c: float) -> float:
         side_c: Length of the third side.
 
     Raises:
+        TypeError: If any side is not a number.
         ValueError: If any side is negative or the sides violate the triangle inequality.
     """
+    side_a = _require_number(side_a, "side_a")
+    side_b = _require_number(side_b, "side_b")
+    side_c = _require_number(side_c, "side_c")
     if side_a < 0 or side_b < 0 or side_c < 0:
         raise ValueError("Sides cannot be negative.")
     if not (side_a + side_b > side_c and side_a + side_c > side_b and side_b + side_c > side_a):
@@ -12763,6 +12779,7 @@ def square_area(side: float) -> float:
         >>> square_area(0)
         0
     """
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return side * side
@@ -12775,6 +12792,7 @@ def square_perimeter(side: float) -> float:
         side: The side length of the square.
 
     Raises:
+        TypeError: If side is not a number.
         ValueError: If side is negative.
 
     Examples:
@@ -12783,6 +12801,7 @@ def square_perimeter(side: float) -> float:
         >>> square_perimeter(0)
         0
     """
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return 4 * side
@@ -12802,6 +12821,8 @@ def rhombus_area(diagonal1: float, diagonal2: float) -> float:
         >>> rhombus_area(6, 8)
         24.0
     """
+    diagonal1 = _require_number(diagonal1, "diagonal1")
+    diagonal2 = _require_number(diagonal2, "diagonal2")
     if diagonal1 < 0 or diagonal2 < 0:
         raise ValueError("Diagonals cannot be negative.")
     return 0.5 * diagonal1 * diagonal2
@@ -12814,12 +12835,14 @@ def rhombus_perimeter(side: float) -> float:
         side: The side length of the rhombus.
 
     Raises:
+        TypeError: If side is not a number.
         ValueError: If side is negative.
 
     Examples:
         >>> rhombus_perimeter(5)
         20
     """
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return 4 * side
@@ -12840,6 +12863,9 @@ def trapezoid_area(base1: float, base2: float, height: float) -> float:
         >>> trapezoid_area(4, 6, 5)
         25.0
     """
+    base1 = _require_number(base1, "base1")
+    base2 = _require_number(base2, "base2")
+    height = _require_number(height, "height")
     if base1 < 0 or base2 < 0 or height < 0:
         raise ValueError("Dimensions cannot be negative.")
     return 0.5 * (base1 + base2) * height
@@ -12857,9 +12883,12 @@ def triangle_heron_area(side_a: float, side_b: float, side_c: float) -> float:
         ValueError: If any side is negative or the sides violate the triangle inequality.
 
     Examples:
-        >>> triangle_heron_area(3, 4, 5)
-        6.0
+    >>> triangle_heron_area(3, 4, 5)
+    6.0
     """
+    side_a = _require_number(side_a, "side_a")
+    side_b = _require_number(side_b, "side_b")
+    side_c = _require_number(side_c, "side_c")
     if side_a < 0 or side_b < 0 or side_c < 0:
         raise ValueError("Sides cannot be negative.")
     if not (side_a + side_b > side_c and side_a + side_c > side_b and side_b + side_c > side_a):
@@ -12920,6 +12949,8 @@ def parallelogram_area(base: float, height: float) -> float:
         >>> parallelogram_area(4, 5)
         20
     """
+    base = _require_number(base, "base")
+    height = _require_number(height, "height")
     if base < 0 or height < 0:
         raise ValueError("Base and height cannot be negative.")
     return base * height
@@ -12933,12 +12964,15 @@ def parallelogram_perimeter(side_a: float, side_b: float) -> float:
         side_b: Length of the adjacent side.
 
     Raises:
+        TypeError: If either side is not a number.
         ValueError: If either side is negative.
 
     Examples:
         >>> parallelogram_perimeter(4, 6)
         20
     """
+    side_a = _require_number(side_a, "side_a")
+    side_b = _require_number(side_b, "side_b")
     if side_a < 0 or side_b < 0:
         raise ValueError("Sides cannot be negative.")
     return 2 * (side_a + side_b)
@@ -12958,6 +12992,8 @@ def ellipse_area(a: float, b: float) -> float:
         >>> ellipse_area(2, 1)
         6.283185307179586
     """
+    a = _require_number(a, "a")
+    b = _require_number(b, "b")
     if a < 0 or b < 0:
         raise ValueError("Semi-axes cannot be negative.")
     return math.pi * a * b
@@ -13049,6 +13085,7 @@ def regular_polygon_perimeter(n: int, side_length: float) -> float:
 
 def circle_diameter(radius: float) -> float:
     """Return the diameter of a circle with the given radius."""
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return 2 * radius
@@ -13056,6 +13093,9 @@ def circle_diameter(radius: float) -> float:
 
 def rectangle_diagonal(length: float, width: float) -> float:
     """Return the diagonal of a rectangle."""
+
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return float((length**2 + width**2) ** 0.5)
@@ -14053,6 +14093,37 @@ class TestPointInRectangle(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             point_in_rectangle((1, 1), 0, 0, 3, 0)
+
+
+class TestTypeValidation(unittest.TestCase):
+    """Hand-rolled geometry functions must reject non-numeric (bool) input,
+    matching the rest of the module (e.g. sphere_surface_area, polygon_area)
+    which already raise TypeError for booleans."""
+
+    def test_functions_reject_bool_radius_and_dimensions(self):
+        cases = [
+            (circle_area, (True,)),
+            (circle_perimeter, (False,)),
+            (circle_diameter, (True,)),
+            (rectangle_area, (True, 4)),
+            (rectangle_perimeter, (3, False)),
+            (rectangle_diagonal, (True, 4)),
+            (triangle_area, (True, 3)),
+            (triangle_perimeter, (True, 4, 5)),
+            (triangle_heron_area, (True, 4, 5)),
+            (square_area, (True,)),
+            (square_perimeter, (False,)),
+            (rhombus_area, (True, 8)),
+            (rhombus_perimeter, (True,)),
+            (trapezoid_area, (True, 6, 5)),
+            (parallelogram_area, (True, 5)),
+            (parallelogram_perimeter, (True, 6)),
+            (ellipse_area, (True, 1)),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__, args=args):
+                with self.assertRaises(TypeError):
+                    func(*args)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -57123,6 +57194,8 @@ class ProgressBar:
     ) -> None:
         if isinstance(total, bool) or not isinstance(total, int) or total <= 0:
             raise ValueError("total must be a positive integer")
+        if width is not None and (isinstance(width, bool) or not isinstance(width, int) or width <= 0):
+            raise TypeError("width must be a positive integer")
         if not isinstance(fill, str) or len(fill) != 1:
             raise ValueError("fill must be a single character")
         if not isinstance(empty, str) or len(empty) != 1:
@@ -57147,7 +57220,7 @@ class ProgressBar:
             increment: The number of steps to advance (default 1).
 
         Raises:
-            TypeError: If *current* is not an integer.
+            TypeError: If *current* is not an integer, or *increment* is not an integer.
             ValueError: If the resulting position is outside [0, total].
         """
         if self._finished:
@@ -57156,6 +57229,8 @@ class ProgressBar:
             current = self._current + increment
         if isinstance(current, bool) or not isinstance(current, int):
             raise TypeError("current must be an integer")
+        if isinstance(increment, bool) or not isinstance(increment, int):
+            raise TypeError("increment must be an integer")
         if current < 0 or current > self.total:
             raise ValueError(f"current {current} is outside [0, {self.total}]")
         self._current = current
@@ -57210,12 +57285,15 @@ def progress_bar(
 
     Raises:
         ValueError: If *total* cannot be inferred and is not provided.
+        TypeError: If *width* is not a positive integer.
     """
     if total is None:
         try:
             total = len(iterable)  # type: ignore[arg-type]
         except TypeError as exc:
             raise ValueError("total must be provided for iterables without len()") from exc
+    if width is not None and (isinstance(width, bool) or not isinstance(width, int) or width <= 0):
+        raise TypeError("width must be a positive integer")
     bar = ProgressBar(total, width=width, fill=fill, empty=empty, stream=stream)
     with bar:
         for item in iterable:
@@ -70079,6 +70157,27 @@ class TestProgressBar(unittest.TestCase):
         bar.update(increment=1)
         self.assertEqual(bar._current, 2)
 
+    def test_rejects_bool_width(self):
+        with self.assertRaises(TypeError):
+            ProgressBar(10, width=True)
+        with self.assertRaises(TypeError):
+            ProgressBar(10, width=False)
+
+    def test_rejects_bool_increment(self):
+        bar = ProgressBar(10, stream=io.StringIO())
+        with self.assertRaises(TypeError):
+            bar.update(increment=True)
+        with self.assertRaises(TypeError):
+            bar.update(increment=False)
+
+
+class TestProgressBarFunction(unittest.TestCase):
+    def test_rejects_bool_width(self):
+        with self.assertRaises(TypeError):
+            list(progress_bar([1, 2, 3], total=3, width=True))
+        with self.assertRaises(TypeError):
+            list(progress_bar([1, 2, 3], total=3, width=False))
+
 
 class TestPrompt(unittest.TestCase):
     def test_returns_entered_value(self):
@@ -73114,6 +73213,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `shapes` geometry functions reject boolean dimensions
+
+- **Correctness fix — hand-rolled geometry functions accepted `bool` input.** `circle_area`, `rectangle_area`, `circle_diameter`, `triangle_heron_area`, and 13 other shape functions only checked that arguments were negative (`< 0`) without validating that they were numbers, so `circle_area(True)` silently returned `math.pi` and `rectangle_diagonal(True, 4)` computed a result instead of raising `TypeError`, contradicting the project-wide bool-rejection convention already enforced by `sphere_surface_area`, `polygon_area`, and the rest of the module. Every dimension, radius, semi-axis, and side parameter is now routed through `_require_number`, which rejects `bool` and non-numeric input with `TypeError` before the negativity check; `_require_number` no longer coerces to `float`, so integer inputs still produce integer outputs and existing doctests are unchanged. Added `TestTypeValidation.test_functions_reject_bool_radius_and_dimensions` (17 cases, red before the fix, green after).
+- **Defect class:** accepts-invalid-input (`bool` where a number is required) in a hand-rolled module (targeted defect-hunt pass over modules earlier sweeps missed).
+- Validation: `python -m unittest tests.test_shapes` — 125 OK; `python -m doctest shapes.py` — OK; `python -m ruff check shapes.py tests/test_shapes.py` — clean; `python -m mypy shapes.py tests/test_shapes.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `slugify_utils.is_slug` rejects invalid slugs with alphanumeric separators
 
 - **Correctness fix — `is_slug` gave false positives for invalid slugs when the separator contained alphanumeric characters.** The regex-based validation `^[a-z0-9]+(separator[a-z0-9]+)*$` failed because the initial `[a-z0-9]+` could consume the entire string including separators (since alphanumeric separators are themselves matched by `[a-z0-9]`). This caused `is_slug("helloabworldab", "ab")` (trailing separator), `is_slug("abhelloabworld", "ab")` (leading separator), and `is_slug("helloababworld", "ab")` (double separator) to incorrectly return `True`. The fix replaces the regex with a split-based validation that checks for non-empty parts and lowercase alphanumeric content. Added `test_is_slug_rejects_trailing_separator`, `test_is_slug_rejects_leading_separator`, `test_is_slug_rejects_double_separator`, `test_is_slug_rejects_uppercase`, and `test_is_slug_alphanumeric_separator_valid` (the first three fail before the fix, pass after).

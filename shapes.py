@@ -58,7 +58,7 @@ def _require_number(value: object, name: str) -> float:
     """Validate that *value* is a real number (int or float, not bool)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number, got {type(value).__name__}")
-    return float(value)
+    return value
 
 
 def circle_area(radius: float) -> float:
@@ -74,6 +74,7 @@ def circle_area(radius: float) -> float:
         >>> circle_area(1)
         3.141592653589793
     """
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return math.pi * radius**2
@@ -86,8 +87,10 @@ def circle_perimeter(radius: float) -> float:
         radius: The radius of the circle.
 
     Raises:
+        TypeError: If radius is not a number.
         ValueError: If radius is negative.
     """
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return 2 * math.pi * radius
@@ -103,6 +106,8 @@ def rectangle_area(length: float, width: float) -> float:
     Raises:
         ValueError: If length or width is negative.
     """
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return length * width
@@ -116,8 +121,11 @@ def rectangle_perimeter(length: float, width: float) -> float:
         width: The width of the rectangle.
 
     Raises:
+        TypeError: If length or width is not a number.
         ValueError: If length or width is negative.
     """
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return 2 * (length + width)
@@ -133,6 +141,10 @@ def triangle_area(base: float, height: float) -> float:
     Raises:
         ValueError: If base or height is negative.
     """
+    base = _require_number(base, "base")
+    height = _require_number(height, "height")
+    base = _require_number(base, "base")
+    height = _require_number(height, "height")
     if base < 0 or height < 0:
         raise ValueError("Base and height cannot be negative.")
     return 0.5 * base * height
@@ -147,8 +159,12 @@ def triangle_perimeter(side_a: float, side_b: float, side_c: float) -> float:
         side_c: Length of the third side.
 
     Raises:
+        TypeError: If any side is not a number.
         ValueError: If any side is negative or the sides violate the triangle inequality.
     """
+    side_a = _require_number(side_a, "side_a")
+    side_b = _require_number(side_b, "side_b")
+    side_c = _require_number(side_c, "side_c")
     if side_a < 0 or side_b < 0 or side_c < 0:
         raise ValueError("Sides cannot be negative.")
     if not (side_a + side_b > side_c and side_a + side_c > side_b and side_b + side_c > side_a):
@@ -171,6 +187,7 @@ def square_area(side: float) -> float:
         >>> square_area(0)
         0
     """
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return side * side
@@ -183,6 +200,7 @@ def square_perimeter(side: float) -> float:
         side: The side length of the square.
 
     Raises:
+        TypeError: If side is not a number.
         ValueError: If side is negative.
 
     Examples:
@@ -191,6 +209,7 @@ def square_perimeter(side: float) -> float:
         >>> square_perimeter(0)
         0
     """
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return 4 * side
@@ -210,6 +229,8 @@ def rhombus_area(diagonal1: float, diagonal2: float) -> float:
         >>> rhombus_area(6, 8)
         24.0
     """
+    diagonal1 = _require_number(diagonal1, "diagonal1")
+    diagonal2 = _require_number(diagonal2, "diagonal2")
     if diagonal1 < 0 or diagonal2 < 0:
         raise ValueError("Diagonals cannot be negative.")
     return 0.5 * diagonal1 * diagonal2
@@ -222,12 +243,14 @@ def rhombus_perimeter(side: float) -> float:
         side: The side length of the rhombus.
 
     Raises:
+        TypeError: If side is not a number.
         ValueError: If side is negative.
 
     Examples:
         >>> rhombus_perimeter(5)
         20
     """
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return 4 * side
@@ -248,6 +271,9 @@ def trapezoid_area(base1: float, base2: float, height: float) -> float:
         >>> trapezoid_area(4, 6, 5)
         25.0
     """
+    base1 = _require_number(base1, "base1")
+    base2 = _require_number(base2, "base2")
+    height = _require_number(height, "height")
     if base1 < 0 or base2 < 0 or height < 0:
         raise ValueError("Dimensions cannot be negative.")
     return 0.5 * (base1 + base2) * height
@@ -265,9 +291,12 @@ def triangle_heron_area(side_a: float, side_b: float, side_c: float) -> float:
         ValueError: If any side is negative or the sides violate the triangle inequality.
 
     Examples:
-        >>> triangle_heron_area(3, 4, 5)
-        6.0
+    >>> triangle_heron_area(3, 4, 5)
+    6.0
     """
+    side_a = _require_number(side_a, "side_a")
+    side_b = _require_number(side_b, "side_b")
+    side_c = _require_number(side_c, "side_c")
     if side_a < 0 or side_b < 0 or side_c < 0:
         raise ValueError("Sides cannot be negative.")
     if not (side_a + side_b > side_c and side_a + side_c > side_b and side_b + side_c > side_a):
@@ -328,6 +357,8 @@ def parallelogram_area(base: float, height: float) -> float:
         >>> parallelogram_area(4, 5)
         20
     """
+    base = _require_number(base, "base")
+    height = _require_number(height, "height")
     if base < 0 or height < 0:
         raise ValueError("Base and height cannot be negative.")
     return base * height
@@ -341,12 +372,15 @@ def parallelogram_perimeter(side_a: float, side_b: float) -> float:
         side_b: Length of the adjacent side.
 
     Raises:
+        TypeError: If either side is not a number.
         ValueError: If either side is negative.
 
     Examples:
         >>> parallelogram_perimeter(4, 6)
         20
     """
+    side_a = _require_number(side_a, "side_a")
+    side_b = _require_number(side_b, "side_b")
     if side_a < 0 or side_b < 0:
         raise ValueError("Sides cannot be negative.")
     return 2 * (side_a + side_b)
@@ -366,6 +400,8 @@ def ellipse_area(a: float, b: float) -> float:
         >>> ellipse_area(2, 1)
         6.283185307179586
     """
+    a = _require_number(a, "a")
+    b = _require_number(b, "b")
     if a < 0 or b < 0:
         raise ValueError("Semi-axes cannot be negative.")
     return math.pi * a * b
@@ -457,6 +493,7 @@ def regular_polygon_perimeter(n: int, side_length: float) -> float:
 
 def circle_diameter(radius: float) -> float:
     """Return the diameter of a circle with the given radius."""
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return 2 * radius
@@ -464,6 +501,9 @@ def circle_diameter(radius: float) -> float:
 
 def rectangle_diagonal(length: float, width: float) -> float:
     """Return the diagonal of a rectangle."""
+
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
     return float((length**2 + width**2) ** 0.5)
