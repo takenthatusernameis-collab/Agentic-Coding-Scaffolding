@@ -179,8 +179,25 @@ class TestHasUppercase(unittest.TestCase):
         self.assertEqual(result, "Hello***")
 
     def test_truncate_when_suffix_too_long(self):
+        # When max_length is smaller than the suffix, the suffix is truncated
+        # to fit rather than being silently dropped, matching the docstring
+        # contract that the suffix is appended whenever the text is truncated.
         result = truncate_prompt("Hello", 2, suffix="...")
-        self.assertEqual(result, "He")
+        self.assertEqual(result, "..")
+
+    def test_truncate_appends_full_suffix_when_it_fills_width(self):
+        result = truncate_prompt("Hello world", 3, suffix="...")
+        self.assertEqual(result, "...")
+
+    def test_truncate_appends_suffix_when_no_room_for_text(self):
+        # max_length is smaller than the suffix, so only the truncated suffix
+        # is returned (no text fits).
+        result = truncate_prompt("Hello world", 5, suffix=" <more>")
+        self.assertEqual(result, " <mor")
+
+    def test_truncate_empty_suffix_when_no_room(self):
+        result = truncate_prompt("Hello world", 0, suffix="...")
+        self.assertEqual(result, "")
 
     def test_truncate_rejects_non_str_text(self):
         with self.assertRaises(TypeError):
@@ -535,8 +552,19 @@ class TestWrapPrompt(unittest.TestCase):
         self.assertIn("\n", result)
 
     def test_wrap_zero_width(self):
+        # width=0 must normalize whitespace the same way every width>0 path
+        # does (collapsing runs of whitespace to single spaces), so the
+        # function's whitespace handling is consistent regardless of width.
         result = wrap_prompt("Hello", 0)
         self.assertEqual(result, "Hello")
+
+    def test_wrap_zero_width_normalizes_whitespace(self):
+        result = wrap_prompt("Hello   world", 0)
+        self.assertEqual(result, "Hello world")
+
+    def test_wrap_zero_width_strips_edges(self):
+        result = wrap_prompt("  Hello world  ", 0)
+        self.assertEqual(result, "Hello world")
 
     def test_wrap_rejects_non_str(self):
         with self.assertRaises(TypeError):

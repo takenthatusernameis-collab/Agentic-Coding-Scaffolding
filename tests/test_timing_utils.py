@@ -68,6 +68,22 @@ class TestElapsedTime(unittest.TestCase):
         elapsed = elapsed_time(start)
         self.assertIsInstance(elapsed, float)
 
+    def test_elapsed_time_rejects_non_number(self):
+        with self.assertRaises(TypeError):
+            elapsed_time("not a number")  # type: ignore[arg-type]
+
+    def test_elapsed_time_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            elapsed_time(True)  # type: ignore[arg-type]
+
+    def test_elapsed_time_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            elapsed_time(float("nan"))
+
+    def test_elapsed_time_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            elapsed_time(float("inf"))
+
 
 class TestBenchmarkDecorator(unittest.TestCase):
     """Test the benchmark decorator."""

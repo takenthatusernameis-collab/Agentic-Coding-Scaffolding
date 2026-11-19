@@ -6,6 +6,7 @@ time, and a decorator for benchmarking function execution.
 """
 
 import functools
+import math
 import time
 from typing import Any, Callable, TypeVar, cast
 
@@ -55,15 +56,27 @@ def elapsed_time(start_time: float) -> float:
 
     Args:
         start_time: Start time as returned by time.perf_counter() or time.time().
+                    Must be a finite number (int or float); booleans, NaN,
+                    and ±inf are rejected.
 
     Returns:
         Elapsed time in seconds.
+
+    Raises:
+        TypeError: If *start_time* is not a number (including booleans).
+        ValueError: If *start_time* is not finite (NaN or ±inf).
 
     Examples:
         >>> start = time.perf_counter()
         >>> elapsed_time(start) >= 0
         True
     """
+    if isinstance(start_time, bool) or not isinstance(start_time, (int, float)):
+        raise TypeError(
+            f"start_time must be a number, got {type(start_time).__name__}"
+        )
+    if not math.isfinite(start_time):
+        raise ValueError("start_time must be finite")
     return time.perf_counter() - start_time
 
 

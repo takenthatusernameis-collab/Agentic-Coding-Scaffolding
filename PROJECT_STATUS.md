@@ -1,3 +1,18 @@
+## Latest Session (2026-11-19) — `prompt_utils` and `timing_utils` contract fixes
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=0 — clean tree, no source-relevant change since verified checkpoint `1e01dc9`; HEAD `31082c0` is CI bookkeeping only, so the prior battery was still valid and was not re-run before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed redundant discovery, and the session spent its work on the three concrete leads recorded in `.kilo/next_task.md` instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  1. `prompt_utils.truncate_prompt` documented `suffix` as "the suffix to append when truncated" but silently dropped it when `max_length <= len(suffix)`. The branch now truncates the suffix to fit, so the suffix is always appended (truncated if necessary) whenever the text is truncated and the result never exceeds `max_length`.
+  2. `prompt_utils.wrap_prompt(width=0)` returned the raw text without the whitespace normalization that every `width > 0` path applies. `width == 0` now applies the same normalization and returns the normalized text with no line wrapping.
+  3. `timing_utils.elapsed_time` accepted non-numeric `start_time` and relied on the subtraction `TypeError` with no `Raises:` clause. It now validates `start_time` explicitly: booleans and non-numbers raise `TypeError`, non-finite values (`NaN`, `±inf`) raise `ValueError`.
+- **Tests:** `prompt_utils` — `test_truncate_appends_full_suffix_when_it_fills_width`, `test_truncate_appends_suffix_when_no_room_for_text`, `test_truncate_empty_suffix_when_no_room`, `test_wrap_zero_width_normalizes_whitespace`, `test_wrap_zero_width_strips_edges`; `timing_utils` — `test_elapsed_time_rejects_non_number`, `test_elapsed_time_rejects_bool`, `test_elapsed_time_rejects_nan`, `test_elapsed_time_rejects_infinity`. All fail before the fix, pass after.
+- **Defect class:** silently ignored parameters / docstring-vs-implementation contracts / accepts-invalid-input in hand-rolled `*_utils` modules (targeted defect-hunt pass over modules earlier sweeps missed).
+- **Verification:** `python -m unittest tests.test_prompt_utils tests.test_timing_utils` — 634 OK; `python -m doctest prompt_utils.py timing_utils.py` — OK; `python -m ruff check prompt_utils.py timing_utils.py tests/test_prompt_utils.py tests/test_timing_utils.py` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `prompt_utils.py`, `tests/test_prompt_utils.py`, `timing_utils.py`, `tests/test_timing_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+- **Next task:** recorded in `.kilo/next_task.md`; board lists only `main` (self), so `board_post` has no other recipient.
+
 ## Latest Session (2026-11-19) — `temp_utils.write_temp_file` drops an ignored `delete` parameter
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

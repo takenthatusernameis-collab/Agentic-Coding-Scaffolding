@@ -143,7 +143,10 @@ def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
         suffix: The suffix to append when truncated.
 
     Returns:
-        The truncated text.
+        The truncated text. When the text is truncated, *suffix* is appended
+        to the kept prefix; if *max_length* is too small to hold the full
+        suffix, the suffix itself is truncated to fit so that the returned
+        string never exceeds *max_length*.
 
     Raises:
         TypeError: If *text*, *max_length*, or *suffix* are not the expected
@@ -155,6 +158,10 @@ def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
         'He...'
         >>> truncate_prompt("Short", 10)
         'Short'
+        >>> truncate_prompt("Hello world", 3, suffix="...")
+        '...'
+        >>> truncate_prompt("Hello", 2, suffix="...")
+        '..'
     """
     _require_string(text, "text")
     _require_int(max_length, "max_length")
@@ -163,9 +170,10 @@ def truncate_prompt(text: str, max_length: int, suffix: str = "...") -> str:
     _require_string(suffix, "suffix")
     if len(text) <= max_length:
         return text
-    if max_length <= len(suffix):
-        return text[:max_length]
-    return text[: max_length - len(suffix)] + suffix
+    # Truncate the suffix to fit within max_length so the contract "the suffix
+    # is appended when truncated" is honoured even when there is no room for
+    # any text.
+    return text[: max(0, max_length - len(suffix))] + suffix[:max_length]
 
 
 def format_prompt_template(template: str, **kwargs: Any) -> str:
@@ -446,9 +454,17 @@ def has_placeholders(template: str) -> bool:
 def wrap_prompt(text: str, width: int = 80) -> str:
     """Wrap prompt text to a specific width.
 
+    Whitespace is normalized before wrapping: runs of whitespace are
+    collapsed to single spaces and leading/trailing whitespace is stripped.
+    This normalization is applied for every *width* value, including
+    *width=0*, so callers get consistent whitespace handling regardless of
+    the requested width. With *width=0* the text is returned after
+    normalization only (no line wrapping is performed).
+
     Args:
         text: The text to wrap.
-        width: The maximum line width.
+        width: The maximum line width. ``0`` disables wrapping but still
+            normalizes whitespace.
 
     Returns:
         Wrapped text.
@@ -460,14 +476,21 @@ def wrap_prompt(text: str, width: int = 80) -> str:
     Examples:
         >>> wrap_prompt("This is a long line that should be wrapped", 24)
         'This is a long line that\\nshould be wrapped'
+        >>> wrap_prompt("  Hello   world  ", 0)
+        'Hello world'
     """
     _require_string(text, "text")
     _require_int(width, "width")
     if width < 0:
         raise ValueError("width must be non-negative")
+    # Normalize whitespace the same way every width>0 path does (the word
+    # split collapses runs of whitespace and strips the edges). This keeps
+    # the width=0 contract consistent with the wrapping paths instead of
+    # returning the raw, un-normalized text.
+    normalized = " ".join(text.split())
     if width == 0:
-        return text
-    words = text.split()
+        return normalized
+    words = normalized.split()
     lines: List[str] = []
     current_line: List[str] = []
 
