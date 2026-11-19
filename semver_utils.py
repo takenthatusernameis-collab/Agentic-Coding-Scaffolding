@@ -17,6 +17,7 @@ SEMVER_RE = re.compile(
     r"(?:-(?P<prerelease>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?"
     r"(?:\+(?P<build>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?$"
 )
+_IDENTIFIER_RE = re.compile(r"[0-9A-Za-z\-]+")
 __all__ = [
     "SemanticVersion",
     "bump_major",
@@ -127,6 +128,10 @@ def _validate_semver_identifiers(name: str, value: Optional[str]) -> None:
     for part in value.split("."):
         if not part:
             raise ValueError(f"{name} identifiers must not be empty")
+        if _IDENTIFIER_RE.fullmatch(part) is None:
+            raise ValueError(
+                f"{name} identifiers may only contain ASCII alphanumerics and hyphens"
+            )
         if (
             name == "prerelease"
             and part.isascii()

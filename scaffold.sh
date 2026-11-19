@@ -71346,6 +71346,7 @@ SEMVER_RE = re.compile(
     r"(?:-(?P<prerelease>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?"
     r"(?:\+(?P<build>[0-9A-Za-z\-]+(?:\.[0-9A-Za-z\-]+)*))?$"
 )
+_IDENTIFIER_RE = re.compile(r"[0-9A-Za-z\-]+")
 __all__ = [
     "SemanticVersion",
     "bump_major",
@@ -71456,6 +71457,10 @@ def _validate_semver_identifiers(name: str, value: Optional[str]) -> None:
     for part in value.split("."):
         if not part:
             raise ValueError(f"{name} identifiers must not be empty")
+        if _IDENTIFIER_RE.fullmatch(part) is None:
+            raise ValueError(
+                f"{name} identifiers may only contain ASCII alphanumerics and hyphens"
+            )
         if (
             name == "prerelease"
             and part.isascii()
@@ -71794,6 +71799,25 @@ class TestSemanticVersionIdentifierValidation(unittest.TestCase):
         for bad in ("01", "alpha.01", "00", "1.02"):
             with self.assertRaises(ValueError):
                 SemanticVersion(1, 0, 0, prerelease=bad)
+
+    def test_rejects_invalid_prerelease_characters(self):
+        for bad in ("alpha_1", "rc 1", "alpha!", "alpha/beta", "\u00df"):
+            with self.assertRaises(ValueError):
+                SemanticVersion(1, 0, 0, prerelease=bad)
+
+    def test_rejects_invalid_build_characters(self):
+        for bad in ("build_1", "build 1", "build/1", "\u00fc"):
+            with self.assertRaises(ValueError):
+                SemanticVersion(1, 0, 0, build=bad)
+
+    def test_constructor_output_is_valid_semver(self):
+        for prerelease, build in (
+            ("alpha.1", None),
+            (None, "build.123.sha"),
+            ("rc-1", "sha-abc"),
+        ):
+            v = SemanticVersion(1, 0, 0, prerelease=prerelease, build=build)
+            self.assertTrue(is_valid_semver(str(v)))
 
     def test_accepts_valid_identifiers(self):
         v = SemanticVersion(1, 0, 0, prerelease="alpha.1.0", build="build.123.sha")
@@ -73045,6 +73069,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `SemanticVersion` rejects invalid pre-release/build characters
+
+- **Correctness fix — the constructor could build versions that `parse_semver` rejects.** `SemanticVersion.__init__` validated the *shape* of `prerelease`/`build` (non-empty dot-separated identifiers) and rejected numeric pre-release identifiers with leading zeroes, but it never enforced the semver 2.0.0 character set (`[0-9A-Za-z-]`). A caller could therefore construct `SemanticVersion(1, 0, 0, prerelease="alpha_1")` (or `build="build/1"`, `build="ü"`), whose `str()` is not a valid semantic version even though `parse_semver` rejects the same text — the class could represent states its own parser forbids. `_validate_semver_identifiers` now rejects any identifier that is not pure ASCII alphanumerics/hyphens for both fields, so every constructed version round-trips through `parse_semver`.
+- **Tests:** `test_rejects_invalid_prerelease_characters`, `test_rejects_invalid_build_characters`, and `test_constructor_output_is_valid_semver` (the first two fail before the fix, the third locks in the round-trip invariant).
+- **Defect class:** accepts-invalid-input (`*_utils` hand-rolled validator), found by a fresh pass over modules not covered by earlier sweeps.
+- Validation: `python -m unittest tests.test_semver_utils` — 41 OK; `python -m doctest semver_utils.py` — OK; `python -m ruff check semver_utils.py tests/test_semver_utils.py` — clean; `python -m mypy semver_utils.py tests/test_semver_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `audit_contracts --depth` is forwarded to the audit again
 
 - **Tooling fix — the documented `--depth` flag had no effect on the report.** `audit_paths()` accepted a `depth` argument and `main()` passed `args.depth` into it, but the per-file call was `audit_source(source, str(path))` while `audit_source` hardcoded `raises_closure(node, index, 3)`. The parameter was therefore validated (a negative value is rejected) and then silently ignored: `--depth 0` and `--depth 3` produced identical output. `audit_source` now takes a `depth` parameter (default 3, so direct callers are unchanged) and `audit_paths` forwards it, so the flag bounds the same-module helper traversal it documents. On `case_utils.py`, `--depth 0` now reports the 10 helper-raised contracts that the default depth correctly suppresses.

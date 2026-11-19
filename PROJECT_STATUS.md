@@ -1,3 +1,14 @@
+## Latest Session (2026-11-19) — defect fix: `SemanticVersion` rejects invalid pre-release/build characters
+
+- `board_read`: empty (bootstrap session); executed the durable handoff in `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, prior verification still valid at checkpoint `568413c`; no redundant re-audit before editing.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe skipped a redundant full sweep, and a bounded fresh-eyes pass targeted modules outside the earlier sweep list (`semver_utils`, `roman_utils`, `slugify_utils`, `interval_utils`, `priority_queue_utils`, `ring_buffer_utils`) instead of re-reviewing covered modules.
+- **Defect fixed (failing-test-first):** `semver_utils.SemanticVersion.__init__` validated identifier shape (non-empty dot-separated parts) and rejected numeric pre-release leading zeroes but never enforced the semver 2.0.0 character set. `SemanticVersion(1, 0, 0, prerelease="alpha_1")` (and `build="build/1"`, `build="ü"`) produced a version whose `str()` is not a valid semantic version even though `parse_semver` rejects the same text. `_validate_semver_identifiers` now rejects any part that is not pure ASCII alphanumerics/hyphens for `prerelease` and `build`, so every constructed version round-trips through `parse_semver`.
+- **Tests:** `test_rejects_invalid_prerelease_characters`, `test_rejects_invalid_build_characters` (both red before the fix), and `test_constructor_output_is_valid_semver` (locks the round-trip invariant).
+- **Defect class:** accepts-invalid-input / hand-rolled validator integrity gap.
+- **Verification:** `python -m unittest tests.test_semver_utils` — 41 OK; `python -m doctest semver_utils.py` — OK; `python -m ruff check semver_utils.py tests/test_semver_utils.py` — clean; `python -m mypy semver_utils.py tests/test_semver_utils.py` — clean; `python -m pytest tests/` — 11725 passed, 4 skipped, 4298 subtests passed; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed the embedded `semver_utils.py`, `tests/test_semver_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — routine verification battery green; checkpoint advanced to HEAD
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).

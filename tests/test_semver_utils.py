@@ -234,6 +234,25 @@ class TestSemanticVersionIdentifierValidation(unittest.TestCase):
             with self.assertRaises(ValueError):
                 SemanticVersion(1, 0, 0, prerelease=bad)
 
+    def test_rejects_invalid_prerelease_characters(self):
+        for bad in ("alpha_1", "rc 1", "alpha!", "alpha/beta", "\u00df"):
+            with self.assertRaises(ValueError):
+                SemanticVersion(1, 0, 0, prerelease=bad)
+
+    def test_rejects_invalid_build_characters(self):
+        for bad in ("build_1", "build 1", "build/1", "\u00fc"):
+            with self.assertRaises(ValueError):
+                SemanticVersion(1, 0, 0, build=bad)
+
+    def test_constructor_output_is_valid_semver(self):
+        for prerelease, build in (
+            ("alpha.1", None),
+            (None, "build.123.sha"),
+            ("rc-1", "sha-abc"),
+        ):
+            v = SemanticVersion(1, 0, 0, prerelease=prerelease, build=build)
+            self.assertTrue(is_valid_semver(str(v)))
+
     def test_accepts_valid_identifiers(self):
         v = SemanticVersion(1, 0, 0, prerelease="alpha.1.0", build="build.123.sha")
         self.assertEqual(str(v), "1.0.0-alpha.1.0+build.123.sha")
