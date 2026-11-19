@@ -53,6 +53,26 @@ class TestIsSlug(unittest.TestCase):
         self.assertTrue(is_slug("hello_world", "_"))
         self.assertFalse(is_slug("hello-world", "_"))
 
+    def test_is_slug_rejects_trailing_separator(self):
+        self.assertFalse(is_slug("hello-world-", "-"))
+        self.assertFalse(is_slug("helloabworldab", "ab"))
+
+    def test_is_slug_rejects_leading_separator(self):
+        self.assertFalse(is_slug("-hello-world", "-"))
+        self.assertFalse(is_slug("abhelloabworld", "ab"))
+
+    def test_is_slug_rejects_double_separator(self):
+        self.assertFalse(is_slug("hello--world", "-"))
+        self.assertFalse(is_slug("helloababworld", "ab"))
+
+    def test_is_slug_rejects_uppercase(self):
+        self.assertFalse(is_slug("Hello-world", "-"))
+        self.assertFalse(is_slug("hello-World", "-"))
+
+    def test_is_slug_alphanumeric_separator_valid(self):
+        self.assertTrue(is_slug("helloabworld", "ab"))
+        self.assertTrue(is_slug("foosepbar", "sep"))
+
 
 class TestDeslugify(unittest.TestCase):
     def test_deslugify(self):

@@ -38,8 +38,14 @@ def is_slug(text: str, separator: str = "-") -> bool:
         raise TypeError("text must be a str")
     if not text:
         return False
-    pattern = rf"^[a-z0-9]+({re.escape(separator)}[a-z0-9]+)*$"
-    return bool(re.fullmatch(pattern, text))
+    if not isinstance(separator, str) or not separator:
+        raise ValueError("separator must be a non-empty str")
+    parts = text.split(separator)
+    # No empty parts (no leading, trailing, or consecutive separators)
+    if any(not part for part in parts):
+        return False
+    # All parts must be lowercase alphanumeric
+    return all(part.isalnum() and part.lower() == part for part in parts)
 
 
 def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: str = "...") -> str:

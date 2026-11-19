@@ -73114,6 +73114,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `slugify_utils.is_slug` rejects invalid slugs with alphanumeric separators
+
+- **Correctness fix — `is_slug` gave false positives for invalid slugs when the separator contained alphanumeric characters.** The regex-based validation `^[a-z0-9]+(separator[a-z0-9]+)*$` failed because the initial `[a-z0-9]+` could consume the entire string including separators (since alphanumeric separators are themselves matched by `[a-z0-9]`). This caused `is_slug("helloabworldab", "ab")` (trailing separator), `is_slug("abhelloabworld", "ab")` (leading separator), and `is_slug("helloababworld", "ab")` (double separator) to incorrectly return `True`. The fix replaces the regex with a split-based validation that checks for non-empty parts and lowercase alphanumeric content. Added `test_is_slug_rejects_trailing_separator`, `test_is_slug_rejects_leading_separator`, `test_is_slug_rejects_double_separator`, `test_is_slug_rejects_uppercase`, and `test_is_slug_alphanumeric_separator_valid` (the first three fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / regex validation gap in a hand-rolled `*_utils` module (targeted defect-hunt pass over modules earlier sweeps missed).
+- Validation: `python -m unittest tests.test_slugify_utils` — 40 OK; `python -m doctest slugify_utils.py` — OK; `python -m ruff check slugify_utils.py tests/test_slugify_utils.py` — clean; `python -m mypy slugify_utils.py tests/test_slugify_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `statistics_utils.normalize` rejects non-finite values
 
 - **Correctness fix — `normalize` checked for NaN but silently accepted infinity.** The method documents a `[0, 1]` output range and already raised `ValueError` for NaN inputs, but `float("inf")` slipped through: `min`/`max` then produced an infinite scale, so `normalize([1, float("inf"), 3])` returned `[0.0, nan, 0.0]` instead of raising. The guard now rejects both NaN and infinity, so every result is finite and bounded. Added `test_normalize_rejects_infinite_values` and `test_normalize_output_is_finite_and_bounded` (both fail before the fix, pass after).
@@ -162591,8 +162597,8 @@ def slugify(text: str, separator: str = "-") -> str:
     normalized = unicodedata.normalize("NFKD", text)
     ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
     lowered = ascii_text.lower()
-    cleaned = re.sub(r"[^a-z0-9]+", separator, lowered)
-    return cleaned.strip(separator)
+    words = re.findall(r"[a-z0-9]+", lowered)
+    return separator.join(words)
 
 
 def is_slug(text: str, separator: str = "-") -> bool:
@@ -162601,8 +162607,14 @@ def is_slug(text: str, separator: str = "-") -> bool:
         raise TypeError("text must be a str")
     if not text:
         return False
-    pattern = rf"^[a-z0-9]+({re.escape(separator)}[a-z0-9]+)*$"
-    return bool(re.fullmatch(pattern, text))
+    if not isinstance(separator, str) or not separator:
+        raise ValueError("separator must be a non-empty str")
+    parts = text.split(separator)
+    # No empty parts (no leading, trailing, or consecutive separators)
+    if any(not part for part in parts):
+        return False
+    # All parts must be lowercase alphanumeric
+    return all(part.isalnum() and part.lower() == part for part in parts)
 
 
 def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: str = "...") -> str:
@@ -162636,12 +162648,31 @@ def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: st
         return text
     if max_length <= len(ellipsis):
         return ellipsis[:max_length]
-    limit = max_length - len(ellipsis)
-    cut = text[:limit]
-    idx = cut.rfind(separator)
-    if idx > 0:
-        cut = cut[:idx]
-    return cut.rstrip(separator) + ellipsis
+
+    # Find the last separator position where prefix + ellipsis <= max_length
+    # Search in the full text up to max_length - len(ellipsis) + len(separator)
+    # to catch separators that start within the limit but end at or past it.
+    search_limit = max_length - len(ellipsis) + len(separator)
+    if search_limit > len(text):
+        search_limit = len(text)
+
+    idx = text.rfind(separator, 0, search_limit)
+    while idx > 0:
+        candidate = text[:idx] + ellipsis
+        if len(candidate) <= max_length:
+            # Strip any trailing separator substring from the prefix
+            prefix = text[:idx]
+            while prefix.endswith(separator):
+                prefix = prefix[:-len(separator)]
+            return prefix + ellipsis
+        # Try earlier separator
+        idx = text.rfind(separator, 0, idx)
+
+    # No suitable separator found; hard cut
+    hard_cut = text[:max_length - len(ellipsis)]
+    while hard_cut.endswith(separator):
+        hard_cut = hard_cut[:-len(separator)]
+    return hard_cut + ellipsis
 
 
 def deslugify(text: str, separator: str = "-") -> str:
@@ -162720,6 +162751,14 @@ class TestSlugify(unittest.TestCase):
     def test_slugify_strips_leading_trailing_separators(self):
         self.assertEqual(slugify(" -- Hello World -- "), "hello-world")
 
+    def test_slugify_separator_chars_in_word_not_stripped(self):
+        # separator="ab" should not strip "ab" from end of word "cab"
+        self.assertEqual(slugify("hello world cab", "ab"), "helloabworldabcab")
+
+    def test_slugify_multi_char_separator_preserves_word_boundaries(self):
+        # Multi-char separator should work correctly
+        self.assertEqual(slugify("foo bar baz", "--"), "foo--bar--baz")
+
 
 class TestIsSlug(unittest.TestCase):
     def test_is_slug(self):
@@ -162738,6 +162777,26 @@ class TestIsSlug(unittest.TestCase):
     def test_is_slug_custom_separator(self):
         self.assertTrue(is_slug("hello_world", "_"))
         self.assertFalse(is_slug("hello-world", "_"))
+
+    def test_is_slug_rejects_trailing_separator(self):
+        self.assertFalse(is_slug("hello-world-", "-"))
+        self.assertFalse(is_slug("helloabworldab", "ab"))
+
+    def test_is_slug_rejects_leading_separator(self):
+        self.assertFalse(is_slug("-hello-world", "-"))
+        self.assertFalse(is_slug("abhelloabworld", "ab"))
+
+    def test_is_slug_rejects_double_separator(self):
+        self.assertFalse(is_slug("hello--world", "-"))
+        self.assertFalse(is_slug("helloababworld", "ab"))
+
+    def test_is_slug_rejects_uppercase(self):
+        self.assertFalse(is_slug("Hello-world", "-"))
+        self.assertFalse(is_slug("hello-World", "-"))
+
+    def test_is_slug_alphanumeric_separator_valid(self):
+        self.assertTrue(is_slug("helloabworld", "ab"))
+        self.assertTrue(is_slug("foosepbar", "sep"))
 
 
 class TestDeslugify(unittest.TestCase):
@@ -162786,6 +162845,16 @@ class TestTruncateSlug(unittest.TestCase):
             truncate_slug("hello-world-foo-bar", 12, ellipsis=".."),
             "hello..",
         )
+
+    def test_truncate_slug_multi_char_separator(self):
+        slug = "foo--bar--baz--qux"
+        self.assertEqual(truncate_slug(slug, 12, separator="--"), "foo--bar...")
+
+    def test_truncate_slug_separator_chars_in_word_not_stripped(self):
+        # separator="ab" should not strip "ab" from end of word when truncating
+        slug = "helloabworldabcab"  # from slugify("hello world cab", "ab")
+        # Truncate to include "cab" but before next separator
+        self.assertEqual(truncate_slug(slug, 20, separator="ab"), "helloabworldabcab")
 
 
 class TestSlugifyMany(unittest.TestCase):
