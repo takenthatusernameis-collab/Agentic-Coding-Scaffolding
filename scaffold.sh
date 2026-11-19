@@ -33017,6 +33017,27 @@ class TestFilterTree(unittest.TestCase):
         self.assertIsNone(filter_tree(lambda x: x > 1, 0))
 
 
+class TestFilterTreePredicateInvocation(unittest.TestCase):
+    def test_filter_tree_calls_predicate_once_per_leaf(self):
+        calls = []
+
+        def pred(x):
+            calls.append(x)
+            return x > 1
+
+        filter_tree(pred, {"a": 1, "b": 2, "c": [1, 2]})
+        self.assertEqual(sorted(calls), [1, 1, 2, 2])
+
+    def test_filter_tree_preserves_stateful_predicate_result(self):
+        seen = []
+
+        def pred(x):
+            seen.append(x)
+            return len(seen) == 1
+
+        self.assertEqual(filter_tree(pred, {"a": 10, "b": 20}), {"a": 10})
+
+
 class TestSetNestedRejectsNonDictIntermediate(unittest.TestCase):
     def test_set_nested_rejects_scalar_intermediate(self):
         # A non-dict intermediate must not be silently overwritten with a dict,
@@ -45870,7 +45891,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     tuples are treated as branches: each element is filtered recursively and
     the branch is kept only when at least one element survives, so containers
     that become empty are dropped. Filtering a bare leaf returns the leaf when
-    it passes the predicate and ``None`` otherwise.
+    it passes the predicate and ``None`` otherwise. ``pred`` is invoked exactly
+    once per leaf value.
 
     Args:
         pred: The predicate function returning True for values to keep.
@@ -45886,8 +45908,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     if isinstance(tree, dict):
         result: Dict[str, Any] = {}
         for k, v in tree.items():
-            filtered = filter_tree(pred, v)
             if isinstance(v, (dict, list, tuple)):
+                filtered = filter_tree(pred, v)
                 if filtered:
                     result[k] = filtered
             else:
@@ -45897,8 +45919,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     elif isinstance(tree, list):
         result_list = []
         for item in tree:
-            filtered = filter_tree(pred, item)
-            if isinstance(filtered, (dict, list, tuple)):
+            if isinstance(item, (dict, list, tuple)):
+                filtered = filter_tree(pred, item)
                 if filtered:
                     result_list.append(filtered)
             else:
@@ -45908,8 +45930,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     elif isinstance(tree, tuple):
         result_list = []
         for item in tree:
-            filtered = filter_tree(pred, item)
-            if isinstance(filtered, (dict, list, tuple)):
+            if isinstance(item, (dict, list, tuple)):
+                filtered = filter_tree(pred, item)
                 if filtered:
                     result_list.append(filtered)
             else:
@@ -51863,6 +51885,7 @@ timeouts, giving the dependency time to recover.
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 from typing import Any, Callable, Optional, Tuple, TypeVar, Union
@@ -51896,7 +51919,7 @@ class CircuitBreaker:
             ``recovery_timeout`` is not a number, or ``expected_exception`` is
             not an exception class or tuple of exception classes.
         ValueError: If ``failure_threshold`` is less than 1 or
-            ``recovery_timeout`` is not greater than 0.
+            ``recovery_timeout`` is not a finite number greater than 0.
     """
 
     CLOSED = "closed"
@@ -51915,6 +51938,8 @@ class CircuitBreaker:
             raise ValueError("failure_threshold must be at least 1")
         if isinstance(recovery_timeout, bool) or not isinstance(recovery_timeout, (int, float)):
             raise TypeError("recovery_timeout must be a number")
+        if not math.isfinite(recovery_timeout):
+            raise ValueError("recovery_timeout must be a finite number")
         if recovery_timeout <= 0:
             raise ValueError("recovery_timeout must be greater than 0")
 
@@ -52262,6 +52287,13 @@ class TestCircuitBreaker(unittest.TestCase):
             CircuitBreaker(recovery_timeout="30")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             CircuitBreaker(recovery_timeout=0)
+
+    def test_non_finite_timeout_raises(self):
+        # A NaN timeout never elapses (any comparison is False), so the circuit
+        # would stay OPEN forever; an infinite timeout never recovers either.
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                CircuitBreaker(recovery_timeout=value)
 
     def test_invalid_expected_exception_raises(self):
         with self.assertRaises(TypeError):
