@@ -1,3 +1,15 @@
+## Latest Session (2026-11-19) — defect fix: `rate_limiter_utils` rejects `bool` rate/capacity/tokens
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1; ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to 86eb919.
+- **Optimize-delays survey:** no avoidable repository-managed delay; probe confirmed prior verification still valid, so the session spent its work on one real defect in `rate_limiter_utils.py` instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `RateLimiter.__init__` admitted `bool` for `rate` and `capacity` (e.g. `RateLimiter(rate=True)` was accepted as rate=1.0 instead of raising), and `acquire`/`acquire_blocking` admitted `bool` for `tokens`, contradicting the project-wide bool-rejection convention. All three parameters now reject `bool`/non-numeric input with `TypeError` before any range check. Added `test_rate_rejects_bool`, `test_capacity_rejects_bool`, `test_acquire_rejects_bool_tokens`, and `test_acquire_blocking_rejects_bool_tokens` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input (`bool` where a number is required) in a hand-rolled module.
+- **Tests:** `python -m unittest tests.test_rate_limiter_utils` — 16 OK.
+- **Verification:** `python -m unittest discover tests/` — 11558 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync (refreshed embedded `rate_limiter_utils.py`, `tests/test_rate_limiter_utils.py`); `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** `scaffold.sh` refreshed (embedded `rate_limiter_utils` and `tests/test_rate_limiter_utils` copies synced); no source-relevant `.github/workflows/**` changes.
+- **Board:** only `main` (self) present; `board_post` to self refused, so next task recorded in `.kilo/handover.md` and `.kilo/next_task.md`.
+
 ## Latest Session (2026-11-19) — defect fix: `validation_utils.matches_regex` rejects flags with compiled pattern
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).

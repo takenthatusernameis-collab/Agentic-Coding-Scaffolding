@@ -92,6 +92,24 @@ class TestRateLimiter(unittest.TestCase):
         with self.assertRaises(ValueError):
             RateLimiter(rate=1.0, capacity=0.0)
 
+    def test_rate_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            RateLimiter(rate=True)
+
+    def test_capacity_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            RateLimiter(rate=1.0, capacity=True)
+
+    def test_acquire_rejects_bool_tokens(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        with self.assertRaises(TypeError):
+            limiter.acquire(True)
+
+    def test_acquire_blocking_rejects_bool_tokens(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        with self.assertRaises(TypeError):
+            limiter.acquire_blocking(True)
+
     def test_rate_limit_preserves_metadata(self):
         @rate_limit(rate=1000.0)
         def documented() -> str:

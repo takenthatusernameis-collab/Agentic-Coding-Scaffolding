@@ -2,9 +2,10 @@
 
 ## Done (this session)
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md`.
-- State probe rc=2 at start (checkpoint behind HEAD); ran `verify_state_delta --full --record-full-suite` — passed, checkpoint advanced to c9162d7.
-- Targeted defect hunt: reviewed `cooldown_utils.py` and `call_once_utils.py` (audit_contracts: 2 false-positive contract flags in `cooldown` decorator, which delegates validation to `Cooldown.__init__`). No genuine defect found; modules already validated by existing tests.
-- Verification: unittest discover passed previously; ruff/mypy/scaffold check clean.
+- State probe rc=1 at start; ran `verify_state_delta --full --record-full-suite` — passed, checkpoint advanced to 86eb919.
+- Targeted defect hunt: fixed `rate_limiter_utils.py` — `RateLimiter.__init__` admitted `bool` for `rate`/`capacity` and `acquire`/`acquire_blocking` admitted `bool` for `tokens`, contradicting the project-wide bool-rejection convention. Added failing tests first (`test_rate_rejects_bool`, `test_capacity_rejects_bool`, `test_acquire_rejects_bool_tokens`, `test_acquire_blocking_rejects_bool_tokens`), then fixed implementation to reject `bool`/non-numeric with `TypeError`.
+- Verification: unittest discover 11558 OK (skipped=4); ruff clean; mypy success (572 files); refresh-scaffold --check in sync; verify_state_delta --full --record-full-suite passed.
+- `scaffold.sh` refreshed (embedded `rate_limiter_utils.py` and `tests/test_rate_limiter_utils.py` copies synced).
 
 ## Next
 - Continue targeted defect hunt on remaining hand-rolled modules not yet test-verified (focus on accepts-invalid-input, silently ignored parameters, docstring-vs-implementation contracts, boundary/off-by-one). Write the failing test first.

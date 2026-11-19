@@ -41468,10 +41468,15 @@ class RateLimiter:
     """
 
     def __init__(self, rate: float, capacity: Optional[float] = None):
+        if isinstance(rate, bool) or not isinstance(rate, (int, float)):
+            raise TypeError("rate must be a number")
         if rate <= 0:
             raise ValueError("rate must be positive")
-        if capacity is not None and capacity <= 0:
-            raise ValueError("capacity must be positive")
+        if capacity is not None:
+            if isinstance(capacity, bool) or not isinstance(capacity, (int, float)):
+                raise TypeError("capacity must be a number")
+            if capacity <= 0:
+                raise ValueError("capacity must be positive")
         self.rate = float(rate)
         self.capacity = float(capacity if capacity is not None else rate)
         self.tokens = self.capacity
@@ -41496,6 +41501,8 @@ class RateLimiter:
             ValueError: If *tokens* is negative, which would otherwise silently
                 mint tokens instead of consuming them.
         """
+        if isinstance(tokens, bool) or not isinstance(tokens, (int, float)):
+            raise TypeError("tokens must be a number")
         if tokens < 0:
             raise ValueError("tokens must be non-negative")
         self._update()
@@ -41517,6 +41524,8 @@ class RateLimiter:
             ValueError: If *tokens* exceeds the bucket capacity. Such a request
                 can never be satisfied, so blocking on it would loop forever.
         """
+        if isinstance(tokens, bool) or not isinstance(tokens, (int, float)):
+            raise TypeError("tokens must be a number")
         if tokens > self.capacity:
             raise ValueError(
                 f"cannot acquire {tokens} tokens from a bucket with capacity "
@@ -55829,6 +55838,24 @@ class TestRateLimiter(unittest.TestCase):
     def test_non_positive_capacity_rejected(self):
         with self.assertRaises(ValueError):
             RateLimiter(rate=1.0, capacity=0.0)
+
+    def test_rate_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            RateLimiter(rate=True)
+
+    def test_capacity_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            RateLimiter(rate=1.0, capacity=True)
+
+    def test_acquire_rejects_bool_tokens(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        with self.assertRaises(TypeError):
+            limiter.acquire(True)
+
+    def test_acquire_blocking_rejects_bool_tokens(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        with self.assertRaises(TypeError):
+            limiter.acquire_blocking(True)
 
     def test_rate_limit_preserves_metadata(self):
         @rate_limit(rate=1000.0)
