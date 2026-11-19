@@ -10570,6 +10570,7 @@ def sign(x: float) -> int:
 
     Raises:
         TypeError: If x is not a real number (int or float) or is a bool.
+        ValueError: If x is NaN, which has no sign.
 
     Examples:
         >>> sign(5)
@@ -10581,6 +10582,8 @@ def sign(x: float) -> int:
     """
     if isinstance(x, bool) or not isinstance(x, (int, float)):
         raise TypeError("x must be a real number")
+    if math.isnan(x):
+        raise ValueError("x must not be NaN")
     if x > 0:
         return 1
     if x < 0:
@@ -11530,6 +11533,10 @@ class TestSign(unittest.TestCase):
             sign(None)
         with self.assertRaises(TypeError):
             sign([])
+
+    def test_sign_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            sign(float("nan"))
 
 
 class TestHypotenuse(unittest.TestCase):
@@ -73536,6 +73543,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `calculator.sign` rejects NaN
+
+- **Correctness fix — `calculator.sign(float("nan"))` silently returned `0`.** The function documents "`-1` if negative, `0` if zero, `1` if positive", but every comparison against NaN is `False`, so the final fallback returned `0`. A caller using `sign(x) == 0` as a zero test therefore classified NaN as zero. `sign` now raises `ValueError("x must not be NaN")` before the comparisons, matching the NaN rejection already in `calculator.clamp`, `statistics_utils.normalize`, and `validation_utils.is_numeric`. Added `TestSign.test_sign_rejects_nan` (fails before the fix, passes after).
+- **Defect class:** accepts-invalid-input / float edge case in a hand-rolled module (`calculator.py`).
+- Validation: `python -m unittest tests.test_calculator` — 134 OK; `python -m doctest calculator.py` — OK; `python -m ruff check calculator.py tests/test_calculator.py` — clean; `python -m mypy calculator.py tests/test_calculator.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `validation_utils.is_numeric` rejects non-finite values (nan/inf)
 
 - **Correctness fix — `is_numeric` accepted non-finite floats and their string forms.** The function documented "int, float, or string representing a number", but `float("nan")`, `float("inf")`, `float("-inf")` and the strings `"nan"`, `"inf"`, `"-inf"`, `"infinity"`, `"-infinity"` all returned `True`, because the float branch returned `True` unconditionally and the string branch only checked that `float()` did not raise. A caller using `is_numeric` as a numeric-eligibility gate would therefore admit NaN/Infinity. The float branch now requires `math.isfinite(value)` and the string branch parses and then requires `math.isfinite(parsed)`, so finite numeric values are accepted and every non-finite form is rejected. Added `test_rejects_non_finite_floats` and `test_rejects_non_finite_strings` (both fail before the fix, pass after).

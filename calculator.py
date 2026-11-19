@@ -584,6 +584,7 @@ def sign(x: float) -> int:
 
     Raises:
         TypeError: If x is not a real number (int or float) or is a bool.
+        ValueError: If x is NaN, which has no sign.
 
     Examples:
         >>> sign(5)
@@ -595,6 +596,8 @@ def sign(x: float) -> int:
     """
     if isinstance(x, bool) or not isinstance(x, (int, float)):
         raise TypeError("x must be a real number")
+    if math.isnan(x):
+        raise ValueError("x must not be NaN")
     if x > 0:
         return 1
     if x < 0:

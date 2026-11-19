@@ -1,3 +1,13 @@
+## Latest Session (2026-11-19) — defect fix: `calculator.sign` rejects NaN
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree, checkpoint `05c2c5e` behind HEAD `15f33a5` on bookkeeping-only commits); no redundant full re-audit before edits; advanced the checkpoint to HEAD via `--full --record-full-suite` at the end.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed the redundant discovery pass and the session spent its work on one real defect instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `calculator.sign(float("nan"))` silently returned `0` — every comparison against NaN is `False`, so the documented `-1/0/1` contract fell through to the zero branch, making a caller's `sign(x) == 0` zero test classify NaN as zero. `sign` now raises `ValueError("x must not be NaN")` before the comparisons, matching the NaN rejection in `calculator.clamp`, `statistics_utils.normalize`, and `validation_utils.is_numeric`. Added `TestSign.test_sign_rejects_nan` (red before the fix, green after).
+- **Defect class:** accepts-invalid-input / float edge case in a hand-rolled module (`calculator.py`).
+- **Verification battery:** `python -m unittest tests.test_calculator` — 134 OK; `python -m doctest calculator.py` — OK; `python -m unittest discover tests/` — 11559 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 source files); `python tools/refresh_scaffold.py --check` — in sync (refreshed embedded `calculator.py`, `tests/test_calculator.py`, `CHANGELOG.md`); `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `15f33a5`.
+- **Changes:** `calculator.py`, `tests/test_calculator.py`, `CHANGELOG.md`, `scaffold.sh` (embedded copies), `.kilo/last_verified.checkpoint`; `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md` updated. Board has only `main` (self), so the next task is recorded in `.kilo/next_task.md`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — bootstrap session: verification battery green at HEAD 05c2c5e; checkpoint advanced
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.

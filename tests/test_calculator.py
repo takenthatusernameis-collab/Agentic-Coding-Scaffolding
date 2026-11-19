@@ -838,6 +838,10 @@ class TestSign(unittest.TestCase):
         with self.assertRaises(TypeError):
             sign([])
 
+    def test_sign_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            sign(float("nan"))
+
 
 class TestHypotenuse(unittest.TestCase):
     def test_basic(self):
