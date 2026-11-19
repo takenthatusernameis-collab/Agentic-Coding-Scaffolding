@@ -73614,6 +73614,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `temp_utils.write_temp_file` no longer accepts an ignored `delete`
+
+- **Correctness fix — `write_temp_file` silently ignored its `delete` parameter.** The signature accepted `delete: bool = True` and validated it as a bool, but the body always called `create_temp_file(..., delete=False)` and never read the argument, so `delete=True` and `delete=False` produced identical results and the documented "removed when cleaned up" contract had no effect. The dead parameter (and its `bool` check) is removed: callers who passed it now get a clear `TypeError` instead of a silent no-op, and the file is always left on disk for the caller to remove with `cleanup_temp_path`.
+- **Docstring fix — `create_temp_file` described the wrong `delete` default and timing.** It claimed `delete=True` "is the default" and that removal happened "on close"/"when the returned path is passed to `cleanup_temp_path`", but the default is `False` and `delete=True` removes the file immediately after creation. The docstring now states the real default and behaviour.
+- **Tests:** replaced `test_delete_false_keeps_file` with `test_written_file_persists_until_cleanup` and added `test_delete_parameter_is_not_accepted` (accepts the former silently before the fix, raises `TypeError` after), and dropped the now-obsolete `delete="yes"` type-error case.
+- **Defect class:** silently ignored parameter / docstring-vs-implementation contract in a hand-rolled `*_utils` module.
+- Validation: `python -m unittest tests.test_temp_utils` — 38 OK; `python -m doctest temp_utils.py` — OK; `python -m ruff check temp_utils.py tests/test_temp_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — docstring contract fixes in `number_utils` and `prime_utils`
 
 - **Correctness fix — `percentage` documented `ZeroDivisionError` but never raised it.** The docstring's `Raises:` clause promised `ZeroDivisionError`, but the implementation short-circuits `total == 0` and returns `"0.0%"`, so the documented exception was unreachable. Removed the `ZeroDivisionError` line from the docstring so the contract matches the implementation.
@@ -131087,9 +131095,10 @@ def create_temp_file(
     """Create a named temporary file and return its path.
 
     The file is created with mode ``0600`` and is immediately closed so it can
-    be opened by other processes. When ``delete`` is ``True`` (the default),
-    the file is removed automatically when the returned path is passed to
-    :func:`cleanup_temp_path`; the caller is otherwise responsible for removal.
+    be opened by other processes. The default ``delete=False`` leaves the file
+    on disk: the caller removes it later with :func:`cleanup_temp_path`. Passing
+    ``delete=True`` removes the file immediately after creation, so the returned
+    path no longer exists.
 
     Args:
         suffix: Optional filename suffix (e.g. ``".txt"``).
@@ -131098,8 +131107,8 @@ def create_temp_file(
             system temporary directory.
         text: Whether to open the file in text mode (``True``) or binary mode
             (``False``).
-        delete: Whether the file should be removed on close. Pass ``False`` to
-            keep the file after creation.
+        delete: Whether to remove the file immediately after creation. Pass
+            ``False`` to keep the file on disk.
 
     Returns:
         The absolute path to the created temporary file.
@@ -131271,18 +131280,18 @@ def write_temp_file(
     suffix: Optional[str] = None,
     prefix: Optional[str] = None,
     dir: Optional[Union[str, Path]] = None,
-    delete: bool = True,
     mode: str = "w",
 ) -> str:
     """Write ``content`` to a new temporary file and return its path.
+
+    The file is left on disk so the caller can read or inspect it; remove it
+    with :func:`cleanup_temp_path` when done.
 
     Args:
         content: The text content to write.
         suffix: Optional filename suffix.
         prefix: Optional filename prefix.
         dir: Optional directory. Defaults to the system temporary directory.
-        delete: Whether the file should be removed when cleaned up via
-            :func:`cleanup_temp_path`.
         mode: The file open mode (default: ``"w"``).
 
     Returns:
@@ -131307,8 +131316,6 @@ def write_temp_file(
         raise TypeError("prefix must be a string or None")
     if dir is not None and not isinstance(dir, (str, Path)):
         raise TypeError("dir must be a string, Path, or None")
-    if not isinstance(delete, bool):
-        raise TypeError("delete must be a bool")
     if not isinstance(mode, str):
         raise TypeError("mode must be a string")
 
@@ -131591,11 +131598,17 @@ class TestWriteTempFile(unittest.TestCase):
         cleanup_temp_path(path)
         self.assertFalse(os.path.exists(path))
 
-    def test_delete_false_keeps_file(self):
-        path = write_temp_file("keep me", delete=False)
+    def test_written_file_persists_until_cleanup(self):
+        path = write_temp_file("keep me")
         self.assertTrue(os.path.exists(path))
         cleanup_temp_path(path)
         self.assertFalse(os.path.exists(path))
+
+    def test_delete_parameter_is_not_accepted(self):
+        with self.assertRaises(TypeError):
+            write_temp_file("x", delete=True)  # type: ignore[call-arg]
+        with self.assertRaises(TypeError):
+            write_temp_file("x", delete=False)  # type: ignore[call-arg]
 
     def test_custom_dir(self):
         with temp_dir() as parent:
@@ -131608,8 +131621,6 @@ class TestWriteTempFile(unittest.TestCase):
             write_temp_file(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             write_temp_file("x", suffix=123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            write_temp_file("x", delete="yes")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             write_temp_file("x", mode=123)  # type: ignore[arg-type]
 

@@ -1,3 +1,15 @@
+## Latest Session (2026-11-19) — `temp_utils.write_temp_file` drops an ignored `delete` parameter
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 (checkpoint `6104165` behind HEAD `1e01dc9`, which carried the prior session's source changes); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `1e01dc9` before any new edit.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe plus full battery removed the redundant discovery pass and the session spent its work on one real defect instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `temp_utils.write_temp_file` accepted `delete: bool = True`, validated it as a bool, then always called `create_temp_file(..., delete=False)` and never read it — `delete=True` and `delete=False` were indistinguishable and the documented "removed when cleaned up" contract had no effect. The dead parameter and its bool check are removed, so passing `delete=` now raises `TypeError` instead of a silent no-op. Also fixed `create_temp_file`'s stale docstring, which claimed `delete=True` "is the default" and described removal "on close", contradicting the actual `False` default and immediate-removal behaviour introduced by an earlier fix.
+- **Tests:** `test_delete_parameter_is_not_accepted` (red before the fix, green after) and `test_written_file_persists_until_cleanup` replace `test_delete_false_keeps_file`; the obsolete `delete="yes"` type-error case was dropped.
+- **Defect class:** silently ignored parameter / docstring-vs-implementation contract in a hand-rolled `*_utils` module.
+- **Verification:** `python -m unittest tests.test_temp_utils` — 38 OK; `python -m doctest temp_utils.py` — OK; `python -m ruff check temp_utils.py tests/test_temp_utils.py` — clean; `python -m mypy temp_utils.py tests/test_temp_utils.py` — clean; `python -m unittest discover tests/` — full suite OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `temp_utils.py`, `tests/test_temp_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+- **Next task:** recorded in `.kilo/next_task.md` with three concrete leads (`prompt_utils.truncate_prompt` suffix contract, `prompt_utils.wrap_prompt(width=0)` whitespace asymmetry, `timing_utils.elapsed_time` missing validation); board lists only `main` (self), so `board_post` has no other recipient.
+
 ## Latest Session (2026-11-19) — docstring contract fixes in `number_utils` and `prime_utils`
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).

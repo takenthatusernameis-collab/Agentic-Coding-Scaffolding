@@ -48,9 +48,10 @@ def create_temp_file(
     """Create a named temporary file and return its path.
 
     The file is created with mode ``0600`` and is immediately closed so it can
-    be opened by other processes. When ``delete`` is ``True`` (the default),
-    the file is removed automatically when the returned path is passed to
-    :func:`cleanup_temp_path`; the caller is otherwise responsible for removal.
+    be opened by other processes. The default ``delete=False`` leaves the file
+    on disk: the caller removes it later with :func:`cleanup_temp_path`. Passing
+    ``delete=True`` removes the file immediately after creation, so the returned
+    path no longer exists.
 
     Args:
         suffix: Optional filename suffix (e.g. ``".txt"``).
@@ -59,8 +60,8 @@ def create_temp_file(
             system temporary directory.
         text: Whether to open the file in text mode (``True``) or binary mode
             (``False``).
-        delete: Whether the file should be removed on close. Pass ``False`` to
-            keep the file after creation.
+        delete: Whether to remove the file immediately after creation. Pass
+            ``False`` to keep the file on disk.
 
     Returns:
         The absolute path to the created temporary file.
@@ -232,18 +233,18 @@ def write_temp_file(
     suffix: Optional[str] = None,
     prefix: Optional[str] = None,
     dir: Optional[Union[str, Path]] = None,
-    delete: bool = True,
     mode: str = "w",
 ) -> str:
     """Write ``content`` to a new temporary file and return its path.
+
+    The file is left on disk so the caller can read or inspect it; remove it
+    with :func:`cleanup_temp_path` when done.
 
     Args:
         content: The text content to write.
         suffix: Optional filename suffix.
         prefix: Optional filename prefix.
         dir: Optional directory. Defaults to the system temporary directory.
-        delete: Whether the file should be removed when cleaned up via
-            :func:`cleanup_temp_path`.
         mode: The file open mode (default: ``"w"``).
 
     Returns:
@@ -268,8 +269,6 @@ def write_temp_file(
         raise TypeError("prefix must be a string or None")
     if dir is not None and not isinstance(dir, (str, Path)):
         raise TypeError("dir must be a string, Path, or None")
-    if not isinstance(delete, bool):
-        raise TypeError("delete must be a bool")
     if not isinstance(mode, str):
         raise TypeError("mode must be a string")
 

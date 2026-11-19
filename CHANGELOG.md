@@ -1,3 +1,11 @@
+## Unreleased — `temp_utils.write_temp_file` no longer accepts an ignored `delete`
+
+- **Correctness fix — `write_temp_file` silently ignored its `delete` parameter.** The signature accepted `delete: bool = True` and validated it as a bool, but the body always called `create_temp_file(..., delete=False)` and never read the argument, so `delete=True` and `delete=False` produced identical results and the documented "removed when cleaned up" contract had no effect. The dead parameter (and its `bool` check) is removed: callers who passed it now get a clear `TypeError` instead of a silent no-op, and the file is always left on disk for the caller to remove with `cleanup_temp_path`.
+- **Docstring fix — `create_temp_file` described the wrong `delete` default and timing.** It claimed `delete=True` "is the default" and that removal happened "on close"/"when the returned path is passed to `cleanup_temp_path`", but the default is `False` and `delete=True` removes the file immediately after creation. The docstring now states the real default and behaviour.
+- **Tests:** replaced `test_delete_false_keeps_file` with `test_written_file_persists_until_cleanup` and added `test_delete_parameter_is_not_accepted` (accepts the former silently before the fix, raises `TypeError` after), and dropped the now-obsolete `delete="yes"` type-error case.
+- **Defect class:** silently ignored parameter / docstring-vs-implementation contract in a hand-rolled `*_utils` module.
+- Validation: `python -m unittest tests.test_temp_utils` — 38 OK; `python -m doctest temp_utils.py` — OK; `python -m ruff check temp_utils.py tests/test_temp_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — docstring contract fixes in `number_utils` and `prime_utils`
 
 - **Correctness fix — `percentage` documented `ZeroDivisionError` but never raised it.** The docstring's `Raises:` clause promised `ZeroDivisionError`, but the implementation short-circuits `total == 0` and returns `"0.0%"`, so the documented exception was unreachable. Removed the `ZeroDivisionError` line from the docstring so the contract matches the implementation.

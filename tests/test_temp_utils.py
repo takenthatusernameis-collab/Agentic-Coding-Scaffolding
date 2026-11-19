@@ -162,11 +162,17 @@ class TestWriteTempFile(unittest.TestCase):
         cleanup_temp_path(path)
         self.assertFalse(os.path.exists(path))
 
-    def test_delete_false_keeps_file(self):
-        path = write_temp_file("keep me", delete=False)
+    def test_written_file_persists_until_cleanup(self):
+        path = write_temp_file("keep me")
         self.assertTrue(os.path.exists(path))
         cleanup_temp_path(path)
         self.assertFalse(os.path.exists(path))
+
+    def test_delete_parameter_is_not_accepted(self):
+        with self.assertRaises(TypeError):
+            write_temp_file("x", delete=True)  # type: ignore[call-arg]
+        with self.assertRaises(TypeError):
+            write_temp_file("x", delete=False)  # type: ignore[call-arg]
 
     def test_custom_dir(self):
         with temp_dir() as parent:
@@ -179,8 +185,6 @@ class TestWriteTempFile(unittest.TestCase):
             write_temp_file(123)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             write_temp_file("x", suffix=123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            write_temp_file("x", delete="yes")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             write_temp_file("x", mode=123)  # type: ignore[arg-type]
 
