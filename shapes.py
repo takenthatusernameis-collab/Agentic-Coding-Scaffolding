@@ -58,6 +58,8 @@ def _require_number(value: object, name: str) -> float:
     """Validate that *value* is a real number (int or float, not bool)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number, got {type(value).__name__}")
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        raise ValueError(f"{name} must be a finite number")
     return value
 
 
@@ -784,14 +786,15 @@ def point_in_rectangle(
             coordinate is not a number (booleans are rejected).
         ValueError: If the rectangle has zero or negative width/height.
 
-    >>> point_in_rectangle((1, 1), 0, 0, 3, 3)
-    True
-    >>> point_in_rectangle((5, 5), 0, 0, 3, 3)
-    False
-    >>> point_in_rectangle((3, 0), 0, 0, 3, 3)
-    True
-    >>> point_in_rectangle((1, 1), 3, 3, 0, 0)
-    True
+    Examples:
+        >>> point_in_rectangle((1, 1), 0, 0, 3, 3)
+        True
+        >>> point_in_rectangle((5, 5), 0, 0, 3, 3)
+        False
+        >>> point_in_rectangle((3, 0), 0, 0, 3, 3)
+        True
+        >>> point_in_rectangle((1, 1), 3, 3, 0, 0)
+        True
     """
     if not isinstance(point, (tuple, list)) or len(point) != 2:
         raise TypeError("point must be a point (x, y)")

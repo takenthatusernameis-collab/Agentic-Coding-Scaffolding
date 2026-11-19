@@ -716,6 +716,129 @@ class TestTypeValidation(unittest.TestCase):
                 with self.assertRaises(TypeError):
                     func(*args)  # type: ignore[arg-type]
 
+    def test_functions_reject_nan(self):
+        import math
+        from shapes import (
+            circle_area, circle_perimeter, circle_diameter,
+            rectangle_area, rectangle_perimeter, rectangle_diagonal,
+            triangle_area, triangle_perimeter, triangle_heron_area,
+            square_area, square_perimeter,
+            rhombus_area, rhombus_perimeter,
+            trapezoid_area,
+            parallelogram_area, parallelogram_perimeter,
+            ellipse_area,
+            regular_polygon_area, regular_polygon_perimeter,
+            sector_area, arc_length, ellipse_circumference,
+            sphere_surface_area, sphere_volume,
+            cube_surface_area, cube_volume,
+            cuboid_surface_area, cuboid_volume,
+            cylinder_surface_area, cylinder_volume,
+            cone_surface_area, cone_volume,
+            point_distance, midpoint, point_in_circle,
+        )
+        cases = [
+            (circle_area, (math.nan,)),
+            (circle_perimeter, (math.nan,)),
+            (circle_diameter, (math.nan,)),
+            (rectangle_area, (math.nan, 5)),
+            (rectangle_perimeter, (math.nan, 5)),
+            (rectangle_diagonal, (math.nan, 5)),
+            (triangle_area, (math.nan, 5)),
+            (triangle_perimeter, (math.nan, 5, 5)),
+            (triangle_heron_area, (math.nan, 5, 5)),
+            (square_area, (math.nan,)),
+            (square_perimeter, (math.nan,)),
+            (rhombus_area, (math.nan, 5)),
+            (rhombus_perimeter, (math.nan,)),
+            (trapezoid_area, (math.nan, 5, 5)),
+            (parallelogram_area, (math.nan, 5)),
+            (parallelogram_perimeter, (math.nan, 5)),
+            (ellipse_area, (math.nan, 5)),
+            (regular_polygon_area, (3, math.nan)),
+            (regular_polygon_perimeter, (3, math.nan)),
+            (sector_area, (math.nan, 90)),
+            (arc_length, (math.nan, 90)),
+            (ellipse_circumference, (math.nan, 5)),
+            (sphere_surface_area, (math.nan,)),
+            (sphere_volume, (math.nan,)),
+            (cube_surface_area, (math.nan,)),
+            (cube_volume, (math.nan,)),
+            (cuboid_surface_area, (math.nan, 1, 1)),
+            (cuboid_volume, (math.nan, 1, 1)),
+            (cylinder_surface_area, (math.nan, 1)),
+            (cylinder_volume, (math.nan, 1)),
+            (cone_surface_area, (math.nan, 1)),
+            (cone_volume, (math.nan, 1)),
+            (point_distance, ((0, 0), (math.nan, 0))),
+            (midpoint, ((0, 0), (math.nan, 0))),
+            (point_in_circle, ((0, 0), (0, 0), math.nan)),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__, args=args):
+                with self.assertRaises(ValueError):
+                    func(*args)
+
+    def test_functions_reject_infinity(self):
+        import math
+        from shapes import (
+            circle_area, circle_perimeter, circle_diameter,
+            rectangle_area, rectangle_perimeter, rectangle_diagonal,
+            triangle_area, triangle_perimeter, triangle_heron_area,
+            square_area, square_perimeter,
+            rhombus_area, rhombus_perimeter,
+            trapezoid_area,
+            parallelogram_area, parallelogram_perimeter,
+            ellipse_area,
+            regular_polygon_area, regular_polygon_perimeter,
+            sector_area, arc_length, ellipse_circumference,
+            sphere_surface_area, sphere_volume,
+            cube_surface_area, cube_volume,
+            cuboid_surface_area, cuboid_volume,
+            cylinder_surface_area, cylinder_volume,
+            cone_surface_area, cone_volume,
+            point_distance, midpoint,
+        )
+        cases = [
+            (circle_area, (math.inf,)),
+            (circle_perimeter, (math.inf,)),
+            (circle_diameter, (math.inf,)),
+            (rectangle_area, (math.inf, 5)),
+            (rectangle_perimeter, (math.inf, 5)),
+            (rectangle_diagonal, (math.inf, 5)),
+            (triangle_area, (math.inf, 5)),
+            (triangle_perimeter, (math.inf, 5, 5)),
+            (triangle_heron_area, (math.inf, 5, 5)),
+            (square_area, (math.inf,)),
+            (square_perimeter, (math.inf,)),
+            (rhombus_area, (math.inf, 5)),
+            (rhombus_perimeter, (math.inf,)),
+            (trapezoid_area, (math.inf, 5, 5)),
+            (parallelogram_area, (math.inf, 5)),
+            (parallelogram_perimeter, (math.inf, 5)),
+            (ellipse_area, (math.inf, 5)),
+            (regular_polygon_area, (3, math.inf)),
+            (regular_polygon_perimeter, (3, math.inf)),
+            (sector_area, (math.inf, 90)),
+            (arc_length, (math.inf, 90)),
+            (ellipse_circumference, (math.inf, 5)),
+            (sphere_surface_area, (math.inf,)),
+            (sphere_volume, (math.inf,)),
+            (cube_surface_area, (math.inf,)),
+            (cube_volume, (math.inf,)),
+            (cuboid_surface_area, (math.inf, 1, 1)),
+            (cuboid_volume, (math.inf, 1, 1)),
+            (cylinder_surface_area, (math.inf, 1)),
+            (cylinder_volume, (math.inf, 1)),
+            (cone_surface_area, (math.inf, 1)),
+            (cone_volume, (math.inf, 1)),
+            (point_distance, ((0, 0), (math.inf, 0))),
+            (midpoint, ((0, 0), (math.inf, 0))),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__, args=args):
+                with self.assertRaises(ValueError):
+                    func(*args)
+
 
 if __name__ == "__main__":
     unittest.main()
