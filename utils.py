@@ -1,5 +1,6 @@
 """Utility helper functions."""
 
+import math
 from typing import Any, Callable, Dict, List, Optional, Protocol, Set, TypeVar, Union
 
 __all__ = [
@@ -96,6 +97,19 @@ def _require_int(value: object, name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError(f"{name} must be an integer, got {type(value).__name__}")
     return value
+
+
+def _require_numbers(numbers: List[Any], name: str = "numbers", allow_empty: bool = False) -> None:
+    """Validate that *numbers* is a list of finite ints/floats."""
+    if not isinstance(numbers, list):
+        raise TypeError(f"{name} must be a list")
+    if not numbers and not allow_empty:
+        raise ValueError(f"Cannot calculate {name} of empty list")
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError(f"{name} must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError(f"{name} must not contain NaN or infinite values")
 
 
 def chunk(lst: List[T], size: int) -> List[List[T]]:
@@ -485,13 +499,13 @@ def includes(lst: List[T], item: T) -> bool:
 
 def sum_list(lst: List[Union[int, float]]) -> Union[int, float]:
     """Sum all elements in a list."""
+    _require_numbers(lst, "numbers", allow_empty=True)
     return sum(lst)
 
 
 def product(lst: List[Union[int, float]]) -> Union[int, float]:
     """Return the product of all elements in a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     result: Union[int, float] = 1
     for item in lst:
         result *= item
@@ -523,22 +537,19 @@ def drop_while(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
 
 def average(lst: List[Union[int, float]]) -> float:
     """Calculate the average of a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     return sum(lst) / len(lst)
 
 
 def max_list(lst: List[CT]) -> CT:
     """Return the maximum element in a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     return max(lst)
 
 
 def min_list(lst: List[CT]) -> CT:
     """Return the minimum element in a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     return min(lst)
 
 

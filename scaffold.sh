@@ -17638,6 +17638,7 @@ STRINGS
 cat > "$OUTPUT_DIR/utils.py" <<'UTILS'
 """Utility helper functions."""
 
+import math
 from typing import Any, Callable, Dict, List, Optional, Protocol, Set, TypeVar, Union
 
 __all__ = [
@@ -17734,6 +17735,19 @@ def _require_int(value: object, name: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise TypeError(f"{name} must be an integer, got {type(value).__name__}")
     return value
+
+
+def _require_numbers(numbers: List[Any], name: str = "numbers", allow_empty: bool = False) -> None:
+    """Validate that *numbers* is a list of finite ints/floats."""
+    if not isinstance(numbers, list):
+        raise TypeError(f"{name} must be a list")
+    if not numbers and not allow_empty:
+        raise ValueError(f"Cannot calculate {name} of empty list")
+    for x in numbers:
+        if isinstance(x, bool) or not isinstance(x, (int, float)):
+            raise TypeError(f"{name} must contain only numbers")
+        if isinstance(x, float) and (math.isnan(x) or math.isinf(x)):
+            raise ValueError(f"{name} must not contain NaN or infinite values")
 
 
 def chunk(lst: List[T], size: int) -> List[List[T]]:
@@ -18123,13 +18137,13 @@ def includes(lst: List[T], item: T) -> bool:
 
 def sum_list(lst: List[Union[int, float]]) -> Union[int, float]:
     """Sum all elements in a list."""
+    _require_numbers(lst, "numbers", allow_empty=True)
     return sum(lst)
 
 
 def product(lst: List[Union[int, float]]) -> Union[int, float]:
     """Return the product of all elements in a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     result: Union[int, float] = 1
     for item in lst:
         result *= item
@@ -18161,22 +18175,19 @@ def drop_while(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
 
 def average(lst: List[Union[int, float]]) -> float:
     """Calculate the average of a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     return sum(lst) / len(lst)
 
 
 def max_list(lst: List[CT]) -> CT:
     """Return the maximum element in a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     return max(lst)
 
 
 def min_list(lst: List[CT]) -> CT:
     """Return the minimum element in a list."""
-    if not lst:
-        raise ValueError("List must not be empty")
+    _require_numbers(lst, "numbers")
     return min(lst)
 
 
@@ -23891,6 +23902,16 @@ class TestAverage(unittest.TestCase):
         with self.assertRaises(ValueError):
             average([])
 
+    def test_average_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            average([1.0, 2.0, float("nan")])
+
+    def test_average_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            average([1.0, 2.0, float("inf")])
+        with self.assertRaises(ValueError):
+            average([1.0, 2.0, float("-inf")])
+
 
 class TestConcat(unittest.TestCase):
     def test_concat_basic(self) -> None:
@@ -24151,6 +24172,16 @@ class TestMaxList(unittest.TestCase):
         with self.assertRaises(ValueError):
             max_list([])
 
+    def test_max_list_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            max_list([1.0, 5.0, float("nan")])
+
+    def test_max_list_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            max_list([1.0, 5.0, float("inf")])
+        with self.assertRaises(ValueError):
+            max_list([1.0, 5.0, float("-inf")])
+
 
 class TestMerge(unittest.TestCase):
     def test_merge_basic(self) -> None:
@@ -24170,6 +24201,16 @@ class TestMinList(unittest.TestCase):
     def test_min_list_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             min_list([])
+
+    def test_min_list_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            min_list([1.0, 5.0, float("nan")])
+
+    def test_min_list_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            min_list([1.0, 5.0, float("inf")])
+        with self.assertRaises(ValueError):
+            min_list([1.0, 5.0, float("-inf")])
 
 
 class TestOmit(unittest.TestCase):
@@ -24217,6 +24258,16 @@ class TestProduct(unittest.TestCase):
     def test_product_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             product([])
+
+    def test_product_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            product([1.0, 2.0, float("nan")])
+
+    def test_product_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            product([1.0, 2.0, float("inf")])
+        with self.assertRaises(ValueError):
+            product([1.0, 2.0, float("-inf")])
 
 
 class TestRangeList(unittest.TestCase):
@@ -24332,6 +24383,16 @@ class TestSumList(unittest.TestCase):
 
     def test_sum_list_empty(self) -> None:
         self.assertEqual(sum_list([]), 0)
+
+    def test_sum_list_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            sum_list([1.0, 2.0, float("nan")])
+
+    def test_sum_list_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            sum_list([1.0, 2.0, float("inf")])
+        with self.assertRaises(ValueError):
+            sum_list([1.0, 2.0, float("-inf")])
 
 
 class TestTail(unittest.TestCase):
@@ -165565,6 +165626,7 @@ hermetic and side-effect free.
 
 import dataclasses
 import inspect
+import math
 from collections.abc import Iterable, Mapping, Sequence
 from typing import List
 
@@ -165698,8 +165760,12 @@ def is_bytes(value: object) -> bool:
 
 
 def is_numeric(value: object) -> bool:
-    """Return True if value is int or float (excluding bool)."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    """Return True if value is int or float (excluding bool and NaN/Infinity)."""
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and (isinstance(value, int) or (isinstance(value, float) and math.isfinite(value)))
+    )
 
 
 def is_iterable(value: object) -> bool:
@@ -165773,8 +165839,12 @@ def is_collection(value: object) -> bool:
 
 
 def is_number(value: object) -> bool:
-    """Return True if value is int or float (excluding bool)."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    """Return True if value is int or float (excluding bool and NaN/Infinity)."""
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and (isinstance(value, int) or (isinstance(value, float) and math.isfinite(value)))
+    )
 
 
 def is_object(value: object) -> bool:
@@ -166487,6 +166557,11 @@ class TestTypeChecks(unittest.TestCase):
         self.assertFalse(type_check_utils.is_numeric(True))
         self.assertFalse(type_check_utils.is_numeric("5"))
 
+    def test_is_numeric_rejects_nan_and_inf(self) -> None:
+        self.assertFalse(type_check_utils.is_numeric(float("nan")))
+        self.assertFalse(type_check_utils.is_numeric(float("inf")))
+        self.assertFalse(type_check_utils.is_numeric(float("-inf")))
+
     def test_is_iterable(self) -> None:
         self.assertTrue(type_check_utils.is_iterable([1, 2, 3]))
         self.assertFalse(type_check_utils.is_iterable("hello"))
@@ -166871,6 +166946,11 @@ class TestUntestedPredicates(unittest.TestCase):
         self.assertFalse(type_check_utils.is_number("5"))
         self.assertFalse(type_check_utils.is_number(5 + 2j))
         self.assertFalse(type_check_utils.is_number(None))
+
+    def test_is_number_rejects_nan_and_inf(self) -> None:
+        self.assertFalse(type_check_utils.is_number(float("nan")))
+        self.assertFalse(type_check_utils.is_number(float("inf")))
+        self.assertFalse(type_check_utils.is_number(float("-inf")))
 
     def test_is_object(self) -> None:
         # Every value is an instance of object in normal cases.

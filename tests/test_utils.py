@@ -296,6 +296,16 @@ class TestAverage(unittest.TestCase):
         with self.assertRaises(ValueError):
             average([])
 
+    def test_average_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            average([1.0, 2.0, float("nan")])
+
+    def test_average_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            average([1.0, 2.0, float("inf")])
+        with self.assertRaises(ValueError):
+            average([1.0, 2.0, float("-inf")])
+
 
 class TestConcat(unittest.TestCase):
     def test_concat_basic(self) -> None:
@@ -556,6 +566,16 @@ class TestMaxList(unittest.TestCase):
         with self.assertRaises(ValueError):
             max_list([])
 
+    def test_max_list_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            max_list([1.0, 5.0, float("nan")])
+
+    def test_max_list_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            max_list([1.0, 5.0, float("inf")])
+        with self.assertRaises(ValueError):
+            max_list([1.0, 5.0, float("-inf")])
+
 
 class TestMerge(unittest.TestCase):
     def test_merge_basic(self) -> None:
@@ -575,6 +595,16 @@ class TestMinList(unittest.TestCase):
     def test_min_list_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             min_list([])
+
+    def test_min_list_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            min_list([1.0, 5.0, float("nan")])
+
+    def test_min_list_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            min_list([1.0, 5.0, float("inf")])
+        with self.assertRaises(ValueError):
+            min_list([1.0, 5.0, float("-inf")])
 
 
 class TestOmit(unittest.TestCase):
@@ -622,6 +652,16 @@ class TestProduct(unittest.TestCase):
     def test_product_empty_raises(self) -> None:
         with self.assertRaises(ValueError):
             product([])
+
+    def test_product_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            product([1.0, 2.0, float("nan")])
+
+    def test_product_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            product([1.0, 2.0, float("inf")])
+        with self.assertRaises(ValueError):
+            product([1.0, 2.0, float("-inf")])
 
 
 class TestRangeList(unittest.TestCase):
@@ -737,6 +777,16 @@ class TestSumList(unittest.TestCase):
 
     def test_sum_list_empty(self) -> None:
         self.assertEqual(sum_list([]), 0)
+
+    def test_sum_list_rejects_nan(self) -> None:
+        with self.assertRaises(ValueError):
+            sum_list([1.0, 2.0, float("nan")])
+
+    def test_sum_list_rejects_inf(self) -> None:
+        with self.assertRaises(ValueError):
+            sum_list([1.0, 2.0, float("inf")])
+        with self.assertRaises(ValueError):
+            sum_list([1.0, 2.0, float("-inf")])
 
 
 class TestTail(unittest.TestCase):

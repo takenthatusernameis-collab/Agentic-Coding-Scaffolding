@@ -185,6 +185,11 @@ class TestTypeChecks(unittest.TestCase):
         self.assertFalse(type_check_utils.is_numeric(True))
         self.assertFalse(type_check_utils.is_numeric("5"))
 
+    def test_is_numeric_rejects_nan_and_inf(self) -> None:
+        self.assertFalse(type_check_utils.is_numeric(float("nan")))
+        self.assertFalse(type_check_utils.is_numeric(float("inf")))
+        self.assertFalse(type_check_utils.is_numeric(float("-inf")))
+
     def test_is_iterable(self) -> None:
         self.assertTrue(type_check_utils.is_iterable([1, 2, 3]))
         self.assertFalse(type_check_utils.is_iterable("hello"))
@@ -569,6 +574,11 @@ class TestUntestedPredicates(unittest.TestCase):
         self.assertFalse(type_check_utils.is_number("5"))
         self.assertFalse(type_check_utils.is_number(5 + 2j))
         self.assertFalse(type_check_utils.is_number(None))
+
+    def test_is_number_rejects_nan_and_inf(self) -> None:
+        self.assertFalse(type_check_utils.is_number(float("nan")))
+        self.assertFalse(type_check_utils.is_number(float("inf")))
+        self.assertFalse(type_check_utils.is_number(float("-inf")))
 
     def test_is_object(self) -> None:
         # Every value is an instance of object in normal cases.

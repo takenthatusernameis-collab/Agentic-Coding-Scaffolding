@@ -7,6 +7,7 @@ hermetic and side-effect free.
 
 import dataclasses
 import inspect
+import math
 from collections.abc import Iterable, Mapping, Sequence
 from typing import List
 
@@ -140,8 +141,12 @@ def is_bytes(value: object) -> bool:
 
 
 def is_numeric(value: object) -> bool:
-    """Return True if value is int or float (excluding bool)."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    """Return True if value is int or float (excluding bool and NaN/Infinity)."""
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and (isinstance(value, int) or (isinstance(value, float) and math.isfinite(value)))
+    )
 
 
 def is_iterable(value: object) -> bool:
@@ -215,8 +220,12 @@ def is_collection(value: object) -> bool:
 
 
 def is_number(value: object) -> bool:
-    """Return True if value is int or float (excluding bool)."""
-    return isinstance(value, (int, float)) and not isinstance(value, bool)
+    """Return True if value is int or float (excluding bool and NaN/Infinity)."""
+    return (
+        isinstance(value, (int, float))
+        and not isinstance(value, bool)
+        and (isinstance(value, int) or (isinstance(value, float) and math.isfinite(value)))
+    )
 
 
 def is_object(value: object) -> bool:

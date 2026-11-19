@@ -4,7 +4,9 @@
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
 - State probe rc=1 (clean tree, checkpoint `05c2c5e` behind HEAD `15f33a5` on bookkeeping-only commits); advanced the checkpoint to HEAD via `python tools/verify_state_delta.py --full --record-full-suite`.
 - Defect fixed (failing-test-first): `calculator.sign(float("nan"))` silently returned `0`, violating the documented `-1/0/1` contract; it now raises `ValueError("x must not be NaN")`, matching `calculator.clamp`/`statistics_utils.normalize`/`validation_utils.is_numeric`. Added `TestSign.test_sign_rejects_nan`.
-- Full battery green: `python -m unittest discover tests/` — 11559 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync.
+- Defect fixed (failing-test-first): `type_check_utils.is_numeric` and `is_number` accepted `NaN`/`Infinity`; they now reject them with `False`, matching `validation_utils.is_numeric`. Added `test_is_numeric_rejects_nan_and_inf` / `test_is_number_rejects_nan_and_inf`.
+- Defect fixed (failing-test-first): `utils.average`, `product`, `sum_list`, `max_list`, `min_list` silently accepted `NaN`/`Infinity`; they now raise `ValueError` via new `_require_numbers` validator. Added 10 tests covering empty-list edge case for `sum_list`.
+- Full battery green: `python -m unittest discover tests/` — 11572 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync.
 - Defect-hunt status: all known defect classes swept except for new finds; routine regression monitoring plus targeted fresh-eyes hunts on hand-rolled (non-wrapper) modules.
 
 ## Next
