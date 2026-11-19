@@ -41676,6 +41676,8 @@ def retry_with_backoff(
         >>> len(attempts)
         2
     """
+    if isinstance(jitter, bool) is False:
+        raise TypeError(f"jitter must be a bool, got {type(jitter).__name__}")
     _validate_retry_args(max_attempts, initial_delay, backoff_factor, exceptions)
 
     def decorator(func: Callable) -> Callable:
@@ -56127,6 +56129,14 @@ class TestRetryArgumentValidationExtended(unittest.TestCase):
         with self.assertRaises(ValueError):
 
             @retry_with_backoff(max_attempts=3, initial_delay=0.01, backoff_factor=-1.0)
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+
+    def test_retry_with_backoff_rejects_non_bool_jitter(self):
+        with self.assertRaises(TypeError):
+
+            @retry_with_backoff(max_attempts=3, initial_delay=0.01, jitter="yes")  # type: ignore[arg-type]
             def func():  # pragma: no cover - body never runs
                 raise ValueError("boom")
 

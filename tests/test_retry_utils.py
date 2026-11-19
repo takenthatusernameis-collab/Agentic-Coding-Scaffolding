@@ -371,5 +371,13 @@ class TestRetryArgumentValidationExtended(unittest.TestCase):
                 raise ValueError("boom")
 
 
+    def test_retry_with_backoff_rejects_non_bool_jitter(self):
+        with self.assertRaises(TypeError):
+
+            @retry_with_backoff(max_attempts=3, initial_delay=0.01, jitter="yes")  # type: ignore[arg-type]
+            def func():  # pragma: no cover - body never runs
+                raise ValueError("boom")
+
+
 if __name__ == "__main__":
     unittest.main()

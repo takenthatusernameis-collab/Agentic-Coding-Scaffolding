@@ -142,6 +142,8 @@ def retry_with_backoff(
         >>> len(attempts)
         2
     """
+    if isinstance(jitter, bool) is False:
+        raise TypeError(f"jitter must be a bool, got {type(jitter).__name__}")
     _validate_retry_args(max_attempts, initial_delay, backoff_factor, exceptions)
 
     def decorator(func: Callable) -> Callable:
