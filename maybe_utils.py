@@ -130,7 +130,7 @@ class Maybe(Generic[T]):
             return Maybe.nothing()
 
     def filter(self, predicate: Callable[[T], bool]) -> "Maybe[T]":
-        """Filter the value if it doesn't match the predicate."""
+        """Filter the value if it matches the predicate."""
         if not self._is_some or self._value is None:
             return Maybe.nothing()
         try:

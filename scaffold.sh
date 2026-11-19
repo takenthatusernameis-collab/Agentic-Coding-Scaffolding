@@ -162392,7 +162392,7 @@ class Maybe(Generic[T]):
             return Maybe.nothing()
 
     def filter(self, predicate: Callable[[T], bool]) -> "Maybe[T]":
-        """Filter the value if it doesn't match the predicate."""
+        """Filter the value if it matches the predicate."""
         if not self._is_some or self._value is None:
             return Maybe.nothing()
         try:
@@ -162492,6 +162492,16 @@ class TestMaybe(unittest.TestCase):
     def test_filter(self) -> None:
         self.assertTrue(Maybe.some(10).filter(lambda x: x > 5).is_some())
         self.assertTrue(Maybe.some(3).filter(lambda x: x > 5).is_nothing())
+
+    def test_filter_keeps_value_when_predicate_matches(self) -> None:
+        # filter keeps the value when the predicate matches; the docstring must
+        # describe "matches", not "doesn't match".
+        self.assertTrue(Maybe.some(10).filter(lambda x: x > 5).is_some())
+        self.assertEqual(Maybe.some(10).filter(lambda x: x > 5).unwrap(), 10)
+
+    def test_filter_drops_value_when_predicate_does_not_match(self) -> None:
+        self.assertTrue(Maybe.some(3).filter(lambda x: x > 5).is_nothing())
+        self.assertTrue(Maybe.nothing().filter(lambda x: x > 5).is_nothing())
 
     def test_or_else(self) -> None:
         self.assertEqual(Maybe.some(1).or_else(Maybe.some(2)).unwrap(), 1)

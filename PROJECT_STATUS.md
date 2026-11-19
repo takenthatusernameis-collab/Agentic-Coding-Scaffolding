@@ -1,3 +1,12 @@
+## Latest Session (2026-11-19) — defect fix: `maybe_utils.Maybe.filter` docstring matches implementation
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 at start; ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD.
+- **Defect fixed (failing-test-first):** `maybe_utils.Maybe.filter` documented "Filter the value if it doesn't match the predicate" but kept the value when the predicate matches. Corrected the docstring to "matches the predicate" and added `test_filter_keeps_value_when_predicate_matches` and `test_filter_drops_value_when_predicate_does_not_match` to pin the contract.
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled `*_utils` module.
+- **Verification:** `python -m unittest tests.test_maybe_utils` — 28 OK; `python -m ruff check maybe_utils.py tests/test_maybe_utils.py` — clean; `python -m mypy maybe_utils.py tests/test_maybe_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** refreshed embedded `maybe_utils.py` and `tests/test_maybe_utils.py` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — defect fix: `validation_utils.is_numeric` rejects non-finite values
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).
