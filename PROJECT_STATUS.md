@@ -1,3 +1,11 @@
+## Latest Session (2026-11-19) — added `prime_factors` to calculator.py
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, no source-relevant change since the verified checkpoint; checkpoint advanced to HEAD via `--full --record-full-suite`; battery passed.
+- **Change:** added `prime_factors(n)` to `calculator.py` with `__all__` registration and doctests; added `TestPrimeFactors` (8 cases) to `tests/test_calculator.py`; synced embedded copies in `scaffold.sh` via `make refresh-scaffold`.
+- **Verification:** `python -m unittest tests.test_calculator` — 133 OK; `python -m pytest tests/` — 11715 passed, 4 skipped; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed at HEAD.
+- **Changes:** `calculator.py`, `tests/test_calculator.py`, `scaffold.sh`, `.kilo/last_verified.checkpoint`; `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md` updated; next task posted to `main` via `board_post`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-18) — `audit_contracts --depth` is forwarded to the audit again
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (routine maintenance / regression monitoring).

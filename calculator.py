@@ -23,6 +23,7 @@ __all__ = [
     "is_even",
     "is_odd",
     "is_prime",
+    "prime_factors",
     "combination",
     "permutation",
     "mod_pow",
@@ -511,6 +512,50 @@ def is_prime(n: int) -> bool:
         else:
             return False
     return True
+
+
+def prime_factors(n: int) -> list[int]:
+    """Return the prime factors of n in non-decreasing order.
+
+    Uses trial division: extract every factor of 2, then try odd candidates
+    up to the square root of the remaining value. Any leftover greater than 1
+    is itself prime and is appended last.
+
+    Args:
+        n: The integer to factorize. Must be >= 2.
+
+    Returns:
+        A list of prime factors whose product is n.
+
+    Raises:
+        TypeError: If n is not an int.
+        ValueError: If n is less than 2.
+
+    Examples:
+        >>> prime_factors(12)
+        [2, 2, 3]
+        >>> prime_factors(17)
+        [17]
+        >>> prime_factors(100)
+        [2, 2, 5, 5]
+        >>> prime_factors(2)
+        [2]
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 2:
+        raise ValueError("n must be >= 2")
+    factors: list[int] = []
+    remainder = n
+    candidate = 2
+    while candidate * candidate <= remainder:
+        while remainder % candidate == 0:
+            factors.append(candidate)
+            remainder //= candidate
+        candidate += 1 if candidate == 2 else 2
+    if remainder > 1:
+        factors.append(remainder)
+    return factors
 
 
 def mod_pow(base: int, exp: int, mod: int) -> int:

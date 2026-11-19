@@ -27,6 +27,7 @@ from calculator import (
     percentage,
     permutation,
     power,
+    prime_factors,
     reciprocal,
     round_to,
     sign,
@@ -734,6 +735,52 @@ class TestIsPrime(unittest.TestCase):
     def test_is_prime_known_composites(self):
         for c in (4, 6, 8, 10, 100, 1000, 1000000):
             self.assertFalse(is_prime(c), f"{c} should be composite")
+
+
+class TestPrimeFactors(unittest.TestCase):
+    def test_prime_factors_basic(self):
+        self.assertEqual(prime_factors(12), [2, 2, 3])
+        self.assertEqual(prime_factors(17), [17])
+        self.assertEqual(prime_factors(100), [2, 2, 5, 5])
+        self.assertEqual(prime_factors(2), [2])
+
+    def test_prime_factors_product_equals_n(self):
+        for n in (2, 3, 4, 12, 17, 100, 9973, 1000000):
+            factors = prime_factors(n)
+            product = 1
+            for factor in factors:
+                product *= factor
+            self.assertEqual(product, n)
+
+    def test_prime_factors_non_decreasing(self):
+        for n in (12, 100, 9973, 1000000):
+            factors = prime_factors(n)
+            self.assertEqual(factors, sorted(factors))
+
+    def test_prime_factors_all_prime(self):
+        for n in (12, 100, 9973, 1000000):
+            for factor in prime_factors(n):
+                self.assertTrue(is_prime(factor))
+
+    def test_prime_factors_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            prime_factors(3.0)
+        with self.assertRaises(TypeError):
+            prime_factors("12")
+
+    def test_prime_factors_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            prime_factors(True)
+        with self.assertRaises(TypeError):
+            prime_factors(False)
+
+    def test_prime_factors_rejects_less_than_two(self):
+        with self.assertRaises(ValueError):
+            prime_factors(0)
+        with self.assertRaises(ValueError):
+            prime_factors(1)
+        with self.assertRaises(ValueError):
+            prime_factors(-5)
 
 
 class TestModPow(unittest.TestCase):

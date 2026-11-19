@@ -9925,6 +9925,7 @@ __all__ = [
     "is_even",
     "is_odd",
     "is_prime",
+    "prime_factors",
     "combination",
     "permutation",
     "mod_pow",
@@ -10415,6 +10416,50 @@ def is_prime(n: int) -> bool:
     return True
 
 
+def prime_factors(n: int) -> list[int]:
+    """Return the prime factors of n in non-decreasing order.
+
+    Uses trial division: extract every factor of 2, then try odd candidates
+    up to the square root of the remaining value. Any leftover greater than 1
+    is itself prime and is appended last.
+
+    Args:
+        n: The integer to factorize. Must be >= 2.
+
+    Returns:
+        A list of prime factors whose product is n.
+
+    Raises:
+        TypeError: If n is not an int.
+        ValueError: If n is less than 2.
+
+    Examples:
+        >>> prime_factors(12)
+        [2, 2, 3]
+        >>> prime_factors(17)
+        [17]
+        >>> prime_factors(100)
+        [2, 2, 5, 5]
+        >>> prime_factors(2)
+        [2]
+    """
+    if isinstance(n, bool) or not isinstance(n, int):
+        raise TypeError("n must be an int")
+    if n < 2:
+        raise ValueError("n must be >= 2")
+    factors: list[int] = []
+    remainder = n
+    candidate = 2
+    while candidate * candidate <= remainder:
+        while remainder % candidate == 0:
+            factors.append(candidate)
+            remainder //= candidate
+        candidate += 1 if candidate == 2 else 2
+    if remainder > 1:
+        factors.append(remainder)
+    return factors
+
+
 def mod_pow(base: int, exp: int, mod: int) -> int:
     """Return (base ** exp) mod mod.
 
@@ -10591,6 +10636,7 @@ from calculator import (
     percentage,
     permutation,
     power,
+    prime_factors,
     reciprocal,
     round_to,
     sign,
@@ -11298,6 +11344,52 @@ class TestIsPrime(unittest.TestCase):
     def test_is_prime_known_composites(self):
         for c in (4, 6, 8, 10, 100, 1000, 1000000):
             self.assertFalse(is_prime(c), f"{c} should be composite")
+
+
+class TestPrimeFactors(unittest.TestCase):
+    def test_prime_factors_basic(self):
+        self.assertEqual(prime_factors(12), [2, 2, 3])
+        self.assertEqual(prime_factors(17), [17])
+        self.assertEqual(prime_factors(100), [2, 2, 5, 5])
+        self.assertEqual(prime_factors(2), [2])
+
+    def test_prime_factors_product_equals_n(self):
+        for n in (2, 3, 4, 12, 17, 100, 9973, 1000000):
+            factors = prime_factors(n)
+            product = 1
+            for factor in factors:
+                product *= factor
+            self.assertEqual(product, n)
+
+    def test_prime_factors_non_decreasing(self):
+        for n in (12, 100, 9973, 1000000):
+            factors = prime_factors(n)
+            self.assertEqual(factors, sorted(factors))
+
+    def test_prime_factors_all_prime(self):
+        for n in (12, 100, 9973, 1000000):
+            for factor in prime_factors(n):
+                self.assertTrue(is_prime(factor))
+
+    def test_prime_factors_rejects_non_int(self):
+        with self.assertRaises(TypeError):
+            prime_factors(3.0)
+        with self.assertRaises(TypeError):
+            prime_factors("12")
+
+    def test_prime_factors_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            prime_factors(True)
+        with self.assertRaises(TypeError):
+            prime_factors(False)
+
+    def test_prime_factors_rejects_less_than_two(self):
+        with self.assertRaises(ValueError):
+            prime_factors(0)
+        with self.assertRaises(ValueError):
+            prime_factors(1)
+        with self.assertRaises(ValueError):
+            prime_factors(-5)
 
 
 class TestModPow(unittest.TestCase):
