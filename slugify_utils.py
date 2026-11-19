@@ -28,8 +28,8 @@ def slugify(text: str, separator: str = "-") -> str:
     normalized = unicodedata.normalize("NFKD", text)
     ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
     lowered = ascii_text.lower()
-    cleaned = re.sub(r"[^a-z0-9]+", separator, lowered)
-    return cleaned.strip(separator)
+    words = re.findall(r"[a-z0-9]+", lowered)
+    return separator.join(words)
 
 
 def is_slug(text: str, separator: str = "-") -> bool:
@@ -73,12 +73,31 @@ def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: st
         return text
     if max_length <= len(ellipsis):
         return ellipsis[:max_length]
-    limit = max_length - len(ellipsis)
-    cut = text[:limit]
-    idx = cut.rfind(separator)
-    if idx > 0:
-        cut = cut[:idx]
-    return cut.rstrip(separator) + ellipsis
+
+    # Find the last separator position where prefix + ellipsis <= max_length
+    # Search in the full text up to max_length - len(ellipsis) + len(separator)
+    # to catch separators that start within the limit but end at or past it.
+    search_limit = max_length - len(ellipsis) + len(separator)
+    if search_limit > len(text):
+        search_limit = len(text)
+
+    idx = text.rfind(separator, 0, search_limit)
+    while idx > 0:
+        candidate = text[:idx] + ellipsis
+        if len(candidate) <= max_length:
+            # Strip any trailing separator substring from the prefix
+            prefix = text[:idx]
+            while prefix.endswith(separator):
+                prefix = prefix[:-len(separator)]
+            return prefix + ellipsis
+        # Try earlier separator
+        idx = text.rfind(separator, 0, idx)
+
+    # No suitable separator found; hard cut
+    hard_cut = text[:max_length - len(ellipsis)]
+    while hard_cut.endswith(separator):
+        hard_cut = hard_cut[:-len(separator)]
+    return hard_cut + ellipsis
 
 
 def deslugify(text: str, separator: str = "-") -> str:

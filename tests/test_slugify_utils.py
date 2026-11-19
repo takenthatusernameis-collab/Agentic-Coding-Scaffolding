@@ -26,6 +26,14 @@ class TestSlugify(unittest.TestCase):
     def test_slugify_strips_leading_trailing_separators(self):
         self.assertEqual(slugify(" -- Hello World -- "), "hello-world")
 
+    def test_slugify_separator_chars_in_word_not_stripped(self):
+        # separator="ab" should not strip "ab" from end of word "cab"
+        self.assertEqual(slugify("hello world cab", "ab"), "helloabworldabcab")
+
+    def test_slugify_multi_char_separator_preserves_word_boundaries(self):
+        # Multi-char separator should work correctly
+        self.assertEqual(slugify("foo bar baz", "--"), "foo--bar--baz")
+
 
 class TestIsSlug(unittest.TestCase):
     def test_is_slug(self):
@@ -92,6 +100,16 @@ class TestTruncateSlug(unittest.TestCase):
             truncate_slug("hello-world-foo-bar", 12, ellipsis=".."),
             "hello..",
         )
+
+    def test_truncate_slug_multi_char_separator(self):
+        slug = "foo--bar--baz--qux"
+        self.assertEqual(truncate_slug(slug, 12, separator="--"), "foo--bar...")
+
+    def test_truncate_slug_separator_chars_in_word_not_stripped(self):
+        # separator="ab" should not strip "ab" from end of word when truncating
+        slug = "helloabworldabcab"  # from slugify("hello world cab", "ab")
+        # Truncate to include "cab" but before next separator
+        self.assertEqual(truncate_slug(slug, 20, separator="ab"), "helloabworldabcab")
 
 
 class TestSlugifyMany(unittest.TestCase):
