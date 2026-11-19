@@ -66,6 +66,26 @@ class TestDeprecated(unittest.TestCase):
         with self.assertRaises(TypeError):
             deprecated(42)  # type: ignore[arg-type]
 
+    def test_version_must_be_string(self):
+        with self.assertRaises(TypeError):
+            deprecated(version=123)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(version=1.0)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(version=[])(lambda: None)  # type: ignore[arg-type]
+
+    def test_replacement_must_be_string(self):
+        with self.assertRaises(TypeError):
+            deprecated(replacement=123)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(replacement=[])(lambda: None)  # type: ignore[arg-type]
+
+    def test_message_must_be_string(self):
+        with self.assertRaises(TypeError):
+            deprecated(message=123)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(message=[])(lambda: None)  # type: ignore[arg-type]
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_t_typevar(self):

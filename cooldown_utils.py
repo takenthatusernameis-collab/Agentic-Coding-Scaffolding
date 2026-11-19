@@ -96,6 +96,9 @@ class Cooldown:
     def __call__(self, func: Callable[P, T]) -> Callable[P, T]:
         """Return a wrapped callable that enforces the cooldown on each call."""
 
+        if not callable(func):
+            raise TypeError("func must be callable")
+
         def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
             return self.call(func, *args, **kwargs)
 

@@ -69,7 +69,8 @@ def deprecated(
         ``func``.
 
     Raises:
-        TypeError: If ``func`` is provided and is not callable.
+        TypeError: If ``func`` is provided and is not callable, or if
+            ``version``, ``replacement``, or ``message`` are not strings or None.
 
     Example:
         >>> @deprecated(version="2.0", replacement="use greet() instead")
@@ -78,6 +79,9 @@ def deprecated(
         >>> say_hello()  # doctest: +SKIP
         'hello'
     """
+    for param, name in ((version, "version"), (replacement, "replacement"), (message, "message")):
+        if param is not None and not isinstance(param, str):
+            raise TypeError(f"{name} must be a string or None")
 
     def decorator(target: Callable[..., T]) -> Callable[..., T]:
         if not callable(target):

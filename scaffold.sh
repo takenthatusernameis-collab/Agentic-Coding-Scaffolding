@@ -57071,17 +57071,17 @@ import sys
 from typing import Iterable, Iterator, Optional, TextIO, Tuple
 
 _RESET = "\033[0m"
-_BOLD = "\033[1m"
+_BOLD = "1"
 
 _COLOR_CODES: dict = {
-    "black": "\033[30m",
-    "red": "\033[31m",
-    "green": "\033[32m",
-    "yellow": "\033[33m",
-    "blue": "\033[34m",
-    "magenta": "\033[35m",
-    "cyan": "\033[36m",
-    "white": "\033[37m",
+    "black": "30",
+    "red": "31",
+    "green": "32",
+    "yellow": "33",
+    "blue": "34",
+    "magenta": "35",
+    "cyan": "36",
+    "white": "37",
 }
 
 _VALID_COLORS = frozenset(_COLOR_CODES)
@@ -57131,13 +57131,15 @@ def colorize(
         supported on stdout.
 
     Raises:
-        TypeError: If *text* or *color* is not a string.
+        TypeError: If *text* or *color* is not a string, or *bold* is not a bool.
         ValueError: If *color* is not a supported color name.
     """
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     if not isinstance(color, str):
         raise TypeError("color must be a string")
+    if not isinstance(bold, bool):
+        raise TypeError("bold must be a bool")
     if color not in _VALID_COLORS:
         raise ValueError(
             f"unsupported color {color!r}; supported colors are {sorted(_VALID_COLORS)!r}"
@@ -57163,7 +57165,12 @@ def print_colored(
         color: One of black, red, green, yellow, blue, magenta, cyan, white.
         bold: Whether to render the text in bold.
         stream: The output stream (defaults to sys.stdout).
+
+    Raises:
+        TypeError: If *bold* is not a bool.
     """
+    if not isinstance(bold, bool):
+        raise TypeError("bold must be a bool")
     if stream is None:
         stream = sys.stdout
     stream.write(colorize(text, color=color, bold=bold, stream=stream) + "\n")
@@ -70074,6 +70081,28 @@ class TestColorize(unittest.TestCase):
         with self.assertRaises(TypeError):
             colorize("hello", 5)
 
+    def test_bold_must_be_bool(self):
+        with self.assertRaises(TypeError):
+            colorize("hello", "red", bold="yes")
+        with self.assertRaises(TypeError):
+            colorize("hello", "red", bold=1)
+        with self.assertRaises(TypeError):
+            colorize("hello", "red", bold=[])
+
+    def test_ansi_output_without_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                result = colorize("hello", "red", bold=False)
+                self.assertEqual(result, "\033[31mhello\033[0m")
+
+    def test_ansi_output_with_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                result = colorize("hello", "red", bold=True)
+                self.assertEqual(result, "\033[1;31mhello\033[0m")
+
 
 class TestPrintColored(unittest.TestCase):
     def test_writes_to_stream(self):
@@ -70085,6 +70114,31 @@ class TestPrintColored(unittest.TestCase):
         with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
             print_colored("hi")
             self.assertEqual(mock_stdout.getvalue(), "hi\n")
+
+    def test_bold_must_be_bool(self):
+        stream = io.StringIO()
+        with self.assertRaises(TypeError):
+            print_colored("hello", color="red", bold="yes", stream=stream)
+        with self.assertRaises(TypeError):
+            print_colored("hello", color="red", bold=1, stream=stream)
+
+    def test_ansi_output_without_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                stream = io.StringIO()
+                stream.isatty = lambda: True
+                print_colored("hello", color="red", bold=False, stream=stream)
+                self.assertEqual(stream.getvalue(), "\033[31mhello\033[0m\n")
+
+    def test_ansi_output_with_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                stream = io.StringIO()
+                stream.isatty = lambda: True
+                print_colored("hello", color="red", bold=True, stream=stream)
+                self.assertEqual(stream.getvalue(), "\033[1;31mhello\033[0m\n")
 
 
 class TestClearScreen(unittest.TestCase):
@@ -83536,7 +83590,8 @@ def deprecated(
         ``func``.
 
     Raises:
-        TypeError: If ``func`` is provided and is not callable.
+        TypeError: If ``func`` is provided and is not callable, or if
+            ``version``, ``replacement``, or ``message`` are not strings or None.
 
     Example:
         >>> @deprecated(version="2.0", replacement="use greet() instead")
@@ -83545,6 +83600,9 @@ def deprecated(
         >>> say_hello()  # doctest: +SKIP
         'hello'
     """
+    for param, name in ((version, "version"), (replacement, "replacement"), (message, "message")):
+        if param is not None and not isinstance(param, str):
+            raise TypeError(f"{name} must be a string or None")
 
     def decorator(target: Callable[..., T]) -> Callable[..., T]:
         if not callable(target):
@@ -83643,6 +83701,26 @@ class TestDeprecated(unittest.TestCase):
     def test_non_callable_raises(self):
         with self.assertRaises(TypeError):
             deprecated(42)  # type: ignore[arg-type]
+
+    def test_version_must_be_string(self):
+        with self.assertRaises(TypeError):
+            deprecated(version=123)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(version=1.0)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(version=[])(lambda: None)  # type: ignore[arg-type]
+
+    def test_replacement_must_be_string(self):
+        with self.assertRaises(TypeError):
+            deprecated(replacement=123)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(replacement=[])(lambda: None)  # type: ignore[arg-type]
+
+    def test_message_must_be_string(self):
+        with self.assertRaises(TypeError):
+            deprecated(message=123)(lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            deprecated(message=[])(lambda: None)  # type: ignore[arg-type]
 
 
 class TestExportedTypeVars(unittest.TestCase):
@@ -161815,6 +161893,9 @@ class Cooldown:
     def __call__(self, func: Callable[P, T]) -> Callable[P, T]:
         """Return a wrapped callable that enforces the cooldown on each call."""
 
+        if not callable(func):
+            raise TypeError("func must be callable")
+
         def wrapped(*args: P.args, **kwargs: P.kwargs) -> T:
             return self.call(func, *args, **kwargs)
 
@@ -162022,6 +162103,14 @@ class TestCooldownDecorator(unittest.TestCase):
             return a + b
 
         self.assertEqual(add(2, 3), 5)
+
+    def test_decorator_rejects_non_callable_at_decoration_time(self) -> None:
+        with self.assertRaises(TypeError):
+            cooldown(1.0)(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cooldown(1.0)("not callable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cooldown(1.0)([])  # type: ignore[arg-type]
 
 
 class TestCooldownThreadSafety(unittest.TestCase):

@@ -14,17 +14,17 @@ import sys
 from typing import Iterable, Iterator, Optional, TextIO, Tuple
 
 _RESET = "\033[0m"
-_BOLD = "\033[1m"
+_BOLD = "1"
 
 _COLOR_CODES: dict = {
-    "black": "\033[30m",
-    "red": "\033[31m",
-    "green": "\033[32m",
-    "yellow": "\033[33m",
-    "blue": "\033[34m",
-    "magenta": "\033[35m",
-    "cyan": "\033[36m",
-    "white": "\033[37m",
+    "black": "30",
+    "red": "31",
+    "green": "32",
+    "yellow": "33",
+    "blue": "34",
+    "magenta": "35",
+    "cyan": "36",
+    "white": "37",
 }
 
 _VALID_COLORS = frozenset(_COLOR_CODES)
@@ -74,13 +74,15 @@ def colorize(
         supported on stdout.
 
     Raises:
-        TypeError: If *text* or *color* is not a string.
+        TypeError: If *text* or *color* is not a string, or *bold* is not a bool.
         ValueError: If *color* is not a supported color name.
     """
     if not isinstance(text, str):
         raise TypeError("text must be a string")
     if not isinstance(color, str):
         raise TypeError("color must be a string")
+    if not isinstance(bold, bool):
+        raise TypeError("bold must be a bool")
     if color not in _VALID_COLORS:
         raise ValueError(
             f"unsupported color {color!r}; supported colors are {sorted(_VALID_COLORS)!r}"
@@ -106,7 +108,12 @@ def print_colored(
         color: One of black, red, green, yellow, blue, magenta, cyan, white.
         bold: Whether to render the text in bold.
         stream: The output stream (defaults to sys.stdout).
+
+    Raises:
+        TypeError: If *bold* is not a bool.
     """
+    if not isinstance(bold, bool):
+        raise TypeError("bold must be a bool")
     if stream is None:
         stream = sys.stdout
     stream.write(colorize(text, color=color, bold=bold, stream=stream) + "\n")

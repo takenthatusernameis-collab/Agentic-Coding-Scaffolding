@@ -42,6 +42,28 @@ class TestColorize(unittest.TestCase):
         with self.assertRaises(TypeError):
             colorize("hello", 5)
 
+    def test_bold_must_be_bool(self):
+        with self.assertRaises(TypeError):
+            colorize("hello", "red", bold="yes")
+        with self.assertRaises(TypeError):
+            colorize("hello", "red", bold=1)
+        with self.assertRaises(TypeError):
+            colorize("hello", "red", bold=[])
+
+    def test_ansi_output_without_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                result = colorize("hello", "red", bold=False)
+                self.assertEqual(result, "\033[31mhello\033[0m")
+
+    def test_ansi_output_with_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                result = colorize("hello", "red", bold=True)
+                self.assertEqual(result, "\033[1;31mhello\033[0m")
+
 
 class TestPrintColored(unittest.TestCase):
     def test_writes_to_stream(self):
@@ -53,6 +75,31 @@ class TestPrintColored(unittest.TestCase):
         with patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
             print_colored("hi")
             self.assertEqual(mock_stdout.getvalue(), "hi\n")
+
+    def test_bold_must_be_bool(self):
+        stream = io.StringIO()
+        with self.assertRaises(TypeError):
+            print_colored("hello", color="red", bold="yes", stream=stream)
+        with self.assertRaises(TypeError):
+            print_colored("hello", color="red", bold=1, stream=stream)
+
+    def test_ansi_output_without_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                stream = io.StringIO()
+                stream.isatty = lambda: True
+                print_colored("hello", color="red", bold=False, stream=stream)
+                self.assertEqual(stream.getvalue(), "\033[31mhello\033[0m\n")
+
+    def test_ansi_output_with_bold(self):
+        with patch("sys.stdout") as mock_stdout:
+            mock_stdout.isatty.return_value = True
+            with patch.dict("os.environ", {}, clear=True):
+                stream = io.StringIO()
+                stream.isatty = lambda: True
+                print_colored("hello", color="red", bold=True, stream=stream)
+                self.assertEqual(stream.getvalue(), "\033[1;31mhello\033[0m\n")
 
 
 class TestClearScreen(unittest.TestCase):

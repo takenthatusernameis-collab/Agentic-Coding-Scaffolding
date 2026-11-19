@@ -157,6 +157,14 @@ class TestCooldownDecorator(unittest.TestCase):
 
         self.assertEqual(add(2, 3), 5)
 
+    def test_decorator_rejects_non_callable_at_decoration_time(self) -> None:
+        with self.assertRaises(TypeError):
+            cooldown(1.0)(42)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cooldown(1.0)("not callable")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            cooldown(1.0)([])  # type: ignore[arg-type]
+
 
 class TestCooldownThreadSafety(unittest.TestCase):
     def test_concurrent_calls_respect_interval(self) -> None:
