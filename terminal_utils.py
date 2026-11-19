@@ -159,9 +159,13 @@ class ProgressBar:
         empty: str = "-",
         stream: Optional[TextIO] = None,
     ) -> None:
-        if isinstance(total, bool) or not isinstance(total, int) or total <= 0:
+        if isinstance(total, bool) or not isinstance(total, int):
+            raise TypeError("total must be an integer")
+        if total <= 0:
             raise ValueError("total must be a positive integer")
-        if width is not None and (isinstance(width, bool) or not isinstance(width, int) or width <= 0):
+        if width is not None and (
+            isinstance(width, bool) or not isinstance(width, int) or width <= 0
+        ):
             raise TypeError("width must be a positive integer")
         if not isinstance(fill, str) or len(fill) != 1:
             raise ValueError("fill must be a single character")

@@ -73,13 +73,25 @@ class TestGetTerminalSize(unittest.TestCase):
 
 
 class TestProgressBar(unittest.TestCase):
-    def test_total_must_be_positive(self):
+    def test_total_type_error_for_bool(self):
+        with self.assertRaises(TypeError):
+            ProgressBar(True)
+        with self.assertRaises(TypeError):
+            ProgressBar(False)
+
+    def test_total_type_error_for_non_int(self):
+        with self.assertRaises(TypeError):
+            ProgressBar("10")
+        with self.assertRaises(TypeError):
+            ProgressBar(10.5)
+        with self.assertRaises(TypeError):
+            ProgressBar(None)
+
+    def test_total_value_error_for_non_positive(self):
         with self.assertRaises(ValueError):
             ProgressBar(0)
         with self.assertRaises(ValueError):
-            ProgressBar(-3)
-        with self.assertRaises(ValueError):
-            ProgressBar(True)
+            ProgressBar(-1)
 
     def test_fill_and_empty_must_be_single_characters(self):
         with self.assertRaises(ValueError):

@@ -271,6 +271,7 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
         A validator callable.
 
     Raises:
+        TypeError: If ``min_value`` or ``max_value`` is not a real number.
         ValueError: If ``min_value`` is greater than ``max_value``.
 
     Examples:
@@ -282,6 +283,9 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
         ...
         ValueError: value 15 is outside the allowed range [1, 10]
     """
+    for bound, name in ((min_value, "min_value"), (max_value, "max_value")):
+        if isinstance(bound, bool) or not isinstance(bound, (int, float)):
+            raise TypeError(f"{name} must be a real number")
     if min_value > max_value:
         raise ValueError("min_value must be <= max_value")
 
@@ -306,12 +310,13 @@ def choices_validator(*choices: Any) -> Validator:
     """Return a validator ensuring the value is one of ``choices``.
 
     Args:
-        choices: The allowed values.
+        choices: The allowed values. All choices must be hashable.
 
     Returns:
         A validator callable.
 
     Raises:
+        TypeError: If any choice is not hashable.
         ValueError: If no choices are provided.
 
     Examples:
@@ -321,7 +326,10 @@ def choices_validator(*choices: Any) -> Validator:
     """
     if not choices:
         raise ValueError("at least one choice is required")
-    choice_set = frozenset(choices)
+    try:
+        choice_set = frozenset(choices)
+    except TypeError as exc:
+        raise TypeError("all choices must be hashable") from exc
     choice_list = list(choices)
 
     def validate(value: Any) -> Any:

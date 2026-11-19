@@ -5347,6 +5347,7 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
         A validator callable.
 
     Raises:
+        TypeError: If ``min_value`` or ``max_value`` is not a real number.
         ValueError: If ``min_value`` is greater than ``max_value``.
 
     Examples:
@@ -5358,6 +5359,9 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
         ...
         ValueError: value 15 is outside the allowed range [1, 10]
     """
+    for bound, name in ((min_value, "min_value"), (max_value, "max_value")):
+        if isinstance(bound, bool) or not isinstance(bound, (int, float)):
+            raise TypeError(f"{name} must be a real number")
     if min_value > max_value:
         raise ValueError("min_value must be <= max_value")
 
@@ -5382,12 +5386,13 @@ def choices_validator(*choices: Any) -> Validator:
     """Return a validator ensuring the value is one of ``choices``.
 
     Args:
-        choices: The allowed values.
+        choices: The allowed values. All choices must be hashable.
 
     Returns:
         A validator callable.
 
     Raises:
+        TypeError: If any choice is not hashable.
         ValueError: If no choices are provided.
 
     Examples:
@@ -5397,7 +5402,10 @@ def choices_validator(*choices: Any) -> Validator:
     """
     if not choices:
         raise ValueError("at least one choice is required")
-    choice_set = frozenset(choices)
+    try:
+        choice_set = frozenset(choices)
+    except TypeError as exc:
+        raise TypeError("all choices must be hashable") from exc
     choice_list = list(choices)
 
     def validate(value: Any) -> Any:
@@ -5763,6 +5771,16 @@ class TestSchemaFieldValidators(unittest.TestCase):
         with self.assertRaises(ValueError):
             range_validator(10, 1)
 
+    def test_range_validator_rejects_non_numeric_bounds(self):
+        with self.assertRaises(TypeError):
+            range_validator("a", "b")
+        with self.assertRaises(TypeError):
+            range_validator([1], [2])
+        with self.assertRaises(TypeError):
+            range_validator(None, 10)
+        with self.assertRaises(TypeError):
+            range_validator(1, "b")
+
     def test_choices_validator(self):
         validate = choices_validator("dev", "staging", "prod")
         self.assertEqual(validate("staging"), "staging")
@@ -5772,6 +5790,12 @@ class TestSchemaFieldValidators(unittest.TestCase):
     def test_choices_validator_no_choices(self):
         with self.assertRaises(ValueError):
             choices_validator()
+
+    def test_choices_validator_rejects_unhashable_choices(self):
+        with self.assertRaises(TypeError):
+            choices_validator([1, 2], [3, 4])
+        with self.assertRaises(TypeError):
+            choices_validator({"a": 1}, {"b": 2})
 
     def test_regex_validator(self):
         validate = regex_validator(r"^[A-Z]+$")
@@ -57192,9 +57216,13 @@ class ProgressBar:
         empty: str = "-",
         stream: Optional[TextIO] = None,
     ) -> None:
-        if isinstance(total, bool) or not isinstance(total, int) or total <= 0:
+        if isinstance(total, bool) or not isinstance(total, int):
+            raise TypeError("total must be an integer")
+        if total <= 0:
             raise ValueError("total must be a positive integer")
-        if width is not None and (isinstance(width, bool) or not isinstance(width, int) or width <= 0):
+        if width is not None and (
+            isinstance(width, bool) or not isinstance(width, int) or width <= 0
+        ):
             raise TypeError("width must be a positive integer")
         if not isinstance(fill, str) or len(fill) != 1:
             raise ValueError("fill must be a single character")
@@ -70077,13 +70105,25 @@ class TestGetTerminalSize(unittest.TestCase):
 
 
 class TestProgressBar(unittest.TestCase):
-    def test_total_must_be_positive(self):
+    def test_total_type_error_for_bool(self):
+        with self.assertRaises(TypeError):
+            ProgressBar(True)
+        with self.assertRaises(TypeError):
+            ProgressBar(False)
+
+    def test_total_type_error_for_non_int(self):
+        with self.assertRaises(TypeError):
+            ProgressBar("10")
+        with self.assertRaises(TypeError):
+            ProgressBar(10.5)
+        with self.assertRaises(TypeError):
+            ProgressBar(None)
+
+    def test_total_value_error_for_non_positive(self):
         with self.assertRaises(ValueError):
             ProgressBar(0)
         with self.assertRaises(ValueError):
-            ProgressBar(-3)
-        with self.assertRaises(ValueError):
-            ProgressBar(True)
+            ProgressBar(-1)
 
     def test_fill_and_empty_must_be_single_characters(self):
         with self.assertRaises(ValueError):

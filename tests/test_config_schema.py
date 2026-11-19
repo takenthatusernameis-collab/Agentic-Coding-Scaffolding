@@ -106,6 +106,16 @@ class TestSchemaFieldValidators(unittest.TestCase):
         with self.assertRaises(ValueError):
             range_validator(10, 1)
 
+    def test_range_validator_rejects_non_numeric_bounds(self):
+        with self.assertRaises(TypeError):
+            range_validator("a", "b")
+        with self.assertRaises(TypeError):
+            range_validator([1], [2])
+        with self.assertRaises(TypeError):
+            range_validator(None, 10)
+        with self.assertRaises(TypeError):
+            range_validator(1, "b")
+
     def test_choices_validator(self):
         validate = choices_validator("dev", "staging", "prod")
         self.assertEqual(validate("staging"), "staging")
@@ -115,6 +125,12 @@ class TestSchemaFieldValidators(unittest.TestCase):
     def test_choices_validator_no_choices(self):
         with self.assertRaises(ValueError):
             choices_validator()
+
+    def test_choices_validator_rejects_unhashable_choices(self):
+        with self.assertRaises(TypeError):
+            choices_validator([1, 2], [3, 4])
+        with self.assertRaises(TypeError):
+            choices_validator({"a": 1}, {"b": 2})
 
     def test_regex_validator(self):
         validate = regex_validator(r"^[A-Z]+$")
