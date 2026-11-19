@@ -1,3 +1,14 @@
+## Latest Session (2026-11-19) — defect fix: `statistics_utils.normalize` rejects non-finite values
+
+- `board_read`: empty (bootstrap session); executed the durable handoff in `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 — checkpoint behind HEAD `23a25e1` (prior session's verified `SemanticVersion` fix plus bookkeeping); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD. The probe also caught a stale embedded copy (`statistics_utils.py` + its test) that `make refresh-scaffold` repaired before any new edit.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed a redundant discovery pass, and the fresh-eyes pass targeted modules outside the earlier sweep list (`duration_utils`, `validation_utils`, `tree_utils`, `sort_utils`, `statistics_utils`, `maybe_utils`, `either_utils`, `retry_utils`, `circuit_breaker_utils`) with `audit_contracts --summary` (0 issues) plus targeted edge-case probing rather than re-reviewing covered modules.
+- **Defect fixed (failing-test-first):** `statistics_utils.normalize` documented a `[0, 1]` output range and already raised `ValueError` for NaN inputs, but `float("inf")` slipped through: `min`/`max` produced an infinite scale, so `normalize([1, float("inf"), 3])` returned `[0.0, nan, 0.0]` instead of raising. The guard now rejects both NaN and infinity, so every result is finite and bounded.
+- **Tests:** `test_normalize_rejects_infinite_values` and `test_normalize_output_is_finite_and_bounded` (both red before the fix, green after), alongside the existing `test_normalize_rejects_nan`.
+- **Defect class:** accepts-invalid-input / float edge case in a hand-rolled `*_utils` module.
+- **Verification:** `python -m unittest tests.test_statistics_utils` — 45 OK; `python -m doctest statistics_utils.py` — OK; `python -m ruff check statistics_utils.py tests/test_statistics_utils.py` — clean; `python -m mypy statistics_utils.py tests/test_statistics_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed the embedded `statistics_utils.py`, `tests/test_statistics_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — defect fix: `SemanticVersion` rejects invalid pre-release/build characters
 
 - `board_read`: empty (bootstrap session); executed the durable handoff in `.kilo/next_task.md`.

@@ -278,7 +278,8 @@ def normalize(numbers: List[T | float]) -> List[float]:
         If all values are equal, returns a list of 0.0.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty or contains non-finite values
+            (NaN or infinity).
 
     Examples:
         >>> normalize([1, 2, 3, 4, 5])
@@ -288,8 +289,8 @@ def normalize(numbers: List[T | float]) -> List[float]:
     """
     if not numbers:
         raise ValueError("Cannot normalize empty list")
-    if any(isinstance(x, float) and math.isnan(x) for x in numbers):
-        raise ValueError("numbers must not contain NaN")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     min_val = min(numbers)
     max_val = max(numbers)
     if min_val == max_val:

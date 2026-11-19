@@ -205,6 +205,24 @@ class TestNormalize(unittest.TestCase):
         with self.assertRaises(ValueError):
             normalize([])
 
+    def test_normalize_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            normalize([1, float("nan"), 3])
+
+    def test_normalize_rejects_infinite_values(self):
+        # ``normalize`` documents a [0, 1] output range. A NaN check alone is
+        # not enough: ``float("inf")`` slips through, makes ``max_val - min_val``
+        # an infinity, and silently produces ``nan`` entries instead of raising.
+        with self.assertRaises(ValueError):
+            normalize([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            normalize([1, float("-inf"), 3])
+
+    def test_normalize_output_is_finite_and_bounded(self):
+        for value in normalize([1, 2, 3, 4, 5]):
+            self.assertTrue(math.isfinite(value))
+            self.assertTrue(0.0 <= value <= 1.0)
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):

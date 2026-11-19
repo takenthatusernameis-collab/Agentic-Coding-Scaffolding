@@ -28339,6 +28339,7 @@ TESTSETUTILS
 cat > "$OUTPUT_DIR/tests/test_statistics_utils.py" <<'TESTSTATISTICS'
 """Tests for statistics_utils module."""
 
+import math
 import unittest
 from typing import TypeVar
 
@@ -28370,6 +28371,11 @@ class TestHarmonicMean(unittest.TestCase):
         with self.assertRaises(ValueError):
             harmonic_mean([1, 0, 3])
 
+    def test_harmonic_mean_tiny_values_do_not_underflow(self):
+        result = harmonic_mean([1e-320, 1e-320])
+        self.assertGreater(result, 0.0)
+        self.assertAlmostEqual(result / 1e-320, 1.0, places=12)
+
 
 class TestGeometricMean(unittest.TestCase):
     def test_geometric_mean_basic(self):
@@ -28385,6 +28391,16 @@ class TestGeometricMean(unittest.TestCase):
     def test_geometric_mean_raises_on_negative(self):
         with self.assertRaises(ValueError):
             geometric_mean([1, -2, 3])
+
+    def test_geometric_mean_large_values_do_not_overflow(self):
+        result = geometric_mean([1e200, 1e200, 1e200])
+        self.assertTrue(math.isfinite(result))
+        self.assertAlmostEqual(result / 1e200, 1.0, places=12)
+
+    def test_geometric_mean_small_values_do_not_underflow(self):
+        result = geometric_mean([1e-200, 1e-200, 1e-200])
+        self.assertGreater(result, 0.0)
+        self.assertAlmostEqual(result / 1e-200, 1.0, places=12)
 
 
 class TestMedianEven(unittest.TestCase):
@@ -28527,6 +28543,24 @@ class TestNormalize(unittest.TestCase):
     def test_normalize_raises_on_empty(self):
         with self.assertRaises(ValueError):
             normalize([])
+
+    def test_normalize_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            normalize([1, float("nan"), 3])
+
+    def test_normalize_rejects_infinite_values(self):
+        # ``normalize`` documents a [0, 1] output range. A NaN check alone is
+        # not enough: ``float("inf")`` slips through, makes ``max_val - min_val``
+        # an infinity, and silently produces ``nan`` entries instead of raising.
+        with self.assertRaises(ValueError):
+            normalize([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            normalize([1, float("-inf"), 3])
+
+    def test_normalize_output_is_finite_and_bounded(self):
+        for value in normalize([1, 2, 3, 4, 5]):
+            self.assertTrue(math.isfinite(value))
+            self.assertTrue(0.0 <= value <= 1.0)
 
 
 class TestExportedTypeVars(unittest.TestCase):
@@ -43870,8 +43904,12 @@ def harmonic_mean(numbers: List[T | float]) -> float:
     # Check for zeros
     if any(x == 0 for x in numbers):
         raise ValueError("Harmonic mean is undefined for values equal to zero")
-    reciprocal_sum = sum(1.0 / x for x in numbers)
-    return len(numbers) / reciprocal_sum
+    # Scale by the smallest magnitude so every reciprocal stays at or below 1;
+    # otherwise a tiny input (e.g. 1e-320) overflows ``1.0 / x`` to ``inf`` and
+    # the mean collapses to ``0.0``.
+    scale = min(abs(x) for x in numbers)
+    scaled_reciprocal_sum = math.fsum(scale / x for x in numbers)
+    return float(len(numbers) * scale / scaled_reciprocal_sum)
 
 
 def geometric_mean(numbers: List[T | float]) -> float:
@@ -43899,9 +43937,15 @@ def geometric_mean(numbers: List[T | float]) -> float:
     # Check for negatives
     if any(x < 0 for x in numbers):
         raise ValueError("Geometric mean is undefined for negative numbers")
+    if any(x == 0 for x in numbers):
+        return 0.0
     product = 1.0
     for x in numbers:
         product *= x
+    # A product that overflows to ``inf`` or underflows to ``0.0`` would make
+    # the root wrong, so fall back to the numerically stable log-space form.
+    if not math.isfinite(product) or product == 0.0:
+        return float(math.exp(math.fsum(math.log(x) for x in numbers) / len(numbers)))
     return float(product ** (1.0 / len(numbers)))
 
 
@@ -44096,7 +44140,8 @@ def normalize(numbers: List[T | float]) -> List[float]:
         If all values are equal, returns a list of 0.0.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty or contains non-finite values
+            (NaN or infinity).
 
     Examples:
         >>> normalize([1, 2, 3, 4, 5])
@@ -44106,8 +44151,8 @@ def normalize(numbers: List[T | float]) -> List[float]:
     """
     if not numbers:
         raise ValueError("Cannot normalize empty list")
-    if any(isinstance(x, float) and math.isnan(x) for x in numbers):
-        raise ValueError("numbers must not contain NaN")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     min_val = min(numbers)
     max_val = max(numbers)
     if min_val == max_val:
@@ -73069,6 +73114,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `statistics_utils.normalize` rejects non-finite values
+
+- **Correctness fix — `normalize` checked for NaN but silently accepted infinity.** The method documents a `[0, 1]` output range and already raised `ValueError` for NaN inputs, but `float("inf")` slipped through: `min`/`max` then produced an infinite scale, so `normalize([1, float("inf"), 3])` returned `[0.0, nan, 0.0]` instead of raising. The guard now rejects both NaN and infinity, so every result is finite and bounded. Added `test_normalize_rejects_infinite_values` and `test_normalize_output_is_finite_and_bounded` (both fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case in a hand-rolled `*_utils` module (targeted defect-hunt pass over modules earlier sweeps missed).
+- Validation: `python -m unittest tests.test_statistics_utils` — 45 OK; `python -m doctest statistics_utils.py` — OK; `python -m ruff check statistics_utils.py tests/test_statistics_utils.py` — clean; `python -m mypy statistics_utils.py tests/test_statistics_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `SemanticVersion` rejects invalid pre-release/build characters
 
 - **Correctness fix — the constructor could build versions that `parse_semver` rejects.** `SemanticVersion.__init__` validated the *shape* of `prerelease`/`build` (non-empty dot-separated identifiers) and rejected numeric pre-release identifiers with leading zeroes, but it never enforced the semver 2.0.0 character set (`[0-9A-Za-z-]`). A caller could therefore construct `SemanticVersion(1, 0, 0, prerelease="alpha_1")` (or `build="build/1"`, `build="ü"`), whose `str()` is not a valid semantic version even though `parse_semver` rejects the same text — the class could represent states its own parser forbids. `_validate_semver_identifiers` now rejects any identifier that is not pure ASCII alphanumerics/hyphens for both fields, so every constructed version round-trips through `parse_semver`.
