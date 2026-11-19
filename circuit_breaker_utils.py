@@ -72,10 +72,13 @@ class CircuitBreaker:
         if recovery_timeout <= 0:
             raise ValueError("recovery_timeout must be greater than 0")
 
-        if isinstance(expected_exception, type):
+        if isinstance(expected_exception, type) and issubclass(
+            expected_exception, BaseException
+        ):
             expected_exceptions: Tuple[type[BaseException], ...] = (expected_exception,)
-        elif isinstance(expected_exception, tuple) and all(
-            isinstance(exc, type) for exc in expected_exception
+        elif isinstance(expected_exception, tuple) and expected_exception and all(
+            isinstance(exc, type) and issubclass(exc, BaseException)
+            for exc in expected_exception
         ):
             expected_exceptions = expected_exception
         else:

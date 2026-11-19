@@ -153,6 +153,38 @@ class TestFilterTree(unittest.TestCase):
         self.assertIsNone(filter_tree(lambda x: x > 1, 0))
 
 
+class TestSetNestedRejectsNonDictIntermediate(unittest.TestCase):
+    def test_set_nested_rejects_scalar_intermediate(self):
+        # A non-dict intermediate must not be silently overwritten with a dict,
+        # which would destroy the existing value.
+        d = {"a": 5}
+        with self.assertRaises((TypeError, ValueError)):
+            set_nested(d, ["a", "b"], 1)
+
+    def test_set_nested_rejects_list_intermediate(self):
+        d = {"a": [1, 2, 3]}
+        with self.assertRaises((TypeError, ValueError)):
+            set_nested(d, ["a", 0], 9)
+
+    def test_set_nested_preserves_existing_dict_intermediate(self):
+        d = {"a": {"b": {"c": 1}}}
+        set_nested(d, ["a", "b", "d"], 2)
+        self.assertEqual(d, {"a": {"b": {"c": 1, "d": 2}}})
+
+
+class TestUnflattenTreeRejectsEmptyKeyPart(unittest.TestCase):
+    def test_unflatten_rejects_empty_first_part_with_other_keys(self):
+        # A key whose first separator-delimited part is empty (e.g. ".a") is not
+        # a valid compound key; the current code crashes with TypeError when a
+        # later part tries to index into the empty-string placeholder.
+        with self.assertRaises((TypeError, ValueError)):
+            unflatten_tree({"": 1, "a.b": 2})
+
+    def test_unflatten_rejects_leading_sep_key(self):
+        with self.assertRaises((TypeError, ValueError)):
+            unflatten_tree({".a": 1})
+
+
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevars_exported(self):
         self.assertIsInstance(tree_utils.T, TypeVar)

@@ -199,6 +199,13 @@ class TestCircuitBreaker(unittest.TestCase):
         with self.assertRaises(TypeError):
             CircuitBreaker(expected_exception="ValueError")  # type: ignore[arg-type]
 
+    def test_empty_expected_exception_tuple_raises(self):
+        # An empty tuple means no exception is ever counted, so the circuit
+        # would never open — silently ignoring the failure threshold. This
+        # contradicts the documented contract that failures open the circuit.
+        with self.assertRaises(TypeError):
+            CircuitBreaker(expected_exception=())
+
     def test_thread_safe_concurrent_failures(self):
         breaker = CircuitBreaker(failure_threshold=50)
         errors: list[BaseException] = []

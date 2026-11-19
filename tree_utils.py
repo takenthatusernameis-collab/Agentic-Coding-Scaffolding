@@ -71,9 +71,24 @@ def set_nested(d: Dict[str, Any], keys: Iterable[str | int], value: Any) -> Dict
 
     current: Any = d
     for key in keys_list[:-1]:
-        if key not in current or not isinstance(current[key], dict):  # type: ignore[index]
+        if not isinstance(current, dict):
+            raise TypeError(
+                f"cannot set path through non-dict intermediate at {key!r}: "
+                f"got {type(current).__name__}"
+            )
+        if key in current and not isinstance(current[key], dict):  # type: ignore[index]
+            raise TypeError(
+                f"cannot set path through non-dict intermediate at {key!r}: "
+                f"existing value is {type(current[key]).__name__}"
+            )
+        if key not in current:  # type: ignore[index]
             current[key] = {}  # type: ignore[index]
         current = current[key]  # type: ignore[index]
+    if not isinstance(current, dict):
+        raise TypeError(
+            f"cannot set path through non-dict intermediate at {keys_list[-1]!r}: "
+            f"got {type(current).__name__}"
+        )
     current[keys_list[-1]] = value  # type: ignore[index]
     return d
 
@@ -151,13 +166,29 @@ def unflatten_tree(flat: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
     Returns:
         A nested dictionary.
 
+    Raises:
+        ValueError: If a key is empty or contains an empty part after
+            splitting on ``sep`` (e.g. ``".a"`` or ``"a..b"``), which cannot
+            be represented as a nested path.
+
     Examples:
         >>> unflatten_tree({"a.b.c": 1, "a.b.d": 2, "e": 3})
         {'a': {'b': {'c': 1, 'd': 2}}, 'e': 3}
     """
     result: Dict[str, Any] = {}
     for key, value in flat.items():
-        parts = key.split(sep) if sep and sep in key else [key] if key else []
+        if sep and sep in key:
+            parts = key.split(sep)
+        elif key:
+            parts = [key]
+        else:
+            raise ValueError(
+                f"empty key cannot be unflattened: {key!r} is not a valid compound key"
+            )
+        if any(part == "" for part in parts):
+            raise ValueError(
+                f"key {key!r} contains an empty part after splitting on {sep!r}"
+            )
         current = result
         for part in parts[:-1]:
             if part not in current or not isinstance(current[part], dict):
@@ -165,8 +196,6 @@ def unflatten_tree(flat: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
             current = current[part]
         if parts:
             current[parts[-1]] = value
-        else:
-            result = value  # type: ignore[assignment]
     return result
 
 
