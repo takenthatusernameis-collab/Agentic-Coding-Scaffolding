@@ -46268,6 +46268,10 @@ def ip_to_int(ip_str: str) -> int:
 
 def int_to_ip(num: int, version: int = 4) -> str:
     """Convert an integer to an IP address string."""
+    if isinstance(num, bool) or not isinstance(num, int):
+        raise ValueError(f"Invalid integer for IP {version}: {num}")
+    if isinstance(version, bool) or not isinstance(version, int):
+        raise ValueError("Version must be 4 or 6")
     try:
         if version == 4:
             return str(ipaddress.IPv4Address(num))
@@ -46471,6 +46475,12 @@ class TestIPConversion(unittest.TestCase):
 
     def test_int_to_ipv6(self) -> None:
         self.assertEqual(int_to_ip(1, version=6), "::1")
+
+    def test_int_to_ip_rejects_bool(self) -> None:
+        with self.assertRaises(ValueError):
+            int_to_ip(True)
+        with self.assertRaises(ValueError):
+            int_to_ip(1, version=True)
 
     def test_invalid_conversion(self) -> None:
         with self.assertRaises(ValueError):

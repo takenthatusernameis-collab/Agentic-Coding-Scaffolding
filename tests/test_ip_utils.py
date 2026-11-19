@@ -87,6 +87,12 @@ class TestIPConversion(unittest.TestCase):
     def test_int_to_ipv6(self) -> None:
         self.assertEqual(int_to_ip(1, version=6), "::1")
 
+    def test_int_to_ip_rejects_bool(self) -> None:
+        with self.assertRaises(ValueError):
+            int_to_ip(True)
+        with self.assertRaises(ValueError):
+            int_to_ip(1, version=True)
+
     def test_invalid_conversion(self) -> None:
         with self.assertRaises(ValueError):
             ip_to_int("invalid")

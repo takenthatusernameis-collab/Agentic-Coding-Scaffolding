@@ -50,6 +50,10 @@ def ip_to_int(ip_str: str) -> int:
 
 def int_to_ip(num: int, version: int = 4) -> str:
     """Convert an integer to an IP address string."""
+    if isinstance(num, bool) or not isinstance(num, int):
+        raise ValueError(f"Invalid integer for IP {version}: {num}")
+    if isinstance(version, bool) or not isinstance(version, int):
+        raise ValueError("Version must be 4 or 6")
     try:
         if version == 4:
             return str(ipaddress.IPv4Address(num))
