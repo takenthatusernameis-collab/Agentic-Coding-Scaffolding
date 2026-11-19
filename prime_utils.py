@@ -221,7 +221,6 @@ def next_prime(n: int) -> int:
 
     Raises:
         TypeError: If *n* is not an int.
-        ValueError: If no such prime exists (n < 2 returns 2).
     """
     _require_int(n, "n")
     if n <= 2:
@@ -990,16 +989,17 @@ def has_prime_factors(n: int) -> bool:
     Returns:
         ``True`` if *n* has at least one prime factor, ``False`` otherwise.
 
-    Raises:
+Raises:
         TypeError: If *n* is not an int.
         ValueError: If *n* is less than 1.
 
-    >>> has_prime_factors(12)
-    True
-    >>> has_prime_factors(1)
-    False
-    >>> has_prime_factors(2)
-    True
+    Examples:
+        >>> has_prime_factors(12)
+        True
+        >>> has_prime_factors(1)
+        False
+        >>> has_prime_factors(2)
+        True
     """
     return count_prime_factors(n) > 0
 

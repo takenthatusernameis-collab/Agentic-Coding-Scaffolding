@@ -251,7 +251,6 @@ def percentage(part: Number, total: Number, precision: int = 1) -> str:
     Raises:
         TypeError: If any argument has an invalid type.
         ValueError: If *precision* is negative.
-        ZeroDivisionError: Not raised; zero total returns "0.0%".
     """
     _require_number(part, "part")
     _require_number(total, "total")
@@ -1195,7 +1194,6 @@ def digit_sum(value: int) -> int:
 
     Raises:
         TypeError: If *value* is not an int.
-        ValueError: If *value* is negative.
 
     Examples:
         >>> digit_sum(123)

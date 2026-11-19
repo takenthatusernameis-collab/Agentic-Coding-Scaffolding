@@ -2136,3 +2136,38 @@ class TestIsWoodallPrime(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_woodall_prime(True)
 
+
+class TestNextPrimeContract(unittest.TestCase):
+    """`next_prime` documents ValueError but never raises it."""
+
+    def test_next_prime_does_not_document_value_error(self):
+        from prime_utils import next_prime
+
+        doc = next_prime.__doc__
+        self.assertNotIn("ValueError", doc)
+
+    def test_next_prime_returns_2_for_low_bound(self):
+        from prime_utils import next_prime
+
+        self.assertEqual(next_prime(0), 2)
+        self.assertEqual(next_prime(2), 2)
+
+
+class TestHasPrimeFactorsContract(unittest.TestCase):
+    """`has_prime_factors` doctests lack an Examples: header, so the audit
+    parser treats the bare ``True``/``False`` lines as documented raises.
+    The fix is to add the Examples: header."""
+
+    def test_has_prime_factors_has_examples_header(self):
+        from prime_utils import has_prime_factors
+
+        doc = has_prime_factors.__doc__
+        self.assertIn("Examples:", doc)
+
+    def test_has_prime_factors_basic(self):
+        from prime_utils import has_prime_factors
+
+        self.assertTrue(has_prime_factors(12))
+        self.assertFalse(has_prime_factors(1))
+        self.assertTrue(has_prime_factors(2))
+

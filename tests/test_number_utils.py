@@ -2368,3 +2368,33 @@ class TestBoolRejectionNumberUtils(unittest.TestCase):
         from number_utils import in_range
         with self.assertRaises(TypeError):
             in_range(True, 0, 10)
+
+
+class TestPercentageContract(unittest.TestCase):
+    """`percentage` documents ZeroDivisionError but never raises it."""
+
+    def test_percentage_does_not_document_zero_division_error(self):
+        from number_utils import percentage
+
+        doc = percentage.__doc__
+        self.assertNotIn("ZeroDivisionError", doc)
+
+    def test_percentage_zero_total_returns_zero_percent(self):
+        from number_utils import percentage
+
+        self.assertEqual(percentage(5, 0), "0.0%")
+
+
+class TestDigitSumContract(unittest.TestCase):
+    """`digit_sum` documents ValueError for negative input but never raises it."""
+
+    def test_digit_sum_does_not_document_value_error_for_negative(self):
+        from number_utils import digit_sum
+
+        doc = digit_sum.__doc__
+        self.assertNotIn("ValueError", doc)
+
+    def test_digit_sum_negative_uses_absolute_value(self):
+        from number_utils import digit_sum
+
+        self.assertEqual(digit_sum(-123), 6)

@@ -1,3 +1,18 @@
+## Latest Session (2026-11-19) — docstring contract fixes in `number_utils` and `prime_utils`
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, no source-relevant change since verified checkpoint `3694aa4`; HEAD `6104165` is CI bookkeeping only, so the prior battery was still valid and was not re-run before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed redundant discovery, and the session spent its work on four real docstring-contract defects surfaced by `tools/audit_contracts.py --summary` instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defects fixed (failing-test-first):**
+  1. `number_utils.percentage` documented `ZeroDivisionError` in its `Raises:` clause but never raised it — the implementation short-circuits `total == 0` and returns `"0.0%"`. Removed the unreachable `ZeroDivisionError` line.
+  2. `number_utils.digit_sum` documented `ValueError` for negative input but never raised it — the function ignores the sign and sums the absolute value. Removed the unreachable `ValueError` line.
+  3. `prime_utils.next_prime` documented `ValueError` but never raised it — the function returns `2` for any `n <= 2` and otherwise finds the smallest prime `>= n`. Removed the unreachable `ValueError` line.
+  4. `prime_utils.has_prime_factors` doctests lacked an `Examples:` header, so `audit_contracts.documented_raises` parsed the bare `True`/`False` lines as documented exception types and reported "documents Raises: True/False but never raises it". Added the `Examples:` header so the parser recognizes the doctest block.
+- **Tests:** `TestPercentageContract.test_percentage_does_not_document_zero_division_error` and `TestDigitSumContract.test_digit_sum_does_not_document_value_error_for_negative` (number_utils); `TestNextPrimeContract.test_next_prime_does_not_document_value_error` and `TestHasPrimeFactorsContract.test_has_prime_factors_has_examples_header` (prime_utils) — all fail before the fix, pass after.
+- **Defect class:** silently ignored parameters / docstring-vs-implementation contracts in hand-rolled `*_utils` modules (targeted defect-hunt pass over modules earlier sweeps missed).
+- **Verification:** `python -m unittest tests.test_number_utils tests.test_prime_utils` — 689 OK; `python -m doctest number_utils.py prime_utils.py` — 171 doctests passed; `python -m ruff check number_utils.py prime_utils.py tests/test_number_utils.py tests/test_prime_utils.py` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — 11580 OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `number_utils.py`, `tests/test_number_utils.py`, `prime_utils.py`, `tests/test_prime_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — routine regression monitoring; verification battery green at HEAD f01b063
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
