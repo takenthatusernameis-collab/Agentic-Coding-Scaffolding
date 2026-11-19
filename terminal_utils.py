@@ -161,6 +161,8 @@ class ProgressBar:
     ) -> None:
         if isinstance(total, bool) or not isinstance(total, int) or total <= 0:
             raise ValueError("total must be a positive integer")
+        if width is not None and (isinstance(width, bool) or not isinstance(width, int) or width <= 0):
+            raise TypeError("width must be a positive integer")
         if not isinstance(fill, str) or len(fill) != 1:
             raise ValueError("fill must be a single character")
         if not isinstance(empty, str) or len(empty) != 1:
@@ -185,7 +187,7 @@ class ProgressBar:
             increment: The number of steps to advance (default 1).
 
         Raises:
-            TypeError: If *current* is not an integer.
+            TypeError: If *current* is not an integer, or *increment* is not an integer.
             ValueError: If the resulting position is outside [0, total].
         """
         if self._finished:
@@ -194,6 +196,8 @@ class ProgressBar:
             current = self._current + increment
         if isinstance(current, bool) or not isinstance(current, int):
             raise TypeError("current must be an integer")
+        if isinstance(increment, bool) or not isinstance(increment, int):
+            raise TypeError("increment must be an integer")
         if current < 0 or current > self.total:
             raise ValueError(f"current {current} is outside [0, {self.total}]")
         self._current = current
@@ -248,12 +252,15 @@ def progress_bar(
 
     Raises:
         ValueError: If *total* cannot be inferred and is not provided.
+        TypeError: If *width* is not a positive integer.
     """
     if total is None:
         try:
             total = len(iterable)  # type: ignore[arg-type]
         except TypeError as exc:
             raise ValueError("total must be provided for iterables without len()") from exc
+    if width is not None and (isinstance(width, bool) or not isinstance(width, int) or width <= 0):
+        raise TypeError("width must be a positive integer")
     bar = ProgressBar(total, width=width, fill=fill, empty=empty, stream=stream)
     with bar:
         for item in iterable:

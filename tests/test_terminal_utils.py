@@ -153,6 +153,27 @@ class TestProgressBar(unittest.TestCase):
         bar.update(increment=1)
         self.assertEqual(bar._current, 2)
 
+    def test_rejects_bool_width(self):
+        with self.assertRaises(TypeError):
+            ProgressBar(10, width=True)
+        with self.assertRaises(TypeError):
+            ProgressBar(10, width=False)
+
+    def test_rejects_bool_increment(self):
+        bar = ProgressBar(10, stream=io.StringIO())
+        with self.assertRaises(TypeError):
+            bar.update(increment=True)
+        with self.assertRaises(TypeError):
+            bar.update(increment=False)
+
+
+class TestProgressBarFunction(unittest.TestCase):
+    def test_rejects_bool_width(self):
+        with self.assertRaises(TypeError):
+            list(progress_bar([1, 2, 3], total=3, width=True))
+        with self.assertRaises(TypeError):
+            list(progress_bar([1, 2, 3], total=3, width=False))
+
 
 class TestPrompt(unittest.TestCase):
     def test_returns_entered_value(self):
