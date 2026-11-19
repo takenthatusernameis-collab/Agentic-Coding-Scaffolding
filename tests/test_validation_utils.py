@@ -62,6 +62,18 @@ class TestIsNumeric(unittest.TestCase):
         self.assertFalse(is_numeric([]))
         self.assertFalse(is_numeric({}))
 
+    def test_rejects_non_finite_floats(self):
+        self.assertFalse(is_numeric(float("nan")))
+        self.assertFalse(is_numeric(float("inf")))
+        self.assertFalse(is_numeric(float("-inf")))
+
+    def test_rejects_non_finite_strings(self):
+        self.assertFalse(is_numeric("nan"))
+        self.assertFalse(is_numeric("inf"))
+        self.assertFalse(is_numeric("-inf"))
+        self.assertFalse(is_numeric("infinity"))
+        self.assertFalse(is_numeric("-infinity"))
+
 
 class TestIsInteger(unittest.TestCase):
     def test_integer_values(self):

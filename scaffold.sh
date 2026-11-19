@@ -37489,6 +37489,7 @@ TESTRANDUTILS
 cat > "$OUTPUT_DIR/validation_utils.py" <<'VALUTILS'
 """Validation utility functions for common input validation tasks."""
 
+import math
 import re
 from typing import Any, Union
 
@@ -37539,13 +37540,13 @@ def is_numeric(value: Any) -> bool:
     if isinstance(value, bool):
         return False
     if isinstance(value, (int, float)) and not isinstance(value, bool):
-        return True
+        return math.isfinite(value)
     if isinstance(value, str):
         try:
-            float(value)
-            return True
+            parsed = float(value)
         except (ValueError, TypeError):
             return False
+        return math.isfinite(parsed)
     return False
 
 
@@ -37787,6 +37788,18 @@ class TestIsNumeric(unittest.TestCase):
         self.assertFalse(is_numeric(False))
         self.assertFalse(is_numeric([]))
         self.assertFalse(is_numeric({}))
+
+    def test_rejects_non_finite_floats(self):
+        self.assertFalse(is_numeric(float("nan")))
+        self.assertFalse(is_numeric(float("inf")))
+        self.assertFalse(is_numeric(float("-inf")))
+
+    def test_rejects_non_finite_strings(self):
+        self.assertFalse(is_numeric("nan"))
+        self.assertFalse(is_numeric("inf"))
+        self.assertFalse(is_numeric("-inf"))
+        self.assertFalse(is_numeric("infinity"))
+        self.assertFalse(is_numeric("-infinity"))
 
 
 class TestIsInteger(unittest.TestCase):
@@ -73367,6 +73380,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `validation_utils.is_numeric` rejects non-finite values (nan/inf)
+
+- **Correctness fix — `is_numeric` accepted non-finite floats and their string forms.** The function documented "int, float, or string representing a number", but `float("nan")`, `float("inf")`, `float("-inf")` and the strings `"nan"`, `"inf"`, `"-inf"`, `"infinity"`, `"-infinity"` all returned `True`, because the float branch returned `True` unconditionally and the string branch only checked that `float()` did not raise. A caller using `is_numeric` as a numeric-eligibility gate would therefore admit NaN/Infinity. The float branch now requires `math.isfinite(value)` and the string branch parses and then requires `math.isfinite(parsed)`, so finite numeric values are accepted and every non-finite form is rejected. Added `test_rejects_non_finite_floats` and `test_rejects_non_finite_strings` (both fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case in a hand-rolled `*_utils` module (targeted defect-hunt pass over modules earlier sweeps missed).
+- Validation: `python -m unittest tests.test_validation_utils` — 26 OK; `python -m doctest validation_utils.py` — OK; `python -m ruff check validation_utils.py tests/test_validation_utils.py` — clean; `python -m mypy validation_utils.py tests/test_validation_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK (11,534 tests, skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `config_schema` validators reject type confusion and preserve precision
 
 - **Correctness fix — `choices_validator` accepted type-confused values.** `choices_validator(1, 2, 3)` accepted `1.0` (float) and `True` (bool) because it used Python's `in` equality semantics rather than strict type-and-value matching. The validator now requires both type and value to match exactly: `choices_validator(1, 2, 3)(1.0)` and `choices_validator(1, 2, 3)(True)` raise `ValueError`. Similarly, `choices_validator("1", "2")(1)` is rejected. Added `test_choices_validator_rejects_type_confusion_int_vs_float` and `test_choices_validator_rejects_type_confusion_str_vs_int` (both fail before the fix, pass after).

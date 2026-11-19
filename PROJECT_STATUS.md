@@ -1,3 +1,14 @@
+## Latest Session (2026-11-19) — defect fix: `validation_utils.is_numeric` rejects non-finite values
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules earlier sweeps missed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, no source-relevant change since the last verified checkpoint; no redundant full re-audit before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed redundant discovery, and the session spent its work on one real defect in `validation_utils.py` instead of another broad sweep.
+- **Defect fixed (failing-test-first):** `validation_utils.is_numeric` documented "int, float, or string representing a number" but accepted non-finite values: `float("nan")`, `float("inf")`, `float("-inf")` and the strings `"nan"`, `"inf"`, `"-inf"`, `"infinity"`, `"-infinity"` all returned `True`, because the float branch returned `True` unconditionally and the string branch only checked that `float()` did not raise. A caller using `is_numeric` as a numeric-eligibility gate would therefore admit NaN/Infinity. The float branch now requires `math.isfinite(value)` and the string branch parses and then requires `math.isfinite(parsed)`, so every result is finite. `is_integer` was already correct (rejects `nan`/`inf` via `is_integer()` and the int regex).
+- **Tests:** `test_rejects_non_finite_floats` and `test_rejects_non_finite_strings` (both fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case in a hand-rolled `*_utils` module.
+- **Verification:** `python -m unittest tests.test_validation_utils` — 26 OK; `python -m doctest validation_utils.py` — OK; `python -m ruff check validation_utils.py tests/test_validation_utils.py` — clean; `python -m mypy validation_utils.py tests/test_validation_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK (11,534 tests, skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `validation_utils.py`, `tests/test_validation_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — defect fix: `config_schema` validators reject type confusion and preserve precision
 
 - `board_read`: `.kilo/next_task.md` durable handoff executed (targeted defect hunt on hand-rolled modules earlier sweeps missed); board lists only `main` (self).

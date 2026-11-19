@@ -1,5 +1,6 @@
 """Validation utility functions for common input validation tasks."""
 
+import math
 import re
 from typing import Any, Union
 
@@ -50,13 +51,13 @@ def is_numeric(value: Any) -> bool:
     if isinstance(value, bool):
         return False
     if isinstance(value, (int, float)) and not isinstance(value, bool):
-        return True
+        return math.isfinite(value)
     if isinstance(value, str):
         try:
-            float(value)
-            return True
+            parsed = float(value)
         except (ValueError, TypeError):
             return False
+        return math.isfinite(parsed)
     return False
 
 
