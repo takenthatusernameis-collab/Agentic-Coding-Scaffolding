@@ -17,6 +17,7 @@ timeouts, giving the dependency time to recover.
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 from typing import Any, Callable, Optional, Tuple, TypeVar, Union
@@ -50,7 +51,7 @@ class CircuitBreaker:
             ``recovery_timeout`` is not a number, or ``expected_exception`` is
             not an exception class or tuple of exception classes.
         ValueError: If ``failure_threshold`` is less than 1 or
-            ``recovery_timeout`` is not greater than 0.
+            ``recovery_timeout`` is not a finite number greater than 0.
     """
 
     CLOSED = "closed"
@@ -69,6 +70,8 @@ class CircuitBreaker:
             raise ValueError("failure_threshold must be at least 1")
         if isinstance(recovery_timeout, bool) or not isinstance(recovery_timeout, (int, float)):
             raise TypeError("recovery_timeout must be a number")
+        if not math.isfinite(recovery_timeout):
+            raise ValueError("recovery_timeout must be a finite number")
         if recovery_timeout <= 0:
             raise ValueError("recovery_timeout must be greater than 0")
 

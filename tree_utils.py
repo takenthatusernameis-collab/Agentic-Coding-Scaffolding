@@ -233,7 +233,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     tuples are treated as branches: each element is filtered recursively and
     the branch is kept only when at least one element survives, so containers
     that become empty are dropped. Filtering a bare leaf returns the leaf when
-    it passes the predicate and ``None`` otherwise.
+    it passes the predicate and ``None`` otherwise. ``pred`` is invoked exactly
+    once per leaf value.
 
     Args:
         pred: The predicate function returning True for values to keep.
@@ -249,8 +250,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     if isinstance(tree, dict):
         result: Dict[str, Any] = {}
         for k, v in tree.items():
-            filtered = filter_tree(pred, v)
             if isinstance(v, (dict, list, tuple)):
+                filtered = filter_tree(pred, v)
                 if filtered:
                     result[k] = filtered
             else:
@@ -260,8 +261,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     elif isinstance(tree, list):
         result_list = []
         for item in tree:
-            filtered = filter_tree(pred, item)
-            if isinstance(filtered, (dict, list, tuple)):
+            if isinstance(item, (dict, list, tuple)):
+                filtered = filter_tree(pred, item)
                 if filtered:
                     result_list.append(filtered)
             else:
@@ -271,8 +272,8 @@ def filter_tree(pred: Callable[[Any], bool], tree: Any) -> Any:
     elif isinstance(tree, tuple):
         result_list = []
         for item in tree:
-            filtered = filter_tree(pred, item)
-            if isinstance(filtered, (dict, list, tuple)):
+            if isinstance(item, (dict, list, tuple)):
+                filtered = filter_tree(pred, item)
                 if filtered:
                     result_list.append(filtered)
             else:

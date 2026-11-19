@@ -153,6 +153,27 @@ class TestFilterTree(unittest.TestCase):
         self.assertIsNone(filter_tree(lambda x: x > 1, 0))
 
 
+class TestFilterTreePredicateInvocation(unittest.TestCase):
+    def test_filter_tree_calls_predicate_once_per_leaf(self):
+        calls = []
+
+        def pred(x):
+            calls.append(x)
+            return x > 1
+
+        filter_tree(pred, {"a": 1, "b": 2, "c": [1, 2]})
+        self.assertEqual(sorted(calls), [1, 1, 2, 2])
+
+    def test_filter_tree_preserves_stateful_predicate_result(self):
+        seen = []
+
+        def pred(x):
+            seen.append(x)
+            return len(seen) == 1
+
+        self.assertEqual(filter_tree(pred, {"a": 10, "b": 20}), {"a": 10})
+
+
 class TestSetNestedRejectsNonDictIntermediate(unittest.TestCase):
     def test_set_nested_rejects_scalar_intermediate(self):
         # A non-dict intermediate must not be silently overwritten with a dict,

@@ -195,6 +195,13 @@ class TestCircuitBreaker(unittest.TestCase):
         with self.assertRaises(ValueError):
             CircuitBreaker(recovery_timeout=0)
 
+    def test_non_finite_timeout_raises(self):
+        # A NaN timeout never elapses (any comparison is False), so the circuit
+        # would stay OPEN forever; an infinite timeout never recovers either.
+        for value in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                CircuitBreaker(recovery_timeout=value)
+
     def test_invalid_expected_exception_raises(self):
         with self.assertRaises(TypeError):
             CircuitBreaker(expected_exception="ValueError")  # type: ignore[arg-type]

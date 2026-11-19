@@ -33017,6 +33017,38 @@ class TestFilterTree(unittest.TestCase):
         self.assertIsNone(filter_tree(lambda x: x > 1, 0))
 
 
+class TestSetNestedRejectsNonDictIntermediate(unittest.TestCase):
+    def test_set_nested_rejects_scalar_intermediate(self):
+        # A non-dict intermediate must not be silently overwritten with a dict,
+        # which would destroy the existing value.
+        d = {"a": 5}
+        with self.assertRaises((TypeError, ValueError)):
+            set_nested(d, ["a", "b"], 1)
+
+    def test_set_nested_rejects_list_intermediate(self):
+        d = {"a": [1, 2, 3]}
+        with self.assertRaises((TypeError, ValueError)):
+            set_nested(d, ["a", 0], 9)
+
+    def test_set_nested_preserves_existing_dict_intermediate(self):
+        d = {"a": {"b": {"c": 1}}}
+        set_nested(d, ["a", "b", "d"], 2)
+        self.assertEqual(d, {"a": {"b": {"c": 1, "d": 2}}})
+
+
+class TestUnflattenTreeRejectsEmptyKeyPart(unittest.TestCase):
+    def test_unflatten_rejects_empty_first_part_with_other_keys(self):
+        # A key whose first separator-delimited part is empty (e.g. ".a") is not
+        # a valid compound key; the current code crashes with TypeError when a
+        # later part tries to index into the empty-string placeholder.
+        with self.assertRaises((TypeError, ValueError)):
+            unflatten_tree({"": 1, "a.b": 2})
+
+    def test_unflatten_rejects_leading_sep_key(self):
+        with self.assertRaises((TypeError, ValueError)):
+            unflatten_tree({".a": 1})
+
+
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevars_exported(self):
         self.assertIsInstance(tree_utils.T, TypeVar)
@@ -45676,9 +45708,24 @@ def set_nested(d: Dict[str, Any], keys: Iterable[str | int], value: Any) -> Dict
 
     current: Any = d
     for key in keys_list[:-1]:
-        if key not in current or not isinstance(current[key], dict):  # type: ignore[index]
+        if not isinstance(current, dict):
+            raise TypeError(
+                f"cannot set path through non-dict intermediate at {key!r}: "
+                f"got {type(current).__name__}"
+            )
+        if key in current and not isinstance(current[key], dict):  # type: ignore[index]
+            raise TypeError(
+                f"cannot set path through non-dict intermediate at {key!r}: "
+                f"existing value is {type(current[key]).__name__}"
+            )
+        if key not in current:  # type: ignore[index]
             current[key] = {}  # type: ignore[index]
         current = current[key]  # type: ignore[index]
+    if not isinstance(current, dict):
+        raise TypeError(
+            f"cannot set path through non-dict intermediate at {keys_list[-1]!r}: "
+            f"got {type(current).__name__}"
+        )
     current[keys_list[-1]] = value  # type: ignore[index]
     return d
 
@@ -45756,13 +45803,29 @@ def unflatten_tree(flat: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
     Returns:
         A nested dictionary.
 
+    Raises:
+        ValueError: If a key is empty or contains an empty part after
+            splitting on ``sep`` (e.g. ``".a"`` or ``"a..b"``), which cannot
+            be represented as a nested path.
+
     Examples:
         >>> unflatten_tree({"a.b.c": 1, "a.b.d": 2, "e": 3})
         {'a': {'b': {'c': 1, 'd': 2}}, 'e': 3}
     """
     result: Dict[str, Any] = {}
     for key, value in flat.items():
-        parts = key.split(sep) if sep and sep in key else [key] if key else []
+        if sep and sep in key:
+            parts = key.split(sep)
+        elif key:
+            parts = [key]
+        else:
+            raise ValueError(
+                f"empty key cannot be unflattened: {key!r} is not a valid compound key"
+            )
+        if any(part == "" for part in parts):
+            raise ValueError(
+                f"key {key!r} contains an empty part after splitting on {sep!r}"
+            )
         current = result
         for part in parts[:-1]:
             if part not in current or not isinstance(current[part], dict):
@@ -45770,8 +45833,6 @@ def unflatten_tree(flat: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
             current = current[part]
         if parts:
             current[parts[-1]] = value
-        else:
-            result = value  # type: ignore[assignment]
     return result
 
 
@@ -51857,10 +51918,13 @@ class CircuitBreaker:
         if recovery_timeout <= 0:
             raise ValueError("recovery_timeout must be greater than 0")
 
-        if isinstance(expected_exception, type):
+        if isinstance(expected_exception, type) and issubclass(
+            expected_exception, BaseException
+        ):
             expected_exceptions: Tuple[type[BaseException], ...] = (expected_exception,)
-        elif isinstance(expected_exception, tuple) and all(
-            isinstance(exc, type) for exc in expected_exception
+        elif isinstance(expected_exception, tuple) and expected_exception and all(
+            isinstance(exc, type) and issubclass(exc, BaseException)
+            for exc in expected_exception
         ):
             expected_exceptions = expected_exception
         else:
@@ -52202,6 +52266,13 @@ class TestCircuitBreaker(unittest.TestCase):
     def test_invalid_expected_exception_raises(self):
         with self.assertRaises(TypeError):
             CircuitBreaker(expected_exception="ValueError")  # type: ignore[arg-type]
+
+    def test_empty_expected_exception_tuple_raises(self):
+        # An empty tuple means no exception is ever counted, so the circuit
+        # would never open — silently ignoring the failure threshold. This
+        # contradicts the documented contract that failures open the circuit.
+        with self.assertRaises(TypeError):
+            CircuitBreaker(expected_exception=())
 
     def test_thread_safe_concurrent_failures(self):
         breaker = CircuitBreaker(failure_threshold=50)
