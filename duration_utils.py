@@ -59,8 +59,8 @@ DURATION_UNITS: dict[str, float] = {
     "weeks": 604800,
 }
 
-# Matches a number followed by an optional unit, e.g. "1h30m", "90s", "2.5 days".
-_DURATION_PATTERN = re.compile(r"(\d+(?:\.\d+)?)\s*([a-zA-Z]+)")
+# Matches a number followed by an optional unit, e.g. "1h30m", "90s", "2.5 days", ".5s".
+_DURATION_PATTERN = re.compile(r"(\d+\.?\d*|\.\d+)\s*([a-zA-Z]+)")
 
 # Largest units first so the formatter greets the biggest applicable unit.
 _ORDERED_UNITS: tuple[tuple[str, float], ...] = (

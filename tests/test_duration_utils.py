@@ -71,6 +71,11 @@ class TestParseDuration(unittest.TestCase):
     def test_float_value(self):
         self.assertEqual(parse_duration("1.5h"), 5400.0)
 
+    def test_float_value_with_leading_dot(self):
+        self.assertEqual(parse_duration(".5s"), 0.5)
+        self.assertEqual(parse_duration(".5 seconds"), 0.5)
+        self.assertEqual(parse_duration("1.5h"), 5400.0)
+
     def test_empty_string_raises(self):
         with self.assertRaises(ValueError):
             parse_duration("")
