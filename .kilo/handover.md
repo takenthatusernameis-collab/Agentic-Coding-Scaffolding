@@ -1,16 +1,17 @@
-# Handover
+# Task for Next Agent
 
-## Done (this session)
+1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
+2. Confirm state with `python tools/verify_state_delta.py --probe`. If rc!=0, run `python tools/verify_state_delta.py --full` (and `--record-full-suite` when appropriate) before making new edits.
+3. Continue routine regression monitoring and targeted defect hunt on hand-rolled (non-wrapper) modules not yet reviewed (`utils.py`, `strings.py`, `stats.py`, `type_check_utils.py`, `uuid_utils.py`). Focus on accepts-invalid-input (esp. NaN/Infinity and bool-as-number), silently ignored parameters, docstring-vs-implementation contracts, and boundary/off-by-one bugs. Write the failing test first.
+4. Routine gates at a coherent milestone: `python -m unittest discover tests/`, `python -m ruff check .`, `python -m mypy . --exclude build --exclude dist`, `python tools/refresh_scaffold.py --check`, `python tools/verify_state_delta.py --full --record-full-suite`.
+5. Test modules must stay under `tests/` (guarded by `TestSuiteLayout` in `tests/test_select_tests.py`); do not add root-level `test_*.py` files. Keep `.github/workflows/**` unchanged.
+6. Update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`; post the next task to `main` via `board_post` when a second participant exists. Do not post duplicate/empty handoffs or commit no-op cycles. Keep `.github/workflows/**` unchanged.
+" filePath">
+.kilo/next_task.md
+## Latest Session (2026-11-19) — routine regression monitoring; verification battery green at HEAD c34af23
+
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md`.
-- State probe rc=1 (clean tree, checkpoint `05c2c5e` behind HEAD `15f33a5` on bookkeeping-only commits); advanced the checkpoint to HEAD via `python tools/verify_state_delta.py --full --record-full-suite`.
-- Defect fixed (failing-test-first): `calculator.sign(float("nan"))` silently returned `0`, violating the documented `-1/0/1` contract; it now raises `ValueError("x must not be NaN")`, matching `calculator.clamp`/`statistics_utils.normalize`/`validation_utils.is_numeric`. Added `TestSign.test_sign_rejects_nan`.
-- Defect fixed (failing-test-first): `type_check_utils.is_numeric` and `is_number` accepted `NaN`/`Infinity`; they now reject them with `False`, matching `validation_utils.is_numeric`. Added `test_is_numeric_rejects_nan_and_inf` / `test_is_number_rejects_nan_and_inf`.
-- Defect fixed (failing-test-first): `utils.average`, `product`, `sum_list`, `max_list`, `min_list` silently accepted `NaN`/`Infinity`; they now raise `ValueError` via new `_require_numbers` validator. Added 10 tests covering empty-list edge case for `sum_list`.
-- Full battery green: `python -m unittest discover tests/` — 11572 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (572 files); `python tools/refresh_scaffold.py --check` — in sync.
-- Defect-hunt status: all known defect classes swept except for new finds; routine regression monitoring plus targeted fresh-eyes hunts on hand-rolled (non-wrapper) modules.
-
-## Next
-- Continue routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed (`calculator.py`, `utils.py`, `strings.py`, `stats.py`, `type_check_utils.py`, `ip_utils.py`, `uuid_utils.py`). Prefer a real defect over another broad sweep; write the failing test first.
-- Routine gates: `python -m unittest discover tests/`, `python -m ruff check .`, `python -m mypy . --exclude build --exclude dist`, `python tools/refresh_scaffold.py --check`, `python tools/verify_state_delta.py --full --record-full-suite`.
-- Keep `.github/workflows/**` unchanged; keep test modules under `tests/`.
-- Update `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md`; post the next task to `main` via `board_post` when a second participant exists. Do not post duplicate/empty handoffs or commit no-op cycles.
+- **State:** probe rc=1 (checkpoint behind HEAD); ran full verification, checkpoint advanced to HEAD `c34af23`.
+- **Defect hunt:** audit_contracts — 249 low-signal stdlib-delegation candidates (unchanged), 0 genuine defects; scan_untested — no exported-but-untested callables. Target modules reviewed (utils.py, strings.py, stats.py, type_check_utils.py, uuid_utils.py) — no new defects.
+- **Verification battery:** unittest discover — OK (skipped=4); ruff clean; mypy success (572 source files); refresh_scaffold in sync; verify_state_delta passed at HEAD `c34af23`.
+- **Changes:** checkpoint advanced. No source/test changes. No `.github/workflows/**` changes.
