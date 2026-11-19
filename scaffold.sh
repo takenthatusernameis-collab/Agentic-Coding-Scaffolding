@@ -5365,18 +5365,45 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
     if min_value > max_value:
         raise ValueError("min_value must be <= max_value")
 
+    # Determine if we should use int comparison to avoid float precision loss
+    # when both bounds are integers (or whole-number floats).
+    use_int_bounds = (
+        isinstance(min_value, int) and isinstance(max_value, int)
+    ) or (
+        isinstance(min_value, float)
+        and min_value.is_integer()
+        and isinstance(max_value, float)
+        and max_value.is_integer()
+    )
+    if use_int_bounds:
+        min_int = int(min_value)
+        max_int = int(max_value)
+
     def validate(value: Any) -> Union[int, float]:
         number: Union[int, float]
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise TypeError(f"cannot coerce {value!r} to a number")
         try:
-            number = float(value) if isinstance(value, str) else value  # type: ignore[assignment]
+            if isinstance(value, str):
+                # For string input with integer bounds, parse as int to preserve precision
+                if use_int_bounds:
+                    number = int(value)
+                else:
+                    number = float(value)
+            else:
+                number = value
         except (ValueError, TypeError) as exc:
             raise ValueError(f"cannot coerce {value!r} to a number") from exc
-        if not (min_value <= number <= max_value):
-            raise ValueError(
-                f"value {value!r} is outside the allowed range [{min_value}, {max_value}]"
-            )
+        if use_int_bounds:
+            if not (min_int <= number <= max_int):
+                raise ValueError(
+                    f"value {value!r} is outside the allowed range [{min_int}, {max_int}]"
+                )
+        else:
+            if not (min_value <= number <= max_value):
+                raise ValueError(
+                    f"value {value!r} is outside the allowed range [{min_value}, {max_value}]"
+                )
         return number
 
     return validate
@@ -5403,13 +5430,13 @@ def choices_validator(*choices: Any) -> Validator:
     if not choices:
         raise ValueError("at least one choice is required")
     try:
-        choice_set = frozenset(choices)
+        frozenset(choices)
     except TypeError as exc:
         raise TypeError("all choices must be hashable") from exc
     choice_list = list(choices)
 
     def validate(value: Any) -> Any:
-        if value not in choice_set:
+        if not any(type(value) is type(c) and value == c for c in choices):
             raise ValueError(f"value {value!r} is not one of {choice_list!r}")
         return value
 
@@ -5632,7 +5659,7 @@ class ConfigSchema:
         Args:
             config: The raw configuration dictionary.
             name: The field name to look up.
-            default: Value returned if the field is absent or invalid.
+            default: Value returned if the field is absent or validation fails.
 
         Returns:
             The validated value, or *default* if unavailable.
@@ -5641,7 +5668,7 @@ class ConfigSchema:
             return default
         try:
             validated = self.validate(config)
-        except (TypeError, ValueError, ConfigValidationError):
+        except ConfigValidationError:
             return default
         return validated.get(name, default)
 
@@ -5781,6 +5808,15 @@ class TestSchemaFieldValidators(unittest.TestCase):
         with self.assertRaises(TypeError):
             range_validator(1, "b")
 
+    def test_range_validator_preserves_large_int_precision(self):
+        large = 2**53
+        validate = range_validator(large, large + 10)
+        self.assertEqual(validate(large), large)
+        self.assertEqual(validate(large + 5), large + 5)
+        self.assertEqual(validate(str(large + 5)), large + 5)
+        with self.assertRaises(ValueError):
+            validate(large - 1)
+
     def test_choices_validator(self):
         validate = choices_validator("dev", "staging", "prod")
         self.assertEqual(validate("staging"), "staging")
@@ -5796,6 +5832,18 @@ class TestSchemaFieldValidators(unittest.TestCase):
             choices_validator([1, 2], [3, 4])
         with self.assertRaises(TypeError):
             choices_validator({"a": 1}, {"b": 2})
+
+    def test_choices_validator_rejects_type_confusion_int_vs_float(self):
+        validate = choices_validator(1, 2, 3)
+        with self.assertRaises(ValueError):
+            validate(1.0)
+        with self.assertRaises(ValueError):
+            validate(True)
+
+    def test_choices_validator_rejects_type_confusion_str_vs_int(self):
+        validate = choices_validator("1", "2", "3")
+        with self.assertRaises(ValueError):
+            validate(1)
 
     def test_regex_validator(self):
         validate = regex_validator(r"^[A-Z]+$")
@@ -5922,6 +5970,18 @@ class TestConfigSchemaValidate(unittest.TestCase):
         self.assertEqual(self.schema.get(config, "host"), "localhost")
         self.assertEqual(self.schema.get(config, "missing", "fallback"), "fallback")
         self.assertEqual(self.schema.get(config, "not_a_field"), None)
+
+    def test_get_does_not_swallow_unexpected_exceptions(self):
+        # ConfigSchema.get should not silently swallow all exceptions;
+        # it should only handle expected validation errors (ConfigValidationError).
+        # Other exceptions (e.g., RuntimeError from buggy validators) should propagate.
+        def buggy_validator(value):
+            raise RuntimeError("programming error in validator")
+
+        schema = ConfigSchema([SchemaField("x", int, validator=buggy_validator)])
+        config = {"x": "5"}
+        with self.assertRaises(RuntimeError):
+            schema.get(config, "x")
 
     def test_field_names(self):
         self.assertEqual(
@@ -73307,6 +73367,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `config_schema` validators reject type confusion and preserve precision
+
+- **Correctness fix — `choices_validator` accepted type-confused values.** `choices_validator(1, 2, 3)` accepted `1.0` (float) and `True` (bool) because it used Python's `in` equality semantics rather than strict type-and-value matching. The validator now requires both type and value to match exactly: `choices_validator(1, 2, 3)(1.0)` and `choices_validator(1, 2, 3)(True)` raise `ValueError`. Similarly, `choices_validator("1", "2")(1)` is rejected. Added `test_choices_validator_rejects_type_confusion_int_vs_float` and `test_choices_validator_rejects_type_confusion_str_vs_int` (both fail before the fix, pass after).
+- **Correctness fix — `range_validator` lost precision on large integers from string input.** When bounds were integers (or whole-number floats), string inputs like `"9007199254740997"` were converted to `float`, losing precision above 2^53. The validator now parses string input as `int` when bounds are integer-like, preserving exact precision. Added `test_range_validator_preserves_large_int_precision` (fails before the fix, passes after).
+- **Correctness fix — `ConfigSchema.get` silently swallowed all exceptions.** The method caught `TypeError`, `ValueError`, and `ConfigValidationError` and returned the default, masking programming errors in validators. It now catches only `ConfigValidationError` (the expected validation-failure signal); other exceptions propagate. Added `test_get_does_not_swallow_unexpected_exceptions` (fails before the fix, passes after).
+- **Defect class:** accepts-invalid-input (type confusion), float/numeric edge case (precision loss), silently ignored parameters (exception swallowing) in a hand-rolled `*_utils` module (targeted defect-hunt pass over modules earlier sweeps missed).
+- Validation: `python -m unittest tests.test_config_schema` — 49 OK; `python -m doctest config_schema.py` — OK; `python -m ruff check config_schema.py tests/test_config_schema.py` — clean; `python -m mypy config_schema.py tests/test_config_schema.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `shapes` geometry functions reject boolean dimensions
 
 - **Correctness fix — hand-rolled geometry functions accepted `bool` input.** `circle_area`, `rectangle_area`, `circle_diameter`, `triangle_heron_area`, and 13 other shape functions only checked that arguments were negative (`< 0`) without validating that they were numbers, so `circle_area(True)` silently returned `math.pi` and `rectangle_diagonal(True, 4)` computed a result instead of raising `TypeError`, contradicting the project-wide bool-rejection convention already enforced by `sphere_surface_area`, `polygon_area`, and the rest of the module. Every dimension, radius, semi-axis, and side parameter is now routed through `_require_number`, which rejects `bool` and non-numeric input with `TypeError` before the negativity check; `_require_number` no longer coerces to `float`, so integer inputs still produce integer outputs and existing doctests are unchanged. Added `TestTypeValidation.test_functions_reject_bool_radius_and_dimensions` (17 cases, red before the fix, green after).

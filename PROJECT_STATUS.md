@@ -1,3 +1,17 @@
+## Latest Session (2026-11-19) — defect fix: `config_schema` validators reject type confusion and preserve precision
+
+- `board_read`: `.kilo/next_task.md` durable handoff executed (targeted defect hunt on hand-rolled modules earlier sweeps missed); board lists only `main` (self).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, no source-relevant change since the last verified checkpoint; no redundant full re-audit before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; probe confirmed prior verification still valid, so the session spent its work on three real defects in `config_schema.py` instead of another broad sweep.
+- **Defects fixed (failing-test-first):**
+  1. `choices_validator` accepted type-confused values (`choices_validator(1, 2, 3)(1.0)` and `(True)` returned the value instead of raising). The validator now requires exact type-and-value match.
+  2. `range_validator` lost precision on large integers from string input when bounds were integer-like (e.g., `"9007199254740997"` became `9007199254740996.0`). String inputs are now parsed as `int` when bounds are integer-like.
+  3. `ConfigSchema.get` silently swallowed all exceptions (`TypeError`, `ValueError`, `ConfigValidationError`) and returned the default, masking programming errors in validators. It now catches only `ConfigValidationError`; other exceptions propagate.
+- **Tests:** `test_choices_validator_rejects_type_confusion_int_vs_float`, `test_choices_validator_rejects_type_confusion_str_vs_int`, `test_range_validator_preserves_large_int_precision`, `test_get_does_not_swallow_unexpected_exceptions` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input (type confusion), float/numeric edge case (precision loss), silently ignored parameters (exception swallowing).
+- **Verification:** `python -m unittest tests.test_config_schema` — 49 OK; `python -m doctest config_schema.py` — OK; `python -m ruff check config_schema.py tests/test_config_schema.py` — clean; `python -m mypy config_schema.py tests/test_config_schema.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `config_schema.py`, `tests/test_config_schema.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+
 ## Latest Session (2026-11-19) — defect fix: `shapes` geometry functions reject boolean dimensions
 
 - `board_read`: `.kilo/next_task.md` durable handoff executed (targeted defect hunt on hand-rolled modules earlier sweeps missed); board lists only `main` (self).

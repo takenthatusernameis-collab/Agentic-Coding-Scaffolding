@@ -116,6 +116,15 @@ class TestSchemaFieldValidators(unittest.TestCase):
         with self.assertRaises(TypeError):
             range_validator(1, "b")
 
+    def test_range_validator_preserves_large_int_precision(self):
+        large = 2**53
+        validate = range_validator(large, large + 10)
+        self.assertEqual(validate(large), large)
+        self.assertEqual(validate(large + 5), large + 5)
+        self.assertEqual(validate(str(large + 5)), large + 5)
+        with self.assertRaises(ValueError):
+            validate(large - 1)
+
     def test_choices_validator(self):
         validate = choices_validator("dev", "staging", "prod")
         self.assertEqual(validate("staging"), "staging")
@@ -131,6 +140,18 @@ class TestSchemaFieldValidators(unittest.TestCase):
             choices_validator([1, 2], [3, 4])
         with self.assertRaises(TypeError):
             choices_validator({"a": 1}, {"b": 2})
+
+    def test_choices_validator_rejects_type_confusion_int_vs_float(self):
+        validate = choices_validator(1, 2, 3)
+        with self.assertRaises(ValueError):
+            validate(1.0)
+        with self.assertRaises(ValueError):
+            validate(True)
+
+    def test_choices_validator_rejects_type_confusion_str_vs_int(self):
+        validate = choices_validator("1", "2", "3")
+        with self.assertRaises(ValueError):
+            validate(1)
 
     def test_regex_validator(self):
         validate = regex_validator(r"^[A-Z]+$")
@@ -257,6 +278,18 @@ class TestConfigSchemaValidate(unittest.TestCase):
         self.assertEqual(self.schema.get(config, "host"), "localhost")
         self.assertEqual(self.schema.get(config, "missing", "fallback"), "fallback")
         self.assertEqual(self.schema.get(config, "not_a_field"), None)
+
+    def test_get_does_not_swallow_unexpected_exceptions(self):
+        # ConfigSchema.get should not silently swallow all exceptions;
+        # it should only handle expected validation errors (ConfigValidationError).
+        # Other exceptions (e.g., RuntimeError from buggy validators) should propagate.
+        def buggy_validator(value):
+            raise RuntimeError("programming error in validator")
+
+        schema = ConfigSchema([SchemaField("x", int, validator=buggy_validator)])
+        config = {"x": "5"}
+        with self.assertRaises(RuntimeError):
+            schema.get(config, "x")
 
     def test_field_names(self):
         self.assertEqual(

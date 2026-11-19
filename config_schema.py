@@ -289,18 +289,45 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
     if min_value > max_value:
         raise ValueError("min_value must be <= max_value")
 
+    # Determine if we should use int comparison to avoid float precision loss
+    # when both bounds are integers (or whole-number floats).
+    use_int_bounds = (
+        isinstance(min_value, int) and isinstance(max_value, int)
+    ) or (
+        isinstance(min_value, float)
+        and min_value.is_integer()
+        and isinstance(max_value, float)
+        and max_value.is_integer()
+    )
+    if use_int_bounds:
+        min_int = int(min_value)
+        max_int = int(max_value)
+
     def validate(value: Any) -> Union[int, float]:
         number: Union[int, float]
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise TypeError(f"cannot coerce {value!r} to a number")
         try:
-            number = float(value) if isinstance(value, str) else value  # type: ignore[assignment]
+            if isinstance(value, str):
+                # For string input with integer bounds, parse as int to preserve precision
+                if use_int_bounds:
+                    number = int(value)
+                else:
+                    number = float(value)
+            else:
+                number = value
         except (ValueError, TypeError) as exc:
             raise ValueError(f"cannot coerce {value!r} to a number") from exc
-        if not (min_value <= number <= max_value):
-            raise ValueError(
-                f"value {value!r} is outside the allowed range [{min_value}, {max_value}]"
-            )
+        if use_int_bounds:
+            if not (min_int <= number <= max_int):
+                raise ValueError(
+                    f"value {value!r} is outside the allowed range [{min_int}, {max_int}]"
+                )
+        else:
+            if not (min_value <= number <= max_value):
+                raise ValueError(
+                    f"value {value!r} is outside the allowed range [{min_value}, {max_value}]"
+                )
         return number
 
     return validate
@@ -327,13 +354,13 @@ def choices_validator(*choices: Any) -> Validator:
     if not choices:
         raise ValueError("at least one choice is required")
     try:
-        choice_set = frozenset(choices)
+        frozenset(choices)
     except TypeError as exc:
         raise TypeError("all choices must be hashable") from exc
     choice_list = list(choices)
 
     def validate(value: Any) -> Any:
-        if value not in choice_set:
+        if not any(type(value) is type(c) and value == c for c in choices):
             raise ValueError(f"value {value!r} is not one of {choice_list!r}")
         return value
 
@@ -556,7 +583,7 @@ class ConfigSchema:
         Args:
             config: The raw configuration dictionary.
             name: The field name to look up.
-            default: Value returned if the field is absent or invalid.
+            default: Value returned if the field is absent or validation fails.
 
         Returns:
             The validated value, or *default* if unavailable.
@@ -565,7 +592,7 @@ class ConfigSchema:
             return default
         try:
             validated = self.validate(config)
-        except (TypeError, ValueError, ConfigValidationError):
+        except ConfigValidationError:
             return default
         return validated.get(name, default)
 
