@@ -231,7 +231,9 @@ def compact(lst: List[T]) -> List[T]:
 def take(lst: List[T], n: int) -> List[T]:
     """Return the first n elements of a list."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     return lst[:n]
 
@@ -239,7 +241,9 @@ def take(lst: List[T], n: int) -> List[T]:
 def drop(lst: List[T], n: int) -> List[T]:
     """Return a list with the first n elements removed."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return list(lst)
     return lst[n:]
 
@@ -247,7 +251,9 @@ def drop(lst: List[T], n: int) -> List[T]:
 def tail(lst: List[T], n: int) -> List[T]:
     """Return the last n elements of a list."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     if n >= len(lst):
         return list(lst)
@@ -408,7 +414,9 @@ def range_list(start: int, stop: Optional[int] = None, step: int = 1) -> List[in
 def repeat(item: T, n: int) -> List[T]:
     """Repeat an item n times."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     return [item] * n
 
@@ -418,7 +426,9 @@ def sample(lst: List[T], n: int = 1) -> List[T]:
     import random
 
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     if n >= len(lst):
         result = list(lst)

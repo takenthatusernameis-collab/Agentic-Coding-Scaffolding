@@ -362,6 +362,12 @@ class TestDrop(unittest.TestCase):
         with self.assertRaises(TypeError):
             drop([1, 2, 3], False)
 
+    def test_drop_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -4)
+
 
 class TestDropWhile(unittest.TestCase):
     def test_drop_while_basic(self) -> None:
@@ -702,7 +708,10 @@ class TestRepeat(unittest.TestCase):
         self.assertEqual(repeat("a", 0), [])
 
     def test_repeat_negative(self) -> None:
-        self.assertEqual(repeat("a", -1), [])
+        with self.assertRaises(ValueError):
+            repeat("a", -1)
+        with self.assertRaises(ValueError):
+            repeat("a", -5)
 
     def test_repeat_rejects_bool_n(self) -> None:
         with self.assertRaises(TypeError):
@@ -748,6 +757,12 @@ class TestSample(unittest.TestCase):
             sample([1, 2, 3], True)
         with self.assertRaises(TypeError):
             sample([1, 2, 3], False)
+
+    def test_sample_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            sample([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            sample([1, 2, 3], -5)
 
 
 class TestShuffle(unittest.TestCase):
@@ -805,6 +820,12 @@ class TestTail(unittest.TestCase):
         with self.assertRaises(TypeError):
             tail([1, 2, 3], False)
 
+    def test_tail_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            tail([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            tail([1, 2, 3], -5)
+
 
 class TestTake(unittest.TestCase):
     def test_take_basic(self) -> None:
@@ -821,6 +842,12 @@ class TestTake(unittest.TestCase):
             take([1, 2, 3], True)
         with self.assertRaises(TypeError):
             take([1, 2, 3], False)
+
+    def test_take_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -3)
 
 
 class TestTakeWhile(unittest.TestCase):
