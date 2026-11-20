@@ -12741,6 +12741,8 @@ def _require_number(value: object, name: str) -> float:
     """Validate that *value* is a real number (int or float, not bool)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number, got {type(value).__name__}")
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        raise ValueError(f"{name} must be a finite number")
     return value
 
 
@@ -13145,6 +13147,7 @@ def regular_polygon_area(n: int, side_length: float) -> float:
         raise TypeError(f"n must be an int, got {type(n).__name__}")
     if n < 3:
         raise ValueError("n must be at least 3")
+    side_length = _require_number(side_length, "side_length")
     if side_length < 0:
         raise ValueError("Side length cannot be negative.")
     return (n * side_length**2) / (4 * math.tan(math.pi / n))
@@ -13169,6 +13172,7 @@ def regular_polygon_perimeter(n: int, side_length: float) -> float:
         raise TypeError("n must be an integer")
     if n < 3:
         raise ValueError("A polygon must have at least 3 sides")
+    side_length = _require_number(side_length, "side_length")
     if side_length < 0:
         raise ValueError("Side length cannot be negative")
     return float(n * side_length)
@@ -13206,10 +13210,10 @@ def sector_area(radius: float, angle_degrees: float) -> float:
         >>> sector_area(1, 90)
         0.7853981633974483
     """
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    if not isinstance(angle_degrees, (int, float)) or isinstance(angle_degrees, bool):
-        raise TypeError("angle_degrees must be a number")
+    angle_degrees = _require_number(angle_degrees, "angle_degrees")
     if angle_degrees < 0 or angle_degrees > 360:
         raise ValueError("angle_degrees must be between 0 and 360")
     return (angle_degrees / 360.0) * math.pi * radius**2
@@ -13230,12 +13234,10 @@ def arc_length(radius: float, angle_degrees: float) -> float:
         >>> arc_length(1, 90)
         1.5707963267948966
     """
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    if not isinstance(angle_degrees, (int, float)) or isinstance(angle_degrees, bool):
-        raise TypeError("angle_degrees must be a number")
+    angle_degrees = _require_number(angle_degrees, "angle_degrees")
     if angle_degrees < 0 or angle_degrees > 360:
         raise ValueError("angle_degrees must be between 0 and 360")
     return (angle_degrees / 360.0) * 2 * math.pi * radius
@@ -13254,10 +13256,8 @@ def ellipse_circumference(a: float, b: float) -> float:
         ValueError: If a or b is negative.
         TypeError: If a or b is not a number.
     """
-    if not isinstance(a, (int, float)) or isinstance(a, bool):
-        raise TypeError("a must be a number")
-    if not isinstance(b, (int, float)) or isinstance(b, bool):
-        raise TypeError("b must be a number")
+    a = _require_number(a, "a")
+    b = _require_number(b, "b")
     if a < 0 or b < 0:
         raise ValueError("a and b must be non-negative")
     a_f = float(a)
@@ -13267,8 +13267,7 @@ def ellipse_circumference(a: float, b: float) -> float:
 
 def sphere_surface_area(radius: float) -> float:
     """Return the surface area of a sphere."""
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return float(4 * math.pi * radius**2)
@@ -13276,8 +13275,7 @@ def sphere_surface_area(radius: float) -> float:
 
 def sphere_volume(radius: float) -> float:
     """Return the volume of a sphere."""
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     return float((4 / 3) * math.pi * radius**3)
@@ -13285,8 +13283,7 @@ def sphere_volume(radius: float) -> float:
 
 def cube_surface_area(side: float) -> float:
     """Return the surface area of a cube."""
-    if not isinstance(side, (int, float)) or isinstance(side, bool):
-        raise TypeError("side must be a number")
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return float(6 * side**2)
@@ -13294,8 +13291,7 @@ def cube_surface_area(side: float) -> float:
 
 def cube_volume(side: float) -> float:
     """Return the volume of a cube."""
-    if not isinstance(side, (int, float)) or isinstance(side, bool):
-        raise TypeError("side must be a number")
+    side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
     return float(side**3)
@@ -13303,12 +13299,9 @@ def cube_volume(side: float) -> float:
 
 def cuboid_surface_area(length: float, width: float, height: float) -> float:
     """Return the surface area of a cuboid (rectangular prism)."""
-    if not isinstance(length, (int, float)) or isinstance(length, bool):
-        raise TypeError("length must be a number")
-    if not isinstance(width, (int, float)) or isinstance(width, bool):
-        raise TypeError("width must be a number")
-    if not isinstance(height, (int, float)) or isinstance(height, bool):
-        raise TypeError("height must be a number")
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
+    height = _require_number(height, "height")
     if length < 0:
         raise ValueError("Length cannot be negative.")
     if width < 0:
@@ -13320,12 +13313,9 @@ def cuboid_surface_area(length: float, width: float, height: float) -> float:
 
 def cuboid_volume(length: float, width: float, height: float) -> float:
     """Return the volume of a cuboid (rectangular prism)."""
-    if not isinstance(length, (int, float)) or isinstance(length, bool):
-        raise TypeError("length must be a number")
-    if not isinstance(width, (int, float)) or isinstance(width, bool):
-        raise TypeError("width must be a number")
-    if not isinstance(height, (int, float)) or isinstance(height, bool):
-        raise TypeError("height must be a number")
+    length = _require_number(length, "length")
+    width = _require_number(width, "width")
+    height = _require_number(height, "height")
     if length < 0:
         raise ValueError("Length cannot be negative.")
     if width < 0:
@@ -13341,10 +13331,8 @@ rectangular_prism_volume = cuboid_volume
 
 def cylinder_surface_area(radius: float, height: float) -> float:
     """Return the total surface area of a cylinder (including bases)."""
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
-    if not isinstance(height, (int, float)) or isinstance(height, bool):
-        raise TypeError("height must be a number")
+    radius = _require_number(radius, "radius")
+    height = _require_number(height, "height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
@@ -13354,10 +13342,8 @@ def cylinder_surface_area(radius: float, height: float) -> float:
 
 def cylinder_volume(radius: float, height: float) -> float:
     """Return the volume of a cylinder."""
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
-    if not isinstance(height, (int, float)) or isinstance(height, bool):
-        raise TypeError("height must be a number")
+    radius = _require_number(radius, "radius")
+    height = _require_number(height, "height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
@@ -13367,10 +13353,8 @@ def cylinder_volume(radius: float, height: float) -> float:
 
 def cone_surface_area(radius: float, slant_height: float) -> float:
     """Return the total surface area of a cone (including base)."""
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
-    if not isinstance(slant_height, (int, float)) or isinstance(slant_height, bool):
-        raise TypeError("slant_height must be a number")
+    radius = _require_number(radius, "radius")
+    slant_height = _require_number(slant_height, "slant_height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if slant_height < 0:
@@ -13380,10 +13364,8 @@ def cone_surface_area(radius: float, slant_height: float) -> float:
 
 def cone_volume(radius: float, height: float) -> float:
     """Return the volume of a cone."""
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
-    if not isinstance(height, (int, float)) or isinstance(height, bool):
-        raise TypeError("height must be a number")
+    radius = _require_number(radius, "radius")
+    height = _require_number(height, "height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
@@ -13399,14 +13381,10 @@ def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
         raise TypeError("p2 must be a point (x, y)")
     x1, y1 = p1
     x2, y2 = p2
-    if not isinstance(x1, (int, float)) or isinstance(x1, bool):
-        raise TypeError("coordinates must be numbers")
-    if not isinstance(y1, (int, float)) or isinstance(y1, bool):
-        raise TypeError("coordinates must be numbers")
-    if not isinstance(x2, (int, float)) or isinstance(x2, bool):
-        raise TypeError("coordinates must be numbers")
-    if not isinstance(y2, (int, float)) or isinstance(y2, bool):
-        raise TypeError("coordinates must be numbers")
+    x1 = _require_number(x1, "x1")
+    y1 = _require_number(y1, "y1")
+    x2 = _require_number(x2, "x2")
+    y2 = _require_number(y2, "y2")
     return float(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
 
 
@@ -13418,21 +13396,16 @@ def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, f
         raise TypeError("p2 must be a point (x, y)")
     x1, y1 = p1
     x2, y2 = p2
-    if not isinstance(x1, (int, float)) or isinstance(x1, bool):
-        raise TypeError("coordinates must be numbers")
-    if not isinstance(y1, (int, float)) or isinstance(y1, bool):
-        raise TypeError("coordinates must be numbers")
-    if not isinstance(x2, (int, float)) or isinstance(x2, bool):
-        raise TypeError("coordinates must be numbers")
-    if not isinstance(y2, (int, float)) or isinstance(y2, bool):
-        raise TypeError("coordinates must be numbers")
+    x1 = _require_number(x1, "x1")
+    y1 = _require_number(y1, "y1")
+    x2 = _require_number(x2, "x2")
+    y2 = _require_number(y2, "y2")
     return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
 
 
 def point_in_circle(point: tuple[float, float], center: tuple[float, float], radius: float) -> bool:
     """Return True if point is inside or on the circle."""
-    if not isinstance(radius, (int, float)) or isinstance(radius, bool):
-        raise TypeError("radius must be a number")
+    radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     dist = point_distance(point, center)
@@ -13467,14 +13440,15 @@ def point_in_rectangle(
             coordinate is not a number (booleans are rejected).
         ValueError: If the rectangle has zero or negative width/height.
 
-    >>> point_in_rectangle((1, 1), 0, 0, 3, 3)
-    True
-    >>> point_in_rectangle((5, 5), 0, 0, 3, 3)
-    False
-    >>> point_in_rectangle((3, 0), 0, 0, 3, 3)
-    True
-    >>> point_in_rectangle((1, 1), 3, 3, 0, 0)
-    True
+    Examples:
+        >>> point_in_rectangle((1, 1), 0, 0, 3, 3)
+        True
+        >>> point_in_rectangle((5, 5), 0, 0, 3, 3)
+        False
+        >>> point_in_rectangle((3, 0), 0, 0, 3, 3)
+        True
+        >>> point_in_rectangle((1, 1), 3, 3, 0, 0)
+        True
     """
     if not isinstance(point, (tuple, list)) or len(point) != 2:
         raise TypeError("point must be a point (x, y)")
@@ -14215,6 +14189,168 @@ class TestTypeValidation(unittest.TestCase):
             with self.subTest(func=func.__name__, args=args):
                 with self.assertRaises(TypeError):
                     func(*args)  # type: ignore[arg-type]
+
+    def test_functions_reject_nan(self):
+        import math
+
+        from shapes import (
+            arc_length,
+            circle_area,
+            circle_diameter,
+            circle_perimeter,
+            cone_surface_area,
+            cone_volume,
+            cube_surface_area,
+            cube_volume,
+            cuboid_surface_area,
+            cuboid_volume,
+            cylinder_surface_area,
+            cylinder_volume,
+            ellipse_area,
+            ellipse_circumference,
+            midpoint,
+            parallelogram_area,
+            parallelogram_perimeter,
+            point_distance,
+            point_in_circle,
+            rectangle_area,
+            rectangle_diagonal,
+            rectangle_perimeter,
+            regular_polygon_area,
+            regular_polygon_perimeter,
+            rhombus_area,
+            rhombus_perimeter,
+            sector_area,
+            sphere_surface_area,
+            sphere_volume,
+            square_area,
+            square_perimeter,
+            trapezoid_area,
+            triangle_area,
+            triangle_heron_area,
+            triangle_perimeter,
+        )
+        cases = [
+            (circle_area, (math.nan,)),
+            (circle_perimeter, (math.nan,)),
+            (circle_diameter, (math.nan,)),
+            (rectangle_area, (math.nan, 5)),
+            (rectangle_perimeter, (math.nan, 5)),
+            (rectangle_diagonal, (math.nan, 5)),
+            (triangle_area, (math.nan, 5)),
+            (triangle_perimeter, (math.nan, 5, 5)),
+            (triangle_heron_area, (math.nan, 5, 5)),
+            (square_area, (math.nan,)),
+            (square_perimeter, (math.nan,)),
+            (rhombus_area, (math.nan, 5)),
+            (rhombus_perimeter, (math.nan,)),
+            (trapezoid_area, (math.nan, 5, 5)),
+            (parallelogram_area, (math.nan, 5)),
+            (parallelogram_perimeter, (math.nan, 5)),
+            (ellipse_area, (math.nan, 5)),
+            (regular_polygon_area, (3, math.nan)),
+            (regular_polygon_perimeter, (3, math.nan)),
+            (sector_area, (math.nan, 90)),
+            (arc_length, (math.nan, 90)),
+            (ellipse_circumference, (math.nan, 5)),
+            (sphere_surface_area, (math.nan,)),
+            (sphere_volume, (math.nan,)),
+            (cube_surface_area, (math.nan,)),
+            (cube_volume, (math.nan,)),
+            (cuboid_surface_area, (math.nan, 1, 1)),
+            (cuboid_volume, (math.nan, 1, 1)),
+            (cylinder_surface_area, (math.nan, 1)),
+            (cylinder_volume, (math.nan, 1)),
+            (cone_surface_area, (math.nan, 1)),
+            (cone_volume, (math.nan, 1)),
+            (point_distance, ((0, 0), (math.nan, 0))),
+            (midpoint, ((0, 0), (math.nan, 0))),
+            (point_in_circle, ((0, 0), (0, 0), math.nan)),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__, args=args):
+                with self.assertRaises(ValueError):
+                    func(*args)
+
+    def test_functions_reject_infinity(self):
+        import math
+
+        from shapes import (
+            arc_length,
+            circle_area,
+            circle_diameter,
+            circle_perimeter,
+            cone_surface_area,
+            cone_volume,
+            cube_surface_area,
+            cube_volume,
+            cuboid_surface_area,
+            cuboid_volume,
+            cylinder_surface_area,
+            cylinder_volume,
+            ellipse_area,
+            ellipse_circumference,
+            midpoint,
+            parallelogram_area,
+            parallelogram_perimeter,
+            point_distance,
+            rectangle_area,
+            rectangle_diagonal,
+            rectangle_perimeter,
+            regular_polygon_area,
+            regular_polygon_perimeter,
+            rhombus_area,
+            rhombus_perimeter,
+            sector_area,
+            sphere_surface_area,
+            sphere_volume,
+            square_area,
+            square_perimeter,
+            trapezoid_area,
+            triangle_area,
+            triangle_heron_area,
+            triangle_perimeter,
+        )
+        cases = [
+            (circle_area, (math.inf,)),
+            (circle_perimeter, (math.inf,)),
+            (circle_diameter, (math.inf,)),
+            (rectangle_area, (math.inf, 5)),
+            (rectangle_perimeter, (math.inf, 5)),
+            (rectangle_diagonal, (math.inf, 5)),
+            (triangle_area, (math.inf, 5)),
+            (triangle_perimeter, (math.inf, 5, 5)),
+            (triangle_heron_area, (math.inf, 5, 5)),
+            (square_area, (math.inf,)),
+            (square_perimeter, (math.inf,)),
+            (rhombus_area, (math.inf, 5)),
+            (rhombus_perimeter, (math.inf,)),
+            (trapezoid_area, (math.inf, 5, 5)),
+            (parallelogram_area, (math.inf, 5)),
+            (parallelogram_perimeter, (math.inf, 5)),
+            (ellipse_area, (math.inf, 5)),
+            (regular_polygon_area, (3, math.inf)),
+            (regular_polygon_perimeter, (3, math.inf)),
+            (sector_area, (math.inf, 90)),
+            (arc_length, (math.inf, 90)),
+            (ellipse_circumference, (math.inf, 5)),
+            (sphere_surface_area, (math.inf,)),
+            (sphere_volume, (math.inf,)),
+            (cube_surface_area, (math.inf,)),
+            (cube_volume, (math.inf,)),
+            (cuboid_surface_area, (math.inf, 1, 1)),
+            (cuboid_volume, (math.inf, 1, 1)),
+            (cylinder_surface_area, (math.inf, 1)),
+            (cylinder_volume, (math.inf, 1)),
+            (cone_surface_area, (math.inf, 1)),
+            (cone_volume, (math.inf, 1)),
+            (point_distance, ((0, 0), (math.inf, 0))),
+            (midpoint, ((0, 0), (math.inf, 0))),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__, args=args):
+                with self.assertRaises(ValueError):
+                    func(*args)
 
 
 if __name__ == "__main__":
@@ -73694,6 +73830,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `shapes.py` rejects NaN and Infinity in every numeric argument
+
+- **Correctness fix — hand-rolled geometry functions accepted non-finite floats.** Several `shapes` functions validated type (`int`/`float`, bool rejected) but then compared with `< 0`, which is `False` for `NaN` and `True` for `+inf`, so `circle_area(float("nan"))` returned `nan` and `sphere_volume(float("inf"))` returned `inf` instead of raising. Every numeric argument now flows through the module's existing `_require_number` helper, which rejects `NaN` and `±inf` with `ValueError` (and bools with `TypeError`), so the whole module is consistent with `circle_area`/`polygon_area` and the rest of the codebase. Affected functions: `regular_polygon_area`, `regular_polygon_perimeter`, `sector_area`, `arc_length`, `ellipse_circumference`, `sphere_surface_area`, `sphere_volume`, `cube_surface_area`, `cube_volume`, `cuboid_surface_area`, `cuboid_volume`, `cylinder_surface_area`, `cylinder_volume`, `cone_surface_area`, `cone_volume`, `point_distance`, `midpoint`, and `point_in_circle`.
+- **Tests:** `tests.test_shapes.TestTypeValidation.test_functions_reject_nan` and `test_functions_reject_infinity` (both fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_shapes` — 127 OK; `python -m doctest shapes.py` — OK; `python -m ruff check shapes.py tests/test_shapes.py` — clean; `python -m mypy shapes.py tests/test_shapes.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `prompt_utils` and `timing_utils` contract fixes
 
 - **Correctness fix — `prompt_utils.truncate_prompt` silently dropped the `suffix` when `max_length <= len(suffix)`.** The docstring promises "the suffix to append when truncated", but the `max_length <= len(suffix)` branch returned `text[:max_length]` with no suffix, so `truncate_prompt("Hello", 2, suffix="...")` returned `"He"` instead of appending any suffix. The branch now truncates the suffix to fit: `text[: max(0, max_length - len(suffix))] + suffix[:max_length]`, so the suffix is always appended (truncated if necessary) whenever the text is truncated, and the result never exceeds `max_length`.

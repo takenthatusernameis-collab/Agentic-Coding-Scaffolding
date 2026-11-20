@@ -1,3 +1,15 @@
+## Latest Session (2026-11-20) — `shapes.py` rejects NaN and Infinity in every numeric argument
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=0 — clean tree, no source-relevant change since verified checkpoint `6979c4f`; the prior battery was still valid and was not re-run before edits.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed redundant discovery and the session spent its work on the concrete `shapes` leads recorded in `.kilo/next_task.md` instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `shapes.py` hand-rolled geometry functions validated type but compared with `< 0`, which is `False` for `NaN` and `True` for `+inf`, so `circle_area(float("nan"))` returned `nan` and `sphere_volume(float("inf"))` returned `inf`. Every numeric argument now flows through the module's existing `_require_number` helper, which rejects `NaN` and `±inf` with `ValueError` (and bools with `TypeError`), making the whole module consistent with `circle_area`/`polygon_area` and the rest of the codebase. Affected: `regular_polygon_area`, `regular_polygon_perimeter`, `sector_area`, `arc_length`, `ellipse_circumference`, `sphere_surface_area`, `sphere_volume`, `cube_surface_area`, `cube_volume`, `cuboid_surface_area`, `cuboid_volume`, `cylinder_surface_area`, `cylinder_volume`, `cone_surface_area`, `cone_volume`, `point_distance`, `midpoint`, `point_in_circle`.
+- **Tests:** `tests.test_shapes.TestTypeValidation.test_functions_reject_nan` and `test_functions_reject_infinity` (both fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- **Verification:** `python -m unittest tests.test_shapes` — 127 OK; `python -m doctest shapes.py` — OK; `python -m ruff check shapes.py tests/test_shapes.py` — clean; `python -m mypy shapes.py tests/test_shapes.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `shapes.py`, `tests/test_shapes.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+- **Next task:** recorded in `.kilo/next_task.md`; board lists only `main` (self), so `board_post` has no other recipient.
+
 ## Latest Session (2026-11-19) — `prompt_utils` and `timing_utils` contract fixes
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
