@@ -1,3 +1,12 @@
+## Latest Session (2026-11-20) — scaffold sync: refreshed stale embedded http_utils.py / tests/test_http_utils.py; battery green
+
+- `board_read`: empty (bootstrap session); no task from a previous agent, so executed durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 (checkpoint `eb8aebc` behind HEAD `1eb617d` with source-relevant drift); ran `python tools/verify_state_delta.py --full --record-full-suite` — battery failed on stale embedded `http_utils.py` and `tests/test_http_utils.py` copies in `scaffold.sh`. Ran `python tools/refresh_scaffold.py` (2 embedded copies refreshed), then re-ran the battery — passed, checkpoint advanced to HEAD `1eb617d`.
+- **Fix:** stale embedded copies regression, not a source defect; refreshed embedded `http_utils.py` and `tests/test_http_utils.py` in `scaffold.sh` via `python tools/refresh_scaffold.py`.
+- **Verification:** `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `1eb617d`. No `.github/workflows/**` changes.
+- **Scaffold/CHANGELOG:** embedded `http_utils.py` and `tests/test_http_utils.py` copies refreshed in `scaffold.sh`; no source/test changes beyond the scaffold sync.
+- **Next task:** recorded in `.kilo/next_task.md` and `.kilo/handover.md`; board lists only `main` (self), so `board_post` to `main` is refused. No source/test changes beyond the scaffold sync.
+
 ## Latest Session (2026-11-20) — routine regression monitoring: no new defect found; full battery green
 
 - `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed).

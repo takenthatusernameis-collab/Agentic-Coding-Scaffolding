@@ -92312,6 +92312,7 @@ TEST_HEAPQ_UTILS
 cat > "$OUTPUT_DIR/http_utils.py" <<'HTTP_UTILS'
 """HTTP utility functions for status codes and response handling."""
 
+import math
 from typing import Dict, Optional
 
 # HTTP status code category prefixes (1xx through 5xx)
@@ -92320,6 +92321,10 @@ HTTP_SUCCESS = 2
 HTTP_REDIRECTION = 3
 HTTP_CLIENT_ERROR = 4
 HTTP_SERVER_ERROR = 5
+
+# Valid HTTP status code range
+HTTP_STATUS_MIN = 100
+HTTP_STATUS_MAX = 599
 
 
 STATUS_CODES: Dict[int, str] = {
@@ -92400,15 +92405,44 @@ __all__ = [
 ]
 
 
+def _validate_status_code(code: int) -> int:
+    """Validate that *code* is a valid HTTP status code.
+
+    Args:
+        code: The HTTP status code to validate.
+
+    Returns:
+        The validated status code.
+
+    Raises:
+        TypeError: If *code* is not an int (including bool).
+        ValueError: If *code* is not finite, or outside the valid range 100-599.
+    """
+    if isinstance(code, bool) or not isinstance(code, int):
+        raise TypeError(f"code must be an int, got {type(code).__name__}")
+    if isinstance(code, float) and (math.isnan(code) or math.isinf(code)):
+        raise ValueError("code must be finite")
+    if code < HTTP_STATUS_MIN or code > HTTP_STATUS_MAX:
+        raise ValueError(
+            f"code must be between {HTTP_STATUS_MIN} and {HTTP_STATUS_MAX}, got {code}"
+        )
+    return code
+
+
 def status_code_category(code: int) -> int:
     """Return the HTTP status code category (1-5) for a given code.
 
     Args:
-        code: The HTTP status code.
+        code: The HTTP status code. Must be an integer between 100 and 599.
 
     Returns:
         The leading digit of the status code (1 through 5).
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
     """
+    _validate_status_code(code)
     return code // 100
 
 
@@ -92416,41 +92450,100 @@ def status_message(code: int) -> Optional[str]:
     """Return the standard reason phrase for an HTTP status code.
 
     Args:
-        code: The HTTP status code.
+        code: The HTTP status code. Must be an integer between 100 and 599.
 
     Returns:
         The standard reason phrase, or ``None`` if the code is unknown.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
     """
+    _validate_status_code(code)
     return STATUS_CODES.get(code)
 
 
 def is_informational(code: int) -> bool:
-    """Return ``True`` if the status code is a 1xx informational response."""
+    """Return ``True`` if the status code is a 1xx informational response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_INFORMATIONAL
 
 
 def is_success(code: int) -> bool:
-    """Return ``True`` if the status code is a 2xx success response."""
+    """Return ``True`` if the status code is a 2xx success response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_SUCCESS
 
 
 def is_redirection(code: int) -> bool:
-    """Return ``True`` if the status code is a 3xx redirection response."""
+    """Return ``True`` if the status code is a 3xx redirection response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_REDIRECTION
 
 
 def is_client_error(code: int) -> bool:
-    """Return ``True`` if the status code is a 4xx client error response."""
+    """Return ``True`` if the status code is a 4xx client error response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_CLIENT_ERROR
 
 
 def is_server_error(code: int) -> bool:
-    """Return ``True`` if the status code is a 5xx server error response."""
+    """Return ``True`` if the status code is a 5xx server error response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_SERVER_ERROR
 
 
 def is_error(code: int) -> bool:
-    """Return ``True`` if the status code is a 4xx or 5xx error response."""
+    """Return ``True`` if the status code is a 4xx or 5xx error response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     category = status_code_category(code)
     return category in (HTTP_CLIENT_ERROR, HTTP_SERVER_ERROR)
 HTTP_UTILS
@@ -92507,8 +92600,10 @@ class TestStatusMessage(unittest.TestCase):
         self.assertEqual(status_message(418), "I'm a teapot")
 
     def test_unknown_code_returns_none(self):
-        self.assertIsNone(status_message(999))
-        self.assertIsNone(status_message(0))
+        # Use valid codes that are not in STATUS_CODES
+        self.assertIsNone(status_message(103))
+        self.assertIsNone(status_message(208))
+        self.assertIsNone(status_message(306))
 
 
 class TestBooleanChecks(unittest.TestCase):
@@ -92541,6 +92636,61 @@ class TestBooleanChecks(unittest.TestCase):
         self.assertTrue(is_error(500))
         self.assertFalse(is_error(200))
         self.assertFalse(is_error(300))
+
+
+class TestInputValidation(unittest.TestCase):
+    def test_status_code_category_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            status_code_category(True)
+        with self.assertRaises(TypeError):
+            status_code_category(False)
+
+    def test_status_code_category_rejects_float(self):
+        with self.assertRaises(TypeError):
+            status_code_category(200.0)
+        with self.assertRaises(TypeError):
+            status_code_category(200.5)
+
+    def test_status_code_category_rejects_string(self):
+        with self.assertRaises(TypeError):
+            status_code_category("200")
+
+    def test_status_code_category_rejects_nan(self):
+        with self.assertRaises(TypeError):
+            status_code_category(float("nan"))
+
+    def test_status_code_category_rejects_infinity(self):
+        with self.assertRaises(TypeError):
+            status_code_category(float("inf"))
+        with self.assertRaises(TypeError):
+            status_code_category(float("-inf"))
+
+    def test_status_code_category_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            status_code_category(-1)
+
+    def test_status_code_category_rejects_too_large(self):
+        with self.assertRaises(ValueError):
+            status_code_category(600)
+        with self.assertRaises(ValueError):
+            status_code_category(1000)
+
+    def test_all_functions_reject_invalid_inputs(self):
+        invalid_inputs = [True, False, 200.0, "200", float("nan"), float("inf"), -1, 600]
+        for invalid in invalid_inputs:
+            with self.subTest(invalid=invalid):
+                for func in [
+                    status_code_category,
+                    status_message,
+                    is_informational,
+                    is_success,
+                    is_redirection,
+                    is_client_error,
+                    is_server_error,
+                    is_error,
+                ]:
+                    with self.assertRaises((TypeError, ValueError)):
+                        func(invalid)
 
 
 if __name__ == "__main__":
