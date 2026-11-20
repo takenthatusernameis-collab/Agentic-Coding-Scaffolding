@@ -24,6 +24,8 @@
 #   - hello.py — # Sample application entry point
 
 #   - abc_utils.py — # Abstract base class utilities wrapping stdlib abc (ABC, ABCMeta, abstractmethod, abstractclassmethod, abstractstaticmethod, abstractproperty, get_cache_token, update_abstractmethods)
+#   - audioop_utils.py — # Audioop utilities wrapping stdlib audioop
+#   - test_audioop_utils.py — # Tests for audioop_utils.py
 #   - aifc_utils.py — # AIFF and AIFF-C format utilities wrapping stdlib aifc (open, is_available, aliases, re-exports Aifc_read, Aifc_write, Error) with input validation
 #   - test_aifc_utils.py — # Tests for aifc_utils.py
 #   - asynchat_utils.py — # Asynchronous chat utilities wrapping stdlib asynchat (async_chat, find_prefix_at_end, simple_producer, deque) with input validation
@@ -425,6 +427,7 @@
 #   - sunau_utils.py — # Sun AU format utilities wrapping stdlib sunau (open, open_au, open_read, open_write, open_sunau, read_sunau, write_sunau, Au_read, Au_write, Error, is_available) with input validation
 
 #   - test_abc_utils.py — # Tests for abc_utils.py
+#   - test_audioop_utils.py — # Tests for audioop_utils.py
 #   - test_aifc_utils.py — # Tests for aifc_utils.py
 #   - test_ast_utils.py — # Tests for ast_utils.py
 #   - test_pickle_utils.py — # Tests for pickle_utils.py
@@ -4933,6 +4936,7 @@ py-modules = [
     "typing_utils",
     "unicodedata_utils",
     "abc_utils",
+    "audioop_utils",
     "aifc_utils",
     "ast_utils",
     "atexit_utils",
@@ -10022,8 +10026,19 @@ __all__ = [
 ]
 
 
+def _require_finite(value: float, name: str) -> None:
+    """Validate that *value* is a finite number (rejects NaN and ±inf)."""
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        raise ValueError(f"{name} must be a finite number")
+
+
 def add(a: float, b: float) -> float:
-    """Return the sum of a and b."""
+    """Return the sum of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If either argument is NaN or infinite.
+    """
     if (
         isinstance(a, bool)
         or isinstance(b, bool)
@@ -10031,6 +10046,8 @@ def add(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     return a + b
 
 
@@ -10059,39 +10076,17 @@ def abs_difference(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     return abs(a - b)
 
 
 def subtract(a: float, b: float) -> float:
-    """Return the difference of a and b."""
-    if (
-        isinstance(a, bool)
-        or isinstance(b, bool)
-        or not isinstance(a, (int, float))
-        or not isinstance(b, (int, float))
-    ):
-        raise TypeError("a and b must be real numbers")
-    return a - b
-
-
-def multiply(a: float, b: float) -> float:
-    """Return the product of a and b."""
-    if (
-        isinstance(a, bool)
-        or isinstance(b, bool)
-        or not isinstance(a, (int, float))
-        or not isinstance(b, (int, float))
-    ):
-        raise TypeError("a and b must be real numbers")
-    return a * b
-
-
-def divide(a: float, b: float) -> float:
-    """Return the quotient of a and b.
+    """Return the difference of a and b.
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If b is zero.
+        ValueError: If either argument is NaN or infinite.
     """
     if (
         isinstance(a, bool)
@@ -10100,6 +10095,46 @@ def divide(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
+    return a - b
+
+
+def multiply(a: float, b: float) -> float:
+    """Return the product of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If either argument is NaN or infinite.
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
+    return a * b
+
+
+def divide(a: float, b: float) -> float:
+    """Return the quotient of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If b is zero or either argument is NaN or infinite.
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a / b
@@ -10110,7 +10145,7 @@ def modulo(a: float, b: float) -> float:
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If b is zero.
+        ValueError: If b is zero or either argument is NaN or infinite.
     """
     if (
         isinstance(a, bool)
@@ -10119,6 +10154,8 @@ def modulo(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a % b
@@ -10129,7 +10166,7 @@ def floor_divide(a: float, b: float) -> float:
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If b is zero.
+        ValueError: If b is zero or either argument is NaN or infinite.
     """
     if (
         isinstance(a, bool)
@@ -10138,6 +10175,8 @@ def floor_divide(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a // b
@@ -10188,16 +10227,28 @@ def sqrt(a: float) -> float:
 
 
 def negate(a: float) -> float:
-    """Return the negation of a."""
+    """Return the negation of a.
+
+    Raises:
+        TypeError: If a is not a real number (int or float).
+        ValueError: If a is NaN or infinite.
+    """
     if isinstance(a, bool) or not isinstance(a, (int, float)):
         raise TypeError("a must be a real number")
+    _require_finite(a, "a")
     return -a
 
 
 def absolute(a: float) -> float:
-    """Return the absolute value of a."""
+    """Return the absolute value of a.
+
+    Raises:
+        TypeError: If a is not a real number (int or float).
+        ValueError: If a is NaN or infinite.
+    """
     if isinstance(a, bool) or not isinstance(a, (int, float)):
         raise TypeError("a must be a real number")
+    _require_finite(a, "a")
     return abs(a)
 
 
@@ -10206,7 +10257,7 @@ def clamp(value: float, low: float, high: float) -> float:
 
     Raises:
         TypeError: If any argument is not a real number (int or float).
-        ValueError: If low > high.
+        ValueError: If low > high, or if any argument is NaN or infinite.
     """
     if (
         isinstance(value, bool)
@@ -10219,31 +10270,52 @@ def clamp(value: float, low: float, high: float) -> float:
         raise TypeError("value, low, and high must be real numbers")
     if math.isnan(value) or math.isnan(low) or math.isnan(high):
         raise ValueError("value, low, and high must not be NaN")
+    _require_finite(value, "value")
+    _require_finite(low, "low")
+    _require_finite(high, "high")
     if low > high:
         raise ValueError("low must not exceed high.")
     return max(low, min(high, value))
 
 
 def reciprocal(x: float) -> float:
-    """Return 1/x."""
+    """Return 1/x.
+
+    Raises:
+        TypeError: If x is not a real number (int or float).
+        ValueError: If x is zero, NaN, or infinite.
+    """
     if isinstance(x, bool) or not isinstance(x, (int, float)):
         raise TypeError("x must be a real number")
+    _require_finite(x, "x")
     if x == 0:
         raise ValueError("Cannot divide by zero")
     return float(1.0 / x)
 
 
 def percentage(value: float, percent: float) -> float:
-    """Return (value * percent) / 100."""
+    """Return (value * percent) / 100.
+
+    Raises:
+        TypeError: If value or percent is not a real number (int or float).
+        ValueError: If value or percent is NaN or infinite.
+    """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("value must be a real number")
     if isinstance(percent, bool) or not isinstance(percent, (int, float)):
         raise TypeError("percent must be a real number")
+    _require_finite(value, "value")
+    _require_finite(percent, "percent")
     return float((value * percent) / 100.0)
 
 
 def average_of_two(a: float, b: float) -> float:
-    """Return the average of a and b."""
+    """Return the average of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If either argument is NaN or infinite.
+    """
     if (
         isinstance(a, bool)
         or isinstance(b, bool)
@@ -10251,6 +10323,8 @@ def average_of_two(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     return float((a + b) / 2.0)
 
 
@@ -10282,6 +10356,7 @@ def round_to(value: float, places: int = 0) -> float:
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("value must be a real number")
+    _require_finite(value, "value")
     if isinstance(places, bool) or not isinstance(places, int):
         raise TypeError(f"places must be an int, got {type(places).__name__}")
     if places < 0:
@@ -10770,6 +10845,18 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             add(None, 2)
 
+    def test_add_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            add(float("nan"), 2)
+        with self.assertRaises(ValueError):
+            add(2, float("nan"))
+
+    def test_add_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            add(float("inf"), 2)
+        with self.assertRaises(ValueError):
+            add(2, float("-inf"))
+
     def test_add_rejects_bool(self):
         with self.assertRaises(TypeError):
             add(True, 2)
@@ -10795,6 +10882,18 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             subtract(5, False)
 
+    def test_subtract_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            subtract(float("nan"), 3)
+        with self.assertRaises(ValueError):
+            subtract(5, float("nan"))
+
+    def test_subtract_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            subtract(float("inf"), 3)
+        with self.assertRaises(ValueError):
+            subtract(5, float("-inf"))
+
     def test_multiply(self):
         self.assertEqual(multiply(3, 4), 12)
         self.assertEqual(multiply(-2, 3), -6)
@@ -10813,6 +10912,18 @@ class TestCalculator(unittest.TestCase):
             multiply(True, 4)
         with self.assertRaises(TypeError):
             multiply(3, False)
+
+    def test_multiply_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            multiply(float("nan"), 4)
+        with self.assertRaises(ValueError):
+            multiply(3, float("nan"))
+
+    def test_multiply_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            multiply(float("inf"), 4)
+        with self.assertRaises(ValueError):
+            multiply(3, float("-inf"))
 
     def test_divide(self):
         self.assertEqual(divide(10, 2), 5)
@@ -10836,6 +10947,18 @@ class TestCalculator(unittest.TestCase):
             divide(True, 2)
         with self.assertRaises(TypeError):
             divide(10, False)
+
+    def test_divide_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            divide(float("nan"), 2)
+        with self.assertRaises(ValueError):
+            divide(10, float("nan"))
+
+    def test_divide_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            divide(float("inf"), 2)
+        with self.assertRaises(ValueError):
+            divide(10, float("-inf"))
 
     def test_power_rejects_non_numeric(self):
         with self.assertRaises(TypeError):
@@ -10882,6 +11005,16 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             negate(True)
 
+    def test_negate_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            negate(float("nan"))
+
+    def test_negate_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            negate(float("inf"))
+        with self.assertRaises(ValueError):
+            negate(float("-inf"))
+
     def test_absolute(self):
         self.assertEqual(absolute(5), 5)
         self.assertEqual(absolute(-3), 3)
@@ -10896,6 +11029,16 @@ class TestCalculator(unittest.TestCase):
     def test_absolute_rejects_bool(self):
         with self.assertRaises(TypeError):
             absolute(True)
+
+    def test_absolute_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            absolute(float("nan"))
+
+    def test_absolute_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            absolute(float("inf"))
+        with self.assertRaises(ValueError):
+            absolute(float("-inf"))
 
     def test_clamp(self):
         self.assertEqual(clamp(5, 0, 10), 5)
@@ -10958,6 +11101,18 @@ class TestAbsDifference(unittest.TestCase):
         with self.assertRaises(TypeError):
             abs_difference(5, False)
 
+    def test_abs_difference_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            abs_difference(float("nan"), 3)
+        with self.assertRaises(ValueError):
+            abs_difference(5, float("nan"))
+
+    def test_abs_difference_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            abs_difference(float("inf"), 3)
+        with self.assertRaises(ValueError):
+            abs_difference(5, float("-inf"))
+
 
 class TestClamp(unittest.TestCase):
     def test_clamp_within_range(self):
@@ -10984,15 +11139,49 @@ class TestClamp(unittest.TestCase):
         with self.assertRaises(TypeError):
             reciprocal(True)
 
+    def test_reciprocal_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            reciprocal(float("nan"))
+
+    def test_reciprocal_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            reciprocal(float("inf"))
+        with self.assertRaises(ValueError):
+            reciprocal(float("-inf"))
+
     def test_percentage(self):
         self.assertEqual(percentage(200, 10), 20.0)
         with self.assertRaises(TypeError):
             percentage(True, 10)
 
+    def test_percentage_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            percentage(float("nan"), 10)
+        with self.assertRaises(ValueError):
+            percentage(10, float("nan"))
+
+    def test_percentage_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            percentage(float("inf"), 10)
+        with self.assertRaises(ValueError):
+            percentage(10, float("-inf"))
+
     def test_average_of_two(self):
         self.assertEqual(average_of_two(2, 4), 3.0)
         with self.assertRaises(TypeError):
             average_of_two(True, 4)
+
+    def test_average_of_two_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            average_of_two(float("nan"), 4)
+        with self.assertRaises(ValueError):
+            average_of_two(4, float("nan"))
+
+    def test_average_of_two_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            average_of_two(float("inf"), 4)
+        with self.assertRaises(ValueError):
+            average_of_two(4, float("-inf"))
 
 
 class TestRoundTo(unittest.TestCase):
@@ -71071,6 +71260,8 @@ The scaffold.sh script generates a complete agentic coding project template with
 
 - `abc_utils.py` —
 - `tests/test_abc_utils.py` —
+- `audioop_utils.py` —
+- `tests/test_audioop_utils.py` —
 - `aifc_utils.py` —
 - `tests/test_aifc_utils.py` —
 - `antigravity_utils.py` —
@@ -77602,6 +77793,8 @@ Next Planned (posted for the following agent):
 
 ### Verified
 - `python -m unittest tests.test_dis_utils tests.test_dumbdbm_utils` (15 OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check dis_utils.py dumbdbm_utils.py tests/test_dis_utils.py tests/test_dumbdbm_utils.py` (clean), `python -m mypy tests/test_dis_utils.py tests/test_dumbdbm_utils.py dis_utils.py dumbdbm_utils.py` (clean), `python tools/refresh_scaffold.py --check` (in sync).
+
+`audioop_utils.py` provides audioop wrappers. The module is tested in `tests/test_audioop_utils.py`.
 CHANGELOG
 
 # Substitute project name in templated documents
@@ -79412,6 +79605,8 @@ The project includes slug utilities in `slugify_utils.py`: `slugify` and `is_slu
 ## Type Check Utilities Module
 
 The project includes type checking utilities in `type_check_utils.py`: `is_str`, `is_int`, `is_float`, `is_bool`, `is_list`, `is_dict`, `is_tuple`, `is_set`, `is_frozenset`, `is_none`, `is_bytes`, `is_numeric`, `is_iterable`, `is_callable`, `is_protocol`, `is_module`, `is_namedtuple`, `is_typeddict`, `is_awaitable`, `is_type_var`, `is_function`, `is_method`, `is_classmethod`, `is_staticmethod`, `ensure_type`, `coerce_to_str`, `coerce_to_int`, `coerce_to_float`, `coerce_to_bool`, `coerce_to_bytes`. The module is tested in `tests/test_type_check_utils.py`.
+
+`audioop_utils.py` provides audioop wrappers. The module is tested in `tests/test_audioop_utils.py`.
 README_MD
 
 # --- LICENSE ---

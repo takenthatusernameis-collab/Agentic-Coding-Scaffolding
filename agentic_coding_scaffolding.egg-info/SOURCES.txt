@@ -297,6 +297,7 @@ tests/test_asynchat_utils.py
 tests/test_asyncio_utils.py
 tests/test_asyncore_utils.py
 tests/test_atexit_utils.py
+tests/test_audioop_utils.py
 tests/test_audit_contracts.py
 tests/test_backoff_utils.py
 tests/test_base64_utils.py

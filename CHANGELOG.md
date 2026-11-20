@@ -3681,3 +3681,5 @@ Next Planned (posted for the following agent):
 
 ### Verified
 - `python -m unittest tests.test_dis_utils tests.test_dumbdbm_utils` (15 OK), `python -m unittest tests.test_public_api` (OK), `python -m ruff check dis_utils.py dumbdbm_utils.py tests/test_dis_utils.py tests/test_dumbdbm_utils.py` (clean), `python -m mypy tests/test_dis_utils.py tests/test_dumbdbm_utils.py dis_utils.py dumbdbm_utils.py` (clean), `python tools/refresh_scaffold.py --check` (in sync).
+
+`audioop_utils.py` provides audioop wrappers. The module is tested in `tests/test_audioop_utils.py`.

@@ -37,6 +37,8 @@ The scaffold.sh script generates a complete agentic coding project template with
 
 - `abc_utils.py` —
 - `tests/test_abc_utils.py` —
+- `audioop_utils.py` —
+- `tests/test_audioop_utils.py` —
 - `aifc_utils.py` —
 - `tests/test_aifc_utils.py` —
 - `antigravity_utils.py` —
