@@ -73919,6 +73919,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `calculator.power` rejects NaN, infinity, and domain errors
+
+- **Correctness fix — `calculator.power` accepted invalid inputs without validation.** The function documented "Return a raised to the power b" but had no `Raises:` clause and silently propagated `NaN`/`Infinity`, raised `TypeError` (not `ValueError`) for negative bases with fractional exponents, and raised `ZeroDivisionError` for zero bases with negative exponents. The function now explicitly validates: `NaN`/`Infinity` in either argument raises `ValueError`; a negative base with a non-integer exponent raises `ValueError`; a zero base with a negative exponent raises `ValueError`. The docstring now includes a full `Args:`, `Returns:`, `Raises:` block. Added `TestPower.test_power_rejects_nan`, `test_power_rejects_infinity`, `test_power_rejects_negative_base_fractional_exponent`, and `test_power_rejects_zero_base_negative_exponent` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) and domain errors in a hand-rolled module.
+- Validation: `python -m unittest tests.test_calculator` — 138 OK; `python -m doctest calculator.py` — OK; `python -m ruff check calculator.py tests/test_calculator.py` — clean; `python -m mypy calculator.py tests/test_calculator.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `shapes.py` rejects NaN and Infinity in every numeric argument
 
 - **Correctness fix — hand-rolled geometry functions accepted non-finite floats.** Several `shapes` functions validated type (`int`/`float`, bool rejected) but then compared with `< 0`, which is `False` for `NaN` and `True` for `+inf`, so `circle_area(float("nan"))` returned `nan` and `sphere_volume(float("inf"))` returned `inf` instead of raising. Every numeric argument now flows through the module's existing `_require_number` helper, which rejects `NaN` and `±inf` with `ValueError` (and bools with `TypeError`), so the whole module is consistent with `circle_area`/`polygon_area` and the rest of the codebase. Affected functions: `regular_polygon_area`, `regular_polygon_perimeter`, `sector_area`, `arc_length`, `ellipse_circumference`, `sphere_surface_area`, `sphere_volume`, `cube_surface_area`, `cube_volume`, `cuboid_surface_area`, `cuboid_volume`, `cylinder_surface_area`, `cylinder_volume`, `cone_surface_area`, `cone_volume`, `point_distance`, `midpoint`, and `point_in_circle`.
@@ -171241,6 +171247,120 @@ def ttl_cache(
 
     return decorator
 TTL_CACHE_UTILS
+
+# --- tests/test_audioop_utils.py ---
+cat > "$OUTPUT_DIR/tests/test_audioop_utils.py" <<'TEST_AUDIOOP_UTILS'
+import audioop
+
+import pytest
+
+from audioop_utils import (
+    audioop_add,
+    audioop_max,
+    audioop_minmax,
+    audioop_mul,
+    audioop_rms,
+)
+
+
+def test_audioop_add():
+    a = b"\x00\x01" * 2
+    assert audioop_add(a, a, 2) == audioop.add(a, a, 2)
+
+
+def test_audioop_mul():
+    a = b"\x01\x00" * 2
+    assert audioop_mul(a, 2, 2.0) == audioop.mul(a, 2, 2.0)
+
+
+def test_audioop_rms():
+    a = b"\x00\x01" * 2
+    assert audioop_rms(a, 2) == audioop.rms(a, 2)
+
+
+def test_audioop_max():
+    a = b"\x00\x01" * 2
+    assert audioop_max(a, 2) == audioop.max(a, 2)
+
+
+def test_audioop_minmax():
+    a = b"\x00\x01" * 2
+    assert audioop_minmax(a, 2) == audioop.minmax(a, 2)
+
+
+def test_width_type_error():
+    with pytest.raises(TypeError):
+        audioop_rms(b"\x00", True)
+    with pytest.raises(TypeError):
+        audioop_rms(b"\x00", "x")
+
+
+def test_factor_type_error():
+    with pytest.raises(TypeError):
+        audioop_mul(b"\x00", 2, "x")
+    with pytest.raises(TypeError):
+        audioop_mul(b"\x00", 2, True)
+"""
+TEST_AUDIOOP_UTILS
+
+# --- audioop_utils.py ---
+cat > "$OUTPUT_DIR/audioop_utils.py" <<'AUDIOOP_UTILS'
+"""Audioop utility functions wrapping the standard library 'audioop' module."""
+
+from __future__ import annotations
+
+import audioop
+import warnings
+from typing import Any
+
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+__all__: list[str] = [
+    "audioop_add",
+    "audioop_mul",
+    "audioop_rms",
+    "audioop_max",
+    "audioop_minmax",
+]
+
+
+def audioop_add(fragment1: bytes, fragment2: bytes, width: int) -> bytes:
+    """Add two audio fragments."""
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an int")
+    return audioop.add(fragment1, fragment2, width)
+
+
+def audioop_mul(fragment: bytes, width: int, factor: float) -> bytes:
+    """Multiply an audio fragment by a factor."""
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an int")
+    if isinstance(factor, bool) or not isinstance(factor, (int, float)):
+        raise TypeError("factor must be a number")
+    return audioop.mul(fragment, width, factor)
+
+
+def audioop_rms(fragment: bytes, width: int) -> int:
+    """Return the root-mean-square of an audio fragment."""
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an int")
+    return audioop.rms(fragment, width)
+
+
+def audioop_max(fragment: bytes, width: int) -> int:
+    """Return the maximum absolute value of an audio fragment."""
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an int")
+    return audioop.max(fragment, width)
+
+
+def audioop_minmax(fragment: bytes, width: int) -> tuple[int, int]:
+    """Return the minimum and maximum values of an audio fragment."""
+    if isinstance(width, bool) or not isinstance(width, int):
+        raise TypeError("width must be an int")
+    return audioop.minmax(fragment, width)
+"""
+AUDIOOP_UTILS
 
 
 
