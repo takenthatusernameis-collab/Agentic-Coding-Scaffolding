@@ -84884,6 +84884,7 @@ between time units, and computing durations between datetimes.
 
 from __future__ import annotations
 
+import math
 import re
 from datetime import datetime, timedelta
 from typing import Tuple, Union
@@ -85053,8 +85054,8 @@ def format_duration(
 
     Raises:
         TypeError: If ``seconds`` is not an int or float.
-        ValueError: If ``seconds`` is negative or ``max_units`` is not a
-            positive integer.
+        ValueError: If ``seconds`` is negative or not finite, or if ``max_units``
+            is not a positive integer.
 
     Examples:
         >>> format_duration(5400)
@@ -85066,6 +85067,8 @@ def format_duration(
     """
     if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
         raise TypeError("seconds must be an int or float")
+    if not math.isfinite(seconds):
+        raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
     if not isinstance(max_units, int) or isinstance(max_units, bool) or max_units < 1:
@@ -85099,7 +85102,7 @@ def seconds_to_hms(seconds: Union[int, float]) -> Tuple[int, int, int]:
 
     Raises:
         TypeError: If ``seconds`` is not an int or float.
-        ValueError: If ``seconds`` is negative.
+        ValueError: If ``seconds`` is negative or not finite.
 
     Examples:
         >>> seconds_to_hms(3661)
@@ -85109,6 +85112,8 @@ def seconds_to_hms(seconds: Union[int, float]) -> Tuple[int, int, int]:
     """
     if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
         raise TypeError("seconds must be an int or float")
+    if not math.isfinite(seconds):
+        raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
 
@@ -85430,6 +85435,15 @@ class TestFormatDuration(unittest.TestCase):
         with self.assertRaises(ValueError):
             format_duration(-1)
 
+    def test_format_duration_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            format_duration(float("nan"))
+
+    def test_format_duration_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            format_duration(float("inf"))
+            format_duration(float("-inf"))
+
     def test_invalid_max_units(self):
         with self.assertRaises(ValueError):
             format_duration(90, max_units=0)
@@ -85453,6 +85467,15 @@ class TestSecondsToHms(unittest.TestCase):
     def test_negative_raises(self):
         with self.assertRaises(ValueError):
             seconds_to_hms(-1)
+
+    def test_seconds_to_hms_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            seconds_to_hms(float("nan"))
+
+    def test_seconds_to_hms_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            seconds_to_hms(float("inf"))
+            seconds_to_hms(float("-inf"))
 
 
 class TestHmsToSeconds(unittest.TestCase):

@@ -131,6 +131,15 @@ class TestFormatDuration(unittest.TestCase):
         with self.assertRaises(ValueError):
             format_duration(-1)
 
+    def test_format_duration_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            format_duration(float("nan"))
+
+    def test_format_duration_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            format_duration(float("inf"))
+            format_duration(float("-inf"))
+
     def test_invalid_max_units(self):
         with self.assertRaises(ValueError):
             format_duration(90, max_units=0)
@@ -154,6 +163,15 @@ class TestSecondsToHms(unittest.TestCase):
     def test_negative_raises(self):
         with self.assertRaises(ValueError):
             seconds_to_hms(-1)
+
+    def test_seconds_to_hms_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            seconds_to_hms(float("nan"))
+
+    def test_seconds_to_hms_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            seconds_to_hms(float("inf"))
+            seconds_to_hms(float("-inf"))
 
 
 class TestHmsToSeconds(unittest.TestCase):
