@@ -1,3 +1,10 @@
+## Unreleased — `sys_utils.get_frame_info` documents `ValueError`, not `IndexError`
+
+- **Docstring contract fix — `get_frame_info` documented `IndexError` but never raises it.** The `Raises:` clause promised `IndexError` when `depth` exceeds the call stack, but the body calls `sys._getframe(depth + 1)`, which raises `ValueError` ("call stack is not deep enough") for out-of-range depths. Replaced the `IndexError` line with `ValueError` so the contract matches the implementation.
+- **Tests:** added `TestGetFrameInfo.test_get_frame_info_deep_depth_raises_value_error` (fails before the fix, passes after).
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled module.
+- Validation: `python -m unittest tests.test_sys_utils` — 19 OK; `python -m doctest sys_utils.py` — OK; `python -m ruff check sys_utils.py tests/test_sys_utils.py` — clean; `python -m mypy sys_utils.py tests/test_sys_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `context_utils.chdir` docstring no longer documents unreachable exceptions
 
 - **Docstring contract fix — `chdir` documented `FileNotFoundError` and `NotADirectoryError` but never raises them.** The function validates the path type and returns a context manager; those exceptions are deferred to the context manager's `__enter__` (via `os.chdir`), not raised by `chdir()` itself. Removed both lines from the `Raises:` clause so the contract matches the implementation, consistent with `temp_environ` and `redirect_stdout` which document only the exceptions they raise directly.

@@ -1,3 +1,14 @@
+## Latest Session (2026-11-20) — `sys_utils.get_frame_info` docstring contract fix
+
+- `board_read`: empty (bootstrap session); executed durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 (checkpoint behind HEAD `54f2acd`); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `54f2acd` before any edit.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed redundant discovery and the session spent its work on one real contract defect instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `sys_utils.get_frame_info` documented `IndexError` in its `Raises:` clause for a depth beyond the call stack, but the body calls `sys._getframe(depth + 1)`, which raises `ValueError` ("call stack is not deep enough") for out-of-range depths — never `IndexError`. Replaced the `IndexError` line with `ValueError` so the contract matches the implementation. Added `TestGetFrameInfo.test_get_frame_info_deep_depth_raises_value_error` (fails before the fix, passes after).
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled module.
+- **Verification:** `python -m unittest tests.test_sys_utils` — 19 OK; `python -m doctest sys_utils.py` — OK; `python -m ruff check sys_utils.py tests/test_sys_utils.py` — clean; `python -m mypy sys_utils.py tests/test_sys_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — 11868 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 files); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `sys_utils.py`, `tests/test_sys_utils.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+- **Next task:** recorded in `.kilo/next_task.md` and `.kilo/handover.md`; board lists only `main` (self), so `board_post` to `main` is refused. No source/test changes beyond the scaffold sync.
+
 ## Latest Session (2026-11-20) — scaffold sync: embedded CHANGELOG.md refreshed; verification battery green
 
 - `board_read`: empty (bootstrap session); no task from a previous agent, so executed the durable handoff in `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt).

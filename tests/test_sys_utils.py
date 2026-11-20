@@ -156,6 +156,12 @@ class TestGetFrameInfo(unittest.TestCase):
         with self.assertRaises(ValueError):
             get_frame_info(-1)
 
+    def test_get_frame_info_deep_depth_raises_value_error(self):
+        # The docstring documents IndexError, but sys._getframe raises
+        # ValueError when the requested depth exceeds the call stack.
+        with self.assertRaises(ValueError):
+            get_frame_info(10000)
+
 
 class TestGetRefcount(unittest.TestCase):
     def test_get_refcount(self):

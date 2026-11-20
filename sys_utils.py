@@ -178,8 +178,8 @@ def get_frame_info(depth: int = 0) -> Dict[str, Any]:
 
     Raises:
         TypeError: If ``depth`` is not an integer.
-        ValueError: If ``depth`` is negative.
-        IndexError: If ``depth`` is beyond the available call stack.
+        ValueError: If ``depth`` is negative or beyond the available call
+            stack.
     """
     if not isinstance(depth, int) or isinstance(depth, bool):
         raise TypeError("depth must be an integer")
