@@ -1,3 +1,13 @@
+## Latest Session (2026-11-20) — `traceback_utils.format_stack` docstring contract fix
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=0 — clean tree, HEAD `d47856f` already verified; the prior battery was still valid and was not re-run before edits. Ran `python tools/verify_state_delta.py --full --record-full-suite` after the fix — passed.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed redundant discovery and the session spent its work on one real contract defect instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed:** `traceback_utils.format_stack` documented a `Raises:` clause for `TypeError` but had no `Examples:` section header, so the contract-audit parser read the doctest output line `True` as a documented exception type and reported `format_stack: documents Raises: True but never raises it`. The docstring now has a proper `Examples:` header; the audit count drops from 242 to 241 issues.
+- **Verification:** `python tools/audit_contracts.py --summary` — 241 issues (was 242); `python -m unittest tests.test_doctests` — OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 files); `python tools/refresh_scaffold.py --check` — in sync after `make refresh-scaffold`; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** refreshed embedded `traceback_utils.py` copy in `scaffold.sh`. No `.github/workflows/**` changes.
+- **Next task:** recorded in `.kilo/next_task.md`; board lists only `main` (self), so `board_post` has no other recipient.
+
 ## Latest Session (2026-11-20) — `calculator.power` rejects NaN, infinity, and domain errors
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).

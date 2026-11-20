@@ -65,8 +65,9 @@ def format_stack(f=None, limit: Optional[int] = None) -> List[str]:
     Raises:
         TypeError: If *limit* is not an integer or ``None``.
 
-    >>> isinstance(format_stack(), list)
-    True
+    Examples:
+        >>> isinstance(format_stack(), list)
+        True
     """
     if limit is not None and (not isinstance(limit, int) or isinstance(limit, bool)):
         raise TypeError("limit must be an integer or None")
