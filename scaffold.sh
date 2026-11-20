@@ -171300,7 +171300,6 @@ def test_factor_type_error():
         audioop_mul(b"\x00", 2, "x")
     with pytest.raises(TypeError):
         audioop_mul(b"\x00", 2, True)
-"""
 TEST_AUDIOOP_UTILS
 
 # --- audioop_utils.py ---
@@ -171311,7 +171310,6 @@ from __future__ import annotations
 
 import audioop
 import warnings
-from typing import Any
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -171359,7 +171357,6 @@ def audioop_minmax(fragment: bytes, width: int) -> tuple[int, int]:
     if isinstance(width, bool) or not isinstance(width, int):
         raise TypeError("width must be an int")
     return audioop.minmax(fragment, width)
-"""
 AUDIOOP_UTILS
 
 

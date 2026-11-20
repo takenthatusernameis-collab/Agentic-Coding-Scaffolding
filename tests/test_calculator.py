@@ -50,6 +50,18 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             add(None, 2)
 
+    def test_add_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            add(float("nan"), 2)
+        with self.assertRaises(ValueError):
+            add(2, float("nan"))
+
+    def test_add_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            add(float("inf"), 2)
+        with self.assertRaises(ValueError):
+            add(2, float("-inf"))
+
     def test_add_rejects_bool(self):
         with self.assertRaises(TypeError):
             add(True, 2)
@@ -75,6 +87,18 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             subtract(5, False)
 
+    def test_subtract_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            subtract(float("nan"), 3)
+        with self.assertRaises(ValueError):
+            subtract(5, float("nan"))
+
+    def test_subtract_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            subtract(float("inf"), 3)
+        with self.assertRaises(ValueError):
+            subtract(5, float("-inf"))
+
     def test_multiply(self):
         self.assertEqual(multiply(3, 4), 12)
         self.assertEqual(multiply(-2, 3), -6)
@@ -93,6 +117,18 @@ class TestCalculator(unittest.TestCase):
             multiply(True, 4)
         with self.assertRaises(TypeError):
             multiply(3, False)
+
+    def test_multiply_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            multiply(float("nan"), 4)
+        with self.assertRaises(ValueError):
+            multiply(3, float("nan"))
+
+    def test_multiply_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            multiply(float("inf"), 4)
+        with self.assertRaises(ValueError):
+            multiply(3, float("-inf"))
 
     def test_divide(self):
         self.assertEqual(divide(10, 2), 5)
@@ -116,6 +152,18 @@ class TestCalculator(unittest.TestCase):
             divide(True, 2)
         with self.assertRaises(TypeError):
             divide(10, False)
+
+    def test_divide_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            divide(float("nan"), 2)
+        with self.assertRaises(ValueError):
+            divide(10, float("nan"))
+
+    def test_divide_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            divide(float("inf"), 2)
+        with self.assertRaises(ValueError):
+            divide(10, float("-inf"))
 
     def test_power_rejects_non_numeric(self):
         with self.assertRaises(TypeError):
@@ -162,6 +210,16 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             negate(True)
 
+    def test_negate_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            negate(float("nan"))
+
+    def test_negate_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            negate(float("inf"))
+        with self.assertRaises(ValueError):
+            negate(float("-inf"))
+
     def test_absolute(self):
         self.assertEqual(absolute(5), 5)
         self.assertEqual(absolute(-3), 3)
@@ -176,6 +234,16 @@ class TestCalculator(unittest.TestCase):
     def test_absolute_rejects_bool(self):
         with self.assertRaises(TypeError):
             absolute(True)
+
+    def test_absolute_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            absolute(float("nan"))
+
+    def test_absolute_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            absolute(float("inf"))
+        with self.assertRaises(ValueError):
+            absolute(float("-inf"))
 
     def test_clamp(self):
         self.assertEqual(clamp(5, 0, 10), 5)
@@ -238,6 +306,18 @@ class TestAbsDifference(unittest.TestCase):
         with self.assertRaises(TypeError):
             abs_difference(5, False)
 
+    def test_abs_difference_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            abs_difference(float("nan"), 3)
+        with self.assertRaises(ValueError):
+            abs_difference(5, float("nan"))
+
+    def test_abs_difference_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            abs_difference(float("inf"), 3)
+        with self.assertRaises(ValueError):
+            abs_difference(5, float("-inf"))
+
 
 class TestClamp(unittest.TestCase):
     def test_clamp_within_range(self):
@@ -264,15 +344,49 @@ class TestClamp(unittest.TestCase):
         with self.assertRaises(TypeError):
             reciprocal(True)
 
+    def test_reciprocal_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            reciprocal(float("nan"))
+
+    def test_reciprocal_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            reciprocal(float("inf"))
+        with self.assertRaises(ValueError):
+            reciprocal(float("-inf"))
+
     def test_percentage(self):
         self.assertEqual(percentage(200, 10), 20.0)
         with self.assertRaises(TypeError):
             percentage(True, 10)
 
+    def test_percentage_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            percentage(float("nan"), 10)
+        with self.assertRaises(ValueError):
+            percentage(10, float("nan"))
+
+    def test_percentage_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            percentage(float("inf"), 10)
+        with self.assertRaises(ValueError):
+            percentage(10, float("-inf"))
+
     def test_average_of_two(self):
         self.assertEqual(average_of_two(2, 4), 3.0)
         with self.assertRaises(TypeError):
             average_of_two(True, 4)
+
+    def test_average_of_two_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            average_of_two(float("nan"), 4)
+        with self.assertRaises(ValueError):
+            average_of_two(4, float("nan"))
+
+    def test_average_of_two_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            average_of_two(float("inf"), 4)
+        with self.assertRaises(ValueError):
+            average_of_two(4, float("-inf"))
 
 
 class TestRoundTo(unittest.TestCase):

@@ -36,8 +36,19 @@ __all__ = [
 ]
 
 
+def _require_finite(value: float, name: str) -> None:
+    """Validate that *value* is a finite number (rejects NaN and ±inf)."""
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        raise ValueError(f"{name} must be a finite number")
+
+
 def add(a: float, b: float) -> float:
-    """Return the sum of a and b."""
+    """Return the sum of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If either argument is NaN or infinite.
+    """
     if (
         isinstance(a, bool)
         or isinstance(b, bool)
@@ -45,6 +56,8 @@ def add(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     return a + b
 
 
@@ -73,39 +86,17 @@ def abs_difference(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     return abs(a - b)
 
 
 def subtract(a: float, b: float) -> float:
-    """Return the difference of a and b."""
-    if (
-        isinstance(a, bool)
-        or isinstance(b, bool)
-        or not isinstance(a, (int, float))
-        or not isinstance(b, (int, float))
-    ):
-        raise TypeError("a and b must be real numbers")
-    return a - b
-
-
-def multiply(a: float, b: float) -> float:
-    """Return the product of a and b."""
-    if (
-        isinstance(a, bool)
-        or isinstance(b, bool)
-        or not isinstance(a, (int, float))
-        or not isinstance(b, (int, float))
-    ):
-        raise TypeError("a and b must be real numbers")
-    return a * b
-
-
-def divide(a: float, b: float) -> float:
-    """Return the quotient of a and b.
+    """Return the difference of a and b.
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If b is zero.
+        ValueError: If either argument is NaN or infinite.
     """
     if (
         isinstance(a, bool)
@@ -114,6 +105,46 @@ def divide(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
+    return a - b
+
+
+def multiply(a: float, b: float) -> float:
+    """Return the product of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If either argument is NaN or infinite.
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
+    return a * b
+
+
+def divide(a: float, b: float) -> float:
+    """Return the quotient of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If b is zero or either argument is NaN or infinite.
+    """
+    if (
+        isinstance(a, bool)
+        or isinstance(b, bool)
+        or not isinstance(a, (int, float))
+        or not isinstance(b, (int, float))
+    ):
+        raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a / b
@@ -124,7 +155,7 @@ def modulo(a: float, b: float) -> float:
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If b is zero.
+        ValueError: If b is zero or either argument is NaN or infinite.
     """
     if (
         isinstance(a, bool)
@@ -133,6 +164,8 @@ def modulo(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a % b
@@ -143,7 +176,7 @@ def floor_divide(a: float, b: float) -> float:
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If b is zero.
+        ValueError: If b is zero or either argument is NaN or infinite.
     """
     if (
         isinstance(a, bool)
@@ -152,6 +185,8 @@ def floor_divide(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
     return a // b
@@ -202,16 +237,28 @@ def sqrt(a: float) -> float:
 
 
 def negate(a: float) -> float:
-    """Return the negation of a."""
+    """Return the negation of a.
+
+    Raises:
+        TypeError: If a is not a real number (int or float).
+        ValueError: If a is NaN or infinite.
+    """
     if isinstance(a, bool) or not isinstance(a, (int, float)):
         raise TypeError("a must be a real number")
+    _require_finite(a, "a")
     return -a
 
 
 def absolute(a: float) -> float:
-    """Return the absolute value of a."""
+    """Return the absolute value of a.
+
+    Raises:
+        TypeError: If a is not a real number (int or float).
+        ValueError: If a is NaN or infinite.
+    """
     if isinstance(a, bool) or not isinstance(a, (int, float)):
         raise TypeError("a must be a real number")
+    _require_finite(a, "a")
     return abs(a)
 
 
@@ -220,7 +267,7 @@ def clamp(value: float, low: float, high: float) -> float:
 
     Raises:
         TypeError: If any argument is not a real number (int or float).
-        ValueError: If low > high.
+        ValueError: If low > high, or if any argument is NaN or infinite.
     """
     if (
         isinstance(value, bool)
@@ -233,31 +280,52 @@ def clamp(value: float, low: float, high: float) -> float:
         raise TypeError("value, low, and high must be real numbers")
     if math.isnan(value) or math.isnan(low) or math.isnan(high):
         raise ValueError("value, low, and high must not be NaN")
+    _require_finite(value, "value")
+    _require_finite(low, "low")
+    _require_finite(high, "high")
     if low > high:
         raise ValueError("low must not exceed high.")
     return max(low, min(high, value))
 
 
 def reciprocal(x: float) -> float:
-    """Return 1/x."""
+    """Return 1/x.
+
+    Raises:
+        TypeError: If x is not a real number (int or float).
+        ValueError: If x is zero, NaN, or infinite.
+    """
     if isinstance(x, bool) or not isinstance(x, (int, float)):
         raise TypeError("x must be a real number")
+    _require_finite(x, "x")
     if x == 0:
         raise ValueError("Cannot divide by zero")
     return float(1.0 / x)
 
 
 def percentage(value: float, percent: float) -> float:
-    """Return (value * percent) / 100."""
+    """Return (value * percent) / 100.
+
+    Raises:
+        TypeError: If value or percent is not a real number (int or float).
+        ValueError: If value or percent is NaN or infinite.
+    """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("value must be a real number")
     if isinstance(percent, bool) or not isinstance(percent, (int, float)):
         raise TypeError("percent must be a real number")
+    _require_finite(value, "value")
+    _require_finite(percent, "percent")
     return float((value * percent) / 100.0)
 
 
 def average_of_two(a: float, b: float) -> float:
-    """Return the average of a and b."""
+    """Return the average of a and b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float).
+        ValueError: If either argument is NaN or infinite.
+    """
     if (
         isinstance(a, bool)
         or isinstance(b, bool)
@@ -265,6 +333,8 @@ def average_of_two(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    _require_finite(a, "a")
+    _require_finite(b, "b")
     return float((a + b) / 2.0)
 
 
@@ -296,6 +366,7 @@ def round_to(value: float, places: int = 0) -> float:
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("value must be a real number")
+    _require_finite(value, "value")
     if isinstance(places, bool) or not isinstance(places, int):
         raise TypeError(f"places must be an int, got {type(places).__name__}")
     if places < 0:
