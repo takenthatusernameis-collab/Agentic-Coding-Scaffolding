@@ -74155,6 +74155,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `cooldown_utils` rejects non-finite intervals and remaining seconds
+
+- **Correctness fix — `Cooldown` accepted a `NaN` or infinite interval, producing a permanently blocked cooldown that reported zero remaining time.** `Cooldown.__init__` only rejected `interval <= 0`, which is `False` for `NaN` and `+inf`, so `Cooldown(float("nan"))` was constructed with `_interval = nan`; after one call `ready()` returned `False` forever while `remaining()` returned `0.0` (because `max(0.0, nan)` keeps the first argument). The constructor (and therefore the `cooldown()` decorator) now rejects non-finite intervals with `ValueError("interval must be finite")`, matching the project-wide finite-number convention.
+- **Correctness fix — `format_remaining` rendered non-finite values as `"nans"`/`"infs"` instead of raising.** The docstring promises a compact "remaining seconds" string and only rejected negative inputs, so `format_remaining(float("nan"))` returned `"nans"`. It now rejects non-finite values with `ValueError`.
+- **Tests:** added `TestCooldownInit.test_nan_interval_raises`, `TestCooldownInit.test_infinite_interval_raises`, `TestFormatRemaining.test_nan_value_error`, and `TestFormatRemaining.test_infinite_value_error` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_cooldown_utils` — 36 OK; `python -m doctest cooldown_utils.py` — OK; `python -m ruff check cooldown_utils.py tests/test_cooldown_utils.py` — clean; `python -m mypy cooldown_utils.py tests/test_cooldown_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `sys_utils.get_frame_info` documents `ValueError`, not `IndexError`
 
 - **Docstring contract fix — `get_frame_info` documented `IndexError` but never raises it.** The `Raises:` clause promised `IndexError` when `depth` exceeds the call stack, but the body calls `sys._getframe(depth + 1)`, which raises `ValueError` ("call stack is not deep enough") for out-of-range depths. Replaced the `IndexError` line with `ValueError` so the contract matches the implementation.
@@ -162886,6 +162894,7 @@ cat > "$OUTPUT_DIR/cooldown_utils.py" <<'COOLDOWN_UTILS'
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 from collections.abc import Callable
@@ -162921,14 +162930,17 @@ class Cooldown:
         """Create a cooldown with the given minimum interval in seconds.
 
         Args:
-            interval: Minimum seconds between allowed calls. Must be positive.
+            interval: Minimum seconds between allowed calls. Must be positive
+                and finite.
 
         Raises:
             TypeError: If interval is not a real number.
-            ValueError: If interval is not positive.
+            ValueError: If interval is not positive or is not finite.
         """
         if not isinstance(interval, (int, float)) or isinstance(interval, bool):
             raise TypeError("interval must be a real number")
+        if not math.isfinite(interval):
+            raise ValueError("interval must be finite")
         if interval <= 0:
             raise ValueError("interval must be positive")
         self._interval = float(interval)
@@ -162993,14 +163005,15 @@ def cooldown(interval: float) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator that limits a function to one call per interval.
 
     Args:
-        interval: Minimum seconds between allowed calls. Must be positive.
+        interval: Minimum seconds between allowed calls. Must be positive
+            and finite.
 
     Returns:
         A decorator that wraps the callable with a cooldown.
 
     Raises:
         TypeError: If interval is not a real number.
-        ValueError: If interval is not positive.
+        ValueError: If interval is not positive or is not finite.
     """
     return Cooldown(interval)
 
@@ -163009,14 +163022,14 @@ def format_remaining(seconds: float) -> str:
     """Format a remaining-seconds value as a compact human-readable string.
 
     Args:
-        seconds: A non-negative number of seconds.
+        seconds: A non-negative, finite number of seconds.
 
     Returns:
         A string such as ``"0.000s"`` or ``"12.345s"``.
 
     Raises:
         TypeError: If *seconds* is not a real number.
-        ValueError: If *seconds* is negative.
+        ValueError: If *seconds* is negative or not finite.
 
     >>> format_remaining(0)
     '0.000s'
@@ -163025,6 +163038,8 @@ def format_remaining(seconds: float) -> str:
     """
     if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
         raise TypeError("seconds must be a real number")
+    if not math.isfinite(seconds):
+        raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
     return f"{float(seconds):.3f}s"
@@ -163071,6 +163086,16 @@ class TestCooldownInit(unittest.TestCase):
     def test_string_interval_raises(self) -> None:
         with self.assertRaises(TypeError):
             Cooldown("1.0")  # type: ignore[arg-type]
+
+    def test_nan_interval_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(float("nan"))
+
+    def test_infinite_interval_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(float("inf"))
+        with self.assertRaises(ValueError):
+            Cooldown(float("-inf"))
 
 
 class TestCooldownReady(unittest.TestCase):
@@ -163244,6 +163269,16 @@ class TestFormatRemaining(unittest.TestCase):
     def test_negative_value_error(self) -> None:
         with self.assertRaises(ValueError):
             format_remaining(-1.0)
+
+    def test_nan_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(float("nan"))
+
+    def test_infinite_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(float("inf"))
+        with self.assertRaises(ValueError):
+            format_remaining(float("-inf"))
 
 
 class TestExportedTypeVars(unittest.TestCase):

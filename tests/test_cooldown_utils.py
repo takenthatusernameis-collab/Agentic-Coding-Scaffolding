@@ -38,6 +38,16 @@ class TestCooldownInit(unittest.TestCase):
         with self.assertRaises(TypeError):
             Cooldown("1.0")  # type: ignore[arg-type]
 
+    def test_nan_interval_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(float("nan"))
+
+    def test_infinite_interval_raises(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(float("inf"))
+        with self.assertRaises(ValueError):
+            Cooldown(float("-inf"))
+
 
 class TestCooldownReady(unittest.TestCase):
     def test_ready_initially(self) -> None:
@@ -210,6 +220,16 @@ class TestFormatRemaining(unittest.TestCase):
     def test_negative_value_error(self) -> None:
         with self.assertRaises(ValueError):
             format_remaining(-1.0)
+
+    def test_nan_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(float("nan"))
+
+    def test_infinite_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(float("inf"))
+        with self.assertRaises(ValueError):
+            format_remaining(float("-inf"))
 
 
 class TestExportedTypeVars(unittest.TestCase):

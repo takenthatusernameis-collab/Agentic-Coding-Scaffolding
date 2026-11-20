@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import threading
 import time
 from collections.abc import Callable
@@ -37,14 +38,17 @@ class Cooldown:
         """Create a cooldown with the given minimum interval in seconds.
 
         Args:
-            interval: Minimum seconds between allowed calls. Must be positive.
+            interval: Minimum seconds between allowed calls. Must be positive
+                and finite.
 
         Raises:
             TypeError: If interval is not a real number.
-            ValueError: If interval is not positive.
+            ValueError: If interval is not positive or is not finite.
         """
         if not isinstance(interval, (int, float)) or isinstance(interval, bool):
             raise TypeError("interval must be a real number")
+        if not math.isfinite(interval):
+            raise ValueError("interval must be finite")
         if interval <= 0:
             raise ValueError("interval must be positive")
         self._interval = float(interval)
@@ -109,14 +113,15 @@ def cooldown(interval: float) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Decorator that limits a function to one call per interval.
 
     Args:
-        interval: Minimum seconds between allowed calls. Must be positive.
+        interval: Minimum seconds between allowed calls. Must be positive
+            and finite.
 
     Returns:
         A decorator that wraps the callable with a cooldown.
 
     Raises:
         TypeError: If interval is not a real number.
-        ValueError: If interval is not positive.
+        ValueError: If interval is not positive or is not finite.
     """
     return Cooldown(interval)
 
@@ -125,14 +130,14 @@ def format_remaining(seconds: float) -> str:
     """Format a remaining-seconds value as a compact human-readable string.
 
     Args:
-        seconds: A non-negative number of seconds.
+        seconds: A non-negative, finite number of seconds.
 
     Returns:
         A string such as ``"0.000s"`` or ``"12.345s"``.
 
     Raises:
         TypeError: If *seconds* is not a real number.
-        ValueError: If *seconds* is negative.
+        ValueError: If *seconds* is negative or not finite.
 
     >>> format_remaining(0)
     '0.000s'
@@ -141,6 +146,8 @@ def format_remaining(seconds: float) -> str:
     """
     if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
         raise TypeError("seconds must be a real number")
+    if not math.isfinite(seconds):
+        raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
     return f"{float(seconds):.3f}s"

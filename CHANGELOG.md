@@ -1,3 +1,11 @@
+## Unreleased — `cooldown_utils` rejects non-finite intervals and remaining seconds
+
+- **Correctness fix — `Cooldown` accepted a `NaN` or infinite interval, producing a permanently blocked cooldown that reported zero remaining time.** `Cooldown.__init__` only rejected `interval <= 0`, which is `False` for `NaN` and `+inf`, so `Cooldown(float("nan"))` was constructed with `_interval = nan`; after one call `ready()` returned `False` forever while `remaining()` returned `0.0` (because `max(0.0, nan)` keeps the first argument). The constructor (and therefore the `cooldown()` decorator) now rejects non-finite intervals with `ValueError("interval must be finite")`, matching the project-wide finite-number convention.
+- **Correctness fix — `format_remaining` rendered non-finite values as `"nans"`/`"infs"` instead of raising.** The docstring promises a compact "remaining seconds" string and only rejected negative inputs, so `format_remaining(float("nan"))` returned `"nans"`. It now rejects non-finite values with `ValueError`.
+- **Tests:** added `TestCooldownInit.test_nan_interval_raises`, `TestCooldownInit.test_infinite_interval_raises`, `TestFormatRemaining.test_nan_value_error`, and `TestFormatRemaining.test_infinite_value_error` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_cooldown_utils` — 36 OK; `python -m doctest cooldown_utils.py` — OK; `python -m ruff check cooldown_utils.py tests/test_cooldown_utils.py` — clean; `python -m mypy cooldown_utils.py tests/test_cooldown_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `sys_utils.get_frame_info` documents `ValueError`, not `IndexError`
 
 - **Docstring contract fix — `get_frame_info` documented `IndexError` but never raises it.** The `Raises:` clause promised `IndexError` when `depth` exceeds the call stack, but the body calls `sys._getframe(depth + 1)`, which raises `ValueError` ("call stack is not deep enough") for out-of-range depths. Replaced the `IndexError` line with `ValueError` so the contract matches the implementation.
