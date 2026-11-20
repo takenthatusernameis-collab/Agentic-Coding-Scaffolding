@@ -162,10 +162,28 @@ class TestTTLCache(unittest.TestCase):
             TTLCache(ttl="10")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             TTLCache(ttl=-1)
+        with self.assertRaises(ValueError):
+            TTLCache(ttl=float("nan"))
+        with self.assertRaises(ValueError):
+            TTLCache(ttl=float("inf"))
+        with self.assertRaises(ValueError):
+            TTLCache(ttl=float("-inf"))
         with self.assertRaises(TypeError):
             TTLCache(ttl=10, maxsize=True)
         with self.assertRaises(ValueError):
             TTLCache(ttl=10, maxsize=0)
+
+    def test_expire_rejects_non_finite_ttl(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        with self.assertRaises(TypeError):
+            cache.expire("a", True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            cache.expire("a", float("nan"))
+        with self.assertRaises(ValueError):
+            cache.expire("a", float("inf"))
+        with self.assertRaises(ValueError):
+            cache.expire("a", float("-inf"))
 
 
 class TestTTLCacheDecorator(unittest.TestCase):
@@ -200,6 +218,12 @@ class TestTTLCacheDecorator(unittest.TestCase):
             ttl_cache(ttl=True)
         with self.assertRaises(ValueError):
             ttl_cache(ttl=-1)
+        with self.assertRaises(ValueError):
+            ttl_cache(ttl=float("nan"))
+        with self.assertRaises(ValueError):
+            ttl_cache(ttl=float("inf"))
+        with self.assertRaises(ValueError):
+            ttl_cache(ttl=float("-inf"))
 
 
 if __name__ == "__main__":

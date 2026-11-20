@@ -28,6 +28,7 @@ Example:
 from __future__ import annotations
 
 import functools
+import math
 import time
 from typing import Any, Callable, Optional, TypeVar, cast
 
@@ -44,15 +45,16 @@ class TTLCache:
     """A mapping whose entries expire after a fixed time-to-live.
 
     Args:
-        ttl: Time-to-live in seconds for every entry. Must be a non-negative
-            number.
+        ttl: Time-to-live in seconds for every entry. Must be a finite,
+            non-negative number.
         maxsize: Maximum number of entries to retain. When full, the
             least-recently-used entry is evicted. Pass ``None`` for unbounded.
 
     Raises:
         TypeError: If ``ttl`` is not a number or ``maxsize`` is not an int or
             ``None`` (booleans are rejected).
-        ValueError: If ``ttl`` is negative or ``maxsize`` is not positive.
+        ValueError: If ``ttl`` is negative or non-finite, or ``maxsize`` is not
+            positive.
 
     Example:
         >>> cache = TTLCache(ttl=10, maxsize=2)
@@ -76,6 +78,8 @@ class TTLCache:
     def __init__(self, ttl: float, maxsize: Optional[int] = 128) -> None:
         if isinstance(ttl, bool) or not isinstance(ttl, (int, float)):
             raise TypeError("ttl must be a number")
+        if not math.isfinite(ttl):
+            raise ValueError("ttl must be finite")
         if ttl < 0:
             raise ValueError("ttl must be non-negative")
         if maxsize is not None and (isinstance(maxsize, bool) or not isinstance(maxsize, int)):
@@ -206,13 +210,26 @@ class TTLCache:
         return [(key, self._data[key]) for key in self]
 
     def expire(self, key: Any, ttl: Optional[float] = None) -> None:
-        """Set (or refresh) the time-to-live for *key* in seconds."""
+        """Set (or refresh) the time-to-live for *key* in seconds.
+
+    Args:
+        key: The key whose TTL to set.
+        ttl: The new time-to-live in seconds. Must be a finite, non-negative
+            number. Defaults to the cache's configured TTL.
+
+    Raises:
+        KeyError: If *key* is not present.
+        TypeError: If *ttl* is not a number.
+        ValueError: If *ttl* is negative or non-finite.
+    """
         if key not in self._data:
             raise KeyError(key)
         if ttl is None:
             ttl = self._ttl
         if isinstance(ttl, bool) or not isinstance(ttl, (int, float)):
             raise TypeError("ttl must be a number")
+        if not math.isfinite(ttl):
+            raise ValueError("ttl must be finite")
         if ttl < 0:
             raise ValueError("ttl must be non-negative")
         self._expires_at[key] = self._now() + float(ttl)
@@ -250,7 +267,8 @@ def ttl_cache(
     Raises:
         TypeError: If ``ttl`` is not a number or ``maxsize`` is not an int or
             ``None`` (booleans rejected).
-        ValueError: If ``ttl`` is negative or ``maxsize`` is not positive.
+        ValueError: If ``ttl`` is negative or non-finite, or ``maxsize`` is not
+            positive.
 
     Example:
         >>> @ttl_cache(ttl=60)
@@ -265,6 +283,8 @@ def ttl_cache(
     """
     if isinstance(ttl, bool) or not isinstance(ttl, (int, float)):
         raise TypeError("ttl must be a number")
+    if not math.isfinite(ttl):
+        raise ValueError("ttl must be finite")
     if ttl < 0:
         raise ValueError("ttl must be non-negative")
     if maxsize is not None and (isinstance(maxsize, bool) or not isinstance(maxsize, int)):
