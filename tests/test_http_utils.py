@@ -48,8 +48,10 @@ class TestStatusMessage(unittest.TestCase):
         self.assertEqual(status_message(418), "I'm a teapot")
 
     def test_unknown_code_returns_none(self):
-        self.assertIsNone(status_message(999))
-        self.assertIsNone(status_message(0))
+        # Use valid codes that are not in STATUS_CODES
+        self.assertIsNone(status_message(103))
+        self.assertIsNone(status_message(208))
+        self.assertIsNone(status_message(306))
 
 
 class TestBooleanChecks(unittest.TestCase):
@@ -82,6 +84,61 @@ class TestBooleanChecks(unittest.TestCase):
         self.assertTrue(is_error(500))
         self.assertFalse(is_error(200))
         self.assertFalse(is_error(300))
+
+
+class TestInputValidation(unittest.TestCase):
+    def test_status_code_category_rejects_bool(self):
+        with self.assertRaises(TypeError):
+            status_code_category(True)
+        with self.assertRaises(TypeError):
+            status_code_category(False)
+
+    def test_status_code_category_rejects_float(self):
+        with self.assertRaises(TypeError):
+            status_code_category(200.0)
+        with self.assertRaises(TypeError):
+            status_code_category(200.5)
+
+    def test_status_code_category_rejects_string(self):
+        with self.assertRaises(TypeError):
+            status_code_category("200")
+
+    def test_status_code_category_rejects_nan(self):
+        with self.assertRaises(TypeError):
+            status_code_category(float("nan"))
+
+    def test_status_code_category_rejects_infinity(self):
+        with self.assertRaises(TypeError):
+            status_code_category(float("inf"))
+        with self.assertRaises(TypeError):
+            status_code_category(float("-inf"))
+
+    def test_status_code_category_rejects_negative(self):
+        with self.assertRaises(ValueError):
+            status_code_category(-1)
+
+    def test_status_code_category_rejects_too_large(self):
+        with self.assertRaises(ValueError):
+            status_code_category(600)
+        with self.assertRaises(ValueError):
+            status_code_category(1000)
+
+    def test_all_functions_reject_invalid_inputs(self):
+        invalid_inputs = [True, False, 200.0, "200", float("nan"), float("inf"), -1, 600]
+        for invalid in invalid_inputs:
+            with self.subTest(invalid=invalid):
+                for func in [
+                    status_code_category,
+                    status_message,
+                    is_informational,
+                    is_success,
+                    is_redirection,
+                    is_client_error,
+                    is_server_error,
+                    is_error,
+                ]:
+                    with self.assertRaises((TypeError, ValueError)):
+                        func(invalid)
 
 
 if __name__ == "__main__":

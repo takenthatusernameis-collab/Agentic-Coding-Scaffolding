@@ -1,5 +1,6 @@
 """HTTP utility functions for status codes and response handling."""
 
+import math
 from typing import Dict, Optional
 
 # HTTP status code category prefixes (1xx through 5xx)
@@ -8,6 +9,10 @@ HTTP_SUCCESS = 2
 HTTP_REDIRECTION = 3
 HTTP_CLIENT_ERROR = 4
 HTTP_SERVER_ERROR = 5
+
+# Valid HTTP status code range
+HTTP_STATUS_MIN = 100
+HTTP_STATUS_MAX = 599
 
 
 STATUS_CODES: Dict[int, str] = {
@@ -88,15 +93,44 @@ __all__ = [
 ]
 
 
+def _validate_status_code(code: int) -> int:
+    """Validate that *code* is a valid HTTP status code.
+
+    Args:
+        code: The HTTP status code to validate.
+
+    Returns:
+        The validated status code.
+
+    Raises:
+        TypeError: If *code* is not an int (including bool).
+        ValueError: If *code* is not finite, or outside the valid range 100-599.
+    """
+    if isinstance(code, bool) or not isinstance(code, int):
+        raise TypeError(f"code must be an int, got {type(code).__name__}")
+    if isinstance(code, float) and (math.isnan(code) or math.isinf(code)):
+        raise ValueError("code must be finite")
+    if code < HTTP_STATUS_MIN or code > HTTP_STATUS_MAX:
+        raise ValueError(
+            f"code must be between {HTTP_STATUS_MIN} and {HTTP_STATUS_MAX}, got {code}"
+        )
+    return code
+
+
 def status_code_category(code: int) -> int:
     """Return the HTTP status code category (1-5) for a given code.
 
     Args:
-        code: The HTTP status code.
+        code: The HTTP status code. Must be an integer between 100 and 599.
 
     Returns:
         The leading digit of the status code (1 through 5).
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
     """
+    _validate_status_code(code)
     return code // 100
 
 
@@ -104,40 +138,99 @@ def status_message(code: int) -> Optional[str]:
     """Return the standard reason phrase for an HTTP status code.
 
     Args:
-        code: The HTTP status code.
+        code: The HTTP status code. Must be an integer between 100 and 599.
 
     Returns:
         The standard reason phrase, or ``None`` if the code is unknown.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
     """
+    _validate_status_code(code)
     return STATUS_CODES.get(code)
 
 
 def is_informational(code: int) -> bool:
-    """Return ``True`` if the status code is a 1xx informational response."""
+    """Return ``True`` if the status code is a 1xx informational response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_INFORMATIONAL
 
 
 def is_success(code: int) -> bool:
-    """Return ``True`` if the status code is a 2xx success response."""
+    """Return ``True`` if the status code is a 2xx success response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_SUCCESS
 
 
 def is_redirection(code: int) -> bool:
-    """Return ``True`` if the status code is a 3xx redirection response."""
+    """Return ``True`` if the status code is a 3xx redirection response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_REDIRECTION
 
 
 def is_client_error(code: int) -> bool:
-    """Return ``True`` if the status code is a 4xx client error response."""
+    """Return ``True`` if the status code is a 4xx client error response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_CLIENT_ERROR
 
 
 def is_server_error(code: int) -> bool:
-    """Return ``True`` if the status code is a 5xx server error response."""
+    """Return ``True`` if the status code is a 5xx server error response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     return status_code_category(code) == HTTP_SERVER_ERROR
 
 
 def is_error(code: int) -> bool:
-    """Return ``True`` if the status code is a 4xx or 5xx error response."""
+    """Return ``True`` if the status code is a 4xx or 5xx error response.
+
+    Args:
+        code: The HTTP status code. Must be an integer between 100 and 599.
+
+    Raises:
+        TypeError: If *code* is not an int.
+        ValueError: If *code* is outside the valid range 100-599.
+    """
+    _validate_status_code(code)
     category = status_code_category(code)
     return category in (HTTP_CLIENT_ERROR, HTTP_SERVER_ERROR)
