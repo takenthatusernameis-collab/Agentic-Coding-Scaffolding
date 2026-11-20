@@ -342,6 +342,9 @@ class TestDifference(unittest.TestCase):
     def test_difference_preserves_order(self) -> None:
         self.assertEqual(difference([3, 1, 2], [2]), [3, 1])
 
+    def test_difference_supports_unhashable_elements(self) -> None:
+        self.assertEqual(difference([[1], [2]], [[2]]), [[1]])
+
 
 class TestDrop(unittest.TestCase):
     def test_drop_basic(self) -> None:
@@ -538,6 +541,12 @@ class TestIntersection(unittest.TestCase):
 
     def test_intersection_empty(self) -> None:
         self.assertEqual(intersection([], [1, 2]), [])
+
+    def test_intersection_supports_unhashable_elements(self) -> None:
+        self.assertEqual(intersection([[1], [2]], [[2], [3]]), [[2]])
+
+    def test_intersection_dedupes_matching_unhashable_elements(self) -> None:
+        self.assertEqual(intersection([[1], [1]], [[1]]), [[1]])
 
 
 class TestItems(unittest.TestCase):
