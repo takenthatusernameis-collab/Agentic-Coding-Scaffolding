@@ -18013,7 +18013,9 @@ def compact(lst: List[T]) -> List[T]:
 def take(lst: List[T], n: int) -> List[T]:
     """Return the first n elements of a list."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     return lst[:n]
 
@@ -18021,7 +18023,9 @@ def take(lst: List[T], n: int) -> List[T]:
 def drop(lst: List[T], n: int) -> List[T]:
     """Return a list with the first n elements removed."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return list(lst)
     return lst[n:]
 
@@ -18029,7 +18033,9 @@ def drop(lst: List[T], n: int) -> List[T]:
 def tail(lst: List[T], n: int) -> List[T]:
     """Return the last n elements of a list."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     if n >= len(lst):
         return list(lst)
@@ -18190,7 +18196,9 @@ def range_list(start: int, stop: Optional[int] = None, step: int = 1) -> List[in
 def repeat(item: T, n: int) -> List[T]:
     """Repeat an item n times."""
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     return [item] * n
 
@@ -18200,7 +18208,9 @@ def sample(lst: List[T], n: int = 1) -> List[T]:
     import random
 
     n = _require_int(n, "n")
-    if n <= 0:
+    if n < 0:
+        raise ValueError("n must be non-negative")
+    if n == 0:
         return []
     if n >= len(lst):
         result = list(lst)
@@ -24112,6 +24122,12 @@ class TestDrop(unittest.TestCase):
         with self.assertRaises(TypeError):
             drop([1, 2, 3], False)
 
+    def test_drop_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            drop([1, 2, 3], -4)
+
 
 class TestDropWhile(unittest.TestCase):
     def test_drop_while_basic(self) -> None:
@@ -24452,7 +24468,10 @@ class TestRepeat(unittest.TestCase):
         self.assertEqual(repeat("a", 0), [])
 
     def test_repeat_negative(self) -> None:
-        self.assertEqual(repeat("a", -1), [])
+        with self.assertRaises(ValueError):
+            repeat("a", -1)
+        with self.assertRaises(ValueError):
+            repeat("a", -5)
 
     def test_repeat_rejects_bool_n(self) -> None:
         with self.assertRaises(TypeError):
@@ -24498,6 +24517,12 @@ class TestSample(unittest.TestCase):
             sample([1, 2, 3], True)
         with self.assertRaises(TypeError):
             sample([1, 2, 3], False)
+
+    def test_sample_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            sample([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            sample([1, 2, 3], -5)
 
 
 class TestShuffle(unittest.TestCase):
@@ -24555,6 +24580,12 @@ class TestTail(unittest.TestCase):
         with self.assertRaises(TypeError):
             tail([1, 2, 3], False)
 
+    def test_tail_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            tail([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            tail([1, 2, 3], -5)
+
 
 class TestTake(unittest.TestCase):
     def test_take_basic(self) -> None:
@@ -24571,6 +24602,12 @@ class TestTake(unittest.TestCase):
             take([1, 2, 3], True)
         with self.assertRaises(TypeError):
             take([1, 2, 3], False)
+
+    def test_take_rejects_negative_n(self) -> None:
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -1)
+        with self.assertRaises(ValueError):
+            take([1, 2, 3], -3)
 
 
 class TestTakeWhile(unittest.TestCase):
