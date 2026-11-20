@@ -105,15 +105,23 @@ def stream_copy(src: Union[str, Path], dst: Union[str, Path], chunk_size: int = 
     Args:
         src: Path to the source file.
         dst: Path to the destination file.
-        chunk_size: Number of bytes to read per chunk (default: 65536).
+        chunk_size: Number of bytes to read per chunk (default: 65536). Must be
+            a positive integer; a non-positive value would make the read loop
+            exit immediately and copy nothing.
 
     Returns:
         The total number of bytes copied.
 
     Raises:
+        TypeError: If *chunk_size* is not an int.
+        ValueError: If *chunk_size* is not positive.
         FileNotFoundError: If the source file does not exist.
         OSError: If there is an issue reading or writing the files.
     """
+    if isinstance(chunk_size, bool) or not isinstance(chunk_size, int):
+        raise TypeError("chunk_size must be an int")
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be positive")
     src = Path(src)
     dst = Path(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)

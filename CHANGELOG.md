@@ -1,3 +1,10 @@
+## Unreleased — `io_utils.stream_copy` rejects non-positive chunk sizes
+
+- **Correctness fix — `stream_copy` silently copied nothing for `chunk_size <= 0`.** The function read the source in `chunk_size`-byte chunks and broke out of the loop when a read returned an empty bytes object, but `file.read(0)` returns `b""` immediately, so `stream_copy(src, dst, chunk_size=0)` returned `0` and wrote an empty destination file instead of raising. It now validates `chunk_size` up front: a non-int (including bool) raises `TypeError`, and a non-positive value raises `ValueError`, matching the project-wide input-validation convention used by `io_utils`'s other functions.
+- **Tests:** added `TestStreamCopy.test_stream_copy_rejects_non_positive_chunk_size` (fails before the fix, passes after).
+- **Defect class:** silently ignored parameter / accepts-invalid-input in a hand-rolled module.
+- Validation: `python -m unittest tests.test_io_utils` — 13 OK; `python -m doctest io_utils.py` — OK; `python -m ruff check io_utils.py tests/test_io_utils.py` — clean; `python -m mypy io_utils.py tests/test_io_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — routine regression monitoring: no new defect found; full battery green
 
 - **Verification pass with no source changes.** Executed the durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed). `python tools/verify_state_delta.py --probe` returned rc=2 (checkpoint behind HEAD `3282834`), so the full battery was run before any edit: `python -m unittest discover tests/` — 11635 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.

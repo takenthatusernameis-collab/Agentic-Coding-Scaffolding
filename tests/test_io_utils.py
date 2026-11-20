@@ -119,6 +119,18 @@ class TestStreamCopy(unittest.TestCase):
             self.assertTrue(dst.exists())
             self.assertEqual(dst.read_bytes(), b"hello")
 
+    def test_stream_copy_rejects_non_positive_chunk_size(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            src = Path(tmp_dir) / "src.bin"
+            dst = Path(tmp_dir) / "dst.bin"
+            src.write_bytes(b"hello")
+            with self.assertRaises(ValueError):
+                stream_copy(src, dst, chunk_size=0)
+            with self.assertRaises(ValueError):
+                stream_copy(src, dst, chunk_size=-1)
+            with self.assertRaises(ValueError):
+                stream_copy(src, dst, chunk_size=-100)
+
 
 class TestCountLines(unittest.TestCase):
     def test_count_lines(self):

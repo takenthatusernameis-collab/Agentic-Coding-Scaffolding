@@ -74155,6 +74155,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `io_utils.stream_copy` rejects non-positive chunk sizes
+
+- **Correctness fix — `stream_copy` silently copied nothing for `chunk_size <= 0`.** The function read the source in `chunk_size`-byte chunks and broke out of the loop when a read returned an empty bytes object, but `file.read(0)` returns `b""` immediately, so `stream_copy(src, dst, chunk_size=0)` returned `0` and wrote an empty destination file instead of raising. It now validates `chunk_size` up front: a non-int (including bool) raises `TypeError`, and a non-positive value raises `ValueError`, matching the project-wide input-validation convention used by `io_utils`'s other functions.
+- **Tests:** added `TestStreamCopy.test_stream_copy_rejects_non_positive_chunk_size` (fails before the fix, passes after).
+- **Defect class:** silently ignored parameter / accepts-invalid-input in a hand-rolled module.
+- Validation: `python -m unittest tests.test_io_utils` — 13 OK; `python -m doctest io_utils.py` — OK; `python -m ruff check io_utils.py tests/test_io_utils.py` — clean; `python -m mypy io_utils.py tests/test_io_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — routine regression monitoring: no new defect found; full battery green
 
 - **Verification pass with no source changes.** Executed the durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed). `python tools/verify_state_delta.py --probe` returned rc=2 (checkpoint behind HEAD `3282834`), so the full battery was run before any edit: `python -m unittest discover tests/` — 11635 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
@@ -94700,15 +94707,23 @@ def stream_copy(src: Union[str, Path], dst: Union[str, Path], chunk_size: int = 
     Args:
         src: Path to the source file.
         dst: Path to the destination file.
-        chunk_size: Number of bytes to read per chunk (default: 65536).
+        chunk_size: Number of bytes to read per chunk (default: 65536). Must be
+            a positive integer; a non-positive value would make the read loop
+            exit immediately and copy nothing.
 
     Returns:
         The total number of bytes copied.
 
     Raises:
+        TypeError: If *chunk_size* is not an int.
+        ValueError: If *chunk_size* is not positive.
         FileNotFoundError: If the source file does not exist.
         OSError: If there is an issue reading or writing the files.
     """
+    if isinstance(chunk_size, bool) or not isinstance(chunk_size, int):
+        raise TypeError("chunk_size must be an int")
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be positive")
     src = Path(src)
     dst = Path(dst)
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -94927,6 +94942,18 @@ class TestStreamCopy(unittest.TestCase):
             stream_copy(src, dst)
             self.assertTrue(dst.exists())
             self.assertEqual(dst.read_bytes(), b"hello")
+
+    def test_stream_copy_rejects_non_positive_chunk_size(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            src = Path(tmp_dir) / "src.bin"
+            dst = Path(tmp_dir) / "dst.bin"
+            src.write_bytes(b"hello")
+            with self.assertRaises(ValueError):
+                stream_copy(src, dst, chunk_size=0)
+            with self.assertRaises(ValueError):
+                stream_copy(src, dst, chunk_size=-1)
+            with self.assertRaises(ValueError):
+                stream_copy(src, dst, chunk_size=-100)
 
 
 class TestCountLines(unittest.TestCase):
