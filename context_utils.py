@@ -37,8 +37,6 @@ def chdir(path: Any) -> AbstractContextManager[None]:
 
     Raises:
         TypeError: If ``path`` is not a string or :class:`os.PathLike`.
-        FileNotFoundError: If ``path`` does not exist.
-        NotADirectoryError: If ``path`` is not a directory.
     """
     if not isinstance(path, (str, os.PathLike)):
         raise TypeError("path must be a string or os.PathLike")

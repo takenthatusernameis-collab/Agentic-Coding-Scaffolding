@@ -1,3 +1,14 @@
+## Latest Session (2026-11-20) — `context_utils.chdir` docstring contract fix
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 — checkpoint behind HEAD `a62ad13`; ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD before any edit.
+- **Optimize-delays survey:** no avoidable repository-managed delay; probe confirmed prior verification state, spent work on one real contract defect instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `context_utils.chdir` documented `Raises: FileNotFoundError` and `Raises: NotADirectoryError` but neither is raised by `chdir()` itself — they are deferred to the context manager's `__enter__` via `os.chdir()`. Removed both lines from the docstring's `Raises:` clause so the contract matches the implementation, consistent with `temp_environ` and `redirect_stdout`. Added `TestChdirContract.test_chdir_does_not_document_file_not_found_error` (fail before the fix, pass after), plus behavioural tests `test_chdir_nonexistent_path_returns_context_manager_without_raising` and `test_chdir_not_a_directory_returns_context_manager_without_raising` to pin the deferred-exception contract.
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled module.
+- **Verification:** `python -m unittest tests.test_context_utils` — 19 OK; `python -m doctest context_utils.py` — OK; `python -m ruff check context_utils.py tests/test_context_utils.py` — clean; `python -m mypy context_utils.py tests/test_context_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync (refreshed embedded `context_utils.py`, `tests/test_context_utils.py`); `python -m unittest discover tests/` — 11630 OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `context_utils.py` and `tests/test_context_utils.py` copies in `scaffold.sh`; CHANGELOG.md updated.
+- **Next task:** recorded in `.kilo/next_task.md`; board lists only `main` (self), so `board_post` to `main` is refused.
+
 ## Latest Session (2026-11-20) — `traceback_utils.format_stack` docstring contract fix
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).

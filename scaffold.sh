@@ -41685,8 +41685,6 @@ def chdir(path: Any) -> AbstractContextManager[None]:
 
     Raises:
         TypeError: If ``path`` is not a string or :class:`os.PathLike`.
-        FileNotFoundError: If ``path`` does not exist.
-        NotADirectoryError: If ``path`` is not a directory.
     """
     if not isinstance(path, (str, os.PathLike)):
         raise TypeError("path must be a string or os.PathLike")
@@ -56034,6 +56032,32 @@ class TestChdir(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             with chdir("/__nonexistent_context_utils_path__"):
                 pass
+
+    def test_chdir_nonexistent_path_returns_context_manager_without_raising(self):
+        cm = chdir("/__nonexistent_context_utils_path__")
+        self.assertIsNotNone(cm)
+        with self.assertRaises(FileNotFoundError):
+            with cm:
+                pass
+
+    def test_chdir_not_a_directory_returns_context_manager_without_raising(self):
+        cm = chdir(__file__)
+        self.assertIsNotNone(cm)
+        with self.assertRaises(NotADirectoryError):
+            with cm:
+                pass
+
+
+class TestChdirContract(unittest.TestCase):
+    """`chdir` documents FileNotFoundError/NotADirectoryError but never raises them
+    directly; they are deferred to the context manager's __enter__."""
+
+    def test_chdir_does_not_document_file_not_found_error(self):
+        from context_utils import chdir
+
+        doc = chdir.__doc__
+        self.assertNotIn("FileNotFoundError", doc)
+        self.assertNotIn("NotADirectoryError", doc)
 
 
 class TestTempEnviron(unittest.TestCase):
