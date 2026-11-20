@@ -18341,26 +18341,38 @@ def concat(*lists: List[T]) -> List[T]:
     return result
 
 
+def _membership_test(values: List[T]) -> Callable[[T], bool]:
+    """Return a membership test for *values* that supports unhashable items.
+
+    A set is used when every value is hashable; otherwise the test falls back
+    to a linear scan so list, dict, and other unhashable values behave the same
+    way as they do in :func:`unique` and :func:`union`.
+    """
+    try:
+        allowed = set(values)
+    except TypeError:
+        return lambda item: item in values
+    return lambda item: item in allowed
+
+
 def intersection(lst1: List[T], lst2: List[T]) -> List[T]:
-    """Return elements that appear in both lists preserving order from lst1."""
-    set2 = set(lst2)
-    seen: Set[T] = set()
-    result: List[T] = []
-    for item in lst1:
-        if item in set2 and item not in seen:
-            seen.add(item)
-            result.append(item)
-    return result
+    """Return elements that appear in both lists preserving order from lst1.
+
+    Hashable elements use a set for efficiency; unhashable elements fall back
+    to linear membership checks, matching :func:`unique` and :func:`union`.
+    """
+    contains = _membership_test(lst2)
+    return unique([item for item in lst1 if contains(item)])
 
 
 def difference(lst1: List[T], lst2: List[T]) -> List[T]:
-    """Return elements in lst1 that are not in lst2 preserving order."""
-    set2 = set(lst2)
-    result: List[T] = []
-    for item in lst1:
-        if item not in set2:
-            result.append(item)
-    return result
+    """Return elements in lst1 that are not in lst2 preserving order.
+
+    Hashable elements use a set for efficiency; unhashable elements fall back
+    to linear membership checks, matching :func:`unique` and :func:`union`.
+    """
+    contains = _membership_test(lst2)
+    return [item for item in lst1 if not contains(item)]
 
 
 def union(lst1: List[T], lst2: List[T]) -> List[T]:
@@ -24335,6 +24347,9 @@ class TestDifference(unittest.TestCase):
     def test_difference_preserves_order(self) -> None:
         self.assertEqual(difference([3, 1, 2], [2]), [3, 1])
 
+    def test_difference_supports_unhashable_elements(self) -> None:
+        self.assertEqual(difference([[1], [2]], [[2]]), [[1]])
+
 
 class TestDrop(unittest.TestCase):
     def test_drop_basic(self) -> None:
@@ -24531,6 +24546,12 @@ class TestIntersection(unittest.TestCase):
 
     def test_intersection_empty(self) -> None:
         self.assertEqual(intersection([], [1, 2]), [])
+
+    def test_intersection_supports_unhashable_elements(self) -> None:
+        self.assertEqual(intersection([[1], [2]], [[2], [3]]), [[2]])
+
+    def test_intersection_dedupes_matching_unhashable_elements(self) -> None:
+        self.assertEqual(intersection([[1], [1]], [[1]]), [[1]])
 
 
 class TestItems(unittest.TestCase):
