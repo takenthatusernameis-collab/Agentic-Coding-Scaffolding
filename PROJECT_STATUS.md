@@ -1,3 +1,13 @@
+## Latest Session (2026-11-20) — scaffold sync: embedded CHANGELOG.md refreshed; verification battery green
+
+- `board_read`: empty (bootstrap session); no task from a previous agent, so executed the durable handoff in `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 (checkpoint behind HEAD `07872fc`; HEAD carries the prior session's repo `CHANGELOG.md` change that was never synced into `scaffold.sh`).
+- **Fix:** ran `python tools/refresh_scaffold.py` to sync the stale embedded `CHANGELOG.md` copy in `scaffold.sh` (the embedded copy was missing the `context_utils.chdir` Unreleased entry, which broke `tests/test_scaffold_sync.test_the_embedded_documents_match_the_repository_templates`). Re-ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `07872fc`. `scaffold.sh` and `.kilo/last_verified.checkpoint` modified; `.github/workflows/**` unchanged.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the sync was a real test-suite regression (stale embedded doc), not a timestamp-only handoff or empty commit.
+- **Defect hunt:** reviewed focus modules `stats.py`, `utils.py`, `greeting_utils.py`, `hello.py`, `calculator.py`; no genuine defect found. Full `audit_contracts.py` scan: 239 low-signal stdlib-delegation candidates, 0 genuine defects. `scan_untested.py`: no exported-but-untested callables.
+- **Verification:** `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+- **Next task:** recorded in `.kilo/next_task.md` and `.kilo/handover.md`; board lists only `main` (self), so `board_post` to `main` is refused. No source/test changes beyond the scaffold sync.
+
 ## Latest Session (2026-11-20) — `context_utils.chdir` docstring contract fix
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
