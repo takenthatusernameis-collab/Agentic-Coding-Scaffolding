@@ -651,3 +651,8 @@
 - **Defect fixed (failing-test-first):**
   - `ConfigSchema.validate` accepted invalid default values without validation. When a field had a default value and the key was absent from the input config, the default was used directly without being coerced to the declared type or passed through the field's validator. This allowed schemas with invalid defaults (wrong type or violating a range/choices/regex validator) to silently produce invalid output. Defaults are now validated via `field.validate(field.default)`, and validation errors are wrapped in `ConfigValidationError` with a `default` suffix. Added `test_validate_rejects_invalid_default_type` and `test_validate_rejects_invalid_default_validator` (both fail against the old implementation and pass after).
 - **Defect hunt (top-level non-`*_utils` modules):** reviewed `config_schema.py` — the default validation issue above was the only defect found. Remaining modules to review: `calculator.py`, `hello.py`, `shapes.py`, `stats.py`, `strings.py`, `utils.py`, `greeting_utils.py`.
+## Latest Session (2026-11-20) — bootstrap: no task on board; advanced checkpoint.
+
+- `board_read`: empty.
+- Ran `verify_state_delta --full --record-full-suite` (passed, checkpoint advanced).
+- No code defect selected this session; posted handover task for next agent.
