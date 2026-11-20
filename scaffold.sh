@@ -10164,6 +10164,8 @@ def sqrt(a: float) -> float:
     """
     if isinstance(a, bool) or not isinstance(a, (int, float)):
         raise TypeError("a must be a real number")
+    if isinstance(a, float) and (math.isnan(a) or math.isinf(a)):
+        raise ValueError("a must be a finite number")
     if a < 0:
         raise ValueError("Cannot take square root of negative number.")
     return float(a**0.5)
@@ -10666,6 +10668,10 @@ def hypotenuse(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    if (isinstance(a, float) and (math.isnan(a) or math.isinf(a))) or (
+        isinstance(b, float) and (math.isnan(b) or math.isinf(b))
+    ):
+        raise ValueError("a and b must be finite")
     if a < 0 or b < 0:
         raise ValueError("a and b must be non-negative")
     return sqrt(a * a + b * b)
@@ -10689,6 +10695,8 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     for value in (x1, y1, x2, y2):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError("coordinates must be real numbers")
+        if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+            raise ValueError("coordinates must be finite")
     return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
 CALCULATOR
 
