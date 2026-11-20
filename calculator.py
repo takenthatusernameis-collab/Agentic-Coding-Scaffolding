@@ -158,7 +158,15 @@ def floor_divide(a: float, b: float) -> float:
 
 
 def power(a: float, b: float) -> float:
-    """Return a raised to the power b."""
+    """Return a raised to the power b.
+
+    Raises:
+        TypeError: If either argument is not a real number (int or float)
+            or is a bool.
+        ValueError: If *a* is NaN or infinite, or *b* is NaN or infinite,
+            or if *a* is negative and *b* is not an integer,
+            or if *a* is zero and *b* is negative.
+    """
     if (
         isinstance(a, bool)
         or isinstance(b, bool)
@@ -166,6 +174,14 @@ def power(a: float, b: float) -> float:
         or not isinstance(b, (int, float))
     ):
         raise TypeError("a and b must be real numbers")
+    if isinstance(a, float) and (math.isnan(a) or math.isinf(a)):
+        raise ValueError("a must be a finite number")
+    if isinstance(b, float) and (math.isnan(b) or math.isinf(b)):
+        raise ValueError("b must be a finite number")
+    if a < 0 and not (isinstance(b, int) or (isinstance(b, float) and b.is_integer())):
+        raise ValueError("negative base requires an integer exponent")
+    if a == 0 and b < 0:
+        raise ValueError("zero base cannot be raised to a negative power")
     return float(a**b)
 
 

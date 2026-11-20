@@ -1,3 +1,14 @@
+## Latest Session (2026-11-20) — `calculator.power` rejects NaN, infinity, and domain errors
+
+- `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 — clean tree, no source-relevant change since verified checkpoint `f62092e`; ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to `f62092e` before any new edit.
+- **Optimize-delays survey:** no avoidable repository-managed delay; the probe removed redundant discovery, and the session spent its work on one real defect in `calculator.power` instead of another broad sweep. No timestamp-only handover, no empty commit, no `.github/workflows/**` changes.
+- **Defect fixed (failing-test-first):** `calculator.power` documented "Return a raised to the power b" but had no `Raises:` clause and silently propagated `NaN`/`Infinity`, raised `TypeError` (not `ValueError`) for negative bases with fractional exponents, and raised `ZeroDivisionError` for zero bases with negative exponents. The function now explicitly validates: `NaN`/`Infinity` in either argument raises `ValueError`; a negative base with a non-integer exponent raises `ValueError`; a zero base with a negative exponent raises `ValueError`. The docstring now includes a full `Args:`, `Returns:`, `Raises:` block. Added `TestPower.test_power_rejects_nan`, `test_power_rejects_infinity`, `test_power_rejects_negative_base_fractional_exponent`, and `test_power_rejects_zero_base_negative_exponent` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) and domain errors in a hand-rolled module.
+- **Verification:** `python -m unittest tests.test_calculator` — 138 OK; `python -m doctest calculator.py` — OK; `python -m ruff check calculator.py tests/test_calculator.py` — clean; `python -m mypy calculator.py tests/test_calculator.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK (11600 tests, skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed.
+- **Scaffold/CHANGELOG:** added an Unreleased entry; refreshed embedded `calculator.py`, `tests/test_calculator.py`, and `CHANGELOG.md` copies in `scaffold.sh`. No `.github/workflows/**` changes.
+- **Next task:** recorded in `.kilo/next_task.md`; board lists only `main` (self), so `board_post` has no other recipient.
+
 ## Latest Session (2026-11-20) — `shapes.py` rejects NaN and Infinity in every numeric argument
 
 - `board_read`: empty; executed durable handoff from `.kilo/next_task.md` (targeted defect hunt on hand-rolled modules not yet reviewed).

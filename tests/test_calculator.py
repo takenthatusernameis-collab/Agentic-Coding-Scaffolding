@@ -690,6 +690,34 @@ class TestPower(unittest.TestCase):
         with self.assertRaises(TypeError):
             power(2, False)
 
+    def test_power_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            power(float("nan"), 2)
+        with self.assertRaises(ValueError):
+            power(2, float("nan"))
+
+    def test_power_rejects_infinity(self):
+        with self.assertRaises(ValueError):
+            power(float("inf"), 2)
+        with self.assertRaises(ValueError):
+            power(float("-inf"), 2)
+        with self.assertRaises(ValueError):
+            power(2, float("inf"))
+        with self.assertRaises(ValueError):
+            power(2, float("-inf"))
+
+    def test_power_rejects_negative_base_fractional_exponent(self):
+        with self.assertRaises(ValueError):
+            power(-1, 0.5)
+        with self.assertRaises(ValueError):
+            power(-2, 1.5)
+
+    def test_power_rejects_zero_base_negative_exponent(self):
+        with self.assertRaises(ValueError):
+            power(0, -1)
+        with self.assertRaises(ValueError):
+            power(0, -2.5)
+
 
 class TestIsPrime(unittest.TestCase):
     def test_is_prime_basic(self):
