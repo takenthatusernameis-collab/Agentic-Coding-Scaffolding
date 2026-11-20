@@ -74155,6 +74155,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — routine regression monitoring: no new defect found; full battery green
+
+- **Verification pass with no source changes.** Executed the durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed). `python tools/verify_state_delta.py --probe` returned rc=2 (checkpoint behind HEAD `3282834`), so the full battery was run before any edit: `python -m unittest discover tests/` — 11635 OK (skipped=4); `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+- **Defect hunt:** full `python tools/audit_contracts.py` scan — 238 low-signal stdlib-delegation candidates, 0 genuine defects. Every remaining issue is a delegated stdlib raise (e.g. `OSError` from `fcntl`, `socket`), a documented-but-unreachable `Raises:` line (e.g. `array_remove_first`'s `ValueError` is delegated to `list.remove`), or a parser artifact (e.g. `tarfile_add`'s `Path` mention, which is a type hint, not an exception). `python tools/scan_untested.py` — no exported-but-untested callables. Focus modules from prior leads reviewed; no genuine defect found.
+- **Defect class:** none — this session was a monitoring pass, not a fix session.
+- No source/test/scaffold changes; the only repository change is the `.kilo/last_verified.checkpoint` marker advanced to HEAD `3282834`.
+
 ## Unreleased — `cooldown_utils` rejects non-finite intervals and remaining seconds
 
 - **Correctness fix — `Cooldown` accepted a `NaN` or infinite interval, producing a permanently blocked cooldown that reported zero remaining time.** `Cooldown.__init__` only rejected `interval <= 0`, which is `False` for `NaN` and `+inf`, so `Cooldown(float("nan"))` was constructed with `_interval = nan`; after one call `ready()` returned `False` forever while `remaining()` returned `0.0` (because `max(0.0, nan)` keeps the first argument). The constructor (and therefore the `cooldown()` decorator) now rejects non-finite intervals with `ValueError("interval must be finite")`, matching the project-wide finite-number convention.
