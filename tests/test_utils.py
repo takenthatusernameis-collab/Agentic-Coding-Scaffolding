@@ -700,6 +700,10 @@ class TestRangeList(unittest.TestCase):
         with self.assertRaises(TypeError):
             range_list(0, 6, False)
 
+    def test_range_list_rejects_zero_step(self) -> None:
+        with self.assertRaises(ValueError):
+            range_list(0, 6, 0)
+
 
 class TestReduceList(unittest.TestCase):
     def test_reduce_list_basic(self) -> None:

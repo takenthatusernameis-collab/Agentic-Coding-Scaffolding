@@ -417,6 +417,8 @@ def range_list(start: int, stop: Optional[int] = None, step: int = 1) -> List[in
     """Create a list from a range."""
     start = _require_int(start, "start")
     step = _require_int(step, "step")
+    if step == 0:
+        raise ValueError("step must not be zero")
     if stop is not None:
         stop = _require_int(stop, "stop")
         return list(range(start, stop, step))
