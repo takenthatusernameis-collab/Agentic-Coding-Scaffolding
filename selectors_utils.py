@@ -8,6 +8,7 @@ All functions validate their inputs and raise ``TypeError`` for invalid argument
 
 from __future__ import annotations
 
+import math
 import selectors
 from typing import Any, Optional
 
@@ -75,12 +76,14 @@ def _validate_timeout(timeout: Any, name: str) -> None:
 
     Raises:
         TypeError: If timeout is not None or a real number.
-        ValueError: If timeout is negative.
+        ValueError: If timeout is negative or not a finite number.
     """
     if timeout is None:
         return
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
         raise TypeError(f"{name} must be a number or None")
+    if not math.isfinite(timeout):
+        raise ValueError(f"{name} must be finite")
     if timeout < 0:
         raise ValueError(f"{name} must be non-negative")
 
@@ -159,7 +162,7 @@ def select(
     Raises:
         TypeError: If selector is not a :class:`selectors.BaseSelector` or timeout
             is not a number or None.
-        ValueError: If timeout is negative.
+        ValueError: If timeout is negative or not a finite number.
     """
     if not isinstance(selector, selectors.BaseSelector):
         raise TypeError("selector must be a selectors.BaseSelector")

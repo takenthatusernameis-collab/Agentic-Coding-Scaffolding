@@ -154,6 +154,15 @@ class TestSelect(unittest.TestCase):
         finally:
             selector.close()
 
+    def test_select_timeout_non_finite(self):
+        selector = create_default_selector()
+        try:
+            for bad in (float("nan"), float("inf"), float("-inf")):
+                with self.assertRaises(ValueError):
+                    select(selector, timeout=bad)  # type: ignore[arg-type]
+        finally:
+            selector.close()
+
 
 class TestGetKey(unittest.TestCase):
     def test_get_key(self):
