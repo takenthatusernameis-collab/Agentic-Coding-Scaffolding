@@ -14,7 +14,10 @@ type:
 
 * a ``raise ExcType(...)`` statement directly in the function body,
 * a ``raise ExcType`` statement anywhere reachable through same-module helper
-  calls (bounded by ``--depth``).
+  calls (bounded by ``--depth``),
+* a ``raise ExcType`` statement in the ``__init__`` of a same-module class the
+  function instantiates (for example ``cooldown()`` delegating validation to
+  ``Cooldown(interval)``).
 
 Exceptions documented by delegation to the standard library (for example
 ``OSError`` from ``tempfile`` or ``KeyError`` from ``str.format``) are still
@@ -143,12 +146,30 @@ def called_names(fn: ast.AST) -> Set[str]:
 
 
 def build_index(tree: ast.AST) -> Dict[str, ast.AST]:
-    """Map each function name to its definition for same-module resolution."""
+    """Map each function or class name to its definition for same-module resolution.
+
+    Classes are indexed alongside functions so that ``raises_closure`` can follow
+    a same-module instantiation such as ``Cooldown(interval)`` into the class's
+    ``__init__`` body.
+    """
     index: Dict[str, ast.AST] = {}
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
             index.setdefault(node.name, node)
     return index
+
+
+def _init_method(classdef: ast.ClassDef) -> ast.AST | None:
+    """Return the ``__init__`` method of *classdef*, or ``None`` when absent.
+
+    A class without an explicit ``__init__`` inherits one (frequently from a
+    standard-library base) that the tracer cannot see, so it is treated as
+    raising nothing rather than guessing.
+    """
+    for node in classdef.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name == "__init__":
+            return node
+    return None
 
 
 def raises_closure(
@@ -161,8 +182,15 @@ def raises_closure(
 
     *depth* bounds how many levels of same-module helper calls are followed so
     the traversal terminates on cyclic call graphs. *seen* guards against
-    re-entering a helper already on the current path.
+    re-entering a helper already on the current path. When *fn* is a class, the
+    traversal follows its ``__init__`` (the code that runs on instantiation)
+    instead of the class body as a whole.
     """
+    if isinstance(fn, ast.ClassDef):
+        init = _init_method(fn)
+        if init is None:
+            return set()
+        fn = init
     result = direct_raises(fn)
     if depth <= 0:
         return result

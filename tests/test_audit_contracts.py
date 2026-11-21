@@ -144,6 +144,71 @@ class TestRaisesClosure(unittest.TestCase):
         self.assertEqual(audit_contracts.raises_closure(fn, index, 5), set())
 
 
+class TestClassInitDelegation(unittest.TestCase):
+    """Verify raises raised by a same-module class ``__init__`` are followed."""
+
+    INIT_RAISES_SOURCE = (
+        "class Widget:\n"
+        "    def __init__(self, interval):\n"
+        "        if interval <= 0:\n"
+        "            raise ValueError('interval must be positive')\n"
+        "\n"
+        "def make(interval):\n"
+        "    '''Summary.\n"
+        "\n"
+        "    Raises:\n"
+        "        ValueError: If interval is not positive.\n"
+        "    '''\n"
+        "    return Widget(interval)\n"
+    )
+
+    def test_a_raise_in_a_same_module_class_init_is_followed(self):
+        tree = audit_contracts.ast.parse(self.INIT_RAISES_SOURCE)
+        index = audit_contracts.build_index(tree)
+        fn = index["make"]
+        self.assertIn("ValueError", audit_contracts.raises_closure(fn, index, 3))
+
+    def test_delegated_class_init_raise_is_not_reported(self):
+        issues, ok = audit_contracts.audit_source(self.INIT_RAISES_SOURCE, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual(issues, [])
+
+    def test_a_class_init_that_does_not_raise_is_still_reported(self):
+        source = (
+            "class Widget:\n"
+            "    def __init__(self, value):\n"
+            "        self.value = value\n"
+            "\n"
+            "def make(value):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        TypeError: If value is wrong.\n"
+            "    '''\n"
+            "    return Widget(value)\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual([issue["exception"] for issue in issues], ["TypeError"])
+
+    def test_a_class_without_init_is_treated_as_raising_nothing(self):
+        source = (
+            "class Widget:\n"
+            "    pass\n"
+            "\n"
+            "def make(value):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        TypeError: If value is wrong.\n"
+            "    '''\n"
+            "    return Widget()\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual([issue["exception"] for issue in issues], ["TypeError"])
+
+
 class TestAuditSource(unittest.TestCase):
     """Verify the end-to-end audit over a source string."""
 
