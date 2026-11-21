@@ -74337,6 +74337,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `retry_utils` docstring-vs-implementation contract fix
+
+- **Contract fix — `retry`, `retry_with_backoff`, `retry_count` docstrings under-specified `ValueError` conditions.** The docstrings documented only `max_attempts < 1` and negative `delay`/`initial_delay` as `ValueError` cases, but the implementation (via `_validate_retry_args`) also rejects non-finite `delay`/`backoff`/`initial_delay`/`backoff_factor` (``NaN``/``±inf``) and negative `backoff`/`backoff_factor`. Updated all three docstrings to accurately reflect the full validation contract: ``max_attempts`` must be >= 1; ``delay``/``backoff``/``initial_delay``/``backoff_factor`` must be non-negative and finite.
+- **Defect class:** docstring-vs-implementation contract divergence in a hand-rolled module.
+- Validation: `python -m unittest tests.test_retry_utils` — 37 OK; `python -m doctest retry_utils.py` — OK; `python -m ruff check retry_utils.py tests/test_retry_utils.py` — clean; `python -m mypy retry_utils.py tests/test_retry_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `retry_utils` rejects non-finite delay and backoff
 
 - **Correctness fix — `retry_utils` accepted non-finite `delay` and `backoff`.** `_validate_retry_args` validated `delay` and `backoff` with `delay < 0` / `backoff < 0`, which is `False` for `NaN` and `+inf`, so `retry(delay=float("nan"))`, `retry(delay=float("inf"))`, `retry(backoff=float("nan"))`, and `retry(backoff=float("inf"))` passed validation and reached `time.sleep`, which raised a misleading `ValueError("Invalid value NaN (not a number)")` or `OverflowError("timestamp out of range for platform time_t")` deep in the standard library instead of a clear argument error. Each validator now rejects any non-finite argument with `ValueError("... must be finite, got ...")` via `math.isfinite` before the range checks, matching the project-wide finite-number convention (`backoff_utils`, `color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`). The `-inf` case was already rejected (`-inf < 0` is `True`) but now reports the same "must be finite" message.
