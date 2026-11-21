@@ -1168,6 +1168,12 @@ class TestJaroWinklerSimilarity(unittest.TestCase):
             jaro_winkler_similarity("a", "b", scaling=0.3)
         with self.assertRaises(ValueError):
             jaro_winkler_similarity("a", "b", scaling=-0.1)
+        with self.assertRaises(ValueError):
+            jaro_winkler_similarity("a", "b", scaling=float("nan"))
+        with self.assertRaises(ValueError):
+            jaro_winkler_similarity("a", "b", scaling=float("inf"))
+        with self.assertRaises(ValueError):
+            jaro_winkler_similarity("a", "b", scaling=float("-inf"))
         with self.assertRaises(TypeError):
             jaro_winkler_similarity("a", "b", scaling="x")  # type: ignore[arg-type]
 

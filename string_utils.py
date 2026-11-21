@@ -1,5 +1,6 @@
 """Advanced string manipulation utilities."""
 
+import math
 import re
 import string
 import textwrap
@@ -1058,7 +1059,7 @@ def jaro_winkler_similarity(text1: str, text2: str, scaling: float = 0.1) -> flo
     _require_string(text2, "text2")
     if not isinstance(scaling, (int, float)) or isinstance(scaling, bool):
         raise TypeError("scaling must be a number")
-    if scaling < 0 or scaling > 0.25:
+    if not math.isfinite(scaling) or scaling < 0 or scaling > 0.25:
         raise ValueError("scaling must be between 0 and 0.25")
 
     jaro_sim = jaro_similarity(text1, text2)

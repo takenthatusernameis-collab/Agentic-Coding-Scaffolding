@@ -1,3 +1,10 @@
+## Unreleased — `string_utils.jaro_winkler_similarity` rejects non-finite `scaling`
+
+- **Correctness fix — `jaro_winkler_similarity` accepted non-finite `scaling` values.** The guard `scaling < 0 or scaling > 0.25` is `False` for `NaN`, so `jaro_winkler_similarity("a", "b", scaling=float("nan"))` passed validation and returned `nan` instead of raising, poisoning the similarity result. The validator now rejects any non-finite `scaling` (`NaN`, `±inf`) with `ValueError("scaling must be between 0 and 0.25")`, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`).
+- **Tests:** added `float("nan")`, `float("inf")`, and `float("-inf")` cases to `TestJaroWinklerSimilarity.test_scaling_validation` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_string_utils` — 313 OK; `python -m doctest string_utils.py` — OK; `python -m ruff check string_utils.py tests/test_string_utils.py` — clean; `python -m mypy string_utils.py tests/test_string_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `smtplib_utils.create_smtp` rejects non-finite timeouts
 
 - **Correctness fix — `create_smtp` accepted non-finite `timeout` values.** `_require_timeout` rejected non-positive values with `timeout <= 0`, but that comparison is `False` for `NaN` and `+inf`, so `create_smtp("localhost", 25, timeout=float("nan"))` and `create_smtp("localhost", 25, timeout=float("inf"))` reached the standard library with an invalid socket timeout and produced misleading downstream errors. The validator now rejects any non-finite value with `ValueError("timeout must be finite, got ...")` before the positivity check, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`).
