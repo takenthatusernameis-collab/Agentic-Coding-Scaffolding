@@ -42181,6 +42181,7 @@ cat > "$OUTPUT_DIR/retry_utils.py" <<'RETRYUTILS'
 """Retry utility functions for retrying operations with backoff."""
 
 import functools
+import math
 import random
 import time
 from typing import Any, Callable, Tuple, Type
@@ -42212,10 +42213,14 @@ def _validate_retry_args(
         raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
     if isinstance(delay, bool) or not isinstance(delay, (int, float)):
         raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if not math.isfinite(delay):
+        raise ValueError(f"delay must be finite, got {delay!r}")
     if delay < 0:
         raise ValueError(f"delay must be non-negative, got {delay}")
     if isinstance(backoff, bool) or not isinstance(backoff, (int, float)):
         raise TypeError(f"backoff must be a number, got {type(backoff).__name__}")
+    if not math.isfinite(backoff):
+        raise ValueError(f"backoff must be finite, got {backoff!r}")
     if backoff < 0:
         raise ValueError(f"backoff must be non-negative, got {backoff}")
     if not isinstance(exceptions, tuple):
@@ -56984,6 +56989,61 @@ class TestRetryArgumentValidationExtended(unittest.TestCase):
             @retry_with_backoff(max_attempts=3, initial_delay=0.01, jitter="yes")  # type: ignore[arg-type]
             def func():  # pragma: no cover - body never runs
                 raise ValueError("boom")
+
+    def _assert_rejects_non_finite(self, make_decorator, param, values):
+        for value in values:
+            with self.subTest(param=param, value=value):
+                with self.assertRaises(ValueError):
+                    # Calling the decorator factory runs _validate_retry_args at
+                    # decoration time, so the guard must raise here instead of
+                    # letting a non-finite value reach time.sleep downstream.
+                    make_decorator(**{param: value})
+
+    def test_retry_rejects_non_finite_delay(self):
+        self._assert_rejects_non_finite(
+            lambda delay: retry(max_attempts=3, delay=delay),
+            "delay",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_rejects_non_finite_backoff(self):
+        self._assert_rejects_non_finite(
+            lambda backoff: retry(max_attempts=3, delay=0.01, backoff=backoff),
+            "backoff",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_with_backoff_rejects_non_finite_initial_delay(self):
+        self._assert_rejects_non_finite(
+            lambda initial_delay: retry_with_backoff(
+                max_attempts=3, initial_delay=initial_delay
+            ),
+            "initial_delay",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_with_backoff_rejects_non_finite_backoff_factor(self):
+        self._assert_rejects_non_finite(
+            lambda backoff_factor: retry_with_backoff(
+                max_attempts=3, initial_delay=0.01, backoff_factor=backoff_factor
+            ),
+            "backoff_factor",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_count_rejects_non_finite_delay(self):
+        self._assert_rejects_non_finite(
+            lambda delay: retry_count(max_attempts=3, delay=delay),
+            "delay",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_count_rejects_non_finite_backoff(self):
+        self._assert_rejects_non_finite(
+            lambda backoff: retry_count(max_attempts=3, delay=0.01, backoff=backoff),
+            "backoff",
+            (float("nan"), float("inf"), float("-inf")),
+        )
 
 
 if __name__ == "__main__":
@@ -74269,6 +74329,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `retry_utils` rejects non-finite delay and backoff
+
+- **Correctness fix — `retry_utils` accepted non-finite `delay` and `backoff`.** `_validate_retry_args` validated `delay` and `backoff` with `delay < 0` / `backoff < 0`, which is `False` for `NaN` and `+inf`, so `retry(delay=float("nan"))`, `retry(delay=float("inf"))`, `retry(backoff=float("nan"))`, and `retry(backoff=float("inf"))` passed validation and reached `time.sleep`, which raised a misleading `ValueError("Invalid value NaN (not a number)")` or `OverflowError("timestamp out of range for platform time_t")` deep in the standard library instead of a clear argument error. Each validator now rejects any non-finite argument with `ValueError("... must be finite, got ...")` via `math.isfinite` before the range checks, matching the project-wide finite-number convention (`backoff_utils`, `color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`). The `-inf` case was already rejected (`-inf < 0` is `True`) but now reports the same "must be finite" message.
+- **Tests:** added `test_retry_rejects_non_finite_delay`, `test_retry_rejects_non_finite_backoff`, `test_retry_with_backoff_rejects_non_finite_initial_delay`, `test_retry_with_backoff_rejects_non_finite_backoff_factor`, `test_retry_count_rejects_non_finite_delay`, and `test_retry_count_rejects_non_finite_backoff` covering `float("nan")`, `float("inf")`, and `float("-inf")` for `delay`/`backoff` across `retry`, `retry_with_backoff`, and `retry_count` (the `nan`/`inf` cases fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module, missed by the earlier sweep.
+- Validation: `python -m unittest tests.test_retry_utils` — 37 OK; `python -m doctest retry_utils.py` — OK; `python -m ruff check retry_utils.py tests/test_retry_utils.py` — clean; `python -m mypy retry_utils.py tests/test_retry_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `fractions_utils` rejects non-finite floats with `ValueError`
 
 - **Correctness fix — `fractions_utils._to_fraction` raised `OverflowError` for `±inf` and `ValueError` for `NaN`.** When `to_fraction(float("inf"))` or `to_fraction(float("-inf"))` was called, the standard library `Fraction` constructor raised `OverflowError` ("cannot convert Infinity to integer ratio") which leaked through instead of being converted to a documented `ValueError`. For `NaN`, `Fraction` raised `ValueError` but the error message was inconsistent. The helper now catches `OverflowError` (and `ZeroDivisionError`, `ValueError`, `TypeError`) and re-raises a uniform `ValueError("could not convert ... to Fraction: ...")` before returning, matching the project-wide convention of rejecting non-finite floats early with a clear `ValueError`.

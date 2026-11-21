@@ -378,6 +378,61 @@ class TestRetryArgumentValidationExtended(unittest.TestCase):
             def func():  # pragma: no cover - body never runs
                 raise ValueError("boom")
 
+    def _assert_rejects_non_finite(self, make_decorator, param, values):
+        for value in values:
+            with self.subTest(param=param, value=value):
+                with self.assertRaises(ValueError):
+                    # Calling the decorator factory runs _validate_retry_args at
+                    # decoration time, so the guard must raise here instead of
+                    # letting a non-finite value reach time.sleep downstream.
+                    make_decorator(**{param: value})
+
+    def test_retry_rejects_non_finite_delay(self):
+        self._assert_rejects_non_finite(
+            lambda delay: retry(max_attempts=3, delay=delay),
+            "delay",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_rejects_non_finite_backoff(self):
+        self._assert_rejects_non_finite(
+            lambda backoff: retry(max_attempts=3, delay=0.01, backoff=backoff),
+            "backoff",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_with_backoff_rejects_non_finite_initial_delay(self):
+        self._assert_rejects_non_finite(
+            lambda initial_delay: retry_with_backoff(
+                max_attempts=3, initial_delay=initial_delay
+            ),
+            "initial_delay",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_with_backoff_rejects_non_finite_backoff_factor(self):
+        self._assert_rejects_non_finite(
+            lambda backoff_factor: retry_with_backoff(
+                max_attempts=3, initial_delay=0.01, backoff_factor=backoff_factor
+            ),
+            "backoff_factor",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_count_rejects_non_finite_delay(self):
+        self._assert_rejects_non_finite(
+            lambda delay: retry_count(max_attempts=3, delay=delay),
+            "delay",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
+    def test_retry_count_rejects_non_finite_backoff(self):
+        self._assert_rejects_non_finite(
+            lambda backoff: retry_count(max_attempts=3, delay=0.01, backoff=backoff),
+            "backoff",
+            (float("nan"), float("inf"), float("-inf")),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

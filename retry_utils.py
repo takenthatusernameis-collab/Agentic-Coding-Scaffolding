@@ -1,6 +1,7 @@
 """Retry utility functions for retrying operations with backoff."""
 
 import functools
+import math
 import random
 import time
 from typing import Any, Callable, Tuple, Type
@@ -32,10 +33,14 @@ def _validate_retry_args(
         raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
     if isinstance(delay, bool) or not isinstance(delay, (int, float)):
         raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if not math.isfinite(delay):
+        raise ValueError(f"delay must be finite, got {delay!r}")
     if delay < 0:
         raise ValueError(f"delay must be non-negative, got {delay}")
     if isinstance(backoff, bool) or not isinstance(backoff, (int, float)):
         raise TypeError(f"backoff must be a number, got {type(backoff).__name__}")
+    if not math.isfinite(backoff):
+        raise ValueError(f"backoff must be finite, got {backoff!r}")
     if backoff < 0:
         raise ValueError(f"backoff must be non-negative, got {backoff}")
     if not isinstance(exceptions, tuple):
