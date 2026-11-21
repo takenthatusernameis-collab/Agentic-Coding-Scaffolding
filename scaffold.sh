@@ -74358,6 +74358,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `version_utils.parse_version` raises `ValueError` for empty string
+
+- **Correctness fix — `parse_version("")` raised `TypeError` instead of `ValueError`.** An empty string is a valid string (correct type) whose value is invalid, so it should be rejected with `ValueError`, consistent with `parse_version("v")` and `parse_version("1.2.a")` which already raise `ValueError`. The implementation raised `TypeError("version must be a non-empty string")` for `""`, diverging from the exception-type convention used by the rest of the module (type errors = wrong type, value errors = wrong value). `parse_version` now raises `ValueError("version must be a non-empty string")` for `""`, and the `is_greater_equal`/`is_less_equal` docstrings that claimed `TypeError` for non-empty-string inputs were corrected to `TypeError` for non-string and `ValueError` for empty/invalid.
+- **Defect class:** exception-type consistency in a hand-rolled module.
+- Validation: `python -m unittest tests.test_version_utils` — 300 OK; `python -m doctest version_utils.py` — OK; `python -m ruff check version_utils.py tests/test_version_utils.py` — clean; `python -m mypy version_utils.py tests/test_version_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `roman_utils.is_valid_roman` accepts case-insensitive input
 
 - **Correctness fix — `is_valid_roman` rejected lowercase/mixed-case Roman numerals that `normalize_roman` accepts.** The module documents (and `normalize_roman` implements) case-insensitive acceptance: `normalize_roman("xiv")` returns `"XIV"` and `normalize_roman("mmmcmxcix")` returns `"MMMCMXCIX"`. But `is_valid_roman` delegated to the case-sensitive `from_roman`, so `is_valid_roman("xiv")`, `is_valid_roman("xIv")`, and `is_valid_roman("mmmcmxcix")` all returned `False`, contradicting the documented contract and disagreeing with `normalize_roman`. `is_valid_roman` now uppercases string input before delegating to `from_roman` (and returns `False` for non-string input instead of raising `TypeError`), so it agrees with `normalize_roman` for every input: a string is valid exactly when it normalizes to a canonical Roman numeral in the supported range (1–3999).
@@ -137678,11 +137684,16 @@ __all__ = [
 
 
 def parse_version(version: str) -> Tuple[int, ...]:
-    """Parse a dotted version string into a tuple of integers."""
+    """Parse a dotted version string into a tuple of integers.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is empty or contains a non-numeric component.
+    """
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     if not version:
-        raise TypeError("version must be a non-empty string")
+        raise ValueError("version must be a non-empty string")
     # Strip leading 'v' or 'V' if present
     if version and version[0] in ("v", "V"):
         version = version[1:]
@@ -137818,8 +137829,8 @@ def is_greater_equal(a: str, b: str) -> bool:
         True when ``compare_versions(a, b) >= 0``.
 
     Raises:
-        TypeError: If *a* or *b* is not a non-empty string.
-        ValueError: If *a* or *b* is not a valid dotted version.
+        TypeError: If *a* or *b* is not a string.
+        ValueError: If *a* or *b* is empty or not a valid dotted version.
 
     Examples:
         >>> is_greater_equal("2.0.0", "1.9.9")
@@ -137845,8 +137856,8 @@ def is_less_equal(a: str, b: str) -> bool:
         True when ``compare_versions(a, b) <= 0``.
 
     Raises:
-        TypeError: If *a* or *b* is not a non-empty string.
-        ValueError: If *a* or *b* is not a valid dotted version.
+        TypeError: If *a* or *b* is not a string.
+        ValueError: If *a* or *b* is empty or not a valid dotted version.
 
     Examples:
         >>> is_less_equal("0.9", "1.0")
@@ -139129,7 +139140,7 @@ class TestParseVersion(unittest.TestCase):
         self.assertEqual(parse_version("5"), (5,))
 
     def test_empty_raises(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             parse_version("")
 
     def test_non_string_raises(self):

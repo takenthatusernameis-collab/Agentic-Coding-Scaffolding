@@ -108,7 +108,7 @@ class TestParseVersion(unittest.TestCase):
         self.assertEqual(parse_version("5"), (5,))
 
     def test_empty_raises(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             parse_version("")
 
     def test_non_string_raises(self):

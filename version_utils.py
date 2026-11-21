@@ -103,11 +103,16 @@ __all__ = [
 
 
 def parse_version(version: str) -> Tuple[int, ...]:
-    """Parse a dotted version string into a tuple of integers."""
+    """Parse a dotted version string into a tuple of integers.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is empty or contains a non-numeric component.
+    """
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     if not version:
-        raise TypeError("version must be a non-empty string")
+        raise ValueError("version must be a non-empty string")
     # Strip leading 'v' or 'V' if present
     if version and version[0] in ("v", "V"):
         version = version[1:]
@@ -243,8 +248,8 @@ def is_greater_equal(a: str, b: str) -> bool:
         True when ``compare_versions(a, b) >= 0``.
 
     Raises:
-        TypeError: If *a* or *b* is not a non-empty string.
-        ValueError: If *a* or *b* is not a valid dotted version.
+        TypeError: If *a* or *b* is not a string.
+        ValueError: If *a* or *b* is empty or not a valid dotted version.
 
     Examples:
         >>> is_greater_equal("2.0.0", "1.9.9")
@@ -270,8 +275,8 @@ def is_less_equal(a: str, b: str) -> bool:
         True when ``compare_versions(a, b) <= 0``.
 
     Raises:
-        TypeError: If *a* or *b* is not a non-empty string.
-        ValueError: If *a* or *b* is not a valid dotted version.
+        TypeError: If *a* or *b* is not a string.
+        ValueError: If *a* or *b* is empty or not a valid dotted version.
 
     Examples:
         >>> is_less_equal("0.9", "1.0")
