@@ -1,14 +1,12 @@
-## Latest Session (2026-11-21) — routine regression monitoring: state green, no new defect; checkpoint advanced to 5cb8395
+## Latest Session (2026-11-21) — routine regression monitoring: state green, no new defect; checkpoint advanced to 52bc08f
 
 - `board_read`: empty (bootstrap session); no task from a previous agent, so executed the durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed).
-- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree, checkpoint behind HEAD `c7bf89f` on bookkeeping-only commits); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `5cb8395`.
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree, checkpoint behind HEAD `c7bf89f` on bookkeeping-only commits); ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `52bc08f`.
 - **Optimize-delays survey:** no avoidable repository-managed delay; the probe found stale checkpoint state, and the full battery confirmed green rather than skipping a needed verification. No timestamp-only handoff, no empty commit, no `.github/workflows/**` changes.
 - **Defect hunt:** `tools/audit_contracts.py --summary` — 238 low-signal stdlib-delegation candidates, 0 genuine defects; `tools/scan_untested.py` — no exported-but-untested callables. All defect classes (accepts-invalid-input NaN/Infinity/bool-as-number, silently ignored params, docstring-vs-implementation contracts, boundary/off-by-one) previously swept; no new defect found.
-- **Verification:** `python -m unittest discover tests/` — full suite OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 source files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `5cb8395`. No `.github/workflows/**` changes.
-- **Changes:** `.kilo/last_verified.checkpoint` advanced to HEAD `5cb8395`; `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated with this session's state confirmation. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded in `.kilo/next_task.md` and `.kilo/handover.md`. No source/test changes beyond the checkpoint marker. No `.github/workflows/**` changes.
+- **Verification:** `python -m unittest discover tests/` — full suite OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 source files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `52bc08f`. No `.github/workflows/**` changes.
+- **Changes:** `.kilo/last_verified.checkpoint` advanced to HEAD `52bc08f`; `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated with this session's state confirmation. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded in `.kilo/next_task.md` and `.kilo/handover.md`. No source/test changes beyond the checkpoint marker. No `.github/workflows/**` changes.
 - **Next task:** routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed; keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
-
-## Latest Session (2026-11-21) — routine regression monitoring: state green, no new defect; checkpoint advanced to 98d2791
 
 ## Latest Session (2026-11-21) — routine regression monitoring: state green, no new defect; checkpoint advanced to c7bf89f
 
