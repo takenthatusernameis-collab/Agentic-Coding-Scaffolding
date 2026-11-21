@@ -6,6 +6,7 @@ conveniently using the standard library ``subprocess`` module.
 
 from __future__ import annotations
 
+import math
 import subprocess
 from typing import Any
 
@@ -17,11 +18,13 @@ __all__: list[str] = [
 
 
 def _require_timeout(value: object) -> float | None:
-    """Return *value* when it is a number or None, otherwise raise ``TypeError``."""
+    """Return *value* when it is a finite number or None, else raise."""
     if value is None:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("timeout must be a number or None")
+    if not math.isfinite(value):
+        raise ValueError("timeout must be finite")
     return float(value)
 
 

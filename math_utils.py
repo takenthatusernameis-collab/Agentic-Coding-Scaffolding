@@ -29,6 +29,12 @@ def _require_int(value: object, name: str) -> int:
     return value
 
 
+def _require_finite(value: float, name: str) -> None:
+    """Validate that *value* is a finite number (rejects ``NaN`` and ``±inf``)."""
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        raise ValueError(f"{name} must be a finite number")
+
+
 def factorial(n: int) -> int:
     """Calculate the factorial of a non-negative integer n.
 
@@ -292,7 +298,7 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If min_val > max_val, or if any argument is NaN.
+        ValueError: If min_val > max_val, or if any argument is NaN or infinite.
 
     Examples:
         >>> clamp(5, 0, 10)
@@ -308,8 +314,9 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         raise TypeError(f"min_val must be a number, got {type(min_val).__name__}")
     if isinstance(max_val, bool) or not isinstance(max_val, (int, float)):
         raise TypeError(f"max_val must be a number, got {type(max_val).__name__}")
-    if math.isnan(value) or math.isnan(min_val) or math.isnan(max_val):
-        raise ValueError("value, min_val, and max_val must not be NaN")
+    _require_finite(value, "value")
+    _require_finite(min_val, "min_val")
+    _require_finite(max_val, "max_val")
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))

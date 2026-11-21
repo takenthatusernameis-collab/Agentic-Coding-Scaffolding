@@ -27160,6 +27160,12 @@ def _require_int(value: object, name: str) -> int:
     return value
 
 
+def _require_finite(value: float, name: str) -> None:
+    """Validate that *value* is a finite number (rejects ``NaN`` and ``±inf``)."""
+    if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+        raise ValueError(f"{name} must be a finite number")
+
+
 def factorial(n: int) -> int:
     """Calculate the factorial of a non-negative integer n.
 
@@ -27423,7 +27429,7 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If min_val > max_val, or if any argument is NaN.
+        ValueError: If min_val > max_val, or if any argument is NaN or infinite.
 
     Examples:
         >>> clamp(5, 0, 10)
@@ -27439,8 +27445,9 @@ def clamp(value: float, min_val: float, max_val: float) -> float:
         raise TypeError(f"min_val must be a number, got {type(min_val).__name__}")
     if isinstance(max_val, bool) or not isinstance(max_val, (int, float)):
         raise TypeError(f"max_val must be a number, got {type(max_val).__name__}")
-    if math.isnan(value) or math.isnan(min_val) or math.isnan(max_val):
-        raise ValueError("value, min_val, and max_val must not be NaN")
+    _require_finite(value, "value")
+    _require_finite(min_val, "min_val")
+    _require_finite(max_val, "max_val")
     if min_val > max_val:
         raise ValueError("min_val must be <= max_val")
     return max(min_val, min(value, max_val))
@@ -34581,8 +34588,14 @@ class TestMathUtilsBoundaries(unittest.TestCase):
             clamp(0.5, 0, True)  # type: ignore[arg-type]
 
     def test_clamp_inf_nan(self):
-        self.assertEqual(clamp(float("inf"), 0, 10), 10)
-        self.assertEqual(clamp(float("-inf"), 0, 10), 0)
+        with self.assertRaises(ValueError):
+            clamp(float("inf"), 0, 10)
+        with self.assertRaises(ValueError):
+            clamp(float("-inf"), 0, 10)
+        with self.assertRaises(ValueError):
+            clamp(5, float("inf"), 10)
+        with self.assertRaises(ValueError):
+            clamp(5, 0, float("inf"))
         with self.assertRaises(ValueError):
             clamp(float("nan"), 0, 10)
         with self.assertRaises(ValueError):
@@ -58299,6 +58312,7 @@ conveniently using the standard library ``subprocess`` module.
 
 from __future__ import annotations
 
+import math
 import subprocess
 from typing import Any
 
@@ -58310,11 +58324,13 @@ __all__: list[str] = [
 
 
 def _require_timeout(value: object) -> float | None:
-    """Return *value* when it is a number or None, otherwise raise ``TypeError``."""
+    """Return *value* when it is a finite number or None, else raise."""
     if value is None:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("timeout must be a number or None")
+    if not math.isfinite(value):
+        raise ValueError("timeout must be finite")
     return float(value)
 
 
@@ -71255,6 +71271,14 @@ class TestRunCommand(unittest.TestCase):
         with self.assertRaises(TypeError):
             run_command(["true"], timeout=True)  # type: ignore[arg-type]
 
+    def test_run_command_rejects_non_finite_timeout(self) -> None:
+        with self.assertRaises(ValueError):
+            run_command(["true"], timeout=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            run_command(["true"], timeout=float("inf"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            run_command(["true"], timeout=float("-inf"))  # type: ignore[arg-type]
+
 
 class TestCheckOutput(unittest.TestCase):
     def test_check_output_echo(self) -> None:
@@ -71274,6 +71298,12 @@ class TestCheckOutput(unittest.TestCase):
         with self.assertRaises(TypeError):
             check_output(["true"], timeout=True)  # type: ignore[arg-type]
 
+    def test_check_output_rejects_non_finite_timeout(self) -> None:
+        with self.assertRaises(ValueError):
+            check_output(["true"], timeout=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            check_output(["true"], timeout=float("inf"))  # type: ignore[arg-type]
+
 
 class TestCheckCall(unittest.TestCase):
     def test_check_call_success(self) -> None:
@@ -71291,6 +71321,12 @@ class TestCheckCall(unittest.TestCase):
     def test_check_call_rejects_bool_timeout(self) -> None:
         with self.assertRaises(TypeError):
             check_call(["true"], timeout=True)  # type: ignore[arg-type]
+
+    def test_check_call_rejects_non_finite_timeout(self) -> None:
+        with self.assertRaises(ValueError):
+            check_call(["true"], timeout=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            check_call(["true"], timeout=float("-inf"))  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -74233,6 +74269,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `math_utils.clamp` and `subprocess_utils` reject non-finite values
+
+- **Correctness fix — `math_utils.clamp` accepted `±inf` silently.** The clamp validator rejected only NaN (via `math.isnan`), so `clamp(float("inf"), 0, 1)` returned `inf` and `clamp(float("-inf"), 0, 1)` returned `-inf` instead of raising. A new `_require_finite(value, name)` helper now rejects `NaN` and `±inf` with `ValueError` before the range check, matching the project-wide `math.isfinite` convention used across hand-rolled modules.
+- **Correctness fix — `subprocess_utils` passed non-finite `timeout` to `subprocess.run`.** `_require_timeout` accepted any `int`/`float`, so `float("nan")`, `float("inf")`, and `float("-inf")` timeouts reached `subprocess.run` and produced a misleading `ValueError("Invalid timeout value")` deep in the standard library. The validator now rejects any non-finite value with `ValueError("timeout must be finite")` before delegating to `subprocess.run`.
+- **Tests:** added `test_clamp_inf_nan` asserting `ValueError` for `float("inf")`/`float("-inf")` (flipped from previously encoded buggy behavior), and `test_run_command_rejects_non_finite_timeout`, `test_check_output_rejects_non_finite_timeout`, `test_check_call_rejects_non_finite_timeout` covering `float("nan")`/`float("inf")`/`float("-inf")` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in hand-rolled modules.
+- Validation: `python -m unittest tests.test_math_utils tests.test_subprocess_utils` — 104 OK; `python -m doctest math_utils.py subprocess_utils.py` — OK; `python -m ruff check math_utils.py subprocess_utils.py tests/test_math_utils.py tests/test_subprocess_utils.py` — clean; `python -m mypy math_utils.py subprocess_utils.py tests/test_math_utils.py tests/test_subprocess_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK (11671 run, skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `sqlite3_utils` and `telnetlib_utils` reject non-finite timeouts
 
 - **Correctness fix — `sqlite3_utils.connect` accepted non-finite `timeout`.** The guard `timeout < 0` is `False` for `NaN` and `±inf`, so `connect(":memory:", timeout=float("nan"))` and `connect(":memory:", timeout=float("inf"))` passed validation and were forwarded to `_sqlite3.connect`, which silently accepts them (producing a connection with an undefined/again-ignored lock timeout). The validator now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` before the negativity check, matching the module's existing `ValueError`-for-range-violations convention.

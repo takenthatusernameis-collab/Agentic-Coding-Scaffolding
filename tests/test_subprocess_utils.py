@@ -32,6 +32,14 @@ class TestRunCommand(unittest.TestCase):
         with self.assertRaises(TypeError):
             run_command(["true"], timeout=True)  # type: ignore[arg-type]
 
+    def test_run_command_rejects_non_finite_timeout(self) -> None:
+        with self.assertRaises(ValueError):
+            run_command(["true"], timeout=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            run_command(["true"], timeout=float("inf"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            run_command(["true"], timeout=float("-inf"))  # type: ignore[arg-type]
+
 
 class TestCheckOutput(unittest.TestCase):
     def test_check_output_echo(self) -> None:
@@ -51,6 +59,12 @@ class TestCheckOutput(unittest.TestCase):
         with self.assertRaises(TypeError):
             check_output(["true"], timeout=True)  # type: ignore[arg-type]
 
+    def test_check_output_rejects_non_finite_timeout(self) -> None:
+        with self.assertRaises(ValueError):
+            check_output(["true"], timeout=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            check_output(["true"], timeout=float("inf"))  # type: ignore[arg-type]
+
 
 class TestCheckCall(unittest.TestCase):
     def test_check_call_success(self) -> None:
@@ -68,6 +82,12 @@ class TestCheckCall(unittest.TestCase):
     def test_check_call_rejects_bool_timeout(self) -> None:
         with self.assertRaises(TypeError):
             check_call(["true"], timeout=True)  # type: ignore[arg-type]
+
+    def test_check_call_rejects_non_finite_timeout(self) -> None:
+        with self.assertRaises(ValueError):
+            check_call(["true"], timeout=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            check_call(["true"], timeout=float("-inf"))  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

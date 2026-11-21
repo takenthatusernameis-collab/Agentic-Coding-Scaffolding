@@ -475,8 +475,14 @@ class TestMathUtilsBoundaries(unittest.TestCase):
             clamp(0.5, 0, True)  # type: ignore[arg-type]
 
     def test_clamp_inf_nan(self):
-        self.assertEqual(clamp(float("inf"), 0, 10), 10)
-        self.assertEqual(clamp(float("-inf"), 0, 10), 0)
+        with self.assertRaises(ValueError):
+            clamp(float("inf"), 0, 10)
+        with self.assertRaises(ValueError):
+            clamp(float("-inf"), 0, 10)
+        with self.assertRaises(ValueError):
+            clamp(5, float("inf"), 10)
+        with self.assertRaises(ValueError):
+            clamp(5, 0, float("inf"))
         with self.assertRaises(ValueError):
             clamp(float("nan"), 0, 10)
         with self.assertRaises(ValueError):
