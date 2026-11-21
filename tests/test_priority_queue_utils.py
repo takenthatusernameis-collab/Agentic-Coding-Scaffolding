@@ -43,6 +43,17 @@ class TestPriorityQueue(unittest.TestCase):
         self.assertEqual(pq.pop(), "item2")
         self.assertEqual(pq.pop(), "item1")
 
+    def test_push_rejects_non_finite_priority(self):
+        pq = PriorityQueue()
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                pq.push("x", priority=bad)
+
+    def test_init_rejects_non_finite_priority(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                PriorityQueue([(bad, "x")])
+
     def test_peek(self):
         pq = PriorityQueue()
         pq.push("task", priority=5)

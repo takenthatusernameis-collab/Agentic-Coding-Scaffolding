@@ -5,6 +5,7 @@ for managing items with priorities.
 """
 
 import heapq
+import math
 from typing import Generic, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
@@ -69,6 +70,8 @@ class PriorityQueue(Generic[T]):
             raise TypeError(
                 f"priority must be a number, got {priority!r}"
             )
+        if not math.isfinite(priority):
+            raise ValueError(f"priority must be finite, got {priority!r}")
         heapq.heappush(self._heap, (float(priority), self._counter, item))
         self._counter += 1
 

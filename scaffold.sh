@@ -42637,6 +42637,7 @@ for managing items with priorities.
 """
 
 import heapq
+import math
 from typing import Generic, List, Optional, Tuple, TypeVar
 
 T = TypeVar("T")
@@ -42701,6 +42702,8 @@ class PriorityQueue(Generic[T]):
             raise TypeError(
                 f"priority must be a number, got {priority!r}"
             )
+        if not math.isfinite(priority):
+            raise ValueError(f"priority must be finite, got {priority!r}")
         heapq.heappush(self._heap, (float(priority), self._counter, item))
         self._counter += 1
 
@@ -42845,6 +42848,17 @@ class TestPriorityQueue(unittest.TestCase):
         # item2 has lower priority value, so should come out first
         self.assertEqual(pq.pop(), "item2")
         self.assertEqual(pq.pop(), "item1")
+
+    def test_push_rejects_non_finite_priority(self):
+        pq = PriorityQueue()
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                pq.push("x", priority=bad)
+
+    def test_init_rejects_non_finite_priority(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                PriorityQueue([(bad, "x")])
 
     def test_peek(self):
         pq = PriorityQueue()
