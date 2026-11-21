@@ -127767,6 +127767,7 @@ and working with TLS protocol versions. All functions validate inputs and raise
 
 from __future__ import annotations
 
+import math
 import ssl
 from datetime import datetime
 from typing import Any, Tuple
@@ -128219,6 +128220,8 @@ def cert_is_valid_at_time(cert: Any, time: Any = None) -> bool:
     else:
         if not isinstance(time, (int, float)) or isinstance(time, bool):
             raise TypeError(f"time must be a number, got {type(time).__name__}")
+        if not math.isfinite(time):
+            raise ValueError("time must be finite")
         check_time = float(time)
 
     try:
@@ -128380,6 +128383,13 @@ class TestSSLUtils(unittest.TestCase):
         cert = {"notBefore": "20200101000000Z", "notAfter": "20200102000000Z"}
         with self.assertRaises(TypeError):
             ssl_utils.cert_is_valid_at_time(cert, time=True)
+
+    def test_cert_is_valid_at_time_invalid_time_non_finite(self):
+        cert = {"notBefore": "20200101000000Z", "notAfter": "20200102000000Z"}
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    ssl_utils.cert_is_valid_at_time(cert, time=bad)
 
     def test_match_hostname_rejects_a_missing_certificate(self):
         with self.assertRaises(TypeError):

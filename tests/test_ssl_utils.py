@@ -147,6 +147,13 @@ class TestSSLUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             ssl_utils.cert_is_valid_at_time(cert, time=True)
 
+    def test_cert_is_valid_at_time_invalid_time_non_finite(self):
+        cert = {"notBefore": "20200101000000Z", "notAfter": "20200102000000Z"}
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    ssl_utils.cert_is_valid_at_time(cert, time=bad)
+
     def test_match_hostname_rejects_a_missing_certificate(self):
         with self.assertRaises(TypeError):
             ssl_utils.match_hostname(None, "example.com")

@@ -7,6 +7,7 @@ and working with TLS protocol versions. All functions validate inputs and raise
 
 from __future__ import annotations
 
+import math
 import ssl
 from datetime import datetime
 from typing import Any, Tuple
@@ -459,6 +460,8 @@ def cert_is_valid_at_time(cert: Any, time: Any = None) -> bool:
     else:
         if not isinstance(time, (int, float)) or isinstance(time, bool):
             raise TypeError(f"time must be a number, got {type(time).__name__}")
+        if not math.isfinite(time):
+            raise ValueError("time must be finite")
         check_time = float(time)
 
     try:
