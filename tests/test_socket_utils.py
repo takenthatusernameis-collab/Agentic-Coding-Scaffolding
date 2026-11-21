@@ -262,6 +262,12 @@ class TestSocketOptions(unittest.TestCase):
         with self.assertRaises(ValueError):
             socket_utils.set_timeout(self.sock, -0.5)
 
+    def test_set_timeout_rejects_non_finite_value(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    socket_utils.set_timeout(self.sock, bad)
+
     def test_set_nonblocking_switches_mode(self):
         socket_utils.set_nonblocking(self.sock)
         self.assertEqual(self.sock.gettimeout(), 0.0)

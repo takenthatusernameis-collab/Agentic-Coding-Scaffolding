@@ -10,6 +10,7 @@ checks.
 from __future__ import annotations
 
 import errno
+import math
 import socket
 from typing import Any, List, Optional, Tuple
 
@@ -125,6 +126,8 @@ def _require_timeout(value: Any, name: str = "timeout") -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
+    if not math.isfinite(value):
+        raise ValueError(f"{name} must be finite, got {value}")
     if value < 0:
         raise ValueError(f"{name} must be non-negative, got {value}")
     return float(value)
@@ -249,7 +252,7 @@ def connect_socket(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is non-finite or negative.
         OSError: If the connection fails.
     """
     connection = _require_socket(sock)
@@ -273,7 +276,7 @@ def create_connection(address: Any, timeout: Optional[float] = None) -> socket.s
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is non-finite or negative.
         OSError: If the connection fails.
     """
     target = _require_address(address)
@@ -440,7 +443,7 @@ def set_timeout(sock: socket.socket, timeout: Optional[float]) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is non-finite or negative.
     """
     connection = _require_socket(sock)
     wait = _require_timeout(timeout)

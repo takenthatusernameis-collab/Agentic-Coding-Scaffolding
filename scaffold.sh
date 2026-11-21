@@ -74356,6 +74356,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `socket_utils` rejects non-finite timeouts
+
+- **Correctness fix — `socket_utils._require_timeout` accepted non-finite `timeout`.** The guard `value < 0` is `False` for `NaN` and `±inf`, so `set_timeout(sock, float("nan"))`, `set_timeout(sock, float("inf"))`, and the same values passed to `connect_socket`/`create_connection` cleared validation and reached `socket.settimeout`/`socket.create_connection`, which raised a misleading `ValueError: Invalid value NaN` / `OverflowError: timestamp out of range for platform time_t` deep in the standard library / OS layer instead of a clear argument error from the wrapper. The validator now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` via `math.isfinite` before the range check, matching the convention already used by `select_utils`, `ftplib_utils`, `concurrent_futures_utils`, and the project-wide finite-number convention.
+- **Tests:** added `test_set_timeout_rejects_non_finite_value` covering `float("nan")`, `float("inf")`, and `float("-inf")` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_socket_utils` — 74 OK; `python -m ruff check socket_utils.py tests/test_socket_utils.py` — clean; `python -m mypy socket_utils.py tests/test_socket_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `selectors_utils.select` rejects non-finite timeouts
 
 - **Correctness fix — `selectors_utils._validate_timeout` accepted non-finite `timeout`.** The guard `timeout < 0` is `False` for `NaN` and `±inf`, so `select(selector, timeout=float("nan"))` and `select(selector, timeout=float("inf"))` passed validation and reached `selector.select`, which raised a misleading `OverflowError`/`ValueError` deep in the standard library instead of a clear argument error. The validator now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` via `math.isfinite` before the range check, matching the module's existing `ValueError`-for-range-violations convention and the project-wide finite-number convention.
@@ -125893,6 +125900,7 @@ checks.
 from __future__ import annotations
 
 import errno
+import math
 import socket
 from typing import Any, List, Optional, Tuple
 
@@ -126008,6 +126016,8 @@ def _require_timeout(value: Any, name: str = "timeout") -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
+    if not math.isfinite(value):
+        raise ValueError(f"{name} must be finite, got {value}")
     if value < 0:
         raise ValueError(f"{name} must be non-negative, got {value}")
     return float(value)
@@ -126132,7 +126142,7 @@ def connect_socket(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is non-finite or negative.
         OSError: If the connection fails.
     """
     connection = _require_socket(sock)
@@ -126156,7 +126166,7 @@ def create_connection(address: Any, timeout: Optional[float] = None) -> socket.s
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is non-finite or negative.
         OSError: If the connection fails.
     """
     target = _require_address(address)
@@ -126323,7 +126333,7 @@ def set_timeout(sock: socket.socket, timeout: Optional[float]) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is non-finite or negative.
     """
     connection = _require_socket(sock)
     wait = _require_timeout(timeout)
@@ -126838,6 +126848,12 @@ class TestSocketOptions(unittest.TestCase):
     def test_set_timeout_rejects_negative_value(self):
         with self.assertRaises(ValueError):
             socket_utils.set_timeout(self.sock, -0.5)
+
+    def test_set_timeout_rejects_non_finite_value(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    socket_utils.set_timeout(self.sock, bad)
 
     def test_set_nonblocking_switches_mode(self):
         socket_utils.set_nonblocking(self.sock)
