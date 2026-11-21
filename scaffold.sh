@@ -74356,6 +74356,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `selectors_utils.select` rejects non-finite timeouts
+
+- **Correctness fix — `selectors_utils._validate_timeout` accepted non-finite `timeout`.** The guard `timeout < 0` is `False` for `NaN` and `±inf`, so `select(selector, timeout=float("nan"))` and `select(selector, timeout=float("inf"))` passed validation and reached `selector.select`, which raised a misleading `OverflowError`/`ValueError` deep in the standard library instead of a clear argument error. The validator now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` via `math.isfinite` before the range check, matching the module's existing `ValueError`-for-range-violations convention and the project-wide finite-number convention.
+- **Tests:** added `test_select_timeout_non_finite` covering `float("nan")`, `float("inf")`, and `float("-inf")` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_selectors_utils` — 26 OK; `python -m ruff check selectors_utils.py tests/test_selectors_utils.py` — clean; `python -m mypy selectors_utils.py tests/test_selectors_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `shapes.triangle_area` removes duplicated validation
 
 - **Code-quality fix — `shapes.triangle_area` validated `base` and `height` twice.** The function called `_require_number` for both `base` and `height`, then immediately repeated the identical two calls before the non-negativity check. The duplicated calls were dead, redundant work (the second validation can never raise because the first already succeeded). Removed the duplicate `_require_number(base, "base")` / `_require_number(height, "height")` pair; the function now validates each argument exactly once, matching every other function in the module.
