@@ -9,6 +9,7 @@ Colors are accepted either as a hexadecimal string (``"#RRGGBB"`` or
 range ``0``-``255``.
 """
 
+import math
 from typing import List, Tuple, Union
 
 __all__: List[str] = [
@@ -372,7 +373,8 @@ def adjust_brightness(hex_color: str, factor: float) -> str:
 
     Raises:
         TypeError: If ``hex_color`` is not a string or ``factor`` is not a number.
-        ValueError: If ``hex_color`` is invalid or ``factor`` is negative.
+        ValueError: If ``hex_color`` is invalid or ``factor`` is negative or
+            non-finite (``NaN`` or ``±inf``).
 
     Examples:
         >>> adjust_brightness("#ff5733", 0.5)
@@ -385,6 +387,8 @@ def adjust_brightness(hex_color: str, factor: float) -> str:
         raise TypeError("factor must be a number")
     if factor < 0:
         raise ValueError("factor must be non-negative")
+    if not math.isfinite(factor):
+        raise ValueError("factor must be finite")
     if not validate_hex(hex_color):
         raise ValueError(f"Invalid hex color: {hex_color!r}")
     r, g, b = hex_to_rgb(hex_color)

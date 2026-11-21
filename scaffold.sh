@@ -51716,6 +51716,7 @@ Colors are accepted either as a hexadecimal string (``"#RRGGBB"`` or
 range ``0``-``255``.
 """
 
+import math
 from typing import List, Tuple, Union
 
 __all__: List[str] = [
@@ -52079,7 +52080,8 @@ def adjust_brightness(hex_color: str, factor: float) -> str:
 
     Raises:
         TypeError: If ``hex_color`` is not a string or ``factor`` is not a number.
-        ValueError: If ``hex_color`` is invalid or ``factor`` is negative.
+        ValueError: If ``hex_color`` is invalid or ``factor`` is negative or
+            non-finite (``NaN`` or ``±inf``).
 
     Examples:
         >>> adjust_brightness("#ff5733", 0.5)
@@ -52092,6 +52094,8 @@ def adjust_brightness(hex_color: str, factor: float) -> str:
         raise TypeError("factor must be a number")
     if factor < 0:
         raise ValueError("factor must be non-negative")
+    if not math.isfinite(factor):
+        raise ValueError("factor must be finite")
     if not validate_hex(hex_color):
         raise ValueError(f"Invalid hex color: {hex_color!r}")
     r, g, b = hex_to_rgb(hex_color)
@@ -52364,6 +52368,19 @@ class TestAdjustBrightness(unittest.TestCase):
             adjust_brightness("#ff5733", -0.1)
         with self.assertRaises(TypeError):
             adjust_brightness("#ff5733", "high")  # type: ignore[arg-type]
+
+    def test_rejects_nan_factor(self) -> None:
+        # NaN slips past ``factor < 0`` (the comparison is False for NaN) and
+        # then fails deep inside round() with a misleading ValueError. Reject it
+        # up front with the project's finite-number convention.
+        with self.assertRaisesRegex(ValueError, "finite"):
+            adjust_brightness("#ff5733", float("nan"))
+
+    def test_rejects_infinite_factor(self) -> None:
+        # +inf slips past ``factor < 0`` and raises OverflowError from round(),
+        # an exception type the docstring never promises. Reject it up front.
+        with self.assertRaisesRegex(ValueError, "finite"):
+            adjust_brightness("#ff5733", float("inf"))
 
 
 class TestBlendColors(unittest.TestCase):
@@ -74161,6 +74178,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `color_utils.adjust_brightness` rejects NaN and infinite factors
+
+- **Correctness fix — `adjust_brightness` accepted non-finite `factor` values and then failed deep inside `round()`.** The function validated `factor` as a number and rejected negatives with `factor < 0`, but that comparison is `False` for `NaN` and `+inf`, so `adjust_brightness("#ff5733", float("nan"))` fell through to `int(round(r * factor))` and raised a misleading `ValueError: cannot convert float NaN to integer`, while `float("inf")` raised `OverflowError: cannot convert float infinity to integer` — an exception type the docstring never promises (it documents only `TypeError` and `ValueError`). The guard now rejects any non-finite factor with `ValueError("factor must be finite")` before the arithmetic, matching the project-wide `math.isfinite` convention used by `cooldown_utils`, `calculator`, `statistics_utils`, and `validation_utils`; the `Raises:` clause documents the new rejection.
+- **Tests:** added `TestAdjustBrightness.test_rejects_nan_factor` and `test_rejects_infinite_factor` (both fail before the fix — the first with a mismatched message, the second with `OverflowError` — and pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_color_utils` — 42 OK; `python -m doctest color_utils.py` — OK; `python -m ruff check color_utils.py tests/test_color_utils.py` — clean; `python -m mypy color_utils.py tests/test_color_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — 11648 OK (skipped=4); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `io_utils.stream_copy` rejects non-positive chunk sizes
 
 - **Correctness fix — `stream_copy` silently copied nothing for `chunk_size <= 0`.** The function read the source in `chunk_size`-byte chunks and broke out of the loop when a read returned an empty bytes object, but `file.read(0)` returns `b""` immediately, so `stream_copy(src, dst, chunk_size=0)` returned `0` and wrote an empty destination file instead of raising. It now validates `chunk_size` up front: a non-int (including bool) raises `TypeError`, and a non-positive value raises `ValueError`, matching the project-wide input-validation convention used by `io_utils`'s other functions.

@@ -222,6 +222,19 @@ class TestAdjustBrightness(unittest.TestCase):
         with self.assertRaises(TypeError):
             adjust_brightness("#ff5733", "high")  # type: ignore[arg-type]
 
+    def test_rejects_nan_factor(self) -> None:
+        # NaN slips past ``factor < 0`` (the comparison is False for NaN) and
+        # then fails deep inside round() with a misleading ValueError. Reject it
+        # up front with the project's finite-number convention.
+        with self.assertRaisesRegex(ValueError, "finite"):
+            adjust_brightness("#ff5733", float("nan"))
+
+    def test_rejects_infinite_factor(self) -> None:
+        # +inf slips past ``factor < 0`` and raises OverflowError from round(),
+        # an exception type the docstring never promises. Reject it up front.
+        with self.assertRaisesRegex(ValueError, "finite"):
+            adjust_brightness("#ff5733", float("inf"))
+
 
 class TestBlendColors(unittest.TestCase):
     def test_midpoint(self) -> None:
