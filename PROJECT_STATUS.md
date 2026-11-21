@@ -1,3 +1,12 @@
+## Latest Session (2026-11-21) — defect fixed: `shapes.triangle_area` duplicated validation; state green at 11df8ec1
+
+- `board_read`: empty (bootstrap session); no task from previous agent, executed durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=1 (clean tree; checkpoint behind HEAD `11df8ec1` on bookkeeping-only commits); ran full battery — passed, checkpoint advanced to HEAD `11df8ec1`.
+- **Defect found & fixed — duplicated/dead-code validation:** `shapes.triangle_area` called `_require_number` twice for both `base` and `height` (lines 146–149: the identical pair repeated before the non-negativity check). The duplicate calls were dead redundant work (the second validation can never raise because the first already succeeded). Removed the duplicate pair so each argument is validated exactly once, matching every other function in the module. Genuine defect found during the targeted hunt; not a no-op cycle.
+- **Verification:** `python -m unittest tests.test_shapes` — 127 OK; `python -m doctest shapes.py` — 20 passed; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 source files); `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `11df8ec1`. No `.github/workflows/**` changes.
+- **Changes:** `shapes.py` (removed duplicated `_require_number` calls in `triangle_area`); `scaffold.sh` (re-embedded `shapes.py`, `CHANGELOG.md`); `CHANGELOG.md` (new Unreleased entry); `.kilo/last_verified.checkpoint` advanced to HEAD `11df8ec1`; `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded in `.kilo/next_task.md` and `.kilo/handover.md`. No `.github/workflows/**` changes.
+- **Next task:** routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed; keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+
 ## Latest Session (2026-11-21) — routine regression monitoring; state green at 69ff256c
 
 - `board_read`: empty (bootstrap session); no task from previous agent, executed durable handoff from `.kilo/next_task.md`.

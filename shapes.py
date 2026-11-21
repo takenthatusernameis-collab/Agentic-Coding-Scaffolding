@@ -145,8 +145,6 @@ def triangle_area(base: float, height: float) -> float:
     """
     base = _require_number(base, "base")
     height = _require_number(height, "height")
-    base = _require_number(base, "base")
-    height = _require_number(height, "height")
     if base < 0 or height < 0:
         raise ValueError("Base and height cannot be negative.")
     return 0.5 * base * height
