@@ -12,6 +12,7 @@ asynchat_utils.py
 asyncio_utils.py
 asyncore_utils.py
 atexit_utils.py
+audioop_utils.py
 backoff_utils.py
 base64_utils.py
 bdb_utils.py

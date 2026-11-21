@@ -10,6 +10,7 @@ asynchat_utils
 asyncio_utils
 asyncore_utils
 atexit_utils
+audioop_utils
 backoff_utils
 base64_utils
 bdb_utils
