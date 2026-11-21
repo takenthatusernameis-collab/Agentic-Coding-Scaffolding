@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import email.message
 import email.utils
+import math
 import mimetypes
 import re
 import smtplib as _smtplib
@@ -229,14 +230,17 @@ def _require_timeout(value: Any) -> Optional[float]:
 
     Raises:
         TypeError: If *value* is neither a number nor ``None``.
-        ValueError: If *value* is not positive.  The standard library rejects
-            a non-blocking socket, so a timeout of zero is refused as well.
+        ValueError: If *value* is not positive or is not finite.  The standard
+            library rejects a non-blocking socket, so a timeout of zero is
+            refused as well.
     """
     if value is None:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"timeout must be a number or None, got {type(value).__name__}")
     timeout = float(value)
+    if not math.isfinite(timeout):
+        raise ValueError(f"timeout must be finite, got {timeout}")
     if timeout <= 0:
         raise ValueError(f"timeout must be positive, got {timeout}")
     return timeout

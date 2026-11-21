@@ -411,6 +411,15 @@ class TestCreateSmtp(unittest.TestCase):
         with self.assertRaises(ValueError):
             smtplib_utils.create_smtp("localhost", 25, timeout=-1)
 
+    def test_timeout_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=float("-inf"))
+
+
     def test_bad_source_address(self):
         with self.assertRaises(TypeError):
             smtplib_utils.create_smtp("localhost", 25, source_address="10.0.0.1")  # type: ignore[arg-type]
