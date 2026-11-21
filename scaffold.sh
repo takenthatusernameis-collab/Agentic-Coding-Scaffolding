@@ -74212,6 +74212,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `smtplib_utils.create_smtp` rejects non-finite timeouts
+
+- **Correctness fix — `create_smtp` accepted non-finite `timeout` values.** `_require_timeout` rejected non-positive values with `timeout <= 0`, but that comparison is `False` for `NaN` and `+inf`, so `create_smtp("localhost", 25, timeout=float("nan"))` and `create_smtp("localhost", 25, timeout=float("inf"))` reached the standard library with an invalid socket timeout and produced misleading downstream errors. The validator now rejects any non-finite value with `ValueError("timeout must be finite, got ...")` before the positivity check, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`).
+- **Tests:** added `TestCreateSmtp.test_timeout_rejects_non_finite` (fails before the fix, passes after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_smtplib_utils` — 81 OK; `python -m ruff check smtplib_utils.py tests/test_smtplib_utils.py` — clean; `python -m mypy smtplib_utils.py tests/test_smtplib_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `RateLimiter` rejects NaN and infinite `rate`/`capacity`
 
 - **Correctness fix — `RateLimiter` accepted non-finite `rate` and `capacity`.** The constructor validated `rate` (and `capacity`) as a number and rejected non-positive values with `rate <= 0` / `capacity <= 0`, but that comparison is `False` for `NaN` and `+inf`, so `RateLimiter(rate=float("nan"))` and `RateLimiter(rate=float("inf"))` were constructed with non-finite values; `_update` then computed `elapsed * self.rate` as `NaN`/`Infinity`, poisoning the bucket's tokens. The constructor now rejects any non-finite value with `ValueError("rate must be positive and finite")` / `ValueError("capacity must be positive and finite")` before assignment, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`).
@@ -123633,6 +123640,7 @@ from __future__ import annotations
 
 import email.message
 import email.utils
+import math
 import mimetypes
 import re
 import smtplib as _smtplib
@@ -123833,14 +123841,17 @@ def _require_timeout(value: Any) -> Optional[float]:
 
     Raises:
         TypeError: If *value* is neither a number nor ``None``.
-        ValueError: If *value* is not positive.  The standard library rejects
-            a non-blocking socket, so a timeout of zero is refused as well.
+        ValueError: If *value* is not positive or is not finite.  The standard
+            library rejects a non-blocking socket, so a timeout of zero is
+            refused as well.
     """
     if value is None:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"timeout must be a number or None, got {type(value).__name__}")
     timeout = float(value)
+    if not math.isfinite(timeout):
+        raise ValueError(f"timeout must be finite, got {timeout}")
     if timeout <= 0:
         raise ValueError(f"timeout must be positive, got {timeout}")
     return timeout
@@ -125048,6 +125059,15 @@ class TestCreateSmtp(unittest.TestCase):
             smtplib_utils.create_smtp("localhost", 25, timeout=0)
         with self.assertRaises(ValueError):
             smtplib_utils.create_smtp("localhost", 25, timeout=-1)
+
+    def test_timeout_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            smtplib_utils.create_smtp("localhost", 25, timeout=float("-inf"))
+
 
     def test_bad_source_address(self):
         with self.assertRaises(TypeError):
