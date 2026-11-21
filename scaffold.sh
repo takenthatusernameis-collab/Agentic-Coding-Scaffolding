@@ -74269,6 +74269,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `fractions_utils` rejects non-finite floats with `ValueError`
+
+- **Correctness fix — `fractions_utils._to_fraction` raised `OverflowError` for `±inf` and `ValueError` for `NaN`.** When `to_fraction(float("inf"))` or `to_fraction(float("-inf"))` was called, the standard library `Fraction` constructor raised `OverflowError` ("cannot convert Infinity to integer ratio") which leaked through instead of being converted to a documented `ValueError`. For `NaN`, `Fraction` raised `ValueError` but the error message was inconsistent. The helper now catches `OverflowError` (and `ZeroDivisionError`, `ValueError`, `TypeError`) and re-raises a uniform `ValueError("could not convert ... to Fraction: ...")` before returning, matching the project-wide convention of rejecting non-finite floats early with a clear `ValueError`.
+- **Tests:** added `test_value_errors` cases for `float("inf")`, `float("-inf")`, and `float("nan")` in `TestToFraction`, and `test_inf_nan_rejected` in `TestAddSubtractMultiply` covering all exported functions that route through `_to_fraction` (`add`, `subtract`, `multiply`, `divide`, `power`, `compare`, `abs_value`, `negate`, `is_positive`, `is_negative`, `is_zero`, `is_integer`, `numerator`, `denominator`, `to_float`, `from_float`) — all fail before the fix, pass after.
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_fractions_utils` — 23 OK; `python -m doctest fractions_utils.py` — OK; `python -m ruff check fractions_utils.py tests/test_fractions_utils.py` — clean; `python -m mypy fractions_utils.py tests/test_fractions_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `math_utils.clamp` and `subprocess_utils` reject non-finite values
 
 - **Correctness fix — `math_utils.clamp` accepted `±inf` silently.** The clamp validator rejected only NaN (via `math.isnan`), so `clamp(float("inf"), 0, 1)` returned `inf` and `clamp(float("-inf"), 0, 1)` returned `-inf` instead of raising. A new `_require_finite(value, name)` helper now rejects `NaN` and `±inf` with `ValueError` before the range check, matching the project-wide `math.isfinite` convention used across hand-rolled modules.
@@ -89129,7 +89136,7 @@ def _to_fraction(value: Any) -> Fraction:
     if isinstance(value, (int, float, str)):
         try:
             return Fraction(value)
-        except (ZeroDivisionError, ValueError, TypeError) as exc:
+        except (ZeroDivisionError, ValueError, TypeError, OverflowError) as exc:
             raise ValueError(f"could not convert {value!r} to Fraction: {exc}") from exc
     raise TypeError(f"value must be a number or numeric string, got {type(value).__name__}")
 
@@ -89372,6 +89379,12 @@ class TestToFraction(unittest.TestCase):
             to_fraction("not-a-number")
         with self.assertRaises(ValueError):
             to_fraction("")
+        with self.assertRaises(ValueError):
+            to_fraction(float("inf"))
+        with self.assertRaises(ValueError):
+            to_fraction(float("-inf"))
+        with self.assertRaises(ValueError):
+            to_fraction(float("nan"))
 
 
 class TestAddSubtractMultiply(unittest.TestCase):
@@ -89386,6 +89399,41 @@ class TestAddSubtractMultiply(unittest.TestCase):
     def test_multiply(self):
         self.assertEqual(multiply("1/2", "2/3"), to_fraction("1/3"))
         self.assertEqual(multiply(-2, "3/4"), to_fraction("-3/2"))
+
+    def test_inf_nan_rejected(self):
+        for bad in (float("inf"), float("-inf"), float("nan")):
+            with self.assertRaises(ValueError):
+                add(bad, 1)
+            with self.assertRaises(ValueError):
+                subtract(bad, 1)
+            with self.assertRaises(ValueError):
+                multiply(bad, 1)
+            with self.assertRaises(ValueError):
+                divide(bad, 1)
+            with self.assertRaises(ValueError):
+                power(bad, 1)
+            with self.assertRaises(ValueError):
+                compare(bad, 1)
+            with self.assertRaises(ValueError):
+                abs_value(bad)
+            with self.assertRaises(ValueError):
+                negate(bad)
+            with self.assertRaises(ValueError):
+                is_positive(bad)
+            with self.assertRaises(ValueError):
+                is_negative(bad)
+            with self.assertRaises(ValueError):
+                is_zero(bad)
+            with self.assertRaises(ValueError):
+                is_integer(bad)
+            with self.assertRaises(ValueError):
+                numerator(bad)
+            with self.assertRaises(ValueError):
+                denominator(bad)
+            with self.assertRaises(ValueError):
+                to_float(bad)
+            with self.assertRaises(ValueError):
+                from_float(bad)
 
 
 class TestDivide(unittest.TestCase):

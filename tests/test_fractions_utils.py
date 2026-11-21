@@ -53,6 +53,12 @@ class TestToFraction(unittest.TestCase):
             to_fraction("not-a-number")
         with self.assertRaises(ValueError):
             to_fraction("")
+        with self.assertRaises(ValueError):
+            to_fraction(float("inf"))
+        with self.assertRaises(ValueError):
+            to_fraction(float("-inf"))
+        with self.assertRaises(ValueError):
+            to_fraction(float("nan"))
 
 
 class TestAddSubtractMultiply(unittest.TestCase):
@@ -67,6 +73,41 @@ class TestAddSubtractMultiply(unittest.TestCase):
     def test_multiply(self):
         self.assertEqual(multiply("1/2", "2/3"), to_fraction("1/3"))
         self.assertEqual(multiply(-2, "3/4"), to_fraction("-3/2"))
+
+    def test_inf_nan_rejected(self):
+        for bad in (float("inf"), float("-inf"), float("nan")):
+            with self.assertRaises(ValueError):
+                add(bad, 1)
+            with self.assertRaises(ValueError):
+                subtract(bad, 1)
+            with self.assertRaises(ValueError):
+                multiply(bad, 1)
+            with self.assertRaises(ValueError):
+                divide(bad, 1)
+            with self.assertRaises(ValueError):
+                power(bad, 1)
+            with self.assertRaises(ValueError):
+                compare(bad, 1)
+            with self.assertRaises(ValueError):
+                abs_value(bad)
+            with self.assertRaises(ValueError):
+                negate(bad)
+            with self.assertRaises(ValueError):
+                is_positive(bad)
+            with self.assertRaises(ValueError):
+                is_negative(bad)
+            with self.assertRaises(ValueError):
+                is_zero(bad)
+            with self.assertRaises(ValueError):
+                is_integer(bad)
+            with self.assertRaises(ValueError):
+                numerator(bad)
+            with self.assertRaises(ValueError):
+                denominator(bad)
+            with self.assertRaises(ValueError):
+                to_float(bad)
+            with self.assertRaises(ValueError):
+                from_float(bad)
 
 
 class TestDivide(unittest.TestCase):

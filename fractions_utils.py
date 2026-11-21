@@ -44,7 +44,7 @@ def _to_fraction(value: Any) -> Fraction:
     if isinstance(value, (int, float, str)):
         try:
             return Fraction(value)
-        except (ZeroDivisionError, ValueError, TypeError) as exc:
+        except (ZeroDivisionError, ValueError, TypeError, OverflowError) as exc:
             raise ValueError(f"could not convert {value!r} to Fraction: {exc}") from exc
     raise TypeError(f"value must be a number or numeric string, got {type(value).__name__}")
 
