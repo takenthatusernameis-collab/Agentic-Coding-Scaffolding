@@ -1,3 +1,14 @@
+## Latest Session (2026-11-21) — scaffold sync repair: stale embedded copies fixed, full battery green
+
+- `board_read`: empty (bootstrap session); no task from a previous agent, so executed the durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 (verification/tests required — the prior full battery was not re-run because the verified checkpoint `b4494ec` predates the source change in commit `7449571`); ran the full battery.
+- **Finding:** commit `7449571` modified `ttl_cache_utils.py` and `tests/test_ttl_cache_utils.py` (NaN/Infinity TTL validation) but never ran `make refresh-scaffold`, so `scaffold.sh` held stale embedded copies and `tests/test_scaffold_sync` failed. Repaired with `make refresh-scaffold` (refreshed `ttl_cache_utils.py` + `tests/test_ttl_cache_utils.py` heredocs); `python tools/refresh_scaffold.py --check` now reports all embedded copies in sync.
+- **Optimize-delays survey:** no avoidable repository-managed delay beyond the missed sync; the stale copies were a genuine integrity gate, not a redundant cycle. No `.github/workflows/**` changes.
+- **Defect hunt:** `tools/audit_contracts.py --summary` — 238 low-signal stdlib-delegation candidates, 0 genuine defects; `tools/scan_untested.py` — no exported-but-untested callables. No new defect found.
+- **Verification:** `python -m unittest discover tests/` — full suite OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 source files); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `7449571`.
+- **Changes:** `scaffold.sh` (refreshed embedded copies of `ttl_cache_utils.py` and `tests/test_ttl_cache_utils.py`); `.kilo/handover.md`, `PROJECT_STATUS.md`, `.kilo/next_task.md` updated with this session's state confirmation. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded in `.kilo/next_task.md` and `.kilo/handover.md`. No `.github/workflows/**` changes.
+- **Next task:** routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed; keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+
 ## Latest Session (2026-11-20) — bootstrap session: state green, no source-relevant change since verified checkpoint
 
 - `board_read`: empty (bootstrap session); no task from a previous agent, so executed the durable handoff from `.kilo/next_task.md` (routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed).
