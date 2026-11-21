@@ -74219,6 +74219,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `backoff_utils` rejects non-finite delays
+
+- **Correctness fix — `backoff_utils` accepted non-finite values.** `constant_backoff`, `exponential_backoff`, and `jittered_backoff` validated their numeric arguments with comparisons such as `delay < 0`, `factor < 1`, and `jitter < 0 or jitter > 1`, which are `False` for `NaN` and `+inf`. As a result `constant_backoff(float("nan"))`, `exponential_backoff(float("nan"), 2.0, 100.0)`, `exponential_backoff(1.0, float("nan"), 100.0)`, `exponential_backoff(1.0, 2.0, float("nan"))`, `jittered_backoff(float("inf"))`, and `jittered_backoff(1.0, float("nan"))` silently returned `nan`/`inf` (or a silently capped value) instead of raising, poisoning the computed retry delay. Each validator now rejects any non-finite argument with `ValueError("... must be finite")` before the range checks, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `smtplib_utils`, `number_utils`, `rate_limiter_utils`).
+- **Tests:** added `test_constant_backoff_rejects_non_finite`, `test_exponential_backoff_rejects_non_finite`, and `test_jittered_backoff_rejects_non_finite` covering `float("nan")` and `float("inf")` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_backoff_utils` — 18 OK; `python -m doctest backoff_utils.py` — OK; `python -m ruff check backoff_utils.py tests/test_backoff_utils.py` — clean; `python -m mypy backoff_utils.py tests/test_backoff_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `string_utils.jaro_winkler_similarity` rejects non-finite `scaling`
 
 - **Correctness fix — `jaro_winkler_similarity` accepted non-finite `scaling` values.** The guard `scaling < 0 or scaling > 0.25` is `False` for `NaN`, so `jaro_winkler_similarity("a", "b", scaling=float("nan"))` passed validation and returned `nan` instead of raising, poisoning the similarity result. The validator now rejects any non-finite `scaling` (`NaN`, `±inf`) with `ValueError("scaling must be between 0 and 0.25")`, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`).
@@ -164581,6 +164588,7 @@ or compose with :mod:`retry_utils` and :mod:`circuit_breaker_utils`.
 
 from __future__ import annotations
 
+import math
 import random
 from typing import Literal
 
@@ -164605,7 +164613,7 @@ def constant_backoff(delay: float, *, attempt: int = 1) -> float:
 
     Raises:
         TypeError: If *delay* is not a number.
-        ValueError: If *delay* is negative.
+        ValueError: If *delay* is negative or non-finite.
 
     Examples:
         >>> constant_backoff(1.0)
@@ -164619,6 +164627,8 @@ def constant_backoff(delay: float, *, attempt: int = 1) -> float:
     """
     if isinstance(delay, bool) or not isinstance(delay, (int, float)):
         raise TypeError("delay must be a number")
+    if not math.isfinite(delay):
+        raise ValueError("delay must be finite")
     if delay < 0:
         raise ValueError("delay must be non-negative")
     return float(delay)
@@ -164644,7 +164654,9 @@ def exponential_backoff(
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If *initial*, *max_delay* are negative, or *factor* < 1.
+        ValueError: If *initial*, *factor*, or *max_delay* is non-finite,
+            if *initial* or *max_delay* is negative, if *factor* < 1, or if
+            *attempt* < 1.
 
     Examples:
         >>> exponential_backoff(1.0, 2.0, 100.0, attempt=1)
@@ -164672,6 +164684,12 @@ def exponential_backoff(
         raise TypeError("max_delay must be a number")
     if isinstance(attempt, bool) or not isinstance(attempt, int):
         raise TypeError("attempt must be an integer")
+    if not math.isfinite(initial):
+        raise ValueError("initial must be finite")
+    if not math.isfinite(factor):
+        raise ValueError("factor must be finite")
+    if not math.isfinite(max_delay):
+        raise ValueError("max_delay must be finite")
     if initial < 0:
         raise ValueError("initial must be non-negative")
     if max_delay < 0:
@@ -164748,7 +164766,8 @@ def jittered_backoff(delay: float, jitter: float = 0.1) -> float:
 
     Raises:
         TypeError: When *delay* or *jitter* is not a number.
-        ValueError: When *delay* is negative or *jitter* is out of range.
+        ValueError: When *delay* is negative or non-finite, or *jitter* is
+            non-finite or out of range.
 
     Examples:
         >>> jittered_backoff(10.0, 0.0)
@@ -164768,6 +164787,10 @@ def jittered_backoff(delay: float, jitter: float = 0.1) -> float:
         raise TypeError("delay must be a number")
     if isinstance(jitter, bool) or not isinstance(jitter, (int, float)):
         raise TypeError("jitter must be a number")
+    if not math.isfinite(delay):
+        raise ValueError("delay must be finite")
+    if not math.isfinite(jitter):
+        raise ValueError("jitter must be finite")
     if delay < 0:
         raise ValueError("delay must be non-negative")
     if jitter < 0 or jitter > 1:
@@ -164875,6 +164898,27 @@ class TestBackoffUtils(unittest.TestCase):
             jittered_backoff("x")
         with self.assertRaises(TypeError):
             jittered_backoff(1.0, "x")
+
+    def test_constant_backoff_rejects_non_finite(self):
+        for value in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                constant_backoff(value)
+
+    def test_exponential_backoff_rejects_non_finite(self):
+        for value in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                exponential_backoff(value, 2.0, 100.0)
+            with self.assertRaises(ValueError):
+                exponential_backoff(1.0, value, 100.0)
+            with self.assertRaises(ValueError):
+                exponential_backoff(1.0, 2.0, value)
+
+    def test_jittered_backoff_rejects_non_finite(self):
+        for value in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                jittered_backoff(value)
+            with self.assertRaises(ValueError):
+                jittered_backoff(1.0, value)
 
 
 if __name__ == "__main__":

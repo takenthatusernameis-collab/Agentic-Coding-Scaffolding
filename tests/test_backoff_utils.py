@@ -90,6 +90,27 @@ class TestBackoffUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             jittered_backoff(1.0, "x")
 
+    def test_constant_backoff_rejects_non_finite(self):
+        for value in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                constant_backoff(value)
+
+    def test_exponential_backoff_rejects_non_finite(self):
+        for value in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                exponential_backoff(value, 2.0, 100.0)
+            with self.assertRaises(ValueError):
+                exponential_backoff(1.0, value, 100.0)
+            with self.assertRaises(ValueError):
+                exponential_backoff(1.0, 2.0, value)
+
+    def test_jittered_backoff_rejects_non_finite(self):
+        for value in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                jittered_backoff(value)
+            with self.assertRaises(ValueError):
+                jittered_backoff(1.0, value)
+
 
 if __name__ == "__main__":
     unittest.main()

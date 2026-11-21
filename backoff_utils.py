@@ -11,6 +11,7 @@ or compose with :mod:`retry_utils` and :mod:`circuit_breaker_utils`.
 
 from __future__ import annotations
 
+import math
 import random
 from typing import Literal
 
@@ -35,7 +36,7 @@ def constant_backoff(delay: float, *, attempt: int = 1) -> float:
 
     Raises:
         TypeError: If *delay* is not a number.
-        ValueError: If *delay* is negative.
+        ValueError: If *delay* is negative or non-finite.
 
     Examples:
         >>> constant_backoff(1.0)
@@ -49,6 +50,8 @@ def constant_backoff(delay: float, *, attempt: int = 1) -> float:
     """
     if isinstance(delay, bool) or not isinstance(delay, (int, float)):
         raise TypeError("delay must be a number")
+    if not math.isfinite(delay):
+        raise ValueError("delay must be finite")
     if delay < 0:
         raise ValueError("delay must be non-negative")
     return float(delay)
@@ -74,7 +77,9 @@ def exponential_backoff(
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If *initial*, *max_delay* are negative, or *factor* < 1.
+        ValueError: If *initial*, *factor*, or *max_delay* is non-finite,
+            if *initial* or *max_delay* is negative, if *factor* < 1, or if
+            *attempt* < 1.
 
     Examples:
         >>> exponential_backoff(1.0, 2.0, 100.0, attempt=1)
@@ -102,6 +107,12 @@ def exponential_backoff(
         raise TypeError("max_delay must be a number")
     if isinstance(attempt, bool) or not isinstance(attempt, int):
         raise TypeError("attempt must be an integer")
+    if not math.isfinite(initial):
+        raise ValueError("initial must be finite")
+    if not math.isfinite(factor):
+        raise ValueError("factor must be finite")
+    if not math.isfinite(max_delay):
+        raise ValueError("max_delay must be finite")
     if initial < 0:
         raise ValueError("initial must be non-negative")
     if max_delay < 0:
@@ -178,7 +189,8 @@ def jittered_backoff(delay: float, jitter: float = 0.1) -> float:
 
     Raises:
         TypeError: When *delay* or *jitter* is not a number.
-        ValueError: When *delay* is negative or *jitter* is out of range.
+        ValueError: When *delay* is negative or non-finite, or *jitter* is
+            non-finite or out of range.
 
     Examples:
         >>> jittered_backoff(10.0, 0.0)
@@ -198,6 +210,10 @@ def jittered_backoff(delay: float, jitter: float = 0.1) -> float:
         raise TypeError("delay must be a number")
     if isinstance(jitter, bool) or not isinstance(jitter, (int, float)):
         raise TypeError("jitter must be a number")
+    if not math.isfinite(delay):
+        raise ValueError("delay must be finite")
+    if not math.isfinite(jitter):
+        raise ValueError("jitter must be finite")
     if delay < 0:
         raise ValueError("delay must be non-negative")
     if jitter < 0 or jitter > 1:
