@@ -41,6 +41,12 @@ class TestSelect(unittest.TestCase):
         with self.assertRaises(ValueError):
             select_utils.select([], [], [], -1)
 
+    def test_select_timeout_non_finite(self):
+        with self.assertRaises(ValueError):
+            select_utils.select([], [], [], float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            select_utils.select([], [], [], float("inf"))  # type: ignore[arg-type]
+
     def test_select_timeout_bool(self):
         with self.assertRaises(TypeError):
             select_utils.select([], [], [], True)  # type: ignore[arg-type]
@@ -93,6 +99,13 @@ class TestPoller(unittest.TestCase):
         poller = select_utils.create_poller()
         with self.assertRaises(ValueError):
             select_utils.poll_poll(poller, -1)
+
+    def test_poll_timeout_non_finite(self):
+        poller = select_utils.create_poller()
+        with self.assertRaises(ValueError):
+            select_utils.poll_poll(poller, float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            select_utils.poll_poll(poller, float("inf"))  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":

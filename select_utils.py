@@ -9,6 +9,7 @@ remember the exact argument order or error types of the standard library.
 
 from __future__ import annotations
 
+import math
 import select as _select
 from typing import List, Optional, Sequence, Tuple
 
@@ -37,7 +38,7 @@ def _require_optional_number(value: object, name: str) -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
-    if value < 0:
+    if not math.isfinite(value) or value < 0:
         raise ValueError(f"{name} must not be negative")
     return float(value)
 

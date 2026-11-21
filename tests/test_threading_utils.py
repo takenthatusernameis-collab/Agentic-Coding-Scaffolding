@@ -95,6 +95,14 @@ class TestTimer(unittest.TestCase):
         with self.assertRaises(TypeError):
             create_timer(0.01, "not callable")  # type: ignore[arg-type]
 
+    def test_create_timer_rejects_non_finite_interval(self):
+        with self.assertRaises(TypeError):
+            create_timer(float("nan"), lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_timer(float("inf"), lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_timer(float("-inf"), lambda: None)  # type: ignore[arg-type]
+
 
 class TestThread(unittest.TestCase):
     def test_create_thread(self):

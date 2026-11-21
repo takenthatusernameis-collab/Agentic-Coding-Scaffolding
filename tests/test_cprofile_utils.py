@@ -98,6 +98,14 @@ class TestNewProfiler(unittest.TestCase):
         with self.assertRaises(ValueError):
             new_profiler(timeunit=-1.0)
 
+    def test_new_profiler_rejects_a_non_finite_timeunit(self):
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=float("inf"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=float("-inf"))  # type: ignore[arg-type]
+
     def test_new_profiler_rejects_switches_that_are_not_booleans(self):
         with self.assertRaises(TypeError):
             new_profiler(subcalls=1)  # type: ignore[arg-type]

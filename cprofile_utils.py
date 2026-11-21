@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import cProfile as _cProfile
 import io
+import math
 import os
 import sys
 from typing import (
@@ -161,13 +162,15 @@ def new_profiler(
 
     Raises:
         TypeError: If an argument is not of the expected type.
-        ValueError: If *timeunit* is not a positive number.
+        ValueError: If *timeunit* is not a positive finite number.
     """
     if timer is not None and not callable(timer):
         raise TypeError(f"timer must be callable or None, got {type(timer).__name__}")
     if timeunit is not None:
         if isinstance(timeunit, bool) or not isinstance(timeunit, (int, float)):
             raise TypeError(f"timeunit must be a number or None, got {type(timeunit).__name__}")
+        if not math.isfinite(timeunit):
+            raise ValueError(f"timeunit must be a positive number, got {timeunit!r}")
         if timeunit <= 0:
             raise ValueError(f"timeunit must be a positive number, got {timeunit!r}")
     if not isinstance(subcalls, bool):

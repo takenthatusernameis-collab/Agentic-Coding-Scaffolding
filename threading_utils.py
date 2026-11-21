@@ -7,6 +7,7 @@ functions validate their inputs and raise ``TypeError`` for invalid arguments.
 
 from __future__ import annotations
 
+import math
 import threading
 from typing import Any, Callable, Optional, TypeVar
 
@@ -81,9 +82,15 @@ def _validate_non_negative_float(value: Any, name: str) -> None:
         name: The name of the argument (used in error messages).
 
     Raises:
-        TypeError: If value is not a non-negative int or float.
+        TypeError: If value is not a non-negative int or float, or if it is
+            not finite (NaN or infinity).
     """
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or value < 0
+    ):
         raise TypeError(f"{name} must be a non-negative number")
 
 

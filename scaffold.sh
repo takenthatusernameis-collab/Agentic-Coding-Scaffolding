@@ -74219,6 +74219,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `cprofile_utils`, `threading_utils`, and `select_utils` reject non-finite timeouts/intervals
+
+- **Correctness fix — `cprofile_utils.new_profiler` accepted non-finite `timeunit`.** The guard `timeunit <= 0` is `False` for `NaN` and `+inf`, so `new_profiler(timeunit=float("nan"))` and `new_profiler(timeunit=float("inf"))` were constructed with non-finite values and passed them to the standard library profiler. The constructor now rejects any non-finite `timeunit` with `ValueError("timeunit must be a positive number, got ...")` before the positivity check, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `smtplib_utils`, `number_utils`, `rate_limiter_utils`, `backoff_utils`).
+- **Correctness fix — `threading_utils.create_timer` accepted non-finite `interval`.** `_validate_non_negative_float` used `value < 0`, which is `False` for `NaN`, so `create_timer(float("nan"), lambda: None)` was constructed with a non-finite interval. The validator now rejects non-finite values with `TypeError("interval must be a non-negative number")`, matching the module's existing `TypeError`-only convention.
+- **Correctness fix — `select_utils.select` and `select_utils.poll_poll` accepted non-finite `timeout`.** `_require_optional_number` used `value < 0`, which is `False` for `NaN`, so `select([], [], [], float("nan"))` and `poll_poll(poller, float("nan"))` reached the standard library with an invalid timeout. The validator now rejects any non-finite `timeout` with `ValueError("timeout must not be negative")`, matching the module's existing convention for range violations.
+- **Tests:** added `test_new_profiler_rejects_a_non_finite_timeunit` (covers `float("nan")`, `float("inf")`, `float("-inf")`), `test_create_timer_rejects_non_finite_interval`, `test_select_timeout_non_finite`, and `test_poll_timeout_non_finite` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in hand-rolled modules.
+- Validation: `python -m unittest tests.test_cprofile_utils tests.test_threading_utils tests.test_select_utils` — 90 OK; `python -m doctest cprofile_utils.py threading_utils.py select_utils.py` — OK; `python -m ruff check cprofile_utils.py threading_utils.py select_utils.py tests/test_cprofile_utils.py tests/test_threading_utils.py tests/test_select_utils.py` — clean; `python -m mypy cprofile_utils.py threading_utils.py select_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `backoff_utils` rejects non-finite delays
 
 - **Correctness fix — `backoff_utils` accepted non-finite values.** `constant_backoff`, `exponential_backoff`, and `jittered_backoff` validated their numeric arguments with comparisons such as `delay < 0`, `factor < 1`, and `jitter < 0 or jitter > 1`, which are `False` for `NaN` and `+inf`. As a result `constant_backoff(float("nan"))`, `exponential_backoff(float("nan"), 2.0, 100.0)`, `exponential_backoff(1.0, float("nan"), 100.0)`, `exponential_backoff(1.0, 2.0, float("nan"))`, `jittered_backoff(float("inf"))`, and `jittered_backoff(1.0, float("nan"))` silently returned `nan`/`inf` (or a silently capped value) instead of raising, poisoning the computed retry delay. Each validator now rejects any non-finite argument with `ValueError("... must be finite")` before the range checks, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `smtplib_utils`, `number_utils`, `rate_limiter_utils`).
@@ -119313,6 +119322,7 @@ remember the exact argument order or error types of the standard library.
 
 from __future__ import annotations
 
+import math
 import select as _select
 from typing import List, Optional, Sequence, Tuple
 
@@ -119341,7 +119351,7 @@ def _require_optional_number(value: object, name: str) -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
-    if value < 0:
+    if not math.isfinite(value) or value < 0:
         raise ValueError(f"{name} must not be negative")
     return float(value)
 
@@ -119500,6 +119510,12 @@ class TestSelect(unittest.TestCase):
         with self.assertRaises(ValueError):
             select_utils.select([], [], [], -1)
 
+    def test_select_timeout_non_finite(self):
+        with self.assertRaises(ValueError):
+            select_utils.select([], [], [], float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            select_utils.select([], [], [], float("inf"))  # type: ignore[arg-type]
+
     def test_select_timeout_bool(self):
         with self.assertRaises(TypeError):
             select_utils.select([], [], [], True)  # type: ignore[arg-type]
@@ -119552,6 +119568,13 @@ class TestPoller(unittest.TestCase):
         poller = select_utils.create_poller()
         with self.assertRaises(ValueError):
             select_utils.poll_poll(poller, -1)
+
+    def test_poll_timeout_non_finite(self):
+        poller = select_utils.create_poller()
+        with self.assertRaises(ValueError):
+            select_utils.poll_poll(poller, float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            select_utils.poll_poll(poller, float("inf"))  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -133893,6 +133916,7 @@ functions validate their inputs and raise ``TypeError`` for invalid arguments.
 
 from __future__ import annotations
 
+import math
 import threading
 from typing import Any, Callable, Optional, TypeVar
 
@@ -133967,9 +133991,15 @@ def _validate_non_negative_float(value: Any, name: str) -> None:
         name: The name of the argument (used in error messages).
 
     Raises:
-        TypeError: If value is not a non-negative int or float.
+        TypeError: If value is not a non-negative int or float, or if it is
+            not finite (NaN or infinity).
     """
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, (int, float))
+        or not math.isfinite(value)
+        or value < 0
+    ):
         raise TypeError(f"{name} must be a non-negative number")
 
 
@@ -134273,6 +134303,14 @@ class TestTimer(unittest.TestCase):
             create_timer(-1, lambda: None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             create_timer(0.01, "not callable")  # type: ignore[arg-type]
+
+    def test_create_timer_rejects_non_finite_interval(self):
+        with self.assertRaises(TypeError):
+            create_timer(float("nan"), lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_timer(float("inf"), lambda: None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            create_timer(float("-inf"), lambda: None)  # type: ignore[arg-type]
 
 
 class TestThread(unittest.TestCase):
@@ -152925,6 +152963,7 @@ from __future__ import annotations
 
 import cProfile as _cProfile
 import io
+import math
 import os
 import sys
 from typing import (
@@ -153071,13 +153110,15 @@ def new_profiler(
 
     Raises:
         TypeError: If an argument is not of the expected type.
-        ValueError: If *timeunit* is not a positive number.
+        ValueError: If *timeunit* is not a positive finite number.
     """
     if timer is not None and not callable(timer):
         raise TypeError(f"timer must be callable or None, got {type(timer).__name__}")
     if timeunit is not None:
         if isinstance(timeunit, bool) or not isinstance(timeunit, (int, float)):
             raise TypeError(f"timeunit must be a number or None, got {type(timeunit).__name__}")
+        if not math.isfinite(timeunit):
+            raise ValueError(f"timeunit must be a positive number, got {timeunit!r}")
         if timeunit <= 0:
             raise ValueError(f"timeunit must be a positive number, got {timeunit!r}")
     if not isinstance(subcalls, bool):
@@ -153466,6 +153507,14 @@ class TestNewProfiler(unittest.TestCase):
             new_profiler(timeunit=0)
         with self.assertRaises(ValueError):
             new_profiler(timeunit=-1.0)
+
+    def test_new_profiler_rejects_a_non_finite_timeunit(self):
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=float("nan"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=float("inf"))  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            new_profiler(timeunit=float("-inf"))  # type: ignore[arg-type]
 
     def test_new_profiler_rejects_switches_that_are_not_booleans(self):
         with self.assertRaises(TypeError):
