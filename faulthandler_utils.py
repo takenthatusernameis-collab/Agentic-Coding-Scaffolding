@@ -27,6 +27,7 @@ is only armed when :func:`dump_traceback_later` is called.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -197,10 +198,12 @@ def dump_traceback_later(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is negative or non-finite.
     """
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
         raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must be non-negative")
     _validate_flag("repeat", repeat)

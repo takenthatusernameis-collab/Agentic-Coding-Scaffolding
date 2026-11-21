@@ -6,6 +6,7 @@ All functions validate their inputs and raise ``TypeError`` or ``ValueError``
 on invalid arguments.
 """
 
+import math
 from concurrent.futures import (
     FIRST_COMPLETED,
     FIRST_EXCEPTION,
@@ -98,11 +99,13 @@ def as_completed_iter(
 
     Raises:
         TypeError: If ``timeout`` is not a float/int or ``None``.
-        ValueError: If ``timeout`` is negative.
+        ValueError: If ``timeout`` is negative or non-finite.
     """
     if timeout is not None:
         if not isinstance(timeout, (int, float)):
             raise TypeError("timeout must be a float, int, or None")
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
         if timeout < 0:
             raise ValueError("timeout must be non-negative")
     return as_completed(fs, timeout=timeout)
@@ -124,11 +127,14 @@ def wait_futures(
 
     Raises:
         TypeError: If ``timeout`` is not a float/int or ``None``.
-        ValueError: If ``timeout`` is negative or ``return_when`` is invalid.
+        ValueError: If ``timeout`` is negative, non-finite, or ``return_when``
+            is invalid.
     """
     if timeout is not None:
         if not isinstance(timeout, (int, float)):
             raise TypeError("timeout must be a float, int, or None")
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
         if timeout < 0:
             raise ValueError("timeout must be non-negative")
     if return_when not in {"ALL_COMPLETED", "FIRST_COMPLETED", "FIRST_EXCEPTION"}:

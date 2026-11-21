@@ -50,6 +50,19 @@ class TestCreateFTP(unittest.TestCase):
         with self.assertRaises(TypeError):
             ftplib_utils.create_ftp(source_address=("host", "21"))  # type: ignore[arg-type]
 
+    def test_create_ftp_rejects_non_finite_timeout(self):
+        # The validator only checked ``isinstance(timeout, (int, float))``, so a
+        # ``NaN``/``inf`` timeout was forwarded to ``ftplib.FTP`` and then to
+        # ``socket.settimeout``, which raises a misleading error deep in the
+        # standard library instead of a clear argument error.
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                ftplib_utils.create_ftp(timeout=bad)
+
+    def test_create_ftp_rejects_negative_timeout(self):
+        with self.assertRaises(ValueError):
+            ftplib_utils.create_ftp(timeout=-1.0)
+
 
 class TestCreateFTPTLS(unittest.TestCase):
     def test_create_ftp_tls(self):
@@ -62,6 +75,15 @@ class TestCreateFTPTLS(unittest.TestCase):
     def test_create_ftp_tls_bad_types(self):
         with self.assertRaises(TypeError):
             ftplib_utils.create_ftp_tls(timeout="1")  # type: ignore[arg-type]
+
+    def test_create_ftp_tls_rejects_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                ftplib_utils.create_ftp_tls(timeout=bad)
+
+    def test_create_ftp_tls_rejects_negative_timeout(self):
+        with self.assertRaises(ValueError):
+            ftplib_utils.create_ftp_tls(timeout=-1.0)
 
 
 class TestConnectFTP(unittest.TestCase):
@@ -86,6 +108,17 @@ class TestConnectFTP(unittest.TestCase):
             ftplib_utils.connect_ftp(ftp, "host", timeout="1")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ftplib_utils.connect_ftp(ftp, "host", source_address=("host",))  # type: ignore[arg-type]
+
+    def test_connect_ftp_rejects_non_finite_timeout(self):
+        ftp = mock.Mock(spec=ftplib.FTP)
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                ftplib_utils.connect_ftp(ftp, "host", timeout=bad)
+
+    def test_connect_ftp_rejects_negative_timeout(self):
+        ftp = mock.Mock(spec=ftplib.FTP)
+        with self.assertRaises(ValueError):
+            ftplib_utils.connect_ftp(ftp, "host", timeout=-1.0)
 
 
 class TestParsers(unittest.TestCase):

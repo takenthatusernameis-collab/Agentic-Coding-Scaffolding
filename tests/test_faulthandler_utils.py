@@ -100,6 +100,14 @@ class TestFaulthandlerUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             dump_traceback_later(1.0, exit="no")
 
+    def test_dump_traceback_later_rejects_non_finite_timeout(self):
+        # ``timeout < 0`` is ``False`` for ``NaN`` and ``+inf``, so a non-finite
+        # timeout was forwarded to the standard-library watchdog instead of
+        # being rejected with a clear argument error.
+        for bad in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                dump_traceback_later(bad)
+
     def test_cancel_dump_traceback_later_returns_none(self):
         self.assertIsNone(cancel_dump_traceback_later())
 

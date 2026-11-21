@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import ftplib
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -56,6 +57,11 @@ def create_ftp(
         raise TypeError("acct must be a str")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
@@ -101,6 +107,11 @@ def create_ftp_tls(
         raise TypeError("acct must be a str")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
@@ -143,6 +154,11 @@ def connect_ftp(
         raise ValueError("port must be between 0 and 65535")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")

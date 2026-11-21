@@ -60,6 +60,21 @@ class TestConcurrentFuturesUtils(unittest.TestCase):
         with self.assertRaises(ValueError):
             wait_futures([], return_when="BAD")
 
+    def test_as_completed_iter_rejects_non_finite_timeout(self):
+        # ``timeout < 0`` is ``False`` for ``NaN`` and ``+inf``, so a non-finite
+        # timeout silently reached ``concurrent.futures.as_completed`` and was
+        # treated as "timed out immediately" (NaN) or "wait forever" (inf),
+        # poisoning the wait semantics instead of reporting a clear argument
+        # error.
+        for bad in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                as_completed_iter([], timeout=bad)
+
+    def test_wait_futures_rejects_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                wait_futures([], timeout=bad)
+
     def test_reexported_public_surface(self):
         # The wrapper's ``__all__`` re-exports the stdlib ``concurrent.futures``
         # callables; verify they resolve and work *through this module* rather
