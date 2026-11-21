@@ -74337,6 +74337,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `duration_utils` gains `parse_timedelta` and `format_timedelta`
+
+- **New feature — `duration_utils` added `parse_timedelta` and `format_timedelta`.** `parse_duration` returned total seconds as a float and `format_duration` accepted seconds, but there was no timedelta-native entry point. `parse_timedelta(duration_str)` parses a duration string and returns a `datetime.timedelta`, and `format_timedelta(td)` formats a `timedelta` as a compact human-readable string. Both delegate to the existing `parse_duration`/`format_duration` for validation and formatting, so all existing validation contracts (string type, non-negative values, finite results) carry over unchanged. Added to `__all__` with docstrings and doctests.
+- **Tests:** added `TestParseTimedelta` (seconds, minutes, hours, days, weeks, non-string, empty, invalid unit) and `TestFormatTimedelta` (zero, seconds, minutes, hours, days, non-timedelta, cross-check with `format_duration`) — all pass after the addition.
+- **Defect class:** none — new capability, not a defect fix.
+- Validation: `python -m unittest tests.test_duration_utils` — OK; `python -m doctest duration_utils.py` — OK; `python -m ruff check duration_utils.py tests/test_duration_utils.py` — clean; `python -m mypy duration_utils.py tests/test_duration_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `retry_utils` docstring-vs-implementation contract fix
 
 - **Contract fix — `retry`, `retry_with_backoff`, `retry_count` docstrings under-specified `ValueError` conditions.** The docstrings documented only `max_attempts < 1` and negative `delay`/`initial_delay` as `ValueError` cases, but the implementation (via `_validate_retry_args`) also rejects non-finite `delay`/`backoff`/`initial_delay`/`backoff_factor` (``NaN``/``±inf``) and negative `backoff`/`backoff_factor`. Updated all three docstrings to accurately reflect the full validation contract: ``max_attempts`` must be >= 1; ``delay``/``backoff``/``initial_delay``/``backoff_factor`` must be non-negative and finite.
@@ -85233,6 +85240,8 @@ __all__: list[str] = [
     "duration_between",
     "add_duration",
     "subtract_duration",
+    "parse_timedelta",
+    "format_timedelta",
 ]
 
 SECONDS_PER_MINUTE = 60
@@ -85623,6 +85632,71 @@ def subtract_duration(
     return dt - timedelta(seconds=seconds)
 
 
+def parse_timedelta(duration_str: str) -> timedelta:
+    """Parse a human-readable duration string into a :class:`~datetime.timedelta`.
+
+    Delegates to :func:`parse_duration` for string validation and unit
+    conversion, then builds a :class:`~datetime.timedelta` from the total
+    seconds. Negative durations are not representable by ``parse_duration``
+    (it rejects negative values), so the result is always a non-negative
+    :class:`~datetime.timedelta`.
+
+    Args:
+        duration_str: A duration string such as ``"1h30m"``, ``"90s"``,
+            ``"2.5 days"``, or ``"1 week 2 days"``.
+
+    Returns:
+        A :class:`~datetime.timedelta` equal to the parsed duration.
+
+    Raises:
+        TypeError: If ``duration_str`` is not a string.
+        ValueError: If ``duration_str`` is empty or contains unparseable
+            parts, or if any numeric value is negative.
+
+    Examples:
+        >>> parse_timedelta("1h30m")
+        datetime.timedelta(seconds=5400)
+        >>> parse_timedelta("90s")
+        datetime.timedelta(seconds=90)
+        >>> parse_timedelta("2.5 days")
+        datetime.timedelta(days=2, seconds=43200)
+    """
+    if not isinstance(duration_str, str):
+        raise TypeError("duration_str must be a string")
+    seconds = parse_duration(duration_str)
+    return timedelta(seconds=seconds)
+
+
+def format_timedelta(td: timedelta) -> str:
+    """Format a :class:`~datetime.timedelta` into a human-readable string.
+
+    Converts the timedelta to total seconds and delegates to
+    :func:`format_duration` for compact display (e.g. ``"1h 30m"`` or
+    ``"90s"``). A zero timedelta returns ``"0s"``.
+
+    Args:
+        td: The timedelta to format.
+
+    Returns:
+        A human-readable duration string.
+
+    Raises:
+        TypeError: If ``td`` is not a :class:`~datetime.timedelta`.
+
+    Examples:
+        >>> from datetime import timedelta
+        >>> format_timedelta(timedelta(seconds=5400))
+        '1h 30m'
+        >>> format_timedelta(timedelta(seconds=90))
+        '1m 30s'
+        >>> format_timedelta(timedelta(0))
+        '0s'
+    """
+    if not isinstance(td, timedelta):
+        raise TypeError("td must be a timedelta")
+    return format_duration(td.total_seconds())
+
+
 if __name__ == "__main__":
     import doctest
 
@@ -85632,7 +85706,7 @@ DURATION_UTILS
 # --- tests/test_duration_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_duration_utils.py" <<'TEST_DURATION_UTILS'
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from duration_utils import (
     DURATION_UNITS,
@@ -85643,9 +85717,11 @@ from duration_utils import (
     add_duration,
     duration_between,
     format_duration,
+    format_timedelta,
     hms_to_seconds,
     is_valid_duration,
     parse_duration,
+    parse_timedelta,
     seconds_to_hms,
     subtract_duration,
     to_seconds,
@@ -85934,6 +86010,64 @@ class TestDurationConstants(unittest.TestCase):
             ("week", "week"),
         ):
             self.assertEqual(DURATION_UNITS[alias], DURATION_UNITS[canonical])
+
+
+class TestParseTimedelta(unittest.TestCase):
+    def test_parse_timedelta_seconds(self):
+        self.assertEqual(parse_timedelta("90s"), timedelta(seconds=90))
+
+    def test_parse_timedelta_minutes(self):
+        self.assertEqual(parse_timedelta("30m"), timedelta(minutes=30))
+
+    def test_parse_timedelta_hours(self):
+        self.assertEqual(parse_timedelta("1h30m"), timedelta(hours=1, minutes=30))
+
+    def test_parse_timedelta_days(self):
+        self.assertEqual(parse_timedelta("2.5 days"), timedelta(days=2, seconds=43200))
+
+    def test_parse_timedelta_weeks(self):
+        self.assertEqual(parse_timedelta("1 week 2 days"), timedelta(weeks=1, days=2))
+
+    def test_parse_timedelta_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            parse_timedelta(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_timedelta(None)  # type: ignore[arg-type]
+
+    def test_parse_timedelta_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            parse_timedelta("")
+
+    def test_parse_timedelta_rejects_invalid_unit(self):
+        with self.assertRaises(ValueError):
+            parse_timedelta("5x")
+
+
+class TestFormatTimedelta(unittest.TestCase):
+    def test_format_timedelta_zero(self):
+        self.assertEqual(format_timedelta(timedelta(0)), "0s")
+
+    def test_format_timedelta_seconds(self):
+        self.assertEqual(format_timedelta(timedelta(seconds=90)), "1m 30s")
+
+    def test_format_timedelta_minutes(self):
+        self.assertEqual(format_timedelta(timedelta(minutes=90)), "1h 30m")
+
+    def test_format_timedelta_hours(self):
+        self.assertEqual(format_timedelta(timedelta(hours=1, minutes=30)), "1h 30m")
+
+    def test_format_timedelta_days(self):
+        self.assertEqual(format_timedelta(timedelta(days=2, hours=3)), "2d 3h")
+
+    def test_format_timedelta_rejects_non_timedelta(self):
+        with self.assertRaises(TypeError):
+            format_timedelta(90)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            format_timedelta("90s")  # type: ignore[arg-type]
+
+    def test_format_timedelta_matches_format_duration(self):
+        td = timedelta(hours=1, minutes=30, seconds=45)
+        self.assertEqual(format_timedelta(td), format_duration(td.total_seconds()))
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from duration_utils import (
     DURATION_UNITS,
@@ -10,9 +10,11 @@ from duration_utils import (
     add_duration,
     duration_between,
     format_duration,
+    format_timedelta,
     hms_to_seconds,
     is_valid_duration,
     parse_duration,
+    parse_timedelta,
     seconds_to_hms,
     subtract_duration,
     to_seconds,
@@ -301,6 +303,64 @@ class TestDurationConstants(unittest.TestCase):
             ("week", "week"),
         ):
             self.assertEqual(DURATION_UNITS[alias], DURATION_UNITS[canonical])
+
+
+class TestParseTimedelta(unittest.TestCase):
+    def test_parse_timedelta_seconds(self):
+        self.assertEqual(parse_timedelta("90s"), timedelta(seconds=90))
+
+    def test_parse_timedelta_minutes(self):
+        self.assertEqual(parse_timedelta("30m"), timedelta(minutes=30))
+
+    def test_parse_timedelta_hours(self):
+        self.assertEqual(parse_timedelta("1h30m"), timedelta(hours=1, minutes=30))
+
+    def test_parse_timedelta_days(self):
+        self.assertEqual(parse_timedelta("2.5 days"), timedelta(days=2, seconds=43200))
+
+    def test_parse_timedelta_weeks(self):
+        self.assertEqual(parse_timedelta("1 week 2 days"), timedelta(weeks=1, days=2))
+
+    def test_parse_timedelta_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            parse_timedelta(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_timedelta(None)  # type: ignore[arg-type]
+
+    def test_parse_timedelta_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            parse_timedelta("")
+
+    def test_parse_timedelta_rejects_invalid_unit(self):
+        with self.assertRaises(ValueError):
+            parse_timedelta("5x")
+
+
+class TestFormatTimedelta(unittest.TestCase):
+    def test_format_timedelta_zero(self):
+        self.assertEqual(format_timedelta(timedelta(0)), "0s")
+
+    def test_format_timedelta_seconds(self):
+        self.assertEqual(format_timedelta(timedelta(seconds=90)), "1m 30s")
+
+    def test_format_timedelta_minutes(self):
+        self.assertEqual(format_timedelta(timedelta(minutes=90)), "1h 30m")
+
+    def test_format_timedelta_hours(self):
+        self.assertEqual(format_timedelta(timedelta(hours=1, minutes=30)), "1h 30m")
+
+    def test_format_timedelta_days(self):
+        self.assertEqual(format_timedelta(timedelta(days=2, hours=3)), "2d 3h")
+
+    def test_format_timedelta_rejects_non_timedelta(self):
+        with self.assertRaises(TypeError):
+            format_timedelta(90)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            format_timedelta("90s")  # type: ignore[arg-type]
+
+    def test_format_timedelta_matches_format_duration(self):
+        td = timedelta(hours=1, minutes=30, seconds=45)
+        self.assertEqual(format_timedelta(td), format_duration(td.total_seconds()))
 
 
 if __name__ == "__main__":

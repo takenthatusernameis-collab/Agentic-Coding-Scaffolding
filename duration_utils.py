@@ -28,6 +28,8 @@ __all__: list[str] = [
     "duration_between",
     "add_duration",
     "subtract_duration",
+    "parse_timedelta",
+    "format_timedelta",
 ]
 
 SECONDS_PER_MINUTE = 60
@@ -416,6 +418,71 @@ def subtract_duration(
 
     seconds = parse_duration(duration_str)
     return dt - timedelta(seconds=seconds)
+
+
+def parse_timedelta(duration_str: str) -> timedelta:
+    """Parse a human-readable duration string into a :class:`~datetime.timedelta`.
+
+    Delegates to :func:`parse_duration` for string validation and unit
+    conversion, then builds a :class:`~datetime.timedelta` from the total
+    seconds. Negative durations are not representable by ``parse_duration``
+    (it rejects negative values), so the result is always a non-negative
+    :class:`~datetime.timedelta`.
+
+    Args:
+        duration_str: A duration string such as ``"1h30m"``, ``"90s"``,
+            ``"2.5 days"``, or ``"1 week 2 days"``.
+
+    Returns:
+        A :class:`~datetime.timedelta` equal to the parsed duration.
+
+    Raises:
+        TypeError: If ``duration_str`` is not a string.
+        ValueError: If ``duration_str`` is empty or contains unparseable
+            parts, or if any numeric value is negative.
+
+    Examples:
+        >>> parse_timedelta("1h30m")
+        datetime.timedelta(seconds=5400)
+        >>> parse_timedelta("90s")
+        datetime.timedelta(seconds=90)
+        >>> parse_timedelta("2.5 days")
+        datetime.timedelta(days=2, seconds=43200)
+    """
+    if not isinstance(duration_str, str):
+        raise TypeError("duration_str must be a string")
+    seconds = parse_duration(duration_str)
+    return timedelta(seconds=seconds)
+
+
+def format_timedelta(td: timedelta) -> str:
+    """Format a :class:`~datetime.timedelta` into a human-readable string.
+
+    Converts the timedelta to total seconds and delegates to
+    :func:`format_duration` for compact display (e.g. ``"1h 30m"`` or
+    ``"90s"``). A zero timedelta returns ``"0s"``.
+
+    Args:
+        td: The timedelta to format.
+
+    Returns:
+        A human-readable duration string.
+
+    Raises:
+        TypeError: If ``td`` is not a :class:`~datetime.timedelta`.
+
+    Examples:
+        >>> from datetime import timedelta
+        >>> format_timedelta(timedelta(seconds=5400))
+        '1h 30m'
+        >>> format_timedelta(timedelta(seconds=90))
+        '1m 30s'
+        >>> format_timedelta(timedelta(0))
+        '0s'
+    """
+    if not isinstance(td, timedelta):
+        raise TypeError("td must be a timedelta")
+    return format_duration(td.total_seconds())
 
 
 if __name__ == "__main__":
