@@ -1,11 +1,11 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1: the working tree is clean and HEAD `0c3ce2d` is already verified (checkpoint advanced this session); no redundant full re-run is needed unless a source-relevant file changes.
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1: the working tree is clean and HEAD `396a0c0` is already verified (checkpoint advanced this session); no redundant full re-run is needed unless a source-relevant file changes.
 3. Prior session summary — routine regression monitoring / targeted defect hunt on hand-rolled modules not yet reviewed:
    - Completed the "accepts-invalid-input (NaN/Infinity, bool-as-number)" defect sweep across the remaining hand-rolled float-using modules: reviewed `duration_utils.py` and `interval_utils.py` — both already use `math.isfinite`/NaN guards properly, so the defect class does not apply. `calculator.py`, `stats.py`, `math_utils.py` previously confirmed clean. No genuine defect found; no source/test changes, avoiding a no-op cycle.
-   - `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `0c3ce2d`; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 source files).
-   - `.kilo/last_verified.checkpoint` advanced from `ada7bdc` to `0c3ce2d` (advance by the verification tool). No source/test changes.
+   - `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `396a0c0`; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success (574 source files).
+   - `.kilo/last_verified.checkpoint` advanced from `0c3ce2d` to `396a0c0` (advance by the verification tool). No source/test changes.
 4. Continue routine regression monitoring and targeted defect hunt on hand-rolled modules not yet reviewed. The NaN/Infinity defect class has now been comprehensively swept across all hand-rolled float-using modules (fixed or already guarded). Shift focus to: silently ignored parameters, docstring-vs-implementation contracts, exception-type consistency, boundary/off-by-one bugs. Write the failing test first.
 5. Routine gates at a coherent milestone: `python -m pytest tests/ -q` (or `python -m unittest discover tests/`), `python -m ruff check .`, `python -m mypy . --exclude build --exclude dist`, `python tools/refresh_scaffold.py --check`, `python tools/verify_state_delta.py --full --record-full-suite`.
 6. Test modules must stay under `tests/` (guarded by `TestSuiteLayout` in `tests/test_select_tests.py`); do not add root-level `test_*.py` files. Keep `.github/workflows/**` unchanged.
