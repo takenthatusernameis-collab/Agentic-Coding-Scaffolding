@@ -59,15 +59,18 @@ def retry(
     Args:
         max_attempts: Maximum number of attempts (including the initial
             attempt). Must be at least 1.
-        delay: Initial delay between attempts in seconds. Must be non-negative.
-        backoff: Multiplier applied to delay after each attempt.
+        delay: Initial delay between attempts in seconds. Must be non-negative
+            and finite.
+        backoff: Multiplier applied to delay after each attempt. Must be
+            non-negative and finite.
         exceptions: Tuple of exception types to catch and retry on.
 
     Returns:
         Decorated function that retries on specified exceptions.
 
     Raises:
-        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
+        ValueError: If ``max_attempts`` is less than 1, ``delay`` or ``backoff`` is
+            negative or non-finite (``NaN``/``±inf``).
         TypeError: If any argument has the wrong type.
 
     Examples:
@@ -118,8 +121,10 @@ def retry_with_backoff(
 
     Args:
         max_attempts: Maximum number of attempts (including initial attempt).
-        initial_delay: Initial delay between attempts in seconds.
-        backoff_factor: Multiplier for delay after each attempt.
+        initial_delay: Initial delay between attempts in seconds. Must be
+            non-negative and finite.
+        backoff_factor: Multiplier for delay after each attempt. Must be
+            non-negative and finite.
         jitter: If True, adds random jitter to delay to prevent thundering herd.
         exceptions: Tuple of exception types to catch and retry on.
 
@@ -127,8 +132,8 @@ def retry_with_backoff(
         Decorated function that retries with exponential backoff.
 
     Raises:
-        ValueError: If ``max_attempts`` is less than 1 or ``initial_delay`` is
-            negative.
+        ValueError: If ``max_attempts`` is less than 1, ``initial_delay`` or
+            ``backoff_factor`` is negative or non-finite (``NaN``/``±inf``).
         TypeError: If any argument has the wrong type.
 
     Examples:
@@ -186,8 +191,10 @@ def retry_count(
 
     Args:
         max_attempts: Maximum number of attempts (including initial attempt).
-        delay: Initial delay between attempts in seconds.
-        backoff: Multiplier applied to delay after each attempt.
+        delay: Initial delay between attempts in seconds. Must be non-negative
+            and finite.
+        backoff: Multiplier applied to delay after each attempt. Must be
+            non-negative and finite.
         exceptions: Tuple of exception types to catch and retry on.
 
     Returns:
@@ -195,7 +202,8 @@ def retry_count(
         is the number of retries that occurred (0 if no retries needed).
 
     Raises:
-        ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
+        ValueError: If ``max_attempts`` is less than 1, ``delay`` or ``backoff`` is
+            negative or non-finite (``NaN``/``±inf``).
         TypeError: If any argument has the wrong type.
 
     Examples:
