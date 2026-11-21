@@ -74358,6 +74358,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `roman_utils.is_valid_roman` accepts case-insensitive input
+
+- **Correctness fix — `is_valid_roman` rejected lowercase/mixed-case Roman numerals that `normalize_roman` accepts.** The module documents (and `normalize_roman` implements) case-insensitive acceptance: `normalize_roman("xiv")` returns `"XIV"` and `normalize_roman("mmmcmxcix")` returns `"MMMCMXCIX"`. But `is_valid_roman` delegated to the case-sensitive `from_roman`, so `is_valid_roman("xiv")`, `is_valid_roman("xIv")`, and `is_valid_roman("mmmcmxcix")` all returned `False`, contradicting the documented contract and disagreeing with `normalize_roman`. `is_valid_roman` now uppercases string input before delegating to `from_roman` (and returns `False` for non-string input instead of raising `TypeError`), so it agrees with `normalize_roman` for every input: a string is valid exactly when it normalizes to a canonical Roman numeral in the supported range (1–3999).
+- **Defect class:** internal-consistency / docstring-vs-implementation contract divergence in a hand-rolled module.
+- Validation: `python -m unittest tests.test_roman_utils` — 10 OK; `python -m doctest roman_utils.py` — OK; `python -m ruff check roman_utils.py tests/test_roman_utils.py` — clean; `python -m mypy roman_utils.py tests/test_roman_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `duration_utils` gains `parse_timedelta` and `format_timedelta`
 
 - **New feature — `duration_utils` added `parse_timedelta` and `format_timedelta`.** `parse_duration` returned total seconds as a float and `format_duration` accepted seconds, but there was no timedelta-native entry point. `parse_timedelta(duration_str)` parses a duration string and returns a `datetime.timedelta`, and `format_timedelta(td)` formats a `timedelta` as a compact human-readable string. Both delegate to the existing `parse_duration`/`format_duration` for validation and formatting, so all existing validation contracts (string type, non-negative values, finite results) carry over unchanged. Added to `__all__` with docstrings and doctests.
@@ -166464,6 +166470,10 @@ def from_roman(roman: str) -> int:
 def is_valid_roman(roman: str) -> bool:
     """Return ``True`` when *roman* is a valid Roman numeral.
 
+    Case-insensitive: lowercase or mixed-case input is accepted as long as it
+    normalizes to a canonical Roman numeral in the supported range (1-3999),
+    matching :func:`normalize_roman`.
+
     Args:
         roman: Roman numeral string to validate.
 
@@ -166473,12 +166483,16 @@ def is_valid_roman(roman: str) -> bool:
     Examples:
         >>> is_valid_roman("XIV")
         True
+        >>> is_valid_roman("xiv")
+        True
         >>> is_valid_roman("IIII")
         False
     """
+    if not isinstance(roman, str):
+        return False
     try:
-        from_roman(roman)
-    except (TypeError, ValueError):
+        from_roman(roman.upper())
+    except ValueError:
         return False
     return True
 
@@ -166582,6 +166596,13 @@ class TestRomanUtils(unittest.TestCase):
             from_roman("notroman")
         with self.assertRaises(TypeError):
             from_roman(1)
+
+    def test_is_valid_roman_case_insensitive(self):
+        for text in ("xiv", "xIv", "i", "mmmcmxcix", "mcmlxxxiv"):
+            self.assertTrue(is_valid_roman(text))
+            self.assertEqual(is_valid_roman(text), normalize_roman(text) is not None)
+        self.assertFalse(is_valid_roman("iiii"))
+        self.assertFalse(is_valid_roman("notroman"))
 
     def test_is_valid_roman(self):
         self.assertTrue(is_valid_roman("I"))

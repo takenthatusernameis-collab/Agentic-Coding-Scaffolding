@@ -72,6 +72,13 @@ class TestRomanUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             from_roman(1)
 
+    def test_is_valid_roman_case_insensitive(self):
+        for text in ("xiv", "xIv", "i", "mmmcmxcix", "mcmlxxxiv"):
+            self.assertTrue(is_valid_roman(text))
+            self.assertEqual(is_valid_roman(text), normalize_roman(text) is not None)
+        self.assertFalse(is_valid_roman("iiii"))
+        self.assertFalse(is_valid_roman("notroman"))
+
     def test_is_valid_roman(self):
         self.assertTrue(is_valid_roman("I"))
         self.assertTrue(is_valid_roman("IV"))

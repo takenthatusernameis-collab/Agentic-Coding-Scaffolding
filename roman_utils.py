@@ -96,6 +96,10 @@ def from_roman(roman: str) -> int:
 def is_valid_roman(roman: str) -> bool:
     """Return ``True`` when *roman* is a valid Roman numeral.
 
+    Case-insensitive: lowercase or mixed-case input is accepted as long as it
+    normalizes to a canonical Roman numeral in the supported range (1-3999),
+    matching :func:`normalize_roman`.
+
     Args:
         roman: Roman numeral string to validate.
 
@@ -105,12 +109,16 @@ def is_valid_roman(roman: str) -> bool:
     Examples:
         >>> is_valid_roman("XIV")
         True
+        >>> is_valid_roman("xiv")
+        True
         >>> is_valid_roman("IIII")
         False
     """
+    if not isinstance(roman, str):
+        return False
     try:
-        from_roman(roman)
-    except (TypeError, ValueError):
+        from_roman(roman.upper())
+    except ValueError:
         return False
     return True
 
