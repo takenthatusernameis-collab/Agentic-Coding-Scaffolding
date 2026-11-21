@@ -73429,16 +73429,15 @@ def interval_shift(interval: Interval, delta: float) -> Interval:
 
     Raises:
         TypeError: If *delta* is not a real number.
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if *delta* is NaN or
+            infinite.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(delta):
         raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
-    if math.isnan(delta):
-        raise ValueError("delta must not be NaN")
-    if math.isinf(delta):
-        raise TypeError("delta must be finite")
+    if not math.isfinite(delta):
+        raise ValueError("delta must be finite")
     return (interval[0] + delta, interval[1] + delta)
 
 
@@ -73874,6 +73873,16 @@ class TestIntervalShift(unittest.TestCase):
         with self.assertRaises(TypeError):
             interval_shift((1, 5), True)  # type: ignore[arg-type]
 
+    def test_nan_delta_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_shift((1, 5), float("nan"))
+
+    def test_infinite_delta_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_shift((1, 5), float("inf"))
+        with self.assertRaises(ValueError):
+            interval_shift((1, 5), float("-inf"))
+
 
 class TestIntervalSymmetricDifference(unittest.TestCase):
     def test_disjoint_returns_both(self):
@@ -73982,7 +73991,7 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
             interval_shift((0, 1), float("nan"))
 
     def test_interval_shift_with_inf_delta(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("inf"))
 
 
@@ -74096,9 +74105,9 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
     def test_interval_shift_nan_inf_delta_rejected(self):
         with self.assertRaises(ValueError):
             interval_shift((0, 1), float("nan"))
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("inf"))
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("-inf"))
 
     def test_interval_clamp_nan_value_rejected(self):
@@ -74178,6 +74187,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `interval_utils.interval_shift` rejects infinite `delta` with `ValueError`
+
+- **Correctness fix — `interval_shift` raised `TypeError` for an infinite `delta`.** The function reserved `TypeError` (per its docstring) for a `delta` that "is not a real number", yet `float("inf")` *is* a real number, so `interval_shift((1, 5), float("inf"))` raised `TypeError("delta must be finite")` while its sibling `NaN` branch raised `ValueError("delta must not be NaN")` — an internal inconsistency, and a divergence from the project-wide `math.isfinite` convention (`number_utils`, `http_utils`, `duration_utils`, `timing_utils`, `ttl_cache_utils`, `audioop_utils`) that reports a non-finite float as `ValueError`. Both non-finite branches now raise `ValueError("delta must be finite")`, matching the module's own `NaN` handling and the rest of the codebase; the `Raises:` clause documents the finite requirement.
+- **Tests:** added `TestIntervalShift.test_nan_delta_raises_value_error` and `test_infinite_delta_raises_value_error` (the latter fails before the fix with `TypeError`, passes after); updated `test_interval_shift_with_inf_delta` and `test_interval_shift_nan_inf_delta_rejected` to expect `ValueError`.
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) and exception-type consistency in a hand-rolled module.
+- Validation: `python -m unittest tests.test_interval_utils` — 141 OK; `python -m doctest interval_utils.py` — OK; `python -m ruff check interval_utils.py tests/test_interval_utils.py` — clean; `python -m mypy interval_utils.py tests/test_interval_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `color_utils.adjust_brightness` rejects NaN and infinite factors
 
 - **Correctness fix — `adjust_brightness` accepted non-finite `factor` values and then failed deep inside `round()`.** The function validated `factor` as a number and rejected negatives with `factor < 0`, but that comparison is `False` for `NaN` and `+inf`, so `adjust_brightness("#ff5733", float("nan"))` fell through to `int(round(r * factor))` and raised a misleading `ValueError: cannot convert float NaN to integer`, while `float("inf")` raised `OverflowError: cannot convert float infinity to integer` — an exception type the docstring never promises (it documents only `TypeError` and `ValueError`). The guard now rejects any non-finite factor with `ValueError("factor must be finite")` before the arithmetic, matching the project-wide `math.isfinite` convention used by `cooldown_utils`, `calculator`, `statistics_utils`, and `validation_utils`; the `Raises:` clause documents the new rejection.

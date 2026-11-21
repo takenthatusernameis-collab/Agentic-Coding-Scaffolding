@@ -342,6 +342,16 @@ class TestIntervalShift(unittest.TestCase):
         with self.assertRaises(TypeError):
             interval_shift((1, 5), True)  # type: ignore[arg-type]
 
+    def test_nan_delta_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_shift((1, 5), float("nan"))
+
+    def test_infinite_delta_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_shift((1, 5), float("inf"))
+        with self.assertRaises(ValueError):
+            interval_shift((1, 5), float("-inf"))
+
 
 class TestIntervalSymmetricDifference(unittest.TestCase):
     def test_disjoint_returns_both(self):
@@ -450,7 +460,7 @@ class TestIntervalUtilsBoundaries(unittest.TestCase):
             interval_shift((0, 1), float("nan"))
 
     def test_interval_shift_with_inf_delta(self):
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("inf"))
 
 
@@ -564,9 +574,9 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
     def test_interval_shift_nan_inf_delta_rejected(self):
         with self.assertRaises(ValueError):
             interval_shift((0, 1), float("nan"))
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("inf"))
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             interval_shift((0, 1), float("-inf"))
 
     def test_interval_clamp_nan_value_rejected(self):

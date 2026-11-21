@@ -338,16 +338,15 @@ def interval_shift(interval: Interval, delta: float) -> Interval:
 
     Raises:
         TypeError: If *delta* is not a real number.
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if *delta* is NaN or
+            infinite.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(delta):
         raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
-    if math.isnan(delta):
-        raise ValueError("delta must not be NaN")
-    if math.isinf(delta):
-        raise TypeError("delta must be finite")
+    if not math.isfinite(delta):
+        raise ValueError("delta must be finite")
     return (interval[0] + delta, interval[1] + delta)
 
 
