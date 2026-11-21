@@ -92,6 +92,30 @@ class TestRateLimiter(unittest.TestCase):
         with self.assertRaises(ValueError):
             RateLimiter(rate=1.0, capacity=0.0)
 
+    def test_rate_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=float("nan"))
+
+    def test_rate_rejects_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=float("inf"))
+
+    def test_rate_rejects_negative_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=float("-inf"))
+
+    def test_capacity_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=float("nan"))
+
+    def test_capacity_rejects_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=float("inf"))
+
+    def test_capacity_rejects_negative_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=float("-inf"))
+
     def test_rate_rejects_bool(self):
         with self.assertRaises(TypeError):
             RateLimiter(rate=True)

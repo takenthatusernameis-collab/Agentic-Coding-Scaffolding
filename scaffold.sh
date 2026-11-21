@@ -41995,6 +41995,7 @@ decorator.
 """
 
 import functools
+import math
 import time
 from typing import Any, Callable, Optional, TypeVar
 
@@ -42018,13 +42019,13 @@ class RateLimiter:
     def __init__(self, rate: float, capacity: Optional[float] = None):
         if isinstance(rate, bool) or not isinstance(rate, (int, float)):
             raise TypeError("rate must be a number")
-        if rate <= 0:
-            raise ValueError("rate must be positive")
+        if not math.isfinite(rate) or rate <= 0:
+            raise ValueError("rate must be positive and finite")
         if capacity is not None:
             if isinstance(capacity, bool) or not isinstance(capacity, (int, float)):
                 raise TypeError("capacity must be a number")
-            if capacity <= 0:
-                raise ValueError("capacity must be positive")
+            if not math.isfinite(capacity) or capacity <= 0:
+                raise ValueError("capacity must be positive and finite")
         self.rate = float(rate)
         self.capacity = float(capacity if capacity is not None else rate)
         self.tokens = self.capacity
@@ -56478,6 +56479,30 @@ class TestRateLimiter(unittest.TestCase):
     def test_non_positive_capacity_rejected(self):
         with self.assertRaises(ValueError):
             RateLimiter(rate=1.0, capacity=0.0)
+
+    def test_rate_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=float("nan"))
+
+    def test_rate_rejects_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=float("inf"))
+
+    def test_rate_rejects_negative_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=float("-inf"))
+
+    def test_capacity_rejects_nan(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=float("nan"))
+
+    def test_capacity_rejects_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=float("inf"))
+
+    def test_capacity_rejects_negative_infinite(self):
+        with self.assertRaises(ValueError):
+            RateLimiter(rate=1.0, capacity=float("-inf"))
 
     def test_rate_rejects_bool(self):
         with self.assertRaises(TypeError):
@@ -74187,6 +74212,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `RateLimiter` rejects NaN and infinite `rate`/`capacity`
+
+- **Correctness fix — `RateLimiter` accepted non-finite `rate` and `capacity`.** The constructor validated `rate` (and `capacity`) as a number and rejected non-positive values with `rate <= 0` / `capacity <= 0`, but that comparison is `False` for `NaN` and `+inf`, so `RateLimiter(rate=float("nan"))` and `RateLimiter(rate=float("inf"))` were constructed with non-finite values; `_update` then computed `elapsed * self.rate` as `NaN`/`Infinity`, poisoning the bucket's tokens. The constructor now rejects any non-finite value with `ValueError("rate must be positive and finite")` / `ValueError("capacity must be positive and finite")` before assignment, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `calculator`, `statistics_utils`, `validation_utils`).
+- **Tests:** added `TestRateLimiter.test_rate_rejects_nan`, `test_rate_rejects_infinite`, `test_rate_rejects_negative_infinite`, `test_capacity_rejects_nan`, `test_capacity_rejects_infinite`, and `test_capacity_rejects_negative_infinite` (all fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_rate_limiter_utils` — 22 OK; `python -m ruff check rate_limiter_utils.py tests/test_rate_limiter_utils.py` — clean; `python -m mypy rate_limiter_utils.py tests/test_rate_limiter_utils.py` — clean; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `interval_utils.interval_shift` rejects infinite `delta` with `ValueError`
 
 - **Correctness fix — `interval_shift` raised `TypeError` for an infinite `delta`.** The function reserved `TypeError` (per its docstring) for a `delta` that "is not a real number", yet `float("inf")` *is* a real number, so `interval_shift((1, 5), float("inf"))` raised `TypeError("delta must be finite")` while its sibling `NaN` branch raised `ValueError("delta must not be NaN")` — an internal inconsistency, and a divergence from the project-wide `math.isfinite` convention (`number_utils`, `http_utils`, `duration_utils`, `timing_utils`, `ttl_cache_utils`, `audioop_utils`) that reports a non-finite float as `ValueError`. Both non-finite branches now raise `ValueError("delta must be finite")`, matching the module's own `NaN` handling and the rest of the codebase; the `Raises:` clause documents the finite requirement.

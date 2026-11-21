@@ -6,6 +6,7 @@ decorator.
 """
 
 import functools
+import math
 import time
 from typing import Any, Callable, Optional, TypeVar
 
@@ -29,13 +30,13 @@ class RateLimiter:
     def __init__(self, rate: float, capacity: Optional[float] = None):
         if isinstance(rate, bool) or not isinstance(rate, (int, float)):
             raise TypeError("rate must be a number")
-        if rate <= 0:
-            raise ValueError("rate must be positive")
+        if not math.isfinite(rate) or rate <= 0:
+            raise ValueError("rate must be positive and finite")
         if capacity is not None:
             if isinstance(capacity, bool) or not isinstance(capacity, (int, float)):
                 raise TypeError("capacity must be a number")
-            if capacity <= 0:
-                raise ValueError("capacity must be positive")
+            if not math.isfinite(capacity) or capacity <= 0:
+                raise ValueError("capacity must be positive and finite")
         self.rate = float(rate)
         self.capacity = float(capacity if capacity is not None else rate)
         self.tokens = self.capacity
