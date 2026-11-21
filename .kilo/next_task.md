@@ -2,7 +2,7 @@
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. If rc!=0, run `python tools/verify_state_delta.py --full --record-full-suite` before making new edits.
-3. State is green: `python tools/verify_state_delta.py --probe` returned rc=0 — clean tree, verified checkpoint advanced to HEAD `d32ae1d`; full battery green after this session's regression monitoring and defect hunt. No new defect found; `audit_contracts.py` — 238 low-signal stdlib-delegation candidates, 0 genuine defects; `scan_untested.py` — no untested callables.
+3. State is green: `python tools/verify_state_delta.py --probe` returned rc=0 — clean tree, verified checkpoint advanced to HEAD `98d2791`; full battery green after this session's regression monitoring and defect hunt. No new defect found; `audit_contracts.py` — 238 low-signal stdlib-delegation candidates, 0 genuine defects; `scan_untested.py` — no untested callables.
 4. Continue routine regression monitoring and targeted defect hunt on hand-rolled modules not yet reviewed. Focus on accepts-invalid-input (NaN/Infinity, bool-as-number), silently ignored parameters, docstring-vs-implementation contracts, boundary/off-by-one bugs. Write the failing test first.
 5. Routine gates at a coherent milestone: `python -m unittest discover tests/`, `python -m ruff check .`, `python -m mypy . --exclude build --exclude dist`, `python tools/refresh_scaffold.py --check`, `python tools/verify_state_delta.py --full --record-full-suite`.
 6. Test modules must stay under `tests/` (guarded by `TestSuiteLayout` in `tests/test_select_tests.py`); do not add root-level `test_*.py` files. Keep `.github/workflows/**` unchanged.
