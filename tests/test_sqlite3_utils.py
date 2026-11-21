@@ -47,6 +47,11 @@ class TestSqlite3Utils(unittest.TestCase):
         with self.assertRaises(ValueError):
             connect(":memory:", timeout=-1)
 
+    def test_connect_rejects_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                connect(":memory:", timeout=bad)
+
     def test_insert_row_and_fetch_one(self):
         row_id = insert_row(self.conn, "users", ["name", "score"], ["Ada", 92.5])
         self.assertEqual(row_id, 1)

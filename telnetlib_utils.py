@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 try:
@@ -98,6 +99,8 @@ def create_telnet(host: str | None = None, port: int = 23, timeout: float | None
         raise TypeError("port must be an int")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None and not math.isfinite(timeout):
+        raise TypeError("timeout must be finite")
     if host is None:
         return Telnet()
     if timeout is None:

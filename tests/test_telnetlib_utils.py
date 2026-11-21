@@ -131,6 +131,12 @@ class TestCreateTelnet(unittest.TestCase):
         with self.assertRaises(TypeError):
             telnetlib_utils.create_telnet("example.com", 23, timeout=True)  # type: ignore[arg-type]
 
+    @unittest.skipUnless(TELNETLIB_AVAILABLE, "telnetlib is not available")
+    def test_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(TypeError):
+                telnetlib_utils.create_telnet("example.com", 23, timeout=bad)
+
 
 class TestConnectTelnet(unittest.TestCase):
     def test_open_is_called_without_timeout(self):

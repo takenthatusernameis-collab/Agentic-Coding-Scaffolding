@@ -6,6 +6,7 @@ rows, and inspecting schema. All functions validate their inputs and raise
 ``TypeError`` or ``ValueError`` on invalid arguments.
 """
 
+import math
 import sqlite3 as _sqlite3
 from typing import Any, Optional, Sequence
 
@@ -37,12 +38,14 @@ def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Con
     Raises:
         TypeError: If *database* is not a str or *timeout* is not a real
             number.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is negative or not finite.
     """
     if not isinstance(database, str):
         raise TypeError("database must be a str")
     if not isinstance(timeout, (int, float)) or isinstance(timeout, bool):
         raise TypeError("timeout must be a real number")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must be non-negative")
     return _sqlite3.connect(database, timeout=float(timeout))

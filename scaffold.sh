@@ -74233,6 +74233,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `sqlite3_utils` and `telnetlib_utils` reject non-finite timeouts
+
+- **Correctness fix — `sqlite3_utils.connect` accepted non-finite `timeout`.** The guard `timeout < 0` is `False` for `NaN` and `±inf`, so `connect(":memory:", timeout=float("nan"))` and `connect(":memory:", timeout=float("inf"))` passed validation and were forwarded to `_sqlite3.connect`, which silently accepts them (producing a connection with an undefined/again-ignored lock timeout). The validator now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` before the negativity check, matching the module's existing `ValueError`-for-range-violations convention.
+- **Correctness fix — `telnetlib_utils.create_telnet` accepted non-finite `timeout`.** The guard checked only `isinstance(timeout, (int, float))`, so `create_telnet("example.com", 23, timeout=float("nan"))` passed validation and the non-finite value reached `socket.settimeout`, which raises a misleading `ValueError("Invalid value NaN (not a number)")` deep in the standard library. The validator now rejects any non-finite `timeout` with `TypeError("timeout must be finite")`, matching the module's existing `TypeError`-only convention.
+- **Tests:** added `test_connect_rejects_non_finite_timeout` (covers `float("nan")`, `float("inf")`, `float("-inf")`) and `test_non_finite_timeout` for telnet (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in hand-rolled modules.
+- Validation: `python -m unittest tests.test_sqlite3_utils tests.test_telnetlib_utils` — 65 OK; `python -m ruff check .` — clean; `python -m mypy . --exclude build --exclude dist` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `cprofile_utils`, `threading_utils`, and `select_utils` reject non-finite timeouts/intervals
 
 - **Correctness fix — `cprofile_utils.new_profiler` accepted non-finite `timeunit`.** The guard `timeunit <= 0` is `False` for `NaN` and `+inf`, so `new_profiler(timeunit=float("nan"))` and `new_profiler(timeunit=float("inf"))` were constructed with non-finite values and passed them to the standard library profiler. The constructor now rejects any non-finite `timeunit` with `ValueError("timeunit must be a positive number, got ...")` before the positivity check, matching the project-wide `math.isfinite` convention (`color_utils`, `cooldown_utils`, `smtplib_utils`, `number_utils`, `rate_limiter_utils`, `backoff_utils`).
@@ -127281,6 +127289,7 @@ rows, and inspecting schema. All functions validate their inputs and raise
 ``TypeError`` or ``ValueError`` on invalid arguments.
 """
 
+import math
 import sqlite3 as _sqlite3
 from typing import Any, Optional, Sequence
 
@@ -127312,12 +127321,14 @@ def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Con
     Raises:
         TypeError: If *database* is not a str or *timeout* is not a real
             number.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is negative or not finite.
     """
     if not isinstance(database, str):
         raise TypeError("database must be a str")
     if not isinstance(timeout, (int, float)) or isinstance(timeout, bool):
         raise TypeError("timeout must be a real number")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must be non-negative")
     return _sqlite3.connect(database, timeout=float(timeout))
@@ -127604,6 +127615,11 @@ class TestSqlite3Utils(unittest.TestCase):
             connect(":memory:", timeout="slow")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             connect(":memory:", timeout=-1)
+
+    def test_connect_rejects_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                connect(":memory:", timeout=bad)
 
     def test_insert_row_and_fetch_one(self):
         row_id = insert_row(self.conn, "users", ["name", "score"], ["Ada", 92.5])
@@ -161625,6 +161641,12 @@ class TestCreateTelnet(unittest.TestCase):
         with self.assertRaises(TypeError):
             telnetlib_utils.create_telnet("example.com", 23, timeout=True)  # type: ignore[arg-type]
 
+    @unittest.skipUnless(TELNETLIB_AVAILABLE, "telnetlib is not available")
+    def test_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(TypeError):
+                telnetlib_utils.create_telnet("example.com", 23, timeout=bad)
+
 
 class TestConnectTelnet(unittest.TestCase):
     def test_open_is_called_without_timeout(self):
@@ -170482,6 +170504,7 @@ cat > "$OUTPUT_DIR/telnetlib_utils.py" <<'TELNETLIB_UTILS'
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 try:
@@ -170578,6 +170601,8 @@ def create_telnet(host: str | None = None, port: int = 23, timeout: float | None
         raise TypeError("port must be an int")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None and not math.isfinite(timeout):
+        raise TypeError("timeout must be finite")
     if host is None:
         return Telnet()
     if timeout is None:
