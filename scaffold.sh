@@ -54702,6 +54702,7 @@ All functions validate their inputs and raise ``TypeError`` or ``ValueError``
 on invalid arguments.
 """
 
+import math
 from concurrent.futures import (
     FIRST_COMPLETED,
     FIRST_EXCEPTION,
@@ -54794,11 +54795,13 @@ def as_completed_iter(
 
     Raises:
         TypeError: If ``timeout`` is not a float/int or ``None``.
-        ValueError: If ``timeout`` is negative.
+        ValueError: If ``timeout`` is negative or non-finite.
     """
     if timeout is not None:
         if not isinstance(timeout, (int, float)):
             raise TypeError("timeout must be a float, int, or None")
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
         if timeout < 0:
             raise ValueError("timeout must be non-negative")
     return as_completed(fs, timeout=timeout)
@@ -54820,11 +54823,14 @@ def wait_futures(
 
     Raises:
         TypeError: If ``timeout`` is not a float/int or ``None``.
-        ValueError: If ``timeout`` is negative or ``return_when`` is invalid.
+        ValueError: If ``timeout`` is negative, non-finite, or ``return_when``
+            is invalid.
     """
     if timeout is not None:
         if not isinstance(timeout, (int, float)):
             raise TypeError("timeout must be a float, int, or None")
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
         if timeout < 0:
             raise ValueError("timeout must be non-negative")
     if return_when not in {"ALL_COMPLETED", "FIRST_COMPLETED", "FIRST_EXCEPTION"}:
@@ -54913,6 +54919,21 @@ class TestConcurrentFuturesUtils(unittest.TestCase):
             as_completed_iter([], timeout=-1)
         with self.assertRaises(ValueError):
             wait_futures([], return_when="BAD")
+
+    def test_as_completed_iter_rejects_non_finite_timeout(self):
+        # ``timeout < 0`` is ``False`` for ``NaN`` and ``+inf``, so a non-finite
+        # timeout silently reached ``concurrent.futures.as_completed`` and was
+        # treated as "timed out immediately" (NaN) or "wait forever" (inf),
+        # poisoning the wait semantics instead of reporting a clear argument
+        # error.
+        for bad in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                as_completed_iter([], timeout=bad)
+
+    def test_wait_futures_rejects_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                wait_futures([], timeout=bad)
 
     def test_reexported_public_surface(self):
         # The wrapper's ``__all__`` re-exports the stdlib ``concurrent.futures``
@@ -87486,6 +87507,7 @@ is only armed when :func:`dump_traceback_later` is called.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -87656,10 +87678,12 @@ def dump_traceback_later(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is negative.
+        ValueError: If *timeout* is negative or non-finite.
     """
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
         raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must be non-negative")
     _validate_flag("repeat", repeat)
@@ -87829,6 +87853,14 @@ class TestFaulthandlerUtils(unittest.TestCase):
             dump_traceback_later(1.0, file=[])
         with self.assertRaises(TypeError):
             dump_traceback_later(1.0, exit="no")
+
+    def test_dump_traceback_later_rejects_non_finite_timeout(self):
+        # ``timeout < 0`` is ``False`` for ``NaN`` and ``+inf``, so a non-finite
+        # timeout was forwarded to the standard-library watchdog instead of
+        # being rejected with a clear argument error.
+        for bad in (float("nan"), float("inf")):
+            with self.assertRaises(ValueError):
+                dump_traceback_later(bad)
 
     def test_cancel_dump_traceback_later_returns_none(self):
         self.assertIsNone(cancel_dump_traceback_later())
@@ -89735,6 +89767,7 @@ cat > "$OUTPUT_DIR/ftplib_utils.py" <<'FTPLIB_UTILS'
 from __future__ import annotations
 
 import ftplib
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -89788,6 +89821,11 @@ def create_ftp(
         raise TypeError("acct must be a str")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
@@ -89833,6 +89871,11 @@ def create_ftp_tls(
         raise TypeError("acct must be a str")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
@@ -89875,6 +89918,11 @@ def connect_ftp(
         raise ValueError("port must be between 0 and 65535")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if source_address is not None:
         if not isinstance(source_address, tuple) or len(source_address) != 2:
             raise TypeError("source_address must be a (host, port) tuple or None")
@@ -89975,6 +90023,19 @@ class TestCreateFTP(unittest.TestCase):
         with self.assertRaises(TypeError):
             ftplib_utils.create_ftp(source_address=("host", "21"))  # type: ignore[arg-type]
 
+    def test_create_ftp_rejects_non_finite_timeout(self):
+        # The validator only checked ``isinstance(timeout, (int, float))``, so a
+        # ``NaN``/``inf`` timeout was forwarded to ``ftplib.FTP`` and then to
+        # ``socket.settimeout``, which raises a misleading error deep in the
+        # standard library instead of a clear argument error.
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                ftplib_utils.create_ftp(timeout=bad)
+
+    def test_create_ftp_rejects_negative_timeout(self):
+        with self.assertRaises(ValueError):
+            ftplib_utils.create_ftp(timeout=-1.0)
+
 
 class TestCreateFTPTLS(unittest.TestCase):
     def test_create_ftp_tls(self):
@@ -89987,6 +90048,15 @@ class TestCreateFTPTLS(unittest.TestCase):
     def test_create_ftp_tls_bad_types(self):
         with self.assertRaises(TypeError):
             ftplib_utils.create_ftp_tls(timeout="1")  # type: ignore[arg-type]
+
+    def test_create_ftp_tls_rejects_non_finite_timeout(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                ftplib_utils.create_ftp_tls(timeout=bad)
+
+    def test_create_ftp_tls_rejects_negative_timeout(self):
+        with self.assertRaises(ValueError):
+            ftplib_utils.create_ftp_tls(timeout=-1.0)
 
 
 class TestConnectFTP(unittest.TestCase):
@@ -90011,6 +90081,17 @@ class TestConnectFTP(unittest.TestCase):
             ftplib_utils.connect_ftp(ftp, "host", timeout="1")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             ftplib_utils.connect_ftp(ftp, "host", source_address=("host",))  # type: ignore[arg-type]
+
+    def test_connect_ftp_rejects_non_finite_timeout(self):
+        ftp = mock.Mock(spec=ftplib.FTP)
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                ftplib_utils.connect_ftp(ftp, "host", timeout=bad)
+
+    def test_connect_ftp_rejects_negative_timeout(self):
+        ftp = mock.Mock(spec=ftplib.FTP)
+        with self.assertRaises(ValueError):
+            ftplib_utils.connect_ftp(ftp, "host", timeout=-1.0)
 
 
 class TestParsers(unittest.TestCase):
