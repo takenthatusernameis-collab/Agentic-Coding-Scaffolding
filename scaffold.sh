@@ -74536,6 +74536,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `slugify_utils.is_slug` rejects non-ASCII input
+
+- **Correctness fix — `is_slug` returned `True` for strings `slugify` could never produce.** The split-based validation checked each part with `part.isalnum() and part.lower() == part`, but `str.isalnum()` is `True` for non-ASCII alphanumerics (e.g. `"café"`, `"naïve"`, `"x²"`, `"مرحبا"`). Because `slugify` strips every non-ASCII character (NFKD → ASCII `ignore`), such strings are not valid slugs, so `is_slug("café")` incorrectly returned `True` while `slugify("café") == "cafe"`. The check now also requires `part.isascii()`, matching the lowercase-ASCII-alphanumeric grammar that `slugify` produces. The docstring now documents the ASCII requirement.
+- **Tests:** added `TestIsSlug.test_is_slug_rejects_non_ascii` (café/naïve/x²/Arabic) and `test_is_slug_accepts_ascii_digits` (digits are part of the slug character class).
+- **Defect class:** docstring-vs-implementation contract / consistency with `slugify` output in a hand-rolled module.
+
 ## Unreleased — `color_utils.hsl_to_rgb` rejects non-finite hue
 
 - **Correctness fix — `color_utils.hsl_to_rgb` silently accepted `NaN`/`±inf` hue.** Hue is validated as a number but not for finiteness, and unlike `s`/`lightness` it has no `[0, 1]` range check to catch NaN (it is meant to wrap via `t %= 1.0`). A `NaN` or infinite hue therefore cleared validation, every ``t < ...`` comparison in `_hue_to_rgb` evaluated `False` for NaN, and all three channels collapsed to `p`, so `hsl_to_rgb(float("nan"), 1.0, 0.5)` silently returned a wrong color (`(0, 0, 0)`) instead of raising. `h` is now checked with `math.isfinite` up front and raises `ValueError("h must be finite")`, matching the project-wide finite-number convention already used by `adjust_brightness`'s `factor` and `blend_colors`'s `weight`. The docstring `Raises:` clause documents the new `ValueError`.
@@ -165109,7 +165115,11 @@ def slugify(text: str, separator: str = "-") -> str:
 
 
 def is_slug(text: str, separator: str = "-") -> bool:
-    """Return True if *text* is already a valid slug."""
+    """Return True if *text* is already a valid slug.
+
+    A valid slug is a non-empty string of lowercase ASCII alphanumeric words
+    joined by *separator*, matching the output of :func:`slugify`.
+    """
     if not isinstance(text, str):
         raise TypeError("text must be a str")
     if not text:
@@ -165120,8 +165130,9 @@ def is_slug(text: str, separator: str = "-") -> bool:
     # No empty parts (no leading, trailing, or consecutive separators)
     if any(not part for part in parts):
         return False
-    # All parts must be lowercase alphanumeric
-    return all(part.isalnum() and part.lower() == part for part in parts)
+    # All parts must be lowercase ASCII alphanumeric, matching slugify output
+    # (which strips non-ASCII characters).
+    return all(part.isascii() and part.isalnum() and part.lower() == part for part in parts)
 
 
 def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: str = "...") -> str:
@@ -165304,6 +165315,18 @@ class TestIsSlug(unittest.TestCase):
     def test_is_slug_alphanumeric_separator_valid(self):
         self.assertTrue(is_slug("helloabworld", "ab"))
         self.assertTrue(is_slug("foosepbar", "sep"))
+
+    def test_is_slug_rejects_non_ascii(self):
+        # slugify() strips non-ASCII characters, so a string containing
+        # lowercase non-ASCII alphanumerics is not a slug it could produce.
+        self.assertFalse(is_slug("café"))
+        self.assertFalse(is_slug("naïve"))
+        self.assertFalse(is_slug("x²"))
+        self.assertFalse(is_slug("مرحبا"))
+
+    def test_is_slug_accepts_ascii_digits(self):
+        # Digits are part of the slug character class and have no case.
+        self.assertTrue(is_slug("abc-123"))
 
 
 class TestDeslugify(unittest.TestCase):

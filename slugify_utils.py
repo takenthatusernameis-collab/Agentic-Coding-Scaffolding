@@ -33,7 +33,11 @@ def slugify(text: str, separator: str = "-") -> str:
 
 
 def is_slug(text: str, separator: str = "-") -> bool:
-    """Return True if *text* is already a valid slug."""
+    """Return True if *text* is already a valid slug.
+
+    A valid slug is a non-empty string of lowercase ASCII alphanumeric words
+    joined by *separator*, matching the output of :func:`slugify`.
+    """
     if not isinstance(text, str):
         raise TypeError("text must be a str")
     if not text:
@@ -44,8 +48,9 @@ def is_slug(text: str, separator: str = "-") -> bool:
     # No empty parts (no leading, trailing, or consecutive separators)
     if any(not part for part in parts):
         return False
-    # All parts must be lowercase alphanumeric
-    return all(part.isalnum() and part.lower() == part for part in parts)
+    # All parts must be lowercase ASCII alphanumeric, matching slugify output
+    # (which strips non-ASCII characters).
+    return all(part.isascii() and part.isalnum() and part.lower() == part for part in parts)
 
 
 def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: str = "...") -> str:

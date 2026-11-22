@@ -1,3 +1,9 @@
+## Unreleased — `slugify_utils.is_slug` rejects non-ASCII input
+
+- **Correctness fix — `is_slug` returned `True` for strings `slugify` could never produce.** The split-based validation checked each part with `part.isalnum() and part.lower() == part`, but `str.isalnum()` is `True` for non-ASCII alphanumerics (e.g. `"café"`, `"naïve"`, `"x²"`, `"مرحبا"`). Because `slugify` strips every non-ASCII character (NFKD → ASCII `ignore`), such strings are not valid slugs, so `is_slug("café")` incorrectly returned `True` while `slugify("café") == "cafe"`. The check now also requires `part.isascii()`, matching the lowercase-ASCII-alphanumeric grammar that `slugify` produces. The docstring now documents the ASCII requirement.
+- **Tests:** added `TestIsSlug.test_is_slug_rejects_non_ascii` (café/naïve/x²/Arabic) and `test_is_slug_accepts_ascii_digits` (digits are part of the slug character class).
+- **Defect class:** docstring-vs-implementation contract / consistency with `slugify` output in a hand-rolled module.
+
 ## Unreleased — `color_utils.hsl_to_rgb` rejects non-finite hue
 
 - **Correctness fix — `color_utils.hsl_to_rgb` silently accepted `NaN`/`±inf` hue.** Hue is validated as a number but not for finiteness, and unlike `s`/`lightness` it has no `[0, 1]` range check to catch NaN (it is meant to wrap via `t %= 1.0`). A `NaN` or infinite hue therefore cleared validation, every ``t < ...`` comparison in `_hue_to_rgb` evaluated `False` for NaN, and all three channels collapsed to `p`, so `hsl_to_rgb(float("nan"), 1.0, 0.5)` silently returned a wrong color (`(0, 0, 0)`) instead of raising. `h` is now checked with `math.isfinite` up front and raises `ValueError("h must be finite")`, matching the project-wide finite-number convention already used by `adjust_brightness`'s `factor` and `blend_colors`'s `weight`. The docstring `Raises:` clause documents the new `ValueError`.

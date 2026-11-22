@@ -73,6 +73,18 @@ class TestIsSlug(unittest.TestCase):
         self.assertTrue(is_slug("helloabworld", "ab"))
         self.assertTrue(is_slug("foosepbar", "sep"))
 
+    def test_is_slug_rejects_non_ascii(self):
+        # slugify() strips non-ASCII characters, so a string containing
+        # lowercase non-ASCII alphanumerics is not a slug it could produce.
+        self.assertFalse(is_slug("café"))
+        self.assertFalse(is_slug("naïve"))
+        self.assertFalse(is_slug("x²"))
+        self.assertFalse(is_slug("مرحبا"))
+
+    def test_is_slug_accepts_ascii_digits(self):
+        # Digits are part of the slug character class and have no case.
+        self.assertTrue(is_slug("abc-123"))
+
 
 class TestDeslugify(unittest.TestCase):
     def test_deslugify(self):
