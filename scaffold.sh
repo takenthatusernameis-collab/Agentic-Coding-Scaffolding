@@ -37168,6 +37168,7 @@ TEMPFILEUTILS
 cat > "$OUTPUT_DIR/random_utils.py" <<'RANDUTILS'
 """Random number generation and sampling utilities."""
 
+import math
 import random
 from typing import List, Optional, Sequence, TypeVar
 
@@ -37325,12 +37326,19 @@ def random_uniform(low: float, high: float, seed: Optional[int] = None) -> float
         A random float in the inclusive range ``[low, high]``.
 
     Raises:
-        ValueError: If ``low`` is greater than ``high``.
+        TypeError: If ``low`` or ``high`` is not a number (including bool).
+        ValueError: If ``low`` or ``high`` is not finite (NaN or ±inf), or if
+            ``low`` is greater than ``high``.
 
     Examples:
         >>> 0 <= random_uniform(0, 1, seed=11) <= 1
         True
     """
+    for arg, name in ((low, "low"), (high, "high")):
+        if isinstance(arg, bool) or not isinstance(arg, (int, float)):
+            raise TypeError(f"{name} must be a number, got {type(arg).__name__}")
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
     if low > high:
         raise ValueError("low must be <= high")
     return _seed_rng(seed).uniform(low, high)
@@ -37975,6 +37983,23 @@ class TestRandomUniform(unittest.TestCase):
     def test_invalid_range_raises(self) -> None:
         with self.assertRaises(ValueError):
             random_uniform(10, 1)
+
+    def test_non_finite_bounds_raise(self) -> None:
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                random_uniform(bad, 10)
+            with self.assertRaises(ValueError):
+                random_uniform(10, bad)
+
+    def test_non_number_bounds_raise(self) -> None:
+        with self.assertRaises(TypeError):
+            random_uniform("0", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_uniform(0, "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_uniform(True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_uniform(0, True)  # type: ignore[arg-type]
 
     def test_seeded_is_reproducible(self) -> None:
         self.assertAlmostEqual(random_uniform(0, 1, seed=13), random_uniform(0, 1, seed=13))
@@ -74398,6 +74423,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `random_utils.random_uniform` rejects non-finite bounds
+
+- **Correctness fix — `random_utils.random_uniform` silently accepted non-finite `low`/`high` bounds.** The guard `low > high` is `False` for `NaN`, so `random_uniform(float("nan"), 10)`, `random_uniform(float("-inf"), 10)`, and `random_uniform(10, float("nan"))` cleared validation and returned `NaN`, while `random_uniform(10, float("inf"))` returned `inf`, instead of raising a clear argument error. Both bounds are now validated up front: non-numbers (including bools) raise `TypeError`, and NaN or ±inf raise `ValueError("... must be finite")` via `math.isfinite`, matching the project-wide finite-number convention already used by `number_utils.clamp`, `operator_utils.clamp`, `selectors_utils._validate_timeout`, and `socket_utils._require_timeout`.
+- **Tests:** added `TestRandomUniform.test_non_finite_bounds_raise` covering `float("nan")`, `float("inf")`, and `float("-inf")` for both `low` and `high`, plus `TestRandomUniform.test_non_number_bounds_raise` covering non-numeric and bool bounds (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_random_utils` — 57 OK; `python -m ruff check random_utils.py tests/test_random_utils.py` — clean; `python -m mypy random_utils.py tests/test_random_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `number_utils.clamp` and `clamp01` reject non-finite values
 
 - **Correctness fix — `number_utils.clamp` and `clamp01` accepted infinite inputs.** The functions checked for NaN but allowed `float("inf")` and `float("-inf")` to pass through and be clamped, diverging from `math_utils.clamp`, `operator_utils.clamp`, and `calculator.clamp`, which all reject non-finite values with `ValueError`. Both functions now validate using `math.isfinite` and raise `ValueError("... must be finite")` for NaN or ±inf, matching the project-wide finite-number convention.

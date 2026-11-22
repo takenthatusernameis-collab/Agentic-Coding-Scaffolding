@@ -2,7 +2,7 @@
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=1 (clean tree; verified checkpoint at HEAD; no source-relevant file changed since the checkpoint). No redundant full re-run needed unless a source-relevant file changes.
-3. Prior session summary — state green at HEAD `d7a0d956`; checkpoint advanced to `d7a0d956`; fast battery (scan_untested, refresh_scaffold --check) clean; fixed `number_utils.clamp` and `clamp01` to reject non-finite values (NaN/±inf) matching project-wide finite-number convention; all tests pass.
+3. Prior session summary — state green at HEAD `e1827a7f`; checkpoint advanced to `e1827a7f`; fixed `random_utils.random_uniform` to reject non-finite `low`/`high` bounds (NaN/±inf) raising `TypeError`/`ValueError` matching project-wide finite-number convention; 57 tests pass.
 4. Defect hunt: continue targeted review of hand-rolled modules for classic defect classes. All previously reviewed modules follow project validation conventions.
 5. Routine gates at a coherent milestone: `python -m unittest discover tests/`, `python -m ruff check .`, `python -m mypy . --exclude build --exclude dist`, `python tools/refresh_scaffold.py --check`, `python tools/verify_state_delta.py --full --record-full-suite`.
 6. Test modules must stay under `tests/`; do not add root-level `test_*.py` files. Keep `.github/workflows/**` unchanged.

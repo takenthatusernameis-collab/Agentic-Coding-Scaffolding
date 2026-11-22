@@ -160,6 +160,23 @@ class TestRandomUniform(unittest.TestCase):
         with self.assertRaises(ValueError):
             random_uniform(10, 1)
 
+    def test_non_finite_bounds_raise(self) -> None:
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                random_uniform(bad, 10)
+            with self.assertRaises(ValueError):
+                random_uniform(10, bad)
+
+    def test_non_number_bounds_raise(self) -> None:
+        with self.assertRaises(TypeError):
+            random_uniform("0", 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_uniform(0, "1")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_uniform(True, 1)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_uniform(0, True)  # type: ignore[arg-type]
+
     def test_seeded_is_reproducible(self) -> None:
         self.assertAlmostEqual(random_uniform(0, 1, seed=13), random_uniform(0, 1, seed=13))
 

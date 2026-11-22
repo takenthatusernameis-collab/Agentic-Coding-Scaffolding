@@ -1,5 +1,6 @@
 """Random number generation and sampling utilities."""
 
+import math
 import random
 from typing import List, Optional, Sequence, TypeVar
 
@@ -157,12 +158,19 @@ def random_uniform(low: float, high: float, seed: Optional[int] = None) -> float
         A random float in the inclusive range ``[low, high]``.
 
     Raises:
-        ValueError: If ``low`` is greater than ``high``.
+        TypeError: If ``low`` or ``high`` is not a number (including bool).
+        ValueError: If ``low`` or ``high`` is not finite (NaN or ±inf), or if
+            ``low`` is greater than ``high``.
 
     Examples:
         >>> 0 <= random_uniform(0, 1, seed=11) <= 1
         True
     """
+    for arg, name in ((low, "low"), (high, "high")):
+        if isinstance(arg, bool) or not isinstance(arg, (int, float)):
+            raise TypeError(f"{name} must be a number, got {type(arg).__name__}")
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
     if low > high:
         raise ValueError("low must be <= high")
     return _seed_rng(seed).uniform(low, high)
