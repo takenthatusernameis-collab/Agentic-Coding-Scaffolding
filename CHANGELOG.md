@@ -1,3 +1,15 @@
+## Unreleased — `shapes.point_in_rectangle` rejects non-finite coordinates
+
+- **Correctness fix — `shapes.point_in_rectangle` accepted `NaN`/`Infinity` coordinates.** The function validated its arguments with a bare `isinstance(value, (int, float))` check, so `float("nan")` and `float("inf")` passed validation. A `NaN` corner or point silently produced `False` (e.g. `point_in_rectangle((1, 1), float("nan"), 0, 3, 3)` returns `False`) instead of raising, diverging from every other numeric function in the module (`point_distance`, `midpoint`, `circle_area`, `rectangle_area`, ...) which route coordinates through `_require_number` and raise `ValueError("... must be a finite number")` for NaN/±inf. `point_in_rectangle` now validates `px`, `py`, `x1`, `y1`, `x2`, and `y2` with `_require_number`, and the docstring `Raises:` clause documents the new `ValueError` for non-finite coordinates.
+- **Tests:** added `TestPointInRectangle.test_rejects_non_finite_corner` and `test_rejects_non_finite_point` covering `NaN`, `inf`, and `-inf` for both the point and the rectangle corners (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+
+## Unreleased — `strings.truncate` documents when the suffix length is validated
+
+- **Documentation fix — `strings.truncate` docstring claimed an over-long `suffix` always raises `ValueError`.** The implementation only checks `len(suffix) > length` when truncation is actually required; when the input already fits within `length` (or `length == 0`) the suffix is ignored and the string is returned unchanged. The docstring now states that the `ValueError` applies only "when truncation is required", matching the code.
+- **Tests:** added `test_truncate_long_suffix_without_truncation_returns_unchanged` asserting `truncate("hi", 5, suffix="!" * 10) == "hi"` (the previous docstring implied this should raise).
+- **Defect class:** documentation-vs-implementation mismatch in a hand-rolled module.
+
 ## Unreleased — `dict_utils` rejects non-dict input with `TypeError`
 
 - **Correctness fix — several `dict_utils` functions silently accepted or mishandled a non-dict `d`.** `safe_get` returned `default` for a non-dict `d` (str, list, int, None) instead of rejecting it, diverging from `has_key`, `has_value`, `keys_equal`, and every other function in the module which raise `TypeError`. Separately, `flatten_dict`, `unflatten_dict`, `filter_dict`, and `invert_dict` performed no dict validation at all, so a non-dict `d` reached `d.items()` / `d.values()` and raised an unclear `AttributeError` deep in the call instead of a documented `TypeError`. `filter_dict` also accepted a non-callable `predicate` without a clear check. Each function now validates `d` is a dict up front (and `filter_dict` validates `predicate` is callable), raising `TypeError("d must be a dict")` / `TypeError("predicate must be callable")`, matching the module's existing validation convention. Docstrings gained `Raises:` clauses documenting the new rejections.

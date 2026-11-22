@@ -13679,7 +13679,8 @@ def point_in_rectangle(
     Raises:
         TypeError: If *point* is not a 2-tuple/list of numbers, or if any
             coordinate is not a number (booleans are rejected).
-        ValueError: If the rectangle has zero or negative width/height.
+        ValueError: If any coordinate is NaN or infinite, or if the rectangle
+            has zero or negative width/height.
 
     Examples:
         >>> point_in_rectangle((1, 1), 0, 0, 3, 3)
@@ -13694,12 +13695,12 @@ def point_in_rectangle(
     if not isinstance(point, (tuple, list)) or len(point) != 2:
         raise TypeError("point must be a point (x, y)")
     px, py = point
-    for value, name in ((px, "px"), (py, "py")):
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise TypeError("coordinates must be numbers")
-    for value, name in ((x1, "x1"), (y1, "y1"), (x2, "x2"), (y2, "y2")):
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise TypeError(f"{name} must be a number")
+    px = _require_number(px, "px")
+    py = _require_number(py, "py")
+    x1 = _require_number(x1, "x1")
+    y1 = _require_number(y1, "y1")
+    x2 = _require_number(x2, "x2")
+    y2 = _require_number(y2, "y2")
     left = min(x1, x2)
     right = max(x1, x2)
     bottom = min(y1, y2)
@@ -14399,6 +14400,26 @@ class TestPointInRectangle(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             point_in_rectangle((1, 1), 0, 0, 3, 0)
+
+    def test_rejects_non_finite_corner(self):
+        from shapes import point_in_rectangle
+
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((1, 1), bad, 0, 3, 3)
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((1, 1), 0, 0, 3, bad)
+
+    def test_rejects_non_finite_point(self):
+        from shapes import point_in_rectangle
+
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((bad, 1), 0, 0, 3, 3)
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((1, bad), 0, 0, 3, 3)
 
 
 class TestTypeValidation(unittest.TestCase):
@@ -15237,13 +15258,13 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
     Returns:
         The truncated string. If *s* is already no longer than *length*, it
         is returned unchanged. When *length* is zero, the empty string is
-        returned. When *suffix* is longer than *length*, a ``ValueError`` is
-        raised.
+        returned. When truncation is required and *suffix* is longer than
+        *length*, a ``ValueError`` is raised.
 
     Raises:
         TypeError: If *s* is not a string or *length* is not an int.
-        ValueError: If *length* is negative or *suffix* is longer than
-            *length*.
+        ValueError: If *length* is negative, or if truncation is required and
+            *suffix* is longer than *length*.
 
     Examples:
         >>> truncate("hello world", 5)
@@ -21028,6 +21049,12 @@ class TestTruncate(unittest.TestCase):
     def test_truncate_suffix_longer_than_length_raises(self):
         with self.assertRaises(ValueError):
             truncate("hello", 2, suffix="...")
+
+    def test_truncate_long_suffix_without_truncation_returns_unchanged(self):
+        # The suffix length is only validated when truncation is actually
+        # required; an over-long suffix is ignored when the input already fits.
+        self.assertEqual(truncate("hi", 5, suffix="!" * 10), "hi")
+        self.assertEqual(truncate("hi", 2, suffix="!" * 10), "hi")
 
     def test_truncate_rejects_non_string(self):
         with self.assertRaises(TypeError):
@@ -74492,6 +74519,18 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `shapes.point_in_rectangle` rejects non-finite coordinates
+
+- **Correctness fix — `shapes.point_in_rectangle` accepted `NaN`/`Infinity` coordinates.** The function validated its arguments with a bare `isinstance(value, (int, float))` check, so `float("nan")` and `float("inf")` passed validation. A `NaN` corner or point silently produced `False` (e.g. `point_in_rectangle((1, 1), float("nan"), 0, 3, 3)` returns `False`) instead of raising, diverging from every other numeric function in the module (`point_distance`, `midpoint`, `circle_area`, `rectangle_area`, ...) which route coordinates through `_require_number` and raise `ValueError("... must be a finite number")` for NaN/±inf. `point_in_rectangle` now validates `px`, `py`, `x1`, `y1`, `x2`, and `y2` with `_require_number`, and the docstring `Raises:` clause documents the new `ValueError` for non-finite coordinates.
+- **Tests:** added `TestPointInRectangle.test_rejects_non_finite_corner` and `test_rejects_non_finite_point` covering `NaN`, `inf`, and `-inf` for both the point and the rectangle corners (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+
+## Unreleased — `strings.truncate` documents when the suffix length is validated
+
+- **Documentation fix — `strings.truncate` docstring claimed an over-long `suffix` always raises `ValueError`.** The implementation only checks `len(suffix) > length` when truncation is actually required; when the input already fits within `length` (or `length == 0`) the suffix is ignored and the string is returned unchanged. The docstring now states that the `ValueError` applies only "when truncation is required", matching the code.
+- **Tests:** added `test_truncate_long_suffix_without_truncation_returns_unchanged` asserting `truncate("hi", 5, suffix="!" * 10) == "hi"` (the previous docstring implied this should raise).
+- **Defect class:** documentation-vs-implementation mismatch in a hand-rolled module.
+
 ## Unreleased — `dict_utils` rejects non-dict input with `TypeError`
 
 - **Correctness fix — several `dict_utils` functions silently accepted or mishandled a non-dict `d`.** `safe_get` returned `default` for a non-dict `d` (str, list, int, None) instead of rejecting it, diverging from `has_key`, `has_value`, `keys_equal`, and every other function in the module which raise `TypeError`. Separately, `flatten_dict`, `unflatten_dict`, `filter_dict`, and `invert_dict` performed no dict validation at all, so a non-dict `d` reached `d.items()` / `d.values()` and raised an unclear `AttributeError` deep in the call instead of a documented `TypeError`. `filter_dict` also accepted a non-callable `predicate` without a clear check. Each function now validates `d` is a dict up front (and `filter_dict` validates `predicate` is callable), raising `TypeError("d must be a dict")` / `TypeError("predicate must be callable")`, matching the module's existing validation convention. Docstrings gained `Raises:` clauses documenting the new rejections.

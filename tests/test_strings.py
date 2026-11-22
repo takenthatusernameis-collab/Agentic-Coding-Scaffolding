@@ -689,6 +689,12 @@ class TestTruncate(unittest.TestCase):
         with self.assertRaises(ValueError):
             truncate("hello", 2, suffix="...")
 
+    def test_truncate_long_suffix_without_truncation_returns_unchanged(self):
+        # The suffix length is only validated when truncation is actually
+        # required; an over-long suffix is ignored when the input already fits.
+        self.assertEqual(truncate("hi", 5, suffix="!" * 10), "hi")
+        self.assertEqual(truncate("hi", 2, suffix="!" * 10), "hi")
+
     def test_truncate_rejects_non_string(self):
         with self.assertRaises(TypeError):
             truncate(123, 5)  # type: ignore[arg-type]

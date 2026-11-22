@@ -685,6 +685,26 @@ class TestPointInRectangle(unittest.TestCase):
         with self.assertRaises(ValueError):
             point_in_rectangle((1, 1), 0, 0, 3, 0)
 
+    def test_rejects_non_finite_corner(self):
+        from shapes import point_in_rectangle
+
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((1, 1), bad, 0, 3, 3)
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((1, 1), 0, 0, 3, bad)
+
+    def test_rejects_non_finite_point(self):
+        from shapes import point_in_rectangle
+
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((bad, 1), 0, 0, 3, 3)
+                with self.assertRaises(ValueError):
+                    point_in_rectangle((1, bad), 0, 0, 3, 3)
+
 
 class TestTypeValidation(unittest.TestCase):
     """Hand-rolled geometry functions must reject non-numeric (bool) input,

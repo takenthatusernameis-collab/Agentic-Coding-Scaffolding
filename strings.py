@@ -635,13 +635,13 @@ def truncate(s: str, length: int, suffix: str = "...") -> str:
     Returns:
         The truncated string. If *s* is already no longer than *length*, it
         is returned unchanged. When *length* is zero, the empty string is
-        returned. When *suffix* is longer than *length*, a ``ValueError`` is
-        raised.
+        returned. When truncation is required and *suffix* is longer than
+        *length*, a ``ValueError`` is raised.
 
     Raises:
         TypeError: If *s* is not a string or *length* is not an int.
-        ValueError: If *length* is negative or *suffix* is longer than
-            *length*.
+        ValueError: If *length* is negative, or if truncation is required and
+            *suffix* is longer than *length*.
 
     Examples:
         >>> truncate("hello world", 5)

@@ -753,7 +753,8 @@ def point_in_rectangle(
     Raises:
         TypeError: If *point* is not a 2-tuple/list of numbers, or if any
             coordinate is not a number (booleans are rejected).
-        ValueError: If the rectangle has zero or negative width/height.
+        ValueError: If any coordinate is NaN or infinite, or if the rectangle
+            has zero or negative width/height.
 
     Examples:
         >>> point_in_rectangle((1, 1), 0, 0, 3, 3)
@@ -768,12 +769,12 @@ def point_in_rectangle(
     if not isinstance(point, (tuple, list)) or len(point) != 2:
         raise TypeError("point must be a point (x, y)")
     px, py = point
-    for value, name in ((px, "px"), (py, "py")):
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise TypeError("coordinates must be numbers")
-    for value, name in ((x1, "x1"), (y1, "y1"), (x2, "x2"), (y2, "y2")):
-        if not isinstance(value, (int, float)) or isinstance(value, bool):
-            raise TypeError(f"{name} must be a number")
+    px = _require_number(px, "px")
+    py = _require_number(py, "py")
+    x1 = _require_number(x1, "x1")
+    y1 = _require_number(y1, "y1")
+    x2 = _require_number(x2, "x2")
+    y2 = _require_number(y2, "y2")
     left = min(x1, x2)
     right = max(x1, x2)
     bottom = min(y1, y2)
