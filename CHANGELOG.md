@@ -1,3 +1,10 @@
+## Unreleased — `either_utils.Either.map_left` documents exception capture
+
+- **Documentation fix — `either_utils.Either.map_left` did not document that exceptions raised by the mapper function are captured as a Left value.** The implementation already wrapped exceptions in `Left` (consistent with `map` and `filter`), but the docstring omitted this behavior. The docstring now states: "If *fn* raises an exception, it is caught and returned as a Left value to keep the operation safe."
+- **Tests:** added `test_map_left_captures_exception` verifying that `Either.left(5).map_left(boom)` where `boom` raises `RuntimeError` returns a `Left` containing the exception (fail before the doc fix clarified intent, pass after).
+- **Defect class:** documentation gap — implementation correct, docstring incomplete.
+- Validation: `python -m unittest tests.test_either_utils` — 24 OK; `python -m ruff check either_utils.py tests/test_either_utils.py` — clean; `python -m mypy either_utils.py tests/test_either_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — 11713 OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `config_utils.get_config_value` raises TypeError for non-dict config
 
 - **Correctness fix — `config_utils.get_config_value` silently ignored a non-dict `config`.** When `config` was not a dictionary, the function returned `default` instead of rejecting the invalid argument, diverging from `set_config_value` and `merge_configs`, which both raise `TypeError` for non-dict inputs. The function now raises `TypeError("config must be a dictionary, got ...")` for non-dict `config`, matching the project's silently-ignored-params defect convention.

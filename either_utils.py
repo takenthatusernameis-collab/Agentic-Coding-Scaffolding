@@ -97,7 +97,11 @@ class Either(Generic[L, R]):
             return Either.left(cast(L, e))
 
     def map_left(self, fn: Callable[[L], T]) -> "Either[T, R]":
-        """Apply a function if Left, otherwise return Right unchanged."""
+        """Apply a function if Left, otherwise return Right unchanged.
+
+        If *fn* raises an exception, it is caught and returned as a Left
+        value to keep the operation safe.
+        """
         if self._is_right:
             return Either(self._value, is_right=True)
         try:

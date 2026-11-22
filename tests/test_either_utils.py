@@ -56,6 +56,14 @@ class TestEither(unittest.TestCase):
         self.assertEqual(e.unwrap_left(), "ERR")
         self.assertTrue(Either.right(5).map_left(lambda e: e).is_right())
 
+    def test_map_left_captures_exception(self) -> None:
+        def boom(_value: int) -> str:
+            raise RuntimeError("boom")
+
+        result = Either.left(5).map_left(boom)
+        self.assertTrue(result.is_left())
+        self.assertIsInstance(result.unwrap_left(), RuntimeError)
+
     def test_flat_map(self) -> None:
         e = Either.right(5).flat_map(lambda x: Either.right(x + 1))
         self.assertEqual(e.unwrap(), 6)
