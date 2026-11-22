@@ -74423,6 +74423,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `time_utils.parse_duration` rejects trailing unparseable input
+
+- **Correctness fix — `time_utils.parse_duration` silently ignored characters that were not part of a `<number><unit>` component.** The parser scanned with `re.findall(r"(\d+)\s*([hms])", text)` and never checked that the whole string was consumed, so malformed inputs such as `"1h30"`, `"1h garbage"`, and `"1h 2m 3s extra"` returned a plausible-but-wrong total (`3600`, `3600`, and `3723`) instead of raising. This diverged from the sibling `duration_utils.parse_duration`, which rejects trailing junk (`"1h 30"` raises there). The parser now walks matches with `re.finditer`, rejects any non-whitespace gap between components and any trailing remainder with `ValueError`, and still accepts arbitrary component order, subsets, and surrounding whitespace (e.g. `"1h2m3s"` and `" 1h 2m 3s "` both yield `3723`).
+- **Tests:** added `test_parse_duration_rejects_trailing_garbage` covering `"1h 30"`, `"1h garbage"`, `"1h 2m 3s extra"`, and `"1h30"`, plus `test_parse_duration_accepts_whitespace_variants` for `" 1h 2m 3s "` and `"1h2m3s"` (the reject cases fail before the fix, pass after).
+- **Defect class:** silently ignored trailing input / accepts-invalid-input in a hand-rolled module.
+- Validation: `python -m pytest tests/test_time_utils.py` — 15 passed; `python -m ruff check time_utils.py tests/test_time_utils.py` — clean; `python -m mypy time_utils.py tests/test_time_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `random_utils.random_uniform` rejects non-finite bounds
 
 - **Correctness fix — `random_utils.random_uniform` silently accepted non-finite `low`/`high` bounds.** The guard `low > high` is `False` for `NaN`, so `random_uniform(float("nan"), 10)`, `random_uniform(float("-inf"), 10)`, and `random_uniform(10, float("nan"))` cleared validation and returned `NaN`, while `random_uniform(10, float("inf"))` returned `inf`, instead of raising a clear argument error. Both bounds are now validated up front: non-numbers (including bools) raise `TypeError`, and NaN or ±inf raise `ValueError("... must be finite")` via `math.isfinite`, matching the project-wide finite-number convention already used by `number_utils.clamp`, `operator_utils.clamp`, `selectors_utils._validate_timeout`, and `socket_utils._require_timeout`.
@@ -135077,6 +135084,12 @@ def parse_duration(text: str) -> int:
     Components may be given in any order and any subset; missing components
     default to zero. Whitespace is ignored.
 
+    Raises:
+        TypeError: If ``text`` is not a str.
+        ValueError: If ``text`` is empty or contains characters that are not
+            part of a ``<number><unit>`` component (for example ``"1h 30"``),
+            which would otherwise be silently ignored and yield a wrong total.
+
     >>> parse_duration("0s")
     0
     >>> parse_duration("1m 5s")
@@ -135089,19 +135102,25 @@ def parse_duration(text: str) -> int:
     if isinstance(text, bool) or not isinstance(text, str):
         raise TypeError("text must be a str")
     import re
+
     total = 0
     found = False
-    for value, unit in re.findall(r"(\d+)\s*([hms])", text):
+    pos = 0
+    for match in re.finditer(r"(\d+)\s*([hms])", text):
+        if text[pos : match.start()].strip():
+            raise ValueError(f"invalid duration string: {text!r}")
         found = True
-        n = int(value)
+        n = int(match.group(1))
+        unit = match.group(2)
         if unit == "h":
             total += n * 3600
         elif unit == "m":
             total += n * 60
         else:
             total += n
-    if not found:
-        raise ValueError("invalid duration string")
+        pos = match.end()
+    if text[pos:].strip() or not found:
+        raise ValueError(f"invalid duration string: {text!r}")
     return total
 TIME_UTILS
 
@@ -135172,6 +135191,21 @@ def test_parse_duration_value_error():
     else:
         raise AssertionError("expected ValueError")
     assert time_utils.format_duration(3661) == "1h 1m 1s"
+
+
+def test_parse_duration_rejects_trailing_garbage():
+    for bad in ["1h 30", "1h garbage", "1h 2m 3s extra", "1h30"]:
+        try:
+            time_utils.parse_duration(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"expected ValueError for {bad!r}")
+
+
+def test_parse_duration_accepts_whitespace_variants():
+    assert time_utils.parse_duration(" 1h 2m 3s ") == 3723
+    assert time_utils.parse_duration("1h2m3s") == 3723
 
 
 def test_format_duration_type_error():

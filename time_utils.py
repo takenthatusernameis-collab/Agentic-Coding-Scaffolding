@@ -74,6 +74,12 @@ def parse_duration(text: str) -> int:
     Components may be given in any order and any subset; missing components
     default to zero. Whitespace is ignored.
 
+    Raises:
+        TypeError: If ``text`` is not a str.
+        ValueError: If ``text`` is empty or contains characters that are not
+            part of a ``<number><unit>`` component (for example ``"1h 30"``),
+            which would otherwise be silently ignored and yield a wrong total.
+
     >>> parse_duration("0s")
     0
     >>> parse_duration("1m 5s")
@@ -86,17 +92,23 @@ def parse_duration(text: str) -> int:
     if isinstance(text, bool) or not isinstance(text, str):
         raise TypeError("text must be a str")
     import re
+
     total = 0
     found = False
-    for value, unit in re.findall(r"(\d+)\s*([hms])", text):
+    pos = 0
+    for match in re.finditer(r"(\d+)\s*([hms])", text):
+        if text[pos : match.start()].strip():
+            raise ValueError(f"invalid duration string: {text!r}")
         found = True
-        n = int(value)
+        n = int(match.group(1))
+        unit = match.group(2)
         if unit == "h":
             total += n * 3600
         elif unit == "m":
             total += n * 60
         else:
             total += n
-    if not found:
-        raise ValueError("invalid duration string")
+        pos = match.end()
+    if text[pos:].strip() or not found:
+        raise ValueError(f"invalid duration string: {text!r}")
     return total

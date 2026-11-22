@@ -65,6 +65,21 @@ def test_parse_duration_value_error():
     assert time_utils.format_duration(3661) == "1h 1m 1s"
 
 
+def test_parse_duration_rejects_trailing_garbage():
+    for bad in ["1h 30", "1h garbage", "1h 2m 3s extra", "1h30"]:
+        try:
+            time_utils.parse_duration(bad)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError(f"expected ValueError for {bad!r}")
+
+
+def test_parse_duration_accepts_whitespace_variants():
+    assert time_utils.parse_duration(" 1h 2m 3s ") == 3723
+    assert time_utils.parse_duration("1h2m3s") == 3723
+
+
 def test_format_duration_type_error():
     try:
         time_utils.format_duration("x")
