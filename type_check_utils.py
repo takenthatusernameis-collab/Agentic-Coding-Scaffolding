@@ -136,7 +136,11 @@ def is_none(value: object) -> bool:
 
 
 def is_bytes(value: object) -> bool:
-    """Return True if value is bytes."""
+    """Return True if value is bytes or bytearray.
+
+    Both :class:`bytes` and :class:`bytearray` are treated as byte strings,
+    mirroring the accepted inputs of :func:`coerce_to_bytes`.
+    """
     return isinstance(value, (bytes, bytearray))
 
 
@@ -680,10 +684,11 @@ def coerce_to_float(value: object) -> float:
 def coerce_to_bool(value: object) -> bool:
     """Convert *value* to a bool.
 
-    Accepts bools, ints, floats, and common truthy/falsy strings
-    (``"true"``, ``"false"``, ``"1"``, ``"0"``, ``"yes"``, ``"no"``);
-    raises ``TypeError`` for unsupported types and ``ValueError`` for
-    strings that do not parse as a bool.
+    Accepts bools, ints, floats, and common truthy/falsy strings. Matching is
+    case-insensitive and surrounding whitespace is ignored. Truthy strings are
+    ``"true"``, ``"1"``, ``"yes"``, ``"y"``, and ``"on"``; falsy strings are
+    ``"false"``, ``"0"``, ``"no"``, ``"n"``, and ``"off"``. Any other string
+    raises ``ValueError``; unsupported types raise ``TypeError``.
 
     Args:
         value: The value to convert.
@@ -702,6 +707,10 @@ def coerce_to_bool(value: object) -> bool:
         False
         >>> coerce_to_bool(1)
         True
+        >>> coerce_to_bool("yes")
+        True
+        >>> coerce_to_bool(" off ")
+        False
     """
     if isinstance(value, bool):
         return value

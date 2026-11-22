@@ -1,3 +1,8 @@
+## Unreleased — `type_check_utils` docstrings match accepted inputs
+
+- **Documentation fix — `type_check_utils.coerce_to_bool` and `is_bytes` docstrings under-documented their accepted inputs.** `coerce_to_bool` accepts the truthy strings `"true"`, `"1"`, `"yes"`, `"y"`, `"on"` and the falsy strings `"false"`, `"0"`, `"no"`, `"n"`, `"off"` (case-insensitive, surrounding whitespace ignored), but its docstring listed only `"true"`, `"false"`, `"1"`, `"0"`, `"yes"`, `"no"` — omitting `"y"`, `"n"`, `"on"`, `"off"` and the case/whitespace handling that the test suite already exercises. `is_bytes` returns `True` for both `bytes` and `bytearray` (tested), but its one-line docstring said only "bytes". Both docstrings now accurately describe the full accepted-input contract, with `coerce_to_bool` gaining doctest examples for the previously undocumented `"yes"` and `" off "` forms.
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled module.
+
 ## Unreleased — `slugify_utils.is_slug` rejects non-ASCII input
 
 - **Correctness fix — `is_slug` returned `True` for strings `slugify` could never produce.** The split-based validation checked each part with `part.isalnum() and part.lower() == part`, but `str.isalnum()` is `True` for non-ASCII alphanumerics (e.g. `"café"`, `"naïve"`, `"x²"`, `"مرحبا"`). Because `slugify` strips every non-ASCII character (NFKD → ASCII `ignore`), such strings are not valid slugs, so `is_slug("café")` incorrectly returned `True` while `slugify("café") == "cafe"`. The check now also requires `part.isascii()`, matching the lowercase-ASCII-alphanumeric grammar that `slugify` produces. The docstring now documents the ASCII requirement.

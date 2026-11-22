@@ -74536,6 +74536,11 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `type_check_utils` docstrings match accepted inputs
+
+- **Documentation fix — `type_check_utils.coerce_to_bool` and `is_bytes` docstrings under-documented their accepted inputs.** `coerce_to_bool` accepts the truthy strings `"true"`, `"1"`, `"yes"`, `"y"`, `"on"` and the falsy strings `"false"`, `"0"`, `"no"`, `"n"`, `"off"` (case-insensitive, surrounding whitespace ignored), but its docstring listed only `"true"`, `"false"`, `"1"`, `"0"`, `"yes"`, `"no"` — omitting `"y"`, `"n"`, `"on"`, `"off"` and the case/whitespace handling that the test suite already exercises. `is_bytes` returns `True` for both `bytes` and `bytearray` (tested), but its one-line docstring said only "bytes". Both docstrings now accurately describe the full accepted-input contract, with `coerce_to_bool` gaining doctest examples for the previously undocumented `"yes"` and `" off "` forms.
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled module.
+
 ## Unreleased — `slugify_utils.is_slug` rejects non-ASCII input
 
 - **Correctness fix — `is_slug` returned `True` for strings `slugify` could never produce.** The split-based validation checked each part with `part.isalnum() and part.lower() == part`, but `str.isalnum()` is `True` for non-ASCII alphanumerics (e.g. `"café"`, `"naïve"`, `"x²"`, `"مرحبا"`). Because `slugify` strips every non-ASCII character (NFKD → ASCII `ignore`), such strings are not valid slugs, so `is_slug("café")` incorrectly returned `True` while `slugify("café") == "cafe"`. The check now also requires `part.isascii()`, matching the lowercase-ASCII-alphanumeric grammar that `slugify` produces. The docstring now documents the ASCII requirement.
@@ -167699,7 +167704,11 @@ def is_none(value: object) -> bool:
 
 
 def is_bytes(value: object) -> bool:
-    """Return True if value is bytes."""
+    """Return True if value is bytes or bytearray.
+
+    Both :class:`bytes` and :class:`bytearray` are treated as byte strings,
+    mirroring the accepted inputs of :func:`coerce_to_bytes`.
+    """
     return isinstance(value, (bytes, bytearray))
 
 
@@ -168243,10 +168252,11 @@ def coerce_to_float(value: object) -> float:
 def coerce_to_bool(value: object) -> bool:
     """Convert *value* to a bool.
 
-    Accepts bools, ints, floats, and common truthy/falsy strings
-    (``"true"``, ``"false"``, ``"1"``, ``"0"``, ``"yes"``, ``"no"``);
-    raises ``TypeError`` for unsupported types and ``ValueError`` for
-    strings that do not parse as a bool.
+    Accepts bools, ints, floats, and common truthy/falsy strings. Matching is
+    case-insensitive and surrounding whitespace is ignored. Truthy strings are
+    ``"true"``, ``"1"``, ``"yes"``, ``"y"``, and ``"on"``; falsy strings are
+    ``"false"``, ``"0"``, ``"no"``, ``"n"``, and ``"off"``. Any other string
+    raises ``ValueError``; unsupported types raise ``TypeError``.
 
     Args:
         value: The value to convert.
@@ -168265,6 +168275,10 @@ def coerce_to_bool(value: object) -> bool:
         False
         >>> coerce_to_bool(1)
         True
+        >>> coerce_to_bool("yes")
+        True
+        >>> coerce_to_bool(" off ")
+        False
     """
     if isinstance(value, bool):
         return value
