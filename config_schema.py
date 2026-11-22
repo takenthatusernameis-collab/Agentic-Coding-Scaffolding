@@ -25,6 +25,7 @@ Example:
 
 from __future__ import annotations
 
+import math
 import re
 from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar, Union
 from urllib.parse import urlparse
@@ -112,9 +113,12 @@ def float_validator(value: Any) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float, str)):
         raise TypeError(f"cannot coerce {value!r} to float")
     try:
-        return float(value)
+        result = float(value)
     except (ValueError, TypeError) as exc:
         raise ValueError(f"cannot coerce {value!r} to float") from exc
+    if not math.isfinite(result):
+        raise ValueError(f"cannot coerce {value!r} to float")
+    return result
 
 
 def str_validator(value: Any) -> str:

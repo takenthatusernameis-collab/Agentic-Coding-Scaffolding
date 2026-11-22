@@ -1,9 +1,9 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. If rc=1, run full. No redundant full re-run unless source-relevant change.
-3. Prior session summary — state green at HEAD `ab6bb441`; full battery green; full test suite OK (exit 0); ruff clean; mypy clean; scaffold copies in sync; no untested exports. Checkpoint advanced to HEAD with full-suite provenance.
-4. Defect hunt: continue targeted review of hand-rolled modules not yet reviewed. Prefer genuine logic defect; write failing test first.
+2. Confirm state with `python tools/verify_state_delta.py --probe`. If rc=1, state is already verified; no redundant full re-run unless source-relevant change. If rc=2, run `python tools/verify_state_delta.py --full --record-full-suite`.
+3. Prior session summary — state green at HEAD `fbcabb86`; full battery green; full test suite OK (11727 passed, 4 skipped); ruff clean; mypy clean; scaffold copies in sync; no untested exports. Checkpoint advanced to HEAD with full-suite provenance.
+4. Defect hunt: continue targeted review of hand-rolled modules not yet reviewed. Prefer genuine logic defect; write failing test first. All classic defect classes (accepts-invalid-input NaN/Infinity/bool-as-number, silently ignored params, docstring-vs-implementation contracts, boundary/off-by-one, exception-type consistency, duplicated/dead-code validation) previously swept; audit_contracts reports 236 low-signal candidates, 0 genuine defects.
 5. Routine gates at coherent milestone.
 6. Test modules under `tests/`; no root-level test files. Keep `.github/workflows/**` unchanged.
 7. If edit utils/test/CHANGELOG, run `make refresh-scaffold` then check.

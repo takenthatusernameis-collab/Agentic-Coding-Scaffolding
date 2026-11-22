@@ -5105,6 +5105,7 @@ Example:
 
 from __future__ import annotations
 
+import math
 import re
 from typing import Any, Callable, Dict, Iterable, List, Optional, TypeVar, Union
 from urllib.parse import urlparse
@@ -5192,9 +5193,12 @@ def float_validator(value: Any) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float, str)):
         raise TypeError(f"cannot coerce {value!r} to float")
     try:
-        return float(value)
+        result = float(value)
     except (ValueError, TypeError) as exc:
         raise ValueError(f"cannot coerce {value!r} to float") from exc
+    if not math.isfinite(result):
+        raise ValueError(f"cannot coerce {value!r} to float")
+    return result
 
 
 def str_validator(value: Any) -> str:
@@ -5742,6 +5746,18 @@ class TestSchemaFieldCoercion(unittest.TestCase):
     def test_float_validator_rejects_bool(self):
         with self.assertRaises(TypeError):
             float_validator(False)
+
+    def test_float_validator_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            float_validator(float("nan"))
+        with self.assertRaises(ValueError):
+            float_validator(float("inf"))
+        with self.assertRaises(ValueError):
+            float_validator(float("-inf"))
+        with self.assertRaises(ValueError):
+            float_validator("nan")
+        with self.assertRaises(ValueError):
+            float_validator("inf")
 
     def test_str_validator_passthrough(self):
         self.assertEqual(str_validator("hello"), "hello")
@@ -74543,6 +74559,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `config_schema.float_validator` rejects non-finite floats
+
+- **Correctness fix — `config_schema.float_validator` silently accepted `NaN`/`±inf`.** The function coerced its input with `float(value)` but never checked finiteness, so `float_validator(float("nan"))`, `float_validator(float("inf"))`, `float_validator("nan")`, and `float_validator("inf")` returned non-finite floats instead of raising, diverging from `int_validator` (which rejects non-whole floats via `is_integer()`) and the project-wide `math.isfinite` convention used across hand-rolled modules. The validator now rejects any non-finite result with `ValueError("cannot coerce ... to float")`, matching the accepts-invalid-input defect convention.
+- **Tests:** added `TestSchemaFieldCoercion.test_float_validator_rejects_non_finite` covering `float("nan")`, `float("inf")`, `float("-inf")`, `"nan"`, and `"inf"` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_config_schema` — 50 OK; `python -m ruff check config_schema.py tests/test_config_schema.py` — clean; `python -m mypy config_schema.py tests/test_config_schema.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `type_check_utils` docstrings match accepted inputs
 
 - **Documentation fix — `type_check_utils.coerce_to_bool` and `is_bytes` docstrings under-documented their accepted inputs.** `coerce_to_bool` accepts the truthy strings `"true"`, `"1"`, `"yes"`, `"y"`, `"on"` and the falsy strings `"false"`, `"0"`, `"no"`, `"n"`, `"off"` (case-insensitive, surrounding whitespace ignored), but its docstring listed only `"true"`, `"false"`, `"1"`, `"0"`, `"yes"`, `"no"` — omitting `"y"`, `"n"`, `"on"`, `"off"` and the case/whitespace handling that the test suite already exercises. `is_bytes` returns `True` for both `bytes` and `bytearray` (tested), but its one-line docstring said only "bytes". Both docstrings now accurately describe the full accepted-input contract, with `coerce_to_bool` gaining doctest examples for the previously undocumented `"yes"` and `" off "` forms.

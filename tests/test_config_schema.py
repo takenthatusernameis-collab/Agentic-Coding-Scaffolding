@@ -47,6 +47,18 @@ class TestSchemaFieldCoercion(unittest.TestCase):
         with self.assertRaises(TypeError):
             float_validator(False)
 
+    def test_float_validator_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            float_validator(float("nan"))
+        with self.assertRaises(ValueError):
+            float_validator(float("inf"))
+        with self.assertRaises(ValueError):
+            float_validator(float("-inf"))
+        with self.assertRaises(ValueError):
+            float_validator("nan")
+        with self.assertRaises(ValueError):
+            float_validator("inf")
+
     def test_str_validator_passthrough(self):
         self.assertEqual(str_validator("hello"), "hello")
 
