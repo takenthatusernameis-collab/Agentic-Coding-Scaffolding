@@ -43203,7 +43203,12 @@ def flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dic
 
     Returns:
         Flattened dictionary.
+
+    Raises:
+        TypeError: If *d* is not a dict.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     items: List[tuple] = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
@@ -43223,7 +43228,12 @@ def unflatten_dict(d: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
 
     Returns:
         Nested dictionary.
+
+    Raises:
+        TypeError: If *d* is not a dict.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     result: Dict[str, Any] = {}
     for key, value in d.items():
         parts = key.split(sep)
@@ -43246,7 +43256,12 @@ def safe_get(d: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
 
     Returns:
         Value at the nested path or default.
+
+    Raises:
+        TypeError: If *d* is not a dict.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     current = d
     for key in keys:
         if not isinstance(current, dict) or key not in current:
@@ -43488,8 +43503,11 @@ def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
         Inverted dictionary.
 
     Raises:
+        TypeError: If *d* is not a dict.
         ValueError: If values are not unique.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     if len(d.values()) != len(set(d.values())):
         raise ValueError("Cannot invert dictionary with duplicate values")
     return {v: k for k, v in d.items()}
@@ -43535,7 +43553,14 @@ def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
 
     Returns:
         Filtered dictionary.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
     return {k: v for k, v in d.items() if predicate(k, v)}
 
 def count_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> int:
@@ -57419,6 +57444,14 @@ class TestFlattenDict(unittest.TestCase):
         result = flatten_dict(d, parent_key="a")
         self.assertEqual(result["a.b"], 2)
 
+    def test_flatten_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            flatten_dict("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            flatten_dict(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            flatten_dict([1, 2])  # type: ignore[arg-type]
+
 
 class TestUnflattenDict(unittest.TestCase):
     def test_unflatten_basic(self) -> None:
@@ -57432,6 +57465,14 @@ class TestUnflattenDict(unittest.TestCase):
         result = unflatten_dict(d)
         self.assertEqual(result["a"], 1)
         self.assertEqual(result["b"], 2)
+
+    def test_unflatten_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            unflatten_dict("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            unflatten_dict(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            unflatten_dict([1, 2])  # type: ignore[arg-type]
 
 
 class TestSafeGet(unittest.TestCase):
@@ -57447,6 +57488,18 @@ class TestSafeGet(unittest.TestCase):
     def test_safe_get_partial(self) -> None:
         d = {"a": 1}
         self.assertEqual(safe_get(d, "a", "b", default="x"), "x")
+
+    def test_safe_get_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_get("x", "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get(None, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get([1, 2], "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get(123, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get("x", "a", default="fallback")  # type: ignore[arg-type]
 
 
 class TestHasKey(unittest.TestCase):
@@ -57724,6 +57777,14 @@ class TestInvertDict(unittest.TestCase):
         with self.assertRaises(ValueError):
             invert_dict(d)
 
+    def test_invert_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            invert_dict("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict([1, 2])  # type: ignore[arg-type]
+
 
 def _safe_invert(d: dict) -> bool:
     """Helper mirroring invert_dict's success condition without raising."""
@@ -57781,6 +57842,14 @@ class TestFilterDict(unittest.TestCase):
         d = {"a1": 1, "b1": 2, "a2": 3}
         result = filter_dict(d, lambda k, v: k.startswith("a"))
         self.assertEqual(len(result), 2)
+
+    def test_filter_dict_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            filter_dict("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            filter_dict(None, lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            filter_dict({"a": 1}, "not callable")  # type: ignore[arg-type]
 
 
 class TestSelectKeys(unittest.TestCase):
@@ -74423,6 +74492,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `dict_utils` rejects non-dict input with `TypeError`
+
+- **Correctness fix — several `dict_utils` functions silently accepted or mishandled a non-dict `d`.** `safe_get` returned `default` for a non-dict `d` (str, list, int, None) instead of rejecting it, diverging from `has_key`, `has_value`, `keys_equal`, and every other function in the module which raise `TypeError`. Separately, `flatten_dict`, `unflatten_dict`, `filter_dict`, and `invert_dict` performed no dict validation at all, so a non-dict `d` reached `d.items()` / `d.values()` and raised an unclear `AttributeError` deep in the call instead of a documented `TypeError`. `filter_dict` also accepted a non-callable `predicate` without a clear check. Each function now validates `d` is a dict up front (and `filter_dict` validates `predicate` is callable), raising `TypeError("d must be a dict")` / `TypeError("predicate must be callable")`, matching the module's existing validation convention. Docstrings gained `Raises:` clauses documenting the new rejections.
+- **Tests:** added `test_safe_get_rejects_non_dict` (str/None/list/int/non-dict with and without an explicit default), `test_flatten_type_error`, `test_unflatten_type_error`, `test_filter_dict_type_error`, and `test_invert_type_error` (all fail before the fix, pass after).
+- **Defect class:** silently ignored parameters / missing input validation in a hand-rolled module.
+- Validation: `python -m unittest tests.test_dict_utils` — 170 OK; `python -m ruff check dict_utils.py tests/test_dict_utils.py` — clean; `python -m mypy dict_utils.py tests/test_dict_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `time_utils.parse_duration` rejects trailing unparseable input
 
 - **Correctness fix — `time_utils.parse_duration` silently ignored characters that were not part of a `<number><unit>` component.** The parser scanned with `re.findall(r"(\d+)\s*([hms])", text)` and never checked that the whole string was consumed, so malformed inputs such as `"1h30"`, `"1h garbage"`, and `"1h 2m 3s extra"` returned a plausible-but-wrong total (`3600`, `3600`, and `3723`) instead of raising. This diverged from the sibling `duration_utils.parse_duration`, which rejects trailing junk (`"1h 30"` raises there). The parser now walks matches with `re.finditer`, rejects any non-whitespace gap between components and any trailing remainder with `ValueError`, and still accepts arbitrary component order, subsets, and surrounding whitespace (e.g. `"1h2m3s"` and `" 1h 2m 3s "` both yield `3723`).

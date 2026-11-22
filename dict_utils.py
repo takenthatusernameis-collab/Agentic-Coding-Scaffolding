@@ -116,7 +116,12 @@ def flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dic
 
     Returns:
         Flattened dictionary.
+
+    Raises:
+        TypeError: If *d* is not a dict.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     items: List[tuple] = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
@@ -136,7 +141,12 @@ def unflatten_dict(d: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
 
     Returns:
         Nested dictionary.
+
+    Raises:
+        TypeError: If *d* is not a dict.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     result: Dict[str, Any] = {}
     for key, value in d.items():
         parts = key.split(sep)
@@ -159,7 +169,12 @@ def safe_get(d: Dict[Any, Any], *keys: Any, default: Any = None) -> Any:
 
     Returns:
         Value at the nested path or default.
+
+    Raises:
+        TypeError: If *d* is not a dict.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     current = d
     for key in keys:
         if not isinstance(current, dict) or key not in current:
@@ -401,8 +416,11 @@ def invert_dict(d: Dict[K, V]) -> Dict[V, K]:
         Inverted dictionary.
 
     Raises:
+        TypeError: If *d* is not a dict.
         ValueError: If values are not unique.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
     if len(d.values()) != len(set(d.values())):
         raise ValueError("Cannot invert dictionary with duplicate values")
     return {v: k for k, v in d.items()}
@@ -448,7 +466,14 @@ def filter_dict(d: Dict[K, V], predicate: Any) -> Dict[K, V]:
 
     Returns:
         Filtered dictionary.
+
+    Raises:
+        TypeError: If *d* is not a dict or *predicate* is not callable.
     """
+    if not isinstance(d, dict):
+        raise TypeError("d must be a dict")
+    if not callable(predicate):
+        raise TypeError("predicate must be callable")
     return {k: v for k, v in d.items() if predicate(k, v)}
 
 def count_where(d: Dict[K, V], predicate: Callable[[K, V], bool]) -> int:

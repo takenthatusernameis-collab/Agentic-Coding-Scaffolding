@@ -148,6 +148,14 @@ class TestFlattenDict(unittest.TestCase):
         result = flatten_dict(d, parent_key="a")
         self.assertEqual(result["a.b"], 2)
 
+    def test_flatten_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            flatten_dict("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            flatten_dict(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            flatten_dict([1, 2])  # type: ignore[arg-type]
+
 
 class TestUnflattenDict(unittest.TestCase):
     def test_unflatten_basic(self) -> None:
@@ -161,6 +169,14 @@ class TestUnflattenDict(unittest.TestCase):
         result = unflatten_dict(d)
         self.assertEqual(result["a"], 1)
         self.assertEqual(result["b"], 2)
+
+    def test_unflatten_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            unflatten_dict("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            unflatten_dict(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            unflatten_dict([1, 2])  # type: ignore[arg-type]
 
 
 class TestSafeGet(unittest.TestCase):
@@ -176,6 +192,18 @@ class TestSafeGet(unittest.TestCase):
     def test_safe_get_partial(self) -> None:
         d = {"a": 1}
         self.assertEqual(safe_get(d, "a", "b", default="x"), "x")
+
+    def test_safe_get_rejects_non_dict(self) -> None:
+        with self.assertRaises(TypeError):
+            safe_get("x", "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get(None, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get([1, 2], "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get(123, "a")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            safe_get("x", "a", default="fallback")  # type: ignore[arg-type]
 
 
 class TestHasKey(unittest.TestCase):
@@ -453,6 +481,14 @@ class TestInvertDict(unittest.TestCase):
         with self.assertRaises(ValueError):
             invert_dict(d)
 
+    def test_invert_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            invert_dict("x")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            invert_dict([1, 2])  # type: ignore[arg-type]
+
 
 def _safe_invert(d: dict) -> bool:
     """Helper mirroring invert_dict's success condition without raising."""
@@ -510,6 +546,14 @@ class TestFilterDict(unittest.TestCase):
         d = {"a1": 1, "b1": 2, "a2": 3}
         result = filter_dict(d, lambda k, v: k.startswith("a"))
         self.assertEqual(len(result), 2)
+
+    def test_filter_dict_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            filter_dict("x", lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            filter_dict(None, lambda k, v: True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            filter_dict({"a": 1}, "not callable")  # type: ignore[arg-type]
 
 
 class TestSelectKeys(unittest.TestCase):
