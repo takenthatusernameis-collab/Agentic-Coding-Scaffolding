@@ -137,6 +137,15 @@ class TestSchemaFieldValidators(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate(large - 1)
 
+    def test_range_validator_with_int_bounds_rejects_floats(self):
+        validate = range_validator(1, 10)
+        with self.assertRaises(TypeError):
+            validate(5.5)
+        with self.assertRaises(TypeError):
+            validate(1.0)
+        with self.assertRaises(TypeError):
+            validate("5.5")
+
     def test_choices_validator(self):
         validate = choices_validator("dev", "staging", "prod")
         self.assertEqual(validate("staging"), "staging")
