@@ -5499,8 +5499,9 @@ class SchemaField:
     Args:
         name: The configuration key name.
         type_: The expected type (``str``, ``int``, ``float``, or ``bool``).
-        default: The default value used when the field is absent. Use
-            :data:`schema_required` or omit to mark the field as required.
+        default: The default value used when the field is absent. When unset,
+            an optional field is omitted from the validated result instead of
+            being filled with a value.
         required: Whether the field must be present in the config.
         validator: Optional extra validator applied after type coercion.
         description: Human-readable description of the field.
@@ -5508,8 +5509,7 @@ class SchemaField:
     Raises:
         TypeError: If ``type_`` is not one of the supported types, or if
             ``validator`` is not callable.
-        ValueError: If both ``default`` is unset and ``required`` is False
-            is contradictory usage (handled by the schema instead).
+        ValueError: If ``name`` is not a non-empty string.
     """
 
     _SUPPORTED_TYPES: Dict[type, Validator] = {
@@ -5588,7 +5588,7 @@ class ConfigSchema:
 
     Args:
         fields: An iterable of :class:`SchemaField` instances. Duplicate
-            names are not allowed; later definitions win.
+            field names are not allowed.
 
     Raises:
         ValueError: If a field name is duplicated.
@@ -5910,6 +5910,17 @@ class TestSchemaField(unittest.TestCase):
     def test_field_empty_name(self):
         with self.assertRaises(ValueError):
             SchemaField("", str)
+
+
+class TestConfigSchemaConstruction(unittest.TestCase):
+    def test_duplicate_field_names_raise(self):
+        with self.assertRaises(ValueError):
+            ConfigSchema(
+                [
+                    SchemaField("a", str, default="x"),
+                    SchemaField("a", int, default=1),
+                ]
+            )
 
 
 class TestConfigSchemaValidate(unittest.TestCase):
@@ -74675,6 +74686,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `config_schema` docstrings match the implemented contract
+
+- **Documentation fix — `config_schema.SchemaField` and `ConfigSchema` docstrings described behavior the code does not implement.** `SchemaField`'s `default` argument referenced a nonexistent ``:data:`schema_required` `` symbol, and its `Raises` section described a "both ``default`` unset and ``required`` is False" `ValueError` that the constructor never raises (it raises `ValueError` only for an empty/non-string ``name``). `ConfigSchema` claimed "Duplicate names are not allowed; later definitions win", but the constructor actually raises `ValueError` on a duplicate field name and never lets a later definition win. The docstrings now describe the real contract: an unset `default` means an optional field is omitted from the validated result, `SchemaField` raises `ValueError` for a non-string/empty ``name``, and duplicate field names raise `ValueError`.
+- **Tests:** added `TestConfigSchemaConstruction.test_duplicate_field_names_raise` to lock the documented duplicate-name `ValueError` contract (previously uncovered).
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled module.
+- Validation: `python -m unittest tests.test_config_schema` — 52 OK; `python -m doctest config_schema.py` — OK; `python -m ruff check config_schema.py tests/test_config_schema.py` — clean; `python -m mypy config_schema.py tests/test_config_schema.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK (11742 passed, 4 skipped); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `config_schema.range_validator` rejects floats with integer bounds
 
 - **Correctness fix — `config_schema.range_validator` silently accepted `float` values when both bounds were integers.** With `range_validator(1, 10)`, calls such as `validate(5.5)`, `validate(1.0)`, and `validate("5.5")` were accepted instead of raising, because the validator coerced any numeric value and compared against the integer bounds without rejecting non-integer inputs. The validator now rejects any `float` value, and any string that does not parse as a whole integer, with `TypeError` when the bounds are integers, matching the accepts-invalid-input / exception-type-consistency defect convention. Whole-number strings such as `"7"` still coerce to `7`.

@@ -419,8 +419,9 @@ class SchemaField:
     Args:
         name: The configuration key name.
         type_: The expected type (``str``, ``int``, ``float``, or ``bool``).
-        default: The default value used when the field is absent. Use
-            :data:`schema_required` or omit to mark the field as required.
+        default: The default value used when the field is absent. When unset,
+            an optional field is omitted from the validated result instead of
+            being filled with a value.
         required: Whether the field must be present in the config.
         validator: Optional extra validator applied after type coercion.
         description: Human-readable description of the field.
@@ -428,8 +429,7 @@ class SchemaField:
     Raises:
         TypeError: If ``type_`` is not one of the supported types, or if
             ``validator`` is not callable.
-        ValueError: If both ``default`` is unset and ``required`` is False
-            is contradictory usage (handled by the schema instead).
+        ValueError: If ``name`` is not a non-empty string.
     """
 
     _SUPPORTED_TYPES: Dict[type, Validator] = {
@@ -508,7 +508,7 @@ class ConfigSchema:
 
     Args:
         fields: An iterable of :class:`SchemaField` instances. Duplicate
-            names are not allowed; later definitions win.
+            field names are not allowed.
 
     Raises:
         ValueError: If a field name is duplicated.

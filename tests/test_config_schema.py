@@ -208,6 +208,17 @@ class TestSchemaField(unittest.TestCase):
             SchemaField("", str)
 
 
+class TestConfigSchemaConstruction(unittest.TestCase):
+    def test_duplicate_field_names_raise(self):
+        with self.assertRaises(ValueError):
+            ConfigSchema(
+                [
+                    SchemaField("a", str, default="x"),
+                    SchemaField("a", int, default=1),
+                ]
+            )
+
+
 class TestConfigSchemaValidate(unittest.TestCase):
     def setUp(self):
         self.schema = ConfigSchema(
