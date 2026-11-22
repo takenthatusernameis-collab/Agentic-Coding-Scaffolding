@@ -2,8 +2,8 @@
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0 (clean tree; verified checkpoint at HEAD; no source-relevant file changed since the checkpoint). No redundant full re-run needed unless a source-relevant file changes.
-3. Prior session summary — state green at HEAD `bf87f339`; checkpoint `bf87f339`; routine regression monitoring / targeted defect hunt; all gates passed; no genuine defect found; no source/test changes.
-4. Defect hunt: continue targeted review of hand-rolled modules for classic defect classes. All previously reviewed modules follow project validation conventions.
+3. Prior session summary — state green at HEAD `505b16e5`; checkpoint `505b16e5`; fixed `dict_utils` silently-ignored-params / missing input validation defects (`safe_get`, `flatten_dict`, `unflatten_dict`, `filter_dict`, `invert_dict` now validate `d` is a dict, `filter_dict` also validates `predicate` is callable); all gates passed; source/test/scaffold/checkpoint changes committed.
+4. Defect hunt: continue targeted review of hand-rolled modules for classic defect classes (silently ignored parameters, docstring-vs-implementation contracts, exception-type consistency, boundary/off-by-one bugs). All previously reviewed modules follow project validation conventions.
 5. Routine gates at a coherent milestone: `python -m unittest discover tests/`, `python -m ruff check .`, `python -m mypy . --exclude build --exclude dist`, `python tools/refresh_scaffold.py --check`, `python tools/verify_state_delta.py --full --record-full-suite`.
 6. Test modules must stay under `tests/`; do not add root-level `test_*.py` files. Keep `.github/workflows/**` unchanged.
 7. If you edit any hand-rolled `*_utils.py` module, its test, or `CHANGELOG.md`, run `make refresh-scaffold` then `python tools/refresh_scaffold.py --check`.
