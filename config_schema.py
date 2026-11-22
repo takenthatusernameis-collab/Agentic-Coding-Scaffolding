@@ -311,6 +311,8 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
         number: Union[int, float]
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise TypeError(f"cannot coerce {value!r} to a number")
+        if use_int_bounds and isinstance(value, float):
+            raise TypeError(f"cannot coerce {value!r} to int with integer bounds")
         try:
             if isinstance(value, str):
                 # For string input with integer bounds, parse as int to preserve precision
@@ -321,6 +323,8 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
             else:
                 number = value
         except (ValueError, TypeError) as exc:
+            if use_int_bounds:
+                raise TypeError(f"cannot coerce {value!r} to int with integer bounds") from exc
             raise ValueError(f"cannot coerce {value!r} to a number") from exc
         if use_int_bounds:
             if not (min_int <= number <= max_int):

@@ -5391,6 +5391,8 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
         number: Union[int, float]
         if isinstance(value, bool) or not isinstance(value, (int, float, str)):
             raise TypeError(f"cannot coerce {value!r} to a number")
+        if use_int_bounds and isinstance(value, float):
+            raise TypeError(f"cannot coerce {value!r} to int with integer bounds")
         try:
             if isinstance(value, str):
                 # For string input with integer bounds, parse as int to preserve precision
@@ -5401,6 +5403,8 @@ def range_validator(min_value: Union[int, float], max_value: Union[int, float]) 
             else:
                 number = value
         except (ValueError, TypeError) as exc:
+            if use_int_bounds:
+                raise TypeError(f"cannot coerce {value!r} to int with integer bounds") from exc
             raise ValueError(f"cannot coerce {value!r} to a number") from exc
         if use_int_bounds:
             if not (min_int <= number <= max_int):
@@ -5836,6 +5840,15 @@ class TestSchemaFieldValidators(unittest.TestCase):
         self.assertEqual(validate(str(large + 5)), large + 5)
         with self.assertRaises(ValueError):
             validate(large - 1)
+
+    def test_range_validator_with_int_bounds_rejects_floats(self):
+        validate = range_validator(1, 10)
+        with self.assertRaises(TypeError):
+            validate(5.5)
+        with self.assertRaises(TypeError):
+            validate(1.0)
+        with self.assertRaises(TypeError):
+            validate("5.5")
 
     def test_choices_validator(self):
         validate = choices_validator("dev", "staging", "prod")
@@ -74662,6 +74675,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `config_schema.range_validator` rejects floats with integer bounds
+
+- **Correctness fix — `config_schema.range_validator` silently accepted `float` values when both bounds were integers.** With `range_validator(1, 10)`, calls such as `validate(5.5)`, `validate(1.0)`, and `validate("5.5")` were accepted instead of raising, because the validator coerced any numeric value and compared against the integer bounds without rejecting non-integer inputs. The validator now rejects any `float` value, and any string that does not parse as a whole integer, with `TypeError` when the bounds are integers, matching the accepts-invalid-input / exception-type-consistency defect convention. Whole-number strings such as `"7"` still coerce to `7`.
+- **Tests:** `test_range_validator_with_int_bounds_rejects_floats` covers `5.5`, `1.0`, and `"5.5"` (failed before the fix, passes after).
+- **Defect class:** accepts-invalid-input / exception-type consistency in a hand-rolled module.
+- Validation: `python -m unittest tests.test_config_schema` — OK; `python -m ruff check config_schema.py tests/test_config_schema.py` — clean; `python -m mypy config_schema.py tests/test_config_schema.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK (11980 passed, 4 skipped); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `version_utils.decrement_patch` resets lower-significance components
 
 - **Correctness fix — `version_utils.decrement_patch` did not reset lower-significance components.** `decrement_version` documents that the chosen component is decremented and "all lower-significance components reset to zero", and `decrement_major`/`decrement_minor`/`bump_patch` all honour that contract. `decrement_patch` decremented the patch component but left any fourth-and-beyond component untouched, so `decrement_patch("1.2.3.4")` returned `"1.2.2.4"` instead of `"1.2.2.0"`. It now zeroes every component after the patch position, mirroring `bump_patch`, so `decrement_version(part="patch")` satisfies its documented reset contract.
