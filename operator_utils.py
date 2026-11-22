@@ -6,6 +6,7 @@ for transforming, combining, and comparing values.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -63,7 +64,27 @@ def modulo(a: Any, b: Any) -> Any:
 
 
 def clamp(value: Any, low: Any, high: Any) -> Any:
-    """Clamp ``value`` to the inclusive range ``[low, high]``."""
+    """Clamp ``value`` to the inclusive range ``[low, high]``.
+
+    Args:
+        value: The value to clamp.
+        low: The lower bound of the range.
+        high: The upper bound of the range.
+
+    Returns:
+        *value* constrained to [low, high].
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If any argument is NaN or infinite, or if *low* exceeds *high*.
+    """
+    for arg, name in ((value, "value"), (low, "low"), (high, "high")):
+        if isinstance(arg, bool) or not isinstance(arg, (int, float)):
+            raise TypeError(f"{name} must be a number, got {type(arg).__name__}")
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
+    if low > high:
+        raise ValueError("low must not exceed high")
     if value < low:
         return low
     if value > high:

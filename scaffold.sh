@@ -54566,6 +54566,7 @@ for transforming, combining, and comparing values.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -54623,7 +54624,27 @@ def modulo(a: Any, b: Any) -> Any:
 
 
 def clamp(value: Any, low: Any, high: Any) -> Any:
-    """Clamp ``value`` to the inclusive range ``[low, high]``."""
+    """Clamp ``value`` to the inclusive range ``[low, high]``.
+
+    Args:
+        value: The value to clamp.
+        low: The lower bound of the range.
+        high: The upper bound of the range.
+
+    Returns:
+        *value* constrained to [low, high].
+
+    Raises:
+        TypeError: If any argument is not a number.
+        ValueError: If any argument is NaN or infinite, or if *low* exceeds *high*.
+    """
+    for arg, name in ((value, "value"), (low, "low"), (high, "high")):
+        if isinstance(arg, bool) or not isinstance(arg, (int, float)):
+            raise TypeError(f"{name} must be a number, got {type(arg).__name__}")
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
+    if low > high:
+        raise ValueError("low must not exceed high")
     if value < low:
         return low
     if value > high:
@@ -54680,6 +54701,25 @@ class TestOperatorUtils(unittest.TestCase):
         self.assertEqual(clamp(5, 0, 10), 5)
         self.assertEqual(clamp(-1, 0, 10), 0)
         self.assertEqual(clamp(11, 0, 10), 10)
+
+    def test_clamp_rejects_non_finite(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                clamp(bad, 0, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, bad, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, 0, bad)
+
+    def test_clamp_rejects_inverted_bounds_and_non_number(self):
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+        with self.assertRaises(TypeError):
+            clamp("5", 0, 10)
+        with self.assertRaises(TypeError):
+            clamp(5, "0", 10)
+        with self.assertRaises(TypeError):
+            clamp(5, 0, True)
 
     def test_between(self):
         self.assertTrue(between(5, 0, 10))
@@ -74356,6 +74396,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `operator_utils.clamp` rejects non-finite values
+
+- **Correctness fix — `operator_utils.clamp` accepted NaN and infinite inputs.** The comparisons `value < low` and `value > high` are both `False` for `NaN`, so `clamp(float("nan"), 0, 10)` silently returned `NaN` instead of raising, and non-finite bounds passed through unchanged. The function now validates every argument: non-numbers (including bools) raise `TypeError`, NaN and ±inf raise `ValueError("... must be finite")`, and `low > high` raises `ValueError("low must not exceed high")`, matching `math_utils.clamp`, `number_utils.clamp`, and the project-wide finite-number convention.
+- **Tests:** added `test_clamp_rejects_non_finite` covering `float("nan")`, `float("inf")`, `float("-inf")` for value/low/high, plus `test_clamp_rejects_inverted_bounds_and_non_number` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_operator_utils` — 8 OK; `python -m ruff check operator_utils.py tests/test_operator_utils.py` — clean; `python -m mypy operator_utils.py tests/test_operator_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `audit_contracts` follows same-module class `__init__` delegation
 
 - **Tooling improvement — the contract audit no longer flags validation delegated to a same-module class constructor.** `tools/audit_contracts.py` resolves same-module helper calls to decide whether a documented `Raises:` type is actually raised, but it only indexed functions, so a wrapper that validates through a class it instantiates (for example `cooldown_utils.cooldown(interval)` returning `Cooldown(interval)`, whose `__init__` raises `TypeError`/`ValueError`) was reported as "documents Raises: ... but never raises it" even though the exception is genuinely raised. `build_index` now also indexes `ClassDef` nodes, and `raises_closure` follows a class to its `__init__` (the code that runs on instantiation) rather than the class body as a whole. A class without an explicit `__init__` is treated as raising nothing (it inherits an opaque base), so genuinely missing validation is still reported. This removes the recurring false positives every defect-hunt session had to triage by hand, raising the signal-to-noise ratio of the daily audit.

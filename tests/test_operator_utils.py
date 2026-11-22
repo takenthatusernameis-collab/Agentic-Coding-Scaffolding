@@ -39,6 +39,25 @@ class TestOperatorUtils(unittest.TestCase):
         self.assertEqual(clamp(-1, 0, 10), 0)
         self.assertEqual(clamp(11, 0, 10), 10)
 
+    def test_clamp_rejects_non_finite(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                clamp(bad, 0, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, bad, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, 0, bad)
+
+    def test_clamp_rejects_inverted_bounds_and_non_number(self):
+        with self.assertRaises(ValueError):
+            clamp(5, 10, 0)
+        with self.assertRaises(TypeError):
+            clamp("5", 0, 10)
+        with self.assertRaises(TypeError):
+            clamp(5, "0", 10)
+        with self.assertRaises(TypeError):
+            clamp(5, 0, True)
+
     def test_between(self):
         self.assertTrue(between(5, 0, 10))
         self.assertTrue(between(0, 0, 10))
