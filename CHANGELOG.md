@@ -1,3 +1,10 @@
+## Unreleased — `number_utils.clamp` and `clamp01` reject non-finite values
+
+- **Correctness fix — `number_utils.clamp` and `clamp01` accepted infinite inputs.** The functions checked for NaN but allowed `float("inf")` and `float("-inf")` to pass through and be clamped, diverging from `math_utils.clamp`, `operator_utils.clamp`, and `calculator.clamp`, which all reject non-finite values with `ValueError`. Both functions now validate using `math.isfinite` and raise `ValueError("... must be finite")` for NaN or ±inf, matching the project-wide finite-number convention.
+- **Tests:** `TestClamp.test_infinities_raise` and `TestClamp01.test_infinities_raise` now assert `ValueError` is raised for `float("inf")` and `float("-inf")` on all applicable arguments (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_number_utils` — 357 OK; `python -m ruff check number_utils.py tests/test_number_utils.py` — clean; `python -m mypy number_utils.py tests/test_number_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `either_utils.Either.map_left` documents exception capture
 
 - **Documentation fix — `either_utils.Either.map_left` did not document that exceptions raised by the mapper function are captured as a Left value.** The implementation already wrapped exceptions in `Left` (consistent with `map` and `filter`), but the docstring omitted this behavior. The docstring now states: "If *fn* raises an exception, it is caught and returned as a Left value to keep the operation safe."

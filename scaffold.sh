@@ -74398,6 +74398,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `number_utils.clamp` and `clamp01` reject non-finite values
+
+- **Correctness fix — `number_utils.clamp` and `clamp01` accepted infinite inputs.** The functions checked for NaN but allowed `float("inf")` and `float("-inf")` to pass through and be clamped, diverging from `math_utils.clamp`, `operator_utils.clamp`, and `calculator.clamp`, which all reject non-finite values with `ValueError`. Both functions now validate using `math.isfinite` and raise `ValueError("... must be finite")` for NaN or ±inf, matching the project-wide finite-number convention.
+- **Tests:** `TestClamp.test_infinities_raise` and `TestClamp01.test_infinities_raise` now assert `ValueError` is raised for `float("inf")` and `float("-inf")` on all applicable arguments (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_number_utils` — 357 OK; `python -m ruff check number_utils.py tests/test_number_utils.py` — clean; `python -m mypy number_utils.py tests/test_number_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `either_utils.Either.map_left` documents exception capture
 
 - **Documentation fix — `either_utils.Either.map_left` did not document that exceptions raised by the mapper function are captured as a Left value.** The implementation already wrapped exceptions in `Left` (consistent with `map` and `filter`), but the docstring omitted this behavior. The docstring now states: "If *fn* raises an exception, it is caught and returned as a Left value to keep the operation safe."
@@ -100075,13 +100082,14 @@ def clamp(value: Number, minimum: Number, maximum: Number) -> Number:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If *minimum* exceeds *maximum*.
+        ValueError: If any argument is NaN or infinite, or if *minimum* exceeds *maximum*.
     """
     _require_number(value, "value")
     _require_number(minimum, "minimum")
     _require_number(maximum, "maximum")
-    if any(isinstance(x, float) and math.isnan(x) for x in (value, minimum, maximum)):
-        raise ValueError("value, minimum, and maximum must not be NaN")
+    for arg, name in ((value, "value"), (minimum, "minimum"), (maximum, "maximum")):
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
     if minimum > maximum:
         raise ValueError("minimum must not exceed maximum")
     return max(minimum, min(maximum, value))
@@ -100098,10 +100106,11 @@ def clamp01(value: Number) -> Number:
 
     Raises:
         TypeError: If *value* is not a number.
+        ValueError: If *value* is NaN or infinite.
     """
     _require_number(value, "value")
-    if isinstance(value, float) and math.isnan(value):
-        raise ValueError("value must not be NaN")
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("value must be finite")
     return max(0, min(1, value))
 
 
@@ -102650,12 +102659,14 @@ class TestClamp(unittest.TestCase):
             with self.assertRaises(ValueError):
                 clamp(*args)
 
-    def test_infinities(self) -> None:
-        self.assertEqual(clamp(float("inf"), 0, 10), 10)
-        self.assertEqual(clamp(float("-inf"), 0, 10), 0)
-        self.assertEqual(clamp(5, float("-inf"), float("inf")), 5)
-        with self.assertRaises(ValueError):
-            clamp(5, float("inf"), 0)
+    def test_infinities_raise(self) -> None:
+        for bad in (float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                clamp(bad, 0, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, bad, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, 0, bad)
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
@@ -102678,9 +102689,11 @@ class TestClamp01(unittest.TestCase):
         with self.assertRaises(ValueError):
             clamp01(float("nan"))
 
-    def test_infinities(self) -> None:
-        self.assertEqual(clamp01(float("inf")), 1)
-        self.assertEqual(clamp01(float("-inf")), 0)
+    def test_infinities_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            clamp01(float("inf"))
+        with self.assertRaises(ValueError):
+            clamp01(float("-inf"))
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):

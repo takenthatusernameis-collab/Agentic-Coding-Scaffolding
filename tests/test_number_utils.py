@@ -94,12 +94,14 @@ class TestClamp(unittest.TestCase):
             with self.assertRaises(ValueError):
                 clamp(*args)
 
-    def test_infinities(self) -> None:
-        self.assertEqual(clamp(float("inf"), 0, 10), 10)
-        self.assertEqual(clamp(float("-inf"), 0, 10), 0)
-        self.assertEqual(clamp(5, float("-inf"), float("inf")), 5)
-        with self.assertRaises(ValueError):
-            clamp(5, float("inf"), 0)
+    def test_infinities_raise(self) -> None:
+        for bad in (float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                clamp(bad, 0, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, bad, 10)
+            with self.assertRaises(ValueError):
+                clamp(5, 0, bad)
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):
@@ -122,9 +124,11 @@ class TestClamp01(unittest.TestCase):
         with self.assertRaises(ValueError):
             clamp01(float("nan"))
 
-    def test_infinities(self) -> None:
-        self.assertEqual(clamp01(float("inf")), 1)
-        self.assertEqual(clamp01(float("-inf")), 0)
+    def test_infinities_raise(self) -> None:
+        with self.assertRaises(ValueError):
+            clamp01(float("inf"))
+        with self.assertRaises(ValueError):
+            clamp01(float("-inf"))
 
     def test_type_errors(self) -> None:
         with self.assertRaises(TypeError):

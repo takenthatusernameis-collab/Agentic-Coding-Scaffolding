@@ -106,13 +106,14 @@ def clamp(value: Number, minimum: Number, maximum: Number) -> Number:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If *minimum* exceeds *maximum*.
+        ValueError: If any argument is NaN or infinite, or if *minimum* exceeds *maximum*.
     """
     _require_number(value, "value")
     _require_number(minimum, "minimum")
     _require_number(maximum, "maximum")
-    if any(isinstance(x, float) and math.isnan(x) for x in (value, minimum, maximum)):
-        raise ValueError("value, minimum, and maximum must not be NaN")
+    for arg, name in ((value, "value"), (minimum, "minimum"), (maximum, "maximum")):
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
     if minimum > maximum:
         raise ValueError("minimum must not exceed maximum")
     return max(minimum, min(maximum, value))
@@ -129,10 +130,11 @@ def clamp01(value: Number) -> Number:
 
     Raises:
         TypeError: If *value* is not a number.
+        ValueError: If *value* is NaN or infinite.
     """
     _require_number(value, "value")
-    if isinstance(value, float) and math.isnan(value):
-        raise ValueError("value must not be NaN")
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError("value must be finite")
     return max(0, min(1, value))
 
 
