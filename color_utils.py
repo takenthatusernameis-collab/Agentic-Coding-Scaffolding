@@ -251,7 +251,8 @@ def hsl_to_rgb(h: float, s: float, lightness: float) -> _RGB:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If ``s`` or ``l`` is outside ``[0, 1]``.
+        ValueError: If ``s`` or ``l`` is outside ``[0, 1]``, or ``h`` is not
+            finite (``NaN`` or ``±inf``).
 
     Examples:
         >>> hsl_to_rgb(0, 1.0, 0.5)
@@ -261,6 +262,8 @@ def hsl_to_rgb(h: float, s: float, lightness: float) -> _RGB:
     """
     if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (h, s, lightness)):
         raise TypeError("h, s, and lightness must be numbers")
+    if not math.isfinite(h):
+        raise ValueError("h must be finite")
     if not 0.0 <= s <= 1.0 or not 0.0 <= lightness <= 1.0:
         raise ValueError("s and lightness must be in the range [0, 1]")
 

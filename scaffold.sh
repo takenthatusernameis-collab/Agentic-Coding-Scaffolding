@@ -52083,7 +52083,8 @@ def hsl_to_rgb(h: float, s: float, lightness: float) -> _RGB:
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If ``s`` or ``l`` is outside ``[0, 1]``.
+        ValueError: If ``s`` or ``l`` is outside ``[0, 1]``, or ``h`` is not
+            finite (``NaN`` or ``±inf``).
 
     Examples:
         >>> hsl_to_rgb(0, 1.0, 0.5)
@@ -52093,6 +52094,8 @@ def hsl_to_rgb(h: float, s: float, lightness: float) -> _RGB:
     """
     if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (h, s, lightness)):
         raise TypeError("h, s, and lightness must be numbers")
+    if not math.isfinite(h):
+        raise ValueError("h must be finite")
     if not 0.0 <= s <= 1.0 or not 0.0 <= lightness <= 1.0:
         raise ValueError("s and lightness must be in the range [0, 1]")
 
@@ -52406,6 +52409,20 @@ class TestHslToRgb(unittest.TestCase):
             hsl_to_rgb(0, 0.5, -0.1)
         with self.assertRaises(TypeError):
             hsl_to_rgb("x", 0.5, 0.5)  # type: ignore[arg-type]
+
+    def test_rejects_non_finite_hue(self) -> None:
+        # Hue is meant to wrap (t %= 1.0), but NaN/±inf cannot wrap: they slip
+        # past the numeric check and every ``t < ...`` comparison is False, so
+        # ``_hue_to_rgb`` returns ``p`` for all three channels and the result is
+        # silently a wrong color (black for the default s/l) instead of raising.
+        # Reject non-finite hue up front with the project's finite-number
+        # convention, matching ``adjust_brightness``'s treatment of ``factor``.
+        with self.assertRaisesRegex(ValueError, "finite"):
+            hsl_to_rgb(float("nan"), 1.0, 0.5)
+        with self.assertRaisesRegex(ValueError, "finite"):
+            hsl_to_rgb(float("inf"), 1.0, 0.5)
+        with self.assertRaisesRegex(ValueError, "finite"):
+            hsl_to_rgb(float("-inf"), 1.0, 0.5)
 
 
 class TestGetLuminance(unittest.TestCase):
@@ -74519,6 +74536,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `color_utils.hsl_to_rgb` rejects non-finite hue
+
+- **Correctness fix — `color_utils.hsl_to_rgb` silently accepted `NaN`/`±inf` hue.** Hue is validated as a number but not for finiteness, and unlike `s`/`lightness` it has no `[0, 1]` range check to catch NaN (it is meant to wrap via `t %= 1.0`). A `NaN` or infinite hue therefore cleared validation, every ``t < ...`` comparison in `_hue_to_rgb` evaluated `False` for NaN, and all three channels collapsed to `p`, so `hsl_to_rgb(float("nan"), 1.0, 0.5)` silently returned a wrong color (`(0, 0, 0)`) instead of raising. `h` is now checked with `math.isfinite` up front and raises `ValueError("h must be finite")`, matching the project-wide finite-number convention already used by `adjust_brightness`'s `factor` and `blend_colors`'s `weight`. The docstring `Raises:` clause documents the new `ValueError`.
+- **Tests:** added `TestHslToRgb.test_rejects_non_finite_hue` covering `NaN`, `inf`, and `-inf` hue (fails before the fix, passes after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+
 ## Unreleased — `shapes.point_in_rectangle` rejects non-finite coordinates
 
 - **Correctness fix — `shapes.point_in_rectangle` accepted `NaN`/`Infinity` coordinates.** The function validated its arguments with a bare `isinstance(value, (int, float))` check, so `float("nan")` and `float("inf")` passed validation. A `NaN` corner or point silently produced `False` (e.g. `point_in_rectangle((1, 1), float("nan"), 0, 3, 3)` returns `False`) instead of raising, diverging from every other numeric function in the module (`point_distance`, `midpoint`, `circle_area`, `rectangle_area`, ...) which route coordinates through `_require_number` and raise `ValueError("... must be a finite number")` for NaN/±inf. `point_in_rectangle` now validates `px`, `py`, `x1`, `y1`, `x2`, and `y2` with `_require_number`, and the docstring `Raises:` clause documents the new `ValueError` for non-finite coordinates.

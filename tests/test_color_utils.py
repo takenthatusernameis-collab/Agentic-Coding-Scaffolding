@@ -135,6 +135,20 @@ class TestHslToRgb(unittest.TestCase):
         with self.assertRaises(TypeError):
             hsl_to_rgb("x", 0.5, 0.5)  # type: ignore[arg-type]
 
+    def test_rejects_non_finite_hue(self) -> None:
+        # Hue is meant to wrap (t %= 1.0), but NaN/±inf cannot wrap: they slip
+        # past the numeric check and every ``t < ...`` comparison is False, so
+        # ``_hue_to_rgb`` returns ``p`` for all three channels and the result is
+        # silently a wrong color (black for the default s/l) instead of raising.
+        # Reject non-finite hue up front with the project's finite-number
+        # convention, matching ``adjust_brightness``'s treatment of ``factor``.
+        with self.assertRaisesRegex(ValueError, "finite"):
+            hsl_to_rgb(float("nan"), 1.0, 0.5)
+        with self.assertRaisesRegex(ValueError, "finite"):
+            hsl_to_rgb(float("inf"), 1.0, 0.5)
+        with self.assertRaisesRegex(ValueError, "finite"):
+            hsl_to_rgb(float("-inf"), 1.0, 0.5)
+
 
 class TestGetLuminance(unittest.TestCase):
     def test_bounds(self) -> None:
