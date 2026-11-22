@@ -1,8 +1,8 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0 (clean tree, HEAD matches verified checkpoint `94223c0a`); no redundant full re-run is needed unless a source-relevant file changes.
-3. Prior session summary — bootstrap session establishing project foundation; state green at HEAD `94223c0a`. `board_read`: empty (bootstrap session); no task from previous agent.
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=1 (clean tree; verified checkpoint `94223c0a` behind HEAD `8d369881` on bookkeeping-only commits; no source-relevant file changed since the checkpoint); no redundant full re-run is needed unless a source-relevant file changes.
+3. Prior session summary — bootstrap session establishing project foundation; state green at HEAD `8d369881`. `board_read`: empty (bootstrap session); no task from previous agent.
 4. Defect hunt: run targeted review of hand-rolled modules for classic defect classes (accepts-invalid-input NaN/Infinity/bool-as-number, silently ignored params, docstring-vs-implementation contracts, boundary/off-by-one, exception-type consistency, duplicated/dead-code validation).
 5. Routine gates at a coherent milestone: `python -m unittest discover tests/`, `python -m ruff check .`, `python -m mypy . --exclude build --exclude dist`, `python tools/refresh_scaffold.py --check`, `python tools/verify_state_delta.py --full --record-full-suite`.
 6. Test modules must stay under `tests/`; do not add root-level `test_*.py` files. Keep `.github/workflows/**` unchanged.
