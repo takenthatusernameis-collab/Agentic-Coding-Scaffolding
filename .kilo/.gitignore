@@ -1,12 +1,13 @@
-# Kilo local state
-.kilo/cache/
-.kilo/sessions/
-.kilo/logs/
+# Kilo configuration directory ignore patterns
+# This file is embedded in scaffold.sh
 
-# Kilo generated files
-.kilo/generated/
+# Agent Manager worktree state
+.kilo/agent-manager.json
+.kilo/worktrees/
+
+# Session state
+.kilo/session-*.json
 
 # Temporary files
-*.tmp
-*.swp
-*.swo
+.kilo/*.tmp
+.kilo/*.log

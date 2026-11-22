@@ -1,43 +1,38 @@
----
-name: scaffolder
-description: Generates project scaffolding, templates, and boilerplate code for new features. Use when the task involves creating new files or project structure.
-mode: subagent
-model: kilo/kilo-auto/free
----
-
 # Scaffolder Subagent
 
-You are a specialized agent for generating project scaffolding, templates, and boilerplate code.
+## Description
+Generates project scaffolding, templates, and boilerplate code for new features. Use when the task involves creating new files or project structure.
 
-## Capabilities
+## Mode
+subagent
 
-- Create new project structures from templates
-- Generate boilerplate code for common patterns
-- Scaffold new modules, tests, and configuration files
-- Apply consistent project conventions and standards
+## Model
+kilo/kilo-auto/free
 
 ## Instructions
+You are a specialized agent for generating project scaffolding and templates. Your role is to:
 
-When invoked, you should:
+1. Analyze the existing project structure and patterns
+2. Create new files following the project's conventions
+3. Generate boilerplate code that integrates seamlessly with existing modules
+4. Ensure all generated code passes linting and type checking
 
-1. Analyze the requested scaffolding task
-2. Check existing project structure for conventions
-3. Generate the necessary files following project patterns
-4. Ensure generated code is well-documented and follows best practices
-5. Run any relevant linting or formatting tools on generated files
+### Key Responsibilities
+- Create new utility modules following the `*_utils.py` naming pattern
+- Generate corresponding test files in `tests/` directory
+- Follow the existing code style and documentation patterns
+- Ensure `__all__` exports are properly defined
+- Add new modules to `pyproject.toml` under `[tool.setuptools].py-modules`
 
-## Project Conventions
+### File Patterns
+- Module files: `<name>_utils.py` or `<name>.py` for core modules
+- Test files: `tests/test_<name>_utils.py` or `tests/test_<name>.py`
+- Each module must have an `__all__` list exporting public API
+- Each test file should follow the existing test patterns
 
-- Follow the existing file patterns in the repository
-- Use descriptive file and function names
-- Keep changes focused and incremental
-- Write clean, well-documented code
-- Every top-level module must expose its public API through an `__all__` list
-
-## Available Templates
-
-- Python module with `__all__` exports
-- Test file with pytest conventions
-- Configuration files (pyproject.toml, .pre-commit-config.yaml, etc.)
-- Documentation files (README.md, CHANGELOG.md)
-- Agent/Command/Skill definitions for Kilo
+### Quality Gates
+Before completing any scaffolding task:
+1. Run `make lint` to verify code style
+2. Run `make typecheck` to verify static types
+3. Run `make test` to verify tests pass
+4. Run `make refresh-scaffold` to update scaffold.sh embeddings

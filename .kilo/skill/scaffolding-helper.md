@@ -1,47 +1,96 @@
----
-name: scaffolding-helper
-description: Helper skill for scaffolding tasks - provides utilities for generating boilerplate code and project structures
----
-
 # Scaffolding Helper Skill
 
-This skill provides specialized instructions and workflows for scaffolding tasks.
+## Description
+A sample skill that provides helper functions and patterns for scaffolding tasks. This skill demonstrates how to create custom skills for the Kilo agent system.
 
-## When to Use
+## Capabilities
+This skill provides guidance on:
+- Creating new utility modules following project conventions
+- Generating test files with proper structure
+- Updating pyproject.toml with new module entries
+- Running quality checks (lint, typecheck, tests)
+- Refreshing scaffold.sh embeddings
 
-- Creating new modules or files following project conventions
-- Generating boilerplate code for common patterns
-- Setting up new project structures
-- Adding tests for new modules
+## Usage
+Load this skill when working on scaffolding tasks:
+```
+/skill scaffolding-helper
+```
 
-## Workflows
+## Patterns
 
 ### Creating a New Utility Module
+1. Create `<name>_utils.py` in the project root
+2. Define `__all__` with public exports
+3. Add comprehensive docstrings with examples
+4. Follow existing code style (ruff, mypy compliant)
 
-1. Check existing modules for naming conventions
-2. Create the module file with proper `__all__` exports
-3. Add comprehensive docstrings
-4. Create corresponding test file in tests/
-5. Run `make test` to verify
+### Creating a Test File
+1. Create `tests/test_<name>_utils.py`
+2. Import the module under test
+3. Write test classes following `Test<FunctionName>` pattern
+4. Include edge cases and error conditions
 
-### Creating a New Test File
+### Updating pyproject.toml
+Add the new module to `[tool.setuptools].py-modules` list in alphabetical order.
 
-1. Follow pytest conventions
-2. Use descriptive test function names
-3. Test both success and error cases
-4. Mock external dependencies when appropriate
+### Quality Checks
+Run after creating/modifying files:
+```bash
+make lint        # Check code style
+make typecheck   # Static type checking
+make test        # Run tests (delta-aware)
+make refresh-scaffold  # Update scaffold.sh embeddings
+```
 
-### Updating Project Configuration
+## Example Module Template
+```python
+"""Module docstring describing purpose and key functions."""
 
-1. Update pyproject.toml for new modules
-2. Run `make refresh-scaffold` to sync scaffold.sh
-3. Run `make lint` and `make typecheck` to verify
+from __future__ import annotations
 
-## Best Practices
+__all__ = [
+    "public_function",
+    "PublicClass",
+]
 
-- Follow existing file patterns in the repository
-- Use descriptive file and function names
-- Keep changes focused and incremental
-- Write clean, well-documented code
-- Every public function/class must be in `__all__`
-- Run tests after making changes
+
+def public_function(arg: str) -> str:
+    """Public function with docstring and type hints."""
+    return arg.upper()
+
+
+class PublicClass:
+    """Public class with docstring."""
+
+    def method(self) -> str:
+        """Public method."""
+        return "result"
+```
+
+## Example Test Template
+```python
+"""Tests for <name>_utils module."""
+
+import unittest
+from <name>_utils import public_function, PublicClass
+
+
+class TestPublicFunction(unittest.TestCase):
+    """Tests for public_function."""
+
+    def test_basic(self) -> None:
+        self.assertEqual(public_function("hello"), "HELLO")
+
+
+class TestPublicClass(unittest.TestCase):
+    """Tests for PublicClass."""
+
+    def test_method(self) -> None:
+        obj = PublicClass()
+        self.assertEqual(obj.method(), "result")
+
+
+if __name__ == "__main__":
+    unittest.main()
+```
