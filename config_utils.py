@@ -81,6 +81,9 @@ def get_config_value(
     Returns:
         The value at the specified key path, or default if not found
 
+    Raises:
+        TypeError: If *config* is not a dictionary
+
     Example:
         >>> config = {"database": {"host": "localhost", "port": 5432}}
         >>> get_config_value(config, "database.host")
@@ -89,7 +92,7 @@ def get_config_value(
         'admin'
     """
     if not isinstance(config, dict):
-        return default
+        raise TypeError(f"config must be a dictionary, got {type(config).__name__}")
 
     keys = key_path.split(separator)
     current = config

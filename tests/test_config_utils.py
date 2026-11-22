@@ -186,14 +186,13 @@ class TestGetConfigValue(unittest.TestCase):
         self.assertEqual(get_config_value(config, "a/b/c/d", separator="/"), "value")
 
     def test_get_with_non_dict_config(self):
-        """Test getting value from non-dict config returns default."""
-        self.assertEqual(get_config_value("not a dict", "key", "default"), "default")
-        self.assertEqual(get_config_value([], "key", "default"), "default")
-        self.assertEqual(get_config_value(42, "key", "default"), "default")
-        # Also test that it returns None when no default provided
-        self.assertIsNone(get_config_value("not a dict", "key"))
-        self.assertIsNone(get_config_value([], "key"))
-        self.assertIsNone(get_config_value(42, "key"))
+        """Test getting value from non-dict config raises TypeError."""
+        for bad in ("not a dict", [], 42, None):
+            with self.subTest(config=bad):
+                with self.assertRaises(TypeError):
+                    get_config_value(bad, "key", "default")  # type: ignore[arg-type]
+                with self.assertRaises(TypeError):
+                    get_config_value(bad, "key")  # type: ignore[arg-type]
 
 
 class TestSetConfigValue(unittest.TestCase):

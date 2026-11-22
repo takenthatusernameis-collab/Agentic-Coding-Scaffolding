@@ -1,3 +1,10 @@
+## Unreleased — `config_utils.get_config_value` raises TypeError for non-dict config
+
+- **Correctness fix — `config_utils.get_config_value` silently ignored a non-dict `config`.** When `config` was not a dictionary, the function returned `default` instead of rejecting the invalid argument, diverging from `set_config_value` and `merge_configs`, which both raise `TypeError` for non-dict inputs. The function now raises `TypeError("config must be a dictionary, got ...")` for non-dict `config`, matching the project's silently-ignored-params defect convention.
+- **Tests:** `test_get_with_non_dict_config` now asserts `TypeError` is raised for non-dict configs (`str`, `list`, `int`, `None`) both with and without an explicit `default` (fail before the fix, pass after).
+- **Defect class:** silently ignored parameters in a hand-rolled module.
+- Validation: `python -m unittest tests.test_config_utils` — 26 OK; `python -m ruff check config_utils.py tests/test_config_utils.py` — clean; `python -m mypy config_utils.py tests/test_config_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `operator_utils.clamp` rejects non-finite values
 
 - **Correctness fix — `operator_utils.clamp` accepted NaN and infinite inputs.** The comparisons `value < low` and `value > high` are both `False` for `NaN`, so `clamp(float("nan"), 0, 10)` silently returned `NaN` instead of raising, and non-finite bounds passed through unchanged. The function now validates every argument: non-numbers (including bools) raise `TypeError`, NaN and ±inf raise `ValueError("... must be finite")`, and `low > high` raises `ValueError("low must not exceed high")`, matching `math_utils.clamp`, `number_utils.clamp`, and the project-wide finite-number convention.
