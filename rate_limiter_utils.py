@@ -58,13 +58,17 @@ class RateLimiter:
             True if tokens were acquired, False otherwise.
 
         Raises:
-            ValueError: If *tokens* is negative, which would otherwise silently
-                mint tokens instead of consuming them.
+            ValueError: If *tokens* is negative (which would otherwise silently
+                mint tokens instead of consuming them) or not finite (NaN or
+                infinity), which could never be satisfied and would otherwise
+                make ``acquire`` silently return ``False``.
         """
         if isinstance(tokens, bool) or not isinstance(tokens, (int, float)):
             raise TypeError("tokens must be a number")
         if tokens < 0:
             raise ValueError("tokens must be non-negative")
+        if not math.isfinite(tokens):
+            raise ValueError("tokens must be finite")
         self._update()
         if tokens > self.capacity:
             # Cannot acquire more than capacity at once
@@ -81,11 +85,14 @@ class RateLimiter:
             tokens: Number of tokens to acquire.
 
         Raises:
-            ValueError: If *tokens* exceeds the bucket capacity. Such a request
-                can never be satisfied, so blocking on it would loop forever.
+            ValueError: If *tokens* exceeds the bucket capacity or is not finite.
+                Such a request can never be satisfied, so blocking on it would
+                loop forever.
         """
         if isinstance(tokens, bool) or not isinstance(tokens, (int, float)):
             raise TypeError("tokens must be a number")
+        if not math.isfinite(tokens):
+            raise ValueError("tokens must be finite")
         if tokens > self.capacity:
             raise ValueError(
                 f"cannot acquire {tokens} tokens from a bucket with capacity "

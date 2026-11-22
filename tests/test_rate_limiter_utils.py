@@ -134,6 +134,32 @@ class TestRateLimiter(unittest.TestCase):
         with self.assertRaises(TypeError):
             limiter.acquire_blocking(True)
 
+    def test_acquire_rejects_nan_tokens(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        limiter.tokens = 0.0
+        with self.assertRaises(ValueError):
+            limiter.acquire(float("nan"))
+        # The rejected request must not consume or mint tokens.
+        self.assertAlmostEqual(limiter.tokens, 0.0, places=6)
+
+    def test_acquire_rejects_infinite_tokens(self):
+        limiter = RateLimiter(rate=1.0, capacity=1.0)
+        with self.assertRaises(ValueError):
+            limiter.acquire(float("inf"))
+
+    def test_acquire_blocking_rejects_nan_tokens(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        # This used to spin forever because ``nan`` can never be acquired.
+        start = time.monotonic()
+        with self.assertRaises(ValueError):
+            limiter.acquire_blocking(float("nan"))
+        self.assertLess(time.monotonic() - start, 0.1)
+
+    def test_acquire_blocking_rejects_infinite_tokens(self):
+        limiter = RateLimiter(rate=10.0, capacity=1.0)
+        with self.assertRaises(ValueError):
+            limiter.acquire_blocking(float("inf"))
+
     def test_rate_limit_preserves_metadata(self):
         @rate_limit(rate=1000.0)
         def documented() -> str:
