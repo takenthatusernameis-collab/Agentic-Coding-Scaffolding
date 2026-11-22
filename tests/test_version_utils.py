@@ -656,6 +656,10 @@ class TestDecrementPatch(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(decrement_patch("1.2.3"), "1.2.2")
 
+    def test_resets_lower_components(self):
+        self.assertEqual(decrement_patch("1.2.3.4"), "1.2.2.0")
+        self.assertEqual(decrement_patch("1.2.3.4.5"), "1.2.2.0.0")
+
     def test_zero_patch_raises(self):
         with self.assertRaises(ValueError):
             decrement_patch("1.2.0")
@@ -685,6 +689,10 @@ class TestDecrementVersion(unittest.TestCase):
 
     def test_patch(self):
         self.assertEqual(decrement_version("1.2.3", "patch"), "1.2.2")
+
+    def test_patch_resets_lower_components(self):
+        self.assertEqual(decrement_version("1.2.3.4", "patch"), "1.2.2.0")
+        self.assertEqual(decrement_version("1.2.3.4.5", "patch"), "1.2.2.0.0")
 
     def test_case_insensitive(self):
         self.assertEqual(decrement_version("1.2.3", "MAJOR"), "0.0.0")

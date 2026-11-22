@@ -74629,6 +74629,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `version_utils.decrement_patch` resets lower-significance components
+
+- **Correctness fix — `version_utils.decrement_patch` did not reset lower-significance components.** `decrement_version` documents that the chosen component is decremented and "all lower-significance components reset to zero", and `decrement_major`/`decrement_minor`/`bump_patch` all honour that contract. `decrement_patch` decremented the patch component but left any fourth-and-beyond component untouched, so `decrement_patch("1.2.3.4")` returned `"1.2.2.4"` instead of `"1.2.2.0"`. It now zeroes every component after the patch position, mirroring `bump_patch`, so `decrement_version(part="patch")` satisfies its documented reset contract.
+- **Tests:** added `TestDecrementPatch.test_resets_lower_components` and `TestDecrementVersion.test_patch_resets_lower_components` covering `1.2.3.4` → `1.2.2.0` and `1.2.3.4.5` → `1.2.2.0.0` (fail before the fix, pass after).
+- **Defect class:** docstring-vs-implementation contract / boundary in a hand-rolled module.
+- Validation: `python -m unittest tests.test_version_utils` — 304 OK; `python -m ruff check version_utils.py tests/test_version_utils.py` — clean; `python -m mypy version_utils.py tests/test_version_utils.py` — success; `python -m doctest version_utils.py` — OK; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `statistics_utils` rejects non-finite values
 
 - **Correctness fix — `statistics_utils` silently accepted `NaN`/`±inf`.** `harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `z_score`, `covariance`, and `correlation` validated their numeric inputs with comparisons that are `False` for `NaN` (and never checked finiteness at all), so passing a non-finite value silently produced a `NaN` result instead of raising. Each function now rejects any non-finite element with `ValueError("numbers must not contain NaN or infinite values")` up front, matching the project-wide `math.isfinite` convention already used by `normalize` (and `color_utils`, `cooldown_utils`, `calculator`, `validation_utils`).
@@ -139216,7 +139223,29 @@ def decrement_minor(version: str) -> str:
 
 
 def decrement_patch(version: str) -> str:
-    """Decrement the patch version component."""
+    """Decrement the patch version component.
+
+    The patch component is decremented and every component of lower
+    significance (a fourth component and beyond) is reset to zero, mirroring
+    :func:`decrement_major`, :func:`decrement_minor`, and :func:`bump_patch`.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The version string with the patch component decremented and any
+        lower-significance components reset to zero.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid or the patch component is already 0.
+
+    Examples:
+        >>> decrement_patch("1.2.3")
+        '1.2.2'
+        >>> decrement_patch("1.2.3.4")
+        '1.2.2.0'
+    """
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     parts = list(parse_version(version))
@@ -139228,6 +139257,12 @@ def decrement_patch(version: str) -> str:
     if parts[2] == 0:
         raise ValueError("patch version cannot go below 0")
     parts[2] = parts[2] - 1
+    # Reset every component below the patch position to zero, mirroring
+    # decrement_major/decrement_minor and bump_patch so that
+    # decrement_version(part="patch") honours its documented contract that all
+    # lower-significance components are reset.
+    for i in range(3, len(parts)):
+        parts[i] = 0
     return ".".join(str(p) for p in parts)
 
 
@@ -140132,6 +140167,10 @@ class TestDecrementPatch(unittest.TestCase):
     def test_basic(self):
         self.assertEqual(decrement_patch("1.2.3"), "1.2.2")
 
+    def test_resets_lower_components(self):
+        self.assertEqual(decrement_patch("1.2.3.4"), "1.2.2.0")
+        self.assertEqual(decrement_patch("1.2.3.4.5"), "1.2.2.0.0")
+
     def test_zero_patch_raises(self):
         with self.assertRaises(ValueError):
             decrement_patch("1.2.0")
@@ -140161,6 +140200,10 @@ class TestDecrementVersion(unittest.TestCase):
 
     def test_patch(self):
         self.assertEqual(decrement_version("1.2.3", "patch"), "1.2.2")
+
+    def test_patch_resets_lower_components(self):
+        self.assertEqual(decrement_version("1.2.3.4", "patch"), "1.2.2.0")
+        self.assertEqual(decrement_version("1.2.3.4.5", "patch"), "1.2.2.0.0")
 
     def test_case_insensitive(self):
         self.assertEqual(decrement_version("1.2.3", "MAJOR"), "0.0.0")

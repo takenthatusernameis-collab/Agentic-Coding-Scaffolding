@@ -1191,7 +1191,29 @@ def decrement_minor(version: str) -> str:
 
 
 def decrement_patch(version: str) -> str:
-    """Decrement the patch version component."""
+    """Decrement the patch version component.
+
+    The patch component is decremented and every component of lower
+    significance (a fourth component and beyond) is reset to zero, mirroring
+    :func:`decrement_major`, :func:`decrement_minor`, and :func:`bump_patch`.
+
+    Args:
+        version: A dotted version string.
+
+    Returns:
+        The version string with the patch component decremented and any
+        lower-significance components reset to zero.
+
+    Raises:
+        TypeError: If *version* is not a string.
+        ValueError: If *version* is invalid or the patch component is already 0.
+
+    Examples:
+        >>> decrement_patch("1.2.3")
+        '1.2.2'
+        >>> decrement_patch("1.2.3.4")
+        '1.2.2.0'
+    """
     if not isinstance(version, str):
         raise TypeError("version must be a string")
     parts = list(parse_version(version))
@@ -1203,6 +1225,12 @@ def decrement_patch(version: str) -> str:
     if parts[2] == 0:
         raise ValueError("patch version cannot go below 0")
     parts[2] = parts[2] - 1
+    # Reset every component below the patch position to zero, mirroring
+    # decrement_major/decrement_minor and bump_patch so that
+    # decrement_version(part="patch") honours its documented contract that all
+    # lower-significance components are reset.
+    for i in range(3, len(parts)):
+        parts[i] = 0
     return ".".join(str(p) for p in parts)
 
 
