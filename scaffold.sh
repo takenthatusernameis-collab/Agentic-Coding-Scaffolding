@@ -29090,6 +29090,14 @@ class TestHarmonicMean(unittest.TestCase):
         self.assertGreater(result, 0.0)
         self.assertAlmostEqual(result / 1e-320, 1.0, places=12)
 
+    def test_harmonic_mean_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, float("-inf"), 3])
+
 
 class TestGeometricMean(unittest.TestCase):
     def test_geometric_mean_basic(self):
@@ -29116,6 +29124,14 @@ class TestGeometricMean(unittest.TestCase):
         self.assertGreater(result, 0.0)
         self.assertAlmostEqual(result / 1e-200, 1.0, places=12)
 
+    def test_geometric_mean_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            geometric_mean([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            geometric_mean([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            geometric_mean([1, float("-inf"), 3])
+
 
 class TestMedianEven(unittest.TestCase):
     def test_median_even_even_length(self):
@@ -29130,6 +29146,14 @@ class TestMedianEven(unittest.TestCase):
     def test_median_even_raises_on_empty(self):
         with self.assertRaises(ValueError):
             median_even([])
+
+    def test_median_even_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            median_even([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            median_even([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            median_even([1, float("-inf"), 3])
 
 
 class TestPercentile(unittest.TestCase):
@@ -29161,6 +29185,14 @@ class TestPercentile(unittest.TestCase):
         with self.assertRaises(ValueError):
             percentile([1, 2, 3], 101)
 
+    def test_percentile_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            percentile([1, float("nan"), 3], 50)
+        with self.assertRaises(ValueError):
+            percentile([1, float("inf"), 3], 50)
+        with self.assertRaises(ValueError):
+            percentile([1, float("-inf"), 3], 50)
+
 
 class TestCovariance(unittest.TestCase):
     def test_covariance_basic(self):
@@ -29182,6 +29214,14 @@ class TestCovariance(unittest.TestCase):
     def test_covariance_raises_on_single_element(self):
         with self.assertRaises(ValueError):
             covariance([1], [2])
+
+    def test_covariance_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            covariance([1, float("nan"), 3], [1, 2, 3])
+        with self.assertRaises(ValueError):
+            covariance([1, 2, 3], [1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            covariance([1, float("-inf"), 3], [1, 2, 3])
 
 
 class TestCorrelation(unittest.TestCase):
@@ -29219,6 +29259,14 @@ class TestCorrelation(unittest.TestCase):
         with self.assertRaises(ValueError):
             correlation([1, 2, 3], [2, 2, 2])
 
+    def test_correlation_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            correlation([1, float("nan"), 3], [1, 2, 3])
+        with self.assertRaises(ValueError):
+            correlation([1, 2, 3], [1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            correlation([1, float("-inf"), 3], [1, 2, 3])
+
 
 class TestZScore(unittest.TestCase):
     def test_z_score_basic(self):
@@ -29245,6 +29293,14 @@ class TestZScore(unittest.TestCase):
     def test_z_score_raises_on_single_element(self):
         with self.assertRaises(ValueError):
             z_score([1])
+
+    def test_z_score_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            z_score([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            z_score([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            z_score([1, float("-inf"), 3])
 
 
 class TestNormalize(unittest.TestCase):
@@ -44840,6 +44896,8 @@ def harmonic_mean(numbers: List[T | float]) -> float:
     # Check for zeros
     if any(x == 0 for x in numbers):
         raise ValueError("Harmonic mean is undefined for values equal to zero")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     # Scale by the smallest magnitude so every reciprocal stays at or below 1;
     # otherwise a tiny input (e.g. 1e-320) overflows ``1.0 / x`` to ``inf`` and
     # the mean collapses to ``0.0``.
@@ -44870,6 +44928,8 @@ def geometric_mean(numbers: List[T | float]) -> float:
     """
     if not numbers:
         raise ValueError("Cannot calculate geometric mean of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     # Check for negatives
     if any(x < 0 for x in numbers):
         raise ValueError("Geometric mean is undefined for negative numbers")
@@ -44909,6 +44969,8 @@ def median_even(numbers: List[T | float]) -> Tuple[float, float]:
     """
     if not numbers:
         raise ValueError("Cannot calculate median_even of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     sorted_nums = sorted(numbers)
     n = len(sorted_nums)
     if n % 2 == 0:
@@ -44946,6 +45008,8 @@ def percentile(numbers: List[T | float], p: float) -> float:
     """
     if not numbers:
         raise ValueError("Cannot calculate percentile of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     if not 0 <= p <= 100:
         raise ValueError("Percentile must be between 0 and 100 inclusive")
     sorted_nums = sorted(numbers)
@@ -44992,6 +45056,8 @@ def covariance(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Both lists must have the same length")
     if len(x) < 2:
         raise ValueError("Covariance requires at least two elements")
+    if any(isinstance(v, float) and (math.isnan(v) or math.isinf(v)) for v in (*x, *y)):
+        raise ValueError("numbers must not contain NaN or infinite values")
     mean_x = sum(x) / len(x)
     mean_y = sum(y) / len(y)
     cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
@@ -45024,6 +45090,8 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Both lists must have the same length")
     if len(x) < 2:
         raise ValueError("Correlation requires at least two elements")
+    if any(isinstance(v, float) and (math.isnan(v) or math.isinf(v)) for v in (*x, *y)):
+        raise ValueError("numbers must not contain NaN or infinite values")
     mean_x = sum(x) / len(x)
     mean_y = sum(y) / len(y)
     # Compute covariance and variances
@@ -45056,6 +45124,8 @@ def z_score(numbers: List[T | float]) -> List[float]:
     """
     if not numbers:
         raise ValueError("Cannot calculate z-scores of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     mean_val = sum(numbers) / len(numbers)
     # Population standard deviation
     variance = sum((x - mean_val) ** 2 for x in numbers) / len(numbers)
@@ -74559,6 +74629,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `statistics_utils` rejects non-finite values
+
+- **Correctness fix — `statistics_utils` silently accepted `NaN`/`±inf`.** `harmonic_mean`, `geometric_mean`, `median_even`, `percentile`, `z_score`, `covariance`, and `correlation` validated their numeric inputs with comparisons that are `False` for `NaN` (and never checked finiteness at all), so passing a non-finite value silently produced a `NaN` result instead of raising. Each function now rejects any non-finite element with `ValueError("numbers must not contain NaN or infinite values")` up front, matching the project-wide `math.isfinite` convention already used by `normalize` (and `color_utils`, `cooldown_utils`, `calculator`, `validation_utils`).
+- **Tests:** added `test_harmonic_mean_rejects_non_finite`, `test_geometric_mean_rejects_non_finite`, `test_median_even_rejects_non_finite`, `test_percentile_rejects_non_finite`, `test_z_score_rejects_non_finite`, `test_covariance_rejects_non_finite`, and `test_correlation_rejects_non_finite` covering `float("nan")`, `float("inf")`, and `float("-inf")` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_statistics_utils` — 52 OK; `python -m ruff check statistics_utils.py tests/test_statistics_utils.py` — clean; `python -m mypy statistics_utils.py tests/test_statistics_utils.py` — success; `python -m doctest statistics_utils.py` — 16 passed; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `config_schema.float_validator` rejects non-finite floats
 
 - **Correctness fix — `config_schema.float_validator` silently accepted `NaN`/`±inf`.** The function coerced its input with `float(value)` but never checked finiteness, so `float_validator(float("nan"))`, `float_validator(float("inf"))`, `float_validator("nan")`, and `float_validator("inf")` returned non-finite floats instead of raising, diverging from `int_validator` (which rejects non-whole floats via `is_integer()`) and the project-wide `math.isfinite` convention used across hand-rolled modules. The validator now rejects any non-finite result with `ValueError("cannot coerce ... to float")`, matching the accepts-invalid-input defect convention.

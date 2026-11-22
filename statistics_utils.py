@@ -42,6 +42,8 @@ def harmonic_mean(numbers: List[T | float]) -> float:
     # Check for zeros
     if any(x == 0 for x in numbers):
         raise ValueError("Harmonic mean is undefined for values equal to zero")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     # Scale by the smallest magnitude so every reciprocal stays at or below 1;
     # otherwise a tiny input (e.g. 1e-320) overflows ``1.0 / x`` to ``inf`` and
     # the mean collapses to ``0.0``.
@@ -72,6 +74,8 @@ def geometric_mean(numbers: List[T | float]) -> float:
     """
     if not numbers:
         raise ValueError("Cannot calculate geometric mean of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     # Check for negatives
     if any(x < 0 for x in numbers):
         raise ValueError("Geometric mean is undefined for negative numbers")
@@ -111,6 +115,8 @@ def median_even(numbers: List[T | float]) -> Tuple[float, float]:
     """
     if not numbers:
         raise ValueError("Cannot calculate median_even of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     sorted_nums = sorted(numbers)
     n = len(sorted_nums)
     if n % 2 == 0:
@@ -148,6 +154,8 @@ def percentile(numbers: List[T | float], p: float) -> float:
     """
     if not numbers:
         raise ValueError("Cannot calculate percentile of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     if not 0 <= p <= 100:
         raise ValueError("Percentile must be between 0 and 100 inclusive")
     sorted_nums = sorted(numbers)
@@ -194,6 +202,8 @@ def covariance(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Both lists must have the same length")
     if len(x) < 2:
         raise ValueError("Covariance requires at least two elements")
+    if any(isinstance(v, float) and (math.isnan(v) or math.isinf(v)) for v in (*x, *y)):
+        raise ValueError("numbers must not contain NaN or infinite values")
     mean_x = sum(x) / len(x)
     mean_y = sum(y) / len(y)
     cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
@@ -226,6 +236,8 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Both lists must have the same length")
     if len(x) < 2:
         raise ValueError("Correlation requires at least two elements")
+    if any(isinstance(v, float) and (math.isnan(v) or math.isinf(v)) for v in (*x, *y)):
+        raise ValueError("numbers must not contain NaN or infinite values")
     mean_x = sum(x) / len(x)
     mean_y = sum(y) / len(y)
     # Compute covariance and variances
@@ -258,6 +270,8 @@ def z_score(numbers: List[T | float]) -> List[float]:
     """
     if not numbers:
         raise ValueError("Cannot calculate z-scores of empty list")
+    if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
+        raise ValueError("numbers must not contain NaN or infinite values")
     mean_val = sum(numbers) / len(numbers)
     # Population standard deviation
     variance = sum((x - mean_val) ** 2 for x in numbers) / len(numbers)

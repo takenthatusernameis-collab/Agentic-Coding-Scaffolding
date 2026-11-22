@@ -37,6 +37,14 @@ class TestHarmonicMean(unittest.TestCase):
         self.assertGreater(result, 0.0)
         self.assertAlmostEqual(result / 1e-320, 1.0, places=12)
 
+    def test_harmonic_mean_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            harmonic_mean([1, float("-inf"), 3])
+
 
 class TestGeometricMean(unittest.TestCase):
     def test_geometric_mean_basic(self):
@@ -63,6 +71,14 @@ class TestGeometricMean(unittest.TestCase):
         self.assertGreater(result, 0.0)
         self.assertAlmostEqual(result / 1e-200, 1.0, places=12)
 
+    def test_geometric_mean_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            geometric_mean([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            geometric_mean([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            geometric_mean([1, float("-inf"), 3])
+
 
 class TestMedianEven(unittest.TestCase):
     def test_median_even_even_length(self):
@@ -77,6 +93,14 @@ class TestMedianEven(unittest.TestCase):
     def test_median_even_raises_on_empty(self):
         with self.assertRaises(ValueError):
             median_even([])
+
+    def test_median_even_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            median_even([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            median_even([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            median_even([1, float("-inf"), 3])
 
 
 class TestPercentile(unittest.TestCase):
@@ -108,6 +132,14 @@ class TestPercentile(unittest.TestCase):
         with self.assertRaises(ValueError):
             percentile([1, 2, 3], 101)
 
+    def test_percentile_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            percentile([1, float("nan"), 3], 50)
+        with self.assertRaises(ValueError):
+            percentile([1, float("inf"), 3], 50)
+        with self.assertRaises(ValueError):
+            percentile([1, float("-inf"), 3], 50)
+
 
 class TestCovariance(unittest.TestCase):
     def test_covariance_basic(self):
@@ -129,6 +161,14 @@ class TestCovariance(unittest.TestCase):
     def test_covariance_raises_on_single_element(self):
         with self.assertRaises(ValueError):
             covariance([1], [2])
+
+    def test_covariance_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            covariance([1, float("nan"), 3], [1, 2, 3])
+        with self.assertRaises(ValueError):
+            covariance([1, 2, 3], [1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            covariance([1, float("-inf"), 3], [1, 2, 3])
 
 
 class TestCorrelation(unittest.TestCase):
@@ -166,6 +206,14 @@ class TestCorrelation(unittest.TestCase):
         with self.assertRaises(ValueError):
             correlation([1, 2, 3], [2, 2, 2])
 
+    def test_correlation_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            correlation([1, float("nan"), 3], [1, 2, 3])
+        with self.assertRaises(ValueError):
+            correlation([1, 2, 3], [1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            correlation([1, float("-inf"), 3], [1, 2, 3])
+
 
 class TestZScore(unittest.TestCase):
     def test_z_score_basic(self):
@@ -192,6 +240,14 @@ class TestZScore(unittest.TestCase):
     def test_z_score_raises_on_single_element(self):
         with self.assertRaises(ValueError):
             z_score([1])
+
+    def test_z_score_rejects_non_finite(self):
+        with self.assertRaises(ValueError):
+            z_score([1, float("nan"), 3])
+        with self.assertRaises(ValueError):
+            z_score([1, float("inf"), 3])
+        with self.assertRaises(ValueError):
+            z_score([1, float("-inf"), 3])
 
 
 class TestNormalize(unittest.TestCase):
