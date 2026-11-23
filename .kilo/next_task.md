@@ -1,7 +1,7 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Checkpoint is at `a5694fbe` (HEAD `a5694fbe`); expect probe rc=0. Only run `python tools/verify_state_delta.py --full --record-full-suite` if the probe reports rc=2 (source/tests changed).
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Checkpoint is at `a5694fbe` (HEAD `10a5eade`); expect probe rc=1 (clean tree, bookkeeping-only commits ahead). Only run `python tools/verify_state_delta.py --full --record-full-suite` if the probe reports rc=2 (source/tests changed).
 3. Defect hunt: continue targeted review of hand-rolled modules not yet reviewed. Prefer a genuine logic defect; write the failing test first. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
 4. Avoid timestamp-only handoffs and no-op cycles; only commit genuine repository changes. If no defect found, record the negative result (as prior sessions have).
 5. Routine gates at coherent milestone.
