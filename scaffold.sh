@@ -74721,6 +74721,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `number_utils` docstrings match the implemented behavior
+
+- **Documentation fix — three `number_utils` docstrings contradicted the implemented (and tested) behavior.** `is_happy_number` stated "Zero is happy", but the implementation returns `False` for `0` (its digit-square sum is `0`, so it never reaches `1`) and `tests.test_number_utils.test_unhappy_numbers` asserts `is_happy_number(0)` is `False`. `additive_persistence` prose claimed `additive_persistence(-123)` returns `2`, while the implementation and the function's own doctest both return `1` (`1 + 2 + 3 = 6` in a single step) and `tests.test_number_utils.test_sign_ignored` asserts `1`. `is_mersenne_number` described the sequence as "1 (p=0), 3 (p=2), ..." and allowed a "non-negative integer *p*", but `2**0 - 1 == 0` and `1 == 2**1 - 1`; the example already returns `False` for `0`. The docstrings now state that `0` is not happy, that `additive_persistence(-123) == 1`, and that Mersenne numbers use a positive exponent `p` (so `1` is `p=1`).
+- **Defect class:** docstring-vs-implementation contract in a hand-rolled module.
+- Validation: `python -m unittest tests.test_number_utils` — OK; `python -m doctest number_utils.py` — OK; `python -m ruff check number_utils.py` — clean; `python -m mypy number_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `config_schema` docstrings match the implemented contract
 
 - **Documentation fix — `config_schema.SchemaField` and `ConfigSchema` docstrings described behavior the code does not implement.** `SchemaField`'s `default` argument referenced a nonexistent ``:data:`schema_required` `` symbol, and its `Raises` section described a "both ``default`` unset and ``required`` is False" `ValueError` that the constructor never raises (it raises `ValueError` only for an empty/non-string ``name``). `ConfigSchema` claimed "Duplicate names are not allowed; later definitions win", but the constructor actually raises `ValueError` on a duplicate field name and never lets a later definition win. The docstrings now describe the real contract: an unset `default` means an optional field is omitted from the validated result, `SchemaField` raises `ValueError` for a non-string/empty ``name``, and duplicate field names raise `ValueError`.
@@ -101973,7 +101979,8 @@ def is_happy_number(value: int) -> bool:
 
     A happy number is a positive integer that, when replaced by the sum of
     the squares of its decimal digits repeatedly, eventually reaches 1. A
-    number that enters a cycle not containing 1 is unhappy. Zero is happy.
+    number that enters a cycle not containing 1 is unhappy. Zero is not
+    happy: its digit-square sum is 0, so it never reaches 1.
 
     Args:
         value: The integer to test.
@@ -102659,7 +102666,7 @@ def additive_persistence(value: int) -> int:
     The additive persistence is the number of times one must sum the decimal
     digits of a number until a single-digit number is reached.
 
-    The sign of *value* is ignored, so ``additive_persistence(-123)`` returns ``2``.
+    The sign of *value* is ignored, so ``additive_persistence(-123)`` returns ``1``.
     ``additive_persistence(0)`` returns ``0``.
 
     Args:
@@ -102748,7 +102755,7 @@ def is_mersenne_number(value: Number) -> bool:
     """Return True if *value* is a Mersenne number.
 
     A Mersenne number is a number of the form M_p = 2^p - 1 for some
-    non-negative integer *p*. By this definition, 1 (p=0), 3 (p=2),
+    positive integer *p*. By this definition, 1 (p=1), 3 (p=2),
     7 (p=3), 15 (p=4), 31 (p=5), etc. are Mersenne numbers.
 
     Args:

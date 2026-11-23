@@ -1589,7 +1589,8 @@ def is_happy_number(value: int) -> bool:
 
     A happy number is a positive integer that, when replaced by the sum of
     the squares of its decimal digits repeatedly, eventually reaches 1. A
-    number that enters a cycle not containing 1 is unhappy. Zero is happy.
+    number that enters a cycle not containing 1 is unhappy. Zero is not
+    happy: its digit-square sum is 0, so it never reaches 1.
 
     Args:
         value: The integer to test.
@@ -2275,7 +2276,7 @@ def additive_persistence(value: int) -> int:
     The additive persistence is the number of times one must sum the decimal
     digits of a number until a single-digit number is reached.
 
-    The sign of *value* is ignored, so ``additive_persistence(-123)`` returns ``2``.
+    The sign of *value* is ignored, so ``additive_persistence(-123)`` returns ``1``.
     ``additive_persistence(0)`` returns ``0``.
 
     Args:
@@ -2364,7 +2365,7 @@ def is_mersenne_number(value: Number) -> bool:
     """Return True if *value* is a Mersenne number.
 
     A Mersenne number is a number of the form M_p = 2^p - 1 for some
-    non-negative integer *p*. By this definition, 1 (p=0), 3 (p=2),
+    positive integer *p*. By this definition, 1 (p=1), 3 (p=2),
     7 (p=3), 15 (p=4), 31 (p=5), etc. are Mersenne numbers.
 
     Args:
