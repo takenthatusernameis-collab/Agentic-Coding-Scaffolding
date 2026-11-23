@@ -2676,6 +2676,19 @@ class TestHasLines(unittest.TestCase):
             has_non_blank_lines(None)  # type: ignore[arg-type]
 
 
+class TestHasLinesFunction(unittest.TestCase):
+    def test_basic(self):
+        self.assertTrue(has_lines("hello"))
+        self.assertFalse(has_lines(""))
+        self.assertTrue(has_lines("hello\nworld"))
+        self.assertTrue(has_lines("hello\n"))
+    def test_type_error(self):
+        with self.assertRaises(TypeError):
+            has_lines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_lines(None)  # type: ignore[arg-type]
+
+
 class TestHasWhitespaceCharacters(unittest.TestCase):
     def test_basic(self):
         self.assertTrue(has_whitespace_characters("a b"))
