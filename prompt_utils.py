@@ -2348,8 +2348,8 @@ def count_spaces(text: str) -> int:
         1
         >>> count_spaces("a  b   c")
         5
-        >>> count_spaces("no spaces")
-        1
+        >>> count_spaces("nospace")
+        0
         >>> count_spaces("")
         0
     """
@@ -2797,6 +2797,7 @@ def has_alphanumeric(text: str) -> bool:
         >>> has_alphanumeric("")
         False
     """
+    _require_string(text, "text")
     return count_alphanumeric(text) > 0
 
 
@@ -2921,6 +2922,7 @@ def has_whitespace(text: str) -> bool:
         >>> has_whitespace("")
         False
     """
+    _require_string(text, "text")
     return count_whitespace(text) > 0
 
 
@@ -3299,6 +3301,7 @@ def has_newline(text: str) -> bool:
         >>> has_newline("")
         False
     """
+    _require_string(text, "text")
     return count_newline(text) > 0
 
 

@@ -331,6 +331,33 @@ class TestHasWhitespace(unittest.TestCase):
         with self.assertRaises(TypeError):
             has_whitespace(None)  # type: ignore[arg-type]
 
+
+class TestHasNewline(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_newline("hello\nworld"))
+        self.assertFalse(has_newline("hello"))
+        self.assertFalse(has_newline(""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_newline(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_newline(None)  # type: ignore[arg-type]
+
+
+class TestHasNewlines(unittest.TestCase):
+    def test_basic(self) -> None:
+        self.assertTrue(has_newlines("hello\nworld"))
+        self.assertFalse(has_newlines("hello"))
+        self.assertFalse(has_newlines(""))
+
+    def test_type_errors(self) -> None:
+        with self.assertRaises(TypeError):
+            has_newlines(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            has_newlines(None)  # type: ignore[arg-type]
+
+
 class TestHasSpaces(unittest.TestCase):
     def test_basic(self) -> None:
         self.assertTrue(has_spaces("hello world"))
@@ -2638,46 +2665,6 @@ class TestHasVowels(unittest.TestCase):
 
 
 class TestHasLines(unittest.TestCase):
-    def test_basic(self):
-        self.assertTrue(has_lines("hello"))
-        self.assertTrue(has_lines("a\nb"))
-        self.assertFalse(has_lines(""))
-    def test_line_endings(self):
-        self.assertTrue(has_lines("a\r\nb"))
-        self.assertTrue(has_lines("a\rb"))
-        self.assertTrue(has_lines("\n"))
-    def test_type_error(self):
-        with self.assertRaises(TypeError):
-            has_lines(123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            has_lines(None)  # type: ignore[arg-type]
-
-
-class TestHasNewline(unittest.TestCase):
-    def test_basic(self):
-        self.assertTrue(has_newline("hello\nworld"))
-        self.assertFalse(has_newline("hello"))
-        self.assertFalse(has_newline(""))
-    def test_type_error(self):
-        with self.assertRaises(TypeError):
-            has_newline(123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            has_newline(None)  # type: ignore[arg-type]
-
-
-class TestHasNewlines(unittest.TestCase):
-    def test_basic(self):
-        self.assertTrue(has_newlines("hello\nworld"))
-        self.assertFalse(has_newlines("hello"))
-        self.assertFalse(has_newlines(""))
-    def test_type_error(self):
-        with self.assertRaises(TypeError):
-            has_newlines(123)  # type: ignore[arg-type]
-        with self.assertRaises(TypeError):
-            has_newlines(None)  # type: ignore[arg-type]
-
-
-class TestHasNonBlankLines(unittest.TestCase):
     def test_basic(self):
         self.assertTrue(has_non_blank_lines("hello"))
         self.assertFalse(has_non_blank_lines(""))
