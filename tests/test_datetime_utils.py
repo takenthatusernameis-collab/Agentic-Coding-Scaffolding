@@ -29,6 +29,16 @@ class TestParseDatetime(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_datetime("not-a-date")
 
+    def test_parse_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            parse_datetime(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_datetime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_datetime(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_datetime(datetime(2024, 1, 1))  # type: ignore[arg-type]
+
 
 class TestFormatDatetime(unittest.TestCase):
     def test_format_default(self) -> None:
@@ -42,6 +52,14 @@ class TestFormatDatetime(unittest.TestCase):
     def test_format_iso(self) -> None:
         dt = datetime(2024, 3, 15, 10, 30, 0)
         self.assertEqual(format_datetime(dt, "%Y%m%dT%H%M%S"), "20240315T103000")
+
+    def test_format_rejects_non_datetime(self) -> None:
+        with self.assertRaises(TypeError):
+            format_datetime("2024-01-01")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            format_datetime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            format_datetime(123)  # type: ignore[arg-type]
 
 
 class TestDaysBetween(unittest.TestCase):
@@ -66,6 +84,12 @@ class TestDaysBetween(unittest.TestCase):
         with self.assertRaises(ValueError):
             days_between("not-a-date", "2024-01-01")
 
+    def test_days_between_rejects_non_datetime_like(self) -> None:
+        with self.assertRaises(TypeError):
+            days_between(123, "2024-01-01")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            days_between("2024-01-01", None)  # type: ignore[arg-type]
+
 
 class TestIsLeapYear(unittest.TestCase):
     def test_leap_year_divisible_by_4(self) -> None:
@@ -89,6 +113,26 @@ class TestIsLeapYear(unittest.TestCase):
             is_leap_year(0)
         with self.assertRaises(ValueError):
             is_leap_year(-1)
+
+    def test_is_leap_year_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_leap_year(False)  # type: ignore[arg-type]
+
+    def test_is_leap_year_rejects_float(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year(2024.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_leap_year(2024.5)  # type: ignore[arg-type]
+
+    def test_is_leap_year_rejects_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year("2024")  # type: ignore[arg-type]
+
+    def test_is_leap_year_rejects_none(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year(None)  # type: ignore[arg-type]
 
 
 class TestAddDays(unittest.TestCase):

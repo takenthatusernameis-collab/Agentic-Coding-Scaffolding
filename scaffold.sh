@@ -27903,8 +27903,11 @@ def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
         The parsed datetime object.
 
     Raises:
+        TypeError: If *value* is not a string.
         ValueError: If the string does not match the format.
     """
+    if not isinstance(value, str):
+        raise TypeError("value must be a string")
     return datetime.strptime(value, fmt)
 
 
@@ -27917,7 +27920,12 @@ def format_datetime(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
 
     Returns:
         The formatted string.
+
+    Raises:
+        TypeError: If *dt* is not a datetime.
     """
+    if not isinstance(dt, datetime):
+        raise TypeError("dt must be a datetime")
     return dt.strftime(fmt)
 
 
@@ -27950,8 +27958,11 @@ def is_leap_year(year: int) -> bool:
         True if the year is a leap year, False otherwise.
 
     Raises:
+        TypeError: If *year* is not an int (including booleans).
         ValueError: If year is less than 1.
     """
+    if isinstance(year, bool) or not isinstance(year, int):
+        raise TypeError("year must be an int")
     if year < 1:
         raise ValueError("Year must be a positive integer.")
     return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
@@ -28099,8 +28110,11 @@ def _coerce_datetime(value: DateTimeLike, *formats: str) -> datetime:
         The resulting datetime.
 
     Raises:
+        TypeError: If value is neither a string nor a datetime.
         ValueError: If value is a string that matches none of the formats.
     """
+    if not isinstance(value, (str, datetime)):
+        raise TypeError("value must be a string or datetime")
     if isinstance(value, datetime):
         return value
     for fmt in formats:
@@ -35306,6 +35320,16 @@ class TestParseDatetime(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_datetime("not-a-date")
 
+    def test_parse_rejects_non_string(self) -> None:
+        with self.assertRaises(TypeError):
+            parse_datetime(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_datetime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_datetime(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            parse_datetime(datetime(2024, 1, 1))  # type: ignore[arg-type]
+
 
 class TestFormatDatetime(unittest.TestCase):
     def test_format_default(self) -> None:
@@ -35319,6 +35343,14 @@ class TestFormatDatetime(unittest.TestCase):
     def test_format_iso(self) -> None:
         dt = datetime(2024, 3, 15, 10, 30, 0)
         self.assertEqual(format_datetime(dt, "%Y%m%dT%H%M%S"), "20240315T103000")
+
+    def test_format_rejects_non_datetime(self) -> None:
+        with self.assertRaises(TypeError):
+            format_datetime("2024-01-01")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            format_datetime(None)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            format_datetime(123)  # type: ignore[arg-type]
 
 
 class TestDaysBetween(unittest.TestCase):
@@ -35343,6 +35375,12 @@ class TestDaysBetween(unittest.TestCase):
         with self.assertRaises(ValueError):
             days_between("not-a-date", "2024-01-01")
 
+    def test_days_between_rejects_non_datetime_like(self) -> None:
+        with self.assertRaises(TypeError):
+            days_between(123, "2024-01-01")  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            days_between("2024-01-01", None)  # type: ignore[arg-type]
+
 
 class TestIsLeapYear(unittest.TestCase):
     def test_leap_year_divisible_by_4(self) -> None:
@@ -35366,6 +35404,26 @@ class TestIsLeapYear(unittest.TestCase):
             is_leap_year(0)
         with self.assertRaises(ValueError):
             is_leap_year(-1)
+
+    def test_is_leap_year_rejects_bool(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year(True)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_leap_year(False)  # type: ignore[arg-type]
+
+    def test_is_leap_year_rejects_float(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year(2024.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            is_leap_year(2024.5)  # type: ignore[arg-type]
+
+    def test_is_leap_year_rejects_string(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year("2024")  # type: ignore[arg-type]
+
+    def test_is_leap_year_rejects_none(self) -> None:
+        with self.assertRaises(TypeError):
+            is_leap_year(None)  # type: ignore[arg-type]
 
 
 class TestAddDays(unittest.TestCase):
@@ -74763,6 +74821,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `datetime_utils` rejects non-string / non-datetime input with `TypeError`
+
+- **Correctness fix — `datetime_utils` silently accepted or mishandled non-string / non-datetime input.** `is_leap_year(True)` returned `True` and `is_leap_year(2024.5)` silently computed a result instead of rejecting non-int input (including booleans) with `TypeError`. `parse_datetime(123)`, `parse_datetime(None)`, and `parse_datetime(datetime(...))` let `datetime.strptime` raise an unclear `TypeError` instead of a documented one. `format_datetime("2024-01-01")` raised `AttributeError` instead of `TypeError`. `_coerce_datetime` let non-string / non-datetime values reach `datetime.strptime` with an unclear `TypeError`. Each public function now validates its input up front: non-int (including bool) `year` raises `TypeError("year must be an int")`; non-string `value` raises `TypeError("value must be a string")`; non-datetime `dt` raises `TypeError("dt must be a datetime")`; non-string / non-datetime input to `_coerce_datetime` raises `TypeError("value must be a string or datetime")`, matching the project's silently-ignored-params defect convention.
+- **Tests:** added `TestIsLeapYear.test_is_leap_year_rejects_bool`, `test_is_leap_year_rejects_float`, `test_is_leap_year_rejects_string`, `test_is_leap_year_rejects_none`; `TestParseDatetime.test_parse_rejects_non_string`; `TestFormatDatetime.test_format_rejects_non_datetime`; `TestDaysBetween.test_days_between_rejects_non_datetime_like` (all fail before the fix, pass after).
+- **Defect class:** silently ignored parameters / missing input validation in a hand-rolled module.
+- Validation: `python -m unittest tests.test_datetime_utils` — 58 OK; `python -m doctest datetime_utils.py` — OK; `python -m ruff check datetime_utils.py tests/test_datetime_utils.py` — clean; `python -m mypy datetime_utils.py tests/test_datetime_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `decimal_utils` handles NaN and Infinity correctly
 
 - **Correctness fix — `is_positive`, `is_negative`, and `compare` raised `decimal.InvalidOperation` for NaN inputs instead of handling them gracefully.** `is_positive(NaN)` and `is_negative(NaN)` raised `InvalidOperation` instead of returning `False` (NaN is neither positive nor negative). `compare(a, b)` raised `InvalidOperation` when either operand was NaN instead of raising a clear `ValueError`. The predicates now catch `InvalidOperation` and return `False` for NaN (consistent with `is_zero` which already returned `False` for NaN). `compare` now catches `InvalidOperation` and raises `ValueError("cannot compare NaN values")` with a clear message. Infinity handling was already correct.

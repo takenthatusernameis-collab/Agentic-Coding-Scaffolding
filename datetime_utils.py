@@ -28,8 +28,11 @@ def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
         The parsed datetime object.
 
     Raises:
+        TypeError: If *value* is not a string.
         ValueError: If the string does not match the format.
     """
+    if not isinstance(value, str):
+        raise TypeError("value must be a string")
     return datetime.strptime(value, fmt)
 
 
@@ -42,7 +45,12 @@ def format_datetime(dt: datetime, fmt: str = "%Y-%m-%d %H:%M:%S") -> str:
 
     Returns:
         The formatted string.
+
+    Raises:
+        TypeError: If *dt* is not a datetime.
     """
+    if not isinstance(dt, datetime):
+        raise TypeError("dt must be a datetime")
     return dt.strftime(fmt)
 
 
@@ -75,8 +83,11 @@ def is_leap_year(year: int) -> bool:
         True if the year is a leap year, False otherwise.
 
     Raises:
+        TypeError: If *year* is not an int (including booleans).
         ValueError: If year is less than 1.
     """
+    if isinstance(year, bool) or not isinstance(year, int):
+        raise TypeError("year must be an int")
     if year < 1:
         raise ValueError("Year must be a positive integer.")
     return (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0)
@@ -224,8 +235,11 @@ def _coerce_datetime(value: DateTimeLike, *formats: str) -> datetime:
         The resulting datetime.
 
     Raises:
+        TypeError: If value is neither a string nor a datetime.
         ValueError: If value is a string that matches none of the formats.
     """
+    if not isinstance(value, (str, datetime)):
+        raise TypeError("value must be a string or datetime")
     if isinstance(value, datetime):
         return value
     for fmt in formats:
