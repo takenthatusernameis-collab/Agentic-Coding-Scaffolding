@@ -181,13 +181,19 @@ def compare(a: Any, b: Any) -> int:
 
     Returns:
         -1 if *a* < *b*, 0 if equal, 1 if *a* > *b*.
+
+    Raises:
+        ValueError: If either operand is NaN (not comparable).
     """
     left = _to_decimal(a)
     right = _to_decimal(b)
-    if left < right:
-        return -1
-    if left > right:
-        return 1
+    try:
+        if left < right:
+            return -1
+        if left > right:
+            return 1
+    except InvalidOperation:
+        raise ValueError("cannot compare NaN values") from None
     return 0
 
 
@@ -203,14 +209,26 @@ def negate(value: Any) -> Decimal:
 
 def is_positive(value: Any) -> bool:
     """Return ``True`` if *value`` is greater than zero."""
-    return _to_decimal(value) > 0
+    try:
+        return _to_decimal(value) > 0
+    except InvalidOperation:
+        # NaN comparisons raise InvalidOperation; NaN is not positive
+        return False
 
 
 def is_negative(value: Any) -> bool:
     """Return ``True`` if *value`` is less than zero."""
-    return _to_decimal(value) < 0
+    try:
+        return _to_decimal(value) < 0
+    except InvalidOperation:
+        # NaN comparisons raise InvalidOperation; NaN is not negative
+        return False
 
 
 def is_zero(value: Any) -> bool:
     """Return ``True`` if *value`` equals zero."""
-    return _to_decimal(value) == 0
+    try:
+        return _to_decimal(value) == 0
+    except InvalidOperation:
+        # NaN comparisons raise InvalidOperation; NaN is not zero
+        return False

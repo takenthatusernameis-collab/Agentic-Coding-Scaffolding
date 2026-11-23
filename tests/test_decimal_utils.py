@@ -1,6 +1,7 @@
 """Tests for decimal_utils."""
 
 import unittest
+from decimal import Decimal
 
 from decimal_utils import (
     abs_value,
@@ -101,6 +102,17 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(compare("2", "2"), 0)
         self.assertEqual(compare("3", "2"), 1)
 
+    def test_compare_nan_raises_value_error(self):
+        # Comparing with NaN should raise ValueError, not InvalidOperation
+        with self.assertRaises(ValueError):
+            compare("NaN", "0")
+        with self.assertRaises(ValueError):
+            compare("0", "NaN")
+        with self.assertRaises(ValueError):
+            compare(Decimal("NaN"), Decimal("0"))
+        with self.assertRaises(ValueError):
+            compare(Decimal("0"), Decimal("NaN"))
+
 
 class TestAbsNegate(unittest.TestCase):
     def test_abs_value(self):
@@ -117,14 +129,37 @@ class TestPredicates(unittest.TestCase):
         self.assertFalse(is_positive("0"))
         self.assertFalse(is_positive("-1"))
 
+    def test_is_positive_nan(self):
+        # NaN is not positive
+        self.assertFalse(is_positive("NaN"))
+        self.assertFalse(is_positive(Decimal("NaN")))
+
     def test_is_negative(self):
         self.assertTrue(is_negative("-1"))
         self.assertFalse(is_negative("0"))
         self.assertFalse(is_negative("1"))
 
+    def test_is_negative_nan(self):
+        # NaN is not negative
+        self.assertFalse(is_negative("NaN"))
+        self.assertFalse(is_negative(Decimal("NaN")))
+
     def test_is_zero(self):
         self.assertTrue(is_zero("0"))
         self.assertFalse(is_zero("1"))
+
+    def test_is_zero_nan(self):
+        # NaN is not zero
+        self.assertFalse(is_zero("NaN"))
+        self.assertFalse(is_zero(Decimal("NaN")))
+
+    def test_infinity(self):
+        self.assertTrue(is_positive("Infinity"))
+        self.assertFalse(is_negative("Infinity"))
+        self.assertFalse(is_zero("Infinity"))
+        self.assertFalse(is_positive("-Infinity"))
+        self.assertTrue(is_negative("-Infinity"))
+        self.assertFalse(is_zero("-Infinity"))
 
 
 if __name__ == "__main__":

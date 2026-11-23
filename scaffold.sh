@@ -74763,6 +74763,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `decimal_utils` handles NaN and Infinity correctly
+
+- **Correctness fix — `is_positive`, `is_negative`, and `compare` raised `decimal.InvalidOperation` for NaN inputs instead of handling them gracefully.** `is_positive(NaN)` and `is_negative(NaN)` raised `InvalidOperation` instead of returning `False` (NaN is neither positive nor negative). `compare(a, b)` raised `InvalidOperation` when either operand was NaN instead of raising a clear `ValueError`. The predicates now catch `InvalidOperation` and return `False` for NaN (consistent with `is_zero` which already returned `False` for NaN). `compare` now catches `InvalidOperation` and raises `ValueError("cannot compare NaN values")` with a clear message. Infinity handling was already correct.
+- **Tests:** added `TestPredicates.test_is_positive_nan`, `TestPredicates.test_is_negative_nan`, `TestPredicates.test_is_zero_nan`, `TestPredicates.test_infinity`, and `TestCompare.test_compare_nan_raises_value_error` covering `NaN`, `Infinity`, and `-Infinity` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN) / exception-type consistency in a hand-rolled module.
+- Validation: `python -m pytest tests/test_decimal_utils.py` — 27 OK; `python -m ruff check decimal_utils.py tests/test_decimal_utils.py` — clean; `python -m mypy decimal_utils.py tests/test_decimal_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m pytest tests/` — full suite OK (11988 passed, 4 skipped); `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `prompt_utils.extract_sentences` keeps runs of terminating punctuation
 
 - **Correctness fix — `extract_sentences` dropped sentences ending in consecutive punctuation while `count_sentences`/`has_sentences` counted them.** The extraction regex `[^.!?]+[.!?](?:\s+|$)` required exactly one terminating mark preceded by non-punctuation text, so `extract_sentences("Wait...")` and `extract_sentences("Really?!")` returned `[]` even though `count_sentences` returned `1` and `has_sentences` returned `True` for the same input. A run of terminating marks is still a single sentence boundary under the documented contract ("a terminating punctuation mark followed by whitespace or end of string"), so the regex is now `[^.!?]*[.!?]+(?:\s+|$)`: the run of marks stays attached to its sentence. The three companion functions now agree on every input (exhaustively verified over 137,257 short strings: `len(extract_sentences(t)) == count_sentences(t)` for all of them, versus 68,442 disagreements before).
@@ -85160,13 +85167,19 @@ def compare(a: Any, b: Any) -> int:
 
     Returns:
         -1 if *a* < *b*, 0 if equal, 1 if *a* > *b*.
+
+    Raises:
+        ValueError: If either operand is NaN (not comparable).
     """
     left = _to_decimal(a)
     right = _to_decimal(b)
-    if left < right:
-        return -1
-    if left > right:
-        return 1
+    try:
+        if left < right:
+            return -1
+        if left > right:
+            return 1
+    except InvalidOperation:
+        raise ValueError("cannot compare NaN values") from None
     return 0
 
 
@@ -85182,17 +85195,29 @@ def negate(value: Any) -> Decimal:
 
 def is_positive(value: Any) -> bool:
     """Return ``True`` if *value`` is greater than zero."""
-    return _to_decimal(value) > 0
+    try:
+        return _to_decimal(value) > 0
+    except InvalidOperation:
+        # NaN comparisons raise InvalidOperation; NaN is not positive
+        return False
 
 
 def is_negative(value: Any) -> bool:
     """Return ``True`` if *value`` is less than zero."""
-    return _to_decimal(value) < 0
+    try:
+        return _to_decimal(value) < 0
+    except InvalidOperation:
+        # NaN comparisons raise InvalidOperation; NaN is not negative
+        return False
 
 
 def is_zero(value: Any) -> bool:
     """Return ``True`` if *value`` equals zero."""
-    return _to_decimal(value) == 0
+    try:
+        return _to_decimal(value) == 0
+    except InvalidOperation:
+        # NaN comparisons raise InvalidOperation; NaN is not zero
+        return False
 DECIMAL_UTILS
 
 # --- tests/test_decimal_utils.py ---
@@ -85200,6 +85225,7 @@ cat > "$OUTPUT_DIR/tests/test_decimal_utils.py" <<'TEST_DECIMAL_UTILS'
 """Tests for decimal_utils."""
 
 import unittest
+from decimal import Decimal
 
 from decimal_utils import (
     abs_value,
@@ -85300,6 +85326,17 @@ class TestCompare(unittest.TestCase):
         self.assertEqual(compare("2", "2"), 0)
         self.assertEqual(compare("3", "2"), 1)
 
+    def test_compare_nan_raises_value_error(self):
+        # Comparing with NaN should raise ValueError, not InvalidOperation
+        with self.assertRaises(ValueError):
+            compare("NaN", "0")
+        with self.assertRaises(ValueError):
+            compare("0", "NaN")
+        with self.assertRaises(ValueError):
+            compare(Decimal("NaN"), Decimal("0"))
+        with self.assertRaises(ValueError):
+            compare(Decimal("0"), Decimal("NaN"))
+
 
 class TestAbsNegate(unittest.TestCase):
     def test_abs_value(self):
@@ -85316,14 +85353,37 @@ class TestPredicates(unittest.TestCase):
         self.assertFalse(is_positive("0"))
         self.assertFalse(is_positive("-1"))
 
+    def test_is_positive_nan(self):
+        # NaN is not positive
+        self.assertFalse(is_positive("NaN"))
+        self.assertFalse(is_positive(Decimal("NaN")))
+
     def test_is_negative(self):
         self.assertTrue(is_negative("-1"))
         self.assertFalse(is_negative("0"))
         self.assertFalse(is_negative("1"))
 
+    def test_is_negative_nan(self):
+        # NaN is not negative
+        self.assertFalse(is_negative("NaN"))
+        self.assertFalse(is_negative(Decimal("NaN")))
+
     def test_is_zero(self):
         self.assertTrue(is_zero("0"))
         self.assertFalse(is_zero("1"))
+
+    def test_is_zero_nan(self):
+        # NaN is not zero
+        self.assertFalse(is_zero("NaN"))
+        self.assertFalse(is_zero(Decimal("NaN")))
+
+    def test_infinity(self):
+        self.assertTrue(is_positive("Infinity"))
+        self.assertFalse(is_negative("Infinity"))
+        self.assertFalse(is_zero("Infinity"))
+        self.assertFalse(is_positive("-Infinity"))
+        self.assertTrue(is_negative("-Infinity"))
+        self.assertFalse(is_zero("-Infinity"))
 
 
 if __name__ == "__main__":

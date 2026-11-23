@@ -14,7 +14,7 @@
 NaN/Infinity + bool-rejection sweep: `math_utils`, `subprocess_utils`, `sqlite3_utils`,
 `telnetlib_utils`, `cprofile_utils`, `threading_utils`, `select_utils`, `duration_utils`,
 `interval_utils`, `fractions_utils`, `calculator`, `stats`, `prime_utils`, `resource_utils`,
-`trace_utils`, `numbers_utils`, `posix_utils`. Logic/contract review: `retry_utils`,
+`trace_utils`, `numbers_utils`, `posix_utils`, `decimal_utils`. Logic/contract review: `retry_utils`,
 `priority_queue_utils`, `shapes`, `env_utils`, `email_utils`, `nntplib_utils`, `optparse_utils`,
 `imaplib_utils`, `roman_utils`, `slugify_utils`, `semver_utils`, `ring_buffer_utils`,
 `ttl_cache_utils`, `bit_utils`, `version_utils`, `graphlib_utils`, `maybe_utils`,
