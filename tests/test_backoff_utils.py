@@ -65,6 +65,18 @@ class TestBackoffUtils(unittest.TestCase):
         with self.assertRaises(ValueError):
             backoff_delay(strategy="constant", delay=1.0, attempt=0)
 
+    def test_backoff_delay_missing_constant_param(self):
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="constant")
+
+    def test_backoff_delay_missing_exponential_params(self):
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="exponential")
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="exponential", initial=1.0)
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="exponential", initial=1.0, factor=2.0)
+
     def test_jittered_backoff_bounds(self):
         for _ in range(100):
             value = jittered_backoff(10.0, 0.2)

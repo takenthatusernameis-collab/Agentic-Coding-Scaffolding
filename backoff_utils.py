@@ -166,8 +166,13 @@ def backoff_delay(
     if attempt < 1:
         raise ValueError("attempt must be >= 1")
     if strategy == "constant":
+        if "delay" not in kwargs:
+            raise ValueError("constant strategy requires 'delay' parameter")
         return constant_backoff(kwargs["delay"], attempt=attempt)
     if strategy == "exponential":
+        for param in ("initial", "factor", "max_delay"):
+            if param not in kwargs:
+                raise ValueError(f"exponential strategy requires '{param}' parameter")
         return exponential_backoff(
             kwargs["initial"], kwargs["factor"], kwargs["max_delay"], attempt=attempt
         )

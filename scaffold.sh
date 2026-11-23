@@ -165981,8 +165981,13 @@ def backoff_delay(
     if attempt < 1:
         raise ValueError("attempt must be >= 1")
     if strategy == "constant":
+        if "delay" not in kwargs:
+            raise ValueError("constant strategy requires 'delay' parameter")
         return constant_backoff(kwargs["delay"], attempt=attempt)
     if strategy == "exponential":
+        for param in ("initial", "factor", "max_delay"):
+            if param not in kwargs:
+                raise ValueError(f"exponential strategy requires '{param}' parameter")
         return exponential_backoff(
             kwargs["initial"], kwargs["factor"], kwargs["max_delay"], attempt=attempt
         )
@@ -166111,6 +166116,18 @@ class TestBackoffUtils(unittest.TestCase):
             backoff_delay(strategy="constant", delay=1.0, attempt="x")
         with self.assertRaises(ValueError):
             backoff_delay(strategy="constant", delay=1.0, attempt=0)
+
+    def test_backoff_delay_missing_constant_param(self):
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="constant")
+
+    def test_backoff_delay_missing_exponential_params(self):
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="exponential")
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="exponential", initial=1.0)
+        with self.assertRaises(ValueError):
+            backoff_delay(strategy="exponential", initial=1.0, factor=2.0)
 
     def test_jittered_backoff_bounds(self):
         for _ in range(100):
