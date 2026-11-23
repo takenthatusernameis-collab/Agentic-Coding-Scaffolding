@@ -1,7 +1,7 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Checkpoint is at `bdf73f53` (HEAD `bdf73f53`); expect probe rc=0 (clean tree, checkpoint at HEAD). Only run `python tools/verify_state_delta.py --full --record-full-suite` if the probe reports rc=2 (source/tests changed).
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Verified checkpoint is at `50130a6e` (HEAD `311259a3`); expect probe rc=1 (clean tree, no source-relevant change since checkpoint). Only run `python tools/verify_state_delta.py --full --record-full-suite` if the probe reports rc=2 (source/tests changed).
 3. Defect hunt: continue targeted review of hand-rolled modules not yet reviewed. Prefer a genuine logic defect; write the failing test first. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
 4. Avoid timestamp-only handoffs and no-op cycles; only commit genuine repository changes. If no defect found, record the negative result (as prior sessions have).
 5. Routine gates at coherent milestone.
@@ -14,7 +14,7 @@
 NaN/Infinity + bool-rejection sweep: `math_utils`, `subprocess_utils`, `sqlite3_utils`,
 `telnetlib_utils`, `cprofile_utils`, `threading_utils`, `select_utils`, `duration_utils`,
 `interval_utils`, `fractions_utils`, `calculator`, `stats`, `prime_utils`, `resource_utils`,
-`trace_utils`, `numbers_utils`, `posix_utils`, `decimal_utils`. Logic/contract review: `retry_utils`,
+`trace_utils`, `numbers_utils`, `posix_utils`, `decimal_utils`, `utils`, `calendar_utils`, `timing_utils`, `temp_utils`. Logic/contract review: `retry_utils`,
 `priority_queue_utils`, `shapes`, `env_utils`, `email_utils`, `nntplib_utils`, `optparse_utils`,
 `imaplib_utils`, `roman_utils`, `slugify_utils`, `semver_utils`, `ring_buffer_utils`,
 `ttl_cache_utils`, `bit_utils`, `version_utils`, `graphlib_utils`, `maybe_utils`,
