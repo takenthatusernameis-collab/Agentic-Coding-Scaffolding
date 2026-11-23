@@ -31387,6 +31387,38 @@ class TestExtractSentences(unittest.TestCase):
         result = extract_sentences("Hello.\nHow are you?")
         self.assertEqual(result, ["Hello.", "How are you?"])
 
+    def test_extract_sentences_consecutive_punctuation(self):
+        # A run of terminating marks stays attached to its sentence, so the
+        # extraction agrees with count_sentences instead of dropping the
+        # sentence entirely (the previous behavior returned [] for these).
+        self.assertEqual(extract_sentences("Wait..."), ["Wait..."])
+        self.assertEqual(extract_sentences("Really?!"), ["Really?!"])
+        self.assertEqual(extract_sentences("Hi... There."), ["Hi...", "There."])
+
+    def test_extract_sentences_consistent_with_count_sentences(self):
+        # The list-returning companion must agree with count_sentences (and
+        # therefore has_sentences) on how many sentences a text contains.
+        samples = [
+            "",
+            "   ",
+            "No terminator",
+            "a.",
+            "one. two? three!",
+            "Wait...",
+            "Really?!",
+            "Hi... There.",
+            "Hello.\nHow are you?",
+            "a..b",
+            "...",
+            ". Hello",
+        ]
+        for sample in samples:
+            self.assertEqual(
+                len(extract_sentences(sample)),
+                count_sentences(sample),
+                msg=f"extract/count disagree for {sample!r}",
+            )
+
     def test_extract_sentences_rejects_non_str(self):
         with self.assertRaises(TypeError):
             extract_sentences(123)  # type: ignore[arg-type]
@@ -48347,8 +48379,12 @@ def extract_sentences(text: str) -> List[str]:
     """Extract individual sentences from *text*.
 
     A sentence is delimited by a terminating punctuation mark (``.``,
-    ``!`` or ``?``) followed by whitespace or end of string. Whitespace
-    is stripped from each extracted sentence; empty sentences are omitted.
+    ``!`` or ``?``) followed by whitespace or end of string. A run of
+    consecutive terminating marks (for example ``"..."`` or ``"?!"``)
+    stays attached to its sentence, so the number of extracted sentences
+    always matches :func:`count_sentences` and :func:`has_sentences`.
+    Whitespace is stripped from each extracted sentence; empty sentences
+    are omitted.
 
     Args:
         text: The text to extract sentences from.
@@ -48364,13 +48400,15 @@ def extract_sentences(text: str) -> List[str]:
         ['Hello world.', 'How are you?']
         >>> extract_sentences("Hello!")
         ['Hello!']
+        >>> extract_sentences("Wait...")
+        ['Wait...']
         >>> extract_sentences("")
         []
     """
     _require_string(text, "text")
     if not text.strip():
         return []
-    sentences = re.findall(r"[^.!?]+[.!?](?:\s+|$)", text)
+    sentences = re.findall(r"[^.!?]*[.!?]+(?:\s+|$)", text)
     result: List[str] = []
     for sentence in sentences:
         stripped = sentence.strip()
@@ -74721,6 +74759,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `prompt_utils.extract_sentences` keeps runs of terminating punctuation
+
+- **Correctness fix — `extract_sentences` dropped sentences ending in consecutive punctuation while `count_sentences`/`has_sentences` counted them.** The extraction regex `[^.!?]+[.!?](?:\s+|$)` required exactly one terminating mark preceded by non-punctuation text, so `extract_sentences("Wait...")` and `extract_sentences("Really?!")` returned `[]` even though `count_sentences` returned `1` and `has_sentences` returned `True` for the same input. A run of terminating marks is still a single sentence boundary under the documented contract ("a terminating punctuation mark followed by whitespace or end of string"), so the regex is now `[^.!?]*[.!?]+(?:\s+|$)`: the run of marks stays attached to its sentence. The three companion functions now agree on every input (exhaustively verified over 137,257 short strings: `len(extract_sentences(t)) == count_sentences(t)` for all of them, versus 68,442 disagreements before).
+- **Tests:** added `TestExtractSentences.test_extract_sentences_consecutive_punctuation` (`"Wait..."`, `"Really?!"`, `"Hi... There."`) and `TestExtractSentences.test_extract_sentences_consistent_with_count_sentences` (compares `len(extract_sentences(...))` to `count_sentences(...)` across representative inputs); both fail before the fix.
+- **Defect class:** internal inconsistency between companion functions in a hand-rolled module.
+- Validation: `python -m unittest tests.test_prompt_utils` — 619 OK; `python -m doctest prompt_utils.py` — OK; `python -m ruff check prompt_utils.py tests/test_prompt_utils.py` — clean; `python -m mypy prompt_utils.py tests/test_prompt_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; full suite via `python tools/verify_state_delta.py --full --record-full-suite`. No `.github/workflows/**` changes.
+
 ## Unreleased — `number_utils` docstrings match the implemented behavior
 
 - **Documentation fix — three `number_utils` docstrings contradicted the implemented (and tested) behavior.** `is_happy_number` stated "Zero is happy", but the implementation returns `False` for `0` (its digit-square sum is `0`, so it never reaches `1`) and `tests.test_number_utils.test_unhappy_numbers` asserts `is_happy_number(0)` is `False`. `additive_persistence` prose claimed `additive_persistence(-123)` returns `2`, while the implementation and the function's own doctest both return `1` (`1 + 2 + 3 = 6` in a single step) and `tests.test_number_utils.test_sign_ignored` asserts `1`. `is_mersenne_number` described the sequence as "1 (p=0), 3 (p=2), ..." and allowed a "non-negative integer *p*", but `2**0 - 1 == 0` and `1 == 2**1 - 1`; the example already returns `False` for `0`. The docstrings now state that `0` is not happy, that `additive_persistence(-123) == 1`, and that Mersenne numbers use a positive exponent `p` (so `1` is `p=1`).

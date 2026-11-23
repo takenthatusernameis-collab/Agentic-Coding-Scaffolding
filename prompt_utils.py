@@ -355,8 +355,12 @@ def extract_sentences(text: str) -> List[str]:
     """Extract individual sentences from *text*.
 
     A sentence is delimited by a terminating punctuation mark (``.``,
-    ``!`` or ``?``) followed by whitespace or end of string. Whitespace
-    is stripped from each extracted sentence; empty sentences are omitted.
+    ``!`` or ``?``) followed by whitespace or end of string. A run of
+    consecutive terminating marks (for example ``"..."`` or ``"?!"``)
+    stays attached to its sentence, so the number of extracted sentences
+    always matches :func:`count_sentences` and :func:`has_sentences`.
+    Whitespace is stripped from each extracted sentence; empty sentences
+    are omitted.
 
     Args:
         text: The text to extract sentences from.
@@ -372,13 +376,15 @@ def extract_sentences(text: str) -> List[str]:
         ['Hello world.', 'How are you?']
         >>> extract_sentences("Hello!")
         ['Hello!']
+        >>> extract_sentences("Wait...")
+        ['Wait...']
         >>> extract_sentences("")
         []
     """
     _require_string(text, "text")
     if not text.strip():
         return []
-    sentences = re.findall(r"[^.!?]+[.!?](?:\s+|$)", text)
+    sentences = re.findall(r"[^.!?]*[.!?]+(?:\s+|$)", text)
     result: List[str] = []
     for sentence in sentences:
         stripped = sentence.strip()

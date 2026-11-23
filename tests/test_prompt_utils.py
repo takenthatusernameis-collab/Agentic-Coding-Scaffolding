@@ -537,6 +537,38 @@ class TestExtractSentences(unittest.TestCase):
         result = extract_sentences("Hello.\nHow are you?")
         self.assertEqual(result, ["Hello.", "How are you?"])
 
+    def test_extract_sentences_consecutive_punctuation(self):
+        # A run of terminating marks stays attached to its sentence, so the
+        # extraction agrees with count_sentences instead of dropping the
+        # sentence entirely (the previous behavior returned [] for these).
+        self.assertEqual(extract_sentences("Wait..."), ["Wait..."])
+        self.assertEqual(extract_sentences("Really?!"), ["Really?!"])
+        self.assertEqual(extract_sentences("Hi... There."), ["Hi...", "There."])
+
+    def test_extract_sentences_consistent_with_count_sentences(self):
+        # The list-returning companion must agree with count_sentences (and
+        # therefore has_sentences) on how many sentences a text contains.
+        samples = [
+            "",
+            "   ",
+            "No terminator",
+            "a.",
+            "one. two? three!",
+            "Wait...",
+            "Really?!",
+            "Hi... There.",
+            "Hello.\nHow are you?",
+            "a..b",
+            "...",
+            ". Hello",
+        ]
+        for sample in samples:
+            self.assertEqual(
+                len(extract_sentences(sample)),
+                count_sentences(sample),
+                msg=f"extract/count disagree for {sample!r}",
+            )
+
     def test_extract_sentences_rejects_non_str(self):
         with self.assertRaises(TypeError):
             extract_sentences(123)  # type: ignore[arg-type]
