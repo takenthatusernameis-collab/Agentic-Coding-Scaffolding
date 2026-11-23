@@ -128,6 +128,14 @@ class TestBase64Decode(unittest.TestCase):
         with self.assertRaises(ValueError):
             base64_decode("aGVsbG8")
 
+    def test_invalid_utf8_raises_value_error(self) -> None:
+        # Base64 of invalid UTF-8 sequence (b'\xff\xfe')
+        encoded = "//4="
+        with self.assertRaises(ValueError) as cm:
+            base64_decode(encoded)
+        # Should wrap the UnicodeDecodeError in a ValueError with a clear message
+        self.assertIn("invalid base64 string", str(cm.exception).lower())
+
 
 if __name__ == "__main__":
     unittest.main()

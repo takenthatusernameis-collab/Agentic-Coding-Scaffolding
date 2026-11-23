@@ -105,7 +105,8 @@ def base64_decode(value: str) -> str:
 
     Raises:
         TypeError: If ``value`` is not a string.
-        ValueError: If ``value`` is not valid base64.
+        ValueError: If ``value`` is not valid base64 or does not decode to
+            valid UTF-8.
 
     Examples:
         >>> base64_decode("aGVsbG8=")
@@ -115,6 +116,6 @@ def base64_decode(value: str) -> str:
         raise TypeError("value must be a string")
     try:
         decoded = base64.b64decode(value, validate=True)
-    except Exception as exc:
+        return decoded.decode("utf-8")
+    except (ValueError, UnicodeDecodeError) as exc:
         raise ValueError("invalid base64 string") from exc
-    return decoded.decode("utf-8")
