@@ -73967,14 +73967,31 @@ def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
         difference.extend((a, b))
     else:
         low, high = intersection
-        if a[0] < low:
-            difference.append((a[0], low))
-        if a[1] > high:
-            difference.append((high, a[1]))
-        if b[0] < low:
-            difference.append((b[0], low))
-        if b[1] > high:
-            difference.append((high, b[1]))
+        # When the intersection is a single point (low == high), the intervals
+        # touch at that point. To make the result intervals truly disjoint,
+        # we exclude the shared point by using the next representable float.
+        if low == high:
+            # Intersection is a single point; adjust endpoints to exclude it.
+            next_after_low = math.nextafter(low, math.inf)
+            prev_before_high = math.nextafter(high, -math.inf)
+            if a[0] < low:
+                difference.append((a[0], prev_before_high))
+            if a[1] > high:
+                difference.append((next_after_low, a[1]))
+            if b[0] < low:
+                difference.append((b[0], prev_before_high))
+            if b[1] > high:
+                difference.append((next_after_low, b[1]))
+        else:
+            # Normal overlapping case: intersection has non-zero length.
+            if a[0] < low:
+                difference.append((a[0], low))
+            if a[1] > high:
+                difference.append((high, a[1]))
+            if b[0] < low:
+                difference.append((b[0], low))
+            if b[1] > high:
+                difference.append((high, b[1]))
     # Drop degenerate intervals (a shared endpoint produces zero-length slivers).
     result = [interval for interval in difference if interval[0] < interval[1]]
     return sorted(result, key=lambda item: (item[0], item[1]))
@@ -74406,10 +74423,19 @@ class TestIntervalSymmetricDifference(unittest.TestCase):
         )
 
     def test_touching_intervals(self):
-        self.assertEqual(
-            interval_symmetric_difference((1, 5), (5, 8)),
-            [(1, 5), (5, 8)],
+        result = interval_symmetric_difference((1, 5), (5, 8))
+        self.assertEqual(len(result), 2)
+        # Intervals should be disjoint (not even touching at endpoints)
+        self.assertFalse(
+            interval_overlaps(result[0], result[1]),
+            "Symmetric difference intervals must be disjoint (not even touching)",
         )
+        # First interval should cover [1, 5) - ends just before 5
+        self.assertLess(result[0][1], 5)
+        self.assertEqual(result[0][0], 1)
+        # Second interval should cover (5, 8] - starts just after 5
+        self.assertGreater(result[1][0], 5)
+        self.assertEqual(result[1][1], 8)
 
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):

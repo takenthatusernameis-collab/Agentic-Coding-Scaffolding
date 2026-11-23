@@ -376,10 +376,19 @@ class TestIntervalSymmetricDifference(unittest.TestCase):
         )
 
     def test_touching_intervals(self):
-        self.assertEqual(
-            interval_symmetric_difference((1, 5), (5, 8)),
-            [(1, 5), (5, 8)],
+        result = interval_symmetric_difference((1, 5), (5, 8))
+        self.assertEqual(len(result), 2)
+        # Intervals should be disjoint (not even touching at endpoints)
+        self.assertFalse(
+            interval_overlaps(result[0], result[1]),
+            "Symmetric difference intervals must be disjoint (not even touching)",
         )
+        # First interval should cover [1, 5) - ends just before 5
+        self.assertLess(result[0][1], 5)
+        self.assertEqual(result[0][0], 1)
+        # Second interval should cover (5, 8] - starts just after 5
+        self.assertGreater(result[1][0], 5)
+        self.assertEqual(result[1][1], 8)
 
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):
