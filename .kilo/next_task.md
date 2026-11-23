@@ -18,7 +18,7 @@ NaN/Infinity + bool-rejection sweep: `math_utils`, `subprocess_utils`, `sqlite3_
 `priority_queue_utils`, `shapes`, `env_utils`, `email_utils`, `nntplib_utils`, `optparse_utils`,
 `imaplib_utils`, `roman_utils`, `slugify_utils`, `semver_utils`, `ring_buffer_utils`,
 `ttl_cache_utils`, `bit_utils`, `version_utils`, `graphlib_utils`, `maybe_utils`,
-`either_utils`, `validation_utils`, `memoize_utils`, `cooldown_utils`, `antigravity_utils`.
+`either_utils`, `validation_utils`, `memoize_utils`, `cooldown_utils`, `antigravity_utils`, `cli_utils`, `csv_utils`, `json_utils`, `path_utils`, `string_utils`, `struct_utils`.
 Differential-fuzz clean (0 genuine mismatches vs references): `seq_utils`, `chunk_utils`,
 `number_utils`, `sort_utils`, `template_utils`, `markdown_utils`, `pattern_utils`,
 `hostname_utils`, `id_utils`, `textwrap_utils`, `data_utils`, `tree_utils`, `regex_utils`,
