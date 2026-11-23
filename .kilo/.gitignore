@@ -1,13 +1,8 @@
-# Kilo configuration directory ignore patterns
-# This file is embedded in scaffold.sh
-
-# Agent Manager worktree state
-.kilo/agent-manager.json
-.kilo/worktrees/
-
-# Session state
-.kilo/session-*.json
-
-# Temporary files
-.kilo/*.tmp
-.kilo/*.log
+node_modules
+package.json
+package-lock.json
+pnpm-lock.yaml
+bun.lock
+yarn.lock
+.gitignore
+agent-manager.json

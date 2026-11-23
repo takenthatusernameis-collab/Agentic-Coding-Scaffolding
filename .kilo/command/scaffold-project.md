@@ -597,6 +597,7 @@ After running the scaffold:
 4. Customize the generated files for your specific project needs
 
 ## Refreshing Scaffold Embeddings
+
 If you modify any of the source files that are embedded in `scaffold.sh` (wrapper modules, tests, `.kilo/command/scaffold-project.md`), run:
 ```bash
 make refresh-scaffold
