@@ -194,6 +194,22 @@ class TestGetConfigValue(unittest.TestCase):
                 with self.assertRaises(TypeError):
                     get_config_value(bad, "key")  # type: ignore[arg-type]
 
+    def test_get_empty_key_path_raises(self):
+        """Test that empty key_path raises ValueError."""
+        config = {"a": 1}
+        with self.assertRaises(ValueError):
+            get_config_value(config, "")
+        with self.assertRaises(ValueError):
+            get_config_value(config, "   ")
+
+    def test_get_key_path_with_empty_segments_raises(self):
+        """Test that key paths with empty segments raise ValueError."""
+        config = {"a": {"b": "value"}}
+        for bad_path in [".a.b", "a.b.", "a..b", "a. .b"]:
+            with self.subTest(key_path=bad_path):
+                with self.assertRaises(ValueError):
+                    get_config_value(config, bad_path)
+
 
 class TestSetConfigValue(unittest.TestCase):
     """Test the set_config_value function."""
@@ -244,6 +260,22 @@ class TestSetConfigValue(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             set_config_value(42, "key", "value")
+
+    def test_set_empty_key_path_raises(self):
+        """Test that empty key_path raises ValueError."""
+        config = {}
+        with self.assertRaises(ValueError):
+            set_config_value(config, "", "value")
+        with self.assertRaises(ValueError):
+            set_config_value(config, "   ", "value")
+
+    def test_set_key_path_with_empty_segments_raises(self):
+        """Test that key paths with empty segments raise ValueError."""
+        config = {}
+        for bad_path in [".a.b", "a.b.", "a..b", "a. .b"]:
+            with self.subTest(key_path=bad_path):
+                with self.assertRaises(ValueError):
+                    set_config_value(config, bad_path, "value")
 
 
 class TestMergeConfigs(unittest.TestCase):

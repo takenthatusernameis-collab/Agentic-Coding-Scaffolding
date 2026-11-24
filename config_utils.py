@@ -83,6 +83,7 @@ def get_config_value(
 
     Raises:
         TypeError: If *config* is not a dictionary
+        ValueError: If *key_path* is empty or contains empty segments
 
     Example:
         >>> config = {"database": {"host": "localhost", "port": 5432}}
@@ -94,7 +95,16 @@ def get_config_value(
     if not isinstance(config, dict):
         raise TypeError(f"config must be a dictionary, got {type(config).__name__}")
 
+    if not key_path or not key_path.strip():
+        raise ValueError("key_path must not be empty or whitespace-only")
+
     keys = key_path.split(separator)
+    if any(not k or not k.strip() for k in keys):
+        raise ValueError(
+            "key_path contains empty or whitespace-only segment "
+            "(check for leading, trailing, or consecutive separators)"
+        )
+
     current = config
 
     for key in keys:
@@ -119,6 +129,7 @@ def set_config_value(
 
     Raises:
         TypeError: If config is not a dictionary
+        ValueError: If *key_path* is empty or contains empty segments
 
     Example:
         >>> config = {"database": {"host": "localhost"}}
@@ -132,10 +143,18 @@ def set_config_value(
     if not isinstance(config, dict):
         raise TypeError("config must be a dictionary")
 
+    if not key_path or not key_path.strip():
+        raise ValueError("key_path must not be empty or whitespace-only")
+
     keys = key_path.split(separator)
-    current = config
+    if any(not k or not k.strip() for k in keys):
+        raise ValueError(
+            "key_path contains empty or whitespace-only segment "
+            "(check for leading, trailing, or consecutive separators)"
+        )
 
     # Navigate to the parent of the target key
+    current = config
     for key in keys[:-1]:
         if key not in current:
             current[key] = {}
