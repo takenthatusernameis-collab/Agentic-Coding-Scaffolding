@@ -103,6 +103,37 @@ class TestCurry(unittest.TestCase):
         curried = curry(len)
         self.assertEqual(curried([1, 2, 3]), 3)
 
+    def test_curry_with_default_args(self) -> None:
+        def add(x: int, y: int, z: int = 10) -> int:
+            return x + y + z
+
+        curried = curry(add)
+        # Standard currying: call when all required args are satisfied;
+        # defaults apply for any remaining parameters.
+        self.assertEqual(curried(1)(2), 13)
+        self.assertEqual(curried(1, 2), 13)
+        self.assertEqual(curried(1)(2, 3), 6)
+        self.assertEqual(curried(1, 2, 3), 6)
+
+    def test_curry_with_keyword_only_args(self) -> None:
+        def func(a: int, *, b: int = 5) -> int:
+            return a + b
+
+        curried = curry(func)
+        # b has a default, so supplying a alone completes the call.
+        self.assertEqual(curried(1), 6)
+        self.assertEqual(curried(1, b=2), 3)
+
+    def test_curry_with_varargs(self) -> None:
+        def total(*values: int) -> int:
+            return sum(values)
+
+        curried = curry(total)
+        # Variadic functions have no required parameters, so the first
+        # application is already a complete call.
+        self.assertEqual(curried(1), 1)
+        self.assertEqual(curried(1, 2, 3), 6)
+
 
 class TestApply(unittest.TestCase):
     def test_apply_basic(self) -> None:

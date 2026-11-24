@@ -7,27 +7,6 @@ T = TypeVar("T")
 R = TypeVar("R")
 
 
-def _positional_argcount(func: Callable[..., Any]) -> int:
-    """Return the number of positional parameters *func* accepts.
-
-    Python functions expose this directly through ``__code__``; builtins and
-    other callables without a code object fall back to :func:`inspect.signature`
-    so that currying works for any callable (e.g. ``len``).
-    """
-    code = getattr(func, "__code__", None)
-    if code is not None:
-        return code.co_argcount  # type: ignore[no-any-return]
-    try:
-        signature = inspect.signature(func)
-    except (TypeError, ValueError):
-        return 0
-    return sum(
-        1
-        for parameter in signature.parameters.values()
-        if parameter.kind
-        in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
-    )
-
 __all__ = [
     "R",
     "T",
@@ -115,14 +94,47 @@ def curry(func: Callable[..., R]) -> Callable[..., Any]:
         >>> curried = curry(add)
         >>> curried(1)(2)
         3
+        >>> def add_with_default(x: int, y: int, z: int = 10) -> int:
+        ...     return x + y + z
+        >>> curry(add_with_default)(1)(2)
+        13
     """
     if not callable(func):
         raise TypeError("func must be callable")
 
-    argcount = _positional_argcount(func)
+    try:
+        signature = inspect.signature(func)
+    except (TypeError, ValueError):
+        signature = None
+
+    def _can_call(*args: Any, **kwargs: Any) -> bool:
+        """Return True if the accumulated arguments satisfy the signature.
+
+        A signature is satisfied when every required parameter (those without
+        a default, excluding ``*args``/``**kwargs``) has been supplied.  This
+        lets currying stop at the right point for functions with defaults,
+        keyword-only parameters, and variadic parameters.
+        """
+        if signature is None:
+            return True
+        try:
+            bound = signature.bind(*args, **kwargs)
+        except TypeError:
+            return False
+        for param in signature.parameters.values():
+            if param.kind in (
+                inspect.Parameter.POSITIONAL_ONLY,
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                inspect.Parameter.KEYWORD_ONLY,
+            ):
+                if param.default is inspect.Parameter.empty and param.name not in bound.arguments:
+                    return False
+        # Variadic parameters (*args/**kwargs) are never required, so a call
+        # is allowed as soon as all required named parameters are supplied.
+        return True
 
     def curried(*args: Any, **kwargs: Any) -> Any:
-        if len(args) + len(kwargs) >= argcount:
+        if _can_call(*args, **kwargs):
             return func(*args, **kwargs)
         return lambda *more_args, **more_kwargs: curried(*args, *more_args, **kwargs, **more_kwargs)
 
