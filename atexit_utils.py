@@ -59,15 +59,12 @@ def clear() -> None:
     This removes all functions registered via atexit.register.
     Note: This affects the global atexit state for the current process.
     """
-    try:
-        # Clear handlers by unregistering all - but we need to track them
-        # atexit doesn't provide a direct clear; alternative approach
-        atexit._clear()  # type: ignore[attr-defined]
-    except (AttributeError, Exception):
-        # Fallback: not all Python implementations expose _clear
-        # In practice, we can only unregister what we know; but for this util,
-        # try to reset by manipulating internal state if available
-        pass
+    handlers = get_registered()
+    for handler in handlers:
+        try:
+            atexit.unregister(handler)
+        except Exception:
+            pass
 
 
 def get_registered() -> list[Callable[..., Any]]:
@@ -81,8 +78,15 @@ def get_registered() -> list[Callable[..., Any]]:
         The exact content and order may vary by Python implementation.
     """
     try:
-        # Access internal handlers list
-        return list(getattr(atexit, "_exithandlers", []))  # type: ignore[attr-defined]
+        # _exithandlers is a list of (func, args, kwargs) tuples
+        handlers = getattr(atexit, "_exithandlers", [])
+        result = []
+        for entry in handlers:
+            if isinstance(entry, tuple) and entry:
+                result.append(entry[0])
+            elif callable(entry):
+                result.append(entry)
+        return result
     except Exception:
         return []
 
