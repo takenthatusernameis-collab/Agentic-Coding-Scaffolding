@@ -82060,6 +82060,7 @@ non-numeric arguments.
 from __future__ import annotations
 
 import cmath
+import math
 from numbers import Real
 from typing import Any, Optional, Tuple, Union
 
@@ -82598,7 +82599,7 @@ def isclose(a: Number, b: Number, *, rel_tol: float = 1e-09, abs_tol: float = 0.
 
     Raises:
         TypeError: If a or b is not a real or complex number.
-        ValueError: If rel_tol or abs_tol is negative.
+        ValueError: If rel_tol or abs_tol is negative or not finite (NaN or ±inf).
 
     Examples:
         >>> isclose(1 + 1j, 1 + 1j)
@@ -82608,6 +82609,8 @@ def isclose(a: Number, b: Number, *, rel_tol: float = 1e-09, abs_tol: float = 0.
     """
     _validate_number(a, "a")
     _validate_number(b, "b")
+    if not math.isfinite(rel_tol) or not math.isfinite(abs_tol):
+        raise ValueError("tolerances must be finite")
     if rel_tol < 0 or abs_tol < 0:
         raise ValueError("tolerances must be non-negative")
     return cmath.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
@@ -82858,6 +82861,13 @@ class TestIsClose(unittest.TestCase):
             isclose(1, 1, rel_tol=-1)
         with self.assertRaises(ValueError):
             isclose(1, 1, abs_tol=-1)
+
+    def test_non_finite_tolerances_raise(self):
+        for bad_tol in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                isclose(1, 1, rel_tol=bad_tol)
+            with self.assertRaises(ValueError):
+                isclose(1, 1, abs_tol=bad_tol)
 
 
 if __name__ == "__main__":
@@ -112413,6 +112423,7 @@ cat > "$OUTPUT_DIR/poplib_utils.py" <<'POPLIB_UTILS'
 
 from __future__ import annotations
 
+import math
 import poplib
 from typing import Any
 
@@ -112444,6 +112455,8 @@ def create_pop3(host: str = "", port: int = POP3_PORT, timeout: float | None = N
         raise ValueError("port must be between 0 and 65535")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None and not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     to = timeout if timeout is not None else None
     return poplib.POP3(host, port, to)  # type: ignore[arg-type]
 
@@ -127860,6 +127873,7 @@ inputs and raise ``TypeError`` for invalid arguments.
 
 from __future__ import annotations
 
+import math
 import socketserver
 from typing import Any, Type
 
@@ -127950,11 +127964,23 @@ def handle_one_request(server: socketserver.BaseServer) -> None:
 
 
 def serve_forever(server: socketserver.BaseServer, poll_interval: float = 0.5) -> None:
-    """Serve requests forever on *server* (blocks)."""
+    """Serve requests forever on *server* (blocks).
+
+    Args:
+        server: The server to serve.
+        poll_interval: The polling interval in seconds.
+
+    Raises:
+        TypeError: If *server* is not a :class:`~socketserver.BaseServer` or
+            *poll_interval* is not a number.
+        ValueError: If *poll_interval* is negative or not finite.
+    """
     if not isinstance(server, socketserver.BaseServer):
         raise TypeError("server must be a BaseServer instance")
     if isinstance(poll_interval, bool) or not isinstance(poll_interval, (int, float)):
         raise TypeError("poll_interval must be a number")
+    if not math.isfinite(poll_interval):
+        raise ValueError("poll_interval must be finite")
     if poll_interval < 0:
         raise ValueError("poll_interval must be non-negative")
     server.serve_forever(poll_interval=poll_interval)
@@ -128141,6 +128167,15 @@ class TestServerInspection(unittest.TestCase):
                 serve_forever(server, poll_interval="0.5")  # type: ignore[arg-type]
             with self.assertRaises(ValueError):
                 serve_forever(server, poll_interval=-1)
+        finally:
+            close_server(server)
+
+    def test_serve_forever_rejects_non_finite_poll_interval(self):
+        server = create_tcp_server(("127.0.0.1", 0), _Handler)
+        try:
+            for bad_poll in (float("nan"), float("inf"), float("-inf")):
+                with self.assertRaises(ValueError):
+                    serve_forever(server, poll_interval=bad_poll)
         finally:
             close_server(server)
 

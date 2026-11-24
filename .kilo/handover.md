@@ -1,5 +1,5 @@
 # Handover
 
-Bootstrap session: board empty. State green (verify_state_delta --full passed, checkpoint advanced to 2f8bed0c).
-Defect hunt: targeted review of stdlib-wrapper modules (base64_utils, binascii_utils, bisect_utils, bz2_utils, cmath_utils, copyreg_utils, html_entities_utils, html_utils, imghdr_utils, ip_utils, keyword_utils, linecache_utils, locale_utils, lzma_utils, mailcap_utils, mimetypes_utils, netrc_utils, nturl2path_utils, opcode_utils, ossaudiodev_utils, pathlib_utils, pipes_utils, plistlib_utils, pprint_utils, quopri_utils, reprlib_utils, rlcompleter_utils, runpy_utils, sched_utils, shlex_utils, sndhdr_utils, spwd_utils, sre_constants_utils, stringprep_utils, this_utils, token_utils, tomllib_utils, tty_utils, types_utils, typing_utils, unicodedata_utils, uu_utils, xdrlib_utils, zlib_utils) — all follow project validation conventions; no genuine logic defect found. No source/test changes (avoid no-op cycle).
+Bootstrap session: board empty. State green (verify_state_delta --full passed, checkpoint advanced to 3edab83e).
+Defect hunt: scaffold sync drift detected — embedded copies of cmath_utils.py, tests/test_cmath_utils.py, poplib_utils.py, socketserver_utils.py, tests/test_socketserver_utils.py in scaffold.sh were stale (modules gained non-finite-timeout guards). Ran make refresh-scaffold; all embedded copies now in sync. No source/test logic changes this session.
 Next task: continue defect hunt on remaining unreviewed modules in .kilo/next_task.md; prefer genuine logic defect (write failing test first). Keep state green.
