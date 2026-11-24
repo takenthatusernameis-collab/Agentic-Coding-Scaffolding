@@ -343,7 +343,15 @@ def is_tls_version_supported(version: int) -> bool:
         ValueError: If ``version`` is not a valid TLS version.
     """
     if isinstance(version, ssl.TLSVersion):
-        return ssl.HAS_TLSv1_3 if version == ssl.TLSVersion.TLSv1_3 else True  # basic check
+        if version == ssl.TLSVersion.TLSv1_3:
+            return ssl.HAS_TLSv1_3
+        if version == ssl.TLSVersion.TLSv1_2:
+            return ssl.HAS_TLSv1_2
+        if version == ssl.TLSVersion.TLSv1_1:
+            return ssl.HAS_TLSv1_1
+        if version == ssl.TLSVersion.TLSv1:
+            return getattr(ssl, "HAS_TLSv1", True)
+        return True
 
     if not _is_int(version):
         raise TypeError(f"version must be an int, got {type(version).__name__}")

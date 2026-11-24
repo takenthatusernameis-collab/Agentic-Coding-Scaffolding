@@ -74825,6 +74825,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `ssl_utils.is_tls_version_supported` consults the matching `HAS_*` flag for every `TLSVersion` enum member
+
+- **Correctness fix — `is_tls_version_supported(ssl.TLSVersion.X)` ignored the support flag for every version except `TLSv1_3`.** The `TLSVersion` branch returned `ssl.HAS_TLSv1_3 if version == ssl.TLSVersion.TLSv1_3 else True`, so `is_tls_version_supported(ssl.TLSVersion.TLSv1_2)` returned `True` even when `ssl.HAS_TLSv1_2` was `False` (and the same for `TLSv1_1` and `TLSv1`). Each enum member now consults its own flag: `TLSv1_3` → `ssl.HAS_TLSv1_3`, `TLSv1_2` → `ssl.HAS_TLSv1_2`, `TLSv1_1` → `ssl.HAS_TLSv1_1`, `TLSv1` → `getattr(ssl, "HAS_TLSv1", True)`.
+- **Tests:** added `TestSSLUtils.test_is_tls_version_supported_enum_uses_support_flags`, which patches each `HAS_*` flag to `False` and asserts the corresponding enum member returns `False` (fails before the fix, passes after).
+- **Defect class:** incorrect fallback / accepts-invalid-input contract in a hand-rolled module.
+- Validation: `python -m pytest tests/test_ssl_utils.py` — 47 OK; `python -m ruff check ssl_utils.py tests/test_ssl_utils.py` — clean; `python -m mypy ssl_utils.py tests/test_ssl_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; full suite via `python tools/verify_state_delta.py --full --record-full-suite`. No `.github/workflows/**` changes.
+
 ## Unreleased — `datetime_utils` rejects non-string / non-datetime input with `TypeError`
 
 - **Correctness fix — `datetime_utils` silently accepted or mishandled non-string / non-datetime input.** `is_leap_year(True)` returned `True` and `is_leap_year(2024.5)` silently computed a result instead of rejecting non-int input (including booleans) with `TypeError`. `parse_datetime(123)`, `parse_datetime(None)`, and `parse_datetime(datetime(...))` let `datetime.strptime` raise an unclear `TypeError` instead of a documented one. `format_datetime("2024-01-01")` raised `AttributeError` instead of `TypeError`. `_coerce_datetime` let non-string / non-datetime values reach `datetime.strptime` with an unclear `TypeError`. Each public function now validates its input up front: non-int (including bool) `year` raises `TypeError("year must be an int")`; non-string `value` raises `TypeError("value must be a string")`; non-datetime `dt` raises `TypeError("dt must be a datetime")`; non-string / non-datetime input to `_coerce_datetime` raises `TypeError("value must be a string or datetime")`, matching the project's silently-ignored-params defect convention.
@@ -129174,7 +129181,15 @@ def is_tls_version_supported(version: int) -> bool:
         ValueError: If ``version`` is not a valid TLS version.
     """
     if isinstance(version, ssl.TLSVersion):
-        return ssl.HAS_TLSv1_3 if version == ssl.TLSVersion.TLSv1_3 else True  # basic check
+        if version == ssl.TLSVersion.TLSv1_3:
+            return ssl.HAS_TLSv1_3
+        if version == ssl.TLSVersion.TLSv1_2:
+            return ssl.HAS_TLSv1_2
+        if version == ssl.TLSVersion.TLSv1_1:
+            return ssl.HAS_TLSv1_1
+        if version == ssl.TLSVersion.TLSv1:
+            return getattr(ssl, "HAS_TLSv1", True)
+        return True
 
     if not _is_int(version):
         raise TypeError(f"version must be an int, got {type(version).__name__}")
@@ -129368,6 +129383,28 @@ class TestSSLUtils(unittest.TestCase):
     def test_is_tls_version_supported_invalid_type_bool(self):
         with self.assertRaises(TypeError):
             ssl_utils.is_tls_version_supported(True)
+
+    @unittest.skipUnless(hasattr(ssl, "TLSVersion"), "TLSVersion enum unavailable")
+    def test_is_tls_version_supported_enum_uses_support_flags(self):
+        # Each TLSVersion enum member must consult the matching HAS_* flag,
+        # not blindly return True for every non-v1.3 version.
+        if hasattr(ssl, "TLSVersion"):
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1_2", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1_2)
+                )
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1_1", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1_1)
+                )
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1)
+                )
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1_3", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1_3)
+                )
 
     def test_cert_time_to_seconds_valid(self):
         # GeneralizedTime format as in certs

@@ -61,6 +61,28 @@ class TestSSLUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             ssl_utils.is_tls_version_supported(True)
 
+    @unittest.skipUnless(hasattr(ssl, "TLSVersion"), "TLSVersion enum unavailable")
+    def test_is_tls_version_supported_enum_uses_support_flags(self):
+        # Each TLSVersion enum member must consult the matching HAS_* flag,
+        # not blindly return True for every non-v1.3 version.
+        if hasattr(ssl, "TLSVersion"):
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1_2", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1_2)
+                )
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1_1", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1_1)
+                )
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1)
+                )
+            with mock.patch.object(ssl_utils.ssl, "HAS_TLSv1_3", False):
+                self.assertFalse(
+                    ssl_utils.is_tls_version_supported(ssl.TLSVersion.TLSv1_3)
+                )
+
     def test_cert_time_to_seconds_valid(self):
         # GeneralizedTime format as in certs
         result = ssl_utils.cert_time_to_seconds("20240101000000Z")
