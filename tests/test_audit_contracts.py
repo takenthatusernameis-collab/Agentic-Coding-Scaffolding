@@ -78,6 +78,41 @@ class TestDocumentedRaises(unittest.TestCase):
         doc = "Summary.\n\n    Raises:\n        valueerror: lowercased.\n"
         self.assertEqual(audit_contracts.documented_raises(doc), {})
 
+    def test_a_cross_reference_line_after_raises_is_not_an_exception(self):
+        doc = (
+            "Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        AttributeError: If unsupported.\n"
+            "\n"
+            "    See :func:`ctypes.get_last_error`.\n"
+        )
+        self.assertEqual(audit_contracts.documented_raises(doc), {"AttributeError": 3})
+
+    def test_a_doctest_after_raises_is_not_an_exception(self):
+        doc = (
+            "Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        RuntimeError: If missing.\n"
+            "\n"
+            "    >>> has_topics()\n"
+            "    True\n"
+        )
+        self.assertEqual(audit_contracts.documented_raises(doc), {"RuntimeError": 3})
+
+    def test_a_wrapped_continuation_line_is_not_a_new_exception(self):
+        doc = (
+            "Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        TypeError: If name is not a str or Path,\n"
+            "            Path, or mode is not a str.\n"
+            "        ValueError: If name is empty.\n"
+        )
+        parsed = audit_contracts.documented_raises(doc)
+        self.assertEqual(set(parsed), {"TypeError", "ValueError"})
+
 
 class TestDirectRaises(unittest.TestCase):
     """Verify extraction of raise statements from a function body."""
@@ -352,6 +387,22 @@ class TestAuditSource(unittest.TestCase):
         issues, ok = audit_contracts.audit_source(source, "m.py")
         self.assertTrue(ok)
         self.assertEqual(issues, [])
+
+    def test_a_cross_reference_line_is_not_reported_as_an_exception(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        AttributeError: If unsupported.\n"
+            "\n"
+            "    See :func:`ctypes.get_last_error`.\n"
+            "    '''\n"
+            "    return x\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual([issue["exception"] for issue in issues], ["AttributeError"])
 
     def test_a_syntax_error_marks_the_file_unparseable(self):
         issues, ok = audit_contracts.audit_source("def f(:\n", "m.py")

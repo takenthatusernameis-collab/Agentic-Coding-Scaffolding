@@ -108,15 +108,26 @@ def documented_raises(doc: str | None) -> Dict[str, int]:
     and are valid identifiers) are returned. The offset is the zero-based line
     within the docstring where the name first appears, which lets callers cite
     the docstring location.
+
+    The Raises block is indentation-aware so that only lines aligned with the
+    first exception entry start a new entry. A more-indented line is a wrapped
+    continuation of the previous entry's description (for example a second
+    physical line of ``TypeError: If name is not a str or Path,`` that begins
+    with the capitalized word ``Path``), and a less-indented line ends the block
+    (for example a ``See :func:...`` cross-reference or a ``>>>`` doctest that
+    follows the Raises section). Without this, such lines were misparsed as
+    documented exceptions named ``Path``, ``See``, or ``True``.
     """
     if not doc:
         return {}
     result: Dict[str, int] = {}
     in_raises = False
+    entry_indent: int | None = None
     for idx, raw in enumerate(doc.splitlines()):
         stripped = raw.strip()
         if stripped.startswith(RAISES_HEADER):
             in_raises = True
+            entry_indent = None
             after = stripped[len(RAISES_HEADER) :].strip()
             if after:
                 name = after.split(":")[0].split("(")[0].strip()
@@ -130,6 +141,19 @@ def documented_raises(doc: str | None) -> Dict[str, int]:
         # colon, which is what distinguishes them from exception entries.
         if _SECTION_HEADER.match(raw):
             in_raises = False
+            continue
+        if not stripped:
+            continue
+        indent = len(raw) - len(raw.lstrip())
+        if entry_indent is None:
+            entry_indent = indent
+        if indent < entry_indent:
+            # A line aligned with (or shallower than) the section itself ends
+            # the block: a cross-reference, a doctest, or the next section.
+            in_raises = False
+            continue
+        if indent > entry_indent:
+            # A wrapped continuation of the previous entry's description.
             continue
         token = stripped.split(":")[0]
         for part in token.split(","):
