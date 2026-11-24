@@ -11963,6 +11963,7 @@ def get_config_value(
 
     Raises:
         TypeError: If *config* is not a dictionary
+        ValueError: If *key_path* is empty or contains empty segments
 
     Example:
         >>> config = {"database": {"host": "localhost", "port": 5432}}
@@ -11974,7 +11975,16 @@ def get_config_value(
     if not isinstance(config, dict):
         raise TypeError(f"config must be a dictionary, got {type(config).__name__}")
 
+    if not key_path or not key_path.strip():
+        raise ValueError("key_path must not be empty or whitespace-only")
+
     keys = key_path.split(separator)
+    if any(not k or not k.strip() for k in keys):
+        raise ValueError(
+            "key_path contains empty or whitespace-only segment "
+            "(check for leading, trailing, or consecutive separators)"
+        )
+
     current = config
 
     for key in keys:
@@ -11999,6 +12009,7 @@ def set_config_value(
 
     Raises:
         TypeError: If config is not a dictionary
+        ValueError: If *key_path* is empty or contains empty segments
 
     Example:
         >>> config = {"database": {"host": "localhost"}}
@@ -12012,10 +12023,18 @@ def set_config_value(
     if not isinstance(config, dict):
         raise TypeError("config must be a dictionary")
 
+    if not key_path or not key_path.strip():
+        raise ValueError("key_path must not be empty or whitespace-only")
+
     keys = key_path.split(separator)
-    current = config
+    if any(not k or not k.strip() for k in keys):
+        raise ValueError(
+            "key_path contains empty or whitespace-only segment "
+            "(check for leading, trailing, or consecutive separators)"
+        )
 
     # Navigate to the parent of the target key
+    current = config
     for key in keys[:-1]:
         if key not in current:
             current[key] = {}
@@ -12640,6 +12659,22 @@ class TestGetConfigValue(unittest.TestCase):
                 with self.assertRaises(TypeError):
                     get_config_value(bad, "key")  # type: ignore[arg-type]
 
+    def test_get_empty_key_path_raises(self):
+        """Test that empty key_path raises ValueError."""
+        config = {"a": 1}
+        with self.assertRaises(ValueError):
+            get_config_value(config, "")
+        with self.assertRaises(ValueError):
+            get_config_value(config, "   ")
+
+    def test_get_key_path_with_empty_segments_raises(self):
+        """Test that key paths with empty segments raise ValueError."""
+        config = {"a": {"b": "value"}}
+        for bad_path in [".a.b", "a.b.", "a..b", "a. .b"]:
+            with self.subTest(key_path=bad_path):
+                with self.assertRaises(ValueError):
+                    get_config_value(config, bad_path)
+
 
 class TestSetConfigValue(unittest.TestCase):
     """Test the set_config_value function."""
@@ -12690,6 +12725,22 @@ class TestSetConfigValue(unittest.TestCase):
 
         with self.assertRaises(TypeError):
             set_config_value(42, "key", "value")
+
+    def test_set_empty_key_path_raises(self):
+        """Test that empty key_path raises ValueError."""
+        config = {}
+        with self.assertRaises(ValueError):
+            set_config_value(config, "", "value")
+        with self.assertRaises(ValueError):
+            set_config_value(config, "   ", "value")
+
+    def test_set_key_path_with_empty_segments_raises(self):
+        """Test that key paths with empty segments raise ValueError."""
+        config = {}
+        for bad_path in [".a.b", "a.b.", "a..b", "a. .b"]:
+            with self.subTest(key_path=bad_path):
+                with self.assertRaises(ValueError):
+                    set_config_value(config, bad_path, "value")
 
 
 class TestMergeConfigs(unittest.TestCase):
