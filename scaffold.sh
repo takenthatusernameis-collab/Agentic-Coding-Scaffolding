@@ -74938,6 +74938,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `pstats_utils.print_stats` printed the report twice when a `sort` was requested
+
+- **Correctness fix — `pstats_utils.print_stats(stats, sort=...)` printed the stats report twice.** When `sort` was not the default `-1`, the wrapper called `stats.print_stats(...)` once, then sorted and called `stats.print_stats(...)` again, so every caller that asked for a sorted report received two copies of the report (the first in random order, the second sorted). `print_stats` now sorts once *before* printing and prints exactly once, matching the standard library semantics where `sort_stats` is a separate call from `print_stats`.
+- **Tests:** added `TestPstatsUtils.test_print_stats_with_sort_prints_once`, which profiles a small workload, captures the report in a `StringIO` stream, and asserts the report header `function calls` appears exactly once and that `Ordered by: cumulative time` is present (fails before the fix with the header printed twice, passes after).
+- **Defect class:** duplicate side effect / incorrect wrapper composition in a hand-rolled module.
+- Validation: `python -m unittest tests.test_pstats_utils` — 18 OK; `python -m ruff check pstats_utils.py tests/test_pstats_utils.py` — clean; `python -m mypy pstats_utils.py tests/test_pstats_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `random_utils.random_gaussian` rejects non-finite `sigma`
 
 - **Correctness fix — `random_gaussian` accepted non-finite `sigma`.** The `sigma < 0` guard is `False` for `NaN` and `±inf`, so `random_gaussian(sigma=float("nan"))`, `sigma=float("inf")`, and `sigma=float("-inf")` cleared validation and reached `random.Random.gauss`, which silently returned `nan`/`-inf` instead of a clear argument error — the same defect class previously fixed in `socket_utils`, `selectors_utils`, `subprocess_utils`, `networking_utils`, and `multiprocessing_utils`. `random_gaussian` now rejects any non-finite `sigma` with `ValueError("sigma must be finite")` via `math.isfinite` before the range check.
@@ -117098,13 +117105,17 @@ def print_stats(
     *restrictions: Any,
     sort: Any = -1,
 ) -> _pstats.Stats:
-    """Print the stats report."""
+    """Print the stats report.
+
+    When *sort* is not the default ``-1`` the report is sorted before it is
+    printed, so the sort happens once and the report is printed once.  The
+    default ``-1`` leaves the current ordering in place and prints once.
+    """
     if not isinstance(stats, _pstats.Stats):
         raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
-    stats.print_stats(*restrictions)
     if sort != -1:
         stats.sort_stats(sort)
-        stats.print_stats(*restrictions)
+    stats.print_stats(*restrictions)
     return stats
 
 
@@ -117225,6 +117236,23 @@ class TestPstatsUtils(unittest.TestCase):
     def test_print_stats_type_error(self):
         with self.assertRaises(TypeError):
             pstats_utils.print_stats(123)
+
+    def test_print_stats_with_sort_prints_once(self):
+        import cProfile
+        import os
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            prof_path = os.path.join(tmp, "sample.prof")
+            cProfile.run("sum(range(100))", prof_path)
+            buf = io.StringIO()
+            stats = pstats_utils.new_stats(prof_path, stream=buf)
+            pstats_utils.print_stats(stats, sort="cumulative")
+            text = buf.getvalue()
+        # The header line is emitted once per report; a double print would
+        # reproduce it twice.
+        self.assertEqual(text.count("function calls"), 1)
+        self.assertIn("Ordered by: cumulative time", text)
 
     def test_sort_key_export(self):
         self.assertTrue(hasattr(pstats_utils, "SortKey"))

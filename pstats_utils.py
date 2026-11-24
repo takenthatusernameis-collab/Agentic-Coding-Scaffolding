@@ -87,13 +87,17 @@ def print_stats(
     *restrictions: Any,
     sort: Any = -1,
 ) -> _pstats.Stats:
-    """Print the stats report."""
+    """Print the stats report.
+
+    When *sort* is not the default ``-1`` the report is sorted before it is
+    printed, so the sort happens once and the report is printed once.  The
+    default ``-1`` leaves the current ordering in place and prints once.
+    """
     if not isinstance(stats, _pstats.Stats):
         raise TypeError(f"stats must be a pstats.Stats, got {type(stats).__name__}")
-    stats.print_stats(*restrictions)
     if sort != -1:
         stats.sort_stats(sort)
-        stats.print_stats(*restrictions)
+    stats.print_stats(*restrictions)
     return stats
 
 

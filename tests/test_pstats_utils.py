@@ -82,6 +82,23 @@ class TestPstatsUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             pstats_utils.print_stats(123)
 
+    def test_print_stats_with_sort_prints_once(self):
+        import cProfile
+        import os
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            prof_path = os.path.join(tmp, "sample.prof")
+            cProfile.run("sum(range(100))", prof_path)
+            buf = io.StringIO()
+            stats = pstats_utils.new_stats(prof_path, stream=buf)
+            pstats_utils.print_stats(stats, sort="cumulative")
+            text = buf.getvalue()
+        # The header line is emitted once per report; a double print would
+        # reproduce it twice.
+        self.assertEqual(text.count("function calls"), 1)
+        self.assertIn("Ordered by: cumulative time", text)
+
     def test_sort_key_export(self):
         self.assertTrue(hasattr(pstats_utils, "SortKey"))
 
