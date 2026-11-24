@@ -100,6 +100,36 @@ class TestDirectRaises(unittest.TestCase):
         fn = tree.body[0]
         self.assertEqual(audit_contracts.direct_raises(fn), set())
 
+    def test_a_bare_raise_in_a_typed_except_handler_is_detected(self):
+        tree = audit_contracts.ast.parse(
+            "def f(x):\n"
+            "    try:\n"
+            "        x()\n"
+            "    except ValueError:\n"
+            "        raise\n"
+        )
+        fn = tree.body[0]
+        self.assertEqual(audit_contracts.direct_raises(fn), {"ValueError"})
+
+    def test_a_bare_raise_in_an_untyped_except_handler_is_ignored(self):
+        tree = audit_contracts.ast.parse(
+            "def f(x):\n"
+            "    try:\n"
+            "        x()\n"
+            "    except:\n"
+            "        raise\n"
+        )
+        fn = tree.body[0]
+        self.assertEqual(audit_contracts.direct_raises(fn), set())
+
+    def test_a_bare_raise_outside_a_handler_is_ignored(self):
+        tree = audit_contracts.ast.parse(
+            "def f(x):\n"
+            "    raise\n"
+        )
+        fn = tree.body[0]
+        self.assertEqual(audit_contracts.direct_raises(fn), set())
+
 
 class TestRaisesClosure(unittest.TestCase):
     """Verify transitive raise detection through same-module helpers."""
@@ -237,6 +267,23 @@ class TestAuditSource(unittest.TestCase):
             "        TypeError: If x is wrong.\n"
             "    '''\n"
             "    raise TypeError('bad')\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual(issues, [])
+
+    def test_a_documented_exception_raised_via_a_bare_reraise_is_not_reported(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        ValueError: If x is wrong.\n"
+            "    '''\n"
+            "    try:\n"
+            "        x()\n"
+            "    except ValueError:\n"
+            "        raise\n"
         )
         issues, ok = audit_contracts.audit_source(source, "m.py")
         self.assertTrue(ok)
