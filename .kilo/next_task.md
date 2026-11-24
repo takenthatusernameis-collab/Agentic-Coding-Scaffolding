@@ -1,7 +1,7 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Verified checkpoint is at `50130a6e` (HEAD `311259a3`); expect probe rc=1 (clean tree, no source-relevant change since checkpoint). Only run `python tools/verify_state_delta.py --full --record-full-suite` if the probe reports rc=2 (source/tests changed).
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Verified checkpoint is at `c5a58be7` (HEAD `c5a58be7`); expect probe rc=1 (clean tree, no source-relevant change since checkpoint). Only run `python tools/verify_state_delta.py --full --record-full-suite` if the probe reports rc=2 (source/tests changed).
 3. Defect hunt: continue targeted review of hand-rolled modules not yet reviewed. Prefer a genuine logic defect; write the failing test first. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
 4. Avoid timestamp-only handoffs and no-op cycles; only commit genuine repository changes. If no defect found, record the negative result (as prior sessions have).
 5. Routine gates at coherent milestone.
@@ -19,10 +19,10 @@ NaN/Infinity + bool-rejection sweep: `math_utils`, `subprocess_utils`, `sqlite3_
 `imaplib_utils`, `roman_utils`, `slugify_utils`, `semver_utils`, `ring_buffer_utils`,
 `ttl_cache_utils`, `bit_utils`, `version_utils`, `graphlib_utils`, `maybe_utils`,
 `either_utils`, `validation_utils`, `memoize_utils`, `cooldown_utils`, `antigravity_utils`, `cli_utils`, `atexit_utils`, `csv_utils`, `json_utils`, `path_utils`, `string_utils`, `struct_utils`,
-`crypto_utils`, `hash_utils`, `code_utils`, `marshal_utils`, `dis_utils`, `compileall_utils`, `shelve_utils`, `tarfile_utils`, `dbm_utils`, `dumbdbm_utils`, `zipfile_utils`, `zipimport_utils`, `strings`, `list_utils`, `set_utils`, `hello`, `re_utils`, `fnmatch_utils`, `glob_utils`, `codecs_utils`, `backoff_utils`, `zoneinfo_utils`, `zipapp_utils`.
+`crypto_utils`, `hash_utils`, `code_utils`, `marshal_utils`, `dis_utils`, `compileall_utils`, `shelve_utils`, `tarfile_utils`, `dbm_utils`, `dumbdbm_utils`, `zipfile_utils`, `zipimport_utils`, `strings`, `list_utils`, `set_utils`, `hello`, `re_utils`, `fnmatch_utils`, `glob_utils`, `codecs_utils`, `backoff_utils`, `zoneinfo_utils`, `zipapp_utils`, `itertools_utils`, `async_utils`, `file_utils`.
 Differential-fuzz clean (0 genuine mismatches vs references): `seq_utils`, `chunk_utils`,
 `number_utils`, `sort_utils`, `template_utils`, `markdown_utils`, `pattern_utils`,
 `hostname_utils`, `id_utils`, `textwrap_utils`, `data_utils`, `tree_utils`, `regex_utils`,
 `url_utils`, `compression_utils`, `cache_utils`, `rate_limiter_utils`, `circuit_breaker_utils`,
 `deque_utils`, `context_utils`, `uuid_utils`, `warnings_utils`, `random_utils`, `config_schema`,
-`prompt_utils`, `dict_utils`. Prefer modules NOT in this list for the next hunt.
+`prompt_utils`, `dict_utils`.
