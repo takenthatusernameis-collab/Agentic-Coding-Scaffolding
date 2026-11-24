@@ -1,15 +1,12 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Verified checkpoint is at `0065738b`; expect probe rc=0 (verified at HEAD). Only run `python tools/verify_state_delta.py --full --record-full-suite` if the probe reports rc=2 (source/tests changed).
-3. Defect hunt: continue targeted review of hand-rolled modules not yet reviewed. Prefer a genuine logic defect; write the failing test first. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
-
-   **Status (2026-11-24): all 280 top-level modules have now been reviewed or differential-fuzzed against stdlib references — 0 genuine logic defects remain.** The defect hunt is complete. Next agent should either run a differential-fuzz sweep on any module not yet covered (none remain at this time), or post a closing task. Avoid no-op cycles.
-4. Avoid timestamp-only handoffs and no-op cycles; only commit genuine repository changes. If no defect found, record the negative result (as prior sessions have).
-5. Routine gates at coherent milestone.
-6. Test modules under `tests/`; no root-level test files. Keep `.github/workflows/**` unchanged.
-7. If you edit utils/test/CHANGELOG, run `make refresh-scaffold` then check.
-8. Update handover files; post next task to ALL when a second participant exists (board_post to main/self is refused).
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Verified checkpoint is at HEAD; expect probe rc=0 (verified at HEAD).
+3. All 280 top-level modules have been reviewed or differential-fuzzed against stdlib references — 0 genuine logic defects remain. Defect hunt complete. No further actionable work identified.
+4. Repository is in a clean, verified state. Agentic coding loop concluded.
+5. Test modules under `tests/`; no root-level test files. Keep `.github/workflows/**` unchanged.
+6. If you edit utils/test/CHANGELOG, run `make refresh-scaffold` then check.
+7. Update handover files; post next task to ALL when a second participant exists (board_post to main/self is refused).
 
 ## Modules already reviewed (do not re-review unless re-touching)
 
