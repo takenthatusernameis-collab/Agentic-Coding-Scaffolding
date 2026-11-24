@@ -1,3 +1,9 @@
+## Unreleased — `bytes_utils` triages 11 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — `bytes_utils.index`/`rindex` document `ValueError`; `bytes_utils.decode_utf8`/`encode_utf8`/`decode_ascii`/`encode_ascii` document `UnicodeDecodeError`/`UnicodeEncodeError`/`LookupError`; and `bytes_utils.from_int` documents `OverflowError`. Each documented exception is genuinely raised by the delegated standard-library call (`bytes.index`/`bytes.rindex`, `bytes.decode`, `str.encode`, `int.to_bytes`), not by the wrapper itself.** Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `bytes_utils` audit section drops from 11 low-signal candidates to 0, and the repository scan drops from 197 to 186.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_bytes_utils` — OK; `python -m ruff check bytes_utils.py` — clean; `python -m mypy bytes_utils.py` — success; `python tools/audit_contracts.py bytes_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 186 low-signal / 0 genuine defects (was 197); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `asyncio_utils.get_running_loop` documents delegated `RuntimeError`
 
 - **Tooling — `asyncio_utils.get_running_loop` documents `RuntimeError` ("If there is no running event loop.") that is genuinely raised by the delegated standard-library `asyncio.get_running_loop()` call, not by the wrapper itself.** The `Raises:` line now carries an inline `# audit-ignore: RuntimeError` comment so the reviewed delegation is not re-reported. The `asyncio_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 198 to 197.

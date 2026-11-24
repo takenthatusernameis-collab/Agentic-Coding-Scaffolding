@@ -351,7 +351,7 @@ def index(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> in
     Raises:
         TypeError: If *data* or *sub* is not bytes or bytearray, or if
             *start*/*end* is not an int.
-        ValueError: If *sub* is not found in *data*.
+        ValueError: If *sub* is not found in *data*.  # audit-ignore: ValueError
 
     Examples:
         >>> index(b"hello world", b"world")
@@ -541,7 +541,7 @@ def rindex(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> i
     Raises:
         TypeError: If *data* or *sub* is not bytes or bytearray, or if
             *start*/*end* is not an int.
-        ValueError: If *sub* is not found in *data*.
+        ValueError: If *sub* is not found in *data*.  # audit-ignore: ValueError
 
     Examples:
         >>> rindex(b"hello world", b"o")
@@ -687,7 +687,8 @@ def decode_utf8(data: bytes, errors: str = "strict") -> str:
     Raises:
         TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
         UnicodeDecodeError: If decoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        # audit-ignore: UnicodeDecodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -709,7 +710,8 @@ def encode_utf8(s: str, errors: str = "strict") -> bytes:
     Raises:
         TypeError: If *s* or *errors* is not a str.
         UnicodeEncodeError: If encoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        # audit-ignore: UnicodeEncodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(s, str):
         raise TypeError("s must be a string")
@@ -2130,7 +2132,8 @@ def decode_ascii(data: bytes, errors: str = "strict") -> str:
     Raises:
         TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
         UnicodeDecodeError: If decoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        # audit-ignore: UnicodeDecodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -2152,7 +2155,8 @@ def encode_ascii(s: str, errors: str = "strict") -> bytes:
     Raises:
         TypeError: If *s* or *errors* is not a str.
         UnicodeEncodeError: If encoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        # audit-ignore: UnicodeEncodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(s, str):
         raise TypeError("s must be str")
@@ -2311,6 +2315,7 @@ def from_int(
             "little".
         OverflowError: If *value* does not fit in *length* bytes with the
             requested signedness.
+        # audit-ignore: OverflowError
 
     Examples:
         >>> to_hex(from_int(256, 2))

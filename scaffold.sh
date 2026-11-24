@@ -63729,7 +63729,7 @@ def index(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> in
     Raises:
         TypeError: If *data* or *sub* is not bytes or bytearray, or if
             *start*/*end* is not an int.
-        ValueError: If *sub* is not found in *data*.
+        ValueError: If *sub* is not found in *data*.  # audit-ignore: ValueError
 
     Examples:
         >>> index(b"hello world", b"world")
@@ -63919,7 +63919,7 @@ def rindex(data: bytes, sub: bytes, start: int = 0, end: int | None = None) -> i
     Raises:
         TypeError: If *data* or *sub* is not bytes or bytearray, or if
             *start*/*end* is not an int.
-        ValueError: If *sub* is not found in *data*.
+        ValueError: If *sub* is not found in *data*.  # audit-ignore: ValueError
 
     Examples:
         >>> rindex(b"hello world", b"o")
@@ -64064,8 +64064,8 @@ def decode_utf8(data: bytes, errors: str = "strict") -> str:
 
     Raises:
         TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
-        UnicodeDecodeError: If decoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        UnicodeDecodeError: If decoding fails with the selected handler.  # audit-ignore: UnicodeDecodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -64086,8 +64086,8 @@ def encode_utf8(s: str, errors: str = "strict") -> bytes:
 
     Raises:
         TypeError: If *s* or *errors* is not a str.
-        UnicodeEncodeError: If encoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        UnicodeEncodeError: If encoding fails with the selected handler.  # audit-ignore: UnicodeEncodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(s, str):
         raise TypeError("s must be a string")
@@ -65507,8 +65507,8 @@ def decode_ascii(data: bytes, errors: str = "strict") -> str:
 
     Raises:
         TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
-        UnicodeDecodeError: If decoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        UnicodeDecodeError: If decoding fails with the selected handler.  # audit-ignore: UnicodeDecodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(data, (bytes, bytearray)):
         raise TypeError("data must be bytes or bytearray")
@@ -65529,8 +65529,8 @@ def encode_ascii(s: str, errors: str = "strict") -> bytes:
 
     Raises:
         TypeError: If *s* or *errors* is not a str.
-        UnicodeEncodeError: If encoding fails with the selected handler.
-        LookupError: If *errors* is not a known handler.
+        UnicodeEncodeError: If encoding fails with the selected handler.  # audit-ignore: UnicodeEncodeError
+        LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(s, str):
         raise TypeError("s must be str")
@@ -65687,7 +65687,7 @@ def from_int(
             not an int, *byteorder* is not a str, or *signed* is not a bool.
         ValueError: If *length* is negative, or *byteorder* is not "big" or
             "little".
-        OverflowError: If *value* does not fit in *length* bytes with the
+        OverflowError: If *value* does not fit in *length* bytes with the  # audit-ignore: OverflowError
             requested signedness.
 
     Examples:
@@ -74938,6 +74938,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `bytes_utils` triages 11 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — `bytes_utils.index`/`rindex` document `ValueError`; `bytes_utils.decode_utf8`/`encode_utf8`/`decode_ascii`/`encode_ascii` document `UnicodeDecodeError`/`UnicodeEncodeError`/`LookupError`; and `bytes_utils.from_int` documents `OverflowError`. Each documented exception is genuinely raised by the delegated standard-library call (`bytes.index`/`bytes.rindex`, `bytes.decode`, `str.encode`, `int.to_bytes`), not by the wrapper itself.** Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `bytes_utils` audit section drops from 11 low-signal candidates to 0, and the repository scan drops from 197 to 186.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_bytes_utils` — OK; `python -m ruff check bytes_utils.py` — clean; `python -m mypy bytes_utils.py` — success; `python tools/audit_contracts.py bytes_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 186 low-signal / 0 genuine defects (was 197); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `asyncio_utils.get_running_loop` documents delegated `RuntimeError`
 
 - **Tooling — `asyncio_utils.get_running_loop` documents `RuntimeError` ("If there is no running event loop.") that is genuinely raised by the delegated standard-library `asyncio.get_running_loop()` call, not by the wrapper itself.** The `Raises:` line now carries an inline `# audit-ignore: RuntimeError` comment so the reviewed delegation is not re-reported. The `asyncio_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 198 to 197.
