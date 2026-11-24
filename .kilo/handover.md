@@ -1,5 +1,18 @@
-State green at HEAD `6e23b32f` (verified checkpoint `bf6fa455`; probe rc=1; battery skipped per state-delta guard).
+State green at HEAD `233f80a0` (verified checkpoint `233f80a0`; probe rc=1; full battery passed, checkpoint advanced to HEAD).
 
-Defect hunt this session: targeted review of 42 unreviewed modules (`array_utils`, `argcomplete_utils`, `call_once_utils`, `case_utils`, `cmd_utils`, `codeop_utils`, `colorsys_utils`, `concurrent_utils`, `configparser_utils`, `copy_utils`, `crypt_utils`, `dataclasses_utils`, `deprecation_utils`, `difflib_utils`, `doctest_utils`, `encodings_utils`, `enum_utils`, `errno_utils`, `exceptions_utils`, `faulthandler_utils`, `fcntl_utils`, `filecmp_utils`, `fileinput_utils`, `ftplib_utils`, `functools_utils`, `gc_utils`, `genericpath_utils`, `getopt_utils`, `getpass_utils`, `gettext_utils`, `grp_utils`, `gzip_utils`, `hashlib_utils`, `heapq_utils`, `hmac_utils`, `html_parser_utils`, `http_utils`, `importlib_utils`, `ini_utils`, `inspect_utils`, `io_utils`, `logging_utils`). All are validated thin wrappers over the standard library with consistent TypeError/ValueError guards; no genuine logic defect found. Negative defect hunt recorded (164 tests pass).
+Defect hunt this session: targeted review of unreviewed modules, focusing on those with timeout/numeric
+validation paths. Found & fixed a genuine defect: `multiprocessing_utils.run_in_process` accepted
+non-finite `timeout` (`float("nan")`, `float("inf")`, `float("-inf")`), which cleared the
+`isinstance(timeout, (int, float))` guard and reached `mp.Queue.get(timeout=...)`, raising a
+misleading `OverflowError: cannot convert float infinity to integer` /
+`ValueError: cannot convert float NaN to integer` deep in `multiprocessing.connection.poll`.
+Added `math.isfinite` guard raising `ValueError("timeout must be finite")` after the type check,
+matching the project-wide finite-number convention. Wrote the failing test first
+(`test_run_in_process_rejects_non_finite_timeout`), then fixed. Verification: full suite green,
+ruff clean, mypy success, `refresh_scaffold --check` in sync, `verify_state_delta --full` passed.
+Changes: `multiprocessing_utils.py`, `tests/test_multiprocessing_utils.py`, `CHANGELOG.md`,
+`scaffold.sh` (re-embedded), `.kilo/next_task.md` (`multiprocessing_utils` added to reviewed).
 
-Next task: continue targeted defect hunt on hand-rolled modules NOT in the reviewed list in `.kilo/next_task.md`; prefer a genuine logic defect (write the failing test first). Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+Next task: continue targeted defect hunt on hand-rolled modules NOT in the reviewed list in
+`.kilo/next_task.md`; prefer a genuine logic defect (write the failing test first). Keep state
+green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.

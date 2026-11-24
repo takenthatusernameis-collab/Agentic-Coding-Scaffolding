@@ -8188,6 +8188,13 @@ class TestMultiprocessingUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             multiprocessing_utils.run_in_process(lambda: None, timeout="bad")  # type: ignore[arg-type]
 
+    def test_run_in_process_rejects_non_finite_timeout(self):
+        for bad_timeout in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                multiprocessing_utils.run_in_process(
+                    lambda: None, timeout=bad_timeout  # type: ignore[arg-type]
+                )
+
 
     def test_pool_map(self):
         def inc(x):
@@ -8364,6 +8371,7 @@ for creating pools, managing processes, and sharing data safely.
 
 from __future__ import annotations
 
+import math
 import multiprocessing as mp
 from multiprocessing import Queue as MPQueue
 from multiprocessing.synchronize import Lock as _MPLock
@@ -8720,12 +8728,16 @@ def run_in_process(
 
     Raises:
         TypeError: If func is not callable.
+        TypeError: If timeout is not a number or None.
+        ValueError: If timeout is not finite.
         multiprocessing.TimeoutError: If timeout exceeded.
     """
     if not callable(func):
         raise TypeError("func must be callable")
     if timeout is not None and not isinstance(timeout, (int, float)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None and not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
 
     result_queue: MPQueue = create_queue(context=context)
     p = create_process(target=_worker, args=(func, args, result_queue), context=context)
@@ -74919,6 +74931,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `multiprocessing_utils.run_in_process` rejects non-finite timeouts
+
+- **Correctness fix — `multiprocessing_utils.run_in_process` accepted non-finite `timeout`.** The `isinstance(timeout, (int, float))` guard is `True` for `NaN` and `±inf`, so `run_in_process(lambda: None, timeout=float("nan"))`, `timeout=float("inf")`, and `timeout=float("-inf")` cleared validation and reached `mp.Queue.get(timeout=...)`, which raised a misleading `OverflowError: cannot convert float infinity to integer` / `ValueError: cannot convert float NaN to integer` deep in `multiprocessing.connection.poll` instead of a clear argument error. `run_in_process` now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` via `math.isfinite` after the type check, matching the project-wide finite-number convention already used by `socket_utils`, `selectors_utils`, `subprocess_utils`, and `networking_utils`.
+- **Tests:** added `TestMultiprocessingUtils.test_run_in_process_rejects_non_finite_timeout` covering `float("nan")`, `float("inf")`, and `float("-inf")` (fails before the fix with `OverflowError`/`ValueError`, passes after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_multiprocessing_utils` — 40 OK; `python -m ruff check multiprocessing_utils.py tests/test_multiprocessing_utils.py` — clean; `python -m mypy multiprocessing_utils.py tests/test_multiprocessing_utils.py` — success; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `networking_utils` rejects non-finite timeouts
 
 - **Correctness fix — `networking_utils.is_port_open` and `tcp_ping` accepted non-finite `timeout`.** The `timeout < 0` guard is `False` for `NaN` and `±inf`, so `is_port_open("127.0.0.1", 80, timeout=float("nan"))`, `is_port_open("127.0.0.1", 80, timeout=float("inf"))`, and the same values passed to `tcp_ping` cleared validation and reached `socket.create_connection`, which raised a misleading `ValueError: Invalid value NaN` / `OverflowError: timestamp out of range for platform time_t` deep in the standard library instead of a clear argument error. Each function now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` via `math.isfinite` before the range check, matching the convention already used by `socket_utils`, `selectors_utils`, `subprocess_utils`, and the project-wide finite-number convention.

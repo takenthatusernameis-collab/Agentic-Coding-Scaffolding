@@ -200,6 +200,13 @@ class TestMultiprocessingUtils(unittest.TestCase):
         with self.assertRaises(TypeError):
             multiprocessing_utils.run_in_process(lambda: None, timeout="bad")  # type: ignore[arg-type]
 
+    def test_run_in_process_rejects_non_finite_timeout(self):
+        for bad_timeout in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                multiprocessing_utils.run_in_process(
+                    lambda: None, timeout=bad_timeout  # type: ignore[arg-type]
+                )
+
 
     def test_pool_map(self):
         def inc(x):

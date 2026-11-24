@@ -6,6 +6,7 @@ for creating pools, managing processes, and sharing data safely.
 
 from __future__ import annotations
 
+import math
 import multiprocessing as mp
 from multiprocessing import Queue as MPQueue
 from multiprocessing.synchronize import Lock as _MPLock
@@ -362,12 +363,16 @@ def run_in_process(
 
     Raises:
         TypeError: If func is not callable.
+        TypeError: If timeout is not a number or None.
+        ValueError: If timeout is not finite.
         multiprocessing.TimeoutError: If timeout exceeded.
     """
     if not callable(func):
         raise TypeError("func must be callable")
     if timeout is not None and not isinstance(timeout, (int, float)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None and not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
 
     result_queue: MPQueue = create_queue(context=context)
     p = create_process(target=_worker, args=(func, args, result_queue), context=context)
