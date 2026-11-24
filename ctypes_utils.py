@@ -299,6 +299,7 @@ def get_last_error() -> int:
         The current last-error value.
 
     Raises:
+        # audit-ignore: AttributeError
         AttributeError: If last-error is not supported on this platform.
 
     See :func:`ctypes.get_last_error`.
@@ -318,6 +319,7 @@ def set_last_error(errno: int) -> None:
         None.
 
     Raises:
+        # audit-ignore: AttributeError
         AttributeError: If last-error is not supported on this platform.
 
     See :func:`ctypes.set_last_error`.
