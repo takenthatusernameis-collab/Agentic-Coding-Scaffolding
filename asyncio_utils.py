@@ -157,6 +157,6 @@ def get_running_loop() -> _asyncio.AbstractEventLoop:
         The currently running event loop.
 
     Raises:
-        RuntimeError: If there is no running event loop.
+        RuntimeError: If there is no running event loop.  # audit-ignore: RuntimeError
     """
     return _asyncio.get_running_loop()

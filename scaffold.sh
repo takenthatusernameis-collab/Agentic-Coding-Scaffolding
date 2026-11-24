@@ -3301,7 +3301,7 @@ def get_running_loop() -> _asyncio.AbstractEventLoop:
         The currently running event loop.
 
     Raises:
-        RuntimeError: If there is no running event loop.
+        RuntimeError: If there is no running event loop.  # audit-ignore: RuntimeError
     """
     return _asyncio.get_running_loop()
 ASYNCIO_UTILS
@@ -74938,6 +74938,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `asyncio_utils.get_running_loop` documents delegated `RuntimeError`
+
+- **Tooling — `asyncio_utils.get_running_loop` documents `RuntimeError` ("If there is no running event loop.") that is genuinely raised by the delegated standard-library `asyncio.get_running_loop()` call, not by the wrapper itself.** The `Raises:` line now carries an inline `# audit-ignore: RuntimeError` comment so the reviewed delegation is not re-reported. The `asyncio_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 198 to 197.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_asyncio_utils` — OK; `python -m ruff check asyncio_utils.py` — clean; `python -m mypy asyncio_utils.py` — success; `python tools/audit_contracts.py asyncio_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 197 low-signal / 0 genuine defects (was 198); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `builtins_utils` triages `maximum`/`minimum` stdlib delegations with `# audit-ignore:`
 
 - **Tooling — `builtins_utils.maximum` and `builtins_utils.minimum` document `TypeError` and `ValueError` that are genuinely raised by the delegated standard-library `max()`/`min()` calls, not by the wrappers themselves.** Each function now carries an inline `# audit-ignore:` comment on the corresponding `Raises:` line so the reviewed delegation is not re-reported. The `builtins_utils` section of the audit drops from 4 low-signal candidates to 0, and the repository scan drops from 202 to 198.
