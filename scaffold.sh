@@ -74938,6 +74938,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `pyexpat_utils` no longer documents a `RuntimeError` it cannot raise
+
+- **Contract-accuracy fix — 14 `pyexpat_utils` helpers documented `RuntimeError` ("the interpreter does not ship the ``pyexpat`` module") that they cannot raise.** `parse`, `parse_text`, `parse_file`, `set_base`, `get_base`, `set_param_entity_parsing`, `external_entity_parser`, `set_start_element_handler`, `set_end_element_handler`, `set_element_handlers`, `set_character_data_handler`, `set_processing_instruction_handler`, `error_position`, and `current_position` all take an already-created parser (or text/handler) argument and never call the private `_pyexpat_module()` helper that raises `RuntimeError`, so a caller who wrapped them in `try/except RuntimeError` to catch a missing-module failure could never observe that error. The inaccurate `Raises: RuntimeError` line was removed from each (the whole `Raises:` block was dropped for the three functions — `get_base`, `error_position`, `current_position` — whose only documented exception was that line). The four helpers that genuinely raise it (`ParserCreate`, `version_info`, `error_string`, `create_parser`, plus the private `_pyexpat_module`) keep their `RuntimeError` documentation.
+- **Tooling — the four genuine standard-library delegations are now triaged with `# audit-ignore:`.** `parse`/`parse_text` document `ExpatError` (raised by the delegated `parser.Parse`), and `parse_file` documents `OSError` (raised by the delegated `open()`) and `ExpatError` (raised by `parser.ParseFile`); each carries an inline `# audit-ignore:` comment so the audit no longer re-reports them. The `pyexpat_utils` section of the audit drops from 18 low-signal candidates to 0, and the repository scan drops from 220 to 202.
+- **Defect class:** documented-exception contract inaccuracy (a `Raises:` entry for an exception the function cannot raise) in a hand-rolled module; the `ExpatError`/`OSError` entries are genuine stdlib-delegation false positives, not product defects.
+- Validation: `python -m unittest tests.test_pyexpat_utils` — 38 OK; `python -m doctest pyexpat_utils.py` — OK; `python -m ruff check pyexpat_utils.py` — clean; `python -m mypy pyexpat_utils.py` — success; `python tools/audit_contracts.py --summary` — 202 low-signal / 0 genuine defects (was 220); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `audit_contracts` no longer misparses cross-references, doctests, and wrapped descriptions as exceptions
 
 - **Tooling improvement — `tools/audit_contracts.py` `documented_raises` is now indentation-aware.** The parser treated every line in a `Raises:` block that began with a capitalized identifier as a new documented exception, ignoring indentation. Three real docstring shapes were therefore misreported as documenting exceptions that no function could raise: a `See :func:`...`` cross-reference line placed after the block (misparsed as an exception named `See`, 8 occurrences in `ctypes_utils` and `gettext_utils`), a `>>>` doctest and its `True` output following the block (misparsed as `True`, in `pydoc_data_utils.has_topics`), and a wrapped continuation of a multi-line description whose second physical line began with a capitalized word (misparsed as `Path`, in `tarfile_utils.tarfile_add`). A new entry now starts only at the indentation of the first entry; more-indented lines are continuations and less-indented lines end the block, so `Path`, `See`, and `True` are no longer reported. The repository scan drops from 230 to 220 low-signal candidates; the remaining entries are genuine stdlib-delegation false positives.
@@ -158348,8 +158355,7 @@ def parse(parser: Any, data: Any, is_final: bool = True) -> int:
 
     Raises:
         TypeError: If *data* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
-        ExpatError: If the document is not well-formed.
+        ExpatError: If the document is not well-formed.  # audit-ignore: ExpatError
     """
     text = _require_text(data, "data")
     final = _require_bool(is_final, "is_final")
@@ -158370,8 +158376,7 @@ def parse_text(parser: Any, text: Any) -> int:
 
     Raises:
         TypeError: If *text* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
-        ExpatError: If the document is not well-formed.
+        ExpatError: If the document is not well-formed.  # audit-ignore: ExpatError
     """
     return parse(parser, text, True)
 
@@ -158392,9 +158397,8 @@ def parse_file(parser: Any, filename: Any) -> int:
     Raises:
         TypeError: If *filename* is not a path.
         ValueError: If *filename* is an empty path.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
-        OSError: If the file cannot be opened.
-        ExpatError: If the document is not well-formed.
+        OSError: If the file cannot be opened.  # audit-ignore: OSError
+        ExpatError: If the document is not well-formed.  # audit-ignore: ExpatError
     """
     path = _require_path(filename, "filename")
     with open(path, "rb") as handle:
@@ -158415,7 +158419,6 @@ def set_base(parser: Any, base: Any) -> str:
 
     Raises:
         TypeError: If *base* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     text = _require_text(base, "base")
     parser.SetBase(text)
@@ -158430,9 +158433,6 @@ def get_base(parser: Any) -> Optional[str]:
 
     Returns:
         The base of the parser, or ``None`` when no base is set.
-
-    Raises:
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     base = parser.GetBase()
     return None if base is None else str(base)
@@ -158450,7 +158450,6 @@ def set_param_entity_parsing(parser: Any, parsing: Any) -> int:
 
     Raises:
         TypeError: If *parsing* is not an integer.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     value = _require_count(parsing, "parsing")
     return int(parser.SetParamEntityParsing(value))
@@ -158468,7 +158467,6 @@ def external_entity_parser(parser: Any, encoding: Any = "") -> Any:
 
     Raises:
         TypeError: If *encoding* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     text = _require_text(encoding, "encoding")
     return parser.ExternalEntityParserCreate(text)
@@ -158486,7 +158484,6 @@ def set_start_element_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.StartElementHandler = func
@@ -158504,7 +158501,6 @@ def set_end_element_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.EndElementHandler = func
@@ -158520,7 +158516,6 @@ def set_element_handlers(parser: Any, start_handler: Any, end_handler: Any) -> N
 
     Raises:
         TypeError: If a handler is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     set_start_element_handler(parser, start_handler)
     set_end_element_handler(parser, end_handler)
@@ -158537,7 +158532,6 @@ def set_character_data_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.CharacterDataHandler = func
@@ -158555,7 +158549,6 @@ def set_processing_instruction_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.ProcessingInstructionHandler = func
@@ -158572,9 +158565,6 @@ def error_position(parser: Any) -> ErrorPosition:
 
     Returns:
         The position of the last error.
-
-    Raises:
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     return ErrorPosition(
         line=int(parser.ErrorLineNumber),
@@ -158592,9 +158582,6 @@ def current_position(parser: Any) -> CurrentPosition:
 
     Returns:
         The current position of the parser.
-
-    Raises:
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     return CurrentPosition(
         byte_index=int(parser.CurrentByteIndex),

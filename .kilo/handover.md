@@ -1,11 +1,13 @@
 # Handover
 
-Latest session (2026-11-24): board empty (bootstrap). `python tools/verify_state_delta.py --probe` rc=1 (clean tree; checkpoint `1e9090ec` stays valid; HEAD `00636f54` differs only in `.kilo/` bookkeeping, no source-relevant change since checkpoint). Fast battery green: `refresh_scaffold --check` in sync, `scan_untested` clean (no exported-but-untested callables), `ruff check .` clean.
+Latest session (2026-11-24): board empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`. Probe rc=1 (clean tree; checkpoint `1e9090ec` valid; HEAD `a5fdcf68` bookkeeping-only ahead). After the source change, `python tools/verify_state_delta.py --full --record-full-suite` — battery passed, checkpoint advanced to HEAD `a5fdcf68`.
 
-**State:** state green confirmed via state-delta probe; checkpoint `1e9090ec` valid, HEAD `00636f54` bookkeeping-only ahead on `.kilo/` files. No redundant full re-run needed. Fast battery: refresh in sync, scan clean, ruff clean. No `.github/workflows/**` changes.
+**State:** state green confirmed via full battery; checkpoint == HEAD `a5fdcf68`. Fast battery: `refresh_scaffold --check` in sync, `scan_untested` clean, `ruff check .` clean, `audit_contracts --summary` 202 low-signal / 0 genuine defects. No `.github/workflows/**` changes.
 
-**Defect hunt:** defect hunt complete (0 genuine library defects). No source/test changes, avoiding a no-op cycle per portfolio delay guidance.
+**Defect fixed — `pyexpat_utils` documented a `RuntimeError` 14 functions cannot raise:** `parse`, `parse_text`, `parse_file`, `set_base`, `get_base`, `set_param_entity_parsing`, `external_entity_parser`, `set_start_element_handler`, `set_end_element_handler`, `set_element_handlers`, `set_character_data_handler`, `set_processing_instruction_handler`, `error_position`, `current_position` never call the private `_pyexpat_module()` helper that raises `RuntimeError`, so the documented missing-module `RuntimeError` could never fire. Removed the inaccurate line from each (whole `Raises:` block dropped for `get_base`/`error_position`/`current_position`). The five helpers that genuinely raise it keep it. Also triaged 4 genuine stdlib delegations (`ExpatError`×3, `OSError`×1) with `# audit-ignore:`; `pyexpat_utils` audit section 18 → 0, repo scan 220 → 202.
 
-**Changes:** `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded in `.kilo/next_task.md` and `.kilo/handover.md`. No `.github/workflows/**` changes.
+**Verification:** `python -m unittest tests.test_pyexpat_utils` — 38 OK; `python -m doctest pyexpat_utils.py` — OK; ruff clean; mypy success; `audit_contracts --summary` — 202/0; `make refresh-scaffold` + `--check` in sync; `verify_state_delta --full --record-full-suite` passed.
 
-**Next task:** routine regression monitoring / state confirmation; keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+**Changes:** `pyexpat_utils.py`, `CHANGELOG.md`, `scaffold.sh` (re-embedded), `.kilo/last_verified.checkpoint` → `a5fdcf68`, handover files, `PROJECT_STATUS.md`. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded here and in `.kilo/next_task.md`. No `.github/workflows/**` changes.
+
+**Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates with `# audit-ignore:` per session (confirm each is a genuine delegation, not a never-raised doc error); prefer state-delta checks over full re-audits; no timestamp-only handoffs / no-op cycles. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.

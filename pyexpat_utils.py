@@ -360,8 +360,7 @@ def parse(parser: Any, data: Any, is_final: bool = True) -> int:
 
     Raises:
         TypeError: If *data* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
-        ExpatError: If the document is not well-formed.
+        ExpatError: If the document is not well-formed.  # audit-ignore: ExpatError
     """
     text = _require_text(data, "data")
     final = _require_bool(is_final, "is_final")
@@ -382,8 +381,7 @@ def parse_text(parser: Any, text: Any) -> int:
 
     Raises:
         TypeError: If *text* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
-        ExpatError: If the document is not well-formed.
+        ExpatError: If the document is not well-formed.  # audit-ignore: ExpatError
     """
     return parse(parser, text, True)
 
@@ -404,9 +402,8 @@ def parse_file(parser: Any, filename: Any) -> int:
     Raises:
         TypeError: If *filename* is not a path.
         ValueError: If *filename* is an empty path.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
-        OSError: If the file cannot be opened.
-        ExpatError: If the document is not well-formed.
+        OSError: If the file cannot be opened.  # audit-ignore: OSError
+        ExpatError: If the document is not well-formed.  # audit-ignore: ExpatError
     """
     path = _require_path(filename, "filename")
     with open(path, "rb") as handle:
@@ -427,7 +424,6 @@ def set_base(parser: Any, base: Any) -> str:
 
     Raises:
         TypeError: If *base* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     text = _require_text(base, "base")
     parser.SetBase(text)
@@ -442,9 +438,6 @@ def get_base(parser: Any) -> Optional[str]:
 
     Returns:
         The base of the parser, or ``None`` when no base is set.
-
-    Raises:
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     base = parser.GetBase()
     return None if base is None else str(base)
@@ -462,7 +455,6 @@ def set_param_entity_parsing(parser: Any, parsing: Any) -> int:
 
     Raises:
         TypeError: If *parsing* is not an integer.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     value = _require_count(parsing, "parsing")
     return int(parser.SetParamEntityParsing(value))
@@ -480,7 +472,6 @@ def external_entity_parser(parser: Any, encoding: Any = "") -> Any:
 
     Raises:
         TypeError: If *encoding* is not a string.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     text = _require_text(encoding, "encoding")
     return parser.ExternalEntityParserCreate(text)
@@ -498,7 +489,6 @@ def set_start_element_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.StartElementHandler = func
@@ -516,7 +506,6 @@ def set_end_element_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.EndElementHandler = func
@@ -532,7 +521,6 @@ def set_element_handlers(parser: Any, start_handler: Any, end_handler: Any) -> N
 
     Raises:
         TypeError: If a handler is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     set_start_element_handler(parser, start_handler)
     set_end_element_handler(parser, end_handler)
@@ -549,7 +537,6 @@ def set_character_data_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.CharacterDataHandler = func
@@ -567,7 +554,6 @@ def set_processing_instruction_handler(parser: Any, handler: Any) -> None:
 
     Raises:
         TypeError: If *handler* is neither ``None`` nor callable.
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     func = _require_handler(handler, "handler")
     parser.ProcessingInstructionHandler = func
@@ -584,9 +570,6 @@ def error_position(parser: Any) -> ErrorPosition:
 
     Returns:
         The position of the last error.
-
-    Raises:
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     return ErrorPosition(
         line=int(parser.ErrorLineNumber),
@@ -604,9 +587,6 @@ def current_position(parser: Any) -> CurrentPosition:
 
     Returns:
         The current position of the parser.
-
-    Raises:
-        RuntimeError: If the interpreter does not ship the ``pyexpat`` module.
     """
     return CurrentPosition(
         byte_index=int(parser.CurrentByteIndex),
