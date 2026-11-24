@@ -74919,6 +74919,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `networking_utils` rejects non-finite timeouts
+
+- **Correctness fix — `networking_utils.is_port_open` and `tcp_ping` accepted non-finite `timeout`.** The `timeout < 0` guard is `False` for `NaN` and `±inf`, so `is_port_open("127.0.0.1", 80, timeout=float("nan"))`, `is_port_open("127.0.0.1", 80, timeout=float("inf"))`, and the same values passed to `tcp_ping` cleared validation and reached `socket.create_connection`, which raised a misleading `ValueError: Invalid value NaN` / `OverflowError: timestamp out of range for platform time_t` deep in the standard library instead of a clear argument error. Each function now rejects any non-finite `timeout` with `ValueError("timeout must be finite")` via `math.isfinite` before the range check, matching the convention already used by `socket_utils`, `selectors_utils`, `subprocess_utils`, and the project-wide finite-number convention.
+- **Tests:** added `TestIsPortOpen.test_timeout_non_finite` and `TestTcpPing.test_timeout_non_finite` covering `float("nan")`, `float("inf")`, and `float("-inf")` (fail before the fix, pass after).
+- **Defect class:** accepts-invalid-input / float edge case (NaN/Infinity) in a hand-rolled module.
+- Validation: `python -m unittest tests.test_networking_utils` — 22 OK; `python -m ruff check networking_utils.py tests/test_networking_utils.py` — clean; `python -m mypy networking_utils.py tests/test_networking_utils.py` — success; `python -m doctest networking_utils.py` — 5 passed; `python tools/refresh_scaffold.py --check` — in sync; `python -m unittest discover tests/` — full suite OK; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `ssl_utils.is_tls_version_supported` consults the matching `HAS_*` flag for every `TLSVersion` enum member
 
 - **Correctness fix — `is_tls_version_supported(ssl.TLSVersion.X)` ignored the support flag for every version except `TLSv1_3`.** The `TLSVersion` branch returned `ssl.HAS_TLSv1_3 if version == ssl.TLSVersion.TLSv1_3 else True`, so `is_tls_version_supported(ssl.TLSVersion.TLSv1_2)` returned `True` even when `ssl.HAS_TLSv1_2` was `False` (and the same for `TLSv1_1` and `TLSv1`). Each enum member now consults its own flag: `TLSv1_3` → `ssl.HAS_TLSv1_3`, `TLSv1_2` → `ssl.HAS_TLSv1_2`, `TLSv1_1` → `ssl.HAS_TLSv1_1`, `TLSv1` → `getattr(ssl, "HAS_TLSv1", True)`.
@@ -100285,6 +100292,7 @@ on invalid arguments.
 
 from __future__ import annotations
 
+import math
 import socket
 import time
 from typing import Optional, cast
@@ -100338,8 +100346,8 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
     Raises:
         TypeError: If *host* is not a string, *port* is not an integer, or
             *timeout* is not a number.
-        ValueError: If *port* is not a valid port number or *timeout* is
-            negative.
+        ValueError: If *port* is not a valid port number, *timeout* is not
+            finite, or *timeout* is negative.
 
     Examples:
         >>> is_port_open("127.0.0.1", 1)  # doctest: +SKIP
@@ -100353,6 +100361,8 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         raise ValueError(f"port {port} is not a valid port number (1-65535)")
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
         raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must not be negative")
 
@@ -100466,8 +100476,8 @@ def tcp_ping(host: str, port: int, timeout: float = 1.0) -> Optional[float]:
     Raises:
         TypeError: If *host* is not a string, *port* is not an integer, or
             *timeout* is not a number.
-        ValueError: If *port* is not a valid port number or *timeout* is
-            negative.
+        ValueError: If *port* is not a valid port number, *timeout* is not
+            finite, or *timeout* is negative.
 
     Examples:
         >>> tcp_ping("127.0.0.1", 1)  # doctest: +SKIP
@@ -100481,6 +100491,8 @@ def tcp_ping(host: str, port: int, timeout: float = 1.0) -> Optional[float]:
         raise ValueError(f"port {port} is not a valid port number (1-65535)")
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
         raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must not be negative")
 
@@ -100561,6 +100573,11 @@ class TestIsPortOpen(unittest.TestCase):
             is_port_open("127.0.0.1", 65536)
         with self.assertRaises(ValueError):
             is_port_open("127.0.0.1", 80, timeout=-1)
+
+    def test_timeout_non_finite(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                is_port_open("127.0.0.1", 80, timeout=bad)
 
 
 class TestFindFreePort(unittest.TestCase):
@@ -100659,6 +100676,11 @@ class TestTcpPing(unittest.TestCase):
             tcp_ping("127.0.0.1", 65536)
         with self.assertRaises(ValueError):
             tcp_ping("127.0.0.1", 80, timeout=-1)
+
+    def test_timeout_non_finite(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                tcp_ping("127.0.0.1", 80, timeout=bad)
 
 
 if __name__ == "__main__":

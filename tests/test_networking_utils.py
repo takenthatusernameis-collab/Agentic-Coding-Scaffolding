@@ -66,6 +66,11 @@ class TestIsPortOpen(unittest.TestCase):
         with self.assertRaises(ValueError):
             is_port_open("127.0.0.1", 80, timeout=-1)
 
+    def test_timeout_non_finite(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                is_port_open("127.0.0.1", 80, timeout=bad)
+
 
 class TestFindFreePort(unittest.TestCase):
     def test_returns_valid_port(self):
@@ -163,6 +168,11 @@ class TestTcpPing(unittest.TestCase):
             tcp_ping("127.0.0.1", 65536)
         with self.assertRaises(ValueError):
             tcp_ping("127.0.0.1", 80, timeout=-1)
+
+    def test_timeout_non_finite(self):
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                tcp_ping("127.0.0.1", 80, timeout=bad)
 
 
 if __name__ == "__main__":

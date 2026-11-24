@@ -9,6 +9,7 @@ on invalid arguments.
 
 from __future__ import annotations
 
+import math
 import socket
 import time
 from typing import Optional, cast
@@ -62,8 +63,8 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
     Raises:
         TypeError: If *host* is not a string, *port* is not an integer, or
             *timeout* is not a number.
-        ValueError: If *port* is not a valid port number or *timeout* is
-            negative.
+        ValueError: If *port* is not a valid port number, *timeout* is not
+            finite, or *timeout* is negative.
 
     Examples:
         >>> is_port_open("127.0.0.1", 1)  # doctest: +SKIP
@@ -77,6 +78,8 @@ def is_port_open(host: str, port: int, timeout: float = 1.0) -> bool:
         raise ValueError(f"port {port} is not a valid port number (1-65535)")
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
         raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must not be negative")
 
@@ -190,8 +193,8 @@ def tcp_ping(host: str, port: int, timeout: float = 1.0) -> Optional[float]:
     Raises:
         TypeError: If *host* is not a string, *port* is not an integer, or
             *timeout* is not a number.
-        ValueError: If *port* is not a valid port number or *timeout* is
-            negative.
+        ValueError: If *port* is not a valid port number, *timeout* is not
+            finite, or *timeout* is negative.
 
     Examples:
         >>> tcp_ping("127.0.0.1", 1)  # doctest: +SKIP
@@ -205,6 +208,8 @@ def tcp_ping(host: str, port: int, timeout: float = 1.0) -> Optional[float]:
         raise ValueError(f"port {port} is not a valid port number (1-65535)")
     if isinstance(timeout, bool) or not isinstance(timeout, (int, float)):
         raise TypeError(f"timeout must be a number, got {type(timeout).__name__}")
+    if not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must not be negative")
 
