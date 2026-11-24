@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import poplib
 from typing import Any
 
@@ -33,6 +34,8 @@ def create_pop3(host: str = "", port: int = POP3_PORT, timeout: float | None = N
         raise ValueError("port must be between 0 and 65535")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None and not math.isfinite(timeout):
+        raise ValueError("timeout must be finite")
     to = timeout if timeout is not None else None
     return poplib.POP3(host, port, to)  # type: ignore[arg-type]
 

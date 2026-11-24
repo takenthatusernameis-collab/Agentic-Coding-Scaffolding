@@ -149,6 +149,15 @@ class TestServerInspection(unittest.TestCase):
         finally:
             close_server(server)
 
+    def test_serve_forever_rejects_non_finite_poll_interval(self):
+        server = create_tcp_server(("127.0.0.1", 0), _Handler)
+        try:
+            for bad_poll in (float("nan"), float("inf"), float("-inf")):
+                with self.assertRaises(ValueError):
+                    serve_forever(server, poll_interval=bad_poll)
+        finally:
+            close_server(server)
+
     def test_serve_forever_and_shutdown(self):
         server = create_tcp_server(("127.0.0.1", 0), _Handler)
         try:

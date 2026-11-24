@@ -242,6 +242,13 @@ class TestIsClose(unittest.TestCase):
         with self.assertRaises(ValueError):
             isclose(1, 1, abs_tol=-1)
 
+    def test_non_finite_tolerances_raise(self):
+        for bad_tol in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                isclose(1, 1, rel_tol=bad_tol)
+            with self.assertRaises(ValueError):
+                isclose(1, 1, abs_tol=bad_tol)
+
 
 if __name__ == "__main__":
     unittest.main()

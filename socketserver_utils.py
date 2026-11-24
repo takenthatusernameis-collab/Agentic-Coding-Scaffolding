@@ -9,6 +9,7 @@ inputs and raise ``TypeError`` for invalid arguments.
 
 from __future__ import annotations
 
+import math
 import socketserver
 from typing import Any, Type
 
@@ -99,11 +100,23 @@ def handle_one_request(server: socketserver.BaseServer) -> None:
 
 
 def serve_forever(server: socketserver.BaseServer, poll_interval: float = 0.5) -> None:
-    """Serve requests forever on *server* (blocks)."""
+    """Serve requests forever on *server* (blocks).
+
+    Args:
+        server: The server to serve.
+        poll_interval: The polling interval in seconds.
+
+    Raises:
+        TypeError: If *server* is not a :class:`~socketserver.BaseServer` or
+            *poll_interval* is not a number.
+        ValueError: If *poll_interval* is negative or not finite.
+    """
     if not isinstance(server, socketserver.BaseServer):
         raise TypeError("server must be a BaseServer instance")
     if isinstance(poll_interval, bool) or not isinstance(poll_interval, (int, float)):
         raise TypeError("poll_interval must be a number")
+    if not math.isfinite(poll_interval):
+        raise ValueError("poll_interval must be finite")
     if poll_interval < 0:
         raise ValueError("poll_interval must be non-negative")
     server.serve_forever(poll_interval=poll_interval)

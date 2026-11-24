@@ -9,6 +9,7 @@ non-numeric arguments.
 from __future__ import annotations
 
 import cmath
+import math
 from numbers import Real
 from typing import Any, Optional, Tuple, Union
 
@@ -547,7 +548,7 @@ def isclose(a: Number, b: Number, *, rel_tol: float = 1e-09, abs_tol: float = 0.
 
     Raises:
         TypeError: If a or b is not a real or complex number.
-        ValueError: If rel_tol or abs_tol is negative.
+        ValueError: If rel_tol or abs_tol is negative or not finite (NaN or ±inf).
 
     Examples:
         >>> isclose(1 + 1j, 1 + 1j)
@@ -557,6 +558,8 @@ def isclose(a: Number, b: Number, *, rel_tol: float = 1e-09, abs_tol: float = 0.
     """
     _validate_number(a, "a")
     _validate_number(b, "b")
+    if not math.isfinite(rel_tol) or not math.isfinite(abs_tol):
+        raise ValueError("tolerances must be finite")
     if rel_tol < 0 or abs_tol < 0:
         raise ValueError("tolerances must be non-negative")
     return cmath.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
