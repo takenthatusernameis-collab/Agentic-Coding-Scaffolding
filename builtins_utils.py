@@ -383,8 +383,8 @@ def maximum(*args: Any, **kwargs: Any) -> Any:
         The largest item.
 
     Raises:
-        TypeError: If arguments are invalid.
-        ValueError: If the iterable is empty and no default is given.
+        TypeError: If arguments are invalid.  # audit-ignore: TypeError
+        ValueError: If the iterable is empty and no default is given.  # audit-ignore: ValueError
     """
     return _builtins.max(*args, **kwargs)
 
@@ -400,8 +400,8 @@ def minimum(*args: Any, **kwargs: Any) -> Any:
         The smallest item.
 
     Raises:
-        TypeError: If arguments are invalid.
-        ValueError: If the iterable is empty and no default is given.
+        TypeError: If arguments are invalid.  # audit-ignore: TypeError
+        ValueError: If the iterable is empty and no default is given.  # audit-ignore: ValueError
     """
     return _builtins.min(*args, **kwargs)
 
