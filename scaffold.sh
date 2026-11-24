@@ -70076,7 +70076,7 @@ def array_remove_first(arr: array, item: Any) -> None:
 
     Raises:
         TypeError: If *arr* is not an array.
-        ValueError: If *item* is not present in *arr*.
+        ValueError: If *item* is not present in *arr*.  # audit-ignore: ValueError
 
     Examples:
         >>> a = array("i", [1, 2, 1])
@@ -74938,6 +74938,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `audit_contracts` gains an inline `# audit-ignore:` suppression for triaged delegations
+
+- **Tooling improvement — `tools/audit_contracts.py` can now permanently triage low-signal stdlib-delegation false positives with an inline `# audit-ignore:` comment.** The audit reports a documented exception as "never raised" when it is only raised by an opaque standard-library call (for example `OSError` from `open()`, `ValueError` from `array.remove()`, or `KeyError` from `str.format`). Every session had to re-triage the same ~231 low-signal candidates by hand with no way to record the triage. A function may now carry `# audit-ignore: ExcType[, OtherType]` on its `Raises:` line or anywhere in its body; the named exception types are then not reported for that function, so a reviewed delegation no longer reappears in every future audit. Multiple types may be listed, comma-separated, and only exception-like names (uppercase, valid identifiers) are collected, matching `documented_raises`.
+- **Demonstration:** `array_utils.array_remove_first` documents `ValueError` for a missing item, which is genuinely raised by the delegated `array.remove(item)` call; it now carries `# audit-ignore: ValueError` on its `Raises:` line, dropping the repository scan from 231 to 230 low-signal candidates. The suppression is scoped to the annotated function and does not leak to later functions.
+- **Tests:** added `TestIgnoredRaises` (7 cases) covering suppression on the `Raises:` line, in the body, multi-type lists, name-scoped suppression (only the named type is dropped), no leakage to a later function, lowercase names ignored, and `ignored_raises` filtering non-exception-like tokens.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_audit_contracts` — 43 OK; `python -m unittest tests.test_array_utils` — 74 OK; `python -m doctest array_utils.py` — OK; `python -m ruff check tools/audit_contracts.py tests/test_audit_contracts.py array_utils.py` — clean; `python -m mypy tools/audit_contracts.py tests/test_audit_contracts.py array_utils.py` — success; `python tools/audit_contracts.py --summary` — 230 low-signal / 0 genuine defects; `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `pstats_utils.print_stats` printed the report twice when a `sort` was requested
 
 - **Correctness fix — `pstats_utils.print_stats(stats, sort=...)` printed the stats report twice.** When `sort` was not the default `-1`, the wrapper called `stats.print_stats(...)` once, then sorted and called `stats.print_stats(...)` again, so every caller that asked for a sorted report received two copies of the report (the first in random order, the second sorted). `print_stats` now sorts once *before* printing and prints exactly once, matching the standard library semantics where `sort_stats` is a separate call from `print_stats`.

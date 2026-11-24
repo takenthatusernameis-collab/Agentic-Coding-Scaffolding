@@ -359,6 +359,116 @@ class TestAuditSource(unittest.TestCase):
         self.assertEqual(issues, [])
 
 
+class TestIgnoredRaises(unittest.TestCase):
+    """Verify ``# audit-ignore:`` suppression of low-signal delegations."""
+
+    def test_ignore_comment_on_the_raises_line_suppresses_the_type(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        OSError: If the file is missing.  # audit-ignore: OSError\n"
+            "    '''\n"
+            "    return open(x).read()\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual(issues, [])
+
+    def test_ignore_comment_in_the_body_suppresses_the_type(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        ValueError: If x is wrong.\n"
+            "    '''\n"
+            "    return x.remove(1)  # audit-ignore: ValueError\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual(issues, [])
+
+    def test_ignore_comment_lists_multiple_types(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        OSError: If the file is missing.\n"
+            "        ValueError: If x is wrong.\n"
+            "    '''\n"
+            "    return x  # audit-ignore: OSError, ValueError\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual(issues, [])
+
+    def test_ignore_comment_only_suppresses_the_named_type(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        OSError: If the file is missing.\n"
+            "        TypeError: If x is wrong.\n"
+            "    '''\n"
+            "    return x  # audit-ignore: OSError\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual([issue["exception"] for issue in issues], ["TypeError"])
+
+    def test_ignore_comment_does_not_leak_to_a_later_function(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        OSError: If the file is missing.  # audit-ignore: OSError\n"
+            "    '''\n"
+            "    return x\n"
+            "\n"
+            "def g(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        OSError: If the file is missing.\n"
+            "    '''\n"
+            "    return x\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual([issue["function"] for issue in issues], ["g"])
+        self.assertEqual([issue["exception"] for issue in issues], ["OSError"])
+
+    def test_a_lowercase_ignore_name_is_ignored(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        OSError: If the file is missing.\n"
+            "    '''\n"
+            "    return x  # audit-ignore: oserror\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual([issue["exception"] for issue in issues], ["OSError"])
+
+    def test_ignored_raises_returns_only_exception_like_names(self):
+        source = (
+            "def f(x):\n"
+            "    return x  # audit-ignore: OSError, ValueError, not_a_type, 123\n"
+        )
+        fn = audit_contracts.ast.parse(source).body[0]
+        self.assertEqual(
+            audit_contracts.ignored_raises(source, fn),
+            {"OSError", "ValueError"},
+        )
+
+
 class TestDepthPropagation(unittest.TestCase):
     """Verify the configured helper-call depth reaches the audit."""
 

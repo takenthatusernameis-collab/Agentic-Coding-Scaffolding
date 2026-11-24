@@ -256,7 +256,7 @@ def array_remove_first(arr: array, item: Any) -> None:
 
     Raises:
         TypeError: If *arr* is not an array.
-        ValueError: If *item* is not present in *arr*.
+        ValueError: If *item* is not present in *arr*.  # audit-ignore: ValueError
 
     Examples:
         >>> a = array("i", [1, 2, 1])

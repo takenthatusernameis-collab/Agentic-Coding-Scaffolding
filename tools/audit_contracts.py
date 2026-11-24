@@ -26,6 +26,22 @@ tracer; they are low-signal and are expected to remain. The tool's value is in
 surfacing the *high-signal* cases: a function that documents ``TypeError`` for a
 parameter it never validates.
 
+A low-signal delegation can be permanently triaged with an inline
+``# audit-ignore:`` comment naming the exception type, placed on the
+``Raises:`` line or anywhere in the function body. For example, a wrapper that
+documents ``OSError`` raised by the standard-library ``open()`` call can carry
+``# audit-ignore: OSError`` on its ``Raises:`` line (or on the ``open`` call
+itself) so the reviewed delegation is not re-reported:
+
+    def read_text(path):
+        # Raises: OSError  # audit-ignore: OSError
+        with open(path) as handle:  # OSError is raised by open(), not here
+            return handle.read()
+
+The named exception types are then not reported for that function, so a
+reviewed delegation no longer reappears in every future audit. Multiple types
+may be listed, comma-separated (``# audit-ignore: OSError, ValueError``).
+
 Usage:
     python tools/audit_contracts.py [--json] [--summary] [--depth N]
 
@@ -70,6 +86,11 @@ RAISES_HEADER = "Raises:"
 #: a colon and nothing else on the line; exception entries carry a description
 #: after the colon (``TypeError: If x is wrong.``) and so never match.
 _SECTION_HEADER = re.compile(r"^\s*[A-Za-z][\w ]*:\s*$")
+
+#: Matches an inline ``# audit-ignore: ExcType[, OtherType]`` suppression
+#: comment. The exception names after the colon are the types the audit should
+#: not report for the enclosing function (see :func:`ignored_raises`).
+_AUDIT_IGNORE = re.compile(r"#\s*audit-ignore:\s*(.+)$")
 
 
 def iter_python_files(root: Path) -> Iterable[Path]:
@@ -116,6 +137,35 @@ def documented_raises(doc: str | None) -> Dict[str, int]:
             if name and name[0].isupper() and name.isidentifier():
                 result.setdefault(name, idx)
     return result
+
+
+def ignored_raises(source: str, node: ast.AST) -> Set[str]:
+    """Return exception type names suppressed by ``# audit-ignore:`` comments.
+
+    A maintainer permanently triages a low-signal stdlib-delegation false
+    positive by adding a comment such as ``# audit-ignore: OSError`` on the
+    ``Raises:`` line or anywhere within the function body. The named exception
+    types are then not reported for *node*. Multiple types may be listed,
+    comma-separated. Only names that look like exception classes (start with an
+    uppercase letter and are valid identifiers) are collected, matching
+    :func:`documented_raises`.
+
+    The comment is matched against the raw source lines spanned by *node*
+    (``lineno`` through ``end_lineno``), so it works whether it is written as a
+    real ``#`` comment or inside the docstring on the ``Raises:`` line.
+    """
+    start = getattr(node, "lineno", 1)
+    end = getattr(node, "end_lineno", start) or start
+    ignored: Set[str] = set()
+    for raw in source.splitlines()[start - 1 : end]:
+        match = _AUDIT_IGNORE.search(raw)
+        if not match:
+            continue
+        for part in match.group(1).split(","):
+            name = part.strip().split("(")[0].strip()
+            if name and name[0].isupper() and name.isidentifier():
+                ignored.add(name)
+    return ignored
 
 
 def _handler_type_names(handler: ast.ExceptHandler) -> Set[str]:
@@ -280,8 +330,9 @@ def audit_source(source: str, filename: str, depth: int = 3) -> Tuple[List[dict]
         if not documented:
             continue
         raised = raises_closure(node, index, depth)
+        ignored = ignored_raises(source, node)
         for exc_name, offset in documented.items():
-            if exc_name not in raised:
+            if exc_name not in raised and exc_name not in ignored:
                 issues.append(
                     {
                         "function": node.name,
