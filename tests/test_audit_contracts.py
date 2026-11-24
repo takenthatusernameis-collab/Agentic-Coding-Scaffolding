@@ -130,6 +130,36 @@ class TestDirectRaises(unittest.TestCase):
         fn = tree.body[0]
         self.assertEqual(audit_contracts.direct_raises(fn), set())
 
+    def test_a_raise_of_the_bound_exception_name_resolves_to_the_handler_type(self):
+        tree = audit_contracts.ast.parse(
+            "def f(x):\n"
+            "    try:\n"
+            "        x()\n"
+            "    except ValueError as exc:\n"
+            "        raise exc\n"
+        )
+        fn = tree.body[0]
+        self.assertEqual(audit_contracts.direct_raises(fn), {"ValueError"})
+
+    def test_a_raise_of_the_bound_name_uses_the_handler_tuple_type(self):
+        tree = audit_contracts.ast.parse(
+            "def f(x):\n"
+            "    try:\n"
+            "        x()\n"
+            "    except (ValueError, TypeError) as exc:\n"
+            "        raise exc\n"
+        )
+        fn = tree.body[0]
+        self.assertEqual(audit_contracts.direct_raises(fn), {"ValueError", "TypeError"})
+
+    def test_a_raise_of_an_unrelated_name_is_treated_as_a_type(self):
+        tree = audit_contracts.ast.parse(
+            "def f(x):\n"
+            "    raise err\n"
+        )
+        fn = tree.body[0]
+        self.assertEqual(audit_contracts.direct_raises(fn), {"err"})
+
 
 class TestRaisesClosure(unittest.TestCase):
     """Verify transitive raise detection through same-module helpers."""
@@ -284,6 +314,23 @@ class TestAuditSource(unittest.TestCase):
             "        x()\n"
             "    except ValueError:\n"
             "        raise\n"
+        )
+        issues, ok = audit_contracts.audit_source(source, "m.py")
+        self.assertTrue(ok)
+        self.assertEqual(issues, [])
+
+    def test_a_documented_exception_reraised_by_name_is_not_reported(self):
+        source = (
+            "def f(x):\n"
+            "    '''Summary.\n"
+            "\n"
+            "    Raises:\n"
+            "        ValueError: If x is wrong.\n"
+            "    '''\n"
+            "    try:\n"
+            "        x()\n"
+            "    except ValueError as exc:\n"
+            "        raise exc\n"
         )
         issues, ok = audit_contracts.audit_source(source, "m.py")
         self.assertTrue(ok)

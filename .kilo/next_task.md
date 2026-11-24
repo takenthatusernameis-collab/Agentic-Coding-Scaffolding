@@ -1,11 +1,11 @@
 # Task for Next Agent
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Verified checkpoint is at HEAD; expect probe rc=0 (verified at HEAD).
-3. All 280 top-level modules have been reviewed or differential-fuzzed against stdlib references — 0 genuine logic defects remain. Defect hunt complete. No further actionable work identified.
-4. Repository is in a clean, verified state. Agentic coding loop concluded.
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0 (verified at HEAD) or rc=2 if CI's post-session auto-commit advanced HEAD past the recorded checkpoint — then run `python tools/verify_state_delta.py --full --record-full-suite` once to re-advance.
+3. All 280 top-level modules have been reviewed or differential-fuzzed against stdlib references — 0 genuine library defects remain. Defect hunt complete. Prefer state-delta checks over full re-audits when no relevant file changed; do not create timestamp-only handoffs or empty no-op cycles.
+4. The `tools/audit_contracts.py` false-positive class for `raise name` bound-exception re-raises was fixed this session (resolve to the handler's declared type). If you touch the audit tool or its tests, re-run `python -m unittest tests.test_audit_contracts` and `python tools/audit_contracts.py --summary`.
 5. Test modules under `tests/`; no root-level test files. Keep `.github/workflows/**` unchanged.
-6. If you edit utils/test/CHANGELOG, run `make refresh-scaffold` then check.
+6. If you edit a wrapper module/test/CHANGELOG, run `make refresh-scaffold` then `python tools/refresh_scaffold.py --check`. (`tools/` and `tests/test_audit_contracts.py` are NOT embedded in scaffold.sh.)
 7. Update handover files; post next task to ALL when a second participant exists (board_post to main/self is refused).
 
 ## Modules already reviewed (do not re-review unless re-touching)

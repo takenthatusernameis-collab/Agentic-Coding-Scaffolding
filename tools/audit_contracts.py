@@ -118,28 +118,60 @@ def documented_raises(doc: str | None) -> Dict[str, int]:
     return result
 
 
-def _bare_raise_handler_types(fn: ast.AST) -> Set[str]:
-    """Return exception type names re-raised by bare ``raise`` statements.
+def _handler_type_names(handler: ast.ExceptHandler) -> Set[str]:
+    """Return the exception type names named by *handler*'s ``except`` clause.
 
-    A bare ``raise`` inside an ``except`` handler re-raises the exception that
-    was caught, so the type of that exception is the handler's ``type`` (when
-    present) or the enclosing ``except`` clause's type. The tracer cannot see
-    the runtime type when the handler omits it, so those cases are omitted.
+    Handles a single type (``except ValueError``), a tuple of types
+    (``except (ValueError, TypeError)``), and dotted names
+    (``except mod.Error``). A bare ``except:`` names no type and yields an empty
+    set, so a re-raise from it cannot be attributed to a concrete type.
+    """
+    if handler.type is None:
+        return set()
+    names: Set[str] = set()
+    for inner in ast.walk(handler.type):
+        if isinstance(inner, ast.Name):
+            names.add(inner.id)
+        elif isinstance(inner, ast.Attribute):
+            names.add(inner.attr)
+    return names
+
+
+def direct_raises(fn: ast.AST) -> Set[str]:
+    """Return the exception type names raised directly inside *fn*.
+
+    Includes explicit ``raise ExcType(...)`` statements, bare ``raise``
+    statements inside ``except`` handlers (which re-raise the caught exception),
+    and ``raise name`` statements that re-raise a handler's bound exception
+    (``except ExcType as name: raise name``), which resolve to the handler's
+    declared type. A ``raise name`` that does not match any enclosing handler's
+    bound name is treated as a type name, matching the tool's conservative
+    heuristic for opaque local variables.
     """
     raised: Set[str] = set()
     handler_stack: list[ast.ExceptHandler] = []
 
     def visit(node: ast.AST) -> None:
+        nonlocal raised
         if isinstance(node, ast.ExceptHandler):
             handler_stack.append(node)
             for stmt in node.body:
                 visit(stmt)
             handler_stack.pop()
             return
-        if isinstance(node, ast.Raise) and node.exc is None and handler_stack:
-            handler = handler_stack[-1]
-            if handler.type is not None:
-                for inner in ast.walk(handler.type):
+        if isinstance(node, ast.Raise):
+            exc = node.exc
+            if exc is None:
+                if handler_stack:
+                    raised |= _handler_type_names(handler_stack[-1])
+            elif isinstance(exc, ast.Name) and any(h.name == exc.id for h in handler_stack):
+                for handler in reversed(handler_stack):
+                    if handler.name == exc.id:
+                        raised |= _handler_type_names(handler)
+                        break
+            else:
+                target = exc.func if isinstance(exc, ast.Call) else exc
+                for inner in ast.walk(target):
                     if isinstance(inner, ast.Name):
                         raised.add(inner.id)
                     elif isinstance(inner, ast.Attribute):
@@ -148,25 +180,6 @@ def _bare_raise_handler_types(fn: ast.AST) -> Set[str]:
             visit(child)
 
     visit(fn)
-    return raised
-
-
-def direct_raises(fn: ast.AST) -> Set[str]:
-    """Return the exception type names raised directly inside *fn*.
-
-    Includes both explicit ``raise ExcType(...)`` statements and bare ``raise``
-    statements inside ``except`` handlers, which re-raise the caught exception.
-    """
-    raised: Set[str] = set()
-    for sub in ast.walk(fn):
-        if isinstance(sub, ast.Raise) and sub.exc is not None:
-            target = sub.exc.func if isinstance(sub.exc, ast.Call) else sub.exc
-            for inner in ast.walk(target):
-                if isinstance(inner, ast.Name):
-                    raised.add(inner.id)
-                elif isinstance(inner, ast.Attribute):
-                    raised.add(inner.attr)
-    raised |= _bare_raise_handler_types(fn)
     return raised
 
 
