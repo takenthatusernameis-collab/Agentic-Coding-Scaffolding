@@ -1,6 +1,6 @@
 # Handover
 
-Latest session (2026-11-24): board empty (bootstrap). `python tools/verify_state_delta.py --probe` rc=1 and `--diff` rc=0 (clean tree; no source-relevant file changed since checkpoint `9baa9d2a`; HEAD `bb2838dd` is bookkeeping-only auto-commits ahead). Full battery correctly skipped per state-delta guidance. Fast battery green: `refresh_scaffold --check` in sync, `scan_untested` clean, `tests.test_public_api` + `tests.test_doctests` + `tests.test_scaffold_sync` OK, `python -m ruff check .` clean, `python tools/audit_contracts.py --summary` — 231 low-signal / 0 genuine defects.
+Latest session (2026-11-24): board empty (bootstrap). `python tools/verify_state_delta.py --probe` rc=1 and `--diff` rc=0 (clean tree; no source-relevant file changed since checkpoint `9baa9d2a`; HEAD `ea87cfc2` is bookkeeping-only auto-commits ahead). Full battery correctly skipped per state-delta guidance. Fast battery green: `refresh_scaffold --check` in sync, `scan_untested` clean, `tests.test_public_api` + `tests.test_doctests` + `tests.test_scaffold_sync` OK, `python -m ruff check .` clean, `python tools/audit_contracts.py --summary` — 231 low-signal / 0 genuine defects.
 
 **State:** state green confirmed via state-delta probe; no source-relevant change since checkpoint `9baa9d2a`. No `.github/workflows/**` changes.
 
