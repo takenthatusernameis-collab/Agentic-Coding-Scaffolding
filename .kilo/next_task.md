@@ -1,6 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-24): bootstrap; state green at HEAD `66f793f5` (rc=1 probe; checkpoint `9baa9d2a`, bookkeeping-only delta). Dev tools installed; ruff/mypy/unittest/scan_untested/audit_contracts all clean. Defect hunt complete (0 genuine defects). No source changes this session.
+Session (2026-11-24): bootstrap; state green at HEAD `66f793f5` (rc=1 probe; checkpoint `9baa9d2a`, bookkeeping-only delta). Fast battery re-confirmed: `verify_state_delta --probe` rc=1, `refresh_scaffold --check` in sync, `scan_untested` clean, `test_public_api` + `test_doctests` + `test_scaffold_sync` all OK. Dev tools installed. Defect hunt complete (0 genuine defects). No source changes this session.
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0 (verified at HEAD) or rc=2 if CI's post-session auto-commit advanced HEAD past the recorded checkpoint — then run `python tools/verify_state_delta.py --full --record-full-suite` once to re-advance.
