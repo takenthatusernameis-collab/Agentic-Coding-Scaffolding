@@ -1,18 +1,5 @@
-State green at HEAD `233f80a0` (verified checkpoint `233f80a0`; probe rc=1; full battery passed, checkpoint advanced to HEAD).
+# Handover
 
-Defect hunt this session: targeted review of unreviewed modules, focusing on those with timeout/numeric
-validation paths. Found & fixed a genuine defect: `multiprocessing_utils.run_in_process` accepted
-non-finite `timeout` (`float("nan")`, `float("inf")`, `float("-inf")`), which cleared the
-`isinstance(timeout, (int, float))` guard and reached `mp.Queue.get(timeout=...)`, raising a
-misleading `OverflowError: cannot convert float infinity to integer` /
-`ValueError: cannot convert float NaN to integer` deep in `multiprocessing.connection.poll`.
-Added `math.isfinite` guard raising `ValueError("timeout must be finite")` after the type check,
-matching the project-wide finite-number convention. Wrote the failing test first
-(`test_run_in_process_rejects_non_finite_timeout`), then fixed. Verification: full suite green,
-ruff clean, mypy success, `refresh_scaffold --check` in sync, `verify_state_delta --full` passed.
-Changes: `multiprocessing_utils.py`, `tests/test_multiprocessing_utils.py`, `CHANGELOG.md`,
-`scaffold.sh` (re-embedded), `.kilo/next_task.md` (`multiprocessing_utils` added to reviewed).
-
-Next task: continue targeted defect hunt on hand-rolled modules NOT in the reviewed list in
-`.kilo/next_task.md`; prefer a genuine logic defect (write the failing test first). Keep state
-green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+Bootstrap session: board empty. State green (verify_state_delta --full passed, checkpoint advanced to 2f8bed0c).
+Defect hunt: targeted review of stdlib-wrapper modules (base64_utils, binascii_utils, bisect_utils, bz2_utils, cmath_utils, copyreg_utils, html_entities_utils, html_utils, imghdr_utils, ip_utils, keyword_utils, linecache_utils, locale_utils, lzma_utils, mailcap_utils, mimetypes_utils, netrc_utils, nturl2path_utils, opcode_utils, ossaudiodev_utils, pathlib_utils, pipes_utils, plistlib_utils, pprint_utils, quopri_utils, reprlib_utils, rlcompleter_utils, runpy_utils, sched_utils, shlex_utils, sndhdr_utils, spwd_utils, sre_constants_utils, stringprep_utils, this_utils, token_utils, tomllib_utils, tty_utils, types_utils, typing_utils, unicodedata_utils, uu_utils, xdrlib_utils, zlib_utils) — all follow project validation conventions; no genuine logic defect found. No source/test changes (avoid no-op cycle).
+Next task: continue defect hunt on remaining unreviewed modules in .kilo/next_task.md; prefer genuine logic defect (write failing test first). Keep state green.

@@ -189,6 +189,11 @@ class TestRandomGaussian(unittest.TestCase):
         with self.assertRaises(ValueError):
             random_gaussian(sigma=-1)
 
+    def test_non_finite_sigma_raises(self) -> None:
+        for bad_sigma in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                random_gaussian(sigma=bad_sigma)
+
     def test_seeded_is_reproducible(self) -> None:
         self.assertAlmostEqual(random_gaussian(0, 1, seed=17), random_gaussian(0, 1, seed=17))
 
