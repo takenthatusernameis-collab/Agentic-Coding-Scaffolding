@@ -64064,7 +64064,8 @@ def decode_utf8(data: bytes, errors: str = "strict") -> str:
 
     Raises:
         TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
-        UnicodeDecodeError: If decoding fails with the selected handler.  # audit-ignore: UnicodeDecodeError
+        UnicodeDecodeError: If decoding fails with the selected handler.
+        # audit-ignore: UnicodeDecodeError
         LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(data, (bytes, bytearray)):
@@ -64086,7 +64087,8 @@ def encode_utf8(s: str, errors: str = "strict") -> bytes:
 
     Raises:
         TypeError: If *s* or *errors* is not a str.
-        UnicodeEncodeError: If encoding fails with the selected handler.  # audit-ignore: UnicodeEncodeError
+        UnicodeEncodeError: If encoding fails with the selected handler.
+        # audit-ignore: UnicodeEncodeError
         LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(s, str):
@@ -65507,7 +65509,8 @@ def decode_ascii(data: bytes, errors: str = "strict") -> str:
 
     Raises:
         TypeError: If *data* is not bytes/bytearray or *errors* is not a str.
-        UnicodeDecodeError: If decoding fails with the selected handler.  # audit-ignore: UnicodeDecodeError
+        UnicodeDecodeError: If decoding fails with the selected handler.
+        # audit-ignore: UnicodeDecodeError
         LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(data, (bytes, bytearray)):
@@ -65529,7 +65532,8 @@ def encode_ascii(s: str, errors: str = "strict") -> bytes:
 
     Raises:
         TypeError: If *s* or *errors* is not a str.
-        UnicodeEncodeError: If encoding fails with the selected handler.  # audit-ignore: UnicodeEncodeError
+        UnicodeEncodeError: If encoding fails with the selected handler.
+        # audit-ignore: UnicodeEncodeError
         LookupError: If *errors* is not a known handler.  # audit-ignore: LookupError
     """
     if not isinstance(s, str):
@@ -65687,8 +65691,9 @@ def from_int(
             not an int, *byteorder* is not a str, or *signed* is not a bool.
         ValueError: If *length* is negative, or *byteorder* is not "big" or
             "little".
-        OverflowError: If *value* does not fit in *length* bytes with the  # audit-ignore: OverflowError
+        OverflowError: If *value* does not fit in *length* bytes with the
             requested signedness.
+        # audit-ignore: OverflowError
 
     Examples:
         >>> to_hex(from_int(256, 2))
