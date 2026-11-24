@@ -1,6 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-24): board empty (bootstrap). Probe rc=2 (dirty tree from the ctypes_utils.py audit triage + scaffold.sh re-embed); ran `python tools/verify_state_delta.py --full` — battery passed, checkpoint advanced to HEAD `e08b7e3d`. Triaged `ctypes_utils.py`: `get_last_error`/`set_last_error` document `AttributeError`, genuinely raised on non-Windows via `getattr(_ctypes, ...)` with no default (stdlib delegation); added `# audit-ignore: AttributeError` to both `Raises:` entries. Audit 186 → 184 low-signal / 0 genuine defects. Fast battery: `tests.test_ctypes_utils` 20 OK, ruff clean, mypy success, `refresh_scaffold --check` in sync.
+Session (2026-11-24): board empty (bootstrap). Established project foundation. Probe rc=2 (checkpoint `e08b7e3d` behind HEAD `1b632e5a` on the prior session's source-relevant `ctypes_utils.py`/`scaffold.sh` commit); ran `python tools/verify_state_delta.py --full --record-full-suite` — battery passed, checkpoint advanced to HEAD `1b632e5a`. Fast battery green: `refresh_scaffold --check` in sync, `scan_untested` clean, ruff clean, `audit_contracts --summary` 184 low-signal / 0 genuine defects.
 
 1. Run `board_read` and execute any task posted to you/main; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0 (verified at HEAD) or rc=1 (clean tree, no source-relevant change since checkpoint) — no redundant full re-run. If rc=2 (verification required), run `python tools/verify_state_delta.py --full --record-full-suite` once to re-advance.
