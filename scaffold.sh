@@ -74943,6 +74943,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `fcntl_utils` triages 12 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — twelve `fcntl_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `flock`/`unlock`/`lockf` document `OSError` from the delegated `fcntl.flock`/`fcntl.lockf` calls; `control`/`ioctl`/`get_descriptor_flags`/`set_descriptor_flags`/`get_file_status_flags`/`set_file_status_flags`/`duplicate_fd` document `OSError` from the delegated `fcntl.fcntl`/`fcntl.ioctl` calls; `is_cloexec` documents `OSError` via its delegation to `get_descriptor_flags`; and `file_lock` documents `OSError` from the delegated `os.open`/`flock` calls. Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `fcntl_utils` audit section drops from 12 low-signal candidates to 0, and the repository scan drops from 184 to 172.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_fcntl_utils` — 30 OK; `python tools/audit_contracts.py fcntl_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 172 low-signal / 0 genuine defects (was 184); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `bytes_utils` triages 11 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — `bytes_utils.index`/`rindex` document `ValueError`; `bytes_utils.decode_utf8`/`encode_utf8`/`decode_ascii`/`encode_ascii` document `UnicodeDecodeError`/`UnicodeEncodeError`/`LookupError`; and `bytes_utils.from_int` documents `OverflowError`. Each documented exception is genuinely raised by the delegated standard-library call (`bytes.index`/`bytes.rindex`, `bytes.decode`, `str.encode`, `int.to_bytes`), not by the wrapper itself.** Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `bytes_utils` audit section drops from 11 low-signal candidates to 0, and the repository scan drops from 197 to 186.
@@ -89100,7 +89106,7 @@ def flock(fd: int, operation: int) -> None:
         ValueError: If *fd* is negative or *operation* is not a known lock
             operation.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the lock cannot be acquired.
+        OSError: If the lock cannot be acquired.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     _validate_operation(operation)
@@ -89118,7 +89124,7 @@ def unlock(fd: int) -> None:
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the lock cannot be released.
+        OSError: If the lock cannot be released.  # audit-ignore: OSError
     """
     flock(fd, LOCK_UN)
 
@@ -89151,7 +89157,7 @@ def lockf(
         ValueError: If *fd* is negative, *command* is not a known record lock
             command, or *whence* is not a known reference point.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the lock cannot be acquired.
+        OSError: If the lock cannot be acquired.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     _validate_command(command)
@@ -89186,7 +89192,7 @@ def control(fd: int, cmd: int, arg: int | bytes = 0) -> int | bytes:
         TypeError: If an argument has the wrong type.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the operation fails.
+        OSError: If the operation fails.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     if isinstance(cmd, bool) or not isinstance(cmd, int):
@@ -89215,7 +89221,7 @@ def ioctl(fd: int, request: int, arg: int = 0) -> int:
         TypeError: If an argument has the wrong type.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the operation fails.
+        OSError: If the operation fails.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     if isinstance(request, bool) or not isinstance(request, int):
@@ -89239,7 +89245,7 @@ def get_descriptor_flags(fd: int) -> int:
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the flags cannot be read.
+        OSError: If the flags cannot be read.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     module = _fcntl_module()
@@ -89257,7 +89263,7 @@ def set_descriptor_flags(fd: int, flags: int) -> None:
         TypeError: If an argument has the wrong type.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the flags cannot be written.
+        OSError: If the flags cannot be written.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     if isinstance(flags, bool) or not isinstance(flags, int):
@@ -89281,7 +89287,7 @@ def get_file_status_flags(fd: int) -> int:
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the flags cannot be read.
+        OSError: If the flags cannot be read.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     module = _fcntl_module()
@@ -89299,7 +89305,7 @@ def set_file_status_flags(fd: int, flags: int) -> None:
         TypeError: If an argument has the wrong type.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the flags cannot be written.
+        OSError: If the flags cannot be written.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     if isinstance(flags, bool) or not isinstance(flags, int):
@@ -89326,7 +89332,7 @@ def duplicate_fd(fd: int, minimum: int = 0, inheritable: bool = False) -> int:
         TypeError: If an argument has the wrong type.
         ValueError: If *fd* or *minimum* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the file descriptor cannot be copied.
+        OSError: If the file descriptor cannot be copied.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     _validate_offset(minimum, "minimum")
@@ -89353,7 +89359,7 @@ def is_cloexec(fd: int) -> bool:
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the flags cannot be read.
+        OSError: If the flags cannot be read.  # audit-ignore: OSError
     """
     return bool(get_descriptor_flags(fd) & FD_CLOEXEC)
 
@@ -89424,7 +89430,7 @@ def file_lock(
         TypeError: If an argument has the wrong type.
         ValueError: If *mode* is not a known lock mode.
         RuntimeError: If the interpreter does not ship the ``fcntl`` module.
-        OSError: If the file cannot be opened or locked.
+        OSError: If the file cannot be opened or locked.  # audit-ignore: OSError
     """
     operation = lock_kind(mode, blocking)
     if not isinstance(path, str):
