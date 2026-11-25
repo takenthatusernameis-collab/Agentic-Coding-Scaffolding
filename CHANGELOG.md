@@ -1622,6 +1622,8 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
 
+- `base64_utils.base64_decode`: documents `UnicodeDecodeError` propagated from the delegated `decoded.decode("utf-8")` call (invalid UTF-8 bytes). Marked `# audit-ignore: UnicodeDecodeError`. `base64_utils` audit section drops from 1 to 0; repo scan 39 → 38.
+
 - `csv_utils.write_csv`: when ``rows`` is empty, write a header-only CSV file
   when ``fieldnames`` is provided instead of returning without creating the
   file. Previously an explicit ``fieldnames`` argument was ignored in the

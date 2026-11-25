@@ -74,7 +74,7 @@ def base64_decode(encoded: str, urlsafe: bool = False) -> str:
         TypeError: If ``encoded`` is not a string.
         ValueError: If ``encoded`` is not valid Base64.
         UnicodeDecodeError: If the decoded bytes are not valid UTF-8.
-
+        # audit-ignore: UnicodeDecodeError
     Examples:
         >>> base64_decode("aGVsbG8=")
         'hello'

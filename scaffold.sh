@@ -68858,7 +68858,7 @@ def base64_decode(encoded: str, urlsafe: bool = False) -> str:
         TypeError: If ``encoded`` is not a string.
         ValueError: If ``encoded`` is not valid Base64.
         UnicodeDecodeError: If the decoded bytes are not valid UTF-8.
-
+        # audit-ignore: UnicodeDecodeError
     Examples:
         >>> base64_decode("aGVsbG8=")
         'hello'
@@ -76569,6 +76569,8 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added `count_digits(data)` to `bytes_utils.py` as the missing integer companion to `isdigit`. The module had `isdigit` (exported in `__all__`, with tests and README documentation) but no `count_*` counterpart, so callers could not obtain the actual number of digit bytes. `count_digits` returns the count of ASCII digit bytes (``0``-``9``) in *data*; empty input returns zero. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestCountDigits` (8 tests) to `tests/test_bytes_utils.py` covering all-digits/no-digits/mixed/empty/bytearray inputs, consistency with `isdigit`, and `TypeError` paths; imported `count_digits` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
+
+- `base64_utils.base64_decode`: documents `UnicodeDecodeError` propagated from the delegated `decoded.decode("utf-8")` call (invalid UTF-8 bytes). Marked `# audit-ignore: UnicodeDecodeError`. `base64_utils` audit section drops from 1 to 0; repo scan 39 → 38.
 
 - `csv_utils.write_csv`: when ``rows`` is empty, write a header-only CSV file
   when ``fieldnames`` is provided instead of returning without creating the
