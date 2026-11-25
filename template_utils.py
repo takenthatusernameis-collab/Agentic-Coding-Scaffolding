@@ -36,7 +36,7 @@ def render_template(template: str, *args: Any, **kwargs: Any) -> str:
 
     Raises:
         TypeError: If ``template`` is not a string.
-        KeyError: If a required placeholder is missing.
+        KeyError: If a required placeholder is missing.  # audit-ignore: KeyError
     """
     if not isinstance(template, str):
         raise TypeError("template must be a string")
@@ -64,7 +64,7 @@ def substitute(
 
     Raises:
         TypeError: If ``template`` is not a string.
-        KeyError: If a required placeholder is missing.
+        KeyError: If a required placeholder is missing.  # audit-ignore: KeyError
     """
     if not isinstance(template, str):
         raise TypeError("template must be a string")

@@ -72695,7 +72695,7 @@ def render_template(template: str, *args: Any, **kwargs: Any) -> str:
 
     Raises:
         TypeError: If ``template`` is not a string.
-        KeyError: If a required placeholder is missing.
+        KeyError: If a required placeholder is missing.  # audit-ignore: KeyError
     """
     if not isinstance(template, str):
         raise TypeError("template must be a string")
@@ -72723,7 +72723,7 @@ def substitute(
 
     Raises:
         TypeError: If ``template`` is not a string.
-        KeyError: If a required placeholder is missing.
+        KeyError: If a required placeholder is missing.  # audit-ignore: KeyError
     """
     if not isinstance(template, str):
         raise TypeError("template must be a string")
@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `template_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `template_utils` functions document exceptions genuinely raised by delegated standard-library calls.** `render_template` documents `KeyError` propagated from the delegated `str.format` call (a missing placeholder raises `KeyError`, empirically confirmed); `substitute` documents `KeyError` propagated from the delegated `string.Template.substitute` call (a missing placeholder raises `KeyError`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore: KeyError` comment so the reviewed delegation is not re-reported. The `template_utils` audit section drops from 2 low-signal candidates to 0; the repository scan drops from 15 to 13.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_template_utils` — 58 OK; `python -m ruff check template_utils.py` — clean; `python -m mypy template_utils.py` — success; `python tools/audit_contracts.py template_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 13 low-signal / 0 genuine defects (was 15); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `tabnanny_utils` triages `process_tokens` delegated `NannyNag` with `# audit-ignore:` and removes an inaccurate `check` doc line
 
 - **Tooling — `tabnanny_utils.process_tokens` documents `NannyNag` genuinely raised by the delegated standard-library call.** `process_tokens` documents `NannyNag: If the tokens contain ambiguous indentation`, propagated from the delegated `tabnanny.process_tokens` call (raises `tabnanny.NannyNag` on ambiguous indentation, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: NannyNag` comment so the reviewed delegation is not re-reported. The `tabnanny_utils` audit section drops from 2 low-signal candidates to 1; the repository scan drops from 18 to 17.
