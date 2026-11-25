@@ -1,14 +1,21 @@
 # Handover
 
-Latest session (2026-11-25): board empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`. Probe rc=2 (source changed since checkpoint `25539d76`); ran full battery once, checkpoint advanced to HEAD `9b705327`. State verified green.
+Latest session (2026-11-25): board empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`. Probe rc=0 (state unchanged since checkpoint `9b705327`); ran targeted tests and full battery once, checkpoint advanced to HEAD `492b3d0d`. State verified green.
 
-**State:** checkpoint == HEAD `9b705327` after full battery. No `.github/workflows/**` changes.
+**State:** checkpoint == HEAD `492b3d0d` after full battery. No `.github/workflows/**` changes.
 
-**Work:** triaged `pkgutil_utils` audit candidates — 3 functions document an exception genuinely raised by the delegated standard-library call: `read_text` (`UnicodeDecodeError` from `bytes.decode(encoding, errors)`), `resolve_name` (`ValueError` from `pkgutil.resolve_name` for an invalid dotted name, and `ImportError`/`ModuleNotFoundError` from the same call when the name cannot be imported). Each `Raises:` line now carries an inline `# audit-ignore:` comment. `pkgutil_utils` audit section 3 → 0; repo scan 61 → 58. Refreshed scaffold.sh embeddings for `pkgutil_utils.py` and `CHANGELOG.md`. Tests (19 OK), verify_state_delta pass.
+**Work:** triaged `posix_utils` audit candidates — 3 functions document an exception genuinely raised by the delegated standard-library call: `terminal_size` (`OSError` from `posix.get_terminal_size` when the descriptor is not a terminal), `create_directory` (`NotADirectoryError` from `posix.mkdir` when a parent component is not a directory), `remove_path` (`FileNotFoundError` from `posix.lstat`/`rmdir`/`unlink` when the path does not exist). Each `Raises:` line now carries an inline `# audit-ignore:` comment. `posix_utils` audit section 3 → 0; repo scan 58 → 55. Refreshed scaffold.sh embeddings for `posix_utils.py` and `CHANGELOG.md`. Tests (135 OK), verify_state_delta pass.
 
-**Changes:** `pkgutil_utils.py` (3 `# audit-ignore:` comments); `CHANGELOG.md` (new Unreleased entry); `scaffold.sh` (re-embedded `pkgutil_utils.py`, `CHANGELOG.md`); `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded here and in `.kilo/next_task.md`.
+**Changes:** `posix_utils.py` (3 `# audit-ignore:` comments); `CHANGELOG.md` (new Unreleased entry); `scaffold.sh` (re-embedded `posix_utils.py`, `CHANGELOG.md`); `.kilo/handover.md`, `.kilo/next_task.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded here and in `.kilo/next_task.md`.
 
-**Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates with `# audit-ignore:` per session (58 remain across ~54 files; several files still have 3 candidates each — `posix_utils`, `select_utils`, `ssl_utils`). Confirm each is a genuine delegation, not a never-raised doc error; prefer state-delta checks over full re-audits; no timestamp-only handoffs / no-op cycles. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+**Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates with `# audit-ignore:` per session (55 remain across ~53 files; several files still have 3 candidates each — `select_utils`, `ssl_utils`). Confirm each is a genuine delegation, not a never-raised doc error; prefer state-delta checks over full re-audits; no timestamp-only handoffs / no-op cycles. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+
+## Latest Session (2026-11-25) — triaged `pkgutil_utils` audit candidates; repo 61 → 58
+
+- `board_read`: empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`.
+- **State:** probe rc=2 (source changed since checkpoint `25539d76`); ran full battery once, checkpoint advanced to HEAD `9b705327`. No `.github/workflows/**` changes.
+- **Work:** triaged all 3 `pkgutil_utils` audit candidates as genuine stdlib delegations (`read_text` documents `UnicodeDecodeError` from the delegated `bytes.decode(encoding, errors)` call; `resolve_name` documents `ValueError` from the delegated `pkgutil.resolve_name` for an invalid dotted name, and `ImportError`/`ModuleNotFoundError` from the same call when the name cannot be imported). Each `Raises:` line now carries `# audit-ignore:` comment. `pkgutil_utils` 3 → 0; repo 61 → 58. Refreshed scaffold.sh embeddings for `pkgutil_utils.py` and `CHANGELOG.md`. Tests (19 OK), verify_state_delta pass.
+- **Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates (58 remain across ~54 files); prefer state-delta checks; no timestamp-only handoffs/no-op cycles.
 
 ## Latest Session (2026-11-25) — triaged `ipaddress_utils` audit candidates; repo 64 → 61
 

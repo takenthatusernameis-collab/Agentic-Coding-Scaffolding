@@ -1007,7 +1007,7 @@ def terminal_size(fd: int = 1) -> Tuple[int, int]:
         The number of the columns and the number of the lines.
 
     Raises:
-        OSError: If the descriptor is not connected to a terminal.
+        OSError: If the descriptor is not connected to a terminal.  # audit-ignore: OSError
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``posix`` module.
@@ -1220,7 +1220,8 @@ def create_directory(
 
     Raises:
         FileExistsError: If the directory exists and *exist_ok* is ``False``.
-        NotADirectoryError: If a parent of the directory is not a directory.
+        NotADirectoryError: If a parent of the directory is not a
+            directory.  # audit-ignore: NotADirectoryError
         TypeError: If *path* is not a path, or if the other arguments have the
             wrong type.
         ValueError: If *mode* holds bits outside the file mode.
@@ -1290,7 +1291,7 @@ def remove_path(path: PathLike) -> None:
         path: The path to remove.
 
     Raises:
-        FileNotFoundError: If the path does not exist.
+        FileNotFoundError: If the path does not exist.  # audit-ignore: FileNotFoundError
         TypeError: If *path* is not a path.
         RuntimeError: If the interpreter does not ship the ``posix`` module.
     """

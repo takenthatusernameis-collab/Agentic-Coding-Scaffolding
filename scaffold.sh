@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `posix_utils` triages 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — three `posix_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `terminal_size` documents `OSError` from the delegated `posix.get_terminal_size` call (descriptor is not a terminal); `create_directory` documents `NotADirectoryError` from the delegated `posix.mkdir` call (a parent component is not a directory); `remove_path` documents `FileNotFoundError` from the delegated `posix.lstat`/`rmdir`/`unlink` calls (path does not exist). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `posix_utils` audit section drops from 3 low-signal candidates to 0, and the repository scan drops from 58 to 55.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m pytest tests/test_posix_utils.py` — 135 OK; `python tools/audit_contracts.py posix_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 55 low-signal / 0 genuine defects (was 58); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `pkgutil_utils` triages 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — three `pkgutil_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `read_text` documents `UnicodeDecodeError` from the delegated `bytes.decode(encoding, errors)` call (invalid bytes under strict error handling); `resolve_name` documents `ValueError` from the delegated `pkgutil.resolve_name` (invalid dotted-name format) and `ImportError` from the same call (the name cannot be imported, raised as `ModuleNotFoundError`, an `ImportError` subclass). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `pkgutil_utils` audit section drops from 3 low-signal candidates to 0, and the repository scan drops from 61 to 58.
@@ -160969,7 +160975,7 @@ def terminal_size(fd: int = 1) -> Tuple[int, int]:
         The number of the columns and the number of the lines.
 
     Raises:
-        OSError: If the descriptor is not connected to a terminal.
+        OSError: If the descriptor is not connected to a terminal.  # audit-ignore: OSError
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
         RuntimeError: If the interpreter does not ship the ``posix`` module.
@@ -161182,7 +161188,8 @@ def create_directory(
 
     Raises:
         FileExistsError: If the directory exists and *exist_ok* is ``False``.
-        NotADirectoryError: If a parent of the directory is not a directory.
+        NotADirectoryError: If a parent of the directory is not a
+            directory.  # audit-ignore: NotADirectoryError
         TypeError: If *path* is not a path, or if the other arguments have the
             wrong type.
         ValueError: If *mode* holds bits outside the file mode.
@@ -161252,7 +161259,7 @@ def remove_path(path: PathLike) -> None:
         path: The path to remove.
 
     Raises:
-        FileNotFoundError: If the path does not exist.
+        FileNotFoundError: If the path does not exist.  # audit-ignore: FileNotFoundError
         TypeError: If *path* is not a path.
         RuntimeError: If the interpreter does not ship the ``posix`` module.
     """
