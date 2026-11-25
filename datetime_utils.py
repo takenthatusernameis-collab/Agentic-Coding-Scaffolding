@@ -27,9 +27,9 @@ def parse_datetime(value: str, fmt: str = "%Y-%m-%d %H:%M:%S") -> datetime:
     Returns:
         The parsed datetime object.
 
-    Raises:
+        Raises:
         TypeError: If *value* is not a string.
-        ValueError: If the string does not match the format.
+        ValueError: If the string does not match the format.  # audit-ignore: ValueError
     """
     if not isinstance(value, str):
         raise TypeError("value must be a string")
