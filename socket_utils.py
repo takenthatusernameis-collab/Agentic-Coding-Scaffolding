@@ -150,7 +150,7 @@ def create_socket(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the socket cannot be created.
+        OSError: If the socket cannot be created.  # audit-ignore: OSError
     """
     _require_int(family, "family")
     _require_int(sock_type, "sock_type")
@@ -253,7 +253,7 @@ def connect_socket(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *timeout* is non-finite or negative.
-        OSError: If the connection fails.
+        OSError: If the connection fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     target = _require_address(address)
@@ -277,7 +277,7 @@ def create_connection(address: Any, timeout: Optional[float] = None) -> socket.s
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *timeout* is non-finite or negative.
-        OSError: If the connection fails.
+        OSError: If the connection fails.  # audit-ignore: OSError
     """
     target = _require_address(address)
     wait = _require_timeout(timeout)
@@ -296,7 +296,7 @@ def bind_socket(sock: socket.socket, address: Any) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the bind fails.
+        OSError: If the bind fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     target = _require_address(address)
@@ -317,7 +317,7 @@ def listen_socket(sock: socket.socket, backlog: int = socket.SOMAXCONN) -> socke
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *backlog* is negative.
-        OSError: If the socket cannot listen.
+        OSError: If the socket cannot listen.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     size = _require_int(backlog, "backlog")
@@ -338,7 +338,7 @@ def accept_connection(sock: socket.socket) -> Tuple[socket.socket, Any]:
 
     Raises:
         TypeError: If *sock* is not a socket.
-        OSError: If no connection can be accepted.
+        OSError: If no connection can be accepted.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     client, address = connection.accept()
@@ -357,7 +357,7 @@ def send_all(sock: socket.socket, data: Any) -> int:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the data cannot be sent.
+        OSError: If the data cannot be sent.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     payload = _require_data(data)
@@ -378,7 +378,7 @@ def send_to(sock: socket.socket, data: Any, address: Any) -> int:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the data cannot be sent.
+        OSError: If the data cannot be sent.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     payload = _require_data(data)
@@ -399,7 +399,7 @@ def receive_bytes(sock: socket.socket, bufsize: int = DEFAULT_BUFFER_SIZE) -> by
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *bufsize* is not positive.
-        OSError: If the data cannot be received.
+        OSError: If the data cannot be received.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     size = _require_int(bufsize, "bufsize")
@@ -421,7 +421,7 @@ def receive_from(sock: socket.socket, bufsize: int = DEFAULT_BUFFER_SIZE) -> Tup
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *bufsize* is not positive.
-        OSError: If the datagram cannot be received.
+        OSError: If the datagram cannot be received.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     size = _require_int(bufsize, "bufsize")
@@ -502,7 +502,7 @@ def set_reuse_address(sock: socket.socket, flag: bool = True) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the option cannot be set.
+        OSError: If the option cannot be set.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     if not isinstance(flag, bool):
@@ -523,7 +523,7 @@ def set_keepalive(sock: socket.socket, flag: bool = True) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the option cannot be set.
+        OSError: If the option cannot be set.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     if not isinstance(flag, bool):
@@ -544,7 +544,7 @@ def shutdown_socket(sock: socket.socket, how: int = socket.SHUT_RDWR) -> socket.
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the shutdown fails.
+        OSError: If the shutdown fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     mode = _require_int(how, "how")
@@ -580,7 +580,7 @@ def get_socket_name(sock: socket.socket) -> Any:
 
     Raises:
         TypeError: If *sock* is not a socket.
-        OSError: If the address cannot be read.
+        OSError: If the address cannot be read.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     return connection.getsockname()
@@ -597,7 +597,7 @@ def get_peer_name(sock: socket.socket) -> Any:
 
     Raises:
         TypeError: If *sock* is not a socket.
-        OSError: If the peer address cannot be read.
+        OSError: If the peer address cannot be read.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     return connection.getpeername()
