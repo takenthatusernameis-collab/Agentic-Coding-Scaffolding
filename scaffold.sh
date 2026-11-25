@@ -74943,6 +74943,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `socket_utils` triages 15 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — fifteen `socket_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `create_socket`/`connect_socket`/`create_connection`/`bind_socket`/`listen_socket`/`accept_connection`/`send_all`/`send_to`/`receive_bytes`/`receive_from`/`set_reuse_address`/`set_keepalive`/`shutdown_socket`/`get_socket_name`/`get_peer_name` document `OSError` from the delegated `socket.*` calls. Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `socket_utils` audit section drops from 15 low-signal candidates to 0, and the repository scan drops accordingly.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python tools/audit_contracts.py socket_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — low-signal / 0 genuine defects; `python tools/refresh_scaffold.py --check` — in sync; no `.github/workflows/**` changes.
+
 ## Unreleased — `fcntl_utils` triages 12 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — twelve `fcntl_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `flock`/`unlock`/`lockf` document `OSError` from the delegated `fcntl.flock`/`fcntl.lockf` calls; `control`/`ioctl`/`get_descriptor_flags`/`set_descriptor_flags`/`get_file_status_flags`/`set_file_status_flags`/`duplicate_fd` document `OSError` from the delegated `fcntl.fcntl`/`fcntl.ioctl` calls; `is_cloexec` documents `OSError` via its delegation to `get_descriptor_flags`; and `file_lock` documents `OSError` from the delegated `os.open`/`flock` calls. Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `fcntl_utils` audit section drops from 12 low-signal candidates to 0, and the repository scan drops from 184 to 172.
@@ -126966,7 +126972,7 @@ def create_socket(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the socket cannot be created.
+        OSError: If the socket cannot be created.  # audit-ignore: OSError
     """
     _require_int(family, "family")
     _require_int(sock_type, "sock_type")
@@ -127069,7 +127075,7 @@ def connect_socket(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *timeout* is non-finite or negative.
-        OSError: If the connection fails.
+        OSError: If the connection fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     target = _require_address(address)
@@ -127093,7 +127099,7 @@ def create_connection(address: Any, timeout: Optional[float] = None) -> socket.s
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *timeout* is non-finite or negative.
-        OSError: If the connection fails.
+        OSError: If the connection fails.  # audit-ignore: OSError
     """
     target = _require_address(address)
     wait = _require_timeout(timeout)
@@ -127112,7 +127118,7 @@ def bind_socket(sock: socket.socket, address: Any) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the bind fails.
+        OSError: If the bind fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     target = _require_address(address)
@@ -127133,7 +127139,7 @@ def listen_socket(sock: socket.socket, backlog: int = socket.SOMAXCONN) -> socke
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *backlog* is negative.
-        OSError: If the socket cannot listen.
+        OSError: If the socket cannot listen.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     size = _require_int(backlog, "backlog")
@@ -127154,7 +127160,7 @@ def accept_connection(sock: socket.socket) -> Tuple[socket.socket, Any]:
 
     Raises:
         TypeError: If *sock* is not a socket.
-        OSError: If no connection can be accepted.
+        OSError: If no connection can be accepted.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     client, address = connection.accept()
@@ -127173,7 +127179,7 @@ def send_all(sock: socket.socket, data: Any) -> int:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the data cannot be sent.
+        OSError: If the data cannot be sent.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     payload = _require_data(data)
@@ -127194,7 +127200,7 @@ def send_to(sock: socket.socket, data: Any, address: Any) -> int:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the data cannot be sent.
+        OSError: If the data cannot be sent.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     payload = _require_data(data)
@@ -127215,7 +127221,7 @@ def receive_bytes(sock: socket.socket, bufsize: int = DEFAULT_BUFFER_SIZE) -> by
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *bufsize* is not positive.
-        OSError: If the data cannot be received.
+        OSError: If the data cannot be received.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     size = _require_int(bufsize, "bufsize")
@@ -127237,7 +127243,7 @@ def receive_from(sock: socket.socket, bufsize: int = DEFAULT_BUFFER_SIZE) -> Tup
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *bufsize* is not positive.
-        OSError: If the datagram cannot be received.
+        OSError: If the datagram cannot be received.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     size = _require_int(bufsize, "bufsize")
@@ -127318,7 +127324,7 @@ def set_reuse_address(sock: socket.socket, flag: bool = True) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the option cannot be set.
+        OSError: If the option cannot be set.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     if not isinstance(flag, bool):
@@ -127339,7 +127345,7 @@ def set_keepalive(sock: socket.socket, flag: bool = True) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the option cannot be set.
+        OSError: If the option cannot be set.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     if not isinstance(flag, bool):
@@ -127360,7 +127366,7 @@ def shutdown_socket(sock: socket.socket, how: int = socket.SHUT_RDWR) -> socket.
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the shutdown fails.
+        OSError: If the shutdown fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     mode = _require_int(how, "how")
@@ -127396,7 +127402,7 @@ def get_socket_name(sock: socket.socket) -> Any:
 
     Raises:
         TypeError: If *sock* is not a socket.
-        OSError: If the address cannot be read.
+        OSError: If the address cannot be read.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     return connection.getsockname()
@@ -127413,7 +127419,7 @@ def get_peer_name(sock: socket.socket) -> Any:
 
     Raises:
         TypeError: If *sock* is not a socket.
-        OSError: If the peer address cannot be read.
+        OSError: If the peer address cannot be read.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
     return connection.getpeername()
