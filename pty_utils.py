@@ -105,6 +105,7 @@ def openpty() -> tuple[int, int]:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
+        # audit-ignore: OSError
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
     master_fd, slave_fd = _pty_module().openpty()
@@ -122,6 +123,7 @@ def open_terminal() -> tuple[int, int]:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
+        # audit-ignore: OSError
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
     return openpty()
@@ -142,6 +144,7 @@ def master_open() -> tuple[str, int]:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
+        # audit-ignore: OSError
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
     master_fd, slave_fd = openpty()
@@ -166,7 +169,7 @@ def slave_open(tty_name: str) -> int:
         TypeError: If *tty_name* is not a string.
         ValueError: If *tty_name* is empty.
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If the operating system fails to open the device.
+        OSError: If the operating system fails to open the device.  # audit-ignore: OSError
     """
     if not isinstance(tty_name, str):
         raise TypeError(f"tty_name must be a str, got {type(tty_name).__name__}")
@@ -190,7 +193,7 @@ def fork() -> ForkResult:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If the fork fails.
+        OSError: If the fork fails.  # audit-ignore: OSError
     """
     pid, master_fd = _pty_module().fork()
     return ForkResult(int(pid), int(master_fd))
@@ -230,7 +233,7 @@ def spawn(
             callables is not callable.
         ValueError: If *argv* is empty.
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If the program cannot be started.
+        OSError: If the program cannot be started.  # audit-ignore: OSError
     """
     if isinstance(argv, (str, bytes)):
         raise TypeError("argv must be a sequence of str, got str")

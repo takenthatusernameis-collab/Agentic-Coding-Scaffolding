@@ -74944,6 +74944,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `pty_utils` triages 6 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — six `pty_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `openpty`/`open_terminal` document `OSError` from the delegated `pty.openpty` (`os.openpty`); `master_open` documents `OSError` from the delegated `os.openpty`/`os.ttyname`/`os.close`; `slave_open` documents `OSError` from the delegated `os.open`; `fork` documents `OSError` from the delegated `pty.fork` (`os.fork`); and `spawn` documents `OSError` from the delegated `pty.spawn`. Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `pty_utils` audit section drops from 6 low-signal candidates to 0, and the repository scan drops from 88 to 82.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_pty_utils` — 16 OK; `python -m ruff check pty_utils.py` — clean; `python -m mypy pty_utils.py` — success; `python tools/audit_contracts.py pty_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 82 low-signal / 0 genuine defects (was 88); `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `zipimport_utils` triages 8 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — eight `zipimport_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `zip_importer`/`get_source`/`get_code`/`get_filename`/`is_package`/`invalidate_caches` document `ZipImportError` from the delegated `zipimport.zipimporter` methods; `archive_names` documents `FileNotFoundError` from the delegated `zipfile.ZipFile` constructor; and `get_data` documents `OSError` from the delegated `zipimporter.get_data` call. Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `zipimport_utils` audit section drops from 8 low-signal candidates to 0, and the repository scan drops from 96 to 88.
@@ -117443,6 +117449,7 @@ def openpty() -> tuple[int, int]:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
+        # audit-ignore: OSError
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
     master_fd, slave_fd = _pty_module().openpty()
@@ -117460,6 +117467,7 @@ def open_terminal() -> tuple[int, int]:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
+        # audit-ignore: OSError
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
     return openpty()
@@ -117480,6 +117488,7 @@ def master_open() -> tuple[str, int]:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
+        # audit-ignore: OSError
         OSError: If the operating system fails to allocate a pseudo-terminal.
     """
     master_fd, slave_fd = openpty()
@@ -117504,7 +117513,7 @@ def slave_open(tty_name: str) -> int:
         TypeError: If *tty_name* is not a string.
         ValueError: If *tty_name* is empty.
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If the operating system fails to open the device.
+        OSError: If the operating system fails to open the device.  # audit-ignore: OSError
     """
     if not isinstance(tty_name, str):
         raise TypeError(f"tty_name must be a str, got {type(tty_name).__name__}")
@@ -117528,7 +117537,7 @@ def fork() -> ForkResult:
 
     Raises:
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If the fork fails.
+        OSError: If the fork fails.  # audit-ignore: OSError
     """
     pid, master_fd = _pty_module().fork()
     return ForkResult(int(pid), int(master_fd))
@@ -117568,7 +117577,7 @@ def spawn(
             callables is not callable.
         ValueError: If *argv* is empty.
         RuntimeError: If the interpreter does not ship the ``pty`` module.
-        OSError: If the program cannot be started.
+        OSError: If the program cannot be started.  # audit-ignore: OSError
     """
     if isinstance(argv, (str, bytes)):
         raise TypeError("argv must be a sequence of str, got str")
