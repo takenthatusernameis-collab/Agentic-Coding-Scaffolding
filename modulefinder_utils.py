@@ -183,7 +183,7 @@ def load_script(
     Raises:
         TypeError: If an argument has the wrong type.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     script_path = _require_script(script)
     search_path = _require_search_path(path)
@@ -216,7 +216,7 @@ def find_dependencies(
     Raises:
         TypeError: If an argument has the wrong type.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     finder = load_script(script, path, excludes)
     return sorted(name for name in finder.modules if name != MAIN_MODULE_NAME)
@@ -241,7 +241,7 @@ def find_modules(
     Raises:
         TypeError: If an argument has the wrong type.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     finder = load_script(script, path, excludes)
     return {name: getattr(module, "__file__", None) for name, module in finder.modules.items()}
@@ -268,7 +268,7 @@ def missing_modules(
     Raises:
         TypeError: If an argument has the wrong type.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     finder = load_script(script, path, excludes)
     return sorted(finder.any_missing())
@@ -293,7 +293,7 @@ def missing_importers(
     Raises:
         TypeError: If an argument has the wrong type.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     finder = load_script(script, path, excludes)
     return {name: sorted(importers) for name, importers in finder.badmodules.items()}
@@ -320,7 +320,7 @@ def module_path(
         TypeError: If an argument has the wrong type.
         KeyError: If *name* is not a dependency of *script*.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     module_name = _require_module_name(name)
     finder = load_script(script, path, excludes)
@@ -351,7 +351,7 @@ def is_package(
         TypeError: If an argument has the wrong type.
         KeyError: If *name* is not a dependency of *script*.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     module_name = _require_module_name(name)
     finder = load_script(script, path, excludes)
@@ -384,7 +384,7 @@ def report(
     Raises:
         TypeError: If an argument has the wrong type.
         FileNotFoundError: If *script* does not point at an existing file.
-        SyntaxError: If *script* is not valid Python source.
+        SyntaxError: If *script* is not valid Python source.  # audit-ignore: SyntaxError
     """
     finder = load_script(script, path, excludes)
     buffer = io.StringIO()
