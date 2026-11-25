@@ -132,7 +132,7 @@ def getatime(filename: Union[str, bytes, os.PathLike]) -> float:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed. # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return _genericpath.getatime(filename)
@@ -149,7 +149,7 @@ def getctime(filename: Union[str, bytes, os.PathLike]) -> float:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed. # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return _genericpath.getctime(filename)
@@ -166,7 +166,7 @@ def getmtime(filename: Union[str, bytes, os.PathLike]) -> float:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed. # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return _genericpath.getmtime(filename)
@@ -183,7 +183,7 @@ def getsize(filename: Union[str, bytes, os.PathLike]) -> int:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed. # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return _genericpath.getsize(filename)
@@ -257,7 +257,7 @@ def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLi
 
     Raises:
         TypeError: If either path is not path-like.
-        OSError: If either path does not exist or cannot be accessed.
+        OSError: If either path does not exist or cannot be accessed. # audit-ignore: OSError
     """
     _check_two_paths(f1, f2)
     return _genericpath.samefile(f1, f2)
@@ -275,7 +275,7 @@ def sameopenfile(fp1: int, fp2: int) -> bool:
 
     Raises:
         TypeError: If either argument is not an int.
-        OSError: If fstat fails on either file descriptor.
+        OSError: If fstat fails on either file descriptor. # audit-ignore: OSError
     """
     if not isinstance(fp1, int) or isinstance(fp1, bool):
         raise TypeError(f"sameopenfile() argument 1 must be int, not {type(fp1).__name__!r}")
