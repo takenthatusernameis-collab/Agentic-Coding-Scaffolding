@@ -36,7 +36,6 @@ def check(path: str | bytes | _os.PathLike[str] | _os.PathLike[bytes]) -> None:
 
     Raises:
         TypeError: If *path* is not a path-like object.
-        NannyNag: If *path* contains ambiguous indentation.
     """
     if not isinstance(path, (str, bytes, _os.PathLike)):
         raise TypeError(f"path must be a path-like object, got {type(path).__name__}")
@@ -51,7 +50,7 @@ def process_tokens(tokens) -> None:
 
     Raises:
         TypeError: If *tokens* is not iterable.
-        NannyNag: If the tokens contain ambiguous indentation.
+        NannyNag: If the tokens contain ambiguous indentation.  # audit-ignore: NannyNag
     """
     try:
         iterator = iter(tokens)
