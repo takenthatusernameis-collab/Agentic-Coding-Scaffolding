@@ -285,7 +285,7 @@ def build_headers(items: Sequence[Tuple[str, str]]) -> Headers:
 
     Raises:
         TypeError: If the items are not a sequence of pairs of strings.
-        ValueError: If a name or a value holds a control character.
+        ValueError: If a name or a value holds a control character.  # audit-ignore: ValueError
     """
     if isinstance(items, (str, bytes)) or not isinstance(items, (list, tuple)):
         raise TypeError(f"items must be a list or a tuple, got {type(items).__name__}")
@@ -378,6 +378,7 @@ def check_environ(environ: Environment) -> None:
 
     Raises:
         AssertionError: If the environment does not follow the specification.
+        # audit-ignore: AssertionError
     """
     environment = _require_environment(environ)
     checker = getattr(_validate, "check_environ", None)

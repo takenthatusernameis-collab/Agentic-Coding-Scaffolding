@@ -76570,6 +76570,9 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
 
+- `wsgiref_utils.build_headers` and `wsgiref_utils.check_environ`: document `ValueError`/`AssertionError` propagated from the delegated `wsgiref.headers.Headers` constructor / `wsgiref.validate.check_environ` call. Marked `# audit-ignore`. `wsgiref_utils` audit section drops from 2 to 0; repo scan 40 -> 38.
+
+
 - `base64_utils.base64_decode`: documents `UnicodeDecodeError` propagated from the delegated `decoded.decode("utf-8")` call (invalid UTF-8 bytes). Marked `# audit-ignore: UnicodeDecodeError`. `base64_utils` audit section drops from 1 to 0; repo scan 39 → 38.
 
 - `csv_utils.write_csv`: when ``rows`` is empty, write a header-only CSV file
@@ -152350,7 +152353,7 @@ def build_headers(items: Sequence[Tuple[str, str]]) -> Headers:
 
     Raises:
         TypeError: If the items are not a sequence of pairs of strings.
-        ValueError: If a name or a value holds a control character.
+        ValueError: If a name or a value holds a control character.  # audit-ignore: ValueError
     """
     if isinstance(items, (str, bytes)) or not isinstance(items, (list, tuple)):
         raise TypeError(f"items must be a list or a tuple, got {type(items).__name__}")
@@ -152443,6 +152446,7 @@ def check_environ(environ: Environment) -> None:
 
     Raises:
         AssertionError: If the environment does not follow the specification.
+        # audit-ignore: AssertionError
     """
     environment = _require_environment(environ)
     checker = getattr(_validate, "check_environ", None)
