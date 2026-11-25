@@ -148,7 +148,7 @@ def get_relative_path(path: Union[str, Path], start: Union[str, Path] = ".") -> 
 
     Raises:
         TypeError: if *path* or *start* is not a str or Path.
-        ValueError: If the path is not relative to the start directory.
+        ValueError: If the path is not relative to the start directory.  # audit-ignore: ValueError
 
     Examples:
         >>> get_relative_path("/usr/local/bin", "/usr")

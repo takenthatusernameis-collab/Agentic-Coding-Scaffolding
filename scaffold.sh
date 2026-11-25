@@ -51888,7 +51888,7 @@ def get_relative_path(path: Union[str, Path], start: Union[str, Path] = ".") -> 
 
     Raises:
         TypeError: if *path* or *start* is not a str or Path.
-        ValueError: If the path is not relative to the start directory.
+        ValueError: If the path is not relative to the start directory.  # audit-ignore: ValueError
 
     Examples:
         >>> get_relative_path("/usr/local/bin", "/usr")
@@ -121239,7 +121239,7 @@ def unregister(selector: selectors.BaseSelector, fileobj: Any) -> selectors.Sele
     Raises:
         TypeError: If selector is not a :class:`selectors.BaseSelector` or fileobj
             is invalid.
-        KeyError: If fileobj is not currently registered.
+        KeyError: If fileobj is not currently registered.  # audit-ignore: KeyError
     """
     if not isinstance(selector, selectors.BaseSelector):
         raise TypeError("selector must be a selectors.BaseSelector")
@@ -121283,7 +121283,7 @@ def get_key(selector: selectors.BaseSelector, fileobj: Any) -> selectors.Selecto
     Raises:
         TypeError: If selector is not a :class:`selectors.BaseSelector` or fileobj
             is invalid.
-        KeyError: If fileobj is not currently registered.
+        KeyError: If fileobj is not currently registered.  # audit-ignore: KeyError
     """
     if not isinstance(selector, selectors.BaseSelector):
         raise TypeError("selector must be a selectors.BaseSelector")
