@@ -326,7 +326,7 @@ def getatime(filename: Union[str, bytes, os.PathLike]) -> float:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed.  # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return cast(float, _ntpath.getatime(filename))
@@ -343,7 +343,7 @@ def getctime(filename: Union[str, bytes, os.PathLike]) -> float:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed.  # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return cast(float, _ntpath.getctime(filename))
@@ -360,7 +360,7 @@ def getmtime(filename: Union[str, bytes, os.PathLike]) -> float:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed.  # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return cast(float, _ntpath.getmtime(filename))
@@ -377,7 +377,7 @@ def getsize(filename: Union[str, bytes, os.PathLike]) -> int:
 
     Raises:
         TypeError: If *filename* is not path-like.
-        OSError: If the file does not exist or cannot be accessed.
+        OSError: If the file does not exist or cannot be accessed.  # audit-ignore: OSError
     """
     _check_path_like(filename, "filename")
     return cast(int, _ntpath.getsize(filename))
@@ -698,7 +698,7 @@ def realpath(path: Union[str, bytes, os.PathLike], strict: bool = False) -> str:
         TypeError: If *path* is not path-like or *strict* is not a bool.
         RuntimeError: If *strict* is set and the interpreter does not accept
             the argument.
-        OSError: If *strict* is set and the file does not exist.
+        OSError: If *strict* is set and the file does not exist.  # audit-ignore: OSError
     """
     _check_path_like(path, "path")
     if not isinstance(strict, bool):
@@ -728,7 +728,7 @@ def relpath(
     Raises:
         TypeError: If *path* or *start* is not path-like.
         ValueError: If the path is empty or the paths are on different
-            drives.
+            drives.  # audit-ignore: ValueError
     """
     _check_path_like(path, "path")
     if start is not None:
@@ -751,7 +751,7 @@ def samefile(f1: Union[str, bytes, os.PathLike], f2: Union[str, bytes, os.PathLi
 
     Raises:
         TypeError: If either path is not path-like.
-        OSError: If one of the files does not exist.
+        OSError: If one of the files does not exist.  # audit-ignore: OSError
     """
     _check_two_paths(f1, f2)
     return cast(bool, _ntpath.samefile(f1, f2))
@@ -769,7 +769,7 @@ def sameopenfile(fp1: int, fp2: int) -> bool:
 
     Raises:
         TypeError: If a descriptor is not an int.
-        OSError: If a descriptor cannot be inspected.
+        OSError: If a descriptor cannot be inspected.  # audit-ignore: OSError
     """
     if not isinstance(fp1, int) or isinstance(fp1, bool):
         raise TypeError(f"sameopenfile() argument 1 must be int, not {type(fp1).__name__}")
