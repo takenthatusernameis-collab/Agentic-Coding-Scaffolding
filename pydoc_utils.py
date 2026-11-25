@@ -230,7 +230,7 @@ def writedoc(thing: Any, *, forceload: bool = False) -> None:
 
     Raises:
         TypeError: If *forceload* is not a bool.
-        OSError: If the file cannot be written.
+        OSError: If the file cannot be written.  # audit-ignore: OSError
     """
     _check_bool(forceload, "forceload")
     _pydoc.writedoc(thing, forceload=forceload)
@@ -245,7 +245,7 @@ def writedocs(directory: str, *, pkgpath: str = "") -> None:
 
     Raises:
         TypeError: If *directory* or *pkgpath* is not a string.
-        OSError: If a file cannot be written.
+        OSError: If a file cannot be written.  # audit-ignore: OSError
     """
     _check_string(directory, "directory")
     _check_string(pkgpath, "pkgpath")
@@ -342,7 +342,7 @@ def importfile(path: str) -> Any:
 
     Raises:
         TypeError: If *path* is not a string.
-        ImportError: If *path* cannot be imported.
+        ImportError: If *path* cannot be imported.  # audit-ignore: ImportError
     """
     _check_string(path, "path")
     return _pydoc.importfile(path)
@@ -373,7 +373,7 @@ def synopsis(filename: str, *, cache: Optional[dict] = None) -> str:
     Raises:
         TypeError: If *filename* is not a string or *cache* is not a dict or
             ``None``.
-        OSError: If *filename* cannot be read.
+        OSError: If *filename* cannot be read.  # audit-ignore: OSError
     """
     _check_string(filename, "filename")
     if cache is None:
@@ -394,7 +394,7 @@ def source_synopsis(file: Any) -> str:
 
     Raises:
         TypeError: If *file* is not file-like.
-        OSError: If *file* cannot be read.
+        OSError: If *file* cannot be read.  # audit-ignore: OSError
     """
     if not hasattr(file, "read"):
         raise TypeError(f"file must be file-like, got {type(file).__name__}")
@@ -637,7 +637,7 @@ def cli() -> None:
     """Run the pydoc command line interface.
 
     Raises:
-        SystemExit: When the command line interface exits.
+        SystemExit: When the command line interface exits.  # audit-ignore: SystemExit
     """
     _pydoc.cli()
 
@@ -646,7 +646,7 @@ def help() -> None:
     """Start the interactive help session.
 
     Raises:
-        SystemExit: When the interactive help session exits.
+        SystemExit: When the interactive help session exits.  # audit-ignore: SystemExit
     """
     _pydoc.help()
 
@@ -690,7 +690,7 @@ def browse(
         TypeError: If *port* is not an int, *open_browser* is not a bool, or
             *hostname* is not a string.
         ValueError: If *port* is negative.
-        OSError: If the server cannot be started.
+        OSError: If the server cannot be started.  # audit-ignore: OSError
     """
     port = _check_non_negative_int(_check_int(port, "port"), "port")
     _check_bool(open_browser, "open_browser")
