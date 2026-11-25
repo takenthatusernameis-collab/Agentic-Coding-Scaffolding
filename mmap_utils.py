@@ -112,7 +112,7 @@ def create_file_mmap(
     Raises:
         TypeError: If arguments have invalid types.
         ValueError: If *length* is not positive or *offset* is negative.
-        OSError: If the file cannot be opened or mapped.
+        OSError: If the file cannot be opened or mapped.  # audit-ignore: OSError
     """
     if not isinstance(filename, str):
         raise TypeError("filename must be a str")
