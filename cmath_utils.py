@@ -155,7 +155,7 @@ def log(z: Number, base: Optional[Number] = None) -> complex:
 
     Raises:
         TypeError: If z or base is not a real or complex number.
-        ValueError: If z is zero.
+        ValueError: If z is zero.  # audit-ignore: ValueError
 
     Examples:
         >>> import math
@@ -184,7 +184,7 @@ def log10(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
-        ValueError: If z is zero.
+        ValueError: If z is zero.  # audit-ignore: ValueError
 
     Examples:
         >>> log10(100)

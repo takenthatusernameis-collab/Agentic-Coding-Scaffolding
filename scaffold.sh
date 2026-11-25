@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `cmath_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `cmath_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `log` documents `ValueError` propagated from the delegated `cmath.log` call (the default-base path `cmath.log(z)` raises `ValueError: math domain error` for `z == 0`, empirically confirmed); `log10` documents `ValueError` from the delegated `cmath.log10` call (raises `ValueError: math domain error` for `z == 0`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `cmath_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 46 to 44.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_cmath_utils` — 41 OK; `python -m ruff check cmath_utils.py` — clean; `python -m mypy cmath_utils.py` — success; `python tools/audit_contracts.py cmath_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 44 low-signal / 0 genuine defects (was 46); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `xml_utils`, `xmlrpc_utils`, `zoneinfo_utils` triage 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — three functions across three modules document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `xml_utils.parse_xml` documents `FileNotFoundError` propagated from the delegated `xml.etree.ElementTree.parse` call (file does not exist); `xmlrpc_utils.parse_method_response` documents `Fault` from the delegated `xmlrpc.client.loads` call (the document carries a fault instead of a result); `zoneinfo_utils.zoneinfo_get` documents `ZoneInfoNotFoundError` from the delegated `zoneinfo.ZoneInfo` constructor (unknown IANA timezone key). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The three modules' audit sections drop from 1 low-signal candidate each to 0, and the repository scan drops from 49 to 46.
@@ -82339,7 +82345,7 @@ def log(z: Number, base: Optional[Number] = None) -> complex:
 
     Raises:
         TypeError: If z or base is not a real or complex number.
-        ValueError: If z is zero.
+        ValueError: If z is zero.  # audit-ignore: ValueError
 
     Examples:
         >>> import math
@@ -82368,7 +82374,7 @@ def log10(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
-        ValueError: If z is zero.
+        ValueError: If z is zero.  # audit-ignore: ValueError
 
     Examples:
         >>> log10(100)
