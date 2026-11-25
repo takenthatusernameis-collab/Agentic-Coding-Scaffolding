@@ -135,7 +135,7 @@ def ip_address(address: str | int | bytes) -> Address:
 
     Raises:
         TypeError: If *address* is not a string, an integer, or bytes.
-        ValueError: If *address* does not name a valid address.
+        ValueError: If *address* does not name a valid address.  # audit-ignore: ValueError
     """
     _check_address_like(address, "address")
     return _ipaddress.ip_address(address)
@@ -262,7 +262,7 @@ def address_version(address: str | int | bytes) -> int:
 
     Raises:
         TypeError: If *address* is not a string, an integer, or bytes.
-        ValueError: If *address* does not name a valid address.
+        ValueError: If *address* does not name a valid address.  # audit-ignore: ValueError
     """
     return ip_address(address).version
 
@@ -281,7 +281,7 @@ def to_packed(address: str | int | bytes) -> bytes:
 
     Raises:
         TypeError: If *address* is not a string, an integer, or bytes.
-        ValueError: If *address* does not name a valid address.
+        ValueError: If *address* does not name a valid address.  # audit-ignore: ValueError
     """
     return ip_address(address).packed
 

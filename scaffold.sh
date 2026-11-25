@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `ipaddress_utils` triages 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — three `ipaddress_utils` functions document `ValueError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `ip_address` documents `ValueError` from the delegated `ipaddress.ip_address` (invalid address text); `address_version` and `to_packed` document `ValueError` reached through their delegation to `ip_address` (and thence the standard library). Each `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `ipaddress_utils` audit section drops from 3 low-signal candidates to 0, and the repository scan drops from 64 to 61.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_ipaddress_utils` — 85 OK; `python tools/audit_contracts.py ipaddress_utils.py` — 0 issues; `audit_contracts --summary` — 61 low-signal / 0 genuine defects (was 64); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `readline_utils` triages 4 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — four `readline_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `read_init_file`/`read_history_file` document `OSError` from the delegated `readline.read_init_file`/`readline.read_history_file` calls (open/read the history file); `write_history_file`/`append_history_file` document `OSError` from the delegated `readline.write_history_file`/`readline.append_history_file` calls (write/append the history file). Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `readline_utils` audit section drops from 4 low-signal candidates to 0, and the repository scan drops from 68 to 64.
@@ -96811,7 +96817,7 @@ def ip_address(address: str | int | bytes) -> Address:
 
     Raises:
         TypeError: If *address* is not a string, an integer, or bytes.
-        ValueError: If *address* does not name a valid address.
+        ValueError: If *address* does not name a valid address.  # audit-ignore: ValueError
     """
     _check_address_like(address, "address")
     return _ipaddress.ip_address(address)
@@ -96938,7 +96944,7 @@ def address_version(address: str | int | bytes) -> int:
 
     Raises:
         TypeError: If *address* is not a string, an integer, or bytes.
-        ValueError: If *address* does not name a valid address.
+        ValueError: If *address* does not name a valid address.  # audit-ignore: ValueError
     """
     return ip_address(address).version
 
@@ -96957,7 +96963,7 @@ def to_packed(address: str | int | bytes) -> bytes:
 
     Raises:
         TypeError: If *address* is not a string, an integer, or bytes.
-        ValueError: If *address* does not name a valid address.
+        ValueError: If *address* does not name a valid address.  # audit-ignore: ValueError
     """
     return ip_address(address).packed
 
