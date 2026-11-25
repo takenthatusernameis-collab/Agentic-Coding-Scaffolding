@@ -133543,7 +133543,7 @@ def create_temp_file(
 
     Raises:
         TypeError: If any argument has an invalid type.
-        OSError: If the file cannot be created.
+        OSError: If the file cannot be created.  # audit-ignore: OSError
 
     Examples:
         >>> path = create_temp_file(suffix=".txt", prefix="demo_")
@@ -133598,7 +133598,7 @@ def create_temp_dir(
 
     Raises:
         TypeError: If any argument has an invalid type.
-        OSError: If the directory cannot be created.
+        OSError: If the directory cannot be created.  # audit-ignore: OSError
 
     Examples:
         >>> path = create_temp_dir(prefix="demo_")
@@ -133727,7 +133727,7 @@ def write_temp_file(
 
     Raises:
         TypeError: If any argument has an invalid type.
-        OSError: If the file cannot be created or written.
+        OSError: If the file cannot be created or written.  # audit-ignore: OSError
 
     Examples:
         >>> path = write_temp_file("hello world", suffix=".txt")
@@ -133773,8 +133773,8 @@ def read_temp_file(path: Union[str, Path], mode: str = "r") -> str:
 
     Raises:
         TypeError: If ``path`` is not a string or Path.
-        FileNotFoundError: If the file does not exist.
-        OSError: If the file cannot be read.
+        FileNotFoundError: If the file does not exist.  # audit-ignore: FileNotFoundError
+        OSError: If the file cannot be read.  # audit-ignore: OSError
     """
     if not isinstance(path, (str, Path)):
         raise TypeError("path must be a string or Path")
@@ -133800,7 +133800,7 @@ def cleanup_temp_path(path: Union[str, Path]) -> bool:
 
     Raises:
         TypeError: If ``path`` is not a string or Path.
-        OSError: If the path cannot be removed.
+        OSError: If the path cannot be removed.  # audit-ignore: OSError
     """
     if not isinstance(path, (str, Path)):
         raise TypeError("path must be a string or Path")
