@@ -74946,6 +74946,18 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `termios_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `termios_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `get_window_size` documents `OSError: If the file descriptor is not a terminal` propagated from the delegated `os.get_terminal_size` call (raises `OSError` when the descriptor is not a terminal); `set_window_size` documents `OSError: If the file descriptor is not a terminal` propagated from the delegated `fcntl.ioctl` call (raises `OSError` for an invalid/non-terminal descriptor). Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `termios_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 35 to 33.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python tools/audit_contracts.py termios_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 33 low-signal / 0 genuine defects (was 35); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
+## Unreleased — `collections_abc_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
+
+- **Tooling — `collections_abc_utils.get_abc` documents `AttributeError` that is genuinely raised by the delegated `getattr(_cabc, name)` call (unknown ABC name), not by the wrapper itself.** The `Raises:` line now carries a standalone `# audit-ignore: AttributeError` comment so the reviewed delegation is not re-reported. The `collections_abc_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 36 to 35.
+- **Defect class:** none — audit false-positive reduction, not a product defect.
+- Validation: `python -m unittest tests.test_collections_abc_utils` — 12 OK; `python -m ruff check collections_abc_utils.py` — clean; `python -m mypy collections_abc_utils.py` — success; `python tools/audit_contracts.py collections_abc_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 35 low-signal / 0 genuine defects (was 36); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `async_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
 
 - **Tooling — `async_utils.retry_async` documents `Exception` ("The last exception if all attempts fail.") that is genuinely raised by the wrapper itself via `raise last_exception`, not detectable by the static audit because the raise target is a variable rather than a concrete exception class. Empirically confirmed: exhausting all retry attempts re-raises the last caught `Exception`. The `Raises:` line now carries an inline `# audit-ignore: Exception` comment so the reviewed false positive is not re-reported. The `async_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 40 to 39.
@@ -134782,7 +134794,7 @@ def get_window_size(fd: int) -> WindowSize:
     Raises:
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
-        OSError: If the file descriptor is not a terminal.
+        OSError: If the file descriptor is not a terminal.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     size = os.get_terminal_size(fd)
@@ -134816,7 +134828,7 @@ def set_window_size(
         RuntimeError: If the interpreter does not ship the ``termios`` or the
             ``fcntl`` module, or if the platform does not provide
             ``TIOCSWINSZ``.
-        OSError: If the file descriptor is not a terminal.
+        OSError: If the file descriptor is not a terminal.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     for name, value in (
@@ -172476,8 +172488,8 @@ def get_abc(name: str) -> type:
 
     Raises:
         TypeError: If *name* is not a string.
-        AttributeError: If *name* is not a public collections.abc attribute.
-        ValueError: If *name* starts with ``_``.
+        # audit-ignore: AttributeError
+        AttributeError: If *name* is not a public collections.abc attribute.        ValueError: If *name* starts with ``_``.
     """
     _require_str(name, "name")
     if name.startswith("_"):

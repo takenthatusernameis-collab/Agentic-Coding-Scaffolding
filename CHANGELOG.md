@@ -1,3 +1,9 @@
+## Unreleased — `termios_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `termios_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `get_window_size` documents `OSError: If the file descriptor is not a terminal` propagated from the delegated `os.get_terminal_size` call (raises `OSError` when the descriptor is not a terminal); `set_window_size` documents `OSError: If the file descriptor is not a terminal` propagated from the delegated `fcntl.ioctl` call (raises `OSError` for an invalid/non-terminal descriptor). Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `termios_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 35 to 33.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python tools/audit_contracts.py termios_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 33 low-signal / 0 genuine defects (was 35); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `collections_abc_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
 
 - **Tooling — `collections_abc_utils.get_abc` documents `AttributeError` that is genuinely raised by the delegated `getattr(_cabc, name)` call (unknown ABC name), not by the wrapper itself.** The `Raises:` line now carries a standalone `# audit-ignore: AttributeError` comment so the reviewed delegation is not re-reported. The `collections_abc_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 36 to 35.

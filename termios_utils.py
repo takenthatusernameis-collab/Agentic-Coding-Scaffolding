@@ -555,7 +555,7 @@ def get_window_size(fd: int) -> WindowSize:
     Raises:
         TypeError: If *fd* is not an int.
         ValueError: If *fd* is negative.
-        OSError: If the file descriptor is not a terminal.
+        OSError: If the file descriptor is not a terminal.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     size = os.get_terminal_size(fd)
@@ -589,7 +589,7 @@ def set_window_size(
         RuntimeError: If the interpreter does not ship the ``termios`` or the
             ``fcntl`` module, or if the platform does not provide
             ``TIOCSWINSZ``.
-        OSError: If the file descriptor is not a terminal.
+        OSError: If the file descriptor is not a terminal.  # audit-ignore: OSError
     """
     _validate_fd(fd)
     for name, value in (
