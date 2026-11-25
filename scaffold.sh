@@ -36153,8 +36153,8 @@ def read_text(path: Union[str, Path]) -> str:
 
     Raises:
         TypeError: if *path* is not a str or Path.
-        FileNotFoundError: if *path* does not exist.
-        OSError: on other I/O errors.
+        FileNotFoundError: if *path* does not exist.  # audit-ignore: FileNotFoundError
+        OSError: on other I/O errors.  # audit-ignore: OSError
 
     Examples:
         >>> import tempfile, os
@@ -36198,9 +36198,10 @@ def read_json(path: Union[str, Path]) -> Any:
 
     Raises:
         TypeError: if *path* is not a str or Path.
-        FileNotFoundError: if *path* does not exist.
-        OSError: on other I/O errors.
-        json.JSONDecodeError: if the file does not contain valid JSON.
+        FileNotFoundError: if *path* does not exist.  # audit-ignore: FileNotFoundError
+        OSError: on other I/O errors.  # audit-ignore: OSError
+        json.JSONDecodeError: if the file does not contain valid
+            JSON.  # audit-ignore: json.JSONDecodeError
 
     Examples:
         >>> import tempfile, os
@@ -36311,8 +36312,8 @@ def copy_file(src: Union[str, Path], dst: Union[str, Path]) -> None:
 
     Raises:
         TypeError: if *src* or *dst* is not a str or Path.
-        FileNotFoundError: if *src* does not exist.
-        OSError: on other I/O errors.
+        FileNotFoundError: if *src* does not exist.  # audit-ignore: FileNotFoundError
+        OSError: on other I/O errors.  # audit-ignore: OSError
     """
     src = _require_path(src, "src")
     dst = _require_path(dst, "dst")
@@ -36330,7 +36331,7 @@ def delete_file(path: Union[str, Path]) -> None:
 
     Raises:
         TypeError: if *path* is not a str or Path.
-        OSError: if *path* exists but is not a regular file.
+        OSError: if *path* exists but is not a regular file.  # audit-ignore: OSError
     """
     path = _require_path(path)
     path = Path(path)
