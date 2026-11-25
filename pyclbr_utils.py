@@ -117,7 +117,7 @@ def read_module(module_name: str, path: Optional[Sequence[str]] = None) -> Dict[
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ModuleNotFoundError: If the module cannot be found on the search path.
+        ModuleNotFoundError: If the module cannot be found on the search path.  # audit-ignore: ModuleNotFoundError
     """
     _require_str("module_name", module_name)
     search_path = _require_path(path)
@@ -142,7 +142,7 @@ def read_module_ex(module_name: str, path: Optional[Sequence[str]] = None) -> Di
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ModuleNotFoundError: If the module cannot be found on the search path.
+        ModuleNotFoundError: If the module cannot be found on the search path.  # audit-ignore: ModuleNotFoundError
     """
     _require_str("module_name", module_name)
     search_path = _require_path(path)

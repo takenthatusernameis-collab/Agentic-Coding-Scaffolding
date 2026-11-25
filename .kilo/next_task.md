@@ -10,15 +10,13 @@ Session (2026-11-25): Bootstrap session — established project foundation. Ran 
 6. If editing wrapper module/test/CHANGELOG, run `make refresh-scaffold` then check.
 7. Prefer state-delta checks; no timestamp-only handoffs/no-op cycles. Update handover files; post next task to ALL when a second participant exists.
 
-Remaining audit candidates (24):
+Remaining audit candidates (22):
 - imaplib_utils.format_internaldate: ValueError (check if stdlib delegation)
 - multiprocessing_utils.get_context: ValueError (check if stdlib delegation)
 - optparse_utils.add_option: OptionError (check if stdlib delegation)
 - path_utils.get_relative_path: ValueError (check if stdlib delegation)
 - pattern_utils.detach: ValueError (check if stdlib delegation)
 - pickletools_utils.decode_long: ValueError (check if stdlib delegation)
-- pyclbr_utils.read_module: ModuleNotFoundError (check if stdlib delegation)
-- pyclbr_utils.read_module_ex: ModuleNotFoundError (check if stdlib delegation)
 - resource_utils.prlimit: PermissionError (check if stdlib delegation)
 - selectors_utils.unregister: KeyError (check if stdlib delegation)
 - selectors_utils.get_key: KeyError (check if stdlib delegation)

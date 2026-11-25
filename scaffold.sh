@@ -74946,6 +74946,10 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `pyclbr_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — `pyclbr_utils.read_module`/`read_module_ex` document `ModuleNotFoundError` genuinely raised by the delegated standard-library call.** Both document `ModuleNotFoundError: If the module cannot be found on the search path`, propagated from the delegated `pyclbr.readmodule`/`pyclbr.readmodule_ex` calls (raises `ModuleNotFoundError` for an unknown module, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore: ModuleNotFoundError` comment. The `pyclbr_utils` audit section drops from 2 low-signal candidates to 0; the repository scan drops from 24 to 22.
+
 ## Unreleased — `datetime_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
 
 - **Tooling — `datetime_utils.parse_datetime` documents `ValueError` that is genuinely raised by the delegated standard-library call.** `parse_datetime` documents `ValueError: If the string does not match the format`, propagated from the delegated `datetime.strptime` call (an unparseable string raises `ValueError: time data ... does not match format ...`, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `datetime_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 26 to 25.
@@ -118537,7 +118541,7 @@ def read_module(module_name: str, path: Optional[Sequence[str]] = None) -> Dict[
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ModuleNotFoundError: If the module cannot be found on the search path.
+        ModuleNotFoundError: If the module cannot be found on the search path.  # audit-ignore: ModuleNotFoundError
     """
     _require_str("module_name", module_name)
     search_path = _require_path(path)
@@ -118562,7 +118566,7 @@ def read_module_ex(module_name: str, path: Optional[Sequence[str]] = None) -> Di
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ModuleNotFoundError: If the module cannot be found on the search path.
+        ModuleNotFoundError: If the module cannot be found on the search path.  # audit-ignore: ModuleNotFoundError
     """
     _require_str("module_name", module_name)
     search_path = _require_path(path)
