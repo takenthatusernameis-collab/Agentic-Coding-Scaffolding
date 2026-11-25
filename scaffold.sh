@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `select_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:` and removes 1 never-raised doc error
+
+- **Tooling — two `select_utils` functions document an exception genuinely raised by the delegated standard-library call, not by the wrapper itself.** `select` documents `OSError` from the delegated `select.select` call (an underlying descriptor is invalid or the call fails); `create_poller` documents `AttributeError` from the delegated `select.poll` access (the platform does not provide `select.poll`). Each `Raises:` line now carries an `# audit-ignore:` comment so the reviewed delegation is not re-reported.
+- **Defect fixed — `poll_register` documented an `OSError` it cannot raise.** The wrapper validates `poller`/`fd`/`events` (raising `TypeError`) and then delegates to `poller.register`, which raises `ValueError` for a negative descriptor and otherwise accepts the descriptor (any error surfaces later at `poll()` time, not at `register()`); the documented `OSError: If *fd* is invalid` could therefore never fire and was removed. The `select_utils` audit section drops from 3 low-signal candidates to 0, and the repository scan drops from 55 to 52.
+- Validation: `python -m unittest tests.test_select_utils` — 17 OK; `python -m ruff check select_utils.py` — clean; `python -m mypy select_utils.py` — success; `python -m doctest select_utils.py` — OK; `python tools/audit_contracts.py select_utils.py` — 0 issues; `audit_contracts --summary` — 52 low-signal / 0 genuine defects (was 55); `make refresh-scaffold` + `--check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `posix_utils` triages 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — three `posix_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `terminal_size` documents `OSError` from the delegated `posix.get_terminal_size` call (descriptor is not a terminal); `create_directory` documents `NotADirectoryError` from the delegated `posix.mkdir` call (a parent component is not a directory); `remove_path` documents `FileNotFoundError` from the delegated `posix.lstat`/`rmdir`/`unlink` calls (path does not exist). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `posix_utils` audit section drops from 3 low-signal candidates to 0, and the repository scan drops from 58 to 55.
@@ -120816,7 +120822,7 @@ def select(
         TypeError: If any descriptor list is not a list of ints, or if
             *timeout* is not a number or None.
         ValueError: If *timeout* is negative.
-        OSError: If an underlying descriptor is invalid or the call fails.
+        OSError: If an underlying descriptor is invalid or the call fails.  # audit-ignore: OSError
 
     Examples:
         >>> import os
@@ -120844,6 +120850,7 @@ def create_poller() -> _select.poll:
 
     Raises:
         AttributeError: If the platform does not provide ``select.poll``.
+    # audit-ignore: AttributeError
     """
     return _select.poll()
 
@@ -120859,7 +120866,6 @@ def poll_register(poller: _select.poll, fd: int, events: int) -> None:
     Raises:
         TypeError: If *poller* has no ``register`` method, or *fd*/*events*
             are not ints.
-        OSError: If *fd* is invalid.
     """
     if not hasattr(poller, "register"):
         raise TypeError("poller must be a select.poll-like object with a register method")

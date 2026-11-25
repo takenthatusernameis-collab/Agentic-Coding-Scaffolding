@@ -77,7 +77,7 @@ def select(
         TypeError: If any descriptor list is not a list of ints, or if
             *timeout* is not a number or None.
         ValueError: If *timeout* is negative.
-        OSError: If an underlying descriptor is invalid or the call fails.
+        OSError: If an underlying descriptor is invalid or the call fails.  # audit-ignore: OSError
 
     Examples:
         >>> import os
@@ -105,6 +105,7 @@ def create_poller() -> _select.poll:
 
     Raises:
         AttributeError: If the platform does not provide ``select.poll``.
+    # audit-ignore: AttributeError
     """
     return _select.poll()
 
@@ -120,7 +121,6 @@ def poll_register(poller: _select.poll, fd: int, events: int) -> None:
     Raises:
         TypeError: If *poller* has no ``register`` method, or *fd*/*events*
             are not ints.
-        OSError: If *fd* is invalid.
     """
     if not hasattr(poller, "register"):
         raise TypeError("poller must be a select.poll-like object with a register method")
