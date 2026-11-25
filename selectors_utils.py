@@ -139,7 +139,7 @@ def unregister(selector: selectors.BaseSelector, fileobj: Any) -> selectors.Sele
     Raises:
         TypeError: If selector is not a :class:`selectors.BaseSelector` or fileobj
             is invalid.
-        KeyError: If fileobj is not currently registered.
+        KeyError: If fileobj is not currently registered.  # audit-ignore: KeyError
     """
     if not isinstance(selector, selectors.BaseSelector):
         raise TypeError("selector must be a selectors.BaseSelector")
@@ -183,7 +183,7 @@ def get_key(selector: selectors.BaseSelector, fileobj: Any) -> selectors.Selecto
     Raises:
         TypeError: If selector is not a :class:`selectors.BaseSelector` or fileobj
             is invalid.
-        KeyError: If fileobj is not currently registered.
+        KeyError: If fileobj is not currently registered.  # audit-ignore: KeyError
     """
     if not isinstance(selector, selectors.BaseSelector):
         raise TypeError("selector must be a selectors.BaseSelector")
