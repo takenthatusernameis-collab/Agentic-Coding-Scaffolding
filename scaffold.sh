@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `resource_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
+
+- **Tooling — `resource_utils.prlimit` documents `PermissionError` genuinely raised by the delegated standard-library call.** `prlimit` documents `PermissionError: If the process may not read or write the limits of the given process.`, propagated from the delegated `resource.prlimit` call (raises `PermissionError` when the calling process lacks permission to read or write another process's limits). The `Raises:` line now carries an inline `# audit-ignore: PermissionError` comment so the reviewed delegation is not re-reported. The `resource_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 19 to 18.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_resource_utils` — 24 OK; `python -m ruff check resource_utils.py tests/test_resource_utils.py` — clean; `python -m mypy resource_utils.py` — success; `python tools/audit_contracts.py resource_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 18 low-signal / 0 genuine defects (was 19); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `pyclbr_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — `pyclbr_utils.read_module`/`read_module_ex` document `ModuleNotFoundError` genuinely raised by the delegated standard-library call.** Both document `ModuleNotFoundError: If the module cannot be found on the search path`, propagated from the delegated `pyclbr.readmodule`/`pyclbr.readmodule_ex` calls (raises `ModuleNotFoundError` for an unknown module, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore: ModuleNotFoundError` comment. The `pyclbr_utils` audit section drops from 2 low-signal candidates to 0; the repository scan drops from 24 to 22.
@@ -119861,7 +119867,7 @@ def prlimit(
         RuntimeError: If the interpreter does not ship the ``resource`` module
             or if the platform does not provide ``prlimit``.
         PermissionError: If the process may not read or write the limits of
-            the given process.
+            the given process.  # audit-ignore: PermissionError
     """
     if isinstance(pid, bool) or not isinstance(pid, int):
         raise TypeError(f"pid must be an int, got {type(pid).__name__}")

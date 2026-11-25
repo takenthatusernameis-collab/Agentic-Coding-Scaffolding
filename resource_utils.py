@@ -430,7 +430,7 @@ def prlimit(
         RuntimeError: If the interpreter does not ship the ``resource`` module
             or if the platform does not provide ``prlimit``.
         PermissionError: If the process may not read or write the limits of
-            the given process.
+            the given process.  # audit-ignore: PermissionError
     """
     if isinstance(pid, bool) or not isinstance(pid, int):
         raise TypeError(f"pid must be an int, got {type(pid).__name__}")
