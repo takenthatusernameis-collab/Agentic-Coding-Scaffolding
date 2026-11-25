@@ -74952,6 +74952,12 @@ cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
 - **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
 - Validation: `python -m unittest tests.test_cmath_utils` — 41 OK; `python -m ruff check cmath_utils.py` — clean; `python -m mypy cmath_utils.py` — success; `python tools/audit_contracts.py cmath_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 44 low-signal / 0 genuine defects (was 46); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
 
+## Unreleased — `heapq_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `heapq_utils` functions document `IndexError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `heappop` and `heapreplace` document `IndexError: If the heap is empty`, which is propagated from the delegated `heapq.heappop` and `heapq.heapreplace` calls (both raise `IndexError: index out of range` on an empty heap, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore: IndexError` comment so the reviewed delegation is not re-reported. The `heapq_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 44 to 42.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_heapq_utils` — 26 OK; `python -m ruff check heapq_utils.py` — clean; `python -m mypy heapq_utils.py` — success; `python tools/audit_contracts.py heapq_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 42 low-signal / 0 genuine defects (was 44); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `xml_utils`, `xmlrpc_utils`, `zoneinfo_utils` triage 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — three functions across three modules document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `xml_utils.parse_xml` documents `FileNotFoundError` propagated from the delegated `xml.etree.ElementTree.parse` call (file does not exist); `xmlrpc_utils.parse_method_response` documents `Fault` from the delegated `xmlrpc.client.loads` call (the document carries a fault instead of a result); `zoneinfo_utils.zoneinfo_get` documents `ZoneInfoNotFoundError` from the delegated `zoneinfo.ZoneInfo` constructor (unknown IANA timezone key). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The three modules' audit sections drop from 1 low-signal candidate each to 0, and the repository scan drops from 49 to 46.
@@ -93548,7 +93554,7 @@ def heappop(items: list[Any]) -> Any:
 
     Raises:
         TypeError: If *items* is not a list.
-        IndexError: If the heap is empty.
+        IndexError: If the heap is empty.  # audit-ignore: IndexError
     """
     if not isinstance(items, list):
         raise TypeError("items must be a list")
@@ -93569,7 +93575,7 @@ def heapreplace(items: list[Any], item: Any) -> Any:
 
     Raises:
         TypeError: If *items* is not a list.
-        IndexError: If the heap is empty.
+        IndexError: If the heap is empty.  # audit-ignore: IndexError
     """
     if not isinstance(items, list):
         raise TypeError("items must be a list")

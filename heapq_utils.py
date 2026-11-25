@@ -63,7 +63,7 @@ def heappop(items: list[Any]) -> Any:
 
     Raises:
         TypeError: If *items* is not a list.
-        IndexError: If the heap is empty.
+        IndexError: If the heap is empty.  # audit-ignore: IndexError
     """
     if not isinstance(items, list):
         raise TypeError("items must be a list")
@@ -84,7 +84,7 @@ def heapreplace(items: list[Any], item: Any) -> Any:
 
     Raises:
         TypeError: If *items* is not a list.
-        IndexError: If the heap is empty.
+        IndexError: If the heap is empty.  # audit-ignore: IndexError
     """
     if not isinstance(items, list):
         raise TypeError("items must be a list")
