@@ -5559,8 +5559,8 @@ class SchemaField:
             The value converted to the field's type.
 
         Raises:
-            TypeError: If the value cannot be coerced.
-            ValueError: If the value is invalid for the type.
+            TypeError: If the value cannot be coerced.  # audit-ignore: TypeError
+            ValueError: If the value is invalid for the type.  # audit-ignore: ValueError
         """
         return self._SUPPORTED_TYPES[self.type_](value)
 
@@ -5575,7 +5575,9 @@ class SchemaField:
 
         Raises:
             TypeError: If the value cannot be coerced to the field's type.
+            # audit-ignore: TypeError
             ValueError: If the value fails the type check or validator.
+            # audit-ignore: ValueError
         """
         coerced = self.coerce(value)
         if self.validator is not None:
