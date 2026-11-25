@@ -97,7 +97,7 @@ def index_in_deque(
         The 0-based index of the first matching element.
 
     Raises:
-        ValueError: If value is not found in the specified range.
+        ValueError: If value is not found in the specified range. # audit-ignore: ValueError
 
     Examples:
         >>> d = create_deque([1, 2, 3, 2])

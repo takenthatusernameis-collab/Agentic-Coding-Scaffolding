@@ -4,6 +4,12 @@
 - **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
 - Validation: `python -m unittest tests.test_datetime_utils` — 58 OK; `python -m ruff check datetime_utils.py` — clean; `python -m mypy datetime_utils.py` — success; `python tools/audit_contracts.py datetime_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 25 low-signal / 0 genuine defects (was 26); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full` — passed. No `.github/workflows/**` changes.
 
+## Unreleased — `deque_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
+
+- **Tooling — `deque_utils.index_in_deque` documents `ValueError` that is genuinely raised by the delegated standard-library call.** `index_in_deque` documents `ValueError: If value is not found in the specified range`, propagated from the delegated `collections.deque.index` call (raises `ValueError` when the value is not found, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `deque_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 25 to 24.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_deque_utils` — 92 OK; `python -m ruff check deque_utils.py` — clean; `python -m mypy deque_utils.py` — success; `python tools/audit_contracts.py deque_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 24 low-signal / 0 genuine defects (was 25); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `dataclasses_utils` fixes inaccurate `ValueError` in `replace` docstring
 
 - **Documentation — `dataclasses_utils.replace` documented `ValueError` for invalid field names, but `dataclasses.replace` raises `TypeError` for this case.** The `Raises:` clause now correctly documents `TypeError` for both non-dataclass instances and invalid field names. No `# audit-ignore:` needed since this was a doc error, not a stdlib delegation.
