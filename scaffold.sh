@@ -1613,7 +1613,7 @@ def find_doctests(obj: object, name: Optional[str] = None) -> List[_doctest.DocT
 
     Raises:
         TypeError: If *name* is not a string or ``None``.
-        ValueError: If *obj* does not support doctest discovery.
+        ValueError: If *obj* does not support doctest discovery.  # audit-ignore: ValueError
     """
     if name is not None:
         name = _require_text(name, "name")
@@ -1734,7 +1734,7 @@ def run_file_examples(
 
     Raises:
         TypeError: If an argument has an unsupported type.
-        OSError: If the file cannot be read.
+        OSError: If the file cannot be read.  # audit-ignore: OSError
     """
     location = _require_text(path, "path")
     verbose_flag = _require_flag(verbose, "verbose")
@@ -76581,6 +76581,8 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added `count_digits(data)` to `bytes_utils.py` as the missing integer companion to `isdigit`. The module had `isdigit` (exported in `__all__`, with tests and README documentation) but no `count_*` counterpart, so callers could not obtain the actual number of digit bytes. `count_digits` returns the count of ASCII digit bytes (``0``-``9``) in *data*; empty input returns zero. It accepts typed `bytes`/`bytearray` arguments, raises `TypeError` for non-bytes-like input, is exported via `__all__`, and ships with a Google-style docstring and ASCII-safe doctests. Added `TestCountDigits` (8 tests) to `tests/test_bytes_utils.py` covering all-digits/no-digits/mixed/empty/bytearray inputs, consistency with `isdigit`, and `TypeError` paths; imported `count_digits` to match `__all__`. Updated the `bytes_utils` module tree entry and prose section of `README.md`. Synchronized `bytes_utils.py`, `tests/test_bytes_utils.py`, `README.md`, `CHANGELOG.md`, and `scaffold.sh` with `make refresh-scaffold`; `python tools/refresh_scaffold.py --check` reports all embedded copies in sync. No `.github/workflows/**` changes.
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
+
+- `doctest_utils.find_doctests` and `doctest_utils.run_file_examples`: document `ValueError`/`OSError` propagated from the delegated `doctest.DocTestFinder.find` call / `Path.read_text` call. Marked `# audit-ignore`. `doctest_utils` audit section drops from 2 to 0; repo scan 33 -> 31.
 
 - `wsgiref_utils.build_headers` and `wsgiref_utils.check_environ`: document `ValueError`/`AssertionError` propagated from the delegated `wsgiref.headers.Headers` constructor / `wsgiref.validate.check_environ` call. Marked `# audit-ignore`. `wsgiref_utils` audit section drops from 2 to 0; repo scan 40 -> 38.
 

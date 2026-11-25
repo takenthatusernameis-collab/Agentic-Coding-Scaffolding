@@ -124,7 +124,7 @@ def find_doctests(obj: object, name: Optional[str] = None) -> List[_doctest.DocT
 
     Raises:
         TypeError: If *name* is not a string or ``None``.
-        ValueError: If *obj* does not support doctest discovery.
+        ValueError: If *obj* does not support doctest discovery.  # audit-ignore: ValueError
     """
     if name is not None:
         name = _require_text(name, "name")
@@ -245,7 +245,7 @@ def run_file_examples(
 
     Raises:
         TypeError: If an argument has an unsupported type.
-        OSError: If the file cannot be read.
+        OSError: If the file cannot be read.  # audit-ignore: OSError
     """
     location = _require_text(path, "path")
     verbose_flag = _require_flag(verbose, "verbose")

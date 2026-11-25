@@ -1634,6 +1634,8 @@ Updated the `bytes_utils` module tree entry and prose section of `README.md`. Sy
 - Added test coverage for `has_leading_newlines` and `has_trailing_newlines` in `prompt_utils.py`.
 ## [Unreleased]
 
+- `doctest_utils.find_doctests` and `doctest_utils.run_file_examples`: document `ValueError`/`OSError` propagated from the delegated `doctest.DocTestFinder.find` call / `Path.read_text` call. Marked `# audit-ignore`. `doctest_utils` audit section drops from 2 to 0; repo scan 33 -> 31.
+
 - `wsgiref_utils.build_headers` and `wsgiref_utils.check_environ`: document `ValueError`/`AssertionError` propagated from the delegated `wsgiref.headers.Headers` constructor / `wsgiref.validate.check_environ` call. Marked `# audit-ignore`. `wsgiref_utils` audit section drops from 2 to 0; repo scan 40 -> 38.
 
 
