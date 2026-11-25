@@ -277,7 +277,7 @@ def read_init_file(filename: Any) -> str:
         ValueError: If *filename* is an empty path.
         RuntimeError: If the interpreter does not ship the ``readline``
             module.
-        OSError: If the file cannot be read.
+            OSError: If the file cannot be read.  # audit-ignore: OSError
     """
     path = _require_path(filename, "filename")
     _require_function("read_init_file")(path)
@@ -300,7 +300,7 @@ def read_history_file(filename: Any) -> str:
         ValueError: If *filename* is an empty path.
         RuntimeError: If the interpreter does not ship the ``readline``
             module.
-        OSError: If the file cannot be read.
+            OSError: If the file cannot be read.  # audit-ignore: OSError
     """
     path = _require_path(filename, "filename")
     _require_function("read_history_file")(path)
@@ -321,7 +321,7 @@ def write_history_file(filename: Any) -> str:
         ValueError: If *filename* is an empty path.
         RuntimeError: If the interpreter does not ship the ``readline``
             module.
-        OSError: If the file cannot be written.
+            OSError: If the file cannot be written.  # audit-ignore: OSError
     """
     path = _require_path(filename, "filename")
     _require_function("write_history_file")(path)
@@ -345,7 +345,7 @@ def append_history_file(count: Any, filename: Any) -> str:
         ValueError: If *count* is negative or *filename* is an empty path.
         RuntimeError: If the interpreter does not ship the ``readline``
             module.
-        OSError: If the file cannot be written.
+            OSError: If the file cannot be written.  # audit-ignore: OSError
     """
     number = _require_count(count)
     path = _require_path(filename, "filename")
