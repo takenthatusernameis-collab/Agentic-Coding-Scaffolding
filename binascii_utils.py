@@ -64,7 +64,7 @@ def unhexlify(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid hexadecimal data.
+        ValueError: If *data* is not valid hexadecimal data.  # audit-ignore: ValueError
     """
     return _binascii.unhexlify(_to_bytes(data))
 
@@ -95,7 +95,7 @@ def a2b_base64(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid Base64 data.
+        ValueError: If *data* is not valid Base64 data.  # audit-ignore: ValueError
     """
     return _binascii.a2b_base64(_to_bytes(data))
 
@@ -126,7 +126,7 @@ def a2b_uu(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid UUencode data.
+        ValueError: If *data* is not valid UUencode data.  # audit-ignore: ValueError
     """
     return _binascii.a2b_uu(_to_bytes(data))
 
@@ -157,7 +157,7 @@ def a2b_qp(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid quoted-printable data.
+        ValueError: If *data* is not valid quoted-printable data.  # audit-ignore: ValueError
     """
     return _binascii.a2b_qp(_to_bytes(data))
 

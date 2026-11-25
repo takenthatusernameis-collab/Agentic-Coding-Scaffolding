@@ -74944,6 +74944,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `binascii_utils` triages 4 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — four `binascii_utils` functions document `ValueError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `unhexlify` documents `ValueError` from the delegated `binascii.unhexlify` (raises `binascii.Error`, a `ValueError` subclass); `a2b_base64`, `a2b_uu`, and `a2b_qp` document `ValueError` from the delegated `binascii.a2b_base64`/`a2b_uu`/`a2b_qp` calls (each raises `binascii.Error` for invalid input). Each `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `binascii_utils` audit section drops from 4 low-signal candidates to 0, and the repository scan drops from 76 to 72.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_binascii_utils` — 33 OK; `python -m ruff check binascii_utils.py` — clean; `python -m mypy binascii_utils.py` — success; `python tools/audit_contracts.py binascii_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 72 low-signal / 0 genuine defects (was 76); `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `pty_utils` triages 6 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — six `pty_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `openpty`/`open_terminal` document `OSError` from the delegated `pty.openpty` (`os.openpty`); `master_open` documents `OSError` from the delegated `os.openpty`/`os.ttyname`/`os.close`; `slave_open` documents `OSError` from the delegated `os.open`; `fork` documents `OSError` from the delegated `pty.fork` (`os.fork`); and `spawn` documents `OSError` from the delegated `pty.spawn`. Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `pty_utils` audit section drops from 6 low-signal candidates to 0, and the repository scan drops from 88 to 82.
@@ -81285,7 +81291,7 @@ def unhexlify(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid hexadecimal data.
+        ValueError: If *data* is not valid hexadecimal data.  # audit-ignore: ValueError
     """
     return _binascii.unhexlify(_to_bytes(data))
 
@@ -81316,7 +81322,7 @@ def a2b_base64(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid Base64 data.
+        ValueError: If *data* is not valid Base64 data.  # audit-ignore: ValueError
     """
     return _binascii.a2b_base64(_to_bytes(data))
 
@@ -81347,7 +81353,7 @@ def a2b_uu(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid UUencode data.
+        ValueError: If *data* is not valid UUencode data.  # audit-ignore: ValueError
     """
     return _binascii.a2b_uu(_to_bytes(data))
 
@@ -81378,7 +81384,7 @@ def a2b_qp(data: _Data) -> bytes:
 
     Raises:
         TypeError: If *data* is not str or bytes.
-        ValueError: If *data* is not valid quoted-printable data.
+        ValueError: If *data* is not valid quoted-printable data.  # audit-ignore: ValueError
     """
     return _binascii.a2b_qp(_to_bytes(data))
 
