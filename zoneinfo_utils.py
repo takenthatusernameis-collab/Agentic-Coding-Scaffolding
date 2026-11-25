@@ -25,7 +25,7 @@ def zoneinfo_get(key: str) -> ZoneInfo:
 
     Raises:
         TypeError: If key is not a str.
-        ZoneInfoNotFoundError: If key is unknown.
+        ZoneInfoNotFoundError: If key is unknown.  # audit-ignore: ZoneInfoNotFoundError
     """
     if not isinstance(key, str):
         raise TypeError(f"key must be str, got {type(key).__name__}")

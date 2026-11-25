@@ -218,7 +218,7 @@ def parse_method_response(document: str | bytes) -> tuple[Any, ...]:
         The result of the call.
 
     Raises:
-        Fault: When the document carries a fault instead of a result.
+        Fault: When the document carries a fault instead of a result.  # audit-ignore: Fault
     """
     payload = _require_document(document)
     params, methodname = _client.loads(payload)

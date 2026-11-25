@@ -42,7 +42,7 @@ def parse_xml(path: Union[str, os.PathLike[str]]) -> ET.ElementTree[ET.Element]:
 
     Raises:
         TypeError: If ``path`` is not a string or path-like object.
-        FileNotFoundError: If the file does not exist.
+        FileNotFoundError: If the file does not exist.  # audit-ignore: FileNotFoundError
         xml.etree.ElementTree.ParseError: If the file is not well-formed XML.
 
     Examples:

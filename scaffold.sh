@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `xml_utils`, `xmlrpc_utils`, `zoneinfo_utils` triage 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — three functions across three modules document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `xml_utils.parse_xml` documents `FileNotFoundError` propagated from the delegated `xml.etree.ElementTree.parse` call (file does not exist); `xmlrpc_utils.parse_method_response` documents `Fault` from the delegated `xmlrpc.client.loads` call (the document carries a fault instead of a result); `zoneinfo_utils.zoneinfo_get` documents `ZoneInfoNotFoundError` from the delegated `zoneinfo.ZoneInfo` constructor (unknown IANA timezone key). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The three modules' audit sections drop from 1 low-signal candidate each to 0, and the repository scan drops from 49 to 46.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_xml_utils tests.test_xmlrpc_utils tests.test_zoneinfo_utils` — 88 OK; `python -m ruff check xml_utils.py xmlrpc_utils.py zoneinfo_utils.py` — clean; `python -m mypy xml_utils.py xmlrpc_utils.py zoneinfo_utils.py` — success; `python tools/audit_contracts.py xml_utils.py xmlrpc_utils.py zoneinfo_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 46 low-signal / 0 genuine defects (was 49); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `ssl_utils` triages 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — three `ssl_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `match_hostname` documents `Exception` propagated from the delegated `ssl.match_hostname` call (raises `ssl.CertificateError`, an `Exception` subclass); `get_server_certificate` documents `TypeError` from the delegated `ssl.get_server_certificate` call (invalid socket type); `verify_cert_chain` documents `ValueError` from the delegated `ssl.verify_cert_chain` call (verification failure). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `ssl_utils` audit section drops from 3 low-signal candidates to 0, and the repository scan drops from 52 to 49.
@@ -143499,7 +143505,7 @@ def parse_xml(path: Union[str, os.PathLike[str]]) -> ET.ElementTree[ET.Element]:
 
     Raises:
         TypeError: If ``path`` is not a string or path-like object.
-        FileNotFoundError: If the file does not exist.
+        FileNotFoundError: If the file does not exist.  # audit-ignore: FileNotFoundError
         xml.etree.ElementTree.ParseError: If the file is not well-formed XML.
 
     Examples:
@@ -144405,7 +144411,7 @@ def parse_method_response(document: str | bytes) -> tuple[Any, ...]:
         The result of the call.
 
     Raises:
-        Fault: When the document carries a fault instead of a result.
+        Fault: When the document carries a fault instead of a result.  # audit-ignore: Fault
     """
     payload = _require_document(document)
     params, methodname = _client.loads(payload)
@@ -145982,7 +145988,7 @@ def zoneinfo_get(key: str) -> ZoneInfo:
 
     Raises:
         TypeError: If key is not a str.
-        ZoneInfoNotFoundError: If key is unknown.
+        ZoneInfoNotFoundError: If key is unknown.  # audit-ignore: ZoneInfoNotFoundError
     """
     if not isinstance(key, str):
         raise TypeError(f"key must be str, got {type(key).__name__}")
