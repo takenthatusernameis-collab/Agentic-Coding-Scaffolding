@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `configparser_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `configparser_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `load_config` documents `Error` propagated from the delegated `ConfigParser.read` call (invalid INI syntax raises `MissingSectionHeaderError`/`ParsingError`, both `configparser.Error` subclasses, empirically confirmed); `save_config` documents `OSError` from the delegated `Path.mkdir`/`open` calls (an unwritable target raises `NotADirectoryError`/`PermissionError`, both `OSError` subclasses, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `configparser_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 42 to 40.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_configparser_utils` — 17 OK; `python -m ruff check configparser_utils.py tests/test_configparser_utils.py` — clean; `python -m mypy configparser_utils.py tests/test_configparser_utils.py` — success; `python tools/audit_contracts.py configparser_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 40 low-signal / 0 genuine defects (was 42); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `cmath_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — two `cmath_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `log` documents `ValueError` propagated from the delegated `cmath.log` call (the default-base path `cmath.log(z)` raises `ValueError: math domain error` for `z == 0`, empirically confirmed); `log10` documents `ValueError` from the delegated `cmath.log10` call (raises `ValueError: math domain error` for `z == 0`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `cmath_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 46 to 44.
@@ -83994,7 +84000,7 @@ def load_config(file_path: Union[str, Path], encoding: str = "utf-8") -> Dict[st
     Raises:
         FileNotFoundError: If the configuration file does not exist.
         TypeError: If file_path is not a string or Path object.
-        Error: If the file contains invalid INI syntax.
+        Error: If the file contains invalid INI syntax.  # audit-ignore: Error
     """
     path = Path(file_path)
     if not isinstance(file_path, (str, Path)):
@@ -84026,7 +84032,7 @@ def save_config(
 
     Raises:
         TypeError: If config is not a mapping or file_path is invalid.
-        OSError: If there is an issue writing to the file.
+        OSError: If there is an issue writing to the file.  # audit-ignore: OSError
     """
     if not isinstance(config, Mapping):
         raise TypeError("config must be a mapping")

@@ -66,7 +66,7 @@ def load_config(file_path: Union[str, Path], encoding: str = "utf-8") -> Dict[st
     Raises:
         FileNotFoundError: If the configuration file does not exist.
         TypeError: If file_path is not a string or Path object.
-        Error: If the file contains invalid INI syntax.
+        Error: If the file contains invalid INI syntax.  # audit-ignore: Error
     """
     path = Path(file_path)
     if not isinstance(file_path, (str, Path)):
@@ -98,7 +98,7 @@ def save_config(
 
     Raises:
         TypeError: If config is not a mapping or file_path is invalid.
-        OSError: If there is an issue writing to the file.
+        OSError: If there is an issue writing to the file.  # audit-ignore: OSError
     """
     if not isinstance(config, Mapping):
         raise TypeError("config must be a mapping")
