@@ -1,16 +1,16 @@
 # Handover
 
-Latest session (2026-11-25): board empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`. Probe rc=2 (source changed since checkpoint `9b705327`); ran full battery once, checkpoint advanced to HEAD `4e4bbf50`. State verified green.
+Latest session (2026-11-25): board empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`. Probe rc=2 (source changed since checkpoint `4e4bbf50`); ran full battery once, checkpoint advanced to HEAD `01558e78`. State verified green.
 
-**State:** checkpoint == HEAD `4e4bbf50` after full battery. No `.github/workflows/**` changes.
+**State:** checkpoint == HEAD `01558e78` after full battery. No `.github/workflows/**` changes.
 
-**Work:** triaged `select_utils` audit candidates — `select` (`OSError` from delegated `select.select`) and `create_poller` (`AttributeError` from delegated `select.poll` access) are genuine stdlib delegations, each `Raises:` line now carries an `# audit-ignore:` comment; `poll_register`'s documented `OSError: If *fd* is invalid` is a never-raised doc error (the wrapper raises `TypeError`; delegated `poller.register` raises `ValueError` for a negative fd and otherwise defers any error to `poll()` time), so that line was removed. `select_utils` audit section 3 → 0; repo scan 55 → 52. Refreshed scaffold.sh embeddings for `select_utils.py` and `CHANGELOG.md`. Tests (17 OK), ruff/mypy/doctest clean, verify_state_delta pass.
+**Work:** triaged `ssl_utils` audit candidates — all 3 are genuine stdlib delegations: `match_hostname` documents `Exception` propagated from `ssl.match_hostname` (raises `ssl.CertificateError`, an `Exception` subclass); `get_server_certificate` documents `TypeError` from `ssl.get_server_certificate` (invalid socket type); `verify_cert_chain` documents `ValueError` from `ssl.verify_cert_chain` (verification failure). Each `Raises:` line now carries an `# audit-ignore:` comment. `ssl_utils` audit section 3 → 0; repo scan 52 → 49. Refreshed scaffold.sh embeddings for `ssl_utils.py` and `CHANGELOG.md`. Tests (47 OK), ruff/mypy/doctest clean, verify_state_delta pass.
 
-**Changes:** `select_utils.py` (2 `# audit-ignore:` comments + 1 inaccurate `OSError` doc line removed); `CHANGELOG.md` (new Unreleased entry); `scaffold.sh` (re-embedded `select_utils.py`, `CHANGELOG.md`); `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded here and in `.kilo/next_task.md`.
+**Changes:** `ssl_utils.py` (3 `# audit-ignore:` comments); `CHANGELOG.md` (new Unreleased entry); `scaffold.sh` (re-embedded `ssl_utils.py`, `CHANGELOG.md`); `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded here and in `.kilo/next_task.md`.
 
-**Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates with `# audit-ignore:` per session (52 remain across ~51 files; `ssl_utils` still has 3 candidates). Confirm each is a genuine delegation, not a never-raised doc error (remove inaccurate lines when found); prefer state-delta checks over full re-audits; no timestamp-only handoffs / no-op cycles. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+**Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates with `# audit-ignore:` per session (49 remain across ~48 files; `xml_utils`, `xmlrpc_utils`, `zoneinfo_utils` each have 1). Confirm each is a genuine delegation, not a never-raised doc error (remove inaccurate lines when found); prefer state-delta checks over full re-audits; no timestamp-only handoffs / no-op cycles. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
 
-## Latest Session (2026-11-25) — triaged `pkgutil_utils` audit candidates; repo 61 → 58
+## Latest Session (2026-11-25) — triaged `select_utils` audit candidates; repo 55 → 52
 
 - `board_read`: empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`.
 - **State:** probe rc=2 (source changed since checkpoint `25539d76`); ran full battery once, checkpoint advanced to HEAD `9b705327`. No `.github/workflows/**` changes.

@@ -1,10 +1,10 @@
 # Task for Next Agent
 
-Session (2026-11-25): board empty (bootstrap). Executed durable handoff. Probe rc=2 (source changed since checkpoint `9b705327`); ran full battery once, checkpoint advanced to HEAD `4e4bbf50`. Triaged `select_utils` audit candidates (3 → 0; repo 55 → 52): 2 genuine delegations marked `# audit-ignore:`, 1 never-raised `OSError` doc error removed from `poll_register`.
+Session (2026-11-25): board empty (bootstrap). Executed durable handoff. Probe rc=2 (source changed since checkpoint `4e4bbf50`); ran full battery once, checkpoint advanced to HEAD `01558e78`. Triaged `ssl_utils` audit candidates (3 → 0; repo 52 → 49): 3 genuine delegations marked `# audit-ignore:`.
 
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0 or rc=1; if rc=2 run full once.
-3. Triage ONE coherent file per session with `# audit-ignore:` after confirming genuine stdlib delegation. (52 remain across ~51 files; `ssl_utils` still has 3 candidates.) When a documented exception is never actually raised (a doc error, not a delegation), remove the inaccurate line instead of marking it.
+3. Triage ONE coherent file per session with `# audit-ignore:` after confirming genuine stdlib delegation. (49 remain across ~48 files; `xml_utils`, `xmlrpc_utils`, `zoneinfo_utils` each have 1.) When a documented exception is never actually raised (a doc error, not a delegation), remove the inaccurate line instead of marking it.
 4. If touching audit tool/tests, re-run `tests.test_audit_contracts` and summary.
 5. Test modules under `tests/`; no root-level test files. Keep `.github/workflows/**` unchanged.
 6. If editing wrapper module/test/CHANGELOG, run `make refresh-scaffold` then check.

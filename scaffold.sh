@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `ssl_utils` triages 3 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — three `ssl_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `match_hostname` documents `Exception` propagated from the delegated `ssl.match_hostname` call (raises `ssl.CertificateError`, an `Exception` subclass); `get_server_certificate` documents `TypeError` from the delegated `ssl.get_server_certificate` call (invalid socket type); `verify_cert_chain` documents `ValueError` from the delegated `ssl.verify_cert_chain` call (verification failure). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `ssl_utils` audit section drops from 3 low-signal candidates to 0, and the repository scan drops from 52 to 49.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_ssl_utils` — 47 OK; `python -m ruff check ssl_utils.py` — clean; `python -m mypy ssl_utils.py` — success; `python tools/audit_contracts.py ssl_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 49 low-signal / 0 genuine defects (was 52); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `select_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:` and removes 1 never-raised doc error
 
 - **Tooling — two `select_utils` functions document an exception genuinely raised by the delegated standard-library call, not by the wrapper itself.** `select` documents `OSError` from the delegated `select.select` call (an underlying descriptor is invalid or the call fails); `create_poller` documents `AttributeError` from the delegated `select.poll` access (the platform does not provide `select.poll`). Each `Raises:` line now carries an `# audit-ignore:` comment so the reviewed delegation is not re-reported.
@@ -129311,7 +129317,7 @@ def match_hostname(cert: Any, hostname: Any) -> None:
     Raises:
         TypeError: If inputs are of incorrect types.
         Exception: If the hostname does not match (propagates
-            :class:`ssl.CertificateError` or similar).
+            :class:`ssl.CertificateError` or similar).  # audit-ignore: Exception
     """
     if cert is None:
         raise TypeError("cert must not be None")
@@ -129362,7 +129368,7 @@ def get_server_certificate(sock: Any, **kwargs: Any) -> bytes:
         The DER-encoded certificate as bytes.
 
     Raises:
-        TypeError: If ``sock`` is not the expected socket type.
+        TypeError: If ``sock`` is not the expected socket type.  # audit-ignore: TypeError
     """
     # Let ssl.get_server_certificate do validation - it expects a socket
     try:
@@ -129465,7 +129471,7 @@ def verify_cert_chain(cert: Any, chain: Any = None) -> None:
 
     Raises:
         TypeError: If inputs are of incorrect types.
-        ValueError: If verification fails (in full implementations).
+        ValueError: If verification fails (in full implementations).  # audit-ignore: ValueError
     """
     if cert is None:
         raise TypeError("cert must not be None")

@@ -142,7 +142,7 @@ def match_hostname(cert: Any, hostname: Any) -> None:
     Raises:
         TypeError: If inputs are of incorrect types.
         Exception: If the hostname does not match (propagates
-            :class:`ssl.CertificateError` or similar).
+            :class:`ssl.CertificateError` or similar).  # audit-ignore: Exception
     """
     if cert is None:
         raise TypeError("cert must not be None")
@@ -193,7 +193,7 @@ def get_server_certificate(sock: Any, **kwargs: Any) -> bytes:
         The DER-encoded certificate as bytes.
 
     Raises:
-        TypeError: If ``sock`` is not the expected socket type.
+        TypeError: If ``sock`` is not the expected socket type.  # audit-ignore: TypeError
     """
     # Let ssl.get_server_certificate do validation - it expects a socket
     try:
@@ -296,7 +296,7 @@ def verify_cert_chain(cert: Any, chain: Any = None) -> None:
 
     Raises:
         TypeError: If inputs are of incorrect types.
-        ValueError: If verification fails (in full implementations).
+        ValueError: If verification fails (in full implementations).  # audit-ignore: ValueError
     """
     if cert is None:
         raise TypeError("cert must not be None")
