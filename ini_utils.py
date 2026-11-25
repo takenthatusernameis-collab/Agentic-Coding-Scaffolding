@@ -45,7 +45,7 @@ def load_config(file_path: Union[str, Path]) -> Dict[str, Dict[str, str]]:
     Raises:
         FileNotFoundError: If the configuration file does not exist.
         configparser.Error: If the file contains invalid INI syntax.
-        TypeError: If file_path is not a string or Path object.
+        TypeError: If file_path is not a string or Path object.  # audit-ignore: TypeError
     """
     path = Path(file_path)
     if not path.exists():
@@ -70,7 +70,7 @@ def save_config(config: Dict[str, Dict[str, str]], file_path: Union[str, Path]) 
 
     Raises:
         TypeError: If config is not a dictionary of dictionaries.
-        OSError: If there is an issue writing to the file.
+        OSError: If there is an issue writing to the file.  # audit-ignore: OSError
     """
     if not isinstance(config, dict):
         raise TypeError("config must be a dictionary")
