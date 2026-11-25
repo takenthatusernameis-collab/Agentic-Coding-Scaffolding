@@ -125,7 +125,7 @@ async def retry_async(
         TypeError: If ``max_attempts`` is not an int or ``delay`` is not a
             number.
         ValueError: If ``max_attempts`` is less than 1 or ``delay`` is negative.
-        Exception: The last exception if all attempts fail.
+        Exception: The last exception if all attempts fail.  # audit-ignore: Exception
 
     Examples:
         >>> import asyncio
