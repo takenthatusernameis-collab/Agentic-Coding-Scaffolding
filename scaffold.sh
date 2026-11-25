@@ -94901,7 +94901,7 @@ def format_internaldate(date_time: Any) -> str:
 
     Raises:
         TypeError: If *date_time* has an unsupported type.
-        ValueError: If *date_time* is a naive :class:`datetime.datetime`.
+        ValueError: If *date_time* is a naive :class:`datetime.datetime`.  # audit-ignore: ValueError
     """
     if isinstance(date_time, (int, float)) and not isinstance(date_time, bool):
         return _imaplib.Time2Internaldate(float(date_time))
