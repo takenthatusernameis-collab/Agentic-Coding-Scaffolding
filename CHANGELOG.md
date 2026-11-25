@@ -1,3 +1,9 @@
+## Unreleased — `collections_abc_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
+
+- **Tooling — `collections_abc_utils.get_abc` documents `AttributeError` that is genuinely raised by the delegated `getattr(_cabc, name)` call (unknown ABC name), not by the wrapper itself.** The `Raises:` line now carries a standalone `# audit-ignore: AttributeError` comment so the reviewed delegation is not re-reported. The `collections_abc_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 36 to 35.
+- **Defect class:** none — audit false-positive reduction, not a product defect.
+- Validation: `python -m unittest tests.test_collections_abc_utils` — 12 OK; `python -m ruff check collections_abc_utils.py` — clean; `python -m mypy collections_abc_utils.py` — success; `python tools/audit_contracts.py collections_abc_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 35 low-signal / 0 genuine defects (was 36); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `async_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
 
 - **Tooling — `async_utils.retry_async` documents `Exception` ("The last exception if all attempts fail.") that is genuinely raised by the wrapper itself via `raise last_exception`, not detectable by the static audit because the raise target is a variable rather than a concrete exception class. Empirically confirmed: exhausting all retry attempts re-raises the last caught `Exception`. The `Raises:` line now carries an inline `# audit-ignore: Exception` comment so the reviewed false positive is not re-reported. The `async_utils` audit section drops from 1 low-signal candidate to 0, and the repository scan drops from 40 to 39.
