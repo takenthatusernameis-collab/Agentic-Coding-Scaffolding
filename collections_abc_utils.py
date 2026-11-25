@@ -59,7 +59,8 @@ def get_abc(name: str) -> type:
     Raises:
         TypeError: If *name* is not a string.
         # audit-ignore: AttributeError
-        AttributeError: If *name* is not a public collections.abc attribute.        ValueError: If *name* starts with ``_``.
+        AttributeError: If *name* is not a public collections.abc attribute.
+        ValueError: If *name* starts with ``_``.
     """
     _require_str(name, "name")
     if name.startswith("_"):

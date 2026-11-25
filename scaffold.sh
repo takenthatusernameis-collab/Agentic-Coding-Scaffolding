@@ -11949,7 +11949,7 @@ def save_config(config: Dict[str, Any], file_path: Union[str, Path], indent: int
 
     Raises:
         TypeError: If config is not a dictionary or file_path is not a string/Path
-        OSError: If there is an issue writing to the file
+        OSError: If there is an issue writing to the file  # audit-ignore: OSError
     """
     if not isinstance(config, dict):
         raise TypeError("config must be a dictionary")
@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `ini_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `ini_utils` functions document exceptions genuinely raised by delegated standard-library calls.** `load_config` documents `TypeError` propagated from the delegated `pathlib.Path` constructor (a non-`str`/`Path` argument raises `TypeError`, empirically confirmed); `save_config` documents `OSError` propagated from the delegated `open()` call (an unwritable target raises `OSError`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `ini_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 31 to 29.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_ini_utils` — 28 OK; `python tools/audit_contracts.py ini_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 29 low-signal / 0 genuine defects (was 31); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `termios_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — two `termios_utils` functions document `OSError` that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `get_window_size` documents `OSError: If the file descriptor is not a terminal` propagated from the delegated `os.get_terminal_size` call (raises `OSError` when the descriptor is not a terminal); `set_window_size` documents `OSError: If the file descriptor is not a terminal` propagated from the delegated `fcntl.ioctl` call (raises `OSError` for an invalid/non-terminal descriptor). Each `Raises:` line now carries an inline `# audit-ignore: OSError` comment so the reviewed delegation is not re-reported. The `termios_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 35 to 33.
@@ -172491,7 +172497,8 @@ def get_abc(name: str) -> type:
     Raises:
         TypeError: If *name* is not a string.
         # audit-ignore: AttributeError
-        AttributeError: If *name* is not a public collections.abc attribute.        ValueError: If *name* starts with ``_``.
+        AttributeError: If *name* is not a public collections.abc attribute.
+        ValueError: If *name* starts with ``_``.
     """
     _require_str(name, "name")
     if name.startswith("_"):

@@ -55,7 +55,7 @@ def save_config(config: Dict[str, Any], file_path: Union[str, Path], indent: int
 
     Raises:
         TypeError: If config is not a dictionary or file_path is not a string/Path
-        OSError: If there is an issue writing to the file
+        OSError: If there is an issue writing to the file  # audit-ignore: OSError
     """
     if not isinstance(config, dict):
         raise TypeError("config must be a dictionary")
