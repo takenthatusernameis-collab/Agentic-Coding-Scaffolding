@@ -214,8 +214,8 @@ def replace(obj: Any, **changes: Any) -> Any:
         A new instance with the specified fields replaced.
 
     Raises:
-        TypeError: If ``obj`` is not a dataclass instance.
-        ValueError: If any field in ``changes`` is not a valid field name.
+        TypeError: If ``obj`` is not a dataclass instance or if any field
+            in ``changes`` is not a valid field name.
 
     Examples:
         >>> from dataclasses import dataclass

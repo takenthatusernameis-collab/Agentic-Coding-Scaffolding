@@ -69635,8 +69635,8 @@ def replace(obj: Any, **changes: Any) -> Any:
         A new instance with the specified fields replaced.
 
     Raises:
-        TypeError: If ``obj`` is not a dataclass instance.
-        ValueError: If any field in ``changes`` is not a valid field name.
+        TypeError: If ``obj`` is not a dataclass instance or if any field
+            in ``changes`` is not a valid field name.
 
     Examples:
         >>> from dataclasses import dataclass
@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `dataclasses_utils` fixes inaccurate `ValueError` in `replace` docstring
+
+- **Documentation — `dataclasses_utils.replace` documented `ValueError` for invalid field names, but `dataclasses.replace` raises `TypeError` for this case.** The `Raises:` clause now correctly documents `TypeError` for both non-dataclass instances and invalid field names. No `# audit-ignore:` needed since this was a doc error, not a stdlib delegation.
+- **Defect class:** documentation bug (incorrect exception type).
+- Validation: `python -m unittest tests.test_dataclasses_utils` — 35 OK; `python -m ruff check dataclasses_utils.py` — clean; `python -m mypy dataclasses_utils.py` — success; `python tools/audit_contracts.py dataclasses_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 26 low-signal / 0 genuine defects (was 27); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `ini_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — two `ini_utils` functions document exceptions genuinely raised by delegated standard-library calls.** `load_config` documents `TypeError` propagated from the delegated `pathlib.Path` constructor (a non-`str`/`Path` argument raises `TypeError`, empirically confirmed); `save_config` documents `OSError` propagated from the delegated `open()` call (an unwritable target raises `OSError`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `ini_utils` audit section drops from 2 low-signal candidates to 0, and the repository scan drops from 31 to 29.
