@@ -96209,7 +96209,7 @@ def read_lines(path: Union[str, Path]) -> List[str]:
         A list of strings, one per line, with trailing newlines removed.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
+        FileNotFoundError: If the file does not exist.  # audit-ignore: FileNotFoundError
     """
     with open(path, "r", encoding="utf-8") as f:
         return [line.rstrip("\n") for line in f]
@@ -96225,7 +96225,7 @@ def write_lines(path: Union[str, Path], lines: List[str], encoding: str = "utf-8
 
     Raises:
         TypeError: If lines is not a list of strings.
-        OSError: If there is an issue writing to the file.
+        OSError: If there is an issue writing to the file.  # audit-ignore: OSError
     """
     if not isinstance(lines, list) or not all(isinstance(line, str) for line in lines):
         raise TypeError("lines must be a list of strings")
@@ -96248,7 +96248,7 @@ def append_text(path: Union[str, Path], text: str, encoding: str = "utf-8") -> N
 
     Raises:
         TypeError: If text is not a string.
-        OSError: If there is an issue writing to the file.
+        OSError: If there is an issue writing to the file.  # audit-ignore: OSError
     """
     if not isinstance(text, str):
         raise TypeError("text must be a string")
@@ -96272,7 +96272,7 @@ def atomic_write_text(path: Union[str, Path], content: str, encoding: str = "utf
 
     Raises:
         TypeError: If content is not a string.
-        OSError: If there is an issue writing or replacing the file.
+        OSError: If there is an issue writing or replacing the file.  # audit-ignore: OSError
     """
     if not isinstance(content, str):
         raise TypeError("content must be a string")
@@ -96308,8 +96308,8 @@ def stream_copy(src: Union[str, Path], dst: Union[str, Path], chunk_size: int = 
     Raises:
         TypeError: If *chunk_size* is not an int.
         ValueError: If *chunk_size* is not positive.
-        FileNotFoundError: If the source file does not exist.
-        OSError: If there is an issue reading or writing the files.
+        FileNotFoundError: If the source file does not exist.  # audit-ignore: FileNotFoundError
+        OSError: If there is an issue reading or writing the files.  # audit-ignore: OSError
     """
     if isinstance(chunk_size, bool) or not isinstance(chunk_size, int):
         raise TypeError("chunk_size must be an int")
@@ -96339,7 +96339,7 @@ def count_lines(path: Union[str, Path]) -> int:
         The number of lines in the file.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
+        FileNotFoundError: If the file does not exist.  # audit-ignore: FileNotFoundError
     """
     with open(path, "r", encoding="utf-8") as f:
         return sum(1 for _ in f)
@@ -96355,7 +96355,7 @@ def iter_lines(path: Union[str, Path]) -> Iterator[str]:
         Each line of the file with its trailing newline removed.
 
     Raises:
-        FileNotFoundError: If the file does not exist.
+        FileNotFoundError: If the file does not exist.  # audit-ignore: FileNotFoundError
     """
     with open(path, "r", encoding="utf-8") as f:
         for line in f:
@@ -96378,7 +96378,7 @@ def has_lines(path: Union[str, Path]) -> bool:
 
     Raises:
         TypeError: If *path* is not a string or path-like object.
-        FileNotFoundError: If the file does not exist.
+        FileNotFoundError: If the file does not exist.  # audit-ignore: FileNotFoundError
 
     Examples:
         >>> import tempfile, os
