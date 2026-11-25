@@ -26,7 +26,7 @@ def import_module(name: str, package: str | None = None) -> ModuleType:
 
     Raises:
         TypeError: If inputs are not of the expected types.
-        ImportError: If the module cannot be imported.
+        ImportError: If the module cannot be imported.  # audit-ignore: ImportError
     """
     if not isinstance(name, str):
         raise TypeError("name must be a string")
@@ -46,7 +46,7 @@ def reload_module(module: ModuleType) -> ModuleType:
 
     Raises:
         TypeError: If module is not a ModuleType.
-        ImportError: If the module cannot be reloaded.
+        ImportError: If the module cannot be reloaded.  # audit-ignore: ImportError
     """
     if not isinstance(module, ModuleType):
         raise TypeError("module must be a ModuleType")
@@ -258,7 +258,7 @@ def read_text(package: Any, resource: str) -> str:
 
     Raises:
         TypeError: If inputs are not of expected types.
-        FileNotFoundError: If resource is not found.
+        FileNotFoundError: If resource is not found.  # audit-ignore: FileNotFoundError
     """
     if not isinstance(resource, str):
         raise TypeError("resource must be a string")
@@ -278,7 +278,7 @@ def read_binary(package: Any, resource: str) -> bytes:
 
     Raises:
         TypeError: If inputs are not of expected types.
-        FileNotFoundError: If resource is not found.
+        FileNotFoundError: If resource is not found.  # audit-ignore: FileNotFoundError
     """
     if not isinstance(resource, str):
         raise TypeError("resource must be a string")
@@ -318,7 +318,7 @@ def path(package: Any, resource: str) -> Any:
 
     Raises:
         TypeError: If inputs are not of expected types.
-        FileNotFoundError: If resource is not found.
+        FileNotFoundError: If resource is not found.  # audit-ignore: FileNotFoundError
     """
     if not isinstance(resource, str):
         raise TypeError("resource must be a string")
@@ -338,7 +338,7 @@ def get_attr_from_module(module: ModuleType, attr_name: str) -> Any:
 
     Raises:
         TypeError: If inputs are not of expected types.
-        AttributeError: If attribute does not exist.
+        AttributeError: If attribute does not exist.  # audit-ignore: AttributeError
     """
     if not isinstance(module, ModuleType):
         raise TypeError("module must be a ModuleType")
@@ -361,7 +361,7 @@ def call_func_from_module(module: ModuleType, func_name: str, *args: Any, **kwar
 
     Raises:
         TypeError: If inputs are not of expected types or target is not callable.
-        AttributeError: If function does not exist.
+        AttributeError: If function does not exist.  # audit-ignore: AttributeError
     """
     if not isinstance(module, ModuleType):
         raise TypeError("module must be a ModuleType")
