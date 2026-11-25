@@ -1,14 +1,14 @@
 # Handover
 
-Latest session (2026-11-25): board empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`. Probe rc=2 (source changed since checkpoint `89f12d80`); ran full battery once, checkpoint advanced to HEAD `25539d76`. State verified green.
+Latest session (2026-11-25): board empty (bootstrap). Executed durable handoff from `.kilo/next_task.md`. Probe rc=2 (source changed since checkpoint `25539d76`); ran full battery once, checkpoint advanced to HEAD `9b705327`. State verified green.
 
-**State:** checkpoint == HEAD `25539d76` after full battery. No `.github/workflows/**` changes.
+**State:** checkpoint == HEAD `9b705327` after full battery. No `.github/workflows/**` changes.
 
-**Work:** triaged `ipaddress_utils` audit candidates — 3 functions document `ValueError` genuinely raised by the delegated standard-library call: `ip_address` (`ipaddress.ip_address` rejects invalid address text) and `address_version`/`to_packed` (reach `ValueError` through their delegation to `ip_address`). Each `Raises:` line now carries an inline `# audit-ignore: ValueError` comment. `ipaddress_utils` audit section 3 → 0; repo scan 64 → 61. Refreshed scaffold.sh embeddings for `ipaddress_utils.py` and `CHANGELOG.md`. Tests (85 OK), verify_state_delta pass.
+**Work:** triaged `pkgutil_utils` audit candidates — 3 functions document an exception genuinely raised by the delegated standard-library call: `read_text` (`UnicodeDecodeError` from `bytes.decode(encoding, errors)`), `resolve_name` (`ValueError` from `pkgutil.resolve_name` for an invalid dotted name, and `ImportError`/`ModuleNotFoundError` from the same call when the name cannot be imported). Each `Raises:` line now carries an inline `# audit-ignore:` comment. `pkgutil_utils` audit section 3 → 0; repo scan 61 → 58. Refreshed scaffold.sh embeddings for `pkgutil_utils.py` and `CHANGELOG.md`. Tests (19 OK), verify_state_delta pass.
 
-**Changes:** `ipaddress_utils.py` (3 `# audit-ignore: ValueError`); `CHANGELOG.md` (new Unreleased entry); `scaffold.sh` (re-embedded `ipaddress_utils.py`, `CHANGELOG.md`); `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded here and in `.kilo/next_task.md`.
+**Changes:** `pkgutil_utils.py` (3 `# audit-ignore:` comments); `CHANGELOG.md` (new Unreleased entry); `scaffold.sh` (re-embedded `pkgutil_utils.py`, `CHANGELOG.md`); `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded here and in `.kilo/next_task.md`.
 
-**Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates with `# audit-ignore:` per session (61 remain across ~57 files; several files still have 3 candidates each — `pkgutil_utils`, `posix_utils`, `select_utils`, `ssl_utils`). Confirm each is a genuine delegation, not a never-raised doc error; prefer state-delta checks over full re-audits; no timestamp-only handoffs / no-op cycles. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
+**Next task:** triage a coherent file's remaining low-signal stdlib-delegation audit candidates with `# audit-ignore:` per session (58 remain across ~54 files; several files still have 3 candidates each — `posix_utils`, `select_utils`, `ssl_utils`). Confirm each is a genuine delegation, not a never-raised doc error; prefer state-delta checks over full re-audits; no timestamp-only handoffs / no-op cycles. Keep state green and record the next task in `.kilo/next_task.md` and `.kilo/handover.md`.
 
 ## Latest Session (2026-11-25) — triaged `ipaddress_utils` audit candidates; repo 64 → 61
 

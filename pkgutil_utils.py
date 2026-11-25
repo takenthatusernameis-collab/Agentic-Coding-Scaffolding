@@ -153,7 +153,7 @@ def read_text(package: str, resource: str, encoding: str = "utf-8", errors: str 
     Raises:
         TypeError: If any argument is not a string.
         OSError: If the resource cannot be found.
-        UnicodeDecodeError: If the resource cannot be decoded.
+        UnicodeDecodeError: If the resource cannot be decoded.  # audit-ignore: UnicodeDecodeError
     """
     if not isinstance(encoding, str):
         raise TypeError("encoding must be a str")
@@ -173,8 +173,8 @@ def resolve_name(name: str) -> Any:
 
     Raises:
         TypeError: If *name* is not a string.
-        ValueError: If *name* is not a valid dotted name.
-        ImportError: If the name cannot be imported.
+        ValueError: If *name* is not a valid dotted name.  # audit-ignore: ValueError
+        ImportError: If the name cannot be imported.  # audit-ignore: ImportError
     """
     if not isinstance(name, str):
         raise TypeError("name must be a str")
