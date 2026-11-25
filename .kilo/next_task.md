@@ -1,6 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-25): Triaged `deque_utils.index_in_deque: ValueError` as a genuine stdlib delegation (`collections.deque.index` raises `ValueError` when value not found); added `# audit-ignore: ValueError` to its `Raises:` line. Updated CHANGELOG, refreshed scaffold.sh, all tests/lint/typecheck/sync pass. Audit issues reduced from 25 to 24.
+Session (2026-11-25): Bootstrap session — established project foundation. Ran `verify_state_delta.py --full` (probe rc=2) and advanced checkpoint to `aea6e2a7f2b83f20f4940e23017735db37031704`. All tests pass (delta-aware skip), ruff clean, mypy success, refresh-scaffold --check in sync. Audit summary: 24 low-signal candidates across 18 files. No `.github/workflows/**` changes.
 
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0 or rc=1; if rc=2 run full once.
