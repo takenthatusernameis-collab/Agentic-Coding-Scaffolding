@@ -74944,6 +74944,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `zipimport_utils` triages 8 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — eight `zipimport_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `zip_importer`/`get_source`/`get_code`/`get_filename`/`is_package`/`invalidate_caches` document `ZipImportError` from the delegated `zipimport.zipimporter` methods; `archive_names` documents `FileNotFoundError` from the delegated `zipfile.ZipFile` constructor; and `get_data` documents `OSError` from the delegated `zipimporter.get_data` call. Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `zipimport_utils` audit section drops from 8 low-signal candidates to 0, and the repository scan drops from 96 to 88.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_zipimport_utils` — 27 OK; `python -m ruff check zipimport_utils.py` — clean; `python -m mypy zipimport_utils.py` — success; `python tools/audit_contracts.py zipimport_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 88 low-signal / 0 genuine defects (was 96); `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `pydoc_utils` triages 8 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — eight `pydoc_utils` functions document an exception that is genuinely raised by the delegated standard-library call, not by the wrapper itself.** `writedoc`/`writedocs` document `OSError` from the delegated `pydoc.writedoc`/`pydoc.writedocs` (`open(..., 'w')`); `importfile` documents `ImportError` from the delegated `pydoc.importfile` (raises `ErrorDuringImport`, an `ImportError` subclass); `synopsis` documents `OSError` from the delegated `pydoc.synopsis` (`os.stat`); `source_synopsis` documents `OSError` from the delegated `pydoc.source_synopsis` (`file.readline`); `cli`/`help` document `SystemExit` from the delegated `pydoc.cli`/`pydoc.help` (`sys.exit`); and `browse` documents `OSError` from the delegated `pydoc.browse` (`_start_server` binds a socket). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `pydoc_utils` audit section drops from 8 low-signal candidates to 0, and the repository scan drops from 104 to 96.
@@ -145284,7 +145290,7 @@ def zip_importer(
 
     Raises:
         TypeError: If *archive_path* is not a path-like object.
-        ZipImportError: If the archive cannot be opened.
+        ZipImportError: If the archive cannot be opened.  # audit-ignore: ZipImportError
     """
     return _zipimport.zipimporter(_archive_path(archive_path))
 
@@ -145302,7 +145308,7 @@ def archive_names(
 
     Raises:
         TypeError: If *archive_path* is not a path-like object.
-        FileNotFoundError: If the archive does not exist.
+        FileNotFoundError: If the archive does not exist.  # audit-ignore: FileNotFoundError
         zipfile.BadZipFile: If the file is not a Zip archive.
     """
     with _zipfile.ZipFile(_archive_path(archive_path)) as archive:
@@ -145326,7 +145332,7 @@ def get_source(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.get_source(_module_name(fullname))
@@ -145348,7 +145354,7 @@ def get_code(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.get_code(_module_name(fullname))
@@ -145370,7 +145376,7 @@ def get_filename(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.get_filename(_module_name(fullname))
@@ -145391,7 +145397,7 @@ def get_data(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the archive does not hold the member.
+        OSError: If the archive does not hold the member.  # audit-ignore: OSError
     """
     importer = zip_importer(archive_path)
     if not isinstance(pathname, (str, bytes, _os.PathLike)):
@@ -145415,7 +145421,7 @@ def is_package(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.is_package(_module_name(fullname))
@@ -145459,7 +145465,7 @@ def invalidate_caches(
 
     Raises:
         TypeError: If *archive_path* is not a path-like object.
-        ZipImportError: If the archive cannot be opened.
+        ZipImportError: If the archive cannot be opened.  # audit-ignore: ZipImportError
     """
     if archive_path is None:
         cache = getattr(_zipimport, "_zip_directory_cache", None)

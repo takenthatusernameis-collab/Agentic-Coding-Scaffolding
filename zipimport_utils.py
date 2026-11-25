@@ -104,7 +104,7 @@ def zip_importer(
 
     Raises:
         TypeError: If *archive_path* is not a path-like object.
-        ZipImportError: If the archive cannot be opened.
+        ZipImportError: If the archive cannot be opened.  # audit-ignore: ZipImportError
     """
     return _zipimport.zipimporter(_archive_path(archive_path))
 
@@ -122,7 +122,7 @@ def archive_names(
 
     Raises:
         TypeError: If *archive_path* is not a path-like object.
-        FileNotFoundError: If the archive does not exist.
+        FileNotFoundError: If the archive does not exist.  # audit-ignore: FileNotFoundError
         zipfile.BadZipFile: If the file is not a Zip archive.
     """
     with _zipfile.ZipFile(_archive_path(archive_path)) as archive:
@@ -146,7 +146,7 @@ def get_source(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.get_source(_module_name(fullname))
@@ -168,7 +168,7 @@ def get_code(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.get_code(_module_name(fullname))
@@ -190,7 +190,7 @@ def get_filename(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.get_filename(_module_name(fullname))
@@ -211,7 +211,7 @@ def get_data(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        OSError: If the archive does not hold the member.
+        OSError: If the archive does not hold the member.  # audit-ignore: OSError
     """
     importer = zip_importer(archive_path)
     if not isinstance(pathname, (str, bytes, _os.PathLike)):
@@ -235,7 +235,7 @@ def is_package(
     Raises:
         TypeError: If an argument has the wrong type.
         ValueError: If *fullname* is not a dotted module name.
-        ZipImportError: If the module is not in the archive.
+        ZipImportError: If the module is not in the archive.  # audit-ignore: ZipImportError
     """
     importer = zip_importer(archive_path)
     return importer.is_package(_module_name(fullname))
@@ -279,7 +279,7 @@ def invalidate_caches(
 
     Raises:
         TypeError: If *archive_path* is not a path-like object.
-        ZipImportError: If the archive cannot be opened.
+        ZipImportError: If the archive cannot be opened.  # audit-ignore: ZipImportError
     """
     if archive_path is None:
         cache = getattr(_zipimport, "_zip_directory_cache", None)
