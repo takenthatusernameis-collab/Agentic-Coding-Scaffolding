@@ -1,7 +1,7 @@
 """Tests for either_utils module."""
 
 import unittest
-from typing import TypeVar
+from typing import Callable, TypeVar, cast
 
 from either_utils import E, Either, L, R, T, U
 
@@ -105,6 +105,43 @@ class TestEither(unittest.TestCase):
         self.assertNotEqual(Either.right(1), Either.right(2))
         self.assertEqual(Either.left("a"), Either.left("a"))
         self.assertNotEqual(Either.right(1), Either.left(1))
+
+    def test_map_captures_exception(self) -> None:
+        def boom(_value: int) -> int:
+            raise RuntimeError("boom")
+
+        result = Either.right(5).map(boom)
+        self.assertTrue(result.is_left())
+        self.assertIsInstance(result.unwrap_left(), RuntimeError)
+
+    def test_flat_map_wraps_non_either_result(self) -> None:
+        fn = cast(Callable[[int], "Either[int, int]"], lambda x: x + 1)
+        result = Either.right(5).flat_map(fn)
+        self.assertTrue(result.is_right())
+        self.assertEqual(result.unwrap(), 6)
+
+    def test_flat_map_captures_exception(self) -> None:
+        def boom(_value: int) -> "Either[int, int]":
+            raise RuntimeError("boom")
+
+        result = Either.right(5).flat_map(boom)
+        self.assertTrue(result.is_left())
+        self.assertIsInstance(result.unwrap_left(), RuntimeError)
+
+    def test_and_then_aliases_flat_map(self) -> None:
+        result = Either.right(5).and_then(lambda x: Either.right(x + 1))
+        self.assertTrue(result.is_right())
+        self.assertEqual(result.unwrap(), 6)
+        self.assertTrue(Either.left("err").and_then(lambda x: Either.right(x)).is_left())
+
+    def test_repr_right(self) -> None:
+        self.assertEqual(repr(Either.right(5)), "Right(5)")
+
+    def test_repr_left(self) -> None:
+        self.assertEqual(repr(Either.left("err")), "Left('err')")
+
+    def test_eq_non_either_returns_notimplemented(self) -> None:
+        self.assertIs(Either.right(1).__eq__(42), NotImplemented)
 
 
 class TestExportedTypeVars(unittest.TestCase):

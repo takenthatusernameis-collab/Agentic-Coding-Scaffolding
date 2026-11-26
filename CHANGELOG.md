@@ -1,3 +1,10 @@
+## Unreleased — close `either_utils` per-module coverage gap (91% → 100%)
+
+- **Coverage — `either_utils.Either` had 10 reachable-but-untested branches.** A per-module `coverage run --source=either_utils` showed the `Either` API at 91%: `map`'s exception handler (lines 96-97), `flat_map` wrapping a non-`Either` result (line 121) and its exception handler (lines 122-123), the `and_then` alias (line 127), `__repr__` for both variants (lines 162-164), and `__eq__` against a non-`Either` returning `NotImplemented` (line 173). All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
+- **Tests:** added `test_map_captures_exception`, `test_flat_map_wraps_non_either_result`, `test_flat_map_captures_exception`, `test_and_then_aliases_flat_map`, `test_repr_right`, `test_repr_left`, `test_eq_non_either_returns_notimplemented`; `either_utils` coverage rises 91% → 100%.
+- **Defect class:** none — test-only coverage improvement; no product-behavior change.
+- Validation: `python -m unittest tests.test_either_utils` — 31 OK; `python -m ruff check either_utils.py tests/test_either_utils.py` clean; `python -m mypy either_utils.py tests/test_either_utils.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — close `maybe_utils` per-module coverage gap (82% → 100%)
 
 - **Coverage — `maybe_utils.Maybe` had 21 reachable-but-untested branches.** A per-module `coverage run --source=maybe_utils` showed the `Maybe` API at 82%: the `Maybe(None)` collapse-to-Nothing constructor path, `Maybe.some(None)`'s `TypeError`, `map_or_else`'s re-raise when `default_fn` fails (both on Nothing and when `fn` also fails), `map`/`flat_map`/`filter` returning `Nothing` when the callback returns `None` or raises, `flat_map` on Nothing, the `and_then` alias, `__repr__` for both variants, and `__eq__` against a non-`Maybe` and against a mismatched variant. All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
