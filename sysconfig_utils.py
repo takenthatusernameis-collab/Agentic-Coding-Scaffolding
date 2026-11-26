@@ -132,7 +132,7 @@ def get_paths(
 
     Raises:
         TypeError: If any argument has an unsupported type.
-        KeyError: If *scheme* is not a known installation scheme.
+        KeyError: If *scheme* is not a known installation scheme.  # audit-ignore: KeyError
     """
     scheme_name = _require_optional_text(scheme, "scheme")
     overrides = _require_optional_mapping(vars, "vars")

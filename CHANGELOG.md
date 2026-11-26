@@ -1,3 +1,9 @@
+## Unreleased — `sysconfig_utils` triages `get_paths` KeyError delegation with `# audit-ignore:`
+
+- **Tooling — `sysconfig_utils.get_paths` documents `KeyError` genuinely raised by the delegated standard-library call.** `get_paths` documents `KeyError: If *scheme* is not a known installation scheme.`, propagated from the delegated `sysconfig.get_paths()` call (`sysconfig.get_paths("nonexistent_scheme")` raises `KeyError`, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: KeyError` comment so the reviewed delegation is not re-reported. The `sysconfig_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 2 to 1.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_sysconfig_utils` — 33 OK; `python tools/audit_contracts.py sysconfig_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 1 low-signal / 0 genuine defects (was 2); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. ruff/mypy not installed in this checkout (comment-only change). No `.github/workflows/**` changes.
+
 ## Unreleased — `pattern_utils` triages `detach` ValueError delegation with `# audit-ignore:`
 
 - **Tooling — `pattern_utils.detach` documents `ValueError` genuinely raised by the delegated standard-library call.** `detach` documents `ValueError: If ``observer`` is not attached.`, propagated from the delegated `list.remove()` call (`list.remove(x)` raises `ValueError: list.remove(x): x not in list` when `x` is not present, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `pattern_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 4 to 3.
