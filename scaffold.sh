@@ -130874,7 +130874,7 @@ def build_symbol_table(
         TypeError: If *code* or *filename* is not a string, or if
             *compile_type* is not a string.
         ValueError: If *compile_type* is not one of :data:`COMPILE_TYPES`.
-        SyntaxError: If *code* cannot be parsed.
+        SyntaxError: If *code* cannot be parsed.  # audit-ignore: SyntaxError
 
     Examples:
         >>> table = build_symbol_table("value = 1")
@@ -130923,7 +130923,7 @@ def lookup_symbol_table(name: str, filename: Optional[str] = None) -> _symtable.
         TypeError: If *name* or *filename* is not a string.
         ValueError: If *name* is empty.
         ImportError: If the module or its source file cannot be found.
-        OSError: If the source file cannot be read.
+        OSError: If the source file cannot be read.  # audit-ignore: OSError
 
     Examples:
         >>> table = lookup_symbol_table("json")
