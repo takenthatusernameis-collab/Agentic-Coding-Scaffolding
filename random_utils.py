@@ -213,7 +213,8 @@ def random_bool(probability: float = 0.5, seed: Optional[int] = None) -> bool:
 
     Raises:
         TypeError: If ``probability`` is not a number.
-        ValueError: If ``probability`` is outside [0, 1].
+        ValueError: If ``probability`` is not finite (NaN or ±inf) or is
+            outside [0, 1].
 
     Examples:
         >>> isinstance(random_bool(seed=1), bool)
@@ -225,6 +226,8 @@ def random_bool(probability: float = 0.5, seed: Optional[int] = None) -> bool:
     """
     if isinstance(probability, bool) or not isinstance(probability, (int, float)):
         raise TypeError("probability must be a number")
+    if not math.isfinite(probability):
+        raise ValueError(f"probability must be finite, got {probability!r}")
     if probability < 0 or probability > 1:
         raise ValueError("probability must be between 0 and 1")
     return _seed_rng(seed).random() < probability

@@ -1,3 +1,10 @@
+## Unreleased — fix `random_utils.random_bool` accepting non-finite `probability` (NaN/Infinity)
+
+- **Defect — `random_utils.random_bool` accepted `float("nan")` for `probability`.** The guard `probability < 0 or probability > 1` is False for NaN (all comparisons with NaN are False), so NaN slipped through and `_seed_rng(seed).random() < nan` is always False — the function silently returned `False` for every call instead of rejecting the invalid input. `±inf` were already rejected by the range check. This diverged from sibling functions `random_uniform`/`random_gaussian`, which already guard `math.isfinite`.
+- **Fix:** added `if not math.isfinite(probability): raise ValueError(f"probability must be finite, got {probability!r}")` before the range check, matching the `random_gaussian` wording and the project-wide accepts-invalid-input convention; updated the `Raises:` docstring accordingly.
+- **Defect class:** accepts-invalid-input (non-finite float); no API change beyond rejecting previously-accepted invalid input.
+- Validation: `python -m unittest tests.test_random_utils` — 59 OK (added `test_non_finite_probability_raises`); `python -m ruff check random_utils.py tests/test_random_utils.py` clean; `python -m mypy` success; `make refresh-scaffold` in sync; full suite green. No `.github/workflows/**` changes.
+
 ## Unreleased — fix `async_utils` accepting non-finite `delay` (NaN/Infinity)
 
 - **Defect — `async_utils._validate_retry_args` (used by `retry_async`) accepted `float("nan")` and `float("inf")` for `delay`.** The validator checked `delay < 0` but not `math.isfinite(delay)`; NaN compares False against everything and `inf` is positive, so both slipped through. `asyncio.sleep(nan)` is undefined and `asyncio.sleep(inf)` hangs forever. This diverged from `retry_utils.retry`, which the docstring explicitly says it mirrors and which already guards `math.isfinite`.

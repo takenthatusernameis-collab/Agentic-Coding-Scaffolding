@@ -224,6 +224,11 @@ class TestRandomBool(unittest.TestCase):
         with self.assertRaises(ValueError):
             random_bool(1.1)
 
+    def test_non_finite_probability_raises(self) -> None:
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                random_bool(bad)
+
     def test_non_numeric_raises(self) -> None:
         with self.assertRaises(TypeError):
             random_bool("0.5")  # type: ignore[arg-type]
