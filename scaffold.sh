@@ -109952,7 +109952,7 @@ def add_option(
         TypeError: If an argument has the wrong type.
         ValueError: If an argument has an unsupported value.
         OptionError: If the standard library rejects the combination of
-            arguments.
+            arguments. # audit-ignore: OptionError
     """
     target = _require_container(container)
     option_strings = _validate_flags(flags)
