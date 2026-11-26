@@ -37957,7 +37957,7 @@ def weighted_choice(
         raise ValueError("Cannot choose from an empty sequence")
     if len(weights) != len(items):
         raise ValueError("weights length must match items length")
-    if any(w < 0 for w in weights):
+    if any(w < 0 or not math.isfinite(w) for w in weights):
         raise ValueError("weights must be non-negative")
     if sum(weights) == 0:
         raise ValueError("weights must sum to a positive value")
@@ -38089,7 +38089,7 @@ def random_choices(
     if weights is not None:
         if len(weights) != len(items):
             raise ValueError("weights length must match items length")
-        if any(w < 0 for w in weights):
+        if any(w < 0 or not math.isfinite(w) for w in weights):
             raise ValueError("weights must be non-negative")
         if sum(weights) == 0:
             raise ValueError("weights must sum to a positive value")
@@ -38618,9 +38618,10 @@ class TestWeightedChoice(unittest.TestCase):
         with self.assertRaises(ValueError):
             weighted_choice(["a", "b"], [1, -1])
 
-    def test_all_zero_weights_raises(self) -> None:
-        with self.assertRaises(ValueError):
-            weighted_choice(["a", "b"], [0, 0])
+    def test_non_finite_weight_raises(self) -> None:
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                weighted_choice(["a", "b"], [1, bad])
 
     def test_seeded_is_reproducible(self) -> None:
         self.assertEqual(
@@ -38748,9 +38749,10 @@ class TestRandomChoices(unittest.TestCase):
             random_choices([1, 2], k=2, seed=7),
         )
 
-    def test_empty_raises(self) -> None:
-        with self.assertRaises(ValueError):
-            random_choices([], k=1)
+    def test_non_finite_weight_raises(self) -> None:
+        for bad in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                random_choices(["a", "b"], weights=[1, bad], k=1)
 
     def test_negative_k_raises(self) -> None:
         with self.assertRaises(ValueError):

@@ -139,7 +139,7 @@ def weighted_choice(
         raise ValueError("Cannot choose from an empty sequence")
     if len(weights) != len(items):
         raise ValueError("weights length must match items length")
-    if any(w < 0 for w in weights):
+    if any(w < 0 or not math.isfinite(w) for w in weights):
         raise ValueError("weights must be non-negative")
     if sum(weights) == 0:
         raise ValueError("weights must sum to a positive value")
@@ -271,7 +271,7 @@ def random_choices(
     if weights is not None:
         if len(weights) != len(items):
             raise ValueError("weights length must match items length")
-        if any(w < 0 for w in weights):
+        if any(w < 0 or not math.isfinite(w) for w in weights):
             raise ValueError("weights must be non-negative")
         if sum(weights) == 0:
             raise ValueError("weights must sum to a positive value")
