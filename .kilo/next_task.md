@@ -1,6 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-26): Fixed a genuine accepts-invalid-input defect — `async_utils._validate_retry_args` accepted `float("nan")`/`float("inf")` for `delay` (only `delay < 0` was checked), diverging from `retry_utils.retry` which it claims to mirror. Added `math.isfinite` guard; added `test_rejects_nan_delay`/`test_rejects_infinite_delay`. Full battery green, checkpoint advanced to `0c7ec1c2`. No `.github/workflows/**` changes.
+Session (2026-11-26): Fixed a genuine accepts-invalid-input defect — `number_utils.is_close` accepted `float("nan")`/`float("inf")`/`float("-inf")` for `rel_tol`/`abs_tol` (only `< 0` was checked). Added `math.isfinite` guards; added `test_nan_tolerances_raise`/`test_infinite_tolerances_raise`. Full battery green, checkpoint advanced to `db100fe29c841dff2dc690e2a2fa810cd1f48c9a`. No `.github/workflows/**` changes.
 
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1; if rc=2 run `python tools/verify_state_delta.py --full` once.

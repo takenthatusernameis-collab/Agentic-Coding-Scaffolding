@@ -557,15 +557,15 @@ def is_close(
     Args:
         a: The first number to compare.
         b: The second number to compare.
-        rel_tol: The relative tolerance, must be non-negative.
-        abs_tol: The minimum absolute tolerance, must be non-negative.
+        rel_tol: The relative tolerance, must be non-negative and finite.
+        abs_tol: The minimum absolute tolerance, must be non-negative and finite.
 
     Returns:
         True if *a* and *b* are within the tolerances of each other.
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If *rel_tol* or *abs_tol* is negative.
+        ValueError: If *rel_tol* or *abs_tol* is negative or non-finite (NaN or ±inf).
 
     Examples:
         >>> is_close(1.0, 1.0000000001)
@@ -579,6 +579,10 @@ def is_close(
     _require_number(b, "b")
     _require_number(rel_tol, "rel_tol")
     _require_number(abs_tol, "abs_tol")
+    if not math.isfinite(rel_tol):
+        raise ValueError(f"rel_tol must be finite, got {rel_tol!r}")
+    if not math.isfinite(abs_tol):
+        raise ValueError(f"abs_tol must be finite, got {abs_tol!r}")
     if rel_tol < 0:
         raise ValueError("rel_tol must be non-negative")
     if abs_tol < 0:
