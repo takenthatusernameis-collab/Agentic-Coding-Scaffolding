@@ -1,3 +1,9 @@
+## Unreleased — `pattern_utils` triages `detach` ValueError delegation with `# audit-ignore:`
+
+- **Tooling — `pattern_utils.detach` documents `ValueError` genuinely raised by the delegated standard-library call.** `detach` documents `ValueError: If ``observer`` is not attached.`, propagated from the delegated `list.remove()` call (`list.remove(x)` raises `ValueError: list.remove(x): x not in list` when `x` is not present, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `pattern_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 4 to 3.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_pattern_utils` — 18 OK; `python -m ruff check pattern_utils.py` — clean; `python -m mypy pattern_utils.py` — success; `python tools/audit_contracts.py pattern_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 3 low-signal / 0 genuine defects (was 4); `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `version_utils` triages `sort_versions` ValueError delegation with `# audit-ignore:`
 
 - **Tooling — `version_utils.sort_versions` documents an exception genuinely raised by the delegated standard-library call.** `sort_versions` documents `ValueError: If any version string is invalid.`, propagated from the delegated `parse_version` call (an invalid version string raises `ValueError`, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `version_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 7 to 6.

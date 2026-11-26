@@ -149,7 +149,7 @@ class Observable:
         """Unregister ``observer``.
 
         Raises:
-            ValueError: If ``observer`` is not attached.
+            ValueError: If ``observer`` is not attached.  # audit-ignore: ValueError
         """
         self._observers.remove(observer)
 
