@@ -30,15 +30,21 @@ Bytecode = _dis.Bytecode
 
 
 def findlinestarts(code: Any) -> Iterable[Tuple[int, int]]:
-    """Wrapper for dis.findlinestarts with py3.12/3.13 compatibility."""
-    # In 3.12 it takes code.co_code; in general pass through to stdlib
+    """Wrapper for dis.findlinestarts with py3.12/3.13 compatibility.
+
+    ``dis.findlinestarts`` is a generator function, so calling it never raises;
+    the ``AttributeError`` for a non-code argument surfaces only while the
+    generator is iterated. The result is therefore materialized inside the
+    ``try`` block so the ``co_code`` fallback below is actually reachable and
+    invalid input yields an empty list instead of leaking that error.
+    """
     try:
-        return _dis.findlinestarts(code)
+        return list(_dis.findlinestarts(code))
     except Exception:
         # Fallback
         if hasattr(code, "co_code"):
             try:
-                return _dis.findlinestarts(code.co_code)
+                return list(_dis.findlinestarts(code.co_code))
             except Exception:
                 return []
         return []

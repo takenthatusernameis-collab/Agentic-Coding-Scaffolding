@@ -58,6 +58,42 @@ class TestDisUtils(unittest.TestCase):
         linestarts = list(findlinestarts(code))
         self.assertIsInstance(linestarts, list)
 
+    def test_findlinestarts_returns_materialized_list(self):
+        # ``dis.findlinestarts`` is a generator, so the wrapper materializes it
+        # inside the try block; the result is a concrete list of (offset, line)
+        # tuples rather than a lazy generator.
+        starts = findlinestarts(simple_func.__code__)
+        self.assertIsInstance(starts, list)
+        self.assertTrue(all(isinstance(item, tuple) and len(item) == 2 for item in starts))
+
+    def test_findlinestarts_non_code_returns_empty(self):
+        # A non-code argument without ``co_code`` makes the delegated generator
+        # raise during iteration; the fallback catches it and returns [].
+        self.assertEqual(findlinestarts(42), [])
+        self.assertEqual(findlinestarts("not code"), [])
+        self.assertEqual(findlinestarts(None), [])
+
+    def test_findlinestarts_object_with_co_code_returns_empty(self):
+        # An object exposing ``co_code`` (bytes) still lacks ``co_lines``, so the
+        # ``co_code`` fallback also fails and the wrapper returns [].
+        class Fake:
+            co_code = simple_func.__code__.co_code
+
+        self.assertEqual(findlinestarts(Fake()), [])
+
+    def test_findlabels_non_code_returns_empty(self):
+        # ``dis.findlabels`` is eager, so a non-code argument raises inside the
+        # try and the fallback returns [].
+        self.assertEqual(findlabels(42), [])
+        self.assertEqual(findlabels(object()), [])
+        self.assertEqual(findlabels("not code"), [])
+
+    def test_findlabels_object_with_co_code_returns_empty(self):
+        class Fake:
+            co_code = simple_func.__code__.co_code
+
+        self.assertEqual(findlabels(Fake()), [])
+
     def test_bytecode_class(self):
         bc = Bytecode(simple_func)
         self.assertTrue(list(bc))

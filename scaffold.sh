@@ -75308,6 +75308,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fix unreachable `dis_utils.findlinestarts` compatibility fallback; close coverage gap
+
+- **Defect — `dis_utils.findlinestarts` documented a `co_code` compatibility fallback that could never run.** `dis.findlinestarts` is a generator function, so the delegated call inside the `try` only *creates* a generator and never raises; the `AttributeError` for a non-code argument surfaces during iteration, outside the `try`. The `except Exception` fallback (and its `co_code` retry) was therefore unreachable dead code, and invalid input leaked `AttributeError` instead of returning `[]` as the sibling `findlabels` does. The module's `findlinestarts` coverage sat at 56% with the entire fallback (lines 37–44) unexercised.
+- **Fix:** materialize the delegated generator inside the `try` (`return list(_dis.findlinestarts(code))`, and likewise in the `co_code` retry) so the fallback is reachable and non-code input yields `[]`. The public signature is unchanged (`Iterable[Tuple[int, int]]`; a `list` satisfies it) and the normal code-object path returns the same `(offset, line)` tuples. `findlabels` was already eager and is unchanged.
+- **Tests:** added `test_findlinestarts_returns_materialized_list`, `test_findlinestarts_non_code_returns_empty`, `test_findlinestarts_object_with_co_code_returns_empty`, `test_findlabels_non_code_returns_empty`, and `test_findlabels_object_with_co_code_returns_empty`; `dis_utils` coverage rises 56% → 94%.
+- **Defect class:** unreachable-fallback / dead-code correctness fix; no change to the documented happy path.
+- Validation: `python -m unittest tests.test_dis_utils` — 14 OK; `python -m ruff check dis_utils.py tests/test_dis_utils.py` clean; `python -m mypy dis_utils.py tests/test_dis_utils.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — remove dead private helpers surfaced by duplicate-definition audit
 
 - **Audit — dead-code / duplicate-definition scan across wrapper modules.** A top-level-definition AST scan of every wrapper module (`*_utils.py` plus `stats.py`, `strings.py`, `shapes.py`, `prompt_utils.py`, `utils.py`, `calculator.py`, `config_schema.py`) found zero within-module duplicate function/class definitions (ignoring `@overload` stubs) and confirmed every private helper is referenced repo-wide, except five that appear only at their own definition line.
@@ -86617,15 +86625,21 @@ Bytecode = _dis.Bytecode
 
 
 def findlinestarts(code: Any) -> Iterable[Tuple[int, int]]:
-    """Wrapper for dis.findlinestarts with py3.12/3.13 compatibility."""
-    # In 3.12 it takes code.co_code; in general pass through to stdlib
+    """Wrapper for dis.findlinestarts with py3.12/3.13 compatibility.
+
+    ``dis.findlinestarts`` is a generator function, so calling it never raises;
+    the ``AttributeError`` for a non-code argument surfaces only while the
+    generator is iterated. The result is therefore materialized inside the
+    ``try`` block so the ``co_code`` fallback below is actually reachable and
+    invalid input yields an empty list instead of leaking that error.
+    """
     try:
-        return _dis.findlinestarts(code)
+        return list(_dis.findlinestarts(code))
     except Exception:
         # Fallback
         if hasattr(code, "co_code"):
             try:
-                return _dis.findlinestarts(code.co_code)
+                return list(_dis.findlinestarts(code.co_code))
             except Exception:
                 return []
         return []
@@ -86705,6 +86719,42 @@ class TestDisUtils(unittest.TestCase):
         self.assertIsInstance(labels, list)
         linestarts = list(findlinestarts(code))
         self.assertIsInstance(linestarts, list)
+
+    def test_findlinestarts_returns_materialized_list(self):
+        # ``dis.findlinestarts`` is a generator, so the wrapper materializes it
+        # inside the try block; the result is a concrete list of (offset, line)
+        # tuples rather than a lazy generator.
+        starts = findlinestarts(simple_func.__code__)
+        self.assertIsInstance(starts, list)
+        self.assertTrue(all(isinstance(item, tuple) and len(item) == 2 for item in starts))
+
+    def test_findlinestarts_non_code_returns_empty(self):
+        # A non-code argument without ``co_code`` makes the delegated generator
+        # raise during iteration; the fallback catches it and returns [].
+        self.assertEqual(findlinestarts(42), [])
+        self.assertEqual(findlinestarts("not code"), [])
+        self.assertEqual(findlinestarts(None), [])
+
+    def test_findlinestarts_object_with_co_code_returns_empty(self):
+        # An object exposing ``co_code`` (bytes) still lacks ``co_lines``, so the
+        # ``co_code`` fallback also fails and the wrapper returns [].
+        class Fake:
+            co_code = simple_func.__code__.co_code
+
+        self.assertEqual(findlinestarts(Fake()), [])
+
+    def test_findlabels_non_code_returns_empty(self):
+        # ``dis.findlabels`` is eager, so a non-code argument raises inside the
+        # try and the fallback returns [].
+        self.assertEqual(findlabels(42), [])
+        self.assertEqual(findlabels(object()), [])
+        self.assertEqual(findlabels("not code"), [])
+
+    def test_findlabels_object_with_co_code_returns_empty(self):
+        class Fake:
+            co_code = simple_func.__code__.co_code
+
+        self.assertEqual(findlabels(Fake()), [])
 
     def test_bytecode_class(self):
         bc = Bytecode(simple_func)
