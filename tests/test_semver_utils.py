@@ -215,6 +215,35 @@ class TestEdgeCases(unittest.TestCase):
                 fn(True)  # type: ignore[arg-type]
 
 
+class TestSemverCoverageGaps(unittest.TestCase):
+    def test_repr(self):
+        self.assertEqual(repr(SemanticVersion(1, 2, 3)), "SemanticVersion(1, 2, 3)")
+
+    def test_comparison_returns_notimplemented_for_non_semver(self):
+        v = SemanticVersion(1, 0, 0)
+        self.assertIs(v.__eq__(1), NotImplemented)
+        self.assertIs(v.__lt__(1), NotImplemented)
+        self.assertIs(v.__le__(1), NotImplemented)
+        self.assertIs(v.__gt__(1), NotImplemented)
+        self.assertIs(v.__ge__(1), NotImplemented)
+
+    def test_compare_prerelease_numeric_less_and_greater(self):
+        self.assertEqual(compare_semver("1.0.0-1", "1.0.0-2"), -1)
+        self.assertEqual(compare_semver("1.0.0-2", "1.0.0-1"), 1)
+
+    def test_compare_prerelease_numeric_vs_alpha(self):
+        self.assertEqual(compare_semver("1.0.0-1", "1.0.0-alpha"), -1)
+        self.assertEqual(compare_semver("1.0.0-alpha", "1.0.0-1"), 1)
+
+    def test_compare_prerelease_alpha_less_and_greater(self):
+        self.assertEqual(compare_semver("1.0.0-alpha", "1.0.0-beta"), -1)
+        self.assertEqual(compare_semver("1.0.0-beta", "1.0.0-alpha"), 1)
+
+    def test_compare_prerelease_length_difference(self):
+        self.assertEqual(compare_semver("1.0.0-1", "1.0.0-1.0"), -1)
+        self.assertEqual(compare_semver("1.0.0-1.0", "1.0.0-1"), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
 
