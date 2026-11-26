@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `symtable_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
+
+- **Tooling — two `symtable_utils` functions document exceptions genuinely raised by delegated standard-library calls.** `build_symbol_table` documents `SyntaxError` propagated from the delegated `symtable.symtable` call (invalid Python source raises `SyntaxError`, empirically confirmed); `lookup_symbol_table` documents `OSError` propagated from the delegated `Path.read_text` call (an unreadable/missing source file raises `OSError`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `symtable_utils` audit section drops from 2 low-signal candidates to 0; the repository scan drops from 11 to 9.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_symtable_utils` — 53 OK; `python -m ruff check symtable_utils.py` — clean; `python -m mypy symtable_utils.py` — success; `python tools/audit_contracts.py symtable_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 9 low-signal / 0 genuine defects (was 11); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint → HEAD. No `.github/workflows/**` changes.
+
 ## Unreleased — `uuid_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
 
 - **Tooling — `uuid_utils.parse_uuid` documents an exception genuinely raised by the delegated standard-library call.** `parse_uuid` documents `ValueError: If the string is not a valid UUID.`, propagated from the delegated `uuid.UUID` call (raises `ValueError: badly formed hexadecimal UUID string` for an invalid UUID string, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `uuid_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 12 to 11.
@@ -94913,7 +94919,8 @@ def format_internaldate(date_time: Any) -> str:
 
     Raises:
         TypeError: If *date_time* has an unsupported type.
-        ValueError: If *date_time* is a naive :class:`datetime.datetime`.  # audit-ignore: ValueError
+        ValueError: If *date_time* is a naive
+            :class:`datetime.datetime`.  # audit-ignore: ValueError
     """
     if isinstance(date_time, (int, float)) and not isinstance(date_time, bool):
         return _imaplib.Time2Internaldate(float(date_time))
