@@ -94310,6 +94310,10 @@ class TestHeapreplace(unittest.TestCase):
         with self.assertRaises(IndexError):
             heapreplace(items, 1)
 
+    def test_heapreplace_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heapreplace("not a list", 1)  # type: ignore[arg-type]
+
 
 class TestHeappushpop(unittest.TestCase):
     def test_heappushpop(self) -> None:
@@ -121594,6 +121598,16 @@ class TestSelect(unittest.TestCase):
             os.close(read_fd)
             os.close(write_fd)
 
+    def test_select_timeout_none(self):
+        read_fd, write_fd = os.pipe()
+        try:
+            readable, writable, exceptional = select_utils.select([read_fd], [write_fd], [], None)
+            self.assertTrue(all(isinstance(fd, int) for fd in readable + writable + exceptional))
+            self.assertIn(write_fd, writable)
+        finally:
+            os.close(read_fd)
+            os.close(write_fd)
+
     def test_select_invalid_rlist(self):
         with self.assertRaises(TypeError):
             select_utils.select("not-a-list", [], [], 0)  # type: ignore[arg-type]
@@ -128376,6 +128390,16 @@ class TestConnectionHelpers(unittest.TestCase):
         self.assertEqual(socket_utils.get_peer_name(client)[:2], (host, port))
         self.assertEqual(socket_utils.get_peer_name(accepted)[:2], address[:2])
 
+    def test_connect_socket_applies_timeout(self):
+        server = self._server()
+        host, port = socket_utils.get_socket_name(server)[:2]
+        client = self._track(socket_utils.create_tcp_socket())
+        socket_utils.connect_socket(client, (host, port), timeout=1)
+        accepted, _ = socket_utils.accept_connection(server)
+        self._track(accepted)
+        self.assertIsInstance(client.gettimeout(), float)
+        self.assertGreater(client.gettimeout(), 0)
+
     def test_connect_socket_requires_socket(self):
         with self.assertRaises(TypeError):
             socket_utils.connect_socket("not a socket", ("127.0.0.1", 80))  # type: ignore[arg-type]
@@ -128477,6 +128501,18 @@ class TestDataTransfer(unittest.TestCase):
     def test_receive_from_requires_socket(self):
         with self.assertRaises(TypeError):
             socket_utils.receive_from(None)  # type: ignore[arg-type]
+
+    def test_receive_from_requires_positive_bufsize(self):
+        left = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        right = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            left.bind(("127.0.0.1", 0))
+            right.bind(("127.0.0.1", 0))
+            with self.assertRaises(ValueError):
+                socket_utils.receive_from(right, bufsize=0)
+        finally:
+            left.close()
+            right.close()
 
 
 class TestSocketOptions(unittest.TestCase):
@@ -164312,6 +164348,7 @@ cat > "$OUTPUT_DIR/tests/test_sre_constants_utils.py" <<'TEST_SRE_CONSTANTS_UTIL
 
 from __future__ import annotations
 
+import types
 import unittest
 
 import sre_constants_utils
@@ -164473,6 +164510,70 @@ class TestBoolRejection(unittest.TestCase):
     def test_lookup_opcode_rejects_bool(self):
         with self.assertRaises(TypeError):
             sre_constants_utils.lookup_opcode(True)  # type: ignore[arg-type]
+
+
+class TestFallbackBranches(unittest.TestCase):
+    """Pin defensive branches that the standard library build may not hit."""
+
+    def test_get_opcodes_and_names_fallback_without_opcodes(self) -> None:
+        """Without an ``OPCODES`` attribute the helpers degrade to empty."""
+        original = sre_constants_utils._sre_constants
+        try:
+            sre_constants_utils._sre_constants = types.SimpleNamespace()  # type: ignore[assignment]
+            assert sre_constants_utils.get_opcodes() == []
+            assert sre_constants_utils.opcodenames() == {}
+        finally:
+            sre_constants_utils._sre_constants = original
+
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_lookup_opcode_unknown_raises_value_error(self) -> None:
+        """An integer outside the known opcodes raises ``ValueError``."""
+        names = sre_constants_utils.opcodenames()
+        unknown = (max(names) + 1000) if names else 0
+        with self.assertRaises(ValueError):
+            sre_constants_utils.lookup_opcode(unknown)
+
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_op_code_unknown_name_raises_value_error(self) -> None:
+        """An unknown opcode name raises ``ValueError``."""
+        with self.assertRaises(ValueError):
+            sre_constants_utils.op_code("__not_a_real_opcode_name__")
+
+    @unittest.skipIf(not sre_constants_utils.is_available(), "sre_constants not available")
+    def test_get_all_returns_public_constants(self) -> None:
+        """``get_all`` returns the public constants of the module."""
+        result = sre_constants_utils.get_all()
+        assert isinstance(result, dict)
+        assert "error" in result
+        assert all(not key.startswith("_") for key in result)
+
+    def test_assert_valid_flags_forwards_when_available(self) -> None:
+        """``assert_valid_flags`` forwards to the stdlib helper when present."""
+        calls: list = []
+        fake = types.SimpleNamespace(
+            assert_valid_flags=lambda flags, module: calls.append((flags, module)),
+        )
+        original = sre_constants_utils._sre_constants
+        try:
+            sre_constants_utils._sre_constants = fake  # type: ignore[assignment]
+            sentinel = object()
+            sre_constants_utils.assert_valid_flags(7, sentinel)
+            assert calls == [(7, sentinel)]
+        finally:
+            sre_constants_utils._sre_constants = original
+
+    def test_error_codes_returns_copy_of_mapping(self) -> None:
+        """``error_codes`` returns a copy of the stdlib mapping."""
+        fake = types.SimpleNamespace(error_codes={"a": 1})
+        original = sre_constants_utils._sre_constants
+        try:
+            sre_constants_utils._sre_constants = fake  # type: ignore[assignment]
+            result = sre_constants_utils.error_codes()
+            assert result == {"a": 1}
+            result["b"] = 2
+            assert "b" not in fake.error_codes
+        finally:
+            sre_constants_utils._sre_constants = original
 
 
 if __name__ == "__main__":

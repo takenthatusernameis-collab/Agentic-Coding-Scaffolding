@@ -29,6 +29,16 @@ class TestSelect(unittest.TestCase):
             os.close(read_fd)
             os.close(write_fd)
 
+    def test_select_timeout_none(self):
+        read_fd, write_fd = os.pipe()
+        try:
+            readable, writable, exceptional = select_utils.select([read_fd], [write_fd], [], None)
+            self.assertTrue(all(isinstance(fd, int) for fd in readable + writable + exceptional))
+            self.assertIn(write_fd, writable)
+        finally:
+            os.close(read_fd)
+            os.close(write_fd)
+
     def test_select_invalid_rlist(self):
         with self.assertRaises(TypeError):
             select_utils.select("not-a-list", [], [], 0)  # type: ignore[arg-type]

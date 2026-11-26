@@ -133,6 +133,16 @@ class TestConnectionHelpers(unittest.TestCase):
         self.assertEqual(socket_utils.get_peer_name(client)[:2], (host, port))
         self.assertEqual(socket_utils.get_peer_name(accepted)[:2], address[:2])
 
+    def test_connect_socket_applies_timeout(self):
+        server = self._server()
+        host, port = socket_utils.get_socket_name(server)[:2]
+        client = self._track(socket_utils.create_tcp_socket())
+        socket_utils.connect_socket(client, (host, port), timeout=1)
+        accepted, _ = socket_utils.accept_connection(server)
+        self._track(accepted)
+        self.assertIsInstance(client.gettimeout(), float)
+        self.assertGreater(client.gettimeout(), 0)
+
     def test_connect_socket_requires_socket(self):
         with self.assertRaises(TypeError):
             socket_utils.connect_socket("not a socket", ("127.0.0.1", 80))  # type: ignore[arg-type]
@@ -234,6 +244,18 @@ class TestDataTransfer(unittest.TestCase):
     def test_receive_from_requires_socket(self):
         with self.assertRaises(TypeError):
             socket_utils.receive_from(None)  # type: ignore[arg-type]
+
+    def test_receive_from_requires_positive_bufsize(self):
+        left = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        right = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            left.bind(("127.0.0.1", 0))
+            right.bind(("127.0.0.1", 0))
+            with self.assertRaises(ValueError):
+                socket_utils.receive_from(right, bufsize=0)
+        finally:
+            left.close()
+            right.close()
 
 
 class TestSocketOptions(unittest.TestCase):

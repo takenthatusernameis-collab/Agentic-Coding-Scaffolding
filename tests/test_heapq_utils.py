@@ -74,6 +74,10 @@ class TestHeapreplace(unittest.TestCase):
         with self.assertRaises(IndexError):
             heapreplace(items, 1)
 
+    def test_heapreplace_type_error(self) -> None:
+        with self.assertRaises(TypeError):
+            heapreplace("not a list", 1)  # type: ignore[arg-type]
+
 
 class TestHeappushpop(unittest.TestCase):
     def test_heappushpop(self) -> None:
