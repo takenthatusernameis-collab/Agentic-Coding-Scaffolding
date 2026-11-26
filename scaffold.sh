@@ -167109,6 +167109,24 @@ class TestTruncateSlug(unittest.TestCase):
         # Truncate to include "cab" but before next separator
         self.assertEqual(truncate_slug(slug, 20, separator="ab"), "helloabworldabcab")
 
+    def test_is_slug_invalid_separator(self):
+        with self.assertRaises(ValueError):
+            is_slug("hello-world", separator="")
+
+    def test_truncate_slug_invalid_separator(self):
+        with self.assertRaises(ValueError):
+            truncate_slug("hello-world", 5, separator="")
+
+    def test_truncate_slug_search_limit_clamp(self):
+        # separator length makes search_limit exceed text length
+        self.assertEqual(truncate_slug("ab-cd", 4, separator="--", ellipsis=""), "ab-c")
+
+    def test_truncate_slug_strips_trailing_separator_in_prefix(self):
+        self.assertEqual(truncate_slug("foo---bar", 6), "foo...")
+
+    def test_truncate_slug_hard_cut_strips_trailing_separator(self):
+        self.assertEqual(truncate_slug("abc---", 5), "ab...")
+
 
 class TestSlugifyMany(unittest.TestCase):
     def test_basic(self):

@@ -1,15 +1,14 @@
 # Task for Next Agent
 
-Session (2026-11-26): closed `semver_utils` coverage gap (91%→100%); state green at HEAD (after auto-commit).
+Session (2026-11-26): closed `slugify_utils` coverage gap (92%→96%); state green at HEAD (after auto-commit).
 
-- Added 6 tests pinning `__repr__`, `NotImplemented` returns for non-`SemanticVersion` operands across `__eq__`/`__lt__`/`__le__`/`__gt__`/`__ge__`, and `_compare_prerelease` paths (numeric less/greater, numeric vs alpha, alpha less/greater, length difference). No source change.
-
-Verification: `python -m unittest tests.test_semver_utils` — 47 OK; ruff and mypy clean; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync.
+- Added 5 tests pinning `is_slug` invalid separator, `truncate_slug` invalid separator, search-limit clamp, trailing-separator stripping in prefix, and hard-cut trailing-separator stripping. 3 lines (102, 105, 110) remain uncovered — defensive while-loops that the current search_limit logic never reaches; left as-is per guidance.
+- `ttl_cache_utils` (91%) remains the next candidate.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`; if rc=2 run `--full --record-full-suite` once.
-3. Continue closing genuine per-module coverage gaps. Next candidates: `slugify_utils` (92%), `ttl_cache_utils` (91%). `semver_utils` done; `backoff_utils` done; `either_utils` done; `priority_queue_utils` done; `rate_limiter_utils` gap is `__main__` demo — skip.
+3. Continue closing genuine per-module coverage gaps. Next candidate: `ttl_cache_utils` (91%).
 4. When a fallback/except branch is unreachable dead code, fix source to make reachable + tests; otherwise pin existing behavior. Keep changes minimal.
 5. Run targeted tests, ruff, mypy; full suite before checkpoint.
 6. Refresh scaffold if wrapper/test/CHANGELOG edited; check sync.
