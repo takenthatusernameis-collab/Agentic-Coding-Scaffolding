@@ -1,5 +1,6 @@
 """Tests for config_schema module."""
 
+import re
 import typing
 import unittest
 
@@ -369,6 +370,72 @@ class TestExportedTypeVars(unittest.TestCase):
 
     def test_validator_is_a_callable_alias(self):
         self.assertEqual(config_schema.Validator, typing.Callable[[typing.Any], typing.Any])
+
+
+class TestEdgeCaseBranches(unittest.TestCase):
+    def test_float_validator_rejects_unparseable_string(self):
+        with self.assertRaises(ValueError):
+            float_validator("not-a-float")
+
+    def test_bool_validator_rejects_non_coercible_type(self):
+        with self.assertRaises(TypeError):
+            bool_validator(None)
+        with self.assertRaises(TypeError):
+            bool_validator([])
+
+    def test_hostname_validator_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            hostname_validator("")
+
+    def test_hostname_validator_rejects_too_long(self):
+        with self.assertRaises(ValueError):
+            hostname_validator("a" * 254)
+
+    def test_range_validator_float_bounds_accepts_numeric_string(self):
+        validate = range_validator(1.5, 10.5)
+        self.assertEqual(validate("5"), 5.0)
+
+    def test_range_validator_float_bounds_rejects_bad_string(self):
+        validate = range_validator(1.5, 10.5)
+        with self.assertRaises(ValueError):
+            validate("abc")
+
+    def test_range_validator_float_bounds_rejects_out_of_range(self):
+        validate = range_validator(1.5, 10.5)
+        with self.assertRaises(ValueError):
+            validate(15.0)
+
+    def test_range_validator_rejects_non_numeric_value(self):
+        validate = range_validator(1, 10)
+        with self.assertRaises(TypeError):
+            validate(None)
+
+    def test_regex_validator_rejects_invalid_pattern(self):
+        with self.assertRaises(ValueError):
+            regex_validator("[")
+
+    def test_regex_validator_accepts_compiled_pattern(self):
+        validate = regex_validator(re.compile(r"^[0-9]+$"))
+        self.assertEqual(validate("123"), "123")
+        with self.assertRaises(ValueError):
+            validate("abc")
+
+    def test_regex_validator_rejects_non_pattern(self):
+        with self.assertRaises(TypeError):
+            regex_validator(123)
+
+    def test_field_rejects_non_callable_validator(self):
+        with self.assertRaises(TypeError):
+            SchemaField("x", str, validator=123)
+
+    def test_schema_rejects_non_field_items(self):
+        with self.assertRaises(TypeError):
+            ConfigSchema(["not-a-field"])
+
+    def test_get_returns_default_on_validation_error(self):
+        schema = ConfigSchema([SchemaField("secret", str, required=True)])
+        self.assertIsNone(schema.get({}, "secret"))
+        self.assertEqual(schema.get({}, "secret", "fallback"), "fallback")
 
 
 if __name__ == "__main__":

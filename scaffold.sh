@@ -6029,6 +6029,7 @@ CONFIG_SCHEMA
 cat > "$OUTPUT_DIR/tests/test_config_schema.py" <<'TEST_CONFIG_SCHEMA'
 """Tests for config_schema module."""
 
+import re
 import typing
 import unittest
 
@@ -6398,6 +6399,72 @@ class TestExportedTypeVars(unittest.TestCase):
 
     def test_validator_is_a_callable_alias(self):
         self.assertEqual(config_schema.Validator, typing.Callable[[typing.Any], typing.Any])
+
+
+class TestEdgeCaseBranches(unittest.TestCase):
+    def test_float_validator_rejects_unparseable_string(self):
+        with self.assertRaises(ValueError):
+            float_validator("not-a-float")
+
+    def test_bool_validator_rejects_non_coercible_type(self):
+        with self.assertRaises(TypeError):
+            bool_validator(None)
+        with self.assertRaises(TypeError):
+            bool_validator([])
+
+    def test_hostname_validator_rejects_empty(self):
+        with self.assertRaises(ValueError):
+            hostname_validator("")
+
+    def test_hostname_validator_rejects_too_long(self):
+        with self.assertRaises(ValueError):
+            hostname_validator("a" * 254)
+
+    def test_range_validator_float_bounds_accepts_numeric_string(self):
+        validate = range_validator(1.5, 10.5)
+        self.assertEqual(validate("5"), 5.0)
+
+    def test_range_validator_float_bounds_rejects_bad_string(self):
+        validate = range_validator(1.5, 10.5)
+        with self.assertRaises(ValueError):
+            validate("abc")
+
+    def test_range_validator_float_bounds_rejects_out_of_range(self):
+        validate = range_validator(1.5, 10.5)
+        with self.assertRaises(ValueError):
+            validate(15.0)
+
+    def test_range_validator_rejects_non_numeric_value(self):
+        validate = range_validator(1, 10)
+        with self.assertRaises(TypeError):
+            validate(None)
+
+    def test_regex_validator_rejects_invalid_pattern(self):
+        with self.assertRaises(ValueError):
+            regex_validator("[")
+
+    def test_regex_validator_accepts_compiled_pattern(self):
+        validate = regex_validator(re.compile(r"^[0-9]+$"))
+        self.assertEqual(validate("123"), "123")
+        with self.assertRaises(ValueError):
+            validate("abc")
+
+    def test_regex_validator_rejects_non_pattern(self):
+        with self.assertRaises(TypeError):
+            regex_validator(123)
+
+    def test_field_rejects_non_callable_validator(self):
+        with self.assertRaises(TypeError):
+            SchemaField("x", str, validator=123)
+
+    def test_schema_rejects_non_field_items(self):
+        with self.assertRaises(TypeError):
+            ConfigSchema(["not-a-field"])
+
+    def test_get_returns_default_on_validation_error(self):
+        schema = ConfigSchema([SchemaField("secret", str, required=True)])
+        self.assertIsNone(schema.get({}, "secret"))
+        self.assertEqual(schema.get({}, "secret", "fallback"), "fallback")
 
 
 if __name__ == "__main__":
@@ -75343,6 +75410,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — close `config_schema` per-module coverage gap (91% → 100%)
+
+- **Coverage — `config_schema` had 18 reachable-but-untested branches.** A per-module `coverage run --source=config_schema` showed the module at 91%: `float_validator`'s string-parse `except` (lines 117-118), `bool_validator`'s final non-coercible-type `TypeError` (line 179), `hostname_validator`'s empty (line 230) and too-long (line 234) guards, `range_validator`'s non-numeric-value `TypeError` (line 313) and its non-integer-bounds string-parse/out-of-range paths (lines 322, 328, 335-336), `regex_validator`'s invalid-pattern `ValueError` (lines 400-401), compiled-pattern branch (lines 402-403) and non-pattern `TypeError` (lines 404-405), `SchemaField`'s non-callable-validator `TypeError` (line 459), `ConfigSchema`'s non-`SchemaField`-item `TypeError` (line 524), and `ConfigSchema.get`'s `ConfigValidationError` fallback (line 606). All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
+- **Tests:** added a `TestEdgeCaseBranches` class with 14 tests covering each branch (plus `import re` for the compiled-pattern case); `config_schema` coverage rises 91% → 100%.
+- **Defect class:** none — test-only coverage improvement; no product-behavior change.
+- Validation: `python -m unittest tests.test_config_schema` — 66 OK; `python -m ruff check config_schema.py tests/test_config_schema.py` clean; `python -m mypy config_schema.py tests/test_config_schema.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — close `ttl_cache_utils` per-module coverage gap (91% → 100%)
 
 - **Coverage — `ttl_cache_utils.TTLCache` had 8 reachable-but-untested branches.** A per-module `coverage run --source=ttl_cache_utils` showed the module at 91%: the `_purge_expired` removal body (lines 119-120), the `__setitem__` update-existing-key path (lines 162-165), the expired branches of `__delitem__` (lines 175-177) and `pop` (lines 185-187), `expire`'s default-to-configured-ttl (line 228) and negative-ttl `ValueError` (line 234), and `ttl_cache`'s `maxsize` `TypeError`/`ValueError` guards (lines 291, 293). All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
