@@ -75343,6 +75343,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — close `ttl_cache_utils` per-module coverage gap (91% → 100%)
+
+- **Coverage — `ttl_cache_utils.TTLCache` had 8 reachable-but-untested branches.** A per-module `coverage run --source=ttl_cache_utils` showed the module at 91%: the `_purge_expired` removal body (lines 119-120), the `__setitem__` update-existing-key path (lines 162-165), the expired branches of `__delitem__` (lines 175-177) and `pop` (lines 185-187), `expire`'s default-to-configured-ttl (line 228) and negative-ttl `ValueError` (line 234), and `ttl_cache`'s `maxsize` `TypeError`/`ValueError` guards (lines 291, 293). All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
+- **Tests:** added a deterministic `_SteppingCache` clock helper plus `test_expire_rejects_negative_ttl`, `test_expire_defaults_to_configured_ttl`, `test_len_purges_expired_entries`, `test_setitem_updates_existing_key`, `test_delitem_expired_raises_keyerror`, `test_pop_expired_returns_default`, and `test_validation_maxsize`; `ttl_cache_utils` coverage rises 91% → 100%.
+- **Defect class:** none — test-only coverage improvement; no product-behavior change.
+- Validation: `python -m unittest tests.test_ttl_cache_utils` — 28 OK; `python -m ruff check ttl_cache_utils.py tests/test_ttl_cache_utils.py` clean; `python -m mypy ttl_cache_utils.py tests/test_ttl_cache_utils.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — close `either_utils` per-module coverage gap (91% → 100%)
 
 - **Coverage — `either_utils.Either` had 10 reachable-but-untested branches.** A per-module `coverage run --source=either_utils` showed the `Either` API at 91%: `map`'s exception handler (lines 96-97), `flat_map` wrapping a non-`Either` result (line 121) and its exception handler (lines 122-123), the `and_then` alias (line 127), `__repr__` for both variants (lines 162-164), and `__eq__` against a non-`Either` returning `NotImplemented` (line 173). All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
@@ -174069,8 +174076,23 @@ cat > "$OUTPUT_DIR/tests/test_ttl_cache_utils.py" <<'TEST_TTL_CACHE_UTILS'
 
 import time
 import unittest
+from typing import Optional
 
 from ttl_cache_utils import Expired, TTLCache, ttl_cache
+
+
+class _SteppingCache(TTLCache):
+    """A TTLCache with a manually advanced clock for deterministic tests."""
+
+    def __init__(self, ttl: float, maxsize: Optional[int] = 128) -> None:
+        super().__init__(ttl=ttl, maxsize=maxsize)
+        self._clock = 0.0
+
+    def _now(self) -> float:
+        return self._clock
+
+    def advance(self, seconds: float) -> None:
+        self._clock += seconds
 
 
 class TestTTLCache(unittest.TestCase):
@@ -174252,6 +174274,48 @@ class TestTTLCache(unittest.TestCase):
         with self.assertRaises(ValueError):
             cache.expire("a", float("-inf"))
 
+    def test_expire_rejects_negative_ttl(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        with self.assertRaises(ValueError):
+            cache.expire("a", -1)
+
+    def test_expire_defaults_to_configured_ttl(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)  # entry now expired
+        cache.expire("a")  # refresh using the cache's configured ttl
+        self.assertTrue("a" in cache)
+
+    def test_len_purges_expired_entries(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)
+        self.assertEqual(len(cache), 0)
+        self.assertEqual(cache.cache_info()["expired"], 1)
+
+    def test_setitem_updates_existing_key(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache["a"] = 2  # update path for an existing key
+        self.assertEqual(cache["a"], 2)
+        self.assertEqual(len(cache), 1)
+
+    def test_delitem_expired_raises_keyerror(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)
+        with self.assertRaises(KeyError):
+            del cache["a"]
+        self.assertEqual(cache.cache_info()["expired"], 1)
+
+    def test_pop_expired_returns_default(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)
+        self.assertIsNone(cache.pop("a"))
+        self.assertEqual(cache.cache_info()["expired"], 1)
+
 
 class TestTTLCacheDecorator(unittest.TestCase):
     def test_caches_result(self) -> None:
@@ -174291,6 +174355,12 @@ class TestTTLCacheDecorator(unittest.TestCase):
             ttl_cache(ttl=float("inf"))
         with self.assertRaises(ValueError):
             ttl_cache(ttl=float("-inf"))
+
+    def test_validation_maxsize(self) -> None:
+        with self.assertRaises(TypeError):
+            ttl_cache(ttl=60, maxsize=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            ttl_cache(ttl=60, maxsize=0)
 
 
 if __name__ == "__main__":

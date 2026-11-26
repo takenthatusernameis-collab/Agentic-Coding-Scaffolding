@@ -2,8 +2,23 @@
 
 import time
 import unittest
+from typing import Optional
 
 from ttl_cache_utils import Expired, TTLCache, ttl_cache
+
+
+class _SteppingCache(TTLCache):
+    """A TTLCache with a manually advanced clock for deterministic tests."""
+
+    def __init__(self, ttl: float, maxsize: Optional[int] = 128) -> None:
+        super().__init__(ttl=ttl, maxsize=maxsize)
+        self._clock = 0.0
+
+    def _now(self) -> float:
+        return self._clock
+
+    def advance(self, seconds: float) -> None:
+        self._clock += seconds
 
 
 class TestTTLCache(unittest.TestCase):
@@ -185,6 +200,48 @@ class TestTTLCache(unittest.TestCase):
         with self.assertRaises(ValueError):
             cache.expire("a", float("-inf"))
 
+    def test_expire_rejects_negative_ttl(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        with self.assertRaises(ValueError):
+            cache.expire("a", -1)
+
+    def test_expire_defaults_to_configured_ttl(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)  # entry now expired
+        cache.expire("a")  # refresh using the cache's configured ttl
+        self.assertTrue("a" in cache)
+
+    def test_len_purges_expired_entries(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)
+        self.assertEqual(len(cache), 0)
+        self.assertEqual(cache.cache_info()["expired"], 1)
+
+    def test_setitem_updates_existing_key(self) -> None:
+        cache = TTLCache(ttl=60)
+        cache["a"] = 1
+        cache["a"] = 2  # update path for an existing key
+        self.assertEqual(cache["a"], 2)
+        self.assertEqual(len(cache), 1)
+
+    def test_delitem_expired_raises_keyerror(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)
+        with self.assertRaises(KeyError):
+            del cache["a"]
+        self.assertEqual(cache.cache_info()["expired"], 1)
+
+    def test_pop_expired_returns_default(self) -> None:
+        cache = _SteppingCache(ttl=10)
+        cache["a"] = 1
+        cache.advance(11)
+        self.assertIsNone(cache.pop("a"))
+        self.assertEqual(cache.cache_info()["expired"], 1)
+
 
 class TestTTLCacheDecorator(unittest.TestCase):
     def test_caches_result(self) -> None:
@@ -224,6 +281,12 @@ class TestTTLCacheDecorator(unittest.TestCase):
             ttl_cache(ttl=float("inf"))
         with self.assertRaises(ValueError):
             ttl_cache(ttl=float("-inf"))
+
+    def test_validation_maxsize(self) -> None:
+        with self.assertRaises(TypeError):
+            ttl_cache(ttl=60, maxsize=True)  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            ttl_cache(ttl=60, maxsize=0)
 
 
 if __name__ == "__main__":
