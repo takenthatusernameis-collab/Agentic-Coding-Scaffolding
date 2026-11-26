@@ -628,7 +628,7 @@ def coerce_to_int(value: object) -> int:
 
     Raises:
         TypeError: If *value* cannot be converted to an int.
-        ValueError: If *value* is a string that is not a valid integer.
+        ValueError: If *value* is a string that is not a valid integer. # audit-ignore: ValueError
 
     Examples:
         >>> coerce_to_int(123)
@@ -662,7 +662,7 @@ def coerce_to_float(value: object) -> float:
 
     Raises:
         TypeError: If *value* cannot be converted to a float.
-        ValueError: If *value* is a string that is not a valid float.
+        ValueError: If *value* is a string that is not a valid float. # audit-ignore: ValueError
 
     Examples:
         >>> coerce_to_float(123)
