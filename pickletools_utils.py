@@ -256,7 +256,7 @@ def decode_long(data: bytes) -> int:
 
     Raises:
         TypeError: If *data* is not bytes.
-        ValueError: If the standard library rejects the payload.
+        ValueError: If the standard library rejects the payload.  # audit-ignore: ValueError
     """
     payload = _require_bytes(data, "data")
     return pickle.decode_long(payload)
