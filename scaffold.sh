@@ -3033,6 +3033,345 @@ class TestExports(unittest.TestCase):
         self.assertIsInstance(trace_utils.PRAGMA_NOCOVER, str)
 
 
+class TestValidationHelpers(unittest.TestCase):
+    """Verify the internal validation helper functions."""
+
+    def test_require_bool_raises_on_non_bool(self):
+        from trace_utils import _require_bool
+
+        with self.assertRaises(TypeError):
+            _require_bool("yes", "flag")
+        with self.assertRaises(TypeError):
+            _require_bool(1, "flag")
+        with self.assertRaises(TypeError):
+            _require_bool(None, "flag")
+
+    def test_require_bool_returns_bool(self):
+        from trace_utils import _require_bool
+
+        self.assertTrue(_require_bool(True, "flag"))
+        self.assertFalse(_require_bool(False, "flag"))
+
+    def test_require_text_raises_on_non_string(self):
+        from trace_utils import _require_text
+
+        with self.assertRaises(TypeError):
+            _require_text(123, "name")
+        with self.assertRaises(TypeError):
+            _require_text(None, "name")
+
+    def test_require_text_returns_string(self):
+        from trace_utils import _require_text
+
+        self.assertEqual(_require_text("hello", "name"), "hello")
+
+    def test_require_path_raises_on_invalid_type(self):
+        from trace_utils import _require_path
+
+        with self.assertRaises(TypeError):
+            _require_path(123, "path")
+        with self.assertRaises(TypeError):
+            _require_path(None, "path")
+
+    def test_require_path_returns_path_for_path(self):
+        from trace_utils import _require_path
+        from pathlib import Path
+
+        p = Path("/tmp")
+        self.assertIs(_require_path(p, "path"), p)
+
+    def test_require_path_returns_path_for_string(self):
+        from trace_utils import _require_path
+        from pathlib import Path
+
+        result = _require_path("/tmp", "path")
+        self.assertIsInstance(result, Path)
+        self.assertEqual(result, Path("/tmp"))
+
+    def test_require_path_returns_path_for_pathlike(self):
+        from trace_utils import _require_path
+        from pathlib import Path
+        import os
+
+        class PathLike:
+            def __fspath__(self):
+                return "/tmp/pathlike"
+
+        result = _require_path(PathLike(), "path")
+        self.assertIsInstance(result, Path)
+        self.assertEqual(result, Path("/tmp/pathlike"))
+
+    def test_require_text_sequence_raises_on_invalid(self):
+        from trace_utils import _require_text_sequence
+
+        with self.assertRaises(TypeError):
+            _require_text_sequence("not a sequence", "name")
+        with self.assertRaises(TypeError):
+            _require_text_sequence([1], "name")
+        with self.assertRaises(TypeError):
+            _require_text_sequence(b"bytes", "name")
+
+    def test_require_text_sequence_returns_list(self):
+        from trace_utils import _require_text_sequence
+
+        result = _require_text_sequence(["a", "b"], "name")
+        self.assertEqual(result, ["a", "b"])
+        result = _require_text_sequence(("a", "b"), "name")
+        self.assertEqual(result, ["a", "b"])
+        result = _require_text_sequence({"a", "b"}, "name")
+        self.assertEqual(set(result), {"a", "b"})
+        result = _require_text_sequence(frozenset(["a", "b"]), "name")
+        self.assertEqual(set(result), {"a", "b"})
+
+    def test_require_results_raises_on_invalid(self):
+        from trace_utils import _require_results
+
+        with self.assertRaises(TypeError):
+            _require_results({}, "results")
+        with self.assertRaises(TypeError):
+            _require_results(None, "results")
+
+    def test_require_results_returns_results(self):
+        from trace_utils import _require_results, CoverageResults
+
+        results = CoverageResults()
+        self.assertIs(_require_results(results, "results"), results)
+
+    def test_require_tracer_raises_on_invalid(self):
+        from trace_utils import _require_tracer
+
+        with self.assertRaises(TypeError):
+            _require_tracer(object(), "tracer")
+        with self.assertRaises(TypeError):
+            _require_tracer(None, "tracer")
+
+    def test_require_tracer_returns_tracer(self):
+        from trace_utils import _require_tracer, Trace
+
+        tracer = Trace()
+        self.assertIs(_require_tracer(tracer, "tracer"), tracer)
+
+
+class TestExecutableLines(unittest.TestCase):
+    """Verify the _executable_lines helper function."""
+
+    def test_executable_lines_returns_none_for_pyc_file(self):
+        from trace_utils import _executable_lines
+
+        result = _executable_lines(__file__ + "c")
+        self.assertIsNone(result)
+
+    def test_executable_lines_returns_none_for_missing_file(self):
+        from trace_utils import _executable_lines
+
+        result = _executable_lines("/definitely/not/a/file.py")
+        self.assertIsNone(result)
+
+    def test_executable_lines_returns_none_for_syntax_error(self):
+        import tempfile
+        from trace_utils import _executable_lines
+
+        with tempfile.NamedTemporaryFile(suffix=".py", delete=False) as f:
+            f.write(b"def invalid syntax:")
+            path = f.name
+        try:
+            result = _executable_lines(path)
+            self.assertIsNone(result)
+        finally:
+            os.unlink(path)
+
+    def test_executable_lines_returns_lines_for_valid_file(self):
+        from trace_utils import _executable_lines
+
+        result = _executable_lines(__file__)
+        self.assertIsInstance(result, set)
+        self.assertTrue(len(result) > 0)
+
+
+class TestRunScriptTracedEdgeCases(unittest.TestCase):
+    """Verify edge cases in run_script_traced."""
+
+    def test_run_script_traced_non_int_system_exit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = Path(directory) / "exit_str.py"
+            script.write_text("import sys\nsys.exit('message')\n", encoding="utf-8")
+            exit_code, _ = trace_utils.run_script_traced(script)
+            self.assertEqual(exit_code, 1)
+
+    def test_run_script_traced_invalid_file_type_raises(self):
+        with self.assertRaises(TypeError):
+            trace_utils.run_script_traced(123)
+
+    def test_run_script_traced_nonexistent_file_raises(self):
+        with self.assertRaises(FileNotFoundError):
+            trace_utils.run_script_traced(Path("/nonexistent/script.py"))
+
+
+class TestCountedLinesEdgeCases(unittest.TestCase):
+    """Verify edge cases in counted_lines."""
+
+    def test_counted_lines_empty_results(self):
+        self.assertEqual(trace_utils.counted_lines(trace_utils.CoverageResults()), {})
+
+    def test_counted_lines_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            trace_utils.counted_lines({})
+
+
+class TestLineCountsEdgeCases(unittest.TestCase):
+    """Verify edge cases in line_counts."""
+
+    def test_line_counts_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            trace_utils.line_counts(None)
+
+
+class TestCallRelationshipsEdgeCases(unittest.TestCase):
+    """Verify edge cases in call_relationships."""
+
+    def test_call_relationships_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            trace_utils.call_relationships(None)
+
+
+class TestIsIgnoredFilenameEdgeCases(unittest.TestCase):
+    """Verify edge cases in is_ignored_filename."""
+
+    def test_is_ignored_filename_rejects_non_string(self):
+        with self.assertRaises(TypeError):
+            trace_utils.is_ignored_filename(trace_utils.CoverageResults(), None)
+
+    def test_is_ignored_filename_rejects_invalid_results(self):
+        with self.assertRaises(TypeError):
+            trace_utils.is_ignored_filename(object(), "file.py")
+
+
+class TestMergeResultsEdgeCases(unittest.TestCase):
+    """Verify edge cases in merge_results."""
+
+    def test_merge_results_rejects_invalid_first(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.merge_results({}, results)
+
+    def test_merge_results_rejects_invalid_second(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.merge_results(results, {})
+
+
+class TestWriteCoverageReportEdgeCases(unittest.TestCase):
+    """Verify edge cases in write_coverage_report."""
+
+    def test_write_coverage_report_rejects_invalid_coverdir(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(results, coverdir=1)
+
+    def test_write_coverage_report_rejects_invalid_show_missing(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(results, show_missing="yes")
+
+    def test_write_coverage_report_rejects_invalid_summary(self):
+        results = trace_utils.CoverageResults()
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(results, summary=1)
+
+    def test_write_coverage_report_rejects_invalid_results(self):
+        with self.assertRaises(TypeError):
+            trace_utils.write_coverage_report(object())
+
+
+class TestSummarizeCoverageEdgeCases(unittest.TestCase):
+    """Verify edge cases in summarize_coverage."""
+
+    def test_summarize_coverage_rejects_invalid(self):
+        with self.assertRaises(TypeError):
+            trace_utils.summarize_coverage(None)
+
+    def test_summarize_coverage_with_executable_lines_none(self):
+        from trace_utils import CoverageResults
+        results = CoverageResults()
+        results.counts = {("nonexistent.py", 1): 1}
+        summaries = trace_utils.summarize_coverage(results)
+        # When _executable_lines returns None, it falls back to hit lines
+        self.assertEqual(len(summaries), 1)
+        self.assertEqual(summaries[0]["file"], "nonexistent.py")
+        self.assertEqual(summaries[0]["covered"], 1)
+        self.assertEqual(summaries[0]["percent"], 100.0)
+
+
+class TestFormatCoverageSummaryEdgeCases(unittest.TestCase):
+    """Verify edge cases in format_coverage_summary."""
+
+    def test_format_coverage_summary_rejects_string(self):
+        with self.assertRaises(TypeError):
+            trace_utils.format_coverage_summary("not a sequence")
+
+    def test_format_coverage_summary_rejects_non_mapping_entry(self):
+        with self.assertRaises(TypeError):
+            trace_utils.format_coverage_summary(["not a mapping"])
+
+
+class TestDefaultIgnoredirs(unittest.TestCase):
+    """Verify the _default_ignoredirs helper function."""
+
+    def test_default_ignoredirs_returns_list(self):
+        from trace_utils import _default_ignoredirs
+
+        dirs = _default_ignoredirs()
+        self.assertIsInstance(dirs, list)
+        self.assertTrue(all(isinstance(d, str) for d in dirs))
+        self.assertIn(sys.prefix, dirs)
+
+
+class TestNewTracerEdgeCases(unittest.TestCase):
+    """Verify edge cases in new_tracer."""
+
+    def test_new_tracer_with_infile_and_outfile(self):
+        tracer = trace_utils.new_tracer(infile="/tmp/in", outfile="/tmp/out")
+        self.assertEqual(tracer.infile, "/tmp/in")
+        self.assertEqual(tracer.outfile, "/tmp/out")
+
+
+class TestRunTracedEdgeCases(unittest.TestCase):
+    """Verify edge cases in run_traced."""
+
+    def test_run_traced_with_custom_tracer(self):
+        tracer = trace_utils.new_tracer(count=False)
+        value, results = trace_utils.run_traced(sample_function, 1, 2, tracer=tracer)
+        self.assertEqual(value, 3)
+        self.assertEqual(results.counts, {})
+
+
+class TestRunScriptTracedEdgeCases(unittest.TestCase):
+    """Verify edge cases in run_script_traced."""
+
+    def test_run_script_traced_non_int_system_exit(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = Path(directory) / "exit_str.py"
+            script.write_text("import sys\nsys.exit('message')\n", encoding="utf-8")
+            exit_code, _ = trace_utils.run_script_traced(script)
+            self.assertEqual(exit_code, 1)
+
+    def test_run_script_traced_invalid_file_type_raises(self):
+        with self.assertRaises(TypeError):
+            trace_utils.run_script_traced(123)
+
+    def test_run_script_traced_nonexistent_file_raises(self):
+        with self.assertRaises(FileNotFoundError):
+            trace_utils.run_script_traced(Path("/nonexistent/script.py"))
+
+    def test_run_script_traced_with_custom_tracer(self):
+        with tempfile.TemporaryDirectory() as directory:
+            script = write_script(directory)
+            tracer = trace_utils.new_tracer(count=False)
+            exit_code, results = trace_utils.run_script_traced(script, tracer=tracer)
+            self.assertEqual(exit_code, 0)
+            self.assertEqual(results.counts, {})
+
+
 if __name__ == "__main__":
     unittest.main()
 TEST_TRACE_UTILS
