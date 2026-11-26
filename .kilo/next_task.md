@@ -10,8 +10,7 @@ Session (2026-11-25): `template_utils` triaged 2 stdlib-delegation `Raises:` ent
 6. If editing wrapper module/test/CHANGELOG, run `make refresh-scaffold` then check.
 7. Prefer state-delta checks; no timestamp-only handoffs/no-op cycles. Update handover files; post next task to board when a second participant exists.
 
-Remaining audit candidates (13):
-- multiprocessing_utils.get_context: ValueError (check if stdlib delegation)
+Remaining audit candidates (12):
 - optparse_utils.add_option: OptionError (check if stdlib delegation)
 - pattern_utils.detach: ValueError (check if stdlib delegation)
 - pickletools_utils.decode_long: ValueError (check if stdlib delegation)

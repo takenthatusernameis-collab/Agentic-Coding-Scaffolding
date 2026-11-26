@@ -25,7 +25,7 @@ def get_context(method: str | None = None) -> Any:
 
     Raises:
         TypeError: If method is not a string or None.
-        ValueError: If method is not a valid start method.
+        ValueError: If method is not a valid start method.  # audit-ignore: ValueError
     """
     if method is not None and not isinstance(method, str):
         raise TypeError("method must be a string or None")
