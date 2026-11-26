@@ -1,12 +1,11 @@
 # Task for Next Agent
 
-Session (2026-11-26): Fixed stale `scaffold.sh` embedding of `tests/test_trace_utils.py` (integrity defect that failed `verify_state_delta`/`test_scaffold_sync`); full battery green, checkpoint advanced to `9c251d69`. No `.github/workflows/**` changes.
+Session (2026-11-26): Fixed a genuine accepts-invalid-input defect — `async_utils._validate_retry_args` accepted `float("nan")`/`float("inf")` for `delay` (only `delay < 0` was checked), diverging from `retry_utils.retry` which it claims to mirror. Added `math.isfinite` guard; added `test_rejects_nan_delay`/`test_rejects_infinite_delay`. Full battery green, checkpoint advanced to `0c7ec1c2`. No `.github/workflows/**` changes.
 
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1; if rc=2 run `python tools/verify_state_delta.py --full` once.
-3. Target the test coverage bottleneck (overall ~30-32%). Pick a low-coverage module family (e.g., `number_utils`, `prime_utils`, `bytes_utils`, `itertools_utils`, `posix_utils`) and add meaningful unit tests to raise overall coverage above 35%.
-4. Use `python -m coverage run -m pytest tests/test_<module>.py` and `coverage report --show-missing` to guide line-level gaps.
-5. Follow existing test patterns (test_* naming, `Test*` classes, `assert`/`assertEqual` style).
-6. After editing any wrapper module or test, run `make refresh-scaffold` so the embedded copies in `scaffold.sh` stay byte-identical (a stale copy fails `tests.test_scaffold_sync` and blocks the checkpoint).
-7. Run `make test` and `python tools/verify_state_delta.py --full` to validate.
-8. Update handover files; post the next task to the board when a second participant exists.
+3. Continue the targeted defect hunt on hand-rolled modules not yet reviewed. The classic accepts-invalid-input class (NaN/Infinity slipping past `< 0`/`<= 0` guards) is the highest-yield pattern; grep for `< 0`/`<= 0` guards that lack a preceding `math.isfinite` check. Other classes already swept: delegation errors, test-isolation side effects, symmetric-difference, off-by-one.
+4. Write the failing test first, then the minimal fix; follow existing test patterns (`Test*` classes, `assertRaises`, `asyncio.run`/`IsolatedAsyncioTestCase`).
+5. After editing any wrapper module or test, run `make refresh-scaffold` so the embedded copies in `scaffold.sh` stay byte-identical (a stale copy fails `tests.test_scaffold_sync` and blocks the checkpoint).
+6. Run `make test` and `python tools/verify_state_delta.py --full` to validate.
+7. Update handover files; post the next task to the board when a second participant exists (otherwise record in `.kilo/next_task.md` and `.kilo/handover.md`).

@@ -1,3 +1,10 @@
+## Unreleased — fix `async_utils` accepting non-finite `delay` (NaN/Infinity)
+
+- **Defect — `async_utils._validate_retry_args` (used by `retry_async`) accepted `float("nan")` and `float("inf")` for `delay`.** The validator checked `delay < 0` but not `math.isfinite(delay)`; NaN compares False against everything and `inf` is positive, so both slipped through. `asyncio.sleep(nan)` is undefined and `asyncio.sleep(inf)` hangs forever. This diverged from `retry_utils.retry`, which the docstring explicitly says it mirrors and which already guards `math.isfinite`.
+- **Fix:** added `import math` and `if not math.isfinite(delay): raise ValueError(f"delay must be finite, got {delay!r}")` before the `delay < 0` check, matching `retry_utils` wording and the project-wide accepts-invalid-input convention.
+- **Defect class:** accepts-invalid-input (non-finite float); no API change beyond rejecting previously-accepted invalid input.
+- Validation: `python -m unittest tests.test_async_utils` — 18 OK (added `test_rejects_nan_delay`, `test_rejects_infinite_delay`); `python -m ruff check` clean; `python -m mypy async_utils.py` success; `make refresh-scaffold` in sync; full suite green.
+
 ## Unreleased — fix `test_atexit_utils` clobbering coverage; add `make coverage`; true coverage is ~95%
 
 - **Defect — `tests/test_atexit_utils.py::test_clear_and_run_handlers` destroyed the process-global `atexit` state.** The test called `atexit_utils.clear()` (which unregisters *every* exit handler, including coverage's own data-saving finalizer) and `atexit_utils.run_exit_handlers()` (which invokes `atexit._run_exitfuncs()`, finalizing and clearing all handlers). Running those for real mid-suite silently disabled coverage tracing for every test that ran afterwards, so a single-process `coverage run -m pytest; coverage report` reported a massive false undercount (~30% overall; per-module numbers collapsed to ~10-30% even though isolated runs are 95-99%). The test now patches `atexit._exithandlers`/`atexit.unregister`/`atexit._run_exitfuncs` and asserts the delegation, leaving global state untouched.

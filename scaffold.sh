@@ -53783,6 +53783,7 @@ cat > "$OUTPUT_DIR/async_utils.py" <<'ASYNCUTILS'
 from __future__ import annotations
 
 import asyncio
+import math
 from typing import Any, Awaitable, Callable, List, Optional, TypeVar
 
 T = TypeVar("T")
@@ -53876,6 +53877,8 @@ def _validate_retry_args(max_attempts: int, delay: float) -> None:
         raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
     if isinstance(delay, bool) or not isinstance(delay, (int, float)):
         raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if not math.isfinite(delay):
+        raise ValueError(f"delay must be finite, got {delay!r}")
     if delay < 0:
         raise ValueError(f"delay must be non-negative, got {delay}")
 
@@ -54084,6 +54087,22 @@ class TestRetryAsyncValidation(unittest.IsolatedAsyncioTestCase):
 
         with self.assertRaises(ValueError):
             await retry_async(ok, max_attempts=2, delay=-0.1)
+
+    async def test_rejects_nan_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=float("nan"))
+
+    async def test_rejects_infinite_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=float("inf"))
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=float("-inf"))
 
 
 class TestExportedTypeVars(unittest.TestCase):
@@ -75313,6 +75332,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fix `async_utils` accepting non-finite `delay` (NaN/Infinity)
+
+- **Defect — `async_utils._validate_retry_args` (used by `retry_async`) accepted `float("nan")` and `float("inf")` for `delay`.** The validator checked `delay < 0` but not `math.isfinite(delay)`; NaN compares False against everything and `inf` is positive, so both slipped through. `asyncio.sleep(nan)` is undefined and `asyncio.sleep(inf)` hangs forever. This diverged from `retry_utils.retry`, which the docstring explicitly says it mirrors and which already guards `math.isfinite`.
+- **Fix:** added `import math` and `if not math.isfinite(delay): raise ValueError(f"delay must be finite, got {delay!r}")` before the `delay < 0` check, matching `retry_utils` wording and the project-wide accepts-invalid-input convention.
+- **Defect class:** accepts-invalid-input (non-finite float); no API change beyond rejecting previously-accepted invalid input.
+- Validation: `python -m unittest tests.test_async_utils` — 18 OK (added `test_rejects_nan_delay`, `test_rejects_infinite_delay`); `python -m ruff check` clean; `python -m mypy async_utils.py` success; `make refresh-scaffold` in sync; full suite green.
+
 ## Unreleased — fix `test_atexit_utils` clobbering coverage; add `make coverage`; true coverage is ~95%
 
 - **Defect — `tests/test_atexit_utils.py::test_clear_and_run_handlers` destroyed the process-global `atexit` state.** The test called `atexit_utils.clear()` (which unregisters *every* exit handler, including coverage's own data-saving finalizer) and `atexit_utils.run_exit_handlers()` (which invokes `atexit._run_exitfuncs()`, finalizing and clearing all handlers). Running those for real mid-suite silently disabled coverage tracing for every test that ran afterwards, so a single-process `coverage run -m pytest; coverage report` reported a massive false undercount (~30% overall; per-module numbers collapsed to ~10-30% even though isolated runs are 95-99%). The test now patches `atexit._exithandlers`/`atexit.unregister`/`atexit._run_exitfuncs` and asserts the delegation, leaving global state untouched.

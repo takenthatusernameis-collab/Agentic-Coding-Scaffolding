@@ -151,6 +151,22 @@ class TestRetryAsyncValidation(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             await retry_async(ok, max_attempts=2, delay=-0.1)
 
+    async def test_rejects_nan_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=float("nan"))
+
+    async def test_rejects_infinite_delay(self):
+        async def ok():
+            return "ok"
+
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=float("inf"))
+        with self.assertRaises(ValueError):
+            await retry_async(ok, max_attempts=2, delay=float("-inf"))
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):

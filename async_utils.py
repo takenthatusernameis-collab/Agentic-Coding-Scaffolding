@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import math
 from typing import Any, Awaitable, Callable, List, Optional, TypeVar
 
 T = TypeVar("T")
@@ -96,6 +97,8 @@ def _validate_retry_args(max_attempts: int, delay: float) -> None:
         raise ValueError(f"max_attempts must be at least 1, got {max_attempts}")
     if isinstance(delay, bool) or not isinstance(delay, (int, float)):
         raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if not math.isfinite(delay):
+        raise ValueError(f"delay must be finite, got {delay!r}")
     if delay < 0:
         raise ValueError(f"delay must be non-negative, got {delay}")
 
