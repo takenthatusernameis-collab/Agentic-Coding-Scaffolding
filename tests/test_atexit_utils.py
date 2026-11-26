@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import atexit
 import unittest
+from unittest import mock
 
 import atexit_utils
 
@@ -70,10 +72,36 @@ class TestAtexitUtils(unittest.TestCase):
 
 
     def test_clear_and_run_handlers(self):
-        """Test clear and run_exit_handlers functions."""
-        # These are safe to call
-        atexit_utils.clear()
-        atexit_utils.run_exit_handlers()
+        """Test clear and run_exit_handlers functions.
+
+        Both functions mutate the process-global ``atexit`` state:
+        ``clear()`` unregisters every handler (including coverage's own
+        data-saving finalizer) and ``run_exit_handlers()`` invokes
+        ``atexit._run_exitfuncs()``. Calling them for real inside the test
+        suite would silently disable coverage tracing for every test that
+        runs afterwards, so the global state is patched out here and the
+        delegation is asserted instead.
+        """
+        def sentinel_a():
+            return None
+
+        def sentinel_b():
+            return None
+
+        fake_handlers = [(sentinel_a, (), {}), (sentinel_b, (), {})]
+
+        with mock.patch.object(atexit, "_exithandlers", fake_handlers, create=True), \
+                mock.patch.object(atexit, "unregister") as mock_unregister:
+            atexit_utils.clear()
+
+        self.assertEqual(mock_unregister.call_count, len(fake_handlers))
+        mock_unregister.assert_any_call(sentinel_a)
+        mock_unregister.assert_any_call(sentinel_b)
+
+        with mock.patch.object(atexit, "_run_exitfuncs") as mock_run:
+            atexit_utils.run_exit_handlers()
+
+        mock_run.assert_called_once_with()
 
 
 if __name__ == "__main__":

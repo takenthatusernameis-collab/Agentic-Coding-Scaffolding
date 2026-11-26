@@ -1,7 +1,7 @@
 # Makefile for Agentic Coding Scaffolding
 # Common developer commands for project management
 
-.PHONY: test test-full lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest setup-dev audit-contracts
+.PHONY: test test-full lint typecheck run scaffold refresh-scaffold clean help pre-commit-install pre-commit-run verify doctest setup-dev audit-contracts coverage
 
 ## Install the project with its development dependencies (ruff, mypy, pytest)
 ## Fresh checkouts and CI runners start without ruff/mypy, so `make lint` and
@@ -55,6 +55,24 @@ test:
 doctest:
 	@echo "Running doctests..."
 	@python -m unittest tests.test_doctests
+
+## Measure true test coverage.
+## Each test module runs in its own coverage process on purpose: a few
+## stdlib-wrapping tests (trace/pdb/bdb) call ``sys.settrace`` and the atexit
+## tests finalize coverage's own atexit hook. Either one silently disables
+## tracing for every module that runs afterwards, so a single-process
+## ``coverage run -m pytest`` reports a large false undercount (the per-module
+## numbers collapse to ~10-30% even though isolated runs are 95%+). The
+## per-file shards are combined before reporting source coverage; tests/ and
+## tools/ are omitted because they are not shipped code.
+coverage:
+	@echo "Measuring coverage (per-file isolation)..."
+	@rm -f .coverage .coverage.*
+	@for f in tests/test_*.py; do \
+		python -m coverage run --parallel-mode -m pytest -q "$$f" >/dev/null 2>&1 || true; \
+	done
+	@python -m coverage combine >/dev/null 2>&1 || true
+	@python -m coverage report --omit='*/kilo-tmp/*,tests/*,tools/*'
 
 ## Run ruff to check code style and formatting
 lint:
@@ -139,6 +157,7 @@ help:
 	@echo "  test       Run the Python test suite (delta-aware; skips when clean/verified)"
 	@echo "  test-full  Run the full test suite unconditionally"
 	@echo "  doctest   Run the doctest suite that enforces documented examples"
+	@echo "  coverage  Measure true test coverage (per-file isolation)"
 	@echo "  setup-dev  Install the project with its development dependencies (ruff, mypy, pytest)"
 	@echo "  lint      Run ruff code style checker"
 	@echo "  typecheck  Run mypy static type checking"

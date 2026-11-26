@@ -15,6 +15,7 @@ __pycache__/
 .tox/
 coverage.xml
 .coverage
+.coverage.*
 *.pyc
 *.pyo
 kilo-session-*.log

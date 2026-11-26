@@ -8285,7 +8285,9 @@ cat > "$OUTPUT_DIR/tests/test_atexit_utils.py" <<'TEST_ATEXIT_UTILS'
 
 from __future__ import annotations
 
+import atexit
 import unittest
+from unittest import mock
 
 import atexit_utils
 
@@ -8353,10 +8355,36 @@ class TestAtexitUtils(unittest.TestCase):
 
 
     def test_clear_and_run_handlers(self):
-        """Test clear and run_exit_handlers functions."""
-        # These are safe to call
-        atexit_utils.clear()
-        atexit_utils.run_exit_handlers()
+        """Test clear and run_exit_handlers functions.
+
+        Both functions mutate the process-global ``atexit`` state:
+        ``clear()`` unregisters every handler (including coverage's own
+        data-saving finalizer) and ``run_exit_handlers()`` invokes
+        ``atexit._run_exitfuncs()``. Calling them for real inside the test
+        suite would silently disable coverage tracing for every test that
+        runs afterwards, so the global state is patched out here and the
+        delegation is asserted instead.
+        """
+        def sentinel_a():
+            return None
+
+        def sentinel_b():
+            return None
+
+        fake_handlers = [(sentinel_a, (), {}), (sentinel_b, (), {})]
+
+        with mock.patch.object(atexit, "_exithandlers", fake_handlers, create=True), \
+                mock.patch.object(atexit, "unregister") as mock_unregister:
+            atexit_utils.clear()
+
+        self.assertEqual(mock_unregister.call_count, len(fake_handlers))
+        mock_unregister.assert_any_call(sentinel_a)
+        mock_unregister.assert_any_call(sentinel_b)
+
+        with mock.patch.object(atexit, "_run_exitfuncs") as mock_run:
+            atexit_utils.run_exit_handlers()
+
+        mock_run.assert_called_once_with()
 
 
 if __name__ == "__main__":
@@ -74946,6 +74974,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — fix `test_atexit_utils` clobbering coverage; add `make coverage`; true coverage is ~95%
+
+- **Defect — `tests/test_atexit_utils.py::test_clear_and_run_handlers` destroyed the process-global `atexit` state.** The test called `atexit_utils.clear()` (which unregisters *every* exit handler, including coverage's own data-saving finalizer) and `atexit_utils.run_exit_handlers()` (which invokes `atexit._run_exitfuncs()`, finalizing and clearing all handlers). Running those for real mid-suite silently disabled coverage tracing for every test that ran afterwards, so a single-process `coverage run -m pytest; coverage report` reported a massive false undercount (~30% overall; per-module numbers collapsed to ~10-30% even though isolated runs are 95-99%). The test now patches `atexit._exithandlers`/`atexit.unregister`/`atexit._run_exitfuncs` and asserts the delegation, leaving global state untouched.
+- **Tooling — new `make coverage` target.** Measures true coverage by running each test module in its own coverage process (`--parallel-mode`) and combining the shards before reporting, because the `trace`/`pdb`/`bdb` wrapper tests call `sys.settrace` (clobbering coverage's C tracer) and the atexit tests finalize coverage's atexit hook — either would corrupt a single-process run. Reports source coverage (tests/ and tools/ omitted).
+- **Finding — true source coverage is ~95%** (calculator 98%, number_utils 93%, prime_utils 97%, statistics_utils 96%), not the ~32% the broken single-process measurement reported. The handoff goal "raise coverage above 35%" was already satisfied; the real bottleneck was the measurement, now fixed and reproducible.
+- **Defect class:** test-isolation defect (destructive global side effect) + coverage-measurement infrastructure; no product-code change.
+- Validation: `python -m unittest tests.test_atexit_utils` — 7 OK; `make coverage` — 95% source coverage; `python tools/refresh_scaffold.py --check` — in sync; full suite green. No `.github/workflows/**` changes.
+
 ## Unreleased — `sysconfig_utils` triages `get_paths` KeyError delegation with `# audit-ignore:`
 
 - **Tooling — `sysconfig_utils.get_paths` documents `KeyError` genuinely raised by the delegated standard-library call.** `get_paths` documents `KeyError: If *scheme* is not a known installation scheme.`, propagated from the delegated `sysconfig.get_paths()` call (`sysconfig.get_paths("nonexistent_scheme")` raises `KeyError`, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: KeyError` comment so the reviewed delegation is not re-reported. The `sysconfig_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 2 to 1.
