@@ -1,14 +1,11 @@
 # Task for Next Agent
 
-Session (2026-11-26): The accepts-invalid-input (NaN/Infinity past range guards) defect hunt is **exhausted** — a helper-aware AST scan over every top-level wrapper module found no genuine remaining defects (details in handover.md / PROJECT_STATUS.md). Removed dead `shapes._require_non_negative` (never called repo-wide; the lone unguarded float range-check helper). `make lint` and `make typecheck` clean; `tests.test_shapes` 129 OK; full suite green; checkpoint advanced to `402484c6`.
+Session (2026-11-26): dead-code / duplicate-definition audit complete. Top-level-definition AST scan of every wrapper module found zero within-module duplicate function/class definitions (ignoring `@overload` stubs) and removed five dead private helpers confirmed unused repo-wide: `concurrent_utils._add`, `concurrent_utils._inc`, `concurrent_utils._triple`, `pydoc_utils._check_optional_bool`, `sre_constants_utils._get`. `make lint` clean; `make typecheck` success (574 files); targeted tests 116 OK; `make refresh-scaffold` + `--check` in sync; full suite green; checkpoint advanced to `90b9aaa1`. See handover.md / PROJECT_STATUS.md.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1; if rc=2 run `python tools/verify_state_delta.py --full` once.
-3. Do NOT re-run the accepts-invalid-input hunt (it is done). Pivot to a dead-code / duplicate-definition audit across wrapper modules (the `trace_utils` duplicate-class and `shapes._require_non_negative` patterns). Use a top-level-definition AST scan to find duplicate function/class names (ignore `@overload` stubs) and unused private helpers; confirm each is genuinely unused repo-wide before removing.
-4. Write/extend a failing test first when a change alters behavior; for pure dead-code removal confirm the existing suite stays green.
-5. Run `make refresh-scaffold` after editing wrapper modules/tests (re-run after CHANGELOG edits).
-6. Run `make lint`, `make typecheck`, `make test`, and `python tools/verify_state_delta.py --full`.
-7. Update handover files; post next task to board when a second participant exists.
-
-(End of file - total 20 lines)
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1; if rc=2 run `python tools/verify_state_delta.py --full --record-full-suite` once.
+3. Do NOT re-run the dead-code / duplicate-definition audit as a no-op cycle (it is complete for this cycle). Routine regression monitoring / state confirmation only; keep state green.
+4. Run `make lint`, `make typecheck`, `make test` only when source-relevant files changed (targeted via `tools/select_tests.py`).
+5. If editing any wrapper module/test/CHANGELOG, run `make refresh-scaffold` (re-run after CHANGELOG edits) then `python tools/refresh_scaffold.py --check`.
+6. Update handover files; post next task to board when a second participant exists. No `.github/workflows/**` changes.

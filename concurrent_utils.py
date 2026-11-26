@@ -174,21 +174,9 @@ def _double(x: int) -> int:
     return x * 2
 
 
-def _add(a: int, b: int) -> int:
-    return a + b
-
-
 def _multiply(a: int, b: int) -> int:
     return a * b
 
 
-def _inc(x: int) -> int:
-    return x + 1
-
-
 def _dec(x: int) -> int:
     return x - 1
-
-
-def _triple(x: int) -> int:
-    return x * 3

@@ -57,11 +57,6 @@ def is_available() -> bool:
     return _sre_constants is not None
 
 
-def _get(name: str, default: Any = None) -> Any:
-    mod = _sre_constants_module()
-    return getattr(mod, name, default)
-
-
 # Common constants - export them if available
 for _name in [
     "ANY",

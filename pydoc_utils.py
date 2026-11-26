@@ -115,13 +115,6 @@ def _check_bool(value: object, name: str) -> bool:
     return value
 
 
-def _check_optional_bool(value: object, name: str) -> Optional[bool]:
-    """Raise when *value* is neither ``None`` nor a boolean."""
-    if value is None:
-        return None
-    return _check_bool(value, name)
-
-
 def _check_int(value: object, name: str) -> int:
     """Raise when *value* is not an integer."""
     if isinstance(value, bool) or not isinstance(value, int):

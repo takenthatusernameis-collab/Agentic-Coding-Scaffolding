@@ -55962,24 +55962,12 @@ def _double(x: int) -> int:
     return x * 2
 
 
-def _add(a: int, b: int) -> int:
-    return a + b
-
-
 def _multiply(a: int, b: int) -> int:
     return a * b
 
 
-def _inc(x: int) -> int:
-    return x + 1
-
-
 def _dec(x: int) -> int:
     return x - 1
-
-
-def _triple(x: int) -> int:
-    return x * 3
 CONCURRENTUTILS
 
 # --- tests/test_concurrent_utils.py ---
@@ -75320,6 +75308,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — remove dead private helpers surfaced by duplicate-definition audit
+
+- **Audit — dead-code / duplicate-definition scan across wrapper modules.** A top-level-definition AST scan of every wrapper module (`*_utils.py` plus `stats.py`, `strings.py`, `shapes.py`, `prompt_utils.py`, `utils.py`, `calculator.py`, `config_schema.py`) found zero within-module duplicate function/class definitions (ignoring `@overload` stubs) and confirmed every private helper is referenced repo-wide, except five that appear only at their own definition line.
+- **Cleanup — removed five dead private helpers.** `concurrent_utils._add`, `concurrent_utils._inc`, and `concurrent_utils._triple` (defined but never called; the sibling `_square`/`_double`/`_multiply`/`_dec` helpers remain, they are used), `pydoc_utils._check_optional_bool` (never called; `_check_bool`/`_check_int` remain), and `sre_constants_utils._get` (never called; `is_available()`/`_sre_constants_module()` remain). Each was confirmed unused across the entire repository (source and tests) before removal; no public API or behavior changes.
+- **Defect class:** none — dead-code removal; no product-behavior change.
+- Validation: `python -m ruff check .` clean; `python -m mypy .` success (574 source files); `python -m unittest tests.test_concurrent_utils tests.test_pydoc_utils tests.test_sre_constants_utils` — 116 OK; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — remove dead `shapes._require_non_negative`; accepts-invalid-input hunt exhausted
 
 - **Audit outcome — the accepts-invalid-input (NaN/Infinity past range guards) defect hunt is exhausted.** A helper-aware AST scan of every top-level wrapper module (detect functions that range-check a `float`-annotated parameter with an unsafe `x < lo or x > hi` guard, raise `ValueError`, and lack any `math.isfinite`/`isnan`/`isinf` guard locally or in a same-module helper) produced no genuine remaining defects. The only public-API candidate, `color_utils.blend_colors`, already uses the NaN-safe chained form `not 0.0 <= weight <= 1.0` (which rejects NaN because `0.0 <= nan` is False). The `number_utils` predicates (`sign`, `is_negative`, `is_non_negative`, …) and the `percentage`/`lerp`/`round_to` functions deliberately propagate NaN/inf and are pinned by `test_nan_propagates`/`test_nan`/`test_infinities`, so they are intentional, not defects. The remaining flagged helpers are all integer validators (`_require_positive_int`, `_validate_index`, `_require_count`, `_require_fd`, …) where NaN is not applicable.
@@ -148163,13 +148158,6 @@ def _check_bool(value: object, name: str) -> bool:
     return value
 
 
-def _check_optional_bool(value: object, name: str) -> Optional[bool]:
-    """Raise when *value* is neither ``None`` nor a boolean."""
-    if value is None:
-        return None
-    return _check_bool(value, name)
-
-
 def _check_int(value: object, name: str) -> int:
     """Raise when *value* is not an integer."""
     if isinstance(value, bool) or not isinstance(value, int):
@@ -164096,11 +164084,6 @@ def _sre_constants_module() -> Any:
 def is_available() -> bool:
     """Report whether the interpreter ships the standard library module."""
     return _sre_constants is not None
-
-
-def _get(name: str, default: Any = None) -> Any:
-    mod = _sre_constants_module()
-    return getattr(mod, name, default)
 
 
 # Common constants - export them if available
