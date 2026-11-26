@@ -75461,6 +75461,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — close `cooldown_utils` per-module coverage gap (97% → 100%)
+
+- **Coverage — `cooldown_utils.Cooldown.reset` had its lock-protected body (lines 76-77) untested.** A per-module `coverage run --source=cooldown_utils` showed the module at 97%: the `with self._lock: self._last_call = None` body of `reset()` was never exercised. Reachable, so the fix is to pin the existing behavior with a test.
+- **Tests:** added `TestCooldownReset.test_reset_clears_last_call` (call then reset, assert ready and remaining 0.0); `cooldown_utils` coverage rises 97% → 100%.
+- **Defect class:** none — test-only coverage improvement; no product-behavior change.
+- Validation: `python -m unittest tests.test_cooldown_utils` — 37 OK; `python -m ruff check cooldown_utils.py tests/test_cooldown_utils.py` clean; `python -m mypy cooldown_utils.py tests/test_cooldown_utils.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — close `config_schema` per-module coverage gap (91% → 100%)
 
 - **Coverage — `config_schema` had 18 reachable-but-untested branches.** A per-module `coverage run --source=config_schema` showed the module at 91%: `float_validator`'s string-parse `except` (lines 117-118), `bool_validator`'s final non-coercible-type `TypeError` (line 179), `hostname_validator`'s empty (line 230) and too-long (line 234) guards, `range_validator`'s non-numeric-value `TypeError` (line 313) and its non-integer-bounds string-parse/out-of-range paths (lines 322, 328, 335-336), `regex_validator`'s invalid-pattern `ValueError` (lines 400-401), compiled-pattern branch (lines 402-403) and non-pattern `TypeError` (lines 404-405), `SchemaField`'s non-callable-validator `TypeError` (line 459), `ConfigSchema`'s non-`SchemaField`-item `TypeError` (line 524), and `ConfigSchema.get`'s `ConfigValidationError` fallback (line 606). All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
@@ -166001,6 +166008,16 @@ class TestCooldownReady(unittest.TestCase):
         cd.call(lambda: None)
         time.sleep(0.015)
         self.assertTrue(cd.ready())
+
+
+class TestCooldownReset(unittest.TestCase):
+    def test_reset_clears_last_call(self) -> None:
+        cd = Cooldown(1.0)
+        cd.call(lambda: None)
+        self.assertFalse(cd.ready())
+        cd.reset()
+        self.assertTrue(cd.ready())
+        self.assertEqual(cd.remaining(), 0.0)
 
 
 class TestCooldownRemaining(unittest.TestCase):

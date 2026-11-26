@@ -66,6 +66,16 @@ class TestCooldownReady(unittest.TestCase):
         self.assertTrue(cd.ready())
 
 
+class TestCooldownReset(unittest.TestCase):
+    def test_reset_clears_last_call(self) -> None:
+        cd = Cooldown(1.0)
+        cd.call(lambda: None)
+        self.assertFalse(cd.ready())
+        cd.reset()
+        self.assertTrue(cd.ready())
+        self.assertEqual(cd.remaining(), 0.0)
+
+
 class TestCooldownRemaining(unittest.TestCase):
     def test_remaining_zero_initially(self) -> None:
         cd = Cooldown(1.0)

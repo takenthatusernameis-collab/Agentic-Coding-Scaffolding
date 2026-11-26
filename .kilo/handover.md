@@ -1,9 +1,15 @@
-# Handover
+# Task for Next Agent
 
-Latest session (2026-11-26): bootstrap (board empty). Executed durable handoff from `.kilo/next_task.md`. `verify_state_delta.py --probe` returned rc=2 (checkpoint behind HEAD on the previous session's auto-committed changes), so ran `--full --record-full-suite` once to advance the checkpoint to HEAD `9435d7c5`. Closed a genuine per-module coverage gap instead of a no-op cycle:
+Session (2026-11-26): closed `cooldown_utils` coverage gap (97% → 100%); state green at HEAD (after auto-commit).
 
-- `circuit_breaker_utils.py` — per-module coverage showed the module at 96% with 4 reachable-but-untested branches: the valid non-empty-tuple `expected_exception` branch (`__init__` line 86), the `failure_threshold` property (line 117), the `recovery_timeout` property (line 122), and `can_execute` returning `False` while a half-open trial is in progress (line 156). Added `test_expected_exception_tuple_counts_multiple`, `test_failure_threshold_property`, `test_recovery_timeout_property`, and `test_can_execute_false_during_half_open_trial` (4 tests) to `tests/test_circuit_breaker_utils.py`. Coverage 96% → 100%. No source change.
+- Added `TestCooldownReset.test_reset_clears_last_call`. Coverage 97% → 100%; no source change.
+- `refresh-scaffold` + `--check` in sync; full suite green; checkpoint advanced with `--full --record-full-suite`.
 
-Verification: `python -m unittest tests.test_circuit_breaker_utils` — 23 OK; `python -m ruff check circuit_breaker_utils.py tests/test_circuit_breaker_utils.py` clean; `python -m mypy circuit_breaker_utils.py tests/test_circuit_breaker_utils.py` success; full suite green via `python -m unittest discover tests/`; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. Checkpoint advanced to HEAD `9435d7c5` with `--full --record-full-suite`. No `.github/workflows/**` changes.
-
-**Next task:** Continue closing genuine per-module coverage gaps on wrapper modules (standing quality bottleneck). Use `python -m coverage run --source=<mod> -m pytest -q tests/test_<mod>.py` then `coverage report -m` to find reachable-but-untested defensive branches; prefer modules with no `sys.settrace` (avoid `trace_utils`/`pdb_utils`/`bdb_utils`, whose low numbers are a coverage-tracing artifact). Skip `__main__` demo blocks and unreachable defensive fallthroughs (e.g. `duration_utils` 489-491, `interval_utils` 253). Genuine candidates still open: `cooldown_utils` 97% (reset lines 76-77), `duration_utils` 97% (lines 150 negative value, 161 empty string), `interval_utils` 98% (lines 390/392 single-point symmetric difference), `validation_utils` 97% (lines 155/175 non-collection `return False`, 233 hostname too long), `memoize_utils` 98% (line 88 factory non-callable raise). When a fallback/except branch is unreachable dead code, fix source to make reachable + tests; otherwise pin existing behavior. Keep changes minimal. Run targeted tests, ruff, mypy; full suite before checkpoint. If editing any wrapper module/test/CHANGELOG, run `make refresh-scaffold` then `python tools/refresh_scaffold.py --check`. Update handover files; post next task to board when a second participant exists. No `.github/workflows/**` changes.
+**Next task:**
+1. Run `board_read`; if empty, execute this task.
+2. Confirm state with `python tools/verify_state_delta.py --probe`; if rc=2 run `--full --record-full-suite` once.
+3. Continue closing genuine per-module coverage gaps. Survey logic modules for reachable edge branches (candidates: `duration_utils` 97%, `interval_utils` 98%, `validation_utils` 97%, `memoize_utils` 98%). Skip `__main__` demos and unreachable defensive fallthroughs.
+4. When a fallback/except branch is unreachable dead code, fix source to make reachable + tests; otherwise pin existing behavior. Keep changes minimal.
+5. Run targeted tests, ruff, mypy; full suite before checkpoint.
+6. Refresh scaffold if wrapper/test/CHANGELOG edited; check sync.
+7. Update handover files; no `.github/workflows/**` changes.
