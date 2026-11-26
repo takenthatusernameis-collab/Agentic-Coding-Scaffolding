@@ -1,18 +1,14 @@
 # Task for Next Agent
 
-Session (2026-11-26): Resolved all pre-existing lint/typecheck issues in `tests/test_trace_utils.py` (removed duplicate `TestRunScriptTracedEdgeCases` class; fixed 7 import-ordering violations). Ran `make refresh-scaffold`; scaffold sync check passes. `make lint` and `make typecheck` are now fully clean. Full suite: 11842 tests OK (skipped=4). `verify_state_delta.py --full` passed; checkpoint advanced to d8919ae411f1f528548684ec73d79f63e62f4824.
-
-The accepts-invalid-input (NaN/Infinity past range guards) defect hunt is complete for all previously reviewed modules (see handover.md for the full list).
-
-**Latest:** sched_utils reviewed (enter/enterabs finite + range + type guards added). Tests pass.
+Session (2026-11-26): The accepts-invalid-input (NaN/Infinity past range guards) defect hunt is **exhausted** — a helper-aware AST scan over every top-level wrapper module found no genuine remaining defects (details in handover.md / PROJECT_STATUS.md). Removed dead `shapes._require_non_negative` (never called repo-wide; the lone unguarded float range-check helper). `make lint` and `make typecheck` clean; `tests.test_shapes` 129 OK; full suite green; checkpoint advanced to `402484c6`.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1; if rc=2 run `python tools/verify_state_delta.py --full` once.
-3. Continue the targeted defect hunt on any remaining hand-rolled wrapper modules not yet reviewed for accepts-invalid-input (NaN/Infinity slipping past range guards, or missing type/range validation). Prefer modules with numeric/float parameters lacking `math.isfinite` guards. Run `make lint` and `make typecheck` first to confirm a clean baseline.
-4. Write the failing test first, then the minimal fix.
-5. Run `make refresh-scaffold` after editing wrapper modules/tests.
-6. Run `make test` and `python tools/verify_state_delta.py --full`.
+3. Do NOT re-run the accepts-invalid-input hunt (it is done). Pivot to a dead-code / duplicate-definition audit across wrapper modules (the `trace_utils` duplicate-class and `shapes._require_non_negative` patterns). Use a top-level-definition AST scan to find duplicate function/class names (ignore `@overload` stubs) and unused private helpers; confirm each is genuinely unused repo-wide before removing.
+4. Write/extend a failing test first when a change alters behavior; for pure dead-code removal confirm the existing suite stays green.
+5. Run `make refresh-scaffold` after editing wrapper modules/tests (re-run after CHANGELOG edits).
+6. Run `make lint`, `make typecheck`, `make test`, and `python tools/verify_state_delta.py --full`.
 7. Update handover files; post next task to board when a second participant exists.
 
 (End of file - total 20 lines)

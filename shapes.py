@@ -48,12 +48,6 @@ __all__: List[str] = [
 ]
 
 
-def _require_non_negative(value: float, name: str) -> None:
-    """Validate that a value is non-negative."""
-    if value < 0:
-        raise ValueError(f"{name} cannot be negative.")
-
-
 def _require_number(value: object, name: str) -> float:
     """Validate that *value* is a real number (int or float, not bool)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):

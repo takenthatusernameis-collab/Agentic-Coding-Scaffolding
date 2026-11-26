@@ -13434,12 +13434,6 @@ __all__: List[str] = [
 ]
 
 
-def _require_non_negative(value: float, name: str) -> None:
-    """Validate that a value is non-negative."""
-    if value < 0:
-        raise ValueError(f"{name} cannot be negative.")
-
-
 def _require_number(value: object, name: str) -> float:
     """Validate that *value* is a real number (int or float, not bool)."""
     if isinstance(value, bool) or not isinstance(value, (int, float)):
@@ -75326,6 +75320,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — remove dead `shapes._require_non_negative`; accepts-invalid-input hunt exhausted
+
+- **Audit outcome — the accepts-invalid-input (NaN/Infinity past range guards) defect hunt is exhausted.** A helper-aware AST scan of every top-level wrapper module (detect functions that range-check a `float`-annotated parameter with an unsafe `x < lo or x > hi` guard, raise `ValueError`, and lack any `math.isfinite`/`isnan`/`isinf` guard locally or in a same-module helper) produced no genuine remaining defects. The only public-API candidate, `color_utils.blend_colors`, already uses the NaN-safe chained form `not 0.0 <= weight <= 1.0` (which rejects NaN because `0.0 <= nan` is False). The `number_utils` predicates (`sign`, `is_negative`, `is_non_negative`, …) and the `percentage`/`lerp`/`round_to` functions deliberately propagate NaN/inf and are pinned by `test_nan_propagates`/`test_nan`/`test_infinities`, so they are intentional, not defects. The remaining flagged helpers are all integer validators (`_require_positive_int`, `_validate_index`, `_require_count`, `_require_fd`, …) where NaN is not applicable.
+- **Cleanup — removed dead `shapes._require_non_negative`.** The audit surfaced this private helper as the one float range-check guard lacking a finite check; investigation confirmed it is never called anywhere in the repository (the only textual match, `venv_utils._require_non_negative_int`, is a different function) and is not referenced by tests. The public shapes API is unaffected: every public function validates through `_require_number`, which already rejects NaN/±inf, and `tests/test_shapes.py::test_functions_reject_nan` locks that in across the whole API.
+- **Defect class:** none — dead-code removal surfaced by the audit; no product-behavior change.
+- Validation: `python -m unittest tests.test_shapes` — 129 OK; `python -m doctest shapes.py` — OK; `python -m ruff check .` clean; `python -m mypy .` success (574 files); `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync; full suite green. No `.github/workflows/**` changes.
+
 ## Unreleased — fix `random_utils.random_bool` accepting non-finite `probability` (NaN/Infinity)
 
 - **Defect — `random_utils.random_bool` accepted `float("nan")` for `probability`.** The guard `probability < 0 or probability > 1` is False for NaN (all comparisons with NaN are False), so NaN slipped through and `_seed_rng(seed).random() < nan` is always False — the function silently returned `False` for every call instead of rejecting the invalid input. `±inf` were already rejected by the range check. This diverged from sibling functions `random_uniform`/`random_gaussian`, which already guard `math.isfinite`.
