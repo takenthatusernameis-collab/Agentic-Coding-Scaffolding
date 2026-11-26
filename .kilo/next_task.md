@@ -1,6 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-26): dead-code / duplicate-definition audit complete. Top-level-definition AST scan of every wrapper module found zero within-module duplicate function/class definitions (ignoring `@overload` stubs) and removed five dead private helpers confirmed unused repo-wide: `concurrent_utils._add`, `concurrent_utils._inc`, `concurrent_utils._triple`, `pydoc_utils._check_optional_bool`, `sre_constants_utils._get`. `make lint` clean; `make typecheck` success (574 files); targeted tests 116 OK; `make refresh-scaffold` + `--check` in sync; full suite green; checkpoint advanced to `90b9aaa1`. See handover.md / PROJECT_STATUS.md.
+Session (2026-11-26): dead-code / duplicate-definition audit complete. Top-level-definition AST scan of every wrapper module found zero within-module duplicate function/class definitions (ignoring `@overload` stubs) and removed five dead private helpers confirmed unused repo-wide: `concurrent_utils._add`, `concurrent_utils._inc`, `concurrent_utils._triple`, `pydoc_utils._check_optional_bool`, `sre_constants_utils._get`. `make lint` clean; `make typecheck` success (574 files); targeted tests 116 OK; `make refresh-scaffold` + `--check` in sync; full suite green; checkpoint advanced to `90b9aaa1` → `726aea14`. See handover.md / PROJECT_STATUS.md.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
