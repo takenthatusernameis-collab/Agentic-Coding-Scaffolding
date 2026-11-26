@@ -232,6 +232,57 @@ class TestCircuitBreaker(unittest.TestCase):
         self.assertEqual(breaker.state, CircuitBreaker.OPEN)
         self.assertEqual(breaker.failures, 50)
 
+    def test_expected_exception_tuple_counts_multiple(self):
+        breaker = CircuitBreaker(failure_threshold=2, expected_exception=(ValueError, TypeError))
+
+        def fail_value() -> None:
+            raise ValueError("boom")
+
+        def fail_type() -> None:
+            raise TypeError("boom")
+
+        # Both exception types in the tuple are counted as failures.
+        with self.assertRaises(ValueError):
+            breaker.call(fail_value)
+        self.assertEqual(breaker.failures, 1)
+        self.assertEqual(breaker.state, CircuitBreaker.CLOSED)
+        with self.assertRaises(TypeError):
+            breaker.call(fail_type)
+        self.assertEqual(breaker.failures, 2)
+        self.assertEqual(breaker.state, CircuitBreaker.OPEN)
+
+    def test_failure_threshold_property(self):
+        breaker = CircuitBreaker(failure_threshold=7)
+        self.assertEqual(breaker.failure_threshold, 7)
+
+    def test_recovery_timeout_property(self):
+        breaker = CircuitBreaker(recovery_timeout=42.5)
+        self.assertEqual(breaker.recovery_timeout, 42.5)
+
+    def test_can_execute_false_during_half_open_trial(self):
+        breaker = CircuitBreaker(failure_threshold=1, recovery_timeout=0.005)
+
+        with self.assertRaises(ValueError):
+            breaker.call(lambda: (_ for _ in ()).throw(ValueError("boom")))
+        time.sleep(0.01)
+        self.assertEqual(breaker.state, CircuitBreaker.HALF_OPEN)
+
+        trial_started = threading.Event()
+        trial_release = threading.Event()
+
+        def blocking_trial() -> str:
+            trial_started.set()
+            trial_release.wait()
+            return "ok"
+
+        trial_thread = threading.Thread(target=lambda: breaker.call(blocking_trial))
+        trial_thread.start()
+        self.assertTrue(trial_started.wait(timeout=5))
+        # While a trial call is in progress, can_execute reports False.
+        self.assertFalse(breaker.can_execute())
+        trial_release.set()
+        trial_thread.join()
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):
