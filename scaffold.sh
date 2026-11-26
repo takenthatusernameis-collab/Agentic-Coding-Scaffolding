@@ -75308,6 +75308,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — close `maybe_utils` per-module coverage gap (82% → 100%)
+
+- **Coverage — `maybe_utils.Maybe` had 21 reachable-but-untested branches.** A per-module `coverage run --source=maybe_utils` showed the `Maybe` API at 82%: the `Maybe(None)` collapse-to-Nothing constructor path, `Maybe.some(None)`'s `TypeError`, `map_or_else`'s re-raise when `default_fn` fails (both on Nothing and when `fn` also fails), `map`/`flat_map`/`filter` returning `Nothing` when the callback returns `None` or raises, `flat_map` on Nothing, the `and_then` alias, `__repr__` for both variants, and `__eq__` against a non-`Maybe` and against a mismatched variant. All are reachable defensive/edge branches, not dead code, so the fix is to pin the existing behavior with tests.
+- **Tests:** added `test_direct_none_constructor_is_nothing`, `test_some_none_raises`, `test_map_or_else_default_raises_on_nothing`, `test_map_or_else_both_raise`, `test_map_returns_nothing_when_fn_returns_none`, `test_map_returns_nothing_when_fn_raises`, `test_flat_map_on_nothing_returns_nothing`, `test_flat_map_returns_nothing_when_fn_raises`, `test_filter_returns_nothing_when_predicate_raises`, `test_and_then_aliases_flat_map`, `test_repr`, `test_eq_non_maybe_is_false`, `test_eq_some_vs_nothing_is_false`; `maybe_utils` coverage rises 82% → 100%.
+- **Defect class:** none — test-only coverage improvement; no product-behavior change.
+- Validation: `python -m unittest tests.test_maybe_utils` — 41 OK; `python -m ruff check maybe_utils.py tests/test_maybe_utils.py` clean; `python -m mypy maybe_utils.py tests/test_maybe_utils.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — fix unreachable `dis_utils.findlinestarts` compatibility fallback; close coverage gap
 
 - **Defect — `dis_utils.findlinestarts` documented a `co_code` compatibility fallback that could never run.** `dis.findlinestarts` is a generator function, so the delegated call inside the `try` only *creates* a generator and never raises; the `AttributeError` for a non-code argument surfaces during iteration, outside the `try`. The `except Exception` fallback (and its `co_code` retry) was therefore unreachable dead code, and invalid input leaked `AttributeError` instead of returning `[]` as the sibling `findlabels` does. The module's `findlinestarts` coverage sat at 56% with the entire fallback (lines 37–44) unexercised.
@@ -166299,6 +166306,71 @@ class TestMaybe(unittest.TestCase):
             raise RuntimeError("boom")
 
         self.assertEqual(Maybe.some(5).map_or_else(lambda: 42, boom), 42)
+
+    def test_direct_none_constructor_is_nothing(self) -> None:
+        # Maybe(None) with the default is_some=True collapses to Nothing.
+        m: Maybe[int] = Maybe(None)
+        self.assertTrue(m.is_nothing())
+        self.assertIsNone(m._value)
+
+    def test_some_none_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            Maybe.some(None)
+
+    def test_map_or_else_default_raises_on_nothing(self) -> None:
+        def boom() -> int:
+            raise RuntimeError("boom")
+
+        with self.assertRaises(RuntimeError):
+            Maybe.nothing().map_or_else(boom, lambda x: x)
+
+    def test_map_or_else_both_raise(self) -> None:
+        def boom(x: int) -> int:
+            raise RuntimeError("boom")
+
+        def boom_default() -> int:
+            raise RuntimeError("boom-default")
+
+        with self.assertRaises(RuntimeError):
+            Maybe.some(5).map_or_else(boom_default, boom)
+
+    def test_map_returns_nothing_when_fn_returns_none(self) -> None:
+        self.assertTrue(Maybe.some(5).map(lambda x: None).is_nothing())  # type: ignore[arg-type,return-value]
+
+    def test_map_returns_nothing_when_fn_raises(self) -> None:
+        def boom(x: int) -> int:
+            raise RuntimeError("boom")
+
+        self.assertTrue(Maybe.some(5).map(boom).is_nothing())
+
+    def test_flat_map_on_nothing_returns_nothing(self) -> None:
+        self.assertTrue(Maybe.nothing().flat_map(lambda x: Maybe.some(x)).is_nothing())
+
+    def test_flat_map_returns_nothing_when_fn_raises(self) -> None:
+        def boom(x: int) -> "Maybe[int]":
+            raise RuntimeError("boom")
+
+        self.assertTrue(Maybe.some(5).flat_map(boom).is_nothing())
+
+    def test_filter_returns_nothing_when_predicate_raises(self) -> None:
+        def boom(x: int) -> bool:
+            raise RuntimeError("boom")
+
+        self.assertTrue(Maybe.some(5).filter(boom).is_nothing())
+
+    def test_and_then_aliases_flat_map(self) -> None:
+        self.assertEqual(Maybe.some(5).and_then(lambda x: Maybe.some(x + 1)).unwrap(), 6)
+        self.assertTrue(Maybe.nothing().and_then(lambda x: Maybe.some(x)).is_nothing())
+
+    def test_repr(self) -> None:
+        self.assertEqual(repr(Maybe.some(5)), "Some(5)")
+        self.assertEqual(repr(Maybe.nothing()), "Nothing")
+
+    def test_eq_non_maybe_is_false(self) -> None:
+        self.assertFalse(Maybe.some(1) == 5)
+
+    def test_eq_some_vs_nothing_is_false(self) -> None:
+        self.assertNotEqual(Maybe.some(1), Maybe.nothing())
 
 
 class TestExportedTypeVars(unittest.TestCase):

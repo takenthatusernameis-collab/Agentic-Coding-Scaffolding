@@ -112,6 +112,71 @@ class TestMaybe(unittest.TestCase):
 
         self.assertEqual(Maybe.some(5).map_or_else(lambda: 42, boom), 42)
 
+    def test_direct_none_constructor_is_nothing(self) -> None:
+        # Maybe(None) with the default is_some=True collapses to Nothing.
+        m: Maybe[int] = Maybe(None)
+        self.assertTrue(m.is_nothing())
+        self.assertIsNone(m._value)
+
+    def test_some_none_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            Maybe.some(None)
+
+    def test_map_or_else_default_raises_on_nothing(self) -> None:
+        def boom() -> int:
+            raise RuntimeError("boom")
+
+        with self.assertRaises(RuntimeError):
+            Maybe.nothing().map_or_else(boom, lambda x: x)
+
+    def test_map_or_else_both_raise(self) -> None:
+        def boom(x: int) -> int:
+            raise RuntimeError("boom")
+
+        def boom_default() -> int:
+            raise RuntimeError("boom-default")
+
+        with self.assertRaises(RuntimeError):
+            Maybe.some(5).map_or_else(boom_default, boom)
+
+    def test_map_returns_nothing_when_fn_returns_none(self) -> None:
+        self.assertTrue(Maybe.some(5).map(lambda x: None).is_nothing())  # type: ignore[arg-type,return-value]
+
+    def test_map_returns_nothing_when_fn_raises(self) -> None:
+        def boom(x: int) -> int:
+            raise RuntimeError("boom")
+
+        self.assertTrue(Maybe.some(5).map(boom).is_nothing())
+
+    def test_flat_map_on_nothing_returns_nothing(self) -> None:
+        self.assertTrue(Maybe.nothing().flat_map(lambda x: Maybe.some(x)).is_nothing())
+
+    def test_flat_map_returns_nothing_when_fn_raises(self) -> None:
+        def boom(x: int) -> "Maybe[int]":
+            raise RuntimeError("boom")
+
+        self.assertTrue(Maybe.some(5).flat_map(boom).is_nothing())
+
+    def test_filter_returns_nothing_when_predicate_raises(self) -> None:
+        def boom(x: int) -> bool:
+            raise RuntimeError("boom")
+
+        self.assertTrue(Maybe.some(5).filter(boom).is_nothing())
+
+    def test_and_then_aliases_flat_map(self) -> None:
+        self.assertEqual(Maybe.some(5).and_then(lambda x: Maybe.some(x + 1)).unwrap(), 6)
+        self.assertTrue(Maybe.nothing().and_then(lambda x: Maybe.some(x)).is_nothing())
+
+    def test_repr(self) -> None:
+        self.assertEqual(repr(Maybe.some(5)), "Some(5)")
+        self.assertEqual(repr(Maybe.nothing()), "Nothing")
+
+    def test_eq_non_maybe_is_false(self) -> None:
+        self.assertFalse(Maybe.some(1) == 5)
+
+    def test_eq_some_vs_nothing_is_false(self) -> None:
+        self.assertNotEqual(Maybe.some(1), Maybe.nothing())
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_e_typevar(self) -> None:

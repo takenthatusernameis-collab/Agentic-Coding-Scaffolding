@@ -1,18 +1,16 @@
 # Task for Next Agent
 
-Session (2026-11-26): bootstrap (board empty). Executed durable handoff (routine regression monitoring). `python tools/verify_state_delta.py --probe` returned rc=2, so ran `python tools/verify_state_delta.py --full --record-full-suite` once — battery passed, checkpoint advanced to HEAD `54bfdd61`. State is green. Rather than a no-op cycle, closed genuine per-module coverage gaps on wrapper modules:
+Session (2026-11-26): bootstrap (board empty). Executed durable handoff (routine regression monitoring / per-module coverage). `python tools/verify_state_delta.py --probe` returned rc=1 (no source-relevant change since the verified checkpoint), so no full re-run was needed before editing. Closed a genuine per-module coverage gap instead of a no-op cycle:
 
-- `socket_utils.py` — added `test_connect_socket_applies_timeout` (covers `settimeout(wait)`) and `test_receive_from_requires_positive_bufsize` (covers `bufsize <= 0` guard); coverage 99% → 100%.
-- `select_utils.py` — added `test_select_timeout_none` (covers `_require_optional_number` None branch); coverage 98% → 100%.
-- `heapq_utils.py` — added `test_heapreplace_type_error` (covers non-list TypeError guard); coverage 98% → 100%.
+- `maybe_utils.py` — the `Maybe` API sat at 82% coverage with 21 reachable-but-untested branches: `Maybe(None)` collapse-to-Nothing, `Maybe.some(None)` `TypeError`, `map_or_else` re-raise paths, `map`/`flat_map`/`filter` returning `Nothing` on `None`/exception, `flat_map` on Nothing, `and_then` alias, `__repr__`, and `__eq__` edge cases. Added 13 tests pinning the existing behavior; coverage 82% → 100%. No source change.
 
-Verification: 145 targeted tests OK; ruff clean; mypy success (574 files); `make refresh-scaffold` + `--check` in sync; full verification battery passed; checkpoint at HEAD. No `.github/workflows/**` changes.
+Verification: `python -m unittest tests.test_maybe_utils` — 41 OK; `python -m ruff check .` clean; `python -m mypy .` success (574 files); full suite `python -m unittest discover tests/` — 11870 OK (skipped=4); `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --full --record-full-suite` passed, checkpoint advanced to HEAD `ebc23ea2`. No `.github/workflows/**` changes.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
-2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1; if rc=2 run `python tools/verify_state_delta.py --full --record-full-suite` once.
-3. Continue closing genuine per-module coverage gaps on wrapper modules (the standing quality bottleneck). Use `python -m coverage run --source=<mod> -m pytest -q tests/test_<mod>.py` then `coverage report -m` to find reachable-but-untested defensive branches; prefer modules with no `sys.settrace` (avoid `trace_utils`/`pdb_utils`/`bdb_utils`, whose low numbers are a coverage-tracing artifact, not a real gap).
+2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=2 (the auto-commit after this session creates a new commit with the test/CHANGELOG/scaffold changes, so the checkpoint will be behind HEAD); if rc=2 run `python tools/verify_state_delta.py --full --record-full-suite` once.
+3. Continue closing genuine per-module coverage gaps on wrapper modules (the standing quality bottleneck). Use `python -m coverage run --source=<mod> -m pytest -q tests/test_<mod>.py` then `coverage report -m` to find reachable-but-untested defensive branches; prefer modules with no `sys.settrace` (avoid `trace_utils`/`pdb_utils`/`bdb_utils`, whose low numbers are a coverage-tracing artifact). Good remaining candidates (per a recent scan): `either_utils` (91%, lines 96-97/121-123/127/162-164/173), `rate_limiter_utils` (88%, 164-175), `priority_queue_utils` (89%, 164-170), `semver_utils` (91%), `slugify_utils` (92%), `ttl_cache_utils` (91%), `backoff_utils` (93%).
 4. When a fallback/except branch is unreachable dead code (e.g. a delegated generator/iterator that defers its exception), fix the source so the fallback is reachable and add tests that exercise it; otherwise add tests that pin the existing behavior. Keep changes minimal and behavior-preserving on the happy path.
-5. Run `make lint`, `make typecheck`, and the targeted tests when source-relevant files change; run the full suite (`pytest tests/ -q`) before recording the checkpoint.
+5. Run `make lint`, `make typecheck`, and the targeted tests when source-relevant files change; run the full suite (`python -m unittest discover tests/`) before recording the checkpoint.
 6. If editing any wrapper module/test/CHANGELOG, run `make refresh-scaffold` (re-run after CHANGELOG edits) then `python tools/refresh_scaffold.py --check`.
 7. Update handover files; post next task to board when a second participant exists. No `.github/workflows/**` changes.
