@@ -9,6 +9,7 @@ except Exception:
     _nntplib = None  # type: ignore[assignment]
     _NNTP_LIB_AVAILABLE = False
 
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -97,6 +98,11 @@ def create_nntp(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP(host, port, user, password, readermode, usenetrc)
     return NNTP(host, port, user, password, readermode, usenetrc, float(timeout))
@@ -126,6 +132,11 @@ def create_nntp_ssl(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc)
     return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, float(timeout))

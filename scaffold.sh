@@ -94960,6 +94960,7 @@ control of when (and if) a connection is attempted.
 from __future__ import annotations
 
 import imaplib as _imaplib
+import math
 import re
 import time
 from datetime import datetime
@@ -95052,8 +95053,11 @@ def _require_port(value: Any, name: str) -> int:
 
 def _require_timeout(value: Any) -> Optional[float]:
     timeout = _require_optional_float(value, "timeout")
-    if timeout is not None and timeout < 0:
-        raise ValueError("timeout must be non-negative")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     return timeout
 
 
@@ -95455,6 +95459,12 @@ class TestCreateImap4(unittest.TestCase):
             imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, "1")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, -1)
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, float("nan"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, float("inf"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, float("-inf"))
 
     def test_create_imap4_timeout_is_coerced_to_float(self):
         with mock.patch.object(imaplib, "IMAP4") as fake:
@@ -95493,6 +95503,14 @@ class TestCreateImap4Ssl(unittest.TestCase):
             imaplib_utils.create_imap4_ssl("localhost", 993, certfile=5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             imaplib_utils.create_imap4_ssl("localhost", 993, timeout="1")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=-1)
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=float("-inf"))
 
     def test_create_imap4_ssl_port_out_of_range(self):
         with self.assertRaises(ValueError):
@@ -164617,6 +164635,18 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(TypeError):
             nntplib_utils.create_nntp("host", timeout="soon")  # type: ignore[arg-type]
 
+    def test_create_nntp_timeout_rejects_non_finite(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=float("-inf"))
+
+    def test_create_nntp_timeout_rejects_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=-1)
+
     def test_create_nntp_ssl_host_must_be_str(self) -> None:
         with self.assertRaises(TypeError):
             nntplib_utils.create_nntp_ssl(123)  # type: ignore[arg-type]
@@ -164628,6 +164658,18 @@ class TestValidation(unittest.TestCase):
     def test_create_nntp_ssl_timeout_must_be_number(self) -> None:
         with self.assertRaises(TypeError):
             nntplib_utils.create_nntp_ssl("host", timeout="soon")  # type: ignore[arg-type]
+
+    def test_create_nntp_ssl_timeout_rejects_non_finite(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=float("-inf"))
+
+    def test_create_nntp_ssl_timeout_rejects_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=-1)
 
 
 @unittest.skipUnless(nntplib_utils.is_available(), "nntplib not available")
@@ -172388,6 +172430,7 @@ except Exception:
     _nntplib = None  # type: ignore[assignment]
     _NNTP_LIB_AVAILABLE = False
 
+import math
 from typing import Any
 
 __all__: list[str] = [
@@ -172476,6 +172519,11 @@ def create_nntp(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP(host, port, user, password, readermode, usenetrc)
     return NNTP(host, port, user, password, readermode, usenetrc, float(timeout))
@@ -172505,6 +172553,11 @@ def create_nntp_ssl(
         raise TypeError("password must be a str or None")
     if timeout is not None and (not isinstance(timeout, (int, float)) or isinstance(timeout, bool)):
         raise TypeError("timeout must be a number or None")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc)
     return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, float(timeout))

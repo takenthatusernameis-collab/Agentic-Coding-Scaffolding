@@ -16,6 +16,7 @@ control of when (and if) a connection is attempted.
 from __future__ import annotations
 
 import imaplib as _imaplib
+import math
 import re
 import time
 from datetime import datetime
@@ -108,8 +109,11 @@ def _require_port(value: Any, name: str) -> int:
 
 def _require_timeout(value: Any) -> Optional[float]:
     timeout = _require_optional_float(value, "timeout")
-    if timeout is not None and timeout < 0:
-        raise ValueError("timeout must be non-negative")
+    if timeout is not None:
+        if not math.isfinite(timeout):
+            raise ValueError("timeout must be finite")
+        if timeout < 0:
+            raise ValueError("timeout must be non-negative")
     return timeout
 
 

@@ -59,6 +59,12 @@ class TestCreateImap4(unittest.TestCase):
             imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, "1")  # type: ignore[arg-type]
         with self.assertRaises(ValueError):
             imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, -1)
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, float("nan"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, float("inf"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4("localhost", imaplib.IMAP4_PORT, float("-inf"))
 
     def test_create_imap4_timeout_is_coerced_to_float(self):
         with mock.patch.object(imaplib, "IMAP4") as fake:
@@ -97,6 +103,14 @@ class TestCreateImap4Ssl(unittest.TestCase):
             imaplib_utils.create_imap4_ssl("localhost", 993, certfile=5)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             imaplib_utils.create_imap4_ssl("localhost", 993, timeout="1")  # type: ignore[arg-type]
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=-1)
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            imaplib_utils.create_imap4_ssl("localhost", 993, timeout=float("-inf"))
 
     def test_create_imap4_ssl_port_out_of_range(self):
         with self.assertRaises(ValueError):

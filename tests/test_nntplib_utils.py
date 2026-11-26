@@ -69,6 +69,18 @@ class TestValidation(unittest.TestCase):
         with self.assertRaises(TypeError):
             nntplib_utils.create_nntp("host", timeout="soon")  # type: ignore[arg-type]
 
+    def test_create_nntp_timeout_rejects_non_finite(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=float("-inf"))
+
+    def test_create_nntp_timeout_rejects_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp("host", timeout=-1)
+
     def test_create_nntp_ssl_host_must_be_str(self) -> None:
         with self.assertRaises(TypeError):
             nntplib_utils.create_nntp_ssl(123)  # type: ignore[arg-type]
@@ -80,6 +92,18 @@ class TestValidation(unittest.TestCase):
     def test_create_nntp_ssl_timeout_must_be_number(self) -> None:
         with self.assertRaises(TypeError):
             nntplib_utils.create_nntp_ssl("host", timeout="soon")  # type: ignore[arg-type]
+
+    def test_create_nntp_ssl_timeout_rejects_non_finite(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=float("nan"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=float("inf"))
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=float("-inf"))
+
+    def test_create_nntp_ssl_timeout_rejects_negative(self) -> None:
+        with self.assertRaises(ValueError):
+            nntplib_utils.create_nntp_ssl("host", timeout=-1)
 
 
 @unittest.skipUnless(nntplib_utils.is_available(), "nntplib not available")
