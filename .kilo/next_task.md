@@ -4,6 +4,8 @@ Session (2026-11-26): Resolved all pre-existing lint/typecheck issues in `tests/
 
 The accepts-invalid-input (NaN/Infinity past range guards) defect hunt is complete for all previously reviewed modules (see handover.md for the full list).
 
+**Latest:** sched_utils reviewed (enter/enterabs finite + range + type guards added). Tests pass.
+
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`. Expect rc=0/1; if rc=2 run `python tools/verify_state_delta.py --full` once.

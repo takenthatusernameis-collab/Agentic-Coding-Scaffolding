@@ -88,3 +88,33 @@ def test_enterabs_future_time_event_is_queued():
     clock[0] = 100
     sched_utils.run(s)
     assert results == ["late"]
+
+
+def test_enter_rejects_nan_delay():
+    s = sched_utils.scheduler()
+    try:
+        sched_utils.enter(s, float("nan"), 1, lambda: None)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_enter_rejects_infinite_delay():
+    s = sched_utils.scheduler()
+    try:
+        sched_utils.enter(s, float("inf"), 1, lambda: None)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_enterabs_rejects_nan_time():
+    s = sched_utils.scheduler()
+    try:
+        sched_utils.enterabs(s, float("nan"), 1, lambda: None)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")

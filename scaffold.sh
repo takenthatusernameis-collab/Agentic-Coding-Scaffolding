@@ -120835,6 +120835,7 @@ TEST_RUNPY_UTILS
 cat > "$OUTPUT_DIR/sched_utils.py" <<'SCHED_UTILS'
 """Utilities wrapping the standard library ``sched`` module."""
 
+import math
 import sched
 import time
 
@@ -120854,10 +120855,20 @@ def scheduler(timefunc=time.monotonic, delayfunc=time.sleep) -> sched.scheduler:
 
 
 def enter(s, delay, priority, action, *argument, **kwargs):
+    if isinstance(delay, bool) or not isinstance(delay, (int, float)):
+        raise TypeError(f"delay must be a number, got {type(delay).__name__}")
+    if not math.isfinite(delay):
+        raise ValueError(f"delay must be finite, got {delay!r}")
+    if delay < 0:
+        raise ValueError(f"delay must be non-negative, got {delay}")
     return s.enter(delay, priority, action, argument, kwargs)
 
 
 def enterabs(s, time, priority, action, *argument, **kwargs):
+    if isinstance(time, bool) or not isinstance(time, (int, float)):
+        raise TypeError(f"time must be a number, got {type(time).__name__}")
+    if not math.isfinite(time):
+        raise ValueError(f"time must be finite, got {time!r}")
     return s.enterabs(time, priority, action, argument, kwargs)
 
 
@@ -120969,6 +120980,36 @@ def test_enterabs_future_time_event_is_queued():
     clock[0] = 100
     sched_utils.run(s)
     assert results == ["late"]
+
+
+def test_enter_rejects_nan_delay():
+    s = sched_utils.scheduler()
+    try:
+        sched_utils.enter(s, float("nan"), 1, lambda: None)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_enter_rejects_infinite_delay():
+    s = sched_utils.scheduler()
+    try:
+        sched_utils.enter(s, float("inf"), 1, lambda: None)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_enterabs_rejects_nan_time():
+    s = sched_utils.scheduler()
+    try:
+        sched_utils.enterabs(s, float("nan"), 1, lambda: None)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected ValueError")
 TEST_SCHED_UTILS
 
 # --- secrets_utils.py ---
