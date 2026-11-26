@@ -48145,7 +48145,7 @@ def parse_uuid(uuid_str: str) -> uuid.UUID:
         A UUID object.
 
     Raises:
-        ValueError: If the string is not a valid UUID.
+        ValueError: If the string is not a valid UUID.  # audit-ignore: ValueError
 
     Examples:
         >>> u = parse_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479")
@@ -74946,6 +74946,12 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `uuid_utils` triages 1 stdlib-delegation `Raises:` entry with `# audit-ignore:`
+
+- **Tooling — `uuid_utils.parse_uuid` documents an exception genuinely raised by the delegated standard-library call.** `parse_uuid` documents `ValueError: If the string is not a valid UUID.`, propagated from the delegated `uuid.UUID` call (raises `ValueError: badly formed hexadecimal UUID string` for an invalid UUID string, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `uuid_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 12 to 11.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_uuid_utils` — 15 OK; `python -m ruff check uuid_utils.py tests/test_uuid_utils.py` — clean; `python -m mypy uuid_utils.py tests/test_uuid_utils.py` — success; `python tools/audit_contracts.py uuid_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 11 low-signal / 0 genuine defects (was 12); `python tools/refresh_scaffold.py --check` — in sync; `python tools/verify_state_delta.py --full --record-full-suite` — passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `template_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — two `template_utils` functions document exceptions genuinely raised by delegated standard-library calls.** `render_template` documents `KeyError` propagated from the delegated `str.format` call (a missing placeholder raises `KeyError`, empirically confirmed); `substitute` documents `KeyError` propagated from the delegated `string.Template.substitute` call (a missing placeholder raises `KeyError`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore: KeyError` comment so the reviewed delegation is not re-reported. The `template_utils` audit section drops from 2 low-signal candidates to 0; the repository scan drops from 15 to 13.

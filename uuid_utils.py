@@ -110,7 +110,7 @@ def parse_uuid(uuid_str: str) -> uuid.UUID:
         A UUID object.
 
     Raises:
-        ValueError: If the string is not a valid UUID.
+        ValueError: If the string is not a valid UUID.  # audit-ignore: ValueError
 
     Examples:
         >>> u = parse_uuid("f47ac10b-58cc-4372-a567-0e02b2c3d479")
