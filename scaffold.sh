@@ -167406,6 +167406,12 @@ class TestBackoffUtils(unittest.TestCase):
             exponential_backoff(1.0, 2.0, -1.0)
         with self.assertRaises(TypeError):
             exponential_backoff("x", 2.0, 100.0)
+        with self.assertRaises(TypeError):
+            exponential_backoff(1.0, "x", 100.0)
+        with self.assertRaises(TypeError):
+            exponential_backoff(1.0, 2.0, "x")
+        with self.assertRaises(TypeError):
+            exponential_backoff(1.0, 2.0, 100.0, attempt="x")
         with self.assertRaises(ValueError):
             exponential_backoff(1.0, 2.0, 100.0, attempt=0)
 
