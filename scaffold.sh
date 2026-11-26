@@ -45046,7 +45046,7 @@ def power_set(items: Iterable[T]) -> Iterator[Tuple[T, ...]]:
         elements within each subset.
 
     Raises:
-        TypeError: If ``items`` is not iterable.
+        TypeError: If ``items`` is not iterable.  # audit-ignore: TypeError
 
     Examples:
         >>> [len(s) for s in power_set([1, 2])]
