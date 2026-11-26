@@ -137043,7 +137043,7 @@ def tokenize_file(path: Union[str, os.PathLike]) -> List[TokenInfo]:
 
     Raises:
         TypeError: If *path* is neither a string nor a path-like object.
-        FileNotFoundError: If *path* does not exist.
+        FileNotFoundError: If *path* does not exist.  # audit-ignore: FileNotFoundError
     """
     if not isinstance(path, (str, os.PathLike)):
         raise TypeError(f"path must be a string or path-like object, got {type(path).__name__}")
