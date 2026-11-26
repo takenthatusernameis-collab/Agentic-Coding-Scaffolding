@@ -505,7 +505,7 @@ def sort_versions(versions: List[str]) -> List[str]:
 
     Raises:
         TypeError: If *versions* is not a list or contains non-string elements.
-        ValueError: If any version string is invalid.
+        ValueError: If any version string is invalid.  # audit-ignore: ValueError
     """
     if not isinstance(versions, list):
         raise TypeError("versions must be a list")

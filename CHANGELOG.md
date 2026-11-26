@@ -1,3 +1,9 @@
+## Unreleased — `version_utils` triages `sort_versions` ValueError delegation with `# audit-ignore:`
+
+- **Tooling — `version_utils.sort_versions` documents an exception genuinely raised by the delegated standard-library call.** `sort_versions` documents `ValueError: If any version string is invalid.`, propagated from the delegated `parse_version` call (an invalid version string raises `ValueError`, empirically confirmed). The `Raises:` line now carries an inline `# audit-ignore: ValueError` comment so the reviewed delegation is not re-reported. The `version_utils` audit section drops from 1 low-signal candidate to 0; the repository scan drops from 7 to 6.
+- **Defect class:** none — audit false-positive reduction (higher-signal diagnostics), not a product defect.
+- Validation: `python -m unittest tests.test_version_utils` — 302 OK; `python -m ruff check version_utils.py` — clean; `python -m mypy version_utils.py` — success; `python tools/audit_contracts.py version_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 6 low-signal / 0 genuine defects (was 7); `python tools/refresh_scaffold.py --check` — in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `symtable_utils` triages 2 stdlib-delegation `Raises:` entries with `# audit-ignore:`
 
 - **Tooling — two `symtable_utils` functions document exceptions genuinely raised by delegated standard-library calls.** `build_symbol_table` documents `SyntaxError` propagated from the delegated `symtable.symtable` call (invalid Python source raises `SyntaxError`, empirically confirmed); `lookup_symbol_table` documents `OSError` propagated from the delegated `Path.read_text` call (an unreadable/missing source file raises `OSError`, empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore:` comment so the reviewed delegation is not re-reported. The `symtable_utils` audit section drops from 2 low-signal candidates to 0; the repository scan drops from 11 to 9.
