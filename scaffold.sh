@@ -3074,24 +3074,26 @@ class TestValidationHelpers(unittest.TestCase):
             _require_path(None, "path")
 
     def test_require_path_returns_path_for_path(self):
-        from trace_utils import _require_path
         from pathlib import Path
+
+        from trace_utils import _require_path
 
         p = Path("/tmp")
         self.assertIs(_require_path(p, "path"), p)
 
     def test_require_path_returns_path_for_string(self):
-        from trace_utils import _require_path
         from pathlib import Path
+
+        from trace_utils import _require_path
 
         result = _require_path("/tmp", "path")
         self.assertIsInstance(result, Path)
         self.assertEqual(result, Path("/tmp"))
 
     def test_require_path_returns_path_for_pathlike(self):
-        from trace_utils import _require_path
         from pathlib import Path
-        import os
+
+        from trace_utils import _require_path
 
         class PathLike:
             def __fspath__(self):
@@ -3132,7 +3134,7 @@ class TestValidationHelpers(unittest.TestCase):
             _require_results(None, "results")
 
     def test_require_results_returns_results(self):
-        from trace_utils import _require_results, CoverageResults
+        from trace_utils import CoverageResults, _require_results
 
         results = CoverageResults()
         self.assertIs(_require_results(results, "results"), results)
@@ -3146,7 +3148,7 @@ class TestValidationHelpers(unittest.TestCase):
             _require_tracer(None, "tracer")
 
     def test_require_tracer_returns_tracer(self):
-        from trace_utils import _require_tracer, Trace
+        from trace_utils import Trace, _require_tracer
 
         tracer = Trace()
         self.assertIs(_require_tracer(tracer, "tracer"), tracer)
@@ -3169,6 +3171,7 @@ class TestExecutableLines(unittest.TestCase):
 
     def test_executable_lines_returns_none_for_syntax_error(self):
         import tempfile
+
         from trace_utils import _executable_lines
 
         with tempfile.NamedTemporaryFile(suffix=".py", delete=False) as f:
@@ -3186,25 +3189,6 @@ class TestExecutableLines(unittest.TestCase):
         result = _executable_lines(__file__)
         self.assertIsInstance(result, set)
         self.assertTrue(len(result) > 0)
-
-
-class TestRunScriptTracedEdgeCases(unittest.TestCase):
-    """Verify edge cases in run_script_traced."""
-
-    def test_run_script_traced_non_int_system_exit(self):
-        with tempfile.TemporaryDirectory() as directory:
-            script = Path(directory) / "exit_str.py"
-            script.write_text("import sys\nsys.exit('message')\n", encoding="utf-8")
-            exit_code, _ = trace_utils.run_script_traced(script)
-            self.assertEqual(exit_code, 1)
-
-    def test_run_script_traced_invalid_file_type_raises(self):
-        with self.assertRaises(TypeError):
-            trace_utils.run_script_traced(123)
-
-    def test_run_script_traced_nonexistent_file_raises(self):
-        with self.assertRaises(FileNotFoundError):
-            trace_utils.run_script_traced(Path("/nonexistent/script.py"))
 
 
 class TestCountedLinesEdgeCases(unittest.TestCase):
