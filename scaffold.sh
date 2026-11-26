@@ -39258,6 +39258,9 @@ class TestMinLength(unittest.TestCase):
         with self.assertRaises(ValueError):
             min_length("test", False)
 
+    def test_min_length_non_collection_returns_false(self):
+        self.assertFalse(min_length(42, 2))
+
 
 class TestMaxLength(unittest.TestCase):
     def test_max_length_valid(self):
@@ -39280,6 +39283,9 @@ class TestMaxLength(unittest.TestCase):
             max_length("test", True)
         with self.assertRaises(ValueError):
             max_length("test", False)
+
+    def test_max_length_non_collection_returns_false(self):
+        self.assertFalse(max_length(42, 2))
 
 
 class TestMatchesRegex(unittest.TestCase):
@@ -39333,6 +39339,11 @@ class TestIsValidHostname(unittest.TestCase):
         self.assertFalse(is_valid_hostname("a" * 64 + ".com"))  # label too long
         self.assertFalse(is_valid_hostname("example.com."))
         self.assertFalse(is_valid_hostname("example.com.."))
+
+    def test_hostname_too_long_without_trailing_dot(self):
+        # A hostname over 253 chars that does not end in a dot is rejected by
+        # the length guard before any label check runs.
+        self.assertFalse(is_valid_hostname("a" * 254))
 
 
 if __name__ == "__main__":
@@ -75189,6 +75200,15 @@ class TestIntervalSymmetricDifference(unittest.TestCase):
     def test_invalid_interval_raises(self):
         with self.assertRaises(ValueError):
             interval_symmetric_difference((5, 1), (2, 4))
+
+    def test_touching_intervals_both_sides_extend(self):
+        # Touching at a single endpoint with each interval extending past it
+        # exercises both single-point sliver branches.
+        result = interval_symmetric_difference((5, 8), (1, 5))
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], 1)
+        self.assertEqual(result[1][1], 8)
+        self.assertFalse(interval_overlaps(result[0], result[1]))
 
 
 class TestIntervalUtilsBoundaries(unittest.TestCase):

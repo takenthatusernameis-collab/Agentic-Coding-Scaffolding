@@ -394,6 +394,15 @@ class TestIntervalSymmetricDifference(unittest.TestCase):
         with self.assertRaises(ValueError):
             interval_symmetric_difference((5, 1), (2, 4))
 
+    def test_touching_intervals_both_sides_extend(self):
+        # Touching at a single endpoint with each interval extending past it
+        # exercises both single-point sliver branches.
+        result = interval_symmetric_difference((5, 8), (1, 5))
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0][0], 1)
+        self.assertEqual(result[1][1], 8)
+        self.assertFalse(interval_overlaps(result[0], result[1]))
+
 
 class TestIntervalUtilsBoundaries(unittest.TestCase):
     def test_normalize_interval_float_inf(self):
