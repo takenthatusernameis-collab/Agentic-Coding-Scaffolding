@@ -894,20 +894,15 @@ def is_perfect_power(value: Number) -> bool:
     n = int(value)
     if n <= 1:
         return False
-    # Check if it's a perfect power for some integer base >= 2, exponent >= 2
+    # Check if it's a perfect power for some integer base >= 2, exponent >= 2.
+    # Use an exact integer ``b``-th root (Newton's method) rather than a float
+    # ``n ** (1 / b)`` estimate, which loses precision for large integers and
+    # raises ``OverflowError`` for values too large to convert to float.
     max_exp = n.bit_length()
     for b in range(2, max_exp + 1):
-        # Find integer a = n^(1/b)
-        a_float = n ** (1.0 / b)
-        a = round(a_float)
-        if a < 2:
-            continue
-        # Check a few candidates due to floating point precision
-        for candidate in (a - 1, a, a + 1):
-            if candidate < 2:
-                continue
-            if candidate**b == n:
-                return True
+        root, exact = integer_nth_root(n, b)
+        if exact and root >= 2:
+            return True
     return False
 
 

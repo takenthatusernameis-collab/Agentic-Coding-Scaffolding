@@ -80,6 +80,30 @@ def _require_int(value: object, name: str) -> int:
     return value
 
 
+def _integer_nth_root(value: int, n: int) -> tuple[int, bool]:
+    """Return the integer ``n``-th root of *value* and whether it is exact.
+
+    Computes ``(r, exact)`` such that ``r**n <= value < (r + 1)**n`` for
+    non-negative *value*, and ``exact`` is True when ``r**n == value``.
+    Uses Newton's method on integers so it is exact for arbitrarily large
+    integers, unlike a float ``value ** (1 / n)`` estimate which loses
+    precision and overflows for values too large to convert to float.
+    """
+    if value < 2:
+        return value, True
+    r = 1 << ((value.bit_length() + n - 1) // n)
+    while True:
+        r_next = ((n - 1) * r + value // (r ** (n - 1))) // n
+        if r_next >= r:
+            break
+        r = r_next
+    exact = r**n == value
+    if not exact and (r + 1) ** n <= value:
+        r += 1
+        exact = r**n == value
+    return r, exact
+
+
 def is_prime(n: int) -> bool:
     """Return True if *n* is a prime number.
 
@@ -469,24 +493,15 @@ def is_prime_power(n: int) -> bool:
         n = -n
     if n <= 1:
         return False
-    # Find integer k >= 2 such that there exists prime p with p^k == n
-    # Find maximum possible exponent
+    # Find integer k >= 2 such that there exists prime p with p^k == n.
+    # Use an exact integer k-th root rather than a float ``n ** (1 / k)``
+    # estimate, which loses precision for large integers and raises
+    # ``OverflowError`` for values too large to convert to float.
     max_exp = n.bit_length()
     for k in range(2, max_exp + 1):
-        # Try to find integer p = n^(1/k)
-        p_float = n ** (1.0 / k)
-        p = round(p_float)
-        if p < 2:
-            continue
-        # Check p, p+0,p±1 due to floating point precision
-        for candidate in [p - 1, p, p + 1]:
-            if candidate < 2:
-                continue
-            pow_val = candidate**k
-            if pow_val == n and is_prime(candidate):
-                return True
-            if pow_val > n:
-                break
+        root, exact = _integer_nth_root(n, k)
+        if exact and root >= 2 and is_prime(root):
+            return True
     return False
 
 
@@ -1473,23 +1488,15 @@ def is_perfect_power(n: int) -> bool:
     # 1 is not considered a perfect power
     if n_abs == 1:
         return False
-    # Check if it's a perfect power for some integer base >= 2, exponent >= 2
+    # Check if it's a perfect power for some integer base >= 2, exponent >= 2.
+    # Use an exact integer ``b``-th root rather than a float ``n_abs ** (1 / b)``
+    # estimate, which loses precision for large integers and raises
+    # ``OverflowError`` for values too large to convert to float.
     max_exp = n_abs.bit_length()
     for b in range(2, max_exp + 1):
-        # Find integer a = n_abs^(1/b)
-        a_float = n_abs ** (1.0 / b)
-        a = round(a_float)
-        if a < 2:
-            continue
-        # Check a few candidates due to floating point precision
-        for candidate in [a - 1, a, a + 1]:
-            if candidate < 2:
-                continue
-            pow_val = candidate**b
-            if pow_val == n_abs:
-                return True
-            if pow_val > n_abs:
-                break
+        root, exact = _integer_nth_root(n_abs, b)
+        if exact and root >= 2:
+            return True
     return False
 
 

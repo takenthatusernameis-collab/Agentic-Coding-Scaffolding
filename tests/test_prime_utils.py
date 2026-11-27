@@ -911,6 +911,13 @@ class TestIsPrimePowerLarge(unittest.TestCase):
         self.assertTrue(is_prime_power(3**20))
         self.assertFalse(is_prime_power(3**20 + 1))
 
+    def test_large_prime_power_does_not_overflow(self):
+        # ``2**2000`` is a prime power far beyond the finite float range;
+        # ``10**400`` has two distinct prime factors and is not. Neither may
+        # leak the ``OverflowError`` a float ``n ** (1 / k)`` estimate raises.
+        self.assertTrue(is_prime_power(2**2000))
+        self.assertFalse(is_prime_power(10**400))
+
 
 class TestIsSquarefreeEdge(unittest.TestCase):
     def test_negative_squarefree(self):
@@ -1597,6 +1604,13 @@ class TestIsPerfectPower(unittest.TestCase):
             is_perfect_power(True)
         with self.assertRaises(TypeError):
             is_perfect_power(None)
+
+    def test_large_perfect_power_does_not_overflow(self):
+        # ``10**400`` and ``2**2000`` exceed the finite float range; the
+        # helper must classify them without leaking ``OverflowError``.
+        self.assertTrue(is_perfect_power(10**400))
+        self.assertTrue(is_perfect_power(2**2000))
+        self.assertFalse(is_perfect_power(10**400 + 1))
 
 
 class TestIsPowerfulNumber(unittest.TestCase):

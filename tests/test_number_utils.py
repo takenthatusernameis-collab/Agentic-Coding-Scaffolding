@@ -927,6 +927,17 @@ class TestIsPerfectPower(unittest.TestCase):
         with self.assertRaises(TypeError):
             is_perfect_power("x")  # type: ignore[arg-type]
 
+    def test_large_perfect_power_does_not_overflow(self) -> None:
+        # ``10**400 == (10**200)**2`` and ``2**2000 == (2**1000)**2`` exceed
+        # the finite float range; the helper must classify them without
+        # leaking the ``OverflowError`` a float ``n ** (1 / b)`` estimate
+        # would raise.
+        self.assertTrue(is_perfect_power(10**400))
+        self.assertTrue(is_perfect_power(2**2000))
+        # ``10**400 + 1`` is one more than a perfect square and, by
+        # Mihailescu's theorem, cannot itself be a perfect power.
+        self.assertFalse(is_perfect_power(10**400 + 1))
+
 
 class TestMapRange(unittest.TestCase):
     def test_basic_mapping(self) -> None:

@@ -75718,6 +75718,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — perfect-power helpers surface large-integer overflow as correct results
+
+- **Defect — `number_utils.is_perfect_power`, `prime_utils.is_perfect_power`, and `prime_utils.is_prime_power` leaked an undocumented `OverflowError` for large integer inputs.** Each used a float `n ** (1.0 / b)` estimate to locate the integer `b`-th root; for values beyond the finite float range (e.g. `10**400`, `2**2000`) that conversion raises `OverflowError: int too large to convert to float`, which the docstrings' `Raises:` sections (only `TypeError`) did not document. This is the same defect class as the `calculator.power` overflow fix: a numeric helper leaking an out-of-range `OverflowError` instead of returning a correct result.
+- **Fix:** replaced the float estimate with an exact integer `b`-th root computed by Newton's method (`number_utils.integer_nth_root`, reused directly; a new private `prime_utils._integer_nth_root` mirrors it), then check `root >= 2` (and `is_prime(root)` for `is_prime_power`). The integer root is exact for arbitrarily large integers, so `is_perfect_power(10**400)` / `is_perfect_power(2**2000)` now return `True` and `is_prime_power(2**2000)` returns `True` without raising. No change to any in-range result (verified against a brute-force reference for all `n` in `0..3000`).
+- **Tests:** added `test_large_perfect_power_does_not_overflow` to `TestIsPerfectPower` in both `tests/test_number_utils.py` and `tests/test_prime_utils.py`, and `test_large_prime_power_does_not_overflow` to `TestIsPrimePowerLarge`; each asserts the huge perfect-power / prime-power cases classify correctly and that `10**400 + 1` (one more than a perfect square, not a perfect power by Mihailescu's theorem) returns `False`.
+- **Defect class:** undocumented-exception / accepts-out-of-range-result correctness fix; no change to in-range behavior.
+- Validation: `python -m pytest tests/test_number_utils.py tests/test_prime_utils.py` — 694 OK; doctests `python -m doctest number_utils.py prime_utils.py` — 171 OK; brute-force fuzz `0..3000` — 0 mismatches; `python -m ruff check` clean; `python -m mypy` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `calculator.power` surfaces result overflow as `ValueError`
 
 - **Defect — `calculator.power` leaked an undocumented `OverflowError`.** For results beyond the finite float range (e.g. `power(10, 400)`, `power(10.0, 400)`, `power(2, 2000)`) the final `float(a**b)` raised `OverflowError`, which the docstring's `Raises:` section did not document (only `TypeError`/`ValueError`). Every other numeric helper in the module rejects non-finite/out-of-range results with `ValueError`, so the leaked `OverflowError` was inconsistent with the module contract.
@@ -102822,20 +102830,15 @@ def is_perfect_power(value: Number) -> bool:
     n = int(value)
     if n <= 1:
         return False
-    # Check if it's a perfect power for some integer base >= 2, exponent >= 2
+    # Check if it's a perfect power for some integer base >= 2, exponent >= 2.
+    # Use an exact integer ``b``-th root (Newton's method) rather than a float
+    # ``n ** (1 / b)`` estimate, which loses precision for large integers and
+    # raises ``OverflowError`` for values too large to convert to float.
     max_exp = n.bit_length()
     for b in range(2, max_exp + 1):
-        # Find integer a = n^(1/b)
-        a_float = n ** (1.0 / b)
-        a = round(a_float)
-        if a < 2:
-            continue
-        # Check a few candidates due to floating point precision
-        for candidate in (a - 1, a, a + 1):
-            if candidate < 2:
-                continue
-            if candidate**b == n:
-                return True
+        root, exact = integer_nth_root(n, b)
+        if exact and root >= 2:
+            return True
     return False
 
 
@@ -105448,6 +105451,17 @@ class TestIsPerfectPower(unittest.TestCase):
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_perfect_power("x")  # type: ignore[arg-type]
+
+    def test_large_perfect_power_does_not_overflow(self) -> None:
+        # ``10**400 == (10**200)**2`` and ``2**2000 == (2**1000)**2`` exceed
+        # the finite float range; the helper must classify them without
+        # leaking the ``OverflowError`` a float ``n ** (1 / b)`` estimate
+        # would raise.
+        self.assertTrue(is_perfect_power(10**400))
+        self.assertTrue(is_perfect_power(2**2000))
+        # ``10**400 + 1`` is one more than a perfect square and, by
+        # Mihailescu's theorem, cannot itself be a perfect power.
+        self.assertFalse(is_perfect_power(10**400 + 1))
 
 
 class TestMapRange(unittest.TestCase):
@@ -113952,6 +113966,30 @@ def _require_int(value: object, name: str) -> int:
     return value
 
 
+def _integer_nth_root(value: int, n: int) -> tuple[int, bool]:
+    """Return the integer ``n``-th root of *value* and whether it is exact.
+
+    Computes ``(r, exact)`` such that ``r**n <= value < (r + 1)**n`` for
+    non-negative *value*, and ``exact`` is True when ``r**n == value``.
+    Uses Newton's method on integers so it is exact for arbitrarily large
+    integers, unlike a float ``value ** (1 / n)`` estimate which loses
+    precision and overflows for values too large to convert to float.
+    """
+    if value < 2:
+        return value, True
+    r = 1 << ((value.bit_length() + n - 1) // n)
+    while True:
+        r_next = ((n - 1) * r + value // (r ** (n - 1))) // n
+        if r_next >= r:
+            break
+        r = r_next
+    exact = r**n == value
+    if not exact and (r + 1) ** n <= value:
+        r += 1
+        exact = r**n == value
+    return r, exact
+
+
 def is_prime(n: int) -> bool:
     """Return True if *n* is a prime number.
 
@@ -114341,24 +114379,15 @@ def is_prime_power(n: int) -> bool:
         n = -n
     if n <= 1:
         return False
-    # Find integer k >= 2 such that there exists prime p with p^k == n
-    # Find maximum possible exponent
+    # Find integer k >= 2 such that there exists prime p with p^k == n.
+    # Use an exact integer k-th root rather than a float ``n ** (1 / k)``
+    # estimate, which loses precision for large integers and raises
+    # ``OverflowError`` for values too large to convert to float.
     max_exp = n.bit_length()
     for k in range(2, max_exp + 1):
-        # Try to find integer p = n^(1/k)
-        p_float = n ** (1.0 / k)
-        p = round(p_float)
-        if p < 2:
-            continue
-        # Check p, p+0,p±1 due to floating point precision
-        for candidate in [p - 1, p, p + 1]:
-            if candidate < 2:
-                continue
-            pow_val = candidate**k
-            if pow_val == n and is_prime(candidate):
-                return True
-            if pow_val > n:
-                break
+        root, exact = _integer_nth_root(n, k)
+        if exact and root >= 2 and is_prime(root):
+            return True
     return False
 
 
@@ -115345,23 +115374,15 @@ def is_perfect_power(n: int) -> bool:
     # 1 is not considered a perfect power
     if n_abs == 1:
         return False
-    # Check if it's a perfect power for some integer base >= 2, exponent >= 2
+    # Check if it's a perfect power for some integer base >= 2, exponent >= 2.
+    # Use an exact integer ``b``-th root rather than a float ``n_abs ** (1 / b)``
+    # estimate, which loses precision for large integers and raises
+    # ``OverflowError`` for values too large to convert to float.
     max_exp = n_abs.bit_length()
     for b in range(2, max_exp + 1):
-        # Find integer a = n_abs^(1/b)
-        a_float = n_abs ** (1.0 / b)
-        a = round(a_float)
-        if a < 2:
-            continue
-        # Check a few candidates due to floating point precision
-        for candidate in [a - 1, a, a + 1]:
-            if candidate < 2:
-                continue
-            pow_val = candidate**b
-            if pow_val == n_abs:
-                return True
-            if pow_val > n_abs:
-                break
+        root, exact = _integer_nth_root(n_abs, b)
+        if exact and root >= 2:
+            return True
     return False
 
 
@@ -116960,6 +116981,13 @@ class TestIsPrimePowerLarge(unittest.TestCase):
         self.assertTrue(is_prime_power(3**20))
         self.assertFalse(is_prime_power(3**20 + 1))
 
+    def test_large_prime_power_does_not_overflow(self):
+        # ``2**2000`` is a prime power far beyond the finite float range;
+        # ``10**400`` has two distinct prime factors and is not. Neither may
+        # leak the ``OverflowError`` a float ``n ** (1 / k)`` estimate raises.
+        self.assertTrue(is_prime_power(2**2000))
+        self.assertFalse(is_prime_power(10**400))
+
 
 class TestIsSquarefreeEdge(unittest.TestCase):
     def test_negative_squarefree(self):
@@ -117646,6 +117674,13 @@ class TestIsPerfectPower(unittest.TestCase):
             is_perfect_power(True)
         with self.assertRaises(TypeError):
             is_perfect_power(None)
+
+    def test_large_perfect_power_does_not_overflow(self):
+        # ``10**400`` and ``2**2000`` exceed the finite float range; the
+        # helper must classify them without leaking ``OverflowError``.
+        self.assertTrue(is_perfect_power(10**400))
+        self.assertTrue(is_perfect_power(2**2000))
+        self.assertFalse(is_perfect_power(10**400 + 1))
 
 
 class TestIsPowerfulNumber(unittest.TestCase):
