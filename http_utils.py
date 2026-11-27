@@ -1,6 +1,5 @@
 """HTTP utility functions for status codes and response handling."""
 
-import math
 from typing import Dict, Optional
 
 # HTTP status code category prefixes (1xx through 5xx)
@@ -104,12 +103,10 @@ def _validate_status_code(code: int) -> int:
 
     Raises:
         TypeError: If *code* is not an int (including bool).
-        ValueError: If *code* is not finite, or outside the valid range 100-599.
+        ValueError: If *code* is outside the valid range 100-599.
     """
     if isinstance(code, bool) or not isinstance(code, int):
         raise TypeError(f"code must be an int, got {type(code).__name__}")
-    if isinstance(code, float) and (math.isnan(code) or math.isinf(code)):
-        raise ValueError("code must be finite")
     if code < HTTP_STATUS_MIN or code > HTTP_STATUS_MAX:
         raise ValueError(
             f"code must be between {HTTP_STATUS_MIN} and {HTTP_STATUS_MAX}, got {code}"

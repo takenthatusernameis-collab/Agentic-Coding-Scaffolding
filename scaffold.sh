@@ -76435,6 +76435,13 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `http_utils` drops unreachable finite-float guard in `_validate_status_code`
+
+- **Cleanup — removed dead code and an inaccurate `Raises:` clause in `http_utils._validate_status_code`.** The guard `if isinstance(code, float) and (math.isnan(code) or math.isinf(code)): raise ValueError("code must be finite")` was unreachable: the preceding `if isinstance(code, bool) or not isinstance(code, int): raise TypeError(...)` already rejects every `float` (including `nan`/`inf`) with `TypeError`, so the `float` branch — and the `import math` that only served it — could never execute. The docstring's `Raises:` also claimed `ValueError: If *code* is not finite`, an outcome that cannot occur (non-finite values are floats and raise `TypeError`). The existing tests (`test_status_code_category_rejects_nan`/`_rejects_infinity`/`_rejects_float`) already pin the real contract (`TypeError`), so this aligns the code and docstring with the tested behavior. No behavior change.
+- **Functions updated:** `_validate_status_code` (removed unreachable `float`/`math.isfinite` branch; corrected `Raises:` to drop the impossible "not finite" `ValueError`); removed the now-unused `import math`.
+- **Defect class:** dead-code removal + contract-accuracy fix (no runtime behavior change).
+- Validation: `python -m unittest tests.test_http_utils` — 21 OK; `python -m ruff check http_utils.py tests/test_http_utils.py` clean; `python -m mypy http_utils.py` success; `python tools/audit_contracts.py --summary` — 0 issues; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — remove superseded `tools/_overflow_probe.py` scratch script
 
 - **Cleanup — deleted the one-off investigation script `tools/_overflow_probe.py`.** The probe enumerated candidate numeric helpers (`duration_utils`, `interval_utils`, `number_utils`, `semver_utils`, `cooldown_utils`) for undocumented `OverflowError` on huge integers. Its findings were already converted into durable regression tests — `TestHugeIntNoOverflow`-style cases in `tests/test_duration_utils.py`, `tests/test_number_utils.py`, `tests/test_interval_utils.py`, and `tests/test_cooldown_utils.py` pin the documented `ValueError("result is too large to represent as a finite float")` contract — so the script was redundant dead code. It was unreferenced (no imports, no Makefile target, no docs, not embedded in `scaffold.sh`) and not a test-covered module. No behavior change.
@@ -95936,7 +95943,6 @@ TEST_HEAPQ_UTILS
 cat > "$OUTPUT_DIR/http_utils.py" <<'HTTP_UTILS'
 """HTTP utility functions for status codes and response handling."""
 
-import math
 from typing import Dict, Optional
 
 # HTTP status code category prefixes (1xx through 5xx)
@@ -96040,12 +96046,10 @@ def _validate_status_code(code: int) -> int:
 
     Raises:
         TypeError: If *code* is not an int (including bool).
-        ValueError: If *code* is not finite, or outside the valid range 100-599.
+        ValueError: If *code* is outside the valid range 100-599.
     """
     if isinstance(code, bool) or not isinstance(code, int):
         raise TypeError(f"code must be an int, got {type(code).__name__}")
-    if isinstance(code, float) and (math.isnan(code) or math.isinf(code)):
-        raise ValueError("code must be finite")
     if code < HTTP_STATUS_MIN or code > HTTP_STATUS_MAX:
         raise ValueError(
             f"code must be between {HTTP_STATUS_MIN} and {HTTP_STATUS_MAX}, got {code}"
