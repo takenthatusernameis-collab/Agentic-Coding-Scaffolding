@@ -28944,6 +28944,9 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
     Raises:
         TypeError: If *days* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
     """
     if isinstance(days, bool) or not isinstance(days, int):
         raise TypeError("days must be an int")
@@ -28968,6 +28971,9 @@ def add_hours(dt: DateTimeLike, hours: int) -> datetime:
     Raises:
         TypeError: If *hours* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
 
     Examples:
         >>> add_hours("2024-01-01", 1)
@@ -29000,6 +29006,9 @@ def add_minutes(dt: DateTimeLike, minutes: int) -> datetime:
     Raises:
         TypeError: If *minutes* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
 
     Examples:
         >>> add_minutes("2024-01-01", 1)
@@ -29032,6 +29041,9 @@ def add_weeks(dt: DateTimeLike, weeks: int) -> datetime:
     Raises:
         TypeError: If *weeks* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
 
     Examples:
         >>> add_weeks("2024-01-01", 1)
@@ -36589,6 +36601,28 @@ class TestGetWeekdayName(unittest.TestCase):
     def test_weekday_name_invalid_string_raises(self) -> None:
         with self.assertRaises(ValueError):
             get_weekday_name("not-a-date")
+
+
+class TestAddOverflow(unittest.TestCase):
+    def test_add_days_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_days(datetime.max, 1)
+
+    def test_add_hours_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_hours(datetime.max, 1)
+
+    def test_add_minutes_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_minutes(datetime.max, 1)
+
+    def test_add_weeks_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_weeks(datetime.max, 1)
+
+    def test_add_days_underflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_days(datetime.min, -1)
 
 
 if __name__ == "__main__":
@@ -76305,6 +76339,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `datetime_utils` documents `OverflowError` leaks from datetime range overflow
+
+- **Audit — `datetime_utils` shift helpers leaked an undocumented `OverflowError`.** `add_days`, `add_hours`, `add_minutes`, and `add_weeks` (which delegates to `add_days`) compute `dt + timedelta(...)`; when the result falls outside the supported `datetime` range (e.g. `datetime.max` plus a positive offset, or `datetime.min` minus a positive offset) the stdlib raises `OverflowError: date value out of range`. The docstrings' `Raises:` sections listed only `TypeError`/`ValueError`, so callers catching those were surprised by the boundary overflow. This is a genuine stdlib `datetime` delegation signal (not an input-validation gap), so each is documented in `Raises:` with an inline `# audit-ignore:` comment (matching the `cmath_utils`/`decimal_utils`/`fractions_utils` convention).
+- **Functions updated:** `add_days`, `add_hours`, `add_minutes`, `add_weeks` (`OverflowError`). No behavior change.
+- **Tests:** added `TestAddOverflow` to `tests/test_datetime_utils.py` pinning the leak on both the upper (`datetime.max`) and lower (`datetime.min`) boundaries.
+- **Defect class:** undocumented-exception audit (stdlib delegation documented with `# audit-ignore:`); no behavior change.
+- Validation: `python -m unittest tests.test_datetime_utils` — 63 OK; doctests `python -m unittest tests.test_doctests` — OK; `python -m ruff check datetime_utils.py tests/test_datetime_utils.py` clean; `python -m mypy datetime_utils.py` success; `python tools/audit_contracts.py` — 0 issues; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `decimal_utils` documents `decimal.InvalidOperation` / `decimal.Overflow` leaks
 
 - **Audit — `decimal_utils` arithmetic helpers leaked undocumented `decimal.InvalidOperation` and `decimal.Overflow` exceptions.** The `decimal` stdlib raises these on undefined operations and out-of-range results (e.g. `add`/`subtract`/`multiply` overflow the context exponent range on `1e1000000`-scale operands; `multiply("Infinity", 0)`, `divide("Infinity", "Infinity")`, `power(-1, "0.5")`, and any `sNaN` operand raise `InvalidOperation`; `quantize("1e100", 2)` raises `InvalidOperation` for too many significant digits). The docstrings' `Raises:` sections did not document them, so callers catching only `TypeError`/`ValueError`/`ZeroDivisionError` were surprised. These are genuine stdlib `decimal` delegation signals (not input-validation gaps), so each is documented in `Raises:` with an inline `# audit-ignore:` comment (matching the `cmath_utils`/`fractions_utils`/`operator_utils` convention).

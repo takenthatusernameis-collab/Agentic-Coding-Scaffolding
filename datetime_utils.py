@@ -106,6 +106,9 @@ def add_days(dt: DateTimeLike, days: int) -> datetime:
     Raises:
         TypeError: If *days* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
     """
     if isinstance(days, bool) or not isinstance(days, int):
         raise TypeError("days must be an int")
@@ -130,6 +133,9 @@ def add_hours(dt: DateTimeLike, hours: int) -> datetime:
     Raises:
         TypeError: If *hours* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
 
     Examples:
         >>> add_hours("2024-01-01", 1)
@@ -162,6 +168,9 @@ def add_minutes(dt: DateTimeLike, minutes: int) -> datetime:
     Raises:
         TypeError: If *minutes* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
 
     Examples:
         >>> add_minutes("2024-01-01", 1)
@@ -194,6 +203,9 @@ def add_weeks(dt: DateTimeLike, weeks: int) -> datetime:
     Raises:
         TypeError: If *weeks* is not an int.
         ValueError: If a string argument cannot be parsed.
+        OverflowError: If the resulting datetime exceeds the supported range
+            (e.g. ``datetime.max`` plus a positive offset).
+            # audit-ignore: OverflowError
 
     Examples:
         >>> add_weeks("2024-01-01", 1)

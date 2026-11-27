@@ -302,5 +302,27 @@ class TestGetWeekdayName(unittest.TestCase):
             get_weekday_name("not-a-date")
 
 
+class TestAddOverflow(unittest.TestCase):
+    def test_add_days_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_days(datetime.max, 1)
+
+    def test_add_hours_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_hours(datetime.max, 1)
+
+    def test_add_minutes_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_minutes(datetime.max, 1)
+
+    def test_add_weeks_overflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_weeks(datetime.max, 1)
+
+    def test_add_days_underflow_raises(self) -> None:
+        with self.assertRaises(OverflowError):
+            add_days(datetime.min, -1)
+
+
 if __name__ == "__main__":
     unittest.main()
