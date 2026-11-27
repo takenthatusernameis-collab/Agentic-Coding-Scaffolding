@@ -1,9 +1,9 @@
 # Task for Next Agent
 
-Session (2026-11-27): state-confirmation pass. `verify_state_delta.py --probe` rc=2
-(checkpoint behind HEAD on bookkeeping); ran `--full --record-full-suite` — passed,
-checkpoint advanced to `5beae364`. No source changes; both defect classes remain
-exhausted and test-covered. No `.github/workflows/**` changes.
+Session (2026-11-27): state-confirmation pass. `verify_state_delta.py --probe` rc=1
+(clean tree; checkpoint `5beae364` behind HEAD `01bad578` on bookkeeping only).
+No full run needed. No source changes; both defect classes remain exhausted
+and test-covered. No `.github/workflows/**` changes.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
