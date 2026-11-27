@@ -1,15 +1,13 @@
 """Probe candidate numeric helpers for undocumented OverflowError on huge ints."""
-import math
-import traceback
 
-BIG = 10 ** 400
-BIG2 = 2 ** 2000
-
+import cooldown_utils as cu
 import duration_utils as du
 import interval_utils as iu
 import number_utils as nu
 import semver_utils as sv
-import cooldown_utils as cu
+
+BIG = 10 ** 400
+BIG2 = 2 ** 2000
 
 
 def probe(label, fn):
