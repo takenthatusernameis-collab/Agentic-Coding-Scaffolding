@@ -79,6 +79,12 @@ class TestGeometricMean(unittest.TestCase):
         with self.assertRaises(ValueError):
             geometric_mean([1, float("-inf"), 3])
 
+    def test_geometric_mean_huge_integers_raise_value_error(self):
+        huge = 10 ** 400
+        with self.assertRaises(ValueError) as cm:
+            geometric_mean([huge] * 10)
+        self.assertIn("too large to represent as a finite float", str(cm.exception))
+
 
 class TestMedianEven(unittest.TestCase):
     def test_median_even_even_length(self):
@@ -170,6 +176,12 @@ class TestCovariance(unittest.TestCase):
         with self.assertRaises(ValueError):
             covariance([1, float("-inf"), 3], [1, 2, 3])
 
+    def test_covariance_huge_integers_raise_value_error(self):
+        huge = 10 ** 400
+        with self.assertRaises(ValueError) as cm:
+            covariance([huge] * 10, [huge] * 10)
+        self.assertIn("too large to represent as a finite float", str(cm.exception))
+
 
 class TestCorrelation(unittest.TestCase):
     def test_correlation_negative(self):
@@ -214,6 +226,12 @@ class TestCorrelation(unittest.TestCase):
         with self.assertRaises(ValueError):
             correlation([1, float("-inf"), 3], [1, 2, 3])
 
+    def test_correlation_huge_integers_raise_value_error(self):
+        huge = 10 ** 400
+        with self.assertRaises(ValueError) as cm:
+            correlation([huge] * 10, [huge] * 10)
+        self.assertIn("too large to represent as a finite float", str(cm.exception))
+
 
 class TestZScore(unittest.TestCase):
     def test_z_score_basic(self):
@@ -248,6 +266,12 @@ class TestZScore(unittest.TestCase):
             z_score([1, float("inf"), 3])
         with self.assertRaises(ValueError):
             z_score([1, float("-inf"), 3])
+
+    def test_z_score_huge_integers_raise_value_error(self):
+        huge = 10 ** 400
+        with self.assertRaises(ValueError) as cm:
+            z_score([huge] * 10)
+        self.assertIn("too large to represent as a finite float", str(cm.exception))
 
 
 class TestNormalize(unittest.TestCase):

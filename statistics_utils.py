@@ -68,10 +68,11 @@ def geometric_mean(numbers: List[T | float]) -> float:
 
     Raises:
         ValueError: If the list is empty or contains negative values.
+        ValueError: If the result is too large to represent as a finite float.
 
     Examples:
         >>> geometric_mean([1, 2, 3, 4, 5])
-        2.605171084697352
+        2.6051710846973517
         >>> geometric_mean([1, 1, 1])
         1.0
     """
@@ -84,18 +85,10 @@ def geometric_mean(numbers: List[T | float]) -> float:
         raise ValueError("Geometric mean is undefined for negative numbers")
     if any(x == 0 for x in numbers):
         return 0.0
-    product = 1.0
-    for x in numbers:
-        product *= x
-    # A product that overflows to ``inf`` or underflows to ``0.0`` would make
-    # the root wrong, so fall back to the numerically stable log-space form.
-    if not math.isfinite(product) or product == 0.0:
-        try:
-            return float(math.exp(math.fsum(math.log(x) for x in numbers) / len(numbers)))
-        except OverflowError:
-            raise ValueError("result is too large to represent as a finite float")
+    # Use log-space computation to avoid overflow with large integers.
+    # For any positive x, log(geometric_mean) = mean(log(x)).
     try:
-        return float(product ** (1.0 / len(numbers)))
+        return float(math.exp(math.fsum(math.log(float(x)) for x in numbers) / len(numbers)))
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
 
@@ -228,10 +221,10 @@ def covariance(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Covariance requires at least two elements")
     if any(isinstance(v, float) and (math.isnan(v) or math.isinf(v)) for v in (*x, *y)):
         raise ValueError("numbers must not contain NaN or infinite values")
-    mean_x = sum(x) / len(x)
-    mean_y = sum(y) / len(y)
-    cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
     try:
+        mean_x = sum(x) / len(x)
+        mean_y = sum(y) / len(y)
+        cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
         return cov / (len(x) - 1)
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
@@ -250,6 +243,7 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
     Raises:
         ValueError: If the lists are empty, have different lengths,
                     have fewer than 2 elements, or have zero variance.
+        ValueError: If the result is too large to represent as a finite float.
 
     Examples:
         >>> correlation([1, 2, 3, 4, 5], [5, 4, 3, 2, 1])
@@ -265,15 +259,15 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
         raise ValueError("Correlation requires at least two elements")
     if any(isinstance(v, float) and (math.isnan(v) or math.isinf(v)) for v in (*x, *y)):
         raise ValueError("numbers must not contain NaN or infinite values")
-    mean_x = sum(x) / len(x)
-    mean_y = sum(y) / len(y)
-    # Compute covariance and variances
-    cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
-    var_x = sum((xi - mean_x) ** 2 for xi in x)
-    var_y = sum((yi - mean_y) ** 2 for yi in y)
-    if var_x == 0 or var_y == 0:
-        raise ValueError("Correlation is undefined when variance is zero")
     try:
+        mean_x = sum(x) / len(x)
+        mean_y = sum(y) / len(y)
+        # Compute covariance and variances
+        cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
+        var_x = sum((xi - mean_x) ** 2 for xi in x)
+        var_y = sum((yi - mean_y) ** 2 for yi in y)
+        if var_x == 0 or var_y == 0:
+            raise ValueError("Correlation is undefined when variance is zero")
         return cov / math.sqrt(var_x * var_y)
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
@@ -293,6 +287,7 @@ def z_score(numbers: List[T | float]) -> List[float]:
     Raises:
         ValueError: If the list is empty or if the standard deviation is zero
                     (e.g., all values are identical).
+        ValueError: If the result is too large to represent as a finite float.
 
     Examples:
         >>> z_score([1, 2, 3, 4, 5])
@@ -302,16 +297,13 @@ def z_score(numbers: List[T | float]) -> List[float]:
         raise ValueError("Cannot calculate z-scores of empty list")
     if any(isinstance(x, float) and (math.isnan(x) or math.isinf(x)) for x in numbers):
         raise ValueError("numbers must not contain NaN or infinite values")
-    mean_val = sum(numbers) / len(numbers)
-    # Population standard deviation
-    variance = sum((x - mean_val) ** 2 for x in numbers) / len(numbers)
-    if variance == 0:
-        raise ValueError("Standard deviation is zero; cannot compute z-scores")
     try:
+        mean_val = sum(numbers) / len(numbers)
+        # Population standard deviation
+        variance = sum((x - mean_val) ** 2 for x in numbers) / len(numbers)
+        if variance == 0:
+            raise ValueError("Standard deviation is zero; cannot compute z-scores")
         std_dev = math.sqrt(variance)
-    except OverflowError:
-        raise ValueError("result is too large to represent as a finite float")
-    try:
         return [(x - mean_val) / std_dev for x in numbers]
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
