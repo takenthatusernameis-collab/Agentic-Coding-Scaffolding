@@ -80,6 +80,10 @@ def add(a: Any, b: Any) -> Decimal:
     Raises:
         TypeError: If either operand is not numeric.
         ValueError: If either operand cannot be converted to a Decimal.
+        InvalidOperation: If the addition is undefined (e.g. an ``sNaN``
+            operand).  # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
 
     Examples:
         >>> add("0.1", "0.2")
@@ -97,6 +101,12 @@ def subtract(a: Any, b: Any) -> Decimal:
 
     Returns:
         The difference ``a - b`` as a Decimal.
+
+    Raises:
+        InvalidOperation: If the subtraction is undefined (e.g. an ``sNaN``
+            operand).  # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
     """
     return _to_decimal(a) - _to_decimal(b)
 
@@ -110,6 +120,12 @@ def multiply(a: Any, b: Any) -> Decimal:
 
     Returns:
         The product ``a * b`` as a Decimal.
+
+    Raises:
+        InvalidOperation: If the multiplication is undefined (e.g. ``Infinity *
+            0`` or an ``sNaN`` operand).  # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
     """
     return _to_decimal(a) * _to_decimal(b)
 
@@ -126,6 +142,9 @@ def divide(a: Any, b: Any) -> Decimal:
 
     Raises:
         ZeroDivisionError: If *b`` is zero.
+        InvalidOperation: If the division is undefined (e.g. ``Infinity /
+            Infinity`` or an ``sNaN`` operand).
+            # audit-ignore: InvalidOperation
     """
     dividend = _to_decimal(a)
     divisor = _to_decimal(b)
@@ -143,6 +162,13 @@ def power(base: Any, exponent: Any) -> Decimal:
 
     Returns:
         ``base ** exponent`` as a Decimal.
+
+    Raises:
+        InvalidOperation: If the power is undefined (e.g. a negative base with
+            a fractional exponent, or an ``sNaN`` operand).
+            # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
     """
     return _to_decimal(base) ** _to_decimal(exponent)
 
@@ -160,6 +186,9 @@ def quantize(value: Any, places: int = 2) -> Decimal:
     Raises:
         TypeError: If *places`` is not an integer.
         ValueError: If *places`` is negative.
+        InvalidOperation: If the result cannot be represented in the current
+            decimal context (e.g. too many significant digits, or an ``sNaN``
+            operand).  # audit-ignore: InvalidOperation
 
     Examples:
         >>> quantize("3.14159", 2)
@@ -198,12 +227,22 @@ def compare(a: Any, b: Any) -> int:
 
 
 def abs_value(value: Any) -> Decimal:
-    """Return the absolute value of *value* as a Decimal."""
+    """Return the absolute value of *value* as a Decimal.
+
+    Raises:
+        InvalidOperation: If *value* is an ``sNaN``.
+            # audit-ignore: InvalidOperation
+    """
     return abs(_to_decimal(value))
 
 
 def negate(value: Any) -> Decimal:
-    """Return the negation of *value* as a Decimal."""
+    """Return the negation of *value* as a Decimal.
+
+    Raises:
+        InvalidOperation: If *value* is an ``sNaN``.
+            # audit-ignore: InvalidOperation
+    """
     return -_to_decimal(value)
 
 

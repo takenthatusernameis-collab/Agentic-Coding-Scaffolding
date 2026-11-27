@@ -1,7 +1,7 @@
 """Tests for decimal_utils."""
 
 import unittest
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation, Overflow
 
 from decimal_utils import (
     abs_value,
@@ -160,6 +160,65 @@ class TestPredicates(unittest.TestCase):
         self.assertFalse(is_positive("-Infinity"))
         self.assertTrue(is_negative("-Infinity"))
         self.assertFalse(is_zero("-Infinity"))
+
+
+class TestDecimalContextLeaks(unittest.TestCase):
+    """Pin the decimal.InvalidOperation / decimal.Overflow leaks.
+
+    These are genuine stdlib ``decimal`` delegation signals (not input
+    validation): the module documents them in ``Raises:`` with
+    ``# audit-ignore:`` and these tests pin the behavior.
+    """
+
+    def test_add_overflow(self):
+        with self.assertRaises(Overflow):
+            add("1e1000000", "1e1000000")
+
+    def test_subtract_overflow(self):
+        with self.assertRaises(Overflow):
+            subtract("1e1000000", "-1e1000000")
+
+    def test_multiply_overflow(self):
+        with self.assertRaises(Overflow):
+            multiply("1e1000000", "1e1000000")
+
+    def test_multiply_infinity_zero_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            multiply("Infinity", 0)
+
+    def test_divide_infinity_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            divide("Infinity", "Infinity")
+
+    def test_power_negative_fractional_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            power(-1, "0.5")
+
+    def test_power_overflow(self):
+        with self.assertRaises(Overflow):
+            power(10, 1000000)
+
+    def test_quantize_too_many_digits_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            quantize("1e100", 2)
+
+    def test_snan_operands_raise_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            add("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            subtract("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            multiply("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            divide("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            power("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            quantize("sNaN", 2)
+        with self.assertRaises(InvalidOperation):
+            abs_value("sNaN")
+        with self.assertRaises(InvalidOperation):
+            negate("sNaN")
 
 
 if __name__ == "__main__":

@@ -76305,6 +76305,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `decimal_utils` documents `decimal.InvalidOperation` / `decimal.Overflow` leaks
+
+- **Audit — `decimal_utils` arithmetic helpers leaked undocumented `decimal.InvalidOperation` and `decimal.Overflow` exceptions.** The `decimal` stdlib raises these on undefined operations and out-of-range results (e.g. `add`/`subtract`/`multiply` overflow the context exponent range on `1e1000000`-scale operands; `multiply("Infinity", 0)`, `divide("Infinity", "Infinity")`, `power(-1, "0.5")`, and any `sNaN` operand raise `InvalidOperation`; `quantize("1e100", 2)` raises `InvalidOperation` for too many significant digits). The docstrings' `Raises:` sections did not document them, so callers catching only `TypeError`/`ValueError`/`ZeroDivisionError` were surprised. These are genuine stdlib `decimal` delegation signals (not input-validation gaps), so each is documented in `Raises:` with an inline `# audit-ignore:` comment (matching the `cmath_utils`/`fractions_utils`/`operator_utils` convention).
+- **Functions updated:** `add`, `subtract`, `multiply` (`InvalidOperation`, `Overflow`), `divide` (`InvalidOperation`), `power` (`InvalidOperation`, `Overflow`), `quantize` (`InvalidOperation`), `abs_value`, `negate` (`InvalidOperation`). No behavior change.
+- **Tests:** added `TestDecimalContextLeaks` to `tests/test_decimal_utils.py` pinning each leak (`Overflow` on huge-operand arithmetic, `InvalidOperation` on `Infinity`/`sNaN`/negative-fractional-power/too-many-digits cases).
+- **Defect class:** undocumented-exception audit (stdlib delegation documented with `# audit-ignore:`); no behavior change.
+- Validation: `python -m pytest tests/test_decimal_utils.py` — 36 OK; doctests `python -m doctest decimal_utils.py` — OK; `python -m ruff check decimal_utils.py tests/test_decimal_utils.py` clean; `python -m mypy decimal_utils.py tests/test_decimal_utils.py` success; `python tools/audit_contracts.py --summary` — 0 issues; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `statistics_utils` surfaces huge-integer overflow as `ValueError`
 
 - **Defect — `statistics_utils.geometric_mean`, `statistics_utils.covariance`, `statistics_utils.correlation`, and `statistics_utils.z_score` leaked an undocumented `OverflowError` for large integer inputs.** These helpers perform intermediate float conversions (e.g. `sum(x) / len(x)`, `product ** (1.0 / n)`, `math.sqrt(var_x * var_y)`) directly on `int` values; for values beyond the finite float range (e.g. `10**400`) these raise `OverflowError` (`int too large to convert to float` / `integer division result too large for a float`), which the docstrings' `Raises:` sections did not document. Sibling helpers (`harmonic_mean`, `percentile`, `median_even`) already report out-of-range results as `ValueError("result is too large to represent as a finite float")`, so the leaked `OverflowError` was inconsistent with the module contract.
@@ -87056,6 +87064,10 @@ def add(a: Any, b: Any) -> Decimal:
     Raises:
         TypeError: If either operand is not numeric.
         ValueError: If either operand cannot be converted to a Decimal.
+        InvalidOperation: If the addition is undefined (e.g. an ``sNaN``
+            operand).  # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
 
     Examples:
         >>> add("0.1", "0.2")
@@ -87073,6 +87085,12 @@ def subtract(a: Any, b: Any) -> Decimal:
 
     Returns:
         The difference ``a - b`` as a Decimal.
+
+    Raises:
+        InvalidOperation: If the subtraction is undefined (e.g. an ``sNaN``
+            operand).  # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
     """
     return _to_decimal(a) - _to_decimal(b)
 
@@ -87086,6 +87104,12 @@ def multiply(a: Any, b: Any) -> Decimal:
 
     Returns:
         The product ``a * b`` as a Decimal.
+
+    Raises:
+        InvalidOperation: If the multiplication is undefined (e.g. ``Infinity *
+            0`` or an ``sNaN`` operand).  # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
     """
     return _to_decimal(a) * _to_decimal(b)
 
@@ -87102,6 +87126,9 @@ def divide(a: Any, b: Any) -> Decimal:
 
     Raises:
         ZeroDivisionError: If *b`` is zero.
+        InvalidOperation: If the division is undefined (e.g. ``Infinity /
+            Infinity`` or an ``sNaN`` operand).
+            # audit-ignore: InvalidOperation
     """
     dividend = _to_decimal(a)
     divisor = _to_decimal(b)
@@ -87119,6 +87146,13 @@ def power(base: Any, exponent: Any) -> Decimal:
 
     Returns:
         ``base ** exponent`` as a Decimal.
+
+    Raises:
+        InvalidOperation: If the power is undefined (e.g. a negative base with
+            a fractional exponent, or an ``sNaN`` operand).
+            # audit-ignore: InvalidOperation
+        Overflow: If the result exceeds the decimal context exponent range.
+            # audit-ignore: Overflow
     """
     return _to_decimal(base) ** _to_decimal(exponent)
 
@@ -87136,6 +87170,9 @@ def quantize(value: Any, places: int = 2) -> Decimal:
     Raises:
         TypeError: If *places`` is not an integer.
         ValueError: If *places`` is negative.
+        InvalidOperation: If the result cannot be represented in the current
+            decimal context (e.g. too many significant digits, or an ``sNaN``
+            operand).  # audit-ignore: InvalidOperation
 
     Examples:
         >>> quantize("3.14159", 2)
@@ -87174,12 +87211,22 @@ def compare(a: Any, b: Any) -> int:
 
 
 def abs_value(value: Any) -> Decimal:
-    """Return the absolute value of *value* as a Decimal."""
+    """Return the absolute value of *value* as a Decimal.
+
+    Raises:
+        InvalidOperation: If *value* is an ``sNaN``.
+            # audit-ignore: InvalidOperation
+    """
     return abs(_to_decimal(value))
 
 
 def negate(value: Any) -> Decimal:
-    """Return the negation of *value* as a Decimal."""
+    """Return the negation of *value* as a Decimal.
+
+    Raises:
+        InvalidOperation: If *value* is an ``sNaN``.
+            # audit-ignore: InvalidOperation
+    """
     return -_to_decimal(value)
 
 
@@ -87215,7 +87262,7 @@ cat > "$OUTPUT_DIR/tests/test_decimal_utils.py" <<'TEST_DECIMAL_UTILS'
 """Tests for decimal_utils."""
 
 import unittest
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation, Overflow
 
 from decimal_utils import (
     abs_value,
@@ -87374,6 +87421,65 @@ class TestPredicates(unittest.TestCase):
         self.assertFalse(is_positive("-Infinity"))
         self.assertTrue(is_negative("-Infinity"))
         self.assertFalse(is_zero("-Infinity"))
+
+
+class TestDecimalContextLeaks(unittest.TestCase):
+    """Pin the decimal.InvalidOperation / decimal.Overflow leaks.
+
+    These are genuine stdlib ``decimal`` delegation signals (not input
+    validation): the module documents them in ``Raises:`` with
+    ``# audit-ignore:`` and these tests pin the behavior.
+    """
+
+    def test_add_overflow(self):
+        with self.assertRaises(Overflow):
+            add("1e1000000", "1e1000000")
+
+    def test_subtract_overflow(self):
+        with self.assertRaises(Overflow):
+            subtract("1e1000000", "-1e1000000")
+
+    def test_multiply_overflow(self):
+        with self.assertRaises(Overflow):
+            multiply("1e1000000", "1e1000000")
+
+    def test_multiply_infinity_zero_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            multiply("Infinity", 0)
+
+    def test_divide_infinity_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            divide("Infinity", "Infinity")
+
+    def test_power_negative_fractional_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            power(-1, "0.5")
+
+    def test_power_overflow(self):
+        with self.assertRaises(Overflow):
+            power(10, 1000000)
+
+    def test_quantize_too_many_digits_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            quantize("1e100", 2)
+
+    def test_snan_operands_raise_invalid(self):
+        with self.assertRaises(InvalidOperation):
+            add("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            subtract("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            multiply("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            divide("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            power("sNaN", 1)
+        with self.assertRaises(InvalidOperation):
+            quantize("sNaN", 2)
+        with self.assertRaises(InvalidOperation):
+            abs_value("sNaN")
+        with self.assertRaises(InvalidOperation):
+            negate("sNaN")
 
 
 if __name__ == "__main__":
