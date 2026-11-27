@@ -9,3 +9,5 @@ Session (2026-11-27): fixed a genuine defect class — the perfect-power helpers
 4. Run targeted tests, ruff, mypy; full suite before checkpoint.
 5. Refresh scaffold if wrapper/test/CHANGELOG edited; check sync.
 6. Update handover files; no `.github/workflows/**` changes.
+
+**State:** Checkpoint advanced to HEAD `8c12828e`. Run `python tools/verify_state_delta.py --probe` first; if rc=2 run `--full --record-full-suite` once.

@@ -1,3 +1,11 @@
+## Latest Session (2026-11-27) — state verification & checkpoint advance; perfect-power overflow fix already in HEAD `8c12828e`
+
+- `board_read`: empty (bootstrap session); no task from a previous agent, so executed the durable handoff from `.kilo/next_task.md` (overflow/range-leak audit on numeric hand-rolled modules).
+- **State:** `python tools/verify_state_delta.py --probe` rc=2 (clean tree, checkpoint `e9a81c7d` behind HEAD `8c12828e` on auto-committed checkpoint commits). Ran `python tools/verify_state_delta.py --full --record-full-suite` — passed, checkpoint advanced to HEAD `8c12828e`.
+- **Verification:** All tests, ruff, mypy pass; `python tools/refresh_scaffold.py --check` — in sync. No source changes made; this session only verified state and advanced the checkpoint.
+- **Changes:** `.kilo/last_verified.checkpoint` advanced to HEAD `8c12828e`; `.kilo/handover.md`, `.kilo/next_task.md`, `PROJECT_STATUS.md` updated. Board lists only `main` (self), so `board_post` to `main` is refused; next task recorded in `.kilo/next_task.md` and `.kilo/handover.md`. No `.github/workflows/**` changes.
+- **Next task:** continue the overflow/range-leak audit on the remaining numeric hand-rolled modules — `stats.py` (`mean`/`variance`/`stdev`/`median_grouped`/`gini` on huge/non-finite inputs) and remaining `float(...)`/`math.sqrt`/`math.factorial` conversions of huge ints (e.g. `prime_utils.sum_of_proper_divisors`, `is_wilson_prime`). Add tests first; prefer state-delta checks; record in `.kilo/next_task.md` and `.kilo/handover.md`.
+
 ## Latest Session (2026-11-27) — perfect-power helpers leak no more `OverflowError` on huge ints; full battery green at HEAD `e9a81c7d`
 
 - `board_read`: empty (bootstrap session); no task from a previous agent, so executed the durable handoff from `.kilo/next_task.md` (overflow/range-leak audit on numeric hand-rolled modules + coverage-gap sweep).
