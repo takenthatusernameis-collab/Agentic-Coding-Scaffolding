@@ -60,6 +60,14 @@ class TestRingBuffer(unittest.TestCase):
         with self.assertRaises(IndexError):
             get(rb, -1)
 
+    def test_get_boolean_index_raises(self):
+        rb = create(3)
+        append(rb, 1)
+        with self.assertRaises(TypeError):
+            get(rb, True)
+        with self.assertRaises(TypeError):
+            get(rb, False)
+
     def test_invalid_capacity(self):
         with self.assertRaises(TypeError):
             create("3")  # type: ignore[arg-type]

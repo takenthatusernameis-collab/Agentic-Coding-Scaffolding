@@ -93,21 +93,15 @@ def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: st
         search_limit = len(text)
 
     idx = text.rfind(separator, 0, search_limit)
-    while idx > 0:
-        candidate = text[:idx] + ellipsis
-        if len(candidate) <= max_length:
-            # Strip any trailing separator substring from the prefix
-            prefix = text[:idx]
-            while prefix.endswith(separator):
-                prefix = prefix[:-len(separator)]
-            return prefix + ellipsis
-        # Try earlier separator
-        idx = text.rfind(separator, 0, idx)
+    if idx > 0:
+        # Strip any trailing separator substring from the prefix
+        prefix = text[:idx]
+        while prefix.endswith(separator):
+            prefix = prefix[:-len(separator)]
+        return prefix + ellipsis
 
     # No suitable separator found; hard cut
     hard_cut = text[:max_length - len(ellipsis)]
-    while hard_cut.endswith(separator):
-        hard_cut = hard_cut[:-len(separator)]
     return hard_cut + ellipsis
 
 

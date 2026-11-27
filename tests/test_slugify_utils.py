@@ -161,6 +161,12 @@ class TestTruncateSlug(unittest.TestCase):
     def test_truncate_slug_hard_cut_strips_trailing_separator(self):
         self.assertEqual(truncate_slug("abc---", 5), "ab...")
 
+    def test_truncate_slug_strips_trailing_separator_in_prefix_consecutive(self):
+        # Consecutive separators: rfind finds later one, prefix ends with separator
+        self.assertEqual(truncate_slug("foo---bar", 7), "foo...")
+        # Multi-char separator with consecutive occurrences
+        self.assertEqual(truncate_slug("foo----bar", 8, separator="--"), "foo...")
+
 
 class TestSlugifyMany(unittest.TestCase):
     def test_basic(self):
