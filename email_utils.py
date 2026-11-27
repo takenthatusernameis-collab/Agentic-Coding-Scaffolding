@@ -16,6 +16,13 @@ def email_formatdate(timeval: Any = None, localtime: bool = False, usegmt: bool 
 
     Returns:
         An RFC 2822 formatted date string.
+
+    Raises:
+        TypeError: If *timeval* is not a number or ``None``.
+        ValueError: If *timeval* is NaN.
+        OverflowError: If *timeval* is infinite or out of the platform
+            time_t range.
+            # audit-ignore: TypeError, ValueError, OverflowError
     """
     return email.utils.formatdate(timeval=timeval, localtime=localtime, usegmt=usegmt)
 
@@ -28,6 +35,10 @@ def email_parsedate(data: str) -> tuple[int, ...] | None:
 
     Returns:
         A 9-element time tuple, or None if the string could not be parsed.
+
+    Raises:
+        TypeError: If *data* is not a string.
+            # audit-ignore: TypeError
     """
     return email.utils.parsedate(data)
 
