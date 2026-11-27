@@ -250,5 +250,19 @@ class TestExportedTypeVars(unittest.TestCase):
         self.assertEqual(P.__name__, "P")
 
 
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must surface ``ValueError``, never ``OverflowError``."""
+
+    HUGE = 10 ** 400
+
+    def test_cooldown_huge_interval_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(self.HUGE)
+
+    def test_format_remaining_huge_int_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(self.HUGE)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -43,15 +43,19 @@ class Cooldown:
 
         Raises:
             TypeError: If interval is not a real number.
-            ValueError: If interval is not positive or is not finite.
+            ValueError: If interval is not positive, is not finite, or is too
+                large to represent as a finite float.
         """
         if not isinstance(interval, (int, float)) or isinstance(interval, bool):
             raise TypeError("interval must be a real number")
-        if not math.isfinite(interval):
+        if isinstance(interval, float) and not math.isfinite(interval):
             raise ValueError("interval must be finite")
         if interval <= 0:
             raise ValueError("interval must be positive")
-        self._interval = float(interval)
+        try:
+            self._interval = float(interval)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float") from None
         self._last_call: float | None = None
         self._lock = threading.RLock()
 
@@ -137,7 +141,8 @@ def format_remaining(seconds: float) -> str:
 
     Raises:
         TypeError: If *seconds* is not a real number.
-        ValueError: If *seconds* is negative or not finite.
+        ValueError: If *seconds* is negative, not finite, or too large to
+            represent as a finite float.
 
     >>> format_remaining(0)
     '0.000s'
@@ -146,8 +151,11 @@ def format_remaining(seconds: float) -> str:
     """
     if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
         raise TypeError("seconds must be a real number")
-    if not math.isfinite(seconds):
+    if isinstance(seconds, float) and not math.isfinite(seconds):
         raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
-    return f"{float(seconds):.3f}s"
+    try:
+        return f"{float(seconds):.3f}s"
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None

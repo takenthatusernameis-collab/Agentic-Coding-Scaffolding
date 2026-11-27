@@ -2452,3 +2452,42 @@ class TestDigitSumContract(unittest.TestCase):
         from number_utils import digit_sum
 
         self.assertEqual(digit_sum(-123), 6)
+
+
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must surface ``ValueError``, never ``OverflowError``.
+
+    Values beyond the finite float range (e.g. ``10**400``) cannot be converted
+    to a :class:`float`. Helpers that must produce a ``float`` report the
+    out-of-range result as ``ValueError`` (matching the module contract).
+    """
+
+    HUGE = 10 ** 400
+
+    def test_percentage_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            percentage(self.HUGE, 1)
+
+    def test_map_range_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            map_range(self.HUGE, 0, 1, 0, 1)
+
+    def test_safe_divide_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            safe_divide(self.HUGE, 1)
+
+    def test_is_close_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            is_close(self.HUGE, self.HUGE)
+
+    def test_round_half_up_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            round_half_up(self.HUGE, 2)
+
+    def test_format_number_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            format_number(self.HUGE)
+
+    def test_lerp_huge_int_with_float_t_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            lerp(0, self.HUGE, 0.5)

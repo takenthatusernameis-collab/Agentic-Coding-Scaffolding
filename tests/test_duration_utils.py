@@ -363,5 +363,37 @@ class TestFormatTimedelta(unittest.TestCase):
         self.assertEqual(format_timedelta(td), format_duration(td.total_seconds()))
 
 
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must not leak an undocumented ``OverflowError``.
+
+    Values beyond the finite float range (e.g. ``10**400``) cannot be converted
+    to a :class:`float`. Helpers that must produce a ``float`` report the
+    out-of-range result as ``ValueError`` (matching the module contract); helpers
+    that can represent the result exactly as integers (``seconds_to_hms``) do so.
+    """
+
+    HUGE = 10 ** 400
+
+    def test_format_duration_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            format_duration(self.HUGE)
+
+    def test_seconds_to_hms_huge_int_is_exact(self):
+        hours, minutes, secs = seconds_to_hms(self.HUGE)
+        self.assertEqual(hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + secs, self.HUGE)
+
+    def test_hms_to_seconds_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            hms_to_seconds(hours=self.HUGE)
+
+    def test_to_seconds_huge_hours_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            to_seconds(hours=self.HUGE)
+
+    def test_to_seconds_huge_milliseconds_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            to_seconds(milliseconds=self.HUGE)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -177,7 +177,8 @@ def round_half_up(value: Number, places: int = 0) -> float:
 
     Raises:
         TypeError: If *value* is not a number or *places* is not an int.
-        ValueError: If *places* is negative.
+        ValueError: If *places* is negative, if *value* is non-finite, or if
+            the rounded result is too large to represent as a finite float.
 
     Examples:
         >>> round_half_up(2.5)
@@ -195,10 +196,13 @@ def round_half_up(value: Number, places: int = 0) -> float:
     if isinstance(value, float) and not math.isfinite(value):
         raise ValueError("value must be finite")
     factor = 10**places
-    scaled = value * factor
-    if scaled >= 0:
-        return float(math.floor(scaled + 0.5) / factor)
-    return float(math.ceil(scaled - 0.5) / factor)
+    try:
+        scaled = value * factor
+        if scaled >= 0:
+            return float(math.floor(scaled + 0.5) / factor)
+        return float(math.ceil(scaled - 0.5) / factor)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def is_integer(value: Number) -> bool:
@@ -229,14 +233,18 @@ def format_number(value: Number, precision: int = 2) -> str:
 
     Raises:
         TypeError: If *value* is not a number or *precision* is not an int.
-        ValueError: If *precision* is negative.
+        ValueError: If *precision* is negative, or if *value* is too large to
+            represent as a finite float.
     """
     _require_number(value, "value")
     if isinstance(precision, bool) or not isinstance(precision, int):
         raise TypeError(f"precision must be an int, got {type(precision).__name__}")
     if precision < 0:
         raise ValueError("precision must be non-negative")
-    return f"{value:,.{precision}f}"
+    try:
+        return f"{value:,.{precision}f}"
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def percentage(part: Number, total: Number, precision: int = 1) -> str:
@@ -252,7 +260,8 @@ def percentage(part: Number, total: Number, precision: int = 1) -> str:
 
     Raises:
         TypeError: If any argument has an invalid type.
-        ValueError: If *precision* is negative.
+        ValueError: If *precision* is negative, or if the percentage is too
+            large to represent as a finite float.
     """
     _require_number(part, "part")
     _require_number(total, "total")
@@ -262,7 +271,10 @@ def percentage(part: Number, total: Number, precision: int = 1) -> str:
         raise ValueError("precision must be non-negative")
     if total == 0:
         return "0.0%"
-    return f"{(part / total) * 100:.{precision}f}%"
+    try:
+        return f"{(part / total) * 100:.{precision}f}%"
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def lerp(start: Number, stop: Number, t: Number) -> float:
@@ -278,11 +290,16 @@ def lerp(start: Number, stop: Number, t: Number) -> float:
 
     Raises:
         TypeError: If any argument is not a number.
+        ValueError: If the interpolated result is too large to represent as a
+            finite float.
     """
     _require_number(start, "start")
     _require_number(stop, "stop")
     _require_number(t, "t")
-    return start + (stop - start) * t
+    try:
+        return start + (stop - start) * t
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def map_range(
@@ -306,7 +323,8 @@ def map_range(
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If the source range has zero span.
+        ValueError: If the source range has zero span, or if the mapped result
+            is too large to represent as a finite float.
     """
     _require_number(value, "value")
     _require_number(from_min, "from_min")
@@ -315,8 +333,11 @@ def map_range(
     _require_number(to_max, "to_max")
     if from_max == from_min:
         raise ValueError("source range must have non-zero span")
-    t = (value - from_min) / (from_max - from_min)
-    return to_min + t * (to_max - to_min)
+    try:
+        t = (value - from_min) / (from_max - from_min)
+        return to_min + t * (to_max - to_min)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 # Alias for map_range
@@ -565,7 +586,8 @@ def is_close(
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If *rel_tol* or *abs_tol* is negative or non-finite (NaN or ±inf).
+        ValueError: If *rel_tol* or *abs_tol* is negative or non-finite (NaN or ±inf),
+            or if the comparison is too large to represent as a finite float.
 
     Examples:
         >>> is_close(1.0, 1.0000000001)
@@ -587,7 +609,10 @@ def is_close(
         raise ValueError("rel_tol must be non-negative")
     if abs_tol < 0:
         raise ValueError("abs_tol must be non-negative")
-    return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+    try:
+        return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def is_finite(value: Number) -> bool:
@@ -955,12 +980,16 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
 
     Raises:
         TypeError: If either argument is not a number.
+        ValueError: If the quotient is too large to represent as a finite float.
     """
     _require_number(numerator, "numerator")
     _require_number(denominator, "denominator")
     if denominator == 0:
         return 0.0
-    return numerator / denominator
+    try:
+        return numerator / denominator
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:

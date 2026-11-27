@@ -40,6 +40,16 @@ def _is_number(value: object) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+def _is_nan(value: object) -> bool:
+    """Return True if *value* is a float NaN.
+
+    Only floats can be NaN; integers are always finite, so this avoids the
+    ``OverflowError`` that :func:`math.isnan` raises for integers too large to
+    convert to a float.
+    """
+    return isinstance(value, float) and math.isnan(value)
+
+
 def normalize_interval(low: float, high: float) -> Interval:
     """Return ``(low, high)`` with ``low <= high``.
 
@@ -61,7 +71,7 @@ def normalize_interval(low: float, high: float) -> Interval:
         raise TypeError(f"low must be a real number, got {type(low).__name__}")
     if not _is_number(high):
         raise TypeError(f"high must be a real number, got {type(high).__name__}")
-    if math.isnan(low) or math.isnan(high):
+    if _is_nan(low) or _is_nan(high):
         raise ValueError("interval endpoints must not be NaN")
     return (min(low, high), max(low, high))
 
@@ -77,7 +87,7 @@ def is_valid_interval(interval: object) -> bool:
     low, high = interval
     if not _is_number(low) or not _is_number(high):
         return False
-    if math.isnan(low) or math.isnan(high):
+    if _is_nan(low) or _is_nan(high):
         return False
     return bool(low <= high)
 
@@ -101,7 +111,7 @@ def interval_contains(interval: Interval, value: float) -> bool:
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
-    if math.isnan(value):
+    if _is_nan(value):
         raise ValueError("value must not be NaN")
     low, high = interval
     return low <= value <= high
@@ -210,11 +220,15 @@ def interval_length(interval: Interval) -> float:
         The length of the interval as a float.
 
     Raises:
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if the length is too large
+            to represent as a finite float.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
-    return float(interval[1] - interval[0])
+    try:
+        return float(interval[1] - interval[0])
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def interval_midpoint(interval: Interval) -> float:
@@ -227,11 +241,15 @@ def interval_midpoint(interval: Interval) -> float:
         The midpoint of the interval as a float.
 
     Raises:
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if the midpoint is too large
+            to represent as a finite float.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
-    return (interval[0] + interval[1]) / 2.0
+    try:
+        return (interval[0] + interval[1]) / 2.0
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def interval_distance(a: Interval, b: Interval) -> float:
@@ -246,10 +264,16 @@ def interval_distance(a: Interval, b: Interval) -> float:
         return 0.0
     if a[1] < b[0]:
         gap = b[0] - a[1]
-        return float(gap)
+        try:
+            return float(gap)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float") from None
     if b[1] < a[0]:
         gap = a[0] - b[1]
-        return float(gap)
+        try:
+            return float(gap)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float") from None
     return 0.0
 
 
@@ -338,16 +362,20 @@ def interval_shift(interval: Interval, delta: float) -> Interval:
 
     Raises:
         TypeError: If *delta* is not a real number.
-        ValueError: If *interval* is not valid, or if *delta* is NaN or
-            infinite.
+        ValueError: If *interval* is not valid, if *delta* is NaN or infinite,
+            or if the shifted endpoints are too large to represent as finite
+            floats.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(delta):
         raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
-    if not math.isfinite(delta):
+    if isinstance(delta, float) and not math.isfinite(delta):
         raise ValueError("delta must be finite")
-    return (interval[0] + delta, interval[1] + delta)
+    try:
+        return (interval[0] + delta, interval[1] + delta)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
@@ -423,7 +451,7 @@ def interval_clamp(value: float, interval: Interval) -> float:
     """
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
-    if math.isnan(value):
+    if _is_nan(value):
         raise ValueError("value must not be NaN")
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")

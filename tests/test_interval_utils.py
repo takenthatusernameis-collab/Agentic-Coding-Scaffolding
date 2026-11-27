@@ -607,6 +607,48 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
         self.assertEqual(interval_clamp(float("-inf"), (0, 10)), 0)
 
 
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer endpoints must not leak an undocumented ``OverflowError``.
+
+    Predicates and normalizers operate exactly on integer endpoints; helpers
+    that must produce a ``float`` report an out-of-range result as ``ValueError``
+    (matching the module contract).
+    """
+
+    HUGE = 10 ** 400
+
+    def test_is_valid_interval_huge_int_is_true(self):
+        self.assertTrue(is_valid_interval((0, self.HUGE)))
+
+    def test_normalize_interval_huge_int_is_exact(self):
+        self.assertEqual(normalize_interval(self.HUGE, 5), (5, self.HUGE))
+
+    def test_interval_contains_huge_int(self):
+        self.assertTrue(interval_contains((0, self.HUGE), self.HUGE))
+
+    def test_interval_clamp_huge_int(self):
+        self.assertEqual(interval_clamp(self.HUGE, (0, 1)), 1)
+
+    def test_interval_length_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_length((0, self.HUGE))
+
+    def test_interval_midpoint_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_midpoint((0, self.HUGE))
+
+    def test_interval_distance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_distance((0, 1), (self.HUGE, self.HUGE + 1))
+
+    def test_interval_shift_huge_int_endpoints_is_exact(self):
+        self.assertEqual(interval_shift((0, 1), self.HUGE), (self.HUGE, self.HUGE + 1))
+
+    def test_interval_shift_huge_int_with_float_endpoint_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_shift((0.0, 1.0), self.HUGE)
+
+
 if __name__ == "__main__":
     unittest.main()
 

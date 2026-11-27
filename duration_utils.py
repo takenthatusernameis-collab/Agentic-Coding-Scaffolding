@@ -180,8 +180,9 @@ def format_duration(
 
     Raises:
         TypeError: If ``seconds`` is not an int or float.
-        ValueError: If ``seconds`` is negative or not finite, or if ``max_units``
-            is not a positive integer.
+        ValueError: If ``seconds`` is negative or not finite, if ``seconds`` is
+            too large to represent as a finite float, or if ``max_units`` is not
+            a positive integer.
 
     Examples:
         >>> format_duration(5400)
@@ -193,14 +194,17 @@ def format_duration(
     """
     if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
         raise TypeError("seconds must be an int or float")
-    if not math.isfinite(seconds):
+    if isinstance(seconds, float) and not math.isfinite(seconds):
         raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
     if not isinstance(max_units, int) or isinstance(max_units, bool) or max_units < 1:
         raise ValueError("max_units must be a positive integer")
 
-    remaining = float(seconds)
+    try:
+        remaining = float(seconds)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
     parts: list[str] = []
 
     for unit_name, unit_seconds in _ORDERED_UNITS:
@@ -238,7 +242,7 @@ def seconds_to_hms(seconds: Union[int, float]) -> Tuple[int, int, int]:
     """
     if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
         raise TypeError("seconds must be an int or float")
-    if not math.isfinite(seconds):
+    if isinstance(seconds, float) and not math.isfinite(seconds):
         raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
@@ -266,7 +270,8 @@ def hms_to_seconds(
 
     Raises:
         TypeError: If any argument is not an int.
-        ValueError: If any argument is negative.
+        ValueError: If any argument is negative, or if the total is too large
+            to represent as a finite float.
 
     Examples:
         >>> hms_to_seconds(1, 1, 1)
@@ -280,7 +285,10 @@ def hms_to_seconds(
         if value < 0:
             raise ValueError(f"{name} must be non-negative")
 
-    return float(hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds)
+    try:
+        return float(hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def to_seconds(
@@ -302,7 +310,8 @@ def to_seconds(
 
     Raises:
         TypeError: If any argument is not an int.
-        ValueError: If any argument is negative.
+        ValueError: If any argument is negative, or if the total is too large
+            to represent as a finite float.
 
     Examples:
         >>> to_seconds(hours=1, minutes=30)
@@ -321,9 +330,15 @@ def to_seconds(
         if value < 0:
             raise ValueError(f"{name} must be non-negative")
 
-    return float(
-        hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds + milliseconds / 1000.0
-    )
+    try:
+        return float(
+            hours * SECONDS_PER_HOUR
+            + minutes * SECONDS_PER_MINUTE
+            + seconds
+            + milliseconds / 1000.0
+        )
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def duration_between(
