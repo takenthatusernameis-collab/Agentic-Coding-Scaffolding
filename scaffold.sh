@@ -105194,6 +105194,11 @@ class TestIsInteger(unittest.TestCase):
         self.assertFalse(is_integer(-2.7))
         self.assertFalse(is_integer(0.1))
 
+    def test_special_floats(self) -> None:
+        self.assertFalse(is_integer(float("nan")))
+        self.assertFalse(is_integer(float("inf")))
+        self.assertFalse(is_integer(float("-inf")))
+
     def test_type_error(self) -> None:
         with self.assertRaises(TypeError):
             is_integer("5")  # type: ignore[arg-type]
@@ -105208,6 +105213,11 @@ class TestIsInteger(unittest.TestCase):
 class TestFormatNumber(unittest.TestCase):
     def test_format(self) -> None:
         self.assertEqual(format_number(1234.5, 2), "1,234.50")
+
+    def test_special_floats(self) -> None:
+        self.assertEqual(format_number(float("nan"), 2), "nan")
+        self.assertEqual(format_number(float("inf"), 2), "inf")
+        self.assertEqual(format_number(float("-inf"), 2), "-inf")
 
 
 class TestPercentage(unittest.TestCase):
@@ -105516,6 +105526,19 @@ class TestIsClose(unittest.TestCase):
             is_close(1.0, 1.0, rel_tol=float("-inf"))
         with self.assertRaises(ValueError):
             is_close(1.0, 1.0, abs_tol=float("-inf"))
+
+    def test_special_floats_ab(self) -> None:
+        self.assertFalse(is_close(float("nan"), 1.0))
+        self.assertFalse(is_close(1.0, float("nan")))
+        self.assertFalse(is_close(float("nan"), float("nan")))
+        self.assertFalse(is_close(float("inf"), 1.0))
+        self.assertFalse(is_close(1.0, float("inf")))
+        self.assertFalse(is_close(float("-inf"), 1.0))
+        self.assertFalse(is_close(1.0, float("-inf")))
+        # inf == inf and -inf == -inf in IEEE 754, so is_close returns True
+        self.assertTrue(is_close(float("inf"), float("inf")))
+        self.assertTrue(is_close(float("-inf"), float("-inf")))
+        self.assertFalse(is_close(float("inf"), float("-inf")))
 
 
 class TestIsHappyNumber(unittest.TestCase):
