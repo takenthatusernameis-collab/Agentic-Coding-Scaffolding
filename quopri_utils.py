@@ -7,20 +7,78 @@ from typing import BinaryIO
 
 
 def encode(input_bytes: bytes, quotetabs: bool = False, header: bool = False) -> bytes:
+    """Quoted-printable encode *input_bytes*.
+
+    Delegates to :func:`quopri.encodestring`.
+
+    Args:
+        input_bytes: The bytes to encode.
+        quotetabs: Quote embedded tabs and spaces.
+        header: Encode for use in an RFC 2045 header.
+
+    Returns:
+        The quoted-printable encoded bytes.
+
+    Raises:
+        TypeError: If *input_bytes* is not a bytes-like object.
+            # audit-ignore: TypeError
+    """
     return quopri.encodestring(input_bytes, quotetabs=quotetabs, header=header)
 
 
 def decode(input_bytes: bytes, header: bool = False) -> bytes:
+    """Quoted-printable decode *input_bytes*.
+
+    Delegates to :func:`quopri.decodestring`.
+
+    Args:
+        input_bytes: The quoted-printable bytes to decode.
+        header: Decode for use in an RFC 2045 header.
+
+    Returns:
+        The decoded bytes.
+
+    Raises:
+        TypeError: If *input_bytes* is not a bytes-like object or ASCII string.
+            # audit-ignore: TypeError
+    """
     return quopri.decodestring(input_bytes, header=header)
 
 
 def encode_file(
     inp: BinaryIO, out: BinaryIO, quotetabs: bool = False, header: bool = False
 ) -> None:
+    """Quoted-printable encode from file *inp* to file *out*.
+
+    Delegates to :func:`quopri.encode`.
+
+    Args:
+        inp: The input binary stream to read from.
+        out: The output binary stream to write to.
+        quotetabs: Quote embedded tabs and spaces.
+        header: Encode for use in an RFC 2045 header.
+
+    Raises:
+        AttributeError: If *inp* or *out* is not a file-like object.
+            # audit-ignore: AttributeError
+    """
     quopri.encode(inp, out, quotetabs=quotetabs, header=header)
 
 
 def decode_file(inp: BinaryIO, out: BinaryIO, header: bool = False) -> None:
+    """Quoted-printable decode from file *inp* to file *out*.
+
+    Delegates to :func:`quopri.decode`.
+
+    Args:
+        inp: The input binary stream to read from.
+        out: The output binary stream to write to.
+        header: Decode for use in an RFC 2045 header.
+
+    Raises:
+        AttributeError: If *inp* or *out* is not a file-like object.
+            # audit-ignore: AttributeError
+    """
     quopri.decode(inp, out, header=header)
 
 

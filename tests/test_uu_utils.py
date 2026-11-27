@@ -100,6 +100,23 @@ class TestUuUtils(unittest.TestCase):
             self.assertEqual(len(call_args[1][0]), 4)  # in_file, out_file, mode, quiet
             self.assertTrue(call_args[1][0][3])  # quiet=True
 
+    def test_encode_leaks_attributeerror_on_non_file(self) -> None:
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+        # uu.encode calls .read on the input stream.
+        with self.assertRaises(AttributeError):
+            uu_utils.encode(None, io.BytesIO())  # type: ignore[arg-type]
+        # uu.encode calls .write on the output stream.
+        with self.assertRaises(AttributeError):
+            uu_utils.encode(io.BytesIO(b"x"), None)  # type: ignore[arg-type]
+
+    def test_decode_leaks_attributeerror_on_non_file(self) -> None:
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+        # uu.decode calls .readline on the input stream.
+        with self.assertRaises(AttributeError):
+            uu_utils.decode(None, io.BytesIO())  # type: ignore[arg-type]
+
 
 class TestUnavailableModule(unittest.TestCase):
     """Verify the Python 3.13+ path where :mod:`uu` no longer ships."""

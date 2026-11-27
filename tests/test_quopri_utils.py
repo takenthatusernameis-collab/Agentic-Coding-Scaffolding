@@ -55,6 +55,33 @@ class TestQuopriUtils(unittest.TestCase):
         decode_file(inp2, out2)
         assert out2.getvalue() == b"hi = there"
 
+    def test_encode_leaks_typeerror_on_non_bytes(self):
+        # quopri.encodestring raises TypeError for non bytes-like input.
+        with pytest.raises(TypeError):
+            encode("abc")  # type: ignore[arg-type]
+        with pytest.raises(TypeError):
+            encode(None)  # type: ignore[arg-type]
+
+    def test_decode_leaks_typeerror_on_non_bytes(self):
+        # quopri.decodestring raises TypeError for non bytes-like/ASCII input.
+        with pytest.raises(TypeError):
+            decode(None)  # type: ignore[arg-type]
+
+    def test_encode_file_leaks_attributeerror_on_non_file(self):
+        # quopri.encode calls .read on the input stream.
+        with pytest.raises(AttributeError):
+            encode_file(None, io.BytesIO())  # type: ignore[arg-type]
+
+    def test_decode_file_leaks_attributeerror_on_non_file(self):
+        # quopri.decode calls .read on the input stream.
+        with pytest.raises(AttributeError):
+            decode_file(None, io.BytesIO())  # type: ignore[arg-type]
+
+    def test_encode_file_leaks_attributeerror_on_bad_output(self):
+        # quopri.encode calls .write on the output stream.
+        with pytest.raises(AttributeError):
+            encode_file(io.BytesIO(b"x"), None)  # type: ignore[arg-type]
+
 
 if __name__ == "__main__":
     unittest.main()

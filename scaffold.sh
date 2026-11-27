@@ -121208,20 +121208,78 @@ from typing import BinaryIO
 
 
 def encode(input_bytes: bytes, quotetabs: bool = False, header: bool = False) -> bytes:
+    """Quoted-printable encode *input_bytes*.
+
+    Delegates to :func:`quopri.encodestring`.
+
+    Args:
+        input_bytes: The bytes to encode.
+        quotetabs: Quote embedded tabs and spaces.
+        header: Encode for use in an RFC 2045 header.
+
+    Returns:
+        The quoted-printable encoded bytes.
+
+    Raises:
+        TypeError: If *input_bytes* is not a bytes-like object.
+            # audit-ignore: TypeError
+    """
     return quopri.encodestring(input_bytes, quotetabs=quotetabs, header=header)
 
 
 def decode(input_bytes: bytes, header: bool = False) -> bytes:
+    """Quoted-printable decode *input_bytes*.
+
+    Delegates to :func:`quopri.decodestring`.
+
+    Args:
+        input_bytes: The quoted-printable bytes to decode.
+        header: Decode for use in an RFC 2045 header.
+
+    Returns:
+        The decoded bytes.
+
+    Raises:
+        TypeError: If *input_bytes* is not a bytes-like object or ASCII string.
+            # audit-ignore: TypeError
+    """
     return quopri.decodestring(input_bytes, header=header)
 
 
 def encode_file(
     inp: BinaryIO, out: BinaryIO, quotetabs: bool = False, header: bool = False
 ) -> None:
+    """Quoted-printable encode from file *inp* to file *out*.
+
+    Delegates to :func:`quopri.encode`.
+
+    Args:
+        inp: The input binary stream to read from.
+        out: The output binary stream to write to.
+        quotetabs: Quote embedded tabs and spaces.
+        header: Encode for use in an RFC 2045 header.
+
+    Raises:
+        AttributeError: If *inp* or *out* is not a file-like object.
+            # audit-ignore: AttributeError
+    """
     quopri.encode(inp, out, quotetabs=quotetabs, header=header)
 
 
 def decode_file(inp: BinaryIO, out: BinaryIO, header: bool = False) -> None:
+    """Quoted-printable decode from file *inp* to file *out*.
+
+    Delegates to :func:`quopri.decode`.
+
+    Args:
+        inp: The input binary stream to read from.
+        out: The output binary stream to write to.
+        header: Decode for use in an RFC 2045 header.
+
+    Raises:
+        AttributeError: If *inp* or *out* is not a file-like object.
+            # audit-ignore: AttributeError
+    """
     quopri.decode(inp, out, header=header)
 
 
@@ -121318,6 +121376,33 @@ class TestQuopriUtils(unittest.TestCase):
         out2 = io.BytesIO()
         decode_file(inp2, out2)
         assert out2.getvalue() == b"hi = there"
+
+    def test_encode_leaks_typeerror_on_non_bytes(self):
+        # quopri.encodestring raises TypeError for non bytes-like input.
+        with pytest.raises(TypeError):
+            encode("abc")  # type: ignore[arg-type]
+        with pytest.raises(TypeError):
+            encode(None)  # type: ignore[arg-type]
+
+    def test_decode_leaks_typeerror_on_non_bytes(self):
+        # quopri.decodestring raises TypeError for non bytes-like/ASCII input.
+        with pytest.raises(TypeError):
+            decode(None)  # type: ignore[arg-type]
+
+    def test_encode_file_leaks_attributeerror_on_non_file(self):
+        # quopri.encode calls .read on the input stream.
+        with pytest.raises(AttributeError):
+            encode_file(None, io.BytesIO())  # type: ignore[arg-type]
+
+    def test_decode_file_leaks_attributeerror_on_non_file(self):
+        # quopri.decode calls .read on the input stream.
+        with pytest.raises(AttributeError):
+            decode_file(None, io.BytesIO())  # type: ignore[arg-type]
+
+    def test_encode_file_leaks_attributeerror_on_bad_output(self):
+        # quopri.encode calls .write on the output stream.
+        with pytest.raises(AttributeError):
+            encode_file(io.BytesIO(b"x"), None)  # type: ignore[arg-type]
 
 
 if __name__ == "__main__":
@@ -140906,6 +140991,23 @@ class TestUuUtils(unittest.TestCase):
             # Verify second call includes quiet parameter (positionally as 4th arg)
             self.assertEqual(len(call_args[1][0]), 4)  # in_file, out_file, mode, quiet
             self.assertTrue(call_args[1][0][3])  # quiet=True
+
+    def test_encode_leaks_attributeerror_on_non_file(self) -> None:
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+        # uu.encode calls .read on the input stream.
+        with self.assertRaises(AttributeError):
+            uu_utils.encode(None, io.BytesIO())  # type: ignore[arg-type]
+        # uu.encode calls .write on the output stream.
+        with self.assertRaises(AttributeError):
+            uu_utils.encode(io.BytesIO(b"x"), None)  # type: ignore[arg-type]
+
+    def test_decode_leaks_attributeerror_on_non_file(self) -> None:
+        if not uu_utils.is_available():
+            self.skipTest("uu module not available")
+        # uu.decode calls .readline on the input stream.
+        with self.assertRaises(AttributeError):
+            uu_utils.decode(None, io.BytesIO())  # type: ignore[arg-type]
 
 
 class TestUnavailableModule(unittest.TestCase):
@@ -172393,6 +172495,22 @@ def encode(
     mode: int | None = None,
     backtick: bool = False,
 ) -> None:
+    """UUencode from *in_file* to *out_file*.
+
+    Delegates to :func:`uu.encode`.
+
+    Args:
+        in_file: The input binary stream to read from.
+        out_file: The output binary stream to write to.
+        name: The file name to embed in the header (defaults to ``"-"``).
+        mode: The file mode to embed in the header (defaults to ``0o666``).
+        backtick: Use a backtick instead of a space for zero padding.
+
+    Raises:
+        RuntimeError: If the standard library :mod:`uu` module is unavailable.
+        AttributeError: If *in_file* or *out_file* is not a file-like object.
+            # audit-ignore: AttributeError
+    """
     _require_uu("encode")
     if name is None:
         name = "-"
@@ -172411,6 +172529,21 @@ def decode(
     mode: int | None = None,
     quiet: int = 0,
 ) -> None:
+    """UUdecode from *in_file* to *out_file*.
+
+    Delegates to :func:`uu.decode`.
+
+    Args:
+        in_file: The input binary stream to read from.
+        out_file: The output binary stream to write to, or ``None`` to discard.
+        mode: The file mode to apply (defaults to ``0o666``).
+        quiet: Suppress progress output when non-zero.
+
+    Raises:
+        RuntimeError: If the standard library :mod:`uu` module is unavailable.
+        AttributeError: If *in_file* is not a file-like object.
+            # audit-ignore: AttributeError
+    """
     _require_uu("decode")
     if mode is None:
         mode = 0o666
