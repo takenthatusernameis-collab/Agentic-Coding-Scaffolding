@@ -30370,6 +30370,17 @@ class TestPluralizeBoundary(unittest.TestCase):
     def test_count_zero_returns_plural(self):
         self.assertEqual(pluralize("cat", 0), "cats")
 
+    def test_standalone_c_takes_s_not_es(self):
+        # A word ending in a standalone "c" (not "ch") takes -s, not -es.
+        # The "[chsh]$" character class must not match a lone "c".
+        self.assertEqual(pluralize("sync"), "syncs")
+        self.assertEqual(pluralize("tic"), "tics")
+        self.assertEqual(pluralize("epic"), "epics")
+        self.assertEqual(pluralize("arc"), "arcs")
+        # "ch" and "sh" still take -es.
+        self.assertEqual(pluralize("church"), "churches")
+        self.assertEqual(pluralize("brush"), "brushes")
+
     def test_non_string_types(self):
         for value in (None, 123, 3.14, ["a"], {"a": 1}):
             with self.subTest(value=value):
@@ -46023,7 +46034,7 @@ def pluralize(word: str, count: Optional[int] = None) -> str:
     _require_string(word, "word")
     if count == 1:
         return word
-    if re.search(r"[sxz]$", word) or re.search(r"[chsh]$", word):
+    if re.search(r"[sxz]$", word) or re.search(r"(?:ch|sh)$", word):
         return word + "es"
     if re.search(r"[^aeiou]y$", word):
         return word[:-1] + "ies"
@@ -58301,6 +58312,14 @@ class TestRingBuffer(unittest.TestCase):
             get(rb, 1)
         with self.assertRaises(IndexError):
             get(rb, -1)
+
+    def test_get_boolean_index_raises(self):
+        rb = create(3)
+        append(rb, 1)
+        with self.assertRaises(TypeError):
+            get(rb, True)
+        with self.assertRaises(TypeError):
+            get(rb, False)
 
     def test_invalid_capacity(self):
         with self.assertRaises(TypeError):
@@ -167274,21 +167293,15 @@ def truncate_slug(text: str, max_length: int, separator: str = "-", ellipsis: st
         search_limit = len(text)
 
     idx = text.rfind(separator, 0, search_limit)
-    while idx > 0:
-        candidate = text[:idx] + ellipsis
-        if len(candidate) <= max_length:
-            # Strip any trailing separator substring from the prefix
-            prefix = text[:idx]
-            while prefix.endswith(separator):
-                prefix = prefix[:-len(separator)]
-            return prefix + ellipsis
-        # Try earlier separator
-        idx = text.rfind(separator, 0, idx)
+    if idx > 0:
+        # Strip any trailing separator substring from the prefix
+        prefix = text[:idx]
+        while prefix.endswith(separator):
+            prefix = prefix[:-len(separator)]
+        return prefix + ellipsis
 
     # No suitable separator found; hard cut
     hard_cut = text[:max_length - len(ellipsis)]
-    while hard_cut.endswith(separator):
-        hard_cut = hard_cut[:-len(separator)]
     return hard_cut + ellipsis
 
 
@@ -167502,6 +167515,12 @@ class TestTruncateSlug(unittest.TestCase):
 
     def test_truncate_slug_hard_cut_strips_trailing_separator(self):
         self.assertEqual(truncate_slug("abc---", 5), "ab...")
+
+    def test_truncate_slug_strips_trailing_separator_in_prefix_consecutive(self):
+        # Consecutive separators: rfind finds later one, prefix ends with separator
+        self.assertEqual(truncate_slug("foo---bar", 7), "foo...")
+        # Multi-char separator with consecutive occurrences
+        self.assertEqual(truncate_slug("foo----bar", 8, separator="--"), "foo...")
 
 
 class TestSlugifyMany(unittest.TestCase):

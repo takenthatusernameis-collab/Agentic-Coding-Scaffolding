@@ -207,7 +207,7 @@ def pluralize(word: str, count: Optional[int] = None) -> str:
     _require_string(word, "word")
     if count == 1:
         return word
-    if re.search(r"[sxz]$", word) or re.search(r"[chsh]$", word):
+    if re.search(r"[sxz]$", word) or re.search(r"(?:ch|sh)$", word):
         return word + "es"
     if re.search(r"[^aeiou]y$", word):
         return word[:-1] + "ies"

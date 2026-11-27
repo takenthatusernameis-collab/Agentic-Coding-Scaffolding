@@ -505,6 +505,17 @@ class TestPluralizeBoundary(unittest.TestCase):
     def test_count_zero_returns_plural(self):
         self.assertEqual(pluralize("cat", 0), "cats")
 
+    def test_standalone_c_takes_s_not_es(self):
+        # A word ending in a standalone "c" (not "ch") takes -s, not -es.
+        # The "[chsh]$" character class must not match a lone "c".
+        self.assertEqual(pluralize("sync"), "syncs")
+        self.assertEqual(pluralize("tic"), "tics")
+        self.assertEqual(pluralize("epic"), "epics")
+        self.assertEqual(pluralize("arc"), "arcs")
+        # "ch" and "sh" still take -es.
+        self.assertEqual(pluralize("church"), "churches")
+        self.assertEqual(pluralize("brush"), "brushes")
+
     def test_non_string_types(self):
         for value in (None, 123, 3.14, ["a"], {"a": 1}):
             with self.subTest(value=value):
