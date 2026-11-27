@@ -49,7 +49,10 @@ def harmonic_mean(numbers: List[T | float]) -> float:
     # the mean collapses to ``0.0``.
     scale = min(abs(x) for x in numbers)
     scaled_reciprocal_sum = math.fsum(scale / x for x in numbers)
-    return float(len(numbers) * scale / scaled_reciprocal_sum)
+    try:
+        return float(len(numbers) * scale / scaled_reciprocal_sum)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def geometric_mean(numbers: List[T | float]) -> float:
@@ -87,8 +90,14 @@ def geometric_mean(numbers: List[T | float]) -> float:
     # A product that overflows to ``inf`` or underflows to ``0.0`` would make
     # the root wrong, so fall back to the numerically stable log-space form.
     if not math.isfinite(product) or product == 0.0:
-        return float(math.exp(math.fsum(math.log(x) for x in numbers) / len(numbers)))
-    return float(product ** (1.0 / len(numbers)))
+        try:
+            return float(math.exp(math.fsum(math.log(x) for x in numbers) / len(numbers)))
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+    try:
+        return float(product ** (1.0 / len(numbers)))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def median_even(numbers: List[T | float]) -> Tuple[float, float]:
@@ -122,9 +131,15 @@ def median_even(numbers: List[T | float]) -> Tuple[float, float]:
     if n % 2 == 0:
         lower = sorted_nums[n // 2 - 1]
         upper = sorted_nums[n // 2]
-        return (float(lower), float(upper))
+        try:
+            return (float(lower), float(upper))
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
     else:
-        median_val = float(sorted_nums[n // 2])
+        try:
+            median_val = float(sorted_nums[n // 2])
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
         return (median_val, median_val)
 
 
@@ -164,15 +179,24 @@ def percentile(numbers: List[T | float], p: float) -> float:
     # Compute the rank: r = p/100 * (n - 1) + 1
     # Then split into integer part and fraction
     if n == 1:
-        return float(sorted_nums[0])
+        try:
+            return float(sorted_nums[0])
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
     rank = (p / 100.0) * (n - 1) + 1
     lower_idx = int(math.floor(rank) - 1)  # zero-indexed
     upper_idx = int(math.ceil(rank) - 1)
     weight = rank - math.floor(rank)
     if lower_idx == upper_idx:
-        return float(sorted_nums[lower_idx])
-    lower_val = float(sorted_nums[lower_idx])
-    upper_val = float(sorted_nums[upper_idx])
+        try:
+            return float(sorted_nums[lower_idx])
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+    try:
+        lower_val = float(sorted_nums[lower_idx])
+        upper_val = float(sorted_nums[upper_idx])
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
     return lower_val + weight * (upper_val - lower_val)
 
 
@@ -207,7 +231,10 @@ def covariance(x: List[T | float], y: List[T | float]) -> float:
     mean_x = sum(x) / len(x)
     mean_y = sum(y) / len(y)
     cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
-    return cov / (len(x) - 1)
+    try:
+        return cov / (len(x) - 1)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def correlation(x: List[T | float], y: List[T | float]) -> float:
@@ -246,7 +273,10 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
     var_y = sum((yi - mean_y) ** 2 for yi in y)
     if var_x == 0 or var_y == 0:
         raise ValueError("Correlation is undefined when variance is zero")
-    return cov / math.sqrt(var_x * var_y)
+    try:
+        return cov / math.sqrt(var_x * var_y)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def z_score(numbers: List[T | float]) -> List[float]:
@@ -277,8 +307,14 @@ def z_score(numbers: List[T | float]) -> List[float]:
     variance = sum((x - mean_val) ** 2 for x in numbers) / len(numbers)
     if variance == 0:
         raise ValueError("Standard deviation is zero; cannot compute z-scores")
-    std_dev = math.sqrt(variance)
-    return [(x - mean_val) / std_dev for x in numbers]
+    try:
+        std_dev = math.sqrt(variance)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
+    try:
+        return [(x - mean_val) / std_dev for x in numbers]
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def normalize(numbers: List[T | float]) -> List[float]:

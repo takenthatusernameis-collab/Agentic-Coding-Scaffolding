@@ -215,7 +215,10 @@ def denominator(value: Any) -> int:
 
 def to_float(value: Any) -> float:
     """Convert *value* to a ``float``."""
-    return float(_to_fraction(value))
+    try:
+        return float(_to_fraction(value))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def from_float(value: Any) -> Fraction:
