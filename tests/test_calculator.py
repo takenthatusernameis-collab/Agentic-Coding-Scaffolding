@@ -179,6 +179,16 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             power(2, False)
 
+    def test_power_overflow_raises_value_error(self):
+        # Results beyond the finite float range must surface as ValueError
+        # (the documented contract), not a leaked OverflowError.
+        with self.assertRaises(ValueError):
+            power(10, 400)
+        with self.assertRaises(ValueError):
+            power(10.0, 400)
+        with self.assertRaises(ValueError):
+            power(2, 2000)
+
     def test_sqrt(self):
         self.assertEqual(sqrt(9), 3)
         self.assertEqual(sqrt(4), 2)

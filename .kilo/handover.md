@@ -1,3 +1,3 @@
 # Handover
 
-Session (2026-11-27): fixed genuine defect — `utils.py` was unimportable (escaped triple quotes in `omit` docstring → SyntaxError, from prior checkpoint 020340cc). Restored docstring; added unhashable-key test. Full battery green at HEAD 020340cc; ruff/mypy clean; scaffold in sync. Next: defect hunt on calculator/shapes/strings/stats/interval/duration + importability sweep.
+Session (2026-11-27): fixed genuine defect — `calculator.power` leaked undocumented `OverflowError` for out-of-range results (e.g. `power(10,400)`); wrapped `float(a**b)` in try/except → `ValueError`, documented it, added `test_power_overflow_raises_value_error`. Importability sweep clean (280 modules import). Full battery green at HEAD fca0cdb9; ruff/mypy clean; scaffold in sync. Next: per-module coverage gaps or overflow/range-leak audit on other numeric modules.

@@ -200,7 +200,8 @@ def power(a: float, b: float) -> float:
             or is a bool.
         ValueError: If *a* is NaN or infinite, or *b* is NaN or infinite,
             or if *a* is negative and *b* is not an integer,
-            or if *a* is zero and *b* is negative.
+            or if *a* is zero and *b* is negative,
+            or if the result is too large to represent as a finite float.
     """
     if (
         isinstance(a, bool)
@@ -217,7 +218,10 @@ def power(a: float, b: float) -> float:
         raise ValueError("negative base requires an integer exponent")
     if a == 0 and b < 0:
         raise ValueError("zero base cannot be raised to a negative power")
-    return float(a**b)
+    try:
+        return float(a**b)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def sqrt(a: float) -> float:

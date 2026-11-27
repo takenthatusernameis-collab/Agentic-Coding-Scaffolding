@@ -10666,7 +10666,8 @@ def power(a: float, b: float) -> float:
             or is a bool.
         ValueError: If *a* is NaN or infinite, or *b* is NaN or infinite,
             or if *a* is negative and *b* is not an integer,
-            or if *a* is zero and *b* is negative.
+            or if *a* is zero and *b* is negative,
+            or if the result is too large to represent as a finite float.
     """
     if (
         isinstance(a, bool)
@@ -10683,7 +10684,10 @@ def power(a: float, b: float) -> float:
         raise ValueError("negative base requires an integer exponent")
     if a == 0 and b < 0:
         raise ValueError("zero base cannot be raised to a negative power")
-    return float(a**b)
+    try:
+        return float(a**b)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def sqrt(a: float) -> float:
@@ -11449,6 +11453,16 @@ class TestCalculator(unittest.TestCase):
             power(True, 3)
         with self.assertRaises(TypeError):
             power(2, False)
+
+    def test_power_overflow_raises_value_error(self):
+        # Results beyond the finite float range must surface as ValueError
+        # (the documented contract), not a leaked OverflowError.
+        with self.assertRaises(ValueError):
+            power(10, 400)
+        with self.assertRaises(ValueError):
+            power(10.0, 400)
+        with self.assertRaises(ValueError):
+            power(2, 2000)
 
     def test_sqrt(self):
         self.assertEqual(sqrt(9), 3)
@@ -75704,6 +75718,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `calculator.power` surfaces result overflow as `ValueError`
+
+- **Defect — `calculator.power` leaked an undocumented `OverflowError`.** For results beyond the finite float range (e.g. `power(10, 400)`, `power(10.0, 400)`, `power(2, 2000)`) the final `float(a**b)` raised `OverflowError`, which the docstring's `Raises:` section did not document (only `TypeError`/`ValueError`). Every other numeric helper in the module rejects non-finite/out-of-range results with `ValueError`, so the leaked `OverflowError` was inconsistent with the module contract.
+- **Fix:** wrapped the `float(a**b)` conversion in `try/except OverflowError` and re-raised as `ValueError("result is too large to represent as a finite float")`; documented the overflow case in the `Raises:` docstring. No change to the documented happy path or any in-range result.
+- **Tests:** added `TestCalculator.test_power_overflow_raises_value_error` covering the int-base, float-base, and large-int-result overflow paths.
+- **Defect class:** undocumented-exception / accepts-out-of-range-result correctness fix; no change to in-range behavior.
+- Validation: `python -m unittest tests.test_calculator` — 159 OK; `python -m ruff check calculator.py tests/test_calculator.py` clean; `python -m mypy calculator.py tests/test_calculator.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — fix `utils.omit` unimportable docstring; pin unhashable-key support
 
 - **Defect — `utils.py` was unimportable (`SyntaxError`).** The `omit` docstring had been committed with backslash-escaped triple quotes (`\"\"\"Omit specific keys from a dictionary.\"\"\"`) instead of `"""`, so `import utils` and `doctest` loading raised `SyntaxError: unexpected character after line continuation character` at line 387. The previous checkpoint's `omit` body change to `_membership_test` (unhashable-key support matching `intersection`/`difference`) was correct; only the docstring quoting was corrupted. Restored the plain `"""` docstring; `utils` imports and its doctests load again.
