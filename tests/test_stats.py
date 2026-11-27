@@ -2192,5 +2192,187 @@ class TestExportedTypeVars(unittest.TestCase):
         self.assertEqual(stats.T.__name__, "T")
 
 
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must surface ``ValueError``, never ``OverflowError``.
+
+    Values beyond the finite float range (e.g. ``10**400``) cannot be converted
+    to a :class:`float`. The module contract mirrors :func:`calculator.power`:
+    results too large to represent as a finite float are reported as
+    ``ValueError`` rather than leaking an undocumented ``OverflowError``.
+    """
+
+    HUGE = 10 ** 400
+
+    def test_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            mean([self.HUGE])
+
+    def test_median_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median([self.HUGE])
+
+    def test_median_low_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_low([self.HUGE])
+
+    def test_median_high_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_high([self.HUGE])
+
+    def test_median_grouped_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_grouped([self.HUGE])
+
+    def test_mode_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            mode([self.HUGE])
+
+    def test_multimode_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            multimode([self.HUGE])
+
+    def test_variance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            variance([self.HUGE])
+
+    def test_stddev_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            stddev([self.HUGE])
+
+    def test_pvariance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            pvariance([self.HUGE])
+
+    def test_pstdev_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            pstdev([self.HUGE])
+
+    def test_range_stat_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            range_stat([self.HUGE, 1])
+
+    def test_min_value_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            min_value([self.HUGE])
+
+    def test_max_value_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            max_value([self.HUGE])
+
+    def test_midrange_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            midrange([self.HUGE, 1])
+
+    def test_trimmed_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            trimmed_mean([self.HUGE])
+
+    def test_sum_values_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sum_values([self.HUGE])
+
+    def test_sum_of_squares_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sum_of_squares([self.HUGE])
+
+    def test_sum_of_cubes_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sum_of_cubes([self.HUGE])
+
+    def test_product_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            product([self.HUGE])
+
+    def test_percentile_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            percentile([self.HUGE], 50)
+
+    def test_geometric_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            geometric_mean([self.HUGE])
+
+    def test_harmonic_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            harmonic_mean([self.HUGE])
+
+    def test_gini_coefficient_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            gini_coefficient([self.HUGE])
+
+    def test_root_mean_square_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            root_mean_square([self.HUGE])
+
+    def test_cumulative_product_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cumulative_product([self.HUGE])
+
+    def test_weighted_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            weighted_mean([self.HUGE], [1])
+
+    def test_skewness_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            skewness([self.HUGE, self.HUGE + 1, self.HUGE + 2])
+
+    def test_kurtosis_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            kurtosis([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_z_scores_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            z_scores([self.HUGE, self.HUGE + 1, self.HUGE + 2])
+
+    def test_standard_error_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            standard_error([self.HUGE, self.HUGE + 1])
+
+    def test_covariance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            covariance([self.HUGE], [self.HUGE])
+
+    def test_correlation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            correlation([self.HUGE, self.HUGE + 1], [self.HUGE, self.HUGE + 2])
+
+    def test_trimean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            trimean([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_midhinge_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            midhinge([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_iqr_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            iqr([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_quantile_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            quantile([self.HUGE, self.HUGE + 1], 0.5)
+
+    def test_moving_average_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            moving_average([self.HUGE, self.HUGE + 1], 1)
+
+    def test_median_absolute_deviation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_absolute_deviation([self.HUGE, self.HUGE + 1])
+
+    def test_mean_absolute_deviation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            mean_absolute_deviation([self.HUGE, self.HUGE + 1])
+
+    def test_coefficient_of_variation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            coefficient_of_variation([self.HUGE])
+
+    def test_huge_int_inputs_still_work_in_range(self):
+        self.assertEqual(mean([1, 2, 3]), 2.0)
+        self.assertEqual(median([1, 2, 3, 4]), 2.5)
+        self.assertAlmostEqual(variance([1, 2, 3]), 2.0 / 3)
+        self.assertEqual(gini_coefficient([1, 1, 1, 1]), 0.0)
+
+
 if __name__ == "__main__":
     unittest.main()

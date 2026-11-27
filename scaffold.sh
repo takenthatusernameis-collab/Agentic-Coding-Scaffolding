@@ -19328,7 +19328,10 @@ def mean(numbers: List[T | float]) -> float:
         3.0
     """
     _require_numbers(numbers, "numbers")
-    return sum(numbers) / len(numbers)
+    try:
+        return sum(numbers) / len(numbers)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def median(numbers: List[T | float]) -> float:
@@ -19354,10 +19357,16 @@ def median(numbers: List[T | float]) -> float:
     sorted_nums = sorted(numbers)
     n = len(sorted_nums)
     if n % 2 == 1:
-        return float(sorted_nums[n // 2])
+        try:
+            return float(sorted_nums[n // 2])
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
     mid1 = sorted_nums[n // 2 - 1]
     mid2 = sorted_nums[n // 2]
-    return (mid1 + mid2) / 2.0
+    try:
+        return (mid1 + mid2) / 2.0
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def median_low(numbers: List[T | float]) -> float:
@@ -19390,8 +19399,14 @@ def median_low(numbers: List[T | float]) -> float:
     n = len(sorted_nums)
     mid = n // 2
     if n % 2 == 1:
-        return float(sorted_nums[mid])
-    return float(sorted_nums[mid - 1])
+        try:
+            return float(sorted_nums[mid])
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+    try:
+        return float(sorted_nums[mid - 1])
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def median_high(numbers: List[T | float]) -> float:
@@ -19424,8 +19439,14 @@ def median_high(numbers: List[T | float]) -> float:
     n = len(sorted_nums)
     mid = n // 2
     if n % 2 == 1:
+        try:
+            return float(sorted_nums[mid])
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+    try:
         return float(sorted_nums[mid])
-    return float(sorted_nums[mid])
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
@@ -19468,10 +19489,13 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
     j = bisect.bisect_right(data, x)  # count of elements <= x
     cf = i
     f = j - i
-    interval_f = float(interval)
-    x_f = float(x)
-    L = x_f - interval_f / 2.0
-    return L + interval_f * (n / 2 - cf) / f
+    try:
+        interval_f = float(interval)
+        x_f = float(x)
+        L = x_f - interval_f / 2.0
+        return L + interval_f * (n / 2 - cf) / f
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def mode(numbers: List[T | float]) -> float:
@@ -19503,7 +19527,10 @@ def mode(numbers: List[T | float]) -> float:
     max_count = max(frequency.values())
     for num in sorted(frequency.keys()):
         if frequency[num] == max_count:
-            return float(num)
+            try:
+                return float(num)
+            except OverflowError:
+                raise ValueError("result is too large to represent as a finite float")
     raise ValueError("Cannot calculate mode of empty list")
 
 
@@ -19540,7 +19567,10 @@ def multimode(numbers: List[T | float]) -> List[float]:
     for num in numbers:
         if frequency[num] == max_count and num not in seen:
             seen.add(num)
-            result.append(float(num))
+            try:
+                result.append(float(num))
+            except OverflowError:
+                raise ValueError("result is too large to represent as a finite float")
     return result
 
 
@@ -19601,8 +19631,14 @@ def variance(numbers: List[T | float], population: bool = True) -> float:
     avg = mean(numbers)
     squared_diff = sum((x - avg) ** 2 for x in numbers)
     if population:
-        return squared_diff / len(numbers)
-    return squared_diff / (len(numbers) - 1)
+        try:
+            return squared_diff / len(numbers)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+    try:
+        return squared_diff / (len(numbers) - 1)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def stddev(numbers: List[T | float], population: bool = True) -> float:
@@ -19740,7 +19776,10 @@ def range_stat(numbers: List[T | float]) -> float:
         6.0
     """
     _require_numbers(numbers, "numbers")
-    return float(max(numbers) - min(numbers))
+    try:
+        return float(max(numbers) - min(numbers))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 # Backwards compatible alias
@@ -19755,7 +19794,10 @@ def min_value(numbers: List[T | float]) -> float:
         TypeError: If numbers is not a list or contains non-numeric values.
     """
     _require_numbers(numbers, "numbers")
-    return float(min(numbers))
+    try:
+        return float(min(numbers))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def max_value(numbers: List[T | float]) -> float:
@@ -19766,7 +19808,10 @@ def max_value(numbers: List[T | float]) -> float:
         TypeError: If numbers is not a list or contains non-numeric values.
     """
     _require_numbers(numbers, "numbers")
-    return float(max(numbers))
+    try:
+        return float(max(numbers))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def midrange(numbers: List[T | float]) -> float:
@@ -19792,7 +19837,10 @@ def midrange(numbers: List[T | float]) -> float:
         5.0
     """
     _require_numbers(numbers, "numbers")
-    return (min(numbers) + max(numbers)) / 2.0
+    try:
+        return (min(numbers) + max(numbers)) / 2.0
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
@@ -19838,7 +19886,10 @@ def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
         )
     sorted_nums = sorted(numbers)
     trimmed = sorted_nums[trim_count : n - trim_count]
-    return sum(trimmed) / len(trimmed)
+    try:
+        return sum(trimmed) / len(trimmed)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def sum_values(numbers: List[T | float]) -> float:
@@ -19863,7 +19914,10 @@ def sum_values(numbers: List[T | float]) -> float:
         0.0
     """
     _require_numbers(numbers, "numbers")
-    return float(sum(numbers))
+    try:
+        return float(sum(numbers))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def sum_of_squares(numbers: List[T | float]) -> float:
@@ -19884,7 +19938,10 @@ def sum_of_squares(numbers: List[T | float]) -> float:
         14.0
     """
     _require_numbers(numbers, "numbers")
-    return float(sum(x * x for x in numbers))
+    try:
+        return float(sum(x * x for x in numbers))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def sum_of_cubes(numbers: List[T | float]) -> float:
@@ -19905,7 +19962,10 @@ def sum_of_cubes(numbers: List[T | float]) -> float:
         36.0
     """
     _require_numbers(numbers, "numbers")
-    return float(sum(x * x * x for x in numbers))
+    try:
+        return float(sum(x * x * x for x in numbers))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def product(numbers: List[T | float]) -> float:
@@ -19932,7 +19992,10 @@ def product(numbers: List[T | float]) -> float:
     _require_numbers(numbers, "numbers")
     result = 1.0
     for x in numbers:
-        result *= float(x)
+        try:
+            result *= float(x)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
     return float(result)
 
 
@@ -19964,7 +20027,10 @@ def percentile(numbers: List[T | float], p: float) -> float:
         raise ValueError("p must not be NaN or infinite")
     if p < 0 or p > 100:
         raise ValueError("p must be between 0 and 100")
-    sorted_nums = sorted(float(x) for x in numbers)
+    try:
+        sorted_nums = sorted(float(x) for x in numbers)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
     if p == 0:
         return sorted_nums[0]
     if p == 100:
@@ -20193,10 +20259,20 @@ def geometric_mean(numbers: List[T | float]) -> float:
     _require_numbers(numbers, "numbers")
     product = 1.0
     for x in numbers:
-        if float(x) <= 0:
+        try:
+            x_f = float(x)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+        if x_f <= 0:
             raise ValueError("All numbers must be positive")
-        product *= float(x)
-    return float(product ** (1.0 / len(numbers)))
+        try:
+            product *= x_f
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+    try:
+        return float(product ** (1.0 / len(numbers)))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def harmonic_mean(numbers: List[T | float]) -> float:
@@ -20225,9 +20301,16 @@ def harmonic_mean(numbers: List[T | float]) -> float:
     _require_numbers(numbers, "numbers")
     total = 0.0
     for x in numbers:
-        if float(x) <= 0:
+        try:
+            x_f = float(x)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
+        if x_f <= 0:
             raise ValueError("All numbers must be positive")
-        total += 1.0 / float(x)
+        try:
+            total += 1.0 / x_f
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
     return float(len(numbers) / total)
 
 
@@ -20309,10 +20392,13 @@ def weighted_mean(values: List[T | float], weights: List[T | float]) -> float:
     total_weight = 0.0
     weighted_sum = 0.0
     for v, w in zip(values, weights):
-        w_f = float(w)
+        try:
+            w_f = float(w)
+            v_f = float(v)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
         if w_f <= 0:
             raise ValueError("weights must be positive")
-        v_f = float(v)
         total_weight += w_f
         weighted_sum += v_f * w_f
     if total_weight == 0:
@@ -20469,7 +20555,10 @@ def root_mean_square(numbers: List[T | float]) -> float:
         TypeError: If *numbers* is not a list or contains non-numeric values.
     """
     _require_numbers(numbers)
-    return math.sqrt(sum(x * x for x in numbers) / len(numbers))
+    try:
+        return math.sqrt(sum(x * x for x in numbers) / len(numbers))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def standard_error(numbers: List[T | float]) -> float:
@@ -20624,7 +20713,10 @@ def cumulative_product(numbers: List[T | float]) -> List[float]:
     result: List[float] = []
     running = 1.0
     for x in numbers:
-        running *= x
+        try:
+            running *= x
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
         result.append(running)
     return result
 
@@ -20839,13 +20931,19 @@ def gini_coefficient(numbers: List[T | float]) -> float:
             raise ValueError("numbers must not contain NaN or infinite values")
         if x < 0:
             raise ValueError("numbers cannot contain negative values")
-        total += x
+        try:
+            total += x
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
     if total == 0:
         return 0.0
     sorted_nums = sorted(numbers)
     weighted_sum = 0.0
     for i, x in enumerate(sorted_nums, 1):
-        weighted_sum += i * x
+        try:
+            weighted_sum += i * x
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
     gini = (2 * weighted_sum) / (n * total) - (n + 1) / n
     return gini
 
@@ -27686,6 +27784,188 @@ class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):
         self.assertIsInstance(stats.T, TypeVar)
         self.assertEqual(stats.T.__name__, "T")
+
+
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must surface ``ValueError``, never ``OverflowError``.
+
+    Values beyond the finite float range (e.g. ``10**400``) cannot be converted
+    to a :class:`float`. The module contract mirrors :func:`calculator.power`:
+    results too large to represent as a finite float are reported as
+    ``ValueError`` rather than leaking an undocumented ``OverflowError``.
+    """
+
+    HUGE = 10 ** 400
+
+    def test_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            mean([self.HUGE])
+
+    def test_median_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median([self.HUGE])
+
+    def test_median_low_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_low([self.HUGE])
+
+    def test_median_high_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_high([self.HUGE])
+
+    def test_median_grouped_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_grouped([self.HUGE])
+
+    def test_mode_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            mode([self.HUGE])
+
+    def test_multimode_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            multimode([self.HUGE])
+
+    def test_variance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            variance([self.HUGE])
+
+    def test_stddev_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            stddev([self.HUGE])
+
+    def test_pvariance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            pvariance([self.HUGE])
+
+    def test_pstdev_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            pstdev([self.HUGE])
+
+    def test_range_stat_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            range_stat([self.HUGE, 1])
+
+    def test_min_value_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            min_value([self.HUGE])
+
+    def test_max_value_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            max_value([self.HUGE])
+
+    def test_midrange_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            midrange([self.HUGE, 1])
+
+    def test_trimmed_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            trimmed_mean([self.HUGE])
+
+    def test_sum_values_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sum_values([self.HUGE])
+
+    def test_sum_of_squares_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sum_of_squares([self.HUGE])
+
+    def test_sum_of_cubes_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sum_of_cubes([self.HUGE])
+
+    def test_product_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            product([self.HUGE])
+
+    def test_percentile_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            percentile([self.HUGE], 50)
+
+    def test_geometric_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            geometric_mean([self.HUGE])
+
+    def test_harmonic_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            harmonic_mean([self.HUGE])
+
+    def test_gini_coefficient_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            gini_coefficient([self.HUGE])
+
+    def test_root_mean_square_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            root_mean_square([self.HUGE])
+
+    def test_cumulative_product_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cumulative_product([self.HUGE])
+
+    def test_weighted_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            weighted_mean([self.HUGE], [1])
+
+    def test_skewness_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            skewness([self.HUGE, self.HUGE + 1, self.HUGE + 2])
+
+    def test_kurtosis_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            kurtosis([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_z_scores_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            z_scores([self.HUGE, self.HUGE + 1, self.HUGE + 2])
+
+    def test_standard_error_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            standard_error([self.HUGE, self.HUGE + 1])
+
+    def test_covariance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            covariance([self.HUGE], [self.HUGE])
+
+    def test_correlation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            correlation([self.HUGE, self.HUGE + 1], [self.HUGE, self.HUGE + 2])
+
+    def test_trimean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            trimean([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_midhinge_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            midhinge([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_iqr_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            iqr([self.HUGE, self.HUGE + 1, self.HUGE + 2, self.HUGE + 3])
+
+    def test_quantile_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            quantile([self.HUGE, self.HUGE + 1], 0.5)
+
+    def test_moving_average_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            moving_average([self.HUGE, self.HUGE + 1], 1)
+
+    def test_median_absolute_deviation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            median_absolute_deviation([self.HUGE, self.HUGE + 1])
+
+    def test_mean_absolute_deviation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            mean_absolute_deviation([self.HUGE, self.HUGE + 1])
+
+    def test_coefficient_of_variation_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            coefficient_of_variation([self.HUGE])
+
+    def test_huge_int_inputs_still_work_in_range(self):
+        self.assertEqual(mean([1, 2, 3]), 2.0)
+        self.assertEqual(median([1, 2, 3, 4]), 2.5)
+        self.assertAlmostEqual(variance([1, 2, 3]), 2.0 / 3)
+        self.assertEqual(gini_coefficient([1, 1, 1, 1]), 0.0)
 
 
 if __name__ == "__main__":
@@ -114567,7 +114847,7 @@ def sum_of_proper_divisors(n: int) -> int:
     if n <= 1:
         return 0
     total = 0
-    for i in range(1, int(math.sqrt(abs(n))) + 1):
+    for i in range(1, math.isqrt(abs(n)) + 1):
         if n % i == 0:
             a = i
             b = n // i

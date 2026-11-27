@@ -681,7 +681,7 @@ def sum_of_proper_divisors(n: int) -> int:
     if n <= 1:
         return 0
     total = 0
-    for i in range(1, int(math.sqrt(abs(n))) + 1):
+    for i in range(1, math.isqrt(abs(n)) + 1):
         if n % i == 0:
             a = i
             b = n // i
