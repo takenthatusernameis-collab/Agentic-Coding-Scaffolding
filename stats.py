@@ -95,7 +95,8 @@ def mean(numbers: List[T | float]) -> float:
         The average of all numbers.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -121,7 +122,8 @@ def median(numbers: List[T | float]) -> float:
         The median value.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -160,7 +162,8 @@ def median_low(numbers: List[T | float]) -> float:
         The low median of the numbers.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -200,7 +203,8 @@ def median_high(numbers: List[T | float]) -> float:
         The high median of the numbers.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -241,7 +245,8 @@ def median_grouped(numbers: List[T | float], interval: float = 1.0) -> float:
         An estimate of the median.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, if interval is not positive,
+            or if the result is too large to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values,
             or if interval is not a number.
     """
@@ -288,7 +293,8 @@ def mode(numbers: List[T | float]) -> float:
         The most frequently occurring value.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -325,7 +331,8 @@ def multimode(numbers: List[T | float]) -> List[float]:
         A list of the most frequently occurring values.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -396,7 +403,8 @@ def variance(numbers: List[T | float], population: bool = True) -> float:
 
     Raises:
         ValueError: If the list is empty, or if calculating sample variance
-                    with fewer than 2 elements.
+                    with fewer than 2 elements, or if the result is too large
+                    to represent as a finite float.
         TypeError: If numbers is not a list, contains non-numeric values,
                    or population is not a bool.
     """
@@ -541,7 +549,8 @@ def range_stat(numbers: List[T | float]) -> float:
         The difference between the maximum and minimum values.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -567,7 +576,8 @@ def min_value(numbers: List[T | float]) -> float:
     """Return the minimum value in a list of numbers.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
     """
     _require_numbers(numbers, "numbers")
@@ -581,7 +591,8 @@ def max_value(numbers: List[T | float]) -> float:
     """Return the maximum value in a list of numbers.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
     """
     _require_numbers(numbers, "numbers")
@@ -604,7 +615,8 @@ def midrange(numbers: List[T | float]) -> float:
         The midrange of the numbers.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -639,7 +651,8 @@ def trimmed_mean(numbers: List[T | float], trim_count: int = 0) -> float:
 
     Raises:
         ValueError: If the list is empty, if *trim_count* is negative, or if
-            *trim_count* is greater than or equal to half the list length.
+            *trim_count* is greater than or equal to half the list length,
+            or if the result is too large to represent as a finite float.
         TypeError: If *numbers* is not a list, contains non-numeric values,
             or *trim_count* is not an int.
 
@@ -679,7 +692,8 @@ def sum_values(numbers: List[T | float]) -> float:
         The sum of all values as a float.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -707,7 +721,8 @@ def sum_of_squares(numbers: List[T | float]) -> float:
         The sum of the squared values.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -731,7 +746,8 @@ def sum_of_cubes(numbers: List[T | float]) -> float:
         The sum of the cubed values.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -755,7 +771,8 @@ def product(numbers: List[T | float]) -> float:
         The product of all numbers.
 
     Raises:
-        ValueError: If the list is empty.
+        ValueError: If the list is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -787,7 +804,8 @@ def percentile(numbers: List[T | float], p: float) -> float:
         The p-th percentile value.
 
     Raises:
-        ValueError: If the list is empty, or if p is outside [0, 100].
+        ValueError: If the list is empty, or if p is outside [0, 100],
+            or if the result is too large to represent as a finite float.
         TypeError: If numbers is not a list, contains non-numeric values,
                    or p is not a number.
 
@@ -1024,7 +1042,8 @@ def geometric_mean(numbers: List[T | float]) -> float:
         The geometric mean as a float.
 
     Raises:
-        ValueError: If the list is empty or contains a non-positive value.
+        ValueError: If the list is empty or contains a non-positive value,
+            or if the result is too large to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -1066,7 +1085,8 @@ def harmonic_mean(numbers: List[T | float]) -> float:
         The harmonic mean as a float.
 
     Raises:
-        ValueError: If the list is empty or contains a non-positive value.
+        ValueError: If the list is empty or contains a non-positive value,
+            or if the result is too large to represent as a finite float.
         TypeError: If numbers is not a list or contains non-numeric values.
 
     Examples:
@@ -1159,7 +1179,8 @@ def weighted_mean(values: List[T | float], weights: List[T | float]) -> float:
         The weighted arithmetic mean.
 
     Raises:
-        ValueError: If values or weights is empty, lengths differ, or any weight is non-positive.
+        ValueError: If values or weights is empty, lengths differ, or any weight is non-positive,
+            or if the result is too large to represent as a finite float.
         TypeError: If inputs are not lists or contain non-numeric values.
     """
     _require_numbers(values, "values")
@@ -1328,7 +1349,8 @@ def root_mean_square(numbers: List[T | float]) -> float:
         The square root of the arithmetic mean of the squared values.
 
     Raises:
-        ValueError: If *numbers* is empty.
+        ValueError: If *numbers* is empty, or if the result is too large
+            to represent as a finite float.
         TypeError: If *numbers* is not a list or contains non-numeric values.
     """
     _require_numbers(numbers)
@@ -1475,6 +1497,7 @@ def cumulative_product(numbers: List[T | float]) -> List[float]:
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values.
+        ValueError: If the result is too large to represent as a finite float.
 
     Examples:
         >>> cumulative_product([1, 2, 3, 4])
@@ -1683,7 +1706,8 @@ def gini_coefficient(numbers: List[T | float]) -> float:
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values.
-        ValueError: If *numbers* is empty or contains negative values.
+        ValueError: If *numbers* is empty or contains negative values,
+            or if the result is too large to represent as a finite float.
 
     Examples:
         >>> gini_coefficient([1, 1, 1, 1])

@@ -1,14 +1,13 @@
 # Task for Next Agent
 
-Session (2026-11-27): bootstrap session; board empty. `python tools/verify_state_delta.py --probe` rc=1 (clean tree, state already green at HEAD `f086164e`); no source changes. Ran `--full --record-full-suite` once — passed, checkpoint at HEAD `f086164e`. Overflow/range-leak audit on `stats.py` and `prime_utils.sum_of_proper_divisors` already complete from prior sessions; ruff/mypy clean; scaffold in sync.
+Session (2026-11-27): completed the optional polish task. `board_read` empty (bootstrap session); `python tools/verify_state_delta.py --probe` rc=0 (clean tree, state already green at HEAD `ad0b968d`). Documented the `OverflowError` → `ValueError("result is too large to represent as a finite float")` contract in the `Raises:` sections of 22 `stats.py` functions (`mean`, `median`, `median_low`, `median_high`, `median_grouped`, `mode`, `multimode`, `variance`, `range_stat`, `min_value`, `max_value`, `midrange`, `trimmed_mean`, `sum_values`, `sum_of_squares`, `sum_of_cubes`, `product`, `percentile`, `geometric_mean`, `harmonic_mean`, `root_mean_square`, `cumulative_product`, `gini_coefficient`, `weighted_mean`), mirroring `calculator.power`. All 546 stats tests pass; ruff/mypy clean; scaffold refreshed and in sync.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`; if rc=2 run `--full --record-full-suite` once.
-3. (Polish) Document the `OverflowError` → `ValueError("result is too large to represent as a finite float")` contract in the `Raises:` sections of the modified `stats.py` functions, mirroring `calculator.power`. Add tests first where useful.
-4. (Optional) Scan remaining hand-rolled numeric modules (`number_utils`, `prime_utils`, `calculator`, `shapes`, `strings`, `interval_utils`, `duration_utils`) for any other undocumented `OverflowError`/`ValueError` leaks on huge or non-finite inputs (`float(...)`/`math.sqrt`/`math.log`/`math.factorial` conversions). Add tests first; prefer state-delta checks.
-5. Run targeted tests, ruff, mypy; full suite before checkpoint.
-6. Refresh scaffold if wrapper/test/CHANGELOG edited; check sync.
-7. Update handover files; no `.github/workflows/**` changes.
+3. (Optional) Scan remaining hand-rolled numeric modules (`number_utils`, `prime_utils`, `calculator`, `shapes`, `strings`, `interval_utils`, `duration_utils`) for any other undocumented `OverflowError`/`ValueError` leaks on huge or non-finite inputs (`float(...)`/`math.sqrt`/`math.log`/`math.factorial` conversions). Add tests first; prefer state-delta checks.
+4. Run targeted tests, ruff, mypy; full suite before checkpoint.
+5. Refresh scaffold if wrapper/test/CHANGELOG edited; check sync.
+6. Update handover files; no `.github/workflows/**` changes.
 
-**State:** Checkpoint at HEAD `f086164e`. Run `python tools/verify_state_delta.py --probe` first.
+**State:** Checkpoint at HEAD `ad0b968d`. Run `python tools/verify_state_delta.py --probe` first.
