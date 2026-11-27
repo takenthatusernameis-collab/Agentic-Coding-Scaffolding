@@ -1,3 +1,10 @@
+## Unreleased — fix `utils.omit` unimportable docstring; pin unhashable-key support
+
+- **Defect — `utils.py` was unimportable (`SyntaxError`).** The `omit` docstring had been committed with backslash-escaped triple quotes (`\"\"\"Omit specific keys from a dictionary.\"\"\"`) instead of `"""`, so `import utils` and `doctest` loading raised `SyntaxError: unexpected character after line continuation character` at line 387. The previous checkpoint's `omit` body change to `_membership_test` (unhashable-key support matching `intersection`/`difference`) was correct; only the docstring quoting was corrupted. Restored the plain `"""` docstring; `utils` imports and its doctests load again.
+- **Tests:** added `TestOmit.test_omit_supports_unhashable_keys` — `omit({"a": 1, "b": 2}, [[1]])` returns the dict unchanged instead of raising the `TypeError` the old `set(keys)` path produced.
+- **Defect class:** syntax/encoding corruption (escaped docstring quotes) that made the whole module unimportable; no change to the documented happy path.
+- Validation: `python -m unittest tests.test_utils tests.test_doctests` — OK; `python -m ruff check .` clean; `python -m mypy . --exclude build --exclude dist` — success (574 source files); `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --full --record-full-suite` passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `operator_utils` triages `divide`/`modulo` `ZeroDivisionError` delegation with `# audit-ignore:`
 
 - **Audit — `operator_utils.divide` and `operator_utils.modulo` document `ZeroDivisionError` that the contract audit flagged as never raised.** Both genuinely propagate `ZeroDivisionError` from the delegated arithmetic (`a / b` raises `float division by zero`; `a % b` raises `float modulo` for a zero divisor — empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore: ZeroDivisionError` comment. The repository audit scan drops from 2 low-signal candidates to 0.

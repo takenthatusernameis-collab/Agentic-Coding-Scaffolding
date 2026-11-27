@@ -632,6 +632,9 @@ class TestOmit(unittest.TestCase):
     def test_omit_empty(self) -> None:
         self.assertEqual(omit({}, ["a"]), {})
 
+    def test_omit_supports_unhashable_keys(self) -> None:
+        self.assertEqual(omit({"a": 1, "b": 2}, [[1]]), {"a": 1, "b": 2})
+
 
 class TestPartition(unittest.TestCase):
     def test_partition_basic(self) -> None:

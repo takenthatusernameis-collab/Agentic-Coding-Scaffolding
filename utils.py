@@ -384,7 +384,7 @@ def pick(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
 
 
 def omit(d: Dict[K, V], keys: List[K]) -> Dict[K, V]:
-    \"\"\"Omit specific keys from a dictionary.\"\"\"
+    """Omit specific keys from a dictionary."""
     contains = _membership_test(keys)
     result: Dict[K, V] = {}
     for key, value in d.items():
