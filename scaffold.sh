@@ -75092,6 +75092,16 @@ def _is_number(value: object) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+def _is_nan(value: object) -> bool:
+    """Return True if *value* is a float NaN.
+
+    Only floats can be NaN; integers are always finite, so this avoids the
+    ``OverflowError`` that :func:`math.isnan` raises for integers too large to
+    convert to a float.
+    """
+    return isinstance(value, float) and math.isnan(value)
+
+
 def normalize_interval(low: float, high: float) -> Interval:
     """Return ``(low, high)`` with ``low <= high``.
 
@@ -75113,7 +75123,7 @@ def normalize_interval(low: float, high: float) -> Interval:
         raise TypeError(f"low must be a real number, got {type(low).__name__}")
     if not _is_number(high):
         raise TypeError(f"high must be a real number, got {type(high).__name__}")
-    if math.isnan(low) or math.isnan(high):
+    if _is_nan(low) or _is_nan(high):
         raise ValueError("interval endpoints must not be NaN")
     return (min(low, high), max(low, high))
 
@@ -75129,7 +75139,7 @@ def is_valid_interval(interval: object) -> bool:
     low, high = interval
     if not _is_number(low) or not _is_number(high):
         return False
-    if math.isnan(low) or math.isnan(high):
+    if _is_nan(low) or _is_nan(high):
         return False
     return bool(low <= high)
 
@@ -75153,7 +75163,7 @@ def interval_contains(interval: Interval, value: float) -> bool:
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
-    if math.isnan(value):
+    if _is_nan(value):
         raise ValueError("value must not be NaN")
     low, high = interval
     return low <= value <= high
@@ -75262,11 +75272,15 @@ def interval_length(interval: Interval) -> float:
         The length of the interval as a float.
 
     Raises:
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if the length is too large
+            to represent as a finite float.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
-    return float(interval[1] - interval[0])
+    try:
+        return float(interval[1] - interval[0])
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def interval_midpoint(interval: Interval) -> float:
@@ -75279,11 +75293,15 @@ def interval_midpoint(interval: Interval) -> float:
         The midpoint of the interval as a float.
 
     Raises:
-        ValueError: If *interval* is not valid.
+        ValueError: If *interval* is not valid, or if the midpoint is too large
+            to represent as a finite float.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
-    return (interval[0] + interval[1]) / 2.0
+    try:
+        return (interval[0] + interval[1]) / 2.0
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def interval_distance(a: Interval, b: Interval) -> float:
@@ -75298,10 +75316,16 @@ def interval_distance(a: Interval, b: Interval) -> float:
         return 0.0
     if a[1] < b[0]:
         gap = b[0] - a[1]
-        return float(gap)
+        try:
+            return float(gap)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float") from None
     if b[1] < a[0]:
         gap = a[0] - b[1]
-        return float(gap)
+        try:
+            return float(gap)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float") from None
     return 0.0
 
 
@@ -75390,16 +75414,20 @@ def interval_shift(interval: Interval, delta: float) -> Interval:
 
     Raises:
         TypeError: If *delta* is not a real number.
-        ValueError: If *interval* is not valid, or if *delta* is NaN or
-            infinite.
+        ValueError: If *interval* is not valid, if *delta* is NaN or infinite,
+            or if the shifted endpoints are too large to represent as finite
+            floats.
     """
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
     if not _is_number(delta):
         raise TypeError(f"delta must be a real number, got {type(delta).__name__}")
-    if not math.isfinite(delta):
+    if isinstance(delta, float) and not math.isfinite(delta):
         raise ValueError("delta must be finite")
-    return (interval[0] + delta, interval[1] + delta)
+    try:
+        return (interval[0] + delta, interval[1] + delta)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def interval_symmetric_difference(a: Interval, b: Interval) -> list[Interval]:
@@ -75475,7 +75503,7 @@ def interval_clamp(value: float, interval: Interval) -> float:
     """
     if not _is_number(value):
         raise TypeError(f"value must be a real number, got {type(value).__name__}")
-    if math.isnan(value):
+    if _is_nan(value):
         raise ValueError("value must not be NaN")
     if not is_valid_interval(interval):
         raise ValueError(f"invalid interval: {interval!r}")
@@ -76114,6 +76142,48 @@ class TestIntervalUtilsBoundariesExtra(unittest.TestCase):
         self.assertEqual(interval_clamp(5, (float("-inf"), float("inf"))), 5)
         self.assertEqual(interval_clamp(float("inf"), (0, 10)), 10)
         self.assertEqual(interval_clamp(float("-inf"), (0, 10)), 0)
+
+
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer endpoints must not leak an undocumented ``OverflowError``.
+
+    Predicates and normalizers operate exactly on integer endpoints; helpers
+    that must produce a ``float`` report an out-of-range result as ``ValueError``
+    (matching the module contract).
+    """
+
+    HUGE = 10 ** 400
+
+    def test_is_valid_interval_huge_int_is_true(self):
+        self.assertTrue(is_valid_interval((0, self.HUGE)))
+
+    def test_normalize_interval_huge_int_is_exact(self):
+        self.assertEqual(normalize_interval(self.HUGE, 5), (5, self.HUGE))
+
+    def test_interval_contains_huge_int(self):
+        self.assertTrue(interval_contains((0, self.HUGE), self.HUGE))
+
+    def test_interval_clamp_huge_int(self):
+        self.assertEqual(interval_clamp(self.HUGE, (0, 1)), 1)
+
+    def test_interval_length_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_length((0, self.HUGE))
+
+    def test_interval_midpoint_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_midpoint((0, self.HUGE))
+
+    def test_interval_distance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_distance((0, 1), (self.HUGE, self.HUGE + 1))
+
+    def test_interval_shift_huge_int_endpoints_is_exact(self):
+        self.assertEqual(interval_shift((0, 1), self.HUGE), (self.HUGE, self.HUGE + 1))
+
+    def test_interval_shift_huge_int_with_float_endpoint_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            interval_shift((0.0, 1.0), self.HUGE)
 
 
 if __name__ == "__main__":
@@ -87915,8 +87985,9 @@ def format_duration(
 
     Raises:
         TypeError: If ``seconds`` is not an int or float.
-        ValueError: If ``seconds`` is negative or not finite, or if ``max_units``
-            is not a positive integer.
+        ValueError: If ``seconds`` is negative or not finite, if ``seconds`` is
+            too large to represent as a finite float, or if ``max_units`` is not
+            a positive integer.
 
     Examples:
         >>> format_duration(5400)
@@ -87928,14 +87999,17 @@ def format_duration(
     """
     if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
         raise TypeError("seconds must be an int or float")
-    if not math.isfinite(seconds):
+    if isinstance(seconds, float) and not math.isfinite(seconds):
         raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
     if not isinstance(max_units, int) or isinstance(max_units, bool) or max_units < 1:
         raise ValueError("max_units must be a positive integer")
 
-    remaining = float(seconds)
+    try:
+        remaining = float(seconds)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
     parts: list[str] = []
 
     for unit_name, unit_seconds in _ORDERED_UNITS:
@@ -87973,7 +88047,7 @@ def seconds_to_hms(seconds: Union[int, float]) -> Tuple[int, int, int]:
     """
     if isinstance(seconds, bool) or not isinstance(seconds, (int, float)):
         raise TypeError("seconds must be an int or float")
-    if not math.isfinite(seconds):
+    if isinstance(seconds, float) and not math.isfinite(seconds):
         raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
@@ -88001,7 +88075,8 @@ def hms_to_seconds(
 
     Raises:
         TypeError: If any argument is not an int.
-        ValueError: If any argument is negative.
+        ValueError: If any argument is negative, or if the total is too large
+            to represent as a finite float.
 
     Examples:
         >>> hms_to_seconds(1, 1, 1)
@@ -88015,7 +88090,10 @@ def hms_to_seconds(
         if value < 0:
             raise ValueError(f"{name} must be non-negative")
 
-    return float(hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds)
+    try:
+        return float(hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def to_seconds(
@@ -88037,7 +88115,8 @@ def to_seconds(
 
     Raises:
         TypeError: If any argument is not an int.
-        ValueError: If any argument is negative.
+        ValueError: If any argument is negative, or if the total is too large
+            to represent as a finite float.
 
     Examples:
         >>> to_seconds(hours=1, minutes=30)
@@ -88056,9 +88135,15 @@ def to_seconds(
         if value < 0:
             raise ValueError(f"{name} must be non-negative")
 
-    return float(
-        hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + seconds + milliseconds / 1000.0
-    )
+    try:
+        return float(
+            hours * SECONDS_PER_HOUR
+            + minutes * SECONDS_PER_MINUTE
+            + seconds
+            + milliseconds / 1000.0
+        )
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def duration_between(
@@ -88591,6 +88676,38 @@ class TestFormatTimedelta(unittest.TestCase):
     def test_format_timedelta_matches_format_duration(self):
         td = timedelta(hours=1, minutes=30, seconds=45)
         self.assertEqual(format_timedelta(td), format_duration(td.total_seconds()))
+
+
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must not leak an undocumented ``OverflowError``.
+
+    Values beyond the finite float range (e.g. ``10**400``) cannot be converted
+    to a :class:`float`. Helpers that must produce a ``float`` report the
+    out-of-range result as ``ValueError`` (matching the module contract); helpers
+    that can represent the result exactly as integers (``seconds_to_hms``) do so.
+    """
+
+    HUGE = 10 ** 400
+
+    def test_format_duration_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            format_duration(self.HUGE)
+
+    def test_seconds_to_hms_huge_int_is_exact(self):
+        hours, minutes, secs = seconds_to_hms(self.HUGE)
+        self.assertEqual(hours * SECONDS_PER_HOUR + minutes * SECONDS_PER_MINUTE + secs, self.HUGE)
+
+    def test_hms_to_seconds_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            hms_to_seconds(hours=self.HUGE)
+
+    def test_to_seconds_huge_hours_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            to_seconds(hours=self.HUGE)
+
+    def test_to_seconds_huge_milliseconds_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            to_seconds(milliseconds=self.HUGE)
 
 
 if __name__ == "__main__":
@@ -102586,7 +102703,8 @@ def round_half_up(value: Number, places: int = 0) -> float:
 
     Raises:
         TypeError: If *value* is not a number or *places* is not an int.
-        ValueError: If *places* is negative.
+        ValueError: If *places* is negative, if *value* is non-finite, or if
+            the rounded result is too large to represent as a finite float.
 
     Examples:
         >>> round_half_up(2.5)
@@ -102604,10 +102722,13 @@ def round_half_up(value: Number, places: int = 0) -> float:
     if isinstance(value, float) and not math.isfinite(value):
         raise ValueError("value must be finite")
     factor = 10**places
-    scaled = value * factor
-    if scaled >= 0:
-        return float(math.floor(scaled + 0.5) / factor)
-    return float(math.ceil(scaled - 0.5) / factor)
+    try:
+        scaled = value * factor
+        if scaled >= 0:
+            return float(math.floor(scaled + 0.5) / factor)
+        return float(math.ceil(scaled - 0.5) / factor)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def is_integer(value: Number) -> bool:
@@ -102638,14 +102759,18 @@ def format_number(value: Number, precision: int = 2) -> str:
 
     Raises:
         TypeError: If *value* is not a number or *precision* is not an int.
-        ValueError: If *precision* is negative.
+        ValueError: If *precision* is negative, or if *value* is too large to
+            represent as a finite float.
     """
     _require_number(value, "value")
     if isinstance(precision, bool) or not isinstance(precision, int):
         raise TypeError(f"precision must be an int, got {type(precision).__name__}")
     if precision < 0:
         raise ValueError("precision must be non-negative")
-    return f"{value:,.{precision}f}"
+    try:
+        return f"{value:,.{precision}f}"
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def percentage(part: Number, total: Number, precision: int = 1) -> str:
@@ -102661,7 +102786,8 @@ def percentage(part: Number, total: Number, precision: int = 1) -> str:
 
     Raises:
         TypeError: If any argument has an invalid type.
-        ValueError: If *precision* is negative.
+        ValueError: If *precision* is negative, or if the percentage is too
+            large to represent as a finite float.
     """
     _require_number(part, "part")
     _require_number(total, "total")
@@ -102671,7 +102797,10 @@ def percentage(part: Number, total: Number, precision: int = 1) -> str:
         raise ValueError("precision must be non-negative")
     if total == 0:
         return "0.0%"
-    return f"{(part / total) * 100:.{precision}f}%"
+    try:
+        return f"{(part / total) * 100:.{precision}f}%"
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def lerp(start: Number, stop: Number, t: Number) -> float:
@@ -102687,11 +102816,16 @@ def lerp(start: Number, stop: Number, t: Number) -> float:
 
     Raises:
         TypeError: If any argument is not a number.
+        ValueError: If the interpolated result is too large to represent as a
+            finite float.
     """
     _require_number(start, "start")
     _require_number(stop, "stop")
     _require_number(t, "t")
-    return start + (stop - start) * t
+    try:
+        return start + (stop - start) * t
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def map_range(
@@ -102715,7 +102849,8 @@ def map_range(
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If the source range has zero span.
+        ValueError: If the source range has zero span, or if the mapped result
+            is too large to represent as a finite float.
     """
     _require_number(value, "value")
     _require_number(from_min, "from_min")
@@ -102724,8 +102859,11 @@ def map_range(
     _require_number(to_max, "to_max")
     if from_max == from_min:
         raise ValueError("source range must have non-zero span")
-    t = (value - from_min) / (from_max - from_min)
-    return to_min + t * (to_max - to_min)
+    try:
+        t = (value - from_min) / (from_max - from_min)
+        return to_min + t * (to_max - to_min)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 # Alias for map_range
@@ -102974,7 +103112,8 @@ def is_close(
 
     Raises:
         TypeError: If any argument is not a number.
-        ValueError: If *rel_tol* or *abs_tol* is negative or non-finite (NaN or ±inf).
+        ValueError: If *rel_tol* or *abs_tol* is negative or non-finite (NaN or ±inf),
+            or if the comparison is too large to represent as a finite float.
 
     Examples:
         >>> is_close(1.0, 1.0000000001)
@@ -102996,7 +103135,10 @@ def is_close(
         raise ValueError("rel_tol must be non-negative")
     if abs_tol < 0:
         raise ValueError("abs_tol must be non-negative")
-    return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+    try:
+        return math.isclose(a, b, rel_tol=rel_tol, abs_tol=abs_tol)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def is_finite(value: Number) -> bool:
@@ -103364,12 +103506,16 @@ def safe_divide(numerator: Number, denominator: Number) -> float:
 
     Raises:
         TypeError: If either argument is not a number.
+        ValueError: If the quotient is too large to represent as a finite float.
     """
     _require_number(numerator, "numerator")
     _require_number(denominator, "denominator")
     if denominator == 0:
         return 0.0
-    return numerator / denominator
+    try:
+        return numerator / denominator
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 
 
 def in_range(value: Number, min_value: Number, max_value: Number, inclusive: bool = True) -> bool:
@@ -107450,6 +107596,45 @@ class TestDigitSumContract(unittest.TestCase):
         from number_utils import digit_sum
 
         self.assertEqual(digit_sum(-123), 6)
+
+
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must surface ``ValueError``, never ``OverflowError``.
+
+    Values beyond the finite float range (e.g. ``10**400``) cannot be converted
+    to a :class:`float`. Helpers that must produce a ``float`` report the
+    out-of-range result as ``ValueError`` (matching the module contract).
+    """
+
+    HUGE = 10 ** 400
+
+    def test_percentage_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            percentage(self.HUGE, 1)
+
+    def test_map_range_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            map_range(self.HUGE, 0, 1, 0, 1)
+
+    def test_safe_divide_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            safe_divide(self.HUGE, 1)
+
+    def test_is_close_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            is_close(self.HUGE, self.HUGE)
+
+    def test_round_half_up_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            round_half_up(self.HUGE, 2)
+
+    def test_format_number_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            format_number(self.HUGE)
+
+    def test_lerp_huge_int_with_float_t_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            lerp(0, self.HUGE, 0.5)
 TEST_NUMBER_UTILS
 
 # --- numbers_utils.py ---
@@ -166639,15 +166824,19 @@ class Cooldown:
 
         Raises:
             TypeError: If interval is not a real number.
-            ValueError: If interval is not positive or is not finite.
+            ValueError: If interval is not positive, is not finite, or is too
+                large to represent as a finite float.
         """
         if not isinstance(interval, (int, float)) or isinstance(interval, bool):
             raise TypeError("interval must be a real number")
-        if not math.isfinite(interval):
+        if isinstance(interval, float) and not math.isfinite(interval):
             raise ValueError("interval must be finite")
         if interval <= 0:
             raise ValueError("interval must be positive")
-        self._interval = float(interval)
+        try:
+            self._interval = float(interval)
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float") from None
         self._last_call: float | None = None
         self._lock = threading.RLock()
 
@@ -166733,7 +166922,8 @@ def format_remaining(seconds: float) -> str:
 
     Raises:
         TypeError: If *seconds* is not a real number.
-        ValueError: If *seconds* is negative or not finite.
+        ValueError: If *seconds* is negative, not finite, or too large to
+            represent as a finite float.
 
     >>> format_remaining(0)
     '0.000s'
@@ -166742,11 +166932,14 @@ def format_remaining(seconds: float) -> str:
     """
     if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
         raise TypeError("seconds must be a real number")
-    if not math.isfinite(seconds):
+    if isinstance(seconds, float) and not math.isfinite(seconds):
         raise ValueError("seconds must be finite")
     if seconds < 0:
         raise ValueError("seconds must be non-negative")
-    return f"{float(seconds):.3f}s"
+    try:
+        return f"{float(seconds):.3f}s"
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float") from None
 COOLDOWN_UTILS
 
 # --- tests/test_cooldown_utils.py ---
@@ -167001,6 +167194,20 @@ class TestExportedTypeVars(unittest.TestCase):
         self.assertEqual(T.__name__, "T")
         self.assertIsInstance(P, ParamSpec)
         self.assertEqual(P.__name__, "P")
+
+
+class TestHugeIntNoOverflow(unittest.TestCase):
+    """Huge integer inputs must surface ``ValueError``, never ``OverflowError``."""
+
+    HUGE = 10 ** 400
+
+    def test_cooldown_huge_interval_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            Cooldown(self.HUGE)
+
+    def test_format_remaining_huge_int_raises_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            format_remaining(self.HUGE)
 
 
 if __name__ == "__main__":
