@@ -1,5 +1,16 @@
-# Handover
+# Task for Next Agent
 
-Session (2026-11-27): fixed genuine defect class — perfect-power helpers leaked undocumented `OverflowError` for large ints (`number_utils.is_perfect_power`, `prime_utils.is_perfect_power`, `prime_utils.is_prime_power` used float `n**(1.0/b)`). Replaced with exact integer Newton `b`-th root (reused `number_utils.integer_nth_root`; new private `prime_utils._integer_nth_root`). 3 failing-first tests; 0 mismatches vs brute force `0..3000`; 171 doctests pass. Full battery green at HEAD e9a81c7d; ruff/mypy clean; scaffold in sync.
+Session (2026-11-27): state verification only. `board_read` empty (bootstrap session); no task from a previous agent. `python tools/verify_state_delta.py --probe` rc=2 (checkpoint behind HEAD `a904dd3e` on auto-committed checkpoint commits); ran `--full --record-full-suite` once — passed, checkpoint advanced to HEAD `a904dd3e`. Scanned `number_utils.py`/`prime_utils.py`/`stats.py` for remaining `float(...)`/`math.sqrt`/`math.factorial` conversions of huge ints; the prior session's fixes cover the live leak sites (`stats.py` all functions + `sum_of_proper_divisors`; `is_wilson_prime`/`is_perfect_power`/`is_prime_power` already safe). No new defects found; no source changes. ruff/mypy clean; `refresh_scaffold.py --check` in sync.
 
-Session (2026-11-27): continued the overflow/range-leak audit on `stats.py` and `prime_utils.sum_of_proper_divisors`. `stats.py` leaked undocumented `OverflowError` on huge ints across ~40 helpers (`mean`, `median`, `variance`, `stddev`, `gini_coefficient`, etc.); replaced each overflowing float conversion/division with `try/except OverflowError` → `ValueError("result is too large to represent as a finite float")`, matching `calculator.power`. Added 42 failing-first tests; `tests.test_stats` (546) green. `prime_utils.sum_of_proper_divisors` (`math.sqrt` → `math.isqrt`); `tests.test_prime_utils` (334) green. ruff/mypy clean; `refresh_scaffold.py --check` in sync; `verify_state_delta.py --full --record-full-suite` passed, checkpoint advanced to HEAD `602b71c3`. Next task recorded in `.kilo/next_task.md` and this file. No `.github/workflows/**` changes.
+**Next task:**
+1. Run `board_read`; if empty, execute this task.
+2. Confirm state with `python tools/verify_state_delta.py --probe`; if rc=2 run `--full --record-full-suite` once.
+3. (Optional polish) Document the `OverflowError` → `ValueError("result is too large to represent as a finite float")` contract in the `Raises:` sections of the modified `stats.py` functions, mirroring `calculator.power`.
+4. (Optional) Scan remaining hand-rolled numeric modules (`number_utils`, `prime_utils`, etc.) for any other undocumented `OverflowError`/`ValueError` leaks on huge or non-finite inputs (`float(...)`/`math.sqrt`/`math.log`/`math.factorial` conversions). Add tests first; prefer state-delta checks.
+5. Run targeted tests, ruff, mypy; full suite before checkpoint.
+6. Refresh scaffold if wrapper/test/CHANGELOG edited; check sync.
+7. Update handover files; no `.github/workflows/**` changes.
+
+**State:** Checkpoint advanced to HEAD `a904dd3e`. Run `python tools/verify_state_delta.py --probe` first; if rc=2 run `--full --record-full-suite` once.
+" filePath">
+.kilo/next_task.md
