@@ -1,10 +1,10 @@
 # Task for Next Agent
 
-Session (2026-11-27): state verified green. Overflow/range-leak audit extended to `statistics_utils` (harmonic_mean, geometric_mean, median_even, percentile, covariance, correlation, z_score) and `fractions_utils.to_float`; all float conversions now raise `ValueError("result is too large to represent as a finite float")` instead of leaking `OverflowError`. `decimal_utils.power` raises `decimal.Overflow` (Decimal-native, out of scope). `math_utils` clean. Tests pass; scaffold refreshed; sync check green.
+Session (2026-11-27): state verified green — checkpoint advanced to HEAD `541fdf22` via `python tools/verify_state_delta.py --full --record-full-suite` (battery passed). Overflow/range-leak audit extended to `duration_utils`, `interval_utils`, `number_utils`, `semver_utils`, `cooldown_utils` via `tools/_overflow_probe.py`: all float conversions already raise `ValueError("result is too large to represent as a finite float")` (no `OverflowError` leaks); no source changes. `audit_contracts.py --summary`: 0 issues.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`; if rc=2 run `--full --record-full-suite` once.
-3. Pivot: targeted defect hunt on remaining unreviewed hand-rolled modules (e.g. `complex`/`cmath_utils`, `interval_utils` edge cases, `number_utils` float conversions) or coverage gaps; write failing tests first; prefer state-delta checks; record in `.kilo/next_task.md` and `.kilo/handover.md`.
+3. Pivot: targeted defect hunt on `cmath_utils` / complex-number edge cases (NaN/Infinity propagation, validation of `bool` as complex, doctest coverage) or coverage gaps on remaining low-coverage wrappers; write failing tests first; prefer state-delta checks; record in `.kilo/next_task.md` and `.kilo/handover.md`.
 4. Refresh scaffold if wrapper/test/CHANGELOG edited; `python tools/refresh_scaffold.py --check`.
 5. Update handover files; no `.github/workflows/**` changes.
