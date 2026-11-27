@@ -50,7 +50,11 @@ def email_parsedate_to_datetime(data: str) -> Any:
         data: An RFC 2822 date string.
 
     Returns:
-        A datetime instance, or None if the string could not be parsed.
+        A datetime instance, or None if the string could not be parsed
+        or if *data* is not a string.
+
+    Raises:
+        # audit-ignore: ValueError, AttributeError (swallowed, returns None)
     """
     try:
         return email.utils.parsedate_to_datetime(data)
@@ -86,6 +90,10 @@ def email_parseaddr(addr: str, strict: bool = True) -> tuple[str, str]:
 
     Returns:
         A tuple of (realname, email_address).
+
+    Raises:
+        IndexError: If *addr* is an empty sequence.
+            # audit-ignore: IndexError
     """
     return email.utils.parseaddr(addr, strict=strict)
 
@@ -139,7 +147,7 @@ def email_make_msgid(idstring: str | None = None, domain: str | None = None) -> 
         A Message-ID string enclosed in angle brackets.
 
     Raises:
-        TypeError: If *idstring* or *domain* is not a string or ``None``.
+        TypeError: If *idstring* is not a string or ``None``.
             # audit-ignore: TypeError
     """
     return email.utils.make_msgid(idstring=idstring, domain=domain)

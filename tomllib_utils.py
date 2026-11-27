@@ -1,8 +1,7 @@
 """TOML utility functions (wraps stdlib tomllib)."""
 
-from typing import Any
-
 import tomllib  # type: ignore[import-not-found]
+from typing import Any
 
 __all__ = [
     "is_valid_toml",

@@ -157,3 +157,38 @@ def test_format_datetime_rejects_non_datetime():
         email_utils.email_format_datetime(None)  # type: ignore[arg-type]
     with pytest.raises(AttributeError):
         email_utils.email_format_datetime("not a datetime")  # type: ignore[arg-type]
+    with pytest.raises(AttributeError):
+        email_utils.email_format_datetime([])  # type: ignore[arg-type]
+
+
+def test_parseaddr_rejects_empty_list():
+    with pytest.raises(IndexError):
+        email_utils.email_parseaddr([])  # type: ignore[arg-type]
+
+
+def test_parseaddr_returns_empty_for_invalid_input():
+    assert email_utils.email_parseaddr(None) == ("", "")
+    assert email_utils.email_parseaddr(42) == ("", "")
+    assert email_utils.email_parseaddr({}) == ("", "")
+    assert email_utils.email_parseaddr(1.5) == ("", "")
+
+
+def test_formataddr_accepts_non_string_charset():
+    result = email_utils.email_formataddr(("User", "user@example.com"), charset=42)
+    assert "user@example.com" in result
+
+
+def test_getaddresses_iterates_string():
+    result = email_utils.email_getaddresses("test")
+    assert isinstance(result, list)
+
+
+def test_make_msgid_accepts_non_string_domain():
+    result = email_utils.email_make_msgid(domain=42)
+    assert "42" in result
+
+
+def test_parsedate_to_datetime_returns_none_for_errors():
+    assert email_utils.email_parsedate_to_datetime(None) is None
+    assert email_utils.email_parsedate_to_datetime(42) is None
+    assert email_utils.email_parsedate_to_datetime("not a date") is None

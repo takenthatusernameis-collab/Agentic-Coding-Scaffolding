@@ -204,6 +204,8 @@ def quote(
 
     Raises:
         TypeError: If *text* or *safe* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     text_value = _require_str(text, "text")
     safe_value = _require_str(safe, "safe")
@@ -229,6 +231,8 @@ def quote_plus(
 
     Raises:
         TypeError: If *text* or *safe* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     text_value = _require_str(text, "text")
     safe_value = _require_str(safe, "safe")
@@ -248,6 +252,8 @@ def unquote(text: str, encoding: str = _DEFAULT_ENCODING, errors: str = "replace
 
     Raises:
         TypeError: If *text* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     _require_str(text, "text")
     return _urllib_parse.unquote(text, encoding=encoding, errors=errors)
@@ -266,6 +272,8 @@ def unquote_plus(text: str, encoding: str = _DEFAULT_ENCODING, errors: str = "re
 
     Raises:
         TypeError: If *text* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     _require_str(text, "text")
     return _urllib_parse.unquote_plus(text, encoding=encoding, errors=errors)
@@ -308,6 +316,8 @@ def urlencode(
 
     Raises:
         TypeError: If *query* or *safe* is not of the expected type.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     resolved = _require_mapping_or_pairs(query, "query")
     _require_str(safe, "safe")

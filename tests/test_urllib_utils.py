@@ -158,6 +158,10 @@ class TestQuote(unittest.TestCase):
         with self.assertRaises(TypeError):
             quote("a b", safe=42)  # type: ignore[arg-type]
 
+    def test_quote_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            quote("test", encoding="invalid-encoding")
+
 
 class TestQuotePlus(unittest.TestCase):
     """Verify percent-encoding a string with plus signs for spaces."""
@@ -171,6 +175,10 @@ class TestQuotePlus(unittest.TestCase):
     def test_quote_plus_rejects_bad_arguments(self):
         with self.assertRaises(TypeError):
             quote_plus(None)  # type: ignore[arg-type]
+
+    def test_quote_plus_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            quote_plus("test", encoding="invalid-encoding")
 
 
 class TestUnquote(unittest.TestCase):
@@ -186,6 +194,10 @@ class TestUnquote(unittest.TestCase):
         with self.assertRaises(TypeError):
             unquote(42)  # type: ignore[arg-type]
 
+    def test_unquote_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            unquote("%20", encoding="invalid-encoding")
+
 
 class TestUnquotePlus(unittest.TestCase):
     """Verify decoding a percent-encoded string with plus signs as spaces."""
@@ -199,6 +211,10 @@ class TestUnquotePlus(unittest.TestCase):
     def test_unquote_plus_rejects_a_non_string(self):
         with self.assertRaises(TypeError):
             unquote_plus(None)  # type: ignore[arg-type]
+
+    def test_unquote_plus_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            unquote_plus("%20", encoding="invalid-encoding")
 
 
 class TestUnquoteToBytes(unittest.TestCase):
@@ -238,6 +254,10 @@ class TestUrlencode(unittest.TestCase):
             urlencode("a=1")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             urlencode({"a": 1}, safe=42)  # type: ignore[arg-type]
+
+    def test_urlencode_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            urlencode({"a": "b"}, encoding="invalid-encoding")
 
 
 class TestParseQs(unittest.TestCase):

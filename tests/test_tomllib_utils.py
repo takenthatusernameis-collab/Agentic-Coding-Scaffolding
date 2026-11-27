@@ -2,9 +2,8 @@
 
 import os
 import tempfile
-import unittest
-
 import tomllib
+import unittest
 
 from tomllib_utils import is_valid_toml, load_toml_string, read_toml
 

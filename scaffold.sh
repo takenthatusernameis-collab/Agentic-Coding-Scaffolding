@@ -89123,7 +89123,11 @@ def email_parsedate_to_datetime(data: str) -> Any:
         data: An RFC 2822 date string.
 
     Returns:
-        A datetime instance, or None if the string could not be parsed.
+        A datetime instance, or None if the string could not be parsed
+        or if *data* is not a string.
+
+    Raises:
+        # audit-ignore: ValueError, AttributeError (swallowed, returns None)
     """
     try:
         return email.utils.parsedate_to_datetime(data)
@@ -89159,6 +89163,10 @@ def email_parseaddr(addr: str, strict: bool = True) -> tuple[str, str]:
 
     Returns:
         A tuple of (realname, email_address).
+
+    Raises:
+        IndexError: If *addr* is an empty sequence.
+            # audit-ignore: IndexError
     """
     return email.utils.parseaddr(addr, strict=strict)
 
@@ -89212,7 +89220,7 @@ def email_make_msgid(idstring: str | None = None, domain: str | None = None) -> 
         A Message-ID string enclosed in angle brackets.
 
     Raises:
-        TypeError: If *idstring* or *domain* is not a string or ``None``.
+        TypeError: If *idstring* is not a string or ``None``.
             # audit-ignore: TypeError
     """
     return email.utils.make_msgid(idstring=idstring, domain=domain)
@@ -89445,6 +89453,41 @@ def test_format_datetime_rejects_non_datetime():
         email_utils.email_format_datetime(None)  # type: ignore[arg-type]
     with pytest.raises(AttributeError):
         email_utils.email_format_datetime("not a datetime")  # type: ignore[arg-type]
+    with pytest.raises(AttributeError):
+        email_utils.email_format_datetime([])  # type: ignore[arg-type]
+
+
+def test_parseaddr_rejects_empty_list():
+    with pytest.raises(IndexError):
+        email_utils.email_parseaddr([])  # type: ignore[arg-type]
+
+
+def test_parseaddr_returns_empty_for_invalid_input():
+    assert email_utils.email_parseaddr(None) == ("", "")
+    assert email_utils.email_parseaddr(42) == ("", "")
+    assert email_utils.email_parseaddr({}) == ("", "")
+    assert email_utils.email_parseaddr(1.5) == ("", "")
+
+
+def test_formataddr_accepts_non_string_charset():
+    result = email_utils.email_formataddr(("User", "user@example.com"), charset=42)
+    assert "user@example.com" in result
+
+
+def test_getaddresses_iterates_string():
+    result = email_utils.email_getaddresses("test")
+    assert isinstance(result, list)
+
+
+def test_make_msgid_accepts_non_string_domain():
+    result = email_utils.email_make_msgid(domain=42)
+    assert "42" in result
+
+
+def test_parsedate_to_datetime_returns_none_for_errors():
+    assert email_utils.email_parsedate_to_datetime(None) is None
+    assert email_utils.email_parsedate_to_datetime(42) is None
+    assert email_utils.email_parsedate_to_datetime("not a date") is None
 TEST_EMAIL_UTILS
 
 # --- encodings_utils.py ---
@@ -139709,9 +139752,8 @@ TEST_TOKENIZE_UTILS
 cat > "$OUTPUT_DIR/tomllib_utils.py" <<'TOMLLIB_UTILS'
 """TOML utility functions (wraps stdlib tomllib)."""
 
-from typing import Any
-
 import tomllib  # type: ignore[import-not-found]
+from typing import Any
 
 __all__ = [
     "is_valid_toml",
@@ -139779,9 +139821,8 @@ cat > "$OUTPUT_DIR/tests/test_tomllib_utils.py" <<'TEST_TOMLLIB_UTILS'
 
 import os
 import tempfile
-import unittest
-
 import tomllib
+import unittest
 
 from tomllib_utils import is_valid_toml, load_toml_string, read_toml
 
@@ -156551,6 +156592,8 @@ def quote(
 
     Raises:
         TypeError: If *text* or *safe* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     text_value = _require_str(text, "text")
     safe_value = _require_str(safe, "safe")
@@ -156576,6 +156619,8 @@ def quote_plus(
 
     Raises:
         TypeError: If *text* or *safe* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     text_value = _require_str(text, "text")
     safe_value = _require_str(safe, "safe")
@@ -156595,6 +156640,8 @@ def unquote(text: str, encoding: str = _DEFAULT_ENCODING, errors: str = "replace
 
     Raises:
         TypeError: If *text* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     _require_str(text, "text")
     return _urllib_parse.unquote(text, encoding=encoding, errors=errors)
@@ -156613,6 +156660,8 @@ def unquote_plus(text: str, encoding: str = _DEFAULT_ENCODING, errors: str = "re
 
     Raises:
         TypeError: If *text* is not a string.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     _require_str(text, "text")
     return _urllib_parse.unquote_plus(text, encoding=encoding, errors=errors)
@@ -156655,6 +156704,8 @@ def urlencode(
 
     Raises:
         TypeError: If *query* or *safe* is not of the expected type.
+        LookupError: If *encoding* is not a valid encoding name.
+            # audit-ignore: LookupError
     """
     resolved = _require_mapping_or_pairs(query, "query")
     _require_str(safe, "safe")
@@ -156878,6 +156929,10 @@ class TestQuote(unittest.TestCase):
         with self.assertRaises(TypeError):
             quote("a b", safe=42)  # type: ignore[arg-type]
 
+    def test_quote_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            quote("test", encoding="invalid-encoding")
+
 
 class TestQuotePlus(unittest.TestCase):
     """Verify percent-encoding a string with plus signs for spaces."""
@@ -156891,6 +156946,10 @@ class TestQuotePlus(unittest.TestCase):
     def test_quote_plus_rejects_bad_arguments(self):
         with self.assertRaises(TypeError):
             quote_plus(None)  # type: ignore[arg-type]
+
+    def test_quote_plus_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            quote_plus("test", encoding="invalid-encoding")
 
 
 class TestUnquote(unittest.TestCase):
@@ -156906,6 +156965,10 @@ class TestUnquote(unittest.TestCase):
         with self.assertRaises(TypeError):
             unquote(42)  # type: ignore[arg-type]
 
+    def test_unquote_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            unquote("%20", encoding="invalid-encoding")
+
 
 class TestUnquotePlus(unittest.TestCase):
     """Verify decoding a percent-encoded string with plus signs as spaces."""
@@ -156919,6 +156982,10 @@ class TestUnquotePlus(unittest.TestCase):
     def test_unquote_plus_rejects_a_non_string(self):
         with self.assertRaises(TypeError):
             unquote_plus(None)  # type: ignore[arg-type]
+
+    def test_unquote_plus_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            unquote_plus("%20", encoding="invalid-encoding")
 
 
 class TestUnquoteToBytes(unittest.TestCase):
@@ -156958,6 +157025,10 @@ class TestUrlencode(unittest.TestCase):
             urlencode("a=1")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             urlencode({"a": 1}, safe=42)  # type: ignore[arg-type]
+
+    def test_urlencode_rejects_invalid_encoding(self):
+        with self.assertRaises(LookupError):
+            urlencode({"a": "b"}, encoding="invalid-encoding")
 
 
 class TestParseQs(unittest.TestCase):
