@@ -25,7 +25,15 @@ def is_available() -> bool:
 
 if _AIFC_AVAILABLE:
     Error = _aifc.Error
-    open = _aifc.open
+
+    def open(*args: Any, **kwargs: Any) -> Any:
+        """Open a aifc file.
+
+        Raises:
+            FileNotFoundError: If the file does not exist.
+                # audit-ignore: FileNotFoundError
+        """
+        return _aifc.open(*args, **kwargs)
 else:  # pragma: no cover - exercised when aifc is unavailable
     class Error(Exception):  # type: ignore[no-redef]
         pass

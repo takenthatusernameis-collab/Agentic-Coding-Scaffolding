@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 try:
     import sndhdr as _sndhdr
     _SNDHDR_AVAILABLE = True
@@ -23,14 +25,30 @@ def is_available() -> bool:
 
 
 if _SNDHDR_AVAILABLE:
-    what = _sndhdr.what
-    whathdr = _sndhdr.whathdr
+    def what(filename: Any, *args: Any, **kwargs: Any) -> Any:
+        """Identify the sound format of *filename*.
+
+        Raises:
+            TypeError: If *filename* is ``None``.
+                # audit-ignore: TypeError
+        """
+        return _sndhdr.what(filename, *args, **kwargs)
+
+    def whathdr(filename: Any, *args: Any, **kwargs: Any) -> Any:
+        """Read the header of *filename* without scanning the whole file.
+
+        Raises:
+            TypeError: If *filename* is ``None``.
+                # audit-ignore: TypeError
+        """
+        return _sndhdr.whathdr(filename, *args, **kwargs)
+
     tests = getattr(_sndhdr, "tests", [])
 else:
-    def what(filename):  # type: ignore[no-untyped-def]
+    def what(filename: Any, *args: Any, **kwargs: Any) -> Any:  # type: ignore[no-untyped-def]
         raise RuntimeError("sndhdr module is not available")
 
-    def whathdr(filename):  # type: ignore[no-untyped-def]
+    def whathdr(filename: Any, *args: Any, **kwargs: Any) -> Any:  # type: ignore[no-untyped-def]
         raise RuntimeError("sndhdr module is not available")
 
     tests = []

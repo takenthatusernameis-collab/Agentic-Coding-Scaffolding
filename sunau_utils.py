@@ -25,7 +25,15 @@ def is_available() -> bool:
 
 if _SUNAU_AVAILABLE:
     Error = _sunau.Error
-    open = _sunau.open
+
+    def open(*args: Any, **kwargs: Any) -> Any:
+        """Open a sunau file.
+
+        Raises:
+            FileNotFoundError: If the file does not exist.
+                # audit-ignore: FileNotFoundError
+        """
+        return _sunau.open(*args, **kwargs)
 else:  # pragma: no cover - exercised when sunau is unavailable
     class Error(Exception):  # type: ignore[no-redef]
         pass
