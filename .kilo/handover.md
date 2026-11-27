@@ -1,12 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-27): state-confirmation pass (no source change). `board_read`
-empty (bootstrap); executed this durable handoff. `verify_state_delta.py --probe`
-rc=1 — clean tree, checkpoint advanced to HEAD `8495b47d`. No source-relevant
-change, so no full run needed. `refresh_scaffold.py --check` in sync;
-`audit_contracts.py --summary` 0 issues; `py_compile *.py` clean. Advanced
-`.kilo/last_verified.checkpoint` head to `8495b47d` (full_suite_head stays
-`5beae364`, the last real full run). No `.github/workflows/**` changes.
+Session (2026-11-27): state-confirmation pass (no source change). `board_read` empty (bootstrap); executed this durable handoff. `verify_state_delta.py --probe` rc=1 — clean tree, checkpoint advanced to HEAD `8495b47d`. No source-relevant change, so no full run needed. `refresh_scaffold.py --check` in sync; `audit_contracts.py --summary` 0 issues (574 files); `py_compile *.py` clean. Both defect classes (accepts-invalid-input NaN/Infinity; huge-int `OverflowError`) remain exhausted and test-covered. No `.github/workflows/**` changes.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
