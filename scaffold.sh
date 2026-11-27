@@ -5026,7 +5026,7 @@ name = "${PROJECT_ID}"
 version = "0.1.0"
 description = "A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "kilo-autonomous", email = "kilo-autonomous@users.noreply.github.com" }]
 
@@ -5044,7 +5044,7 @@ pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
@@ -5053,7 +5053,7 @@ select = ["E", "F", "I", "W"]
 docstring-code-format = true
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 strict = false
