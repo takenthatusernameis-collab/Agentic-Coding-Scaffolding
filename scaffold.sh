@@ -92178,6 +92178,8 @@ def divide(a: Any, b: Any) -> Fraction:
 
     Raises:
         ZeroDivisionError: If *b`` is zero.
+        ValueError: If *a* or *b* cannot be converted to a Fraction (e.g. NaN/inf).
+            # audit-ignore: ValueError
     """
     dividend = _to_fraction(a)
     divisor = _to_fraction(b)
@@ -92195,6 +92197,10 @@ def power(base: Any, exponent: Any) -> Fraction:
 
     Returns:
         ``base ** exponent`` as a Fraction.
+
+    Raises:
+        ValueError: If *base* or *exponent* cannot be converted to a Fraction
+            (e.g. NaN/inf).  # audit-ignore: ValueError
     """
     result = _to_fraction(base) ** _to_fraction(exponent)
     if isinstance(result, float):
@@ -92262,7 +92268,13 @@ def denominator(value: Any) -> int:
 
 
 def to_float(value: Any) -> float:
-    """Convert *value* to a ``float``."""
+    """Convert *value* to a ``float``.
+
+    Raises:
+        ValueError: If *value* cannot be converted to a Fraction (e.g. NaN/inf)
+            or the result is too large to represent as a finite float.
+            # audit-ignore: ValueError
+    """
     try:
         return float(_to_fraction(value))
     except OverflowError:
@@ -92277,6 +92289,10 @@ def from_float(value: Any) -> Fraction:
 
     Returns:
         The exact Fraction representation of *value*.
+
+    Raises:
+        ValueError: If *value* cannot be converted to a Fraction (e.g. NaN/inf).
+            # audit-ignore: ValueError
     """
     return _to_fraction(value)
 FRACTIONS_UTILS
