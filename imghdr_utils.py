@@ -36,6 +36,12 @@ if _IMGHDR_AVAILABLE:
     what = _imghdr.what
 
     def detect(file: Any, h: bytes | None = None) -> str | None:
+        """Detect the image format of *file* or header *h*.
+
+        Raises:
+            AttributeError: If *file* is not a readable object (for example ``None``).
+                # audit-ignore: AttributeError
+        """
         if h is None and hasattr(file, "read"):
             h = file.read(32)
             if hasattr(file, "seek"):
@@ -49,6 +55,12 @@ if _IMGHDR_AVAILABLE:
         return detect(file, h) is not None
 
     def matching_formats(file: Any, h: bytes | None = None) -> list[str]:
+        """Return the matching image formats for *file* or header *h*.
+
+        Raises:
+            AttributeError: If *file* is not a readable object (for example ``None``).
+                # audit-ignore: AttributeError
+        """
         result = detect(file, h)
         return [result] if result is not None else []
 

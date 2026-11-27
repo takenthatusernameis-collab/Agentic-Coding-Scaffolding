@@ -20,24 +20,60 @@ __all__ = [
 
 
 def rgb_to_hls(r: float, g: float, b: float) -> HLS:
+    """Convert RGB to HLS.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.rgb_to_hls(r, g, b)
 
 
 def hls_to_rgb(h: float, lightness: float, s: float) -> RGB:
+    """Convert HLS to RGB.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.hls_to_rgb(h, lightness, s)
 
 
 def rgb_to_hsv(r: float, g: float, b: float) -> HSV:
+    """Convert RGB to HSV.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.rgb_to_hsv(r, g, b)
 
 
 def hsv_to_rgb(h: float, s: float, v: float) -> RGB:
+    """Convert HSV to RGB.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.hsv_to_rgb(h, s, v)
 
 
 def rgb_to_yiq(r: float, g: float, b: float) -> YIQ:
+    """Convert RGB to YIQ.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.rgb_to_yiq(r, g, b)
 
 
 def yiq_to_rgb(y: float, i: float, q: float) -> RGB:
+    """Convert YIQ to RGB.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.yiq_to_rgb(y, i, q)

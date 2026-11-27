@@ -77,6 +77,14 @@ class TestDetect(unittest.TestCase):
     def test_detect_file_object_without_read(self) -> None:
         self.assertIsNone(imghdr_utils.detect(object(), b"not an image"))
 
+    def test_detect_none_raises_attribute_error(self) -> None:
+        """``detect(None)`` leaks ``AttributeError`` from delegated ``imghdr.what``.
+
+        Genuine stdlib delegation, documented with ``# audit-ignore: AttributeError``.
+        """
+        with self.assertRaises(AttributeError):
+            imghdr_utils.detect(None)  # type: ignore[arg-type]
+
 
 @unittest.skipUnless(imghdr_utils.is_available(), "imghdr not available")
 class TestPredicates(unittest.TestCase):
@@ -91,6 +99,14 @@ class TestPredicates(unittest.TestCase):
 
     def test_matching_formats_miss(self) -> None:
         self.assertEqual(imghdr_utils.matching_formats(None, b"not an image"), [])
+
+    def test_matching_formats_none_raises_attribute_error(self) -> None:
+        """``matching_formats(None)`` leaks ``AttributeError`` from delegated ``imghdr.what``.
+
+        Genuine stdlib delegation, documented with ``# audit-ignore: AttributeError``.
+        """
+        with self.assertRaises(AttributeError):
+            imghdr_utils.matching_formats(None)  # type: ignore[arg-type]
 
     def test_read_header_returns_bytes(self) -> None:
         self.assertEqual(imghdr_utils.read_header(None, PNG), PNG)

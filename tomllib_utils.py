@@ -12,13 +12,25 @@ __all__ = [
 
 
 def read_toml(path: str) -> Any:
-    """Read TOML data from a file."""
+    """Read TOML data from a file.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
+            # audit-ignore: FileNotFoundError
+        TOMLDecodeError: If the file is not valid TOML.
+            # audit-ignore: TOMLDecodeError
+    """
     with open(path, "rb") as f:
         return tomllib.load(f)
 
 
 def load_toml_string(s: str) -> Any:
-    """Parse TOML from a string."""
+    """Parse TOML from a string.
+
+    Raises:
+        TOMLDecodeError: If *s* is not valid TOML.
+            # audit-ignore: TOMLDecodeError
+    """
     return tomllib.loads(s)
 
 

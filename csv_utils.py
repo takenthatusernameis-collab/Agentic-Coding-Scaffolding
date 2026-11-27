@@ -17,14 +17,24 @@ def read_csv(
     delimiter: str = ",",
     fieldnames: Optional[List[str]] = None,
 ) -> List[Dict[str, str]]:
-    """Read CSV file and return list of dictionaries."""
+    """Read CSV file and return list of dictionaries.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
+            # audit-ignore: FileNotFoundError
+    """
     with open(path, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f, fieldnames=fieldnames, delimiter=delimiter)
         return [dict(row) for row in reader]
 
 
 def read_csv_as_lists(path: str, delimiter: str = ",") -> List[List[str]]:
-    """Read CSV file and return list of lists."""
+    """Read CSV file and return list of lists.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
+            # audit-ignore: FileNotFoundError
+    """
     with open(path, "r", encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=delimiter)
         return list(reader)
@@ -40,6 +50,10 @@ def write_csv(
 
     When ``rows`` is empty, a header row is written only if ``fieldnames`` is
     provided; otherwise the function returns without creating a file.
+
+    Raises:
+        FileNotFoundError: If the parent directory of *path* does not exist.
+            # audit-ignore: FileNotFoundError
     """
     if fieldnames is None:
         if not rows:
@@ -52,7 +66,12 @@ def write_csv(
 
 
 def write_csv_from_lists(path: str, rows: List[List[Any]], delimiter: str = ",") -> None:
-    """Write list of lists to CSV file."""
+    """Write list of lists to CSV file.
+
+    Raises:
+        FileNotFoundError: If the parent directory of *path* does not exist.
+            # audit-ignore: FileNotFoundError
+    """
     with open(path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f, delimiter=delimiter)
         writer.writerows(rows)
@@ -71,6 +90,10 @@ def append_csv_row(
         row: Mapping of column names to values for the row.
         fieldnames: Column order. Defaults to ``list(row.keys())``.
         delimiter: Field delimiter to use when writing.
+
+    Raises:
+        FileNotFoundError: If the parent directory of *path* does not exist.
+            # audit-ignore: FileNotFoundError
     """
     if fieldnames is None:
         fieldnames = list(row.keys())

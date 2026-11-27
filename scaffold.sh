@@ -29310,6 +29310,24 @@ class TestReadWriteCSV(unittest.TestCase):
             if os.path.exists(path):
                 os.unlink(path)
 
+    def test_read_csv_missing_file_raises_file_not_found(self) -> None:
+        """``read_csv`` propagates ``FileNotFoundError`` for a missing path.
+
+        Genuine stdlib ``open()`` delegation, documented with ``# audit-ignore: FileNotFoundError``.
+        """
+        with self.assertRaises(FileNotFoundError):
+            read_csv("/nonexistent/dir/missing.csv")
+
+    def test_write_csv_missing_dir_raises_file_not_found(self) -> None:
+        """``write_csv`` propagates ``FileNotFoundError`` for a missing parent dir."""
+        with self.assertRaises(FileNotFoundError):
+            write_csv("/nonexistent/dir/out.csv", [{"a": "1"}])
+
+    def test_append_csv_row_missing_dir_raises_file_not_found(self) -> None:
+        """``append_csv_row`` propagates ``FileNotFoundError`` for a missing parent dir."""
+        with self.assertRaises(FileNotFoundError):
+            append_csv_row("/nonexistent/dir/out.csv", {"a": "1"})
+
     def test_append_csv_row(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
             path = f.name
@@ -45337,14 +45355,24 @@ def read_csv(
     delimiter: str = ",",
     fieldnames: Optional[List[str]] = None,
 ) -> List[Dict[str, str]]:
-    """Read CSV file and return list of dictionaries."""
+    """Read CSV file and return list of dictionaries.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
+            # audit-ignore: FileNotFoundError
+    """
     with open(path, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f, fieldnames=fieldnames, delimiter=delimiter)
         return [dict(row) for row in reader]
 
 
 def read_csv_as_lists(path: str, delimiter: str = ",") -> List[List[str]]:
-    """Read CSV file and return list of lists."""
+    """Read CSV file and return list of lists.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
+            # audit-ignore: FileNotFoundError
+    """
     with open(path, "r", encoding="utf-8") as f:
         reader = csv.reader(f, delimiter=delimiter)
         return list(reader)
@@ -45360,6 +45388,10 @@ def write_csv(
 
     When ``rows`` is empty, a header row is written only if ``fieldnames`` is
     provided; otherwise the function returns without creating a file.
+
+    Raises:
+        FileNotFoundError: If the parent directory of *path* does not exist.
+            # audit-ignore: FileNotFoundError
     """
     if fieldnames is None:
         if not rows:
@@ -45372,7 +45404,12 @@ def write_csv(
 
 
 def write_csv_from_lists(path: str, rows: List[List[Any]], delimiter: str = ",") -> None:
-    """Write list of lists to CSV file."""
+    """Write list of lists to CSV file.
+
+    Raises:
+        FileNotFoundError: If the parent directory of *path* does not exist.
+            # audit-ignore: FileNotFoundError
+    """
     with open(path, "w", encoding="utf-8", newline="") as f:
         writer = csv.writer(f, delimiter=delimiter)
         writer.writerows(rows)
@@ -45391,6 +45428,10 @@ def append_csv_row(
         row: Mapping of column names to values for the row.
         fieldnames: Column order. Defaults to ``list(row.keys())``.
         delimiter: Field delimiter to use when writing.
+
+    Raises:
+        FileNotFoundError: If the parent directory of *path* does not exist.
+            # audit-ignore: FileNotFoundError
     """
     if fieldnames is None:
         fieldnames = list(row.keys())
@@ -53896,31 +53937,69 @@ __all__ = [
 
 
 def rgb_to_hls(r: float, g: float, b: float) -> HLS:
+    """Convert RGB to HLS.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.rgb_to_hls(r, g, b)
 
 
 def hls_to_rgb(h: float, lightness: float, s: float) -> RGB:
+    """Convert HLS to RGB.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.hls_to_rgb(h, lightness, s)
 
 
 def rgb_to_hsv(r: float, g: float, b: float) -> HSV:
+    """Convert RGB to HSV.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.rgb_to_hsv(r, g, b)
 
 
 def hsv_to_rgb(h: float, s: float, v: float) -> RGB:
+    """Convert HSV to RGB.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.hsv_to_rgb(h, s, v)
 
 
 def rgb_to_yiq(r: float, g: float, b: float) -> YIQ:
+    """Convert RGB to YIQ.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.rgb_to_yiq(r, g, b)
 
 
 def yiq_to_rgb(y: float, i: float, q: float) -> RGB:
+    """Convert YIQ to RGB.
+
+    Raises:
+        TypeError: If any component is not a real number.
+            # audit-ignore: TypeError
+    """
     return colorsys.yiq_to_rgb(y, i, q)
 COLORSYSUTILS
 # --- tests/test_colorsys_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_colorsys_utils.py" <<'TESTCOLORSYSUTILS'
 import colorsys
+
+import pytest
 
 import colorsys_utils
 
@@ -53948,6 +54027,23 @@ def test_rgb_to_yiq():
 def test_yiq_to_rgb():
     a = (0.299, 0.596, 0.211)
     assert colorsys_utils.yiq_to_rgb(*a) == colorsys.yiq_to_rgb(*a)
+
+
+def test_conversions_reject_non_numeric():
+    """All conversions leak ``TypeError`` from stdlib ``colorsys`` on non-numeric input.
+
+    Genuine stdlib delegation, documented with ``# audit-ignore: TypeError``.
+    """
+    for fn in (
+        colorsys_utils.rgb_to_hls,
+        colorsys_utils.hls_to_rgb,
+        colorsys_utils.rgb_to_hsv,
+        colorsys_utils.hsv_to_rgb,
+        colorsys_utils.rgb_to_yiq,
+        colorsys_utils.yiq_to_rgb,
+    ):
+        with pytest.raises(TypeError):
+            fn("a", "b", "c")  # type: ignore[arg-type]
 TESTCOLORSYSUTILS
 # --- circuit_breaker_utils.py ---
 cat > "$OUTPUT_DIR/circuit_breaker_utils.py" <<'CIRCUITBREAKERUTILS'
@@ -76339,6 +76435,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — leaked-exception audit on `tomllib_utils`, `csv_utils`, `colorsys_utils`, `imghdr_utils`
+
+- **Audit — documented stdlib-delegation leaks with `# audit-ignore:` on remaining non-validating wrapper modules.** `tomllib_utils.read_toml` leaks `FileNotFoundError` (missing path) and `TOMLDecodeError` (invalid TOML); `tomllib_utils.load_toml_string` leaks `TOMLDecodeError`. `csv_utils.read_csv`/`read_csv_as_lists`/`write_csv`/`write_csv_from_lists`/`append_csv_row` leak `FileNotFoundError` when the path or its parent directory is missing (thin `open()` wrappers). `colorsys_utils` conversions leak `TypeError` on non-numeric input. `imghdr_utils.detect`/`matching_formats` leak `AttributeError` on a non-readable `file` (e.g. `None`). Each leak is genuine stdlib delegation (not an input-validation gap), so each is documented in `Raises:` with an inline `# audit-ignore:` comment. `graphlib_utils` was swept and found already clean (its `TypeError`/`CycleError` are raised by the wrapper itself).
+- **Functions updated:** `tomllib_utils.read_toml`, `tomllib_utils.load_toml_string` (`FileNotFoundError`, `TOMLDecodeError`); `csv_utils.read_csv`, `csv_utils.read_csv_as_lists`, `csv_utils.write_csv`, `csv_utils.write_csv_from_lists`, `csv_utils.append_csv_row` (`FileNotFoundError`); `colorsys_utils.rgb_to_hls/hls_to_rgb/rgb_to_hsv/hsv_to_rgb/rgb_to_yiq/yiq_to_rgb` (`TypeError`); `imghdr_utils.detect`/`imghdr_utils.matching_formats` (`AttributeError`). No behavior change.
+- **Tests:** added `test_load_toml_string_invalid_toml_raises_tomldecodeerror` (`tests/test_tomllib_utils.py`); `test_read_csv_missing_file_raises_file_not_found`, `test_write_csv_missing_dir_raises_file_not_found`, `test_append_csv_row_missing_dir_raises_file_not_found` (`tests/test_csv_utils.py`); `test_conversions_reject_non_numeric` (`tests/test_colorsys_utils.py`); `test_detect_none_raises_attribute_error`, `test_matching_formats_none_raises_attribute_error` (`tests/test_imghdr_utils.py`).
+- **Defect class:** undocumented-exception audit (stdlib delegation documented with `# audit-ignore:`); no behavior change.
+- Validation: `python -m pytest tests/test_tomllib_utils.py tests/test_csv_utils.py tests/test_colorsys_utils.py tests/test_imghdr_utils.py` — 54 OK; `python -m ruff check` clean; `python -m mypy` success; `python tools/audit_contracts.py` — 0 issues; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `datetime_utils` documents `OverflowError` leaks from datetime range overflow
 
 - **Audit — `datetime_utils` shift helpers leaked an undocumented `OverflowError`.** `add_days`, `add_hours`, `add_minutes`, and `add_weeks` (which delegates to `add_days`) compute `dt + timedelta(...)`; when the result falls outside the supported `datetime` range (e.g. `datetime.max` plus a positive offset, or `datetime.min` minus a positive offset) the stdlib raises `OverflowError: date value out of range`. The docstrings' `Raises:` sections listed only `TypeError`/`ValueError`, so callers catching those were surprised by the boundary overflow. This is a genuine stdlib `datetime` delegation signal (not an input-validation gap), so each is documented in `Raises:` with an inline `# audit-ignore:` comment (matching the `cmath_utils`/`decimal_utils`/`fractions_utils` convention).
@@ -139607,13 +139711,25 @@ __all__ = [
 
 
 def read_toml(path: str) -> Any:
-    """Read TOML data from a file."""
+    """Read TOML data from a file.
+
+    Raises:
+        FileNotFoundError: If *path* does not exist.
+            # audit-ignore: FileNotFoundError
+        TOMLDecodeError: If the file is not valid TOML.
+            # audit-ignore: TOMLDecodeError
+    """
     with open(path, "rb") as f:
         return tomllib.load(f)
 
 
 def load_toml_string(s: str) -> Any:
-    """Parse TOML from a string."""
+    """Parse TOML from a string.
+
+    Raises:
+        TOMLDecodeError: If *s* is not valid TOML.
+            # audit-ignore: TOMLDecodeError
+    """
     return tomllib.loads(s)
 
 
@@ -139655,6 +139771,8 @@ import os
 import tempfile
 import unittest
 
+import tomllib
+
 from tomllib_utils import is_valid_toml, load_toml_string, read_toml
 
 
@@ -139678,6 +139796,15 @@ class TestTomllibUtils(unittest.TestCase):
     def test_load_toml_string(self) -> None:
         data = load_toml_string('a = 1\nb = "two"')
         self.assertEqual(data, {"a": 1, "b": "two"})
+
+    def test_load_toml_string_invalid_toml_raises_tomldecodeerror(self) -> None:
+        """``load_toml_string`` propagates ``tomllib.TOMLDecodeError`` for invalid TOML.
+
+        This is a genuine stdlib delegation leak (not an input-validation gap),
+        documented in ``Raises:`` with ``# audit-ignore: TOMLDecodeError``.
+        """
+        with self.assertRaises(tomllib.TOMLDecodeError):
+            load_toml_string("key =")
 
     def test_is_valid_toml_true(self) -> None:
         self.assertTrue(is_valid_toml('key = "val"'))
@@ -162251,6 +162378,14 @@ class TestDetect(unittest.TestCase):
     def test_detect_file_object_without_read(self) -> None:
         self.assertIsNone(imghdr_utils.detect(object(), b"not an image"))
 
+    def test_detect_none_raises_attribute_error(self) -> None:
+        """``detect(None)`` leaks ``AttributeError`` from delegated ``imghdr.what``.
+
+        Genuine stdlib delegation, documented with ``# audit-ignore: AttributeError``.
+        """
+        with self.assertRaises(AttributeError):
+            imghdr_utils.detect(None)  # type: ignore[arg-type]
+
 
 @unittest.skipUnless(imghdr_utils.is_available(), "imghdr not available")
 class TestPredicates(unittest.TestCase):
@@ -162265,6 +162400,14 @@ class TestPredicates(unittest.TestCase):
 
     def test_matching_formats_miss(self) -> None:
         self.assertEqual(imghdr_utils.matching_formats(None, b"not an image"), [])
+
+    def test_matching_formats_none_raises_attribute_error(self) -> None:
+        """``matching_formats(None)`` leaks ``AttributeError`` from delegated ``imghdr.what``.
+
+        Genuine stdlib delegation, documented with ``# audit-ignore: AttributeError``.
+        """
+        with self.assertRaises(AttributeError):
+            imghdr_utils.matching_formats(None)  # type: ignore[arg-type]
 
     def test_read_header_returns_bytes(self) -> None:
         self.assertEqual(imghdr_utils.read_header(None, PNG), PNG)
@@ -174372,6 +174515,12 @@ if _IMGHDR_AVAILABLE:
     what = _imghdr.what
 
     def detect(file: Any, h: bytes | None = None) -> str | None:
+        """Detect the image format of *file* or header *h*.
+
+        Raises:
+            AttributeError: If *file* is not a readable object (for example ``None``).
+                # audit-ignore: AttributeError
+        """
         if h is None and hasattr(file, "read"):
             h = file.read(32)
             if hasattr(file, "seek"):
@@ -174385,6 +174534,12 @@ if _IMGHDR_AVAILABLE:
         return detect(file, h) is not None
 
     def matching_formats(file: Any, h: bytes | None = None) -> list[str]:
+        """Return the matching image formats for *file* or header *h*.
+
+        Raises:
+            AttributeError: If *file* is not a readable object (for example ``None``).
+                # audit-ignore: AttributeError
+        """
         result = detect(file, h)
         return [result] if result is not None else []
 

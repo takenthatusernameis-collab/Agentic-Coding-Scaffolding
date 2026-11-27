@@ -84,6 +84,24 @@ class TestReadWriteCSV(unittest.TestCase):
             if os.path.exists(path):
                 os.unlink(path)
 
+    def test_read_csv_missing_file_raises_file_not_found(self) -> None:
+        """``read_csv`` propagates ``FileNotFoundError`` for a missing path.
+
+        Genuine stdlib ``open()`` delegation, documented with ``# audit-ignore: FileNotFoundError``.
+        """
+        with self.assertRaises(FileNotFoundError):
+            read_csv("/nonexistent/dir/missing.csv")
+
+    def test_write_csv_missing_dir_raises_file_not_found(self) -> None:
+        """``write_csv`` propagates ``FileNotFoundError`` for a missing parent dir."""
+        with self.assertRaises(FileNotFoundError):
+            write_csv("/nonexistent/dir/out.csv", [{"a": "1"}])
+
+    def test_append_csv_row_missing_dir_raises_file_not_found(self) -> None:
+        """``append_csv_row`` propagates ``FileNotFoundError`` for a missing parent dir."""
+        with self.assertRaises(FileNotFoundError):
+            append_csv_row("/nonexistent/dir/out.csv", {"a": "1"})
+
     def test_append_csv_row(self) -> None:
         with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".csv") as f:
             path = f.name

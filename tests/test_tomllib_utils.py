@@ -4,6 +4,8 @@ import os
 import tempfile
 import unittest
 
+import tomllib
+
 from tomllib_utils import is_valid_toml, load_toml_string, read_toml
 
 
@@ -27,6 +29,15 @@ class TestTomllibUtils(unittest.TestCase):
     def test_load_toml_string(self) -> None:
         data = load_toml_string('a = 1\nb = "two"')
         self.assertEqual(data, {"a": 1, "b": "two"})
+
+    def test_load_toml_string_invalid_toml_raises_tomldecodeerror(self) -> None:
+        """``load_toml_string`` propagates ``tomllib.TOMLDecodeError`` for invalid TOML.
+
+        This is a genuine stdlib delegation leak (not an input-validation gap),
+        documented in ``Raises:`` with ``# audit-ignore: TOMLDecodeError``.
+        """
+        with self.assertRaises(tomllib.TOMLDecodeError):
+            load_toml_string("key =")
 
     def test_is_valid_toml_true(self) -> None:
         self.assertTrue(is_valid_toml('key = "val"'))
