@@ -2367,6 +2367,22 @@ class TestHugeIntNoOverflow(unittest.TestCase):
         with self.assertRaises(ValueError):
             coefficient_of_variation([self.HUGE])
 
+    def test_cumulative_sum_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cumulative_sum([self.HUGE])
+
+    def test_winsorized_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            winsorized_mean([self.HUGE, self.HUGE + 1, self.HUGE + 2], k=1)
+
+    def test_winsorized_variance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            winsorized_variance([self.HUGE, self.HUGE + 1, self.HUGE + 2], k=1)
+
+    def test_winsorized_stddev_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            winsorized_stddev([self.HUGE, self.HUGE + 1, self.HUGE + 2], k=1)
+
     def test_huge_int_inputs_still_work_in_range(self):
         self.assertEqual(mean([1, 2, 3]), 2.0)
         self.assertEqual(median([1, 2, 3, 4]), 2.5)

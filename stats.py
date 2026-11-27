@@ -1465,6 +1465,7 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values.
+        ValueError: If the result is too large to represent as a finite float.
 
     Examples:
         >>> cumulative_sum([1, 2, 3, 4])
@@ -1480,7 +1481,10 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
     result: List[float] = []
     running = 0.0
     for x in numbers:
-        running += x
+        try:
+            running += x
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
         result.append(running)
     return result
 
@@ -1574,8 +1578,9 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
         The arithmetic mean of the winsorized values.
 
     Raises:
-        ValueError: If the list is empty, if *k* is negative, or if *k* is
-            greater than or equal to half the list length.
+        ValueError: If the list is empty, if *k* is negative, if *k* is
+            greater than or equal to half the list length, or if the result
+            is too large to represent as a finite float.
         TypeError: If *numbers* is not a list, contains non-numeric values,
             or *k* is not an int.
 
@@ -1602,7 +1607,10 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
     low = sorted_nums[k]
     high = sorted_nums[n - k - 1]
     winsorized = [min(max(x, low), high) for x in numbers]
-    return sum(winsorized) / len(winsorized)
+    try:
+        return sum(winsorized) / len(winsorized)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
@@ -1624,8 +1632,9 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
             or if *k* is not an int, or if *population* is not a bool.
-        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
-            half the list length.
+        ValueError: If *numbers* is empty, *k* is negative, *k* is at least
+            half the list length, or the result is too large to represent as
+            a finite float.
 
     >>> winsorized_variance([1, 2, 3, 4, 5])
     0.8
@@ -1649,10 +1658,13 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     low = sorted_nums[k]
     high = sorted_nums[n - k - 1]
     winsorized = [min(max(x, low), high) for x in numbers]
-    m = sum(winsorized) / len(winsorized)
-    sq = sum((x - m) ** 2 for x in winsorized)
     denom = n if population else n - 1
-    return sq / denom
+    try:
+        m = sum(winsorized) / len(winsorized)
+        sq = sum((x - m) ** 2 for x in winsorized)
+        return sq / denom
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
@@ -1675,8 +1687,9 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
             or if *k* is not an int, or if *population* is not a bool.
-        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
-            half the list length.
+        ValueError: If *numbers* is empty, *k* is negative, *k* is at least
+            half the list length, or the result is too large to represent as
+            a finite float.
 
     Examples:
         >>> winsorized_stddev([1, 2, 3, 4, 5])

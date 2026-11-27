@@ -20820,6 +20820,7 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
 
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values.
+        ValueError: If the result is too large to represent as a finite float.
 
     Examples:
         >>> cumulative_sum([1, 2, 3, 4])
@@ -20835,7 +20836,10 @@ def cumulative_sum(numbers: List[T | float]) -> List[float]:
     result: List[float] = []
     running = 0.0
     for x in numbers:
-        running += x
+        try:
+            running += x
+        except OverflowError:
+            raise ValueError("result is too large to represent as a finite float")
         result.append(running)
     return result
 
@@ -20929,8 +20933,9 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
         The arithmetic mean of the winsorized values.
 
     Raises:
-        ValueError: If the list is empty, if *k* is negative, or if *k* is
-            greater than or equal to half the list length.
+        ValueError: If the list is empty, if *k* is negative, if *k* is
+            greater than or equal to half the list length, or if the result
+            is too large to represent as a finite float.
         TypeError: If *numbers* is not a list, contains non-numeric values,
             or *k* is not an int.
 
@@ -20957,7 +20962,10 @@ def winsorized_mean(numbers: List[T | float], k: int = 1) -> float:
     low = sorted_nums[k]
     high = sorted_nums[n - k - 1]
     winsorized = [min(max(x, low), high) for x in numbers]
-    return sum(winsorized) / len(winsorized)
+    try:
+        return sum(winsorized) / len(winsorized)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
@@ -20979,8 +20987,9 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
             or if *k* is not an int, or if *population* is not a bool.
-        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
-            half the list length.
+        ValueError: If *numbers* is empty, *k* is negative, *k* is at least
+            half the list length, or the result is too large to represent as
+            a finite float.
 
     >>> winsorized_variance([1, 2, 3, 4, 5])
     0.8
@@ -21004,10 +21013,13 @@ def winsorized_variance(numbers: List[T | float], k: int = 1, population: bool =
     low = sorted_nums[k]
     high = sorted_nums[n - k - 1]
     winsorized = [min(max(x, low), high) for x in numbers]
-    m = sum(winsorized) / len(winsorized)
-    sq = sum((x - m) ** 2 for x in winsorized)
     denom = n if population else n - 1
-    return sq / denom
+    try:
+        m = sum(winsorized) / len(winsorized)
+        sq = sum((x - m) ** 2 for x in winsorized)
+        return sq / denom
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = True) -> float:
@@ -21030,8 +21042,9 @@ def winsorized_stddev(numbers: List[T | float], k: int = 1, population: bool = T
     Raises:
         TypeError: If *numbers* is not a list or contains non-numeric values,
             or if *k* is not an int, or if *population* is not a bool.
-        ValueError: If *numbers* is empty, *k* is negative, or *k* is at least
-            half the list length.
+        ValueError: If *numbers* is empty, *k* is negative, *k* is at least
+            half the list length, or the result is too large to represent as
+            a finite float.
 
     Examples:
         >>> winsorized_stddev([1, 2, 3, 4, 5])
@@ -28116,6 +28129,22 @@ class TestHugeIntNoOverflow(unittest.TestCase):
     def test_coefficient_of_variation_huge_int_raises_value_error(self):
         with self.assertRaises(ValueError):
             coefficient_of_variation([self.HUGE])
+
+    def test_cumulative_sum_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cumulative_sum([self.HUGE])
+
+    def test_winsorized_mean_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            winsorized_mean([self.HUGE, self.HUGE + 1, self.HUGE + 2], k=1)
+
+    def test_winsorized_variance_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            winsorized_variance([self.HUGE, self.HUGE + 1, self.HUGE + 2], k=1)
+
+    def test_winsorized_stddev_huge_int_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            winsorized_stddev([self.HUGE, self.HUGE + 1, self.HUGE + 2], k=1)
 
     def test_huge_int_inputs_still_work_in_range(self):
         self.assertEqual(mean([1, 2, 3]), 2.0)
@@ -76154,6 +76183,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `stats` winsorized/cumulative helpers surface huge-integer overflow as `ValueError`
+
+- **Defect — `stats.cumulative_sum`, `stats.winsorized_mean`, `stats.winsorized_variance`, and `stats.winsorized_stddev` leaked an undocumented `OverflowError` for large integer inputs.** `cumulative_sum` accumulates into a `float` (`running += x`), and the winsorized helpers compute `sum(winsorized) / len(winsorized)` (and the subsequent squared-deviation division) directly on `int` values; for values beyond the finite float range (e.g. `10**400`) these raise `OverflowError` (`int too large to convert to float` / `integer division result too large for a float`), which the docstrings' `Raises:` sections did not document. Every sibling `stats` helper already reports out-of-range results as `ValueError("result is too large to represent as a finite float")`, so the leaked `OverflowError` was inconsistent with the module contract.
+- **Fix:** wrapped the float accumulation/division in `try/except OverflowError` re-raising `ValueError("result is too large to represent as a finite float")` (mirroring `mean`/`variance`/`cumulative_product`), and documented the overflow case in each `Raises:` section. `winsorized_stddev` delegates to `winsorized_variance`, so it is fixed transitively. No change to any in-range result.
+- **Tests:** added `test_cumulative_sum_huge_int_raises_value_error`, `test_winsorized_mean_huge_int_raises_value_error`, `test_winsorized_variance_huge_int_raises_value_error`, and `test_winsorized_stddev_huge_int_raises_value_error` to `TestHugeIntNoOverflow` in `tests/test_stats.py`.
+- **Defect class:** undocumented-exception / accepts-out-of-range-result correctness fix; no change to in-range behavior.
+- Validation: `python -m pytest tests/test_stats.py` — 550 OK; doctests `python -m doctest stats.py` — OK; `python -m ruff check stats.py tests/test_stats.py` clean; `python -m mypy stats.py tests/test_stats.py` success; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — perfect-power helpers surface large-integer overflow as correct results
 
 - **Defect — `number_utils.is_perfect_power`, `prime_utils.is_perfect_power`, and `prime_utils.is_prime_power` leaked an undocumented `OverflowError` for large integer inputs.** Each used a float `n ** (1.0 / b)` estimate to locate the integer `b`-th root; for values beyond the finite float range (e.g. `10**400`, `2**2000`) that conversion raises `OverflowError: int too large to convert to float`, which the docstrings' `Raises:` sections (only `TypeError`) did not document. This is the same defect class as the `calculator.power` overflow fix: a numeric helper leaking an out-of-range `OverflowError` instead of returning a correct result.
