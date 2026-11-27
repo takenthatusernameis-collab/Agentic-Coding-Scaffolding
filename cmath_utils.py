@@ -229,6 +229,7 @@ def sin(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is infinite (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> sin(0)
@@ -251,6 +252,7 @@ def cos(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is infinite (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> cos(0)  # doctest: +SKIP
@@ -273,6 +275,7 @@ def tan(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is infinite (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> tan(0)
@@ -459,6 +462,7 @@ def atanh(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is 1 or -1 (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> atanh(0)

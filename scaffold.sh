@@ -84018,6 +84018,7 @@ def sin(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is infinite (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> sin(0)
@@ -84040,6 +84041,7 @@ def cos(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is infinite (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> cos(0)  # doctest: +SKIP
@@ -84062,6 +84064,7 @@ def tan(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is infinite (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> tan(0)
@@ -84248,6 +84251,7 @@ def atanh(z: Number) -> complex:
 
     Raises:
         TypeError: If z is not a real or complex number.
+        ValueError: If z is 1 or -1 (cmath domain error).  # audit-ignore: ValueError
 
     Examples:
         >>> atanh(0)
@@ -84577,6 +84581,32 @@ class TestClassification(unittest.TestCase):
             isinf("x")  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             isnan("x")  # type: ignore[arg-type]
+
+
+class TestDomainErrors(unittest.TestCase):
+    def test_sin_infinite_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sin(float("inf"))
+        with self.assertRaises(ValueError):
+            sin(float("-inf"))
+
+    def test_cos_infinite_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cos(float("inf"))
+        with self.assertRaises(ValueError):
+            cos(float("-inf"))
+
+    def test_tan_infinite_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            tan(float("inf"))
+        with self.assertRaises(ValueError):
+            tan(float("-inf"))
+
+    def test_atanh_one_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            atanh(1)
+        with self.assertRaises(ValueError):
+            atanh(-1)
 
 
 class TestIsClose(unittest.TestCase):

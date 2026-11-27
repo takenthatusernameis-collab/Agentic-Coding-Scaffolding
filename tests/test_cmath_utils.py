@@ -221,6 +221,32 @@ class TestClassification(unittest.TestCase):
             isnan("x")  # type: ignore[arg-type]
 
 
+class TestDomainErrors(unittest.TestCase):
+    def test_sin_infinite_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            sin(float("inf"))
+        with self.assertRaises(ValueError):
+            sin(float("-inf"))
+
+    def test_cos_infinite_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            cos(float("inf"))
+        with self.assertRaises(ValueError):
+            cos(float("-inf"))
+
+    def test_tan_infinite_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            tan(float("inf"))
+        with self.assertRaises(ValueError):
+            tan(float("-inf"))
+
+    def test_atanh_one_raises_value_error(self):
+        with self.assertRaises(ValueError):
+            atanh(1)
+        with self.assertRaises(ValueError):
+            atanh(-1)
+
+
 class TestIsClose(unittest.TestCase):
     def test_isclose_same(self):
         self.assertTrue(isclose(1 + 1j, 1 + 1j))
