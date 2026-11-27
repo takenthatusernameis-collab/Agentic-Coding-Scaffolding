@@ -1,3 +1,9 @@
+## Unreleased — `operator_utils` triages `divide`/`modulo` `ZeroDivisionError` delegation with `# audit-ignore:`
+
+- **Audit — `operator_utils.divide` and `operator_utils.modulo` document `ZeroDivisionError` that the contract audit flagged as never raised.** Both genuinely propagate `ZeroDivisionError` from the delegated arithmetic (`a / b` raises `float division by zero`; `a % b` raises `float modulo` for a zero divisor — empirically confirmed). Each `Raises:` line now carries an inline `# audit-ignore: ZeroDivisionError` comment. The repository audit scan drops from 2 low-signal candidates to 0.
+- **Defect class:** none — the documented exceptions are genuine stdlib/operator delegation, not never-raised doc errors; comment-only change, no behavior change.
+- Validation: `python -m unittest tests.test_operator_utils` — 19 OK; `python -m ruff check operator_utils.py` clean; `python -m mypy operator_utils.py` success; `python tools/audit_contracts.py operator_utils.py` — 0 issues; `python tools/audit_contracts.py --summary` — 0 issues (was 2); `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — close `cooldown_utils` per-module coverage gap (97% → 100%)
 
 - **Coverage — `cooldown_utils.Cooldown.reset` had its lock-protected body (lines 76-77) untested.** A per-module `coverage run --source=cooldown_utils` showed the module at 97%: the `with self._lock: self._last_call = None` body of `reset()` was never exercised. Reachable, so the fix is to pin the existing behavior with a test.

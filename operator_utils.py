@@ -125,7 +125,7 @@ def divide(a: Any, b: Any) -> Any:
     Raises:
         TypeError: If either operand is not a number.
         ValueError: If either operand is NaN or infinite.
-        ZeroDivisionError: If *b* is zero.
+        ZeroDivisionError: If *b* is zero.  # audit-ignore: ZeroDivisionError
     """
     _validate_number(a, "a")
     _validate_number(b, "b")
@@ -164,7 +164,7 @@ def modulo(a: Any, b: Any) -> Any:
     Raises:
         TypeError: If either operand is not a number.
         ValueError: If either operand is NaN or infinite.
-        ZeroDivisionError: If *b* is zero.
+        ZeroDivisionError: If *b* is zero.  # audit-ignore: ZeroDivisionError
     """
     _validate_number(a, "a")
     _validate_number(b, "b")
