@@ -898,6 +898,45 @@ class TestTypeValidation(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     func(*args)
 
+    def test_functions_reject_huge_finite_overflow(self):
+        """Huge-but-finite inputs whose computation overflows must raise
+        ``ValueError`` (not ``OverflowError``), matching ``calculator.power``
+        and ``stats.py``.
+        """
+        from shapes import (
+            cone_surface_area,
+            cone_volume,
+            cube_surface_area,
+            cube_volume,
+            cylinder_surface_area,
+            cylinder_volume,
+            point_distance,
+            sphere_surface_area,
+            sphere_volume,
+        )
+        huge = 1e308
+        cases = [
+            (circle_area, (huge,)),
+            (regular_polygon_area, (3, huge)),
+            (rectangle_diagonal, (huge, huge)),
+            (sector_area, (huge, 90)),
+            (sphere_surface_area, (huge,)),
+            (sphere_volume, (huge,)),
+            (cube_surface_area, (huge,)),
+            (cube_volume, (huge,)),
+            (cylinder_surface_area, (huge, 1)),
+            (cylinder_volume, (huge, 1)),
+            (cone_surface_area, (huge, 1)),
+            (cone_volume, (huge, 1)),
+            (point_distance, ((0, 0), (huge, 0))),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__, args=args):
+                with self.assertRaisesRegex(
+                    ValueError, "result is too large to represent as a finite float"
+                ):
+                    func(*args)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -64,7 +64,8 @@ def circle_area(radius: float) -> float:
         radius: The radius of the circle.
 
     Raises:
-        ValueError: If radius is negative.
+        ValueError: If radius is negative, or if the result is too large
+            to represent as a finite float.
 
     Examples:
         >>> circle_area(1)
@@ -73,7 +74,10 @@ def circle_area(radius: float) -> float:
     radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return math.pi * radius**2
+    try:
+        return math.pi * radius**2
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def circle_perimeter(radius: float) -> float:
@@ -450,7 +454,8 @@ def regular_polygon_area(n: int, side_length: float) -> float:
 
     Raises:
         TypeError: If n is not an int.
-        ValueError: If n < 3 or side_length is negative.
+        ValueError: If n < 3, side_length is negative, or if the result is too large
+            to represent as a finite float.
     """
     if not isinstance(n, int) or isinstance(n, bool):
         raise TypeError(f"n must be an int, got {type(n).__name__}")
@@ -459,7 +464,10 @@ def regular_polygon_area(n: int, side_length: float) -> float:
     side_length = _require_number(side_length, "side_length")
     if side_length < 0:
         raise ValueError("Side length cannot be negative.")
-    return (n * side_length**2) / (4 * math.tan(math.pi / n))
+    try:
+        return (n * side_length**2) / (4 * math.tan(math.pi / n))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def regular_polygon_perimeter(n: int, side_length: float) -> float:
@@ -496,13 +504,21 @@ def circle_diameter(radius: float) -> float:
 
 
 def rectangle_diagonal(length: float, width: float) -> float:
-    """Return the diagonal of a rectangle."""
+    """Return the diagonal of a rectangle.
+
+    Raises:
+        ValueError: If length or width is negative, or if the result is too large
+            to represent as a finite float.
+    """
 
     length = _require_number(length, "length")
     width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
-    return float((length**2 + width**2) ** 0.5)
+    try:
+        return float((length**2 + width**2) ** 0.5)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def sector_area(radius: float, angle_degrees: float) -> float:
@@ -513,7 +529,8 @@ def sector_area(radius: float, angle_degrees: float) -> float:
         angle_degrees: The central angle of the sector in degrees.
 
     Raises:
-        ValueError: If radius is negative or angle_degrees is outside [0, 360].
+        ValueError: If radius is negative, angle_degrees is outside [0, 360],
+            or if the result is too large to represent as a finite float.
 
     Examples:
         >>> sector_area(1, 90)
@@ -525,7 +542,10 @@ def sector_area(radius: float, angle_degrees: float) -> float:
     angle_degrees = _require_number(angle_degrees, "angle_degrees")
     if angle_degrees < 0 or angle_degrees > 360:
         raise ValueError("angle_degrees must be between 0 and 360")
-    return (angle_degrees / 360.0) * math.pi * radius**2
+    try:
+        return (angle_degrees / 360.0) * math.pi * radius**2
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def arc_length(radius: float, angle_degrees: float) -> float:
@@ -575,35 +595,67 @@ def ellipse_circumference(a: float, b: float) -> float:
 
 
 def sphere_surface_area(radius: float) -> float:
-    """Return the surface area of a sphere."""
+    """Return the surface area of a sphere.
+
+    Raises:
+        ValueError: If radius is negative, or if the result is too large
+            to represent as a finite float.
+    """
     radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return float(4 * math.pi * radius**2)
+    try:
+        return float(4 * math.pi * radius**2)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def sphere_volume(radius: float) -> float:
-    """Return the volume of a sphere."""
+    """Return the volume of a sphere.
+
+    Raises:
+        ValueError: If radius is negative, or if the result is too large
+            to represent as a finite float.
+    """
     radius = _require_number(radius, "radius")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
-    return float((4 / 3) * math.pi * radius**3)
+    try:
+        return float((4 / 3) * math.pi * radius**3)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def cube_surface_area(side: float) -> float:
-    """Return the surface area of a cube."""
+    """Return the surface area of a cube.
+
+    Raises:
+        ValueError: If side is negative, or if the result is too large
+            to represent as a finite float.
+    """
     side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
-    return float(6 * side**2)
+    try:
+        return float(6 * side**2)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def cube_volume(side: float) -> float:
-    """Return the volume of a cube."""
+    """Return the volume of a cube.
+
+    Raises:
+        ValueError: If side is negative, or if the result is too large
+            to represent as a finite float.
+    """
     side = _require_number(side, "side")
     if side < 0:
         raise ValueError("Side cannot be negative.")
-    return float(side**3)
+    try:
+        return float(side**3)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def cuboid_surface_area(length: float, width: float, height: float) -> float:
@@ -639,51 +691,89 @@ rectangular_prism_volume = cuboid_volume
 
 
 def cylinder_surface_area(radius: float, height: float) -> float:
-    """Return the total surface area of a cylinder (including bases)."""
+    """Return the total surface area of a cylinder (including bases).
+
+    Raises:
+        ValueError: If radius or height is negative, or if the result is too large
+            to represent as a finite float.
+    """
     radius = _require_number(radius, "radius")
     height = _require_number(height, "height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float(2 * math.pi * radius**2 + 2 * math.pi * radius * height)
+    try:
+        return float(2 * math.pi * radius**2 + 2 * math.pi * radius * height)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def cylinder_volume(radius: float, height: float) -> float:
-    """Return the volume of a cylinder."""
+    """Return the volume of a cylinder.
+
+    Raises:
+        ValueError: If radius or height is negative, or if the result is too large
+            to represent as a finite float.
+    """
     radius = _require_number(radius, "radius")
     height = _require_number(height, "height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float(math.pi * radius**2 * height)
+    try:
+        return float(math.pi * radius**2 * height)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def cone_surface_area(radius: float, slant_height: float) -> float:
-    """Return the total surface area of a cone (including base)."""
+    """Return the total surface area of a cone (including base).
+
+    Raises:
+        ValueError: If radius or slant_height is negative, or if the result is too large
+            to represent as a finite float.
+    """
     radius = _require_number(radius, "radius")
     slant_height = _require_number(slant_height, "slant_height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if slant_height < 0:
         raise ValueError("Slant height cannot be negative.")
-    return float(math.pi * radius**2 + math.pi * radius * slant_height)
+    try:
+        return float(math.pi * radius**2 + math.pi * radius * slant_height)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def cone_volume(radius: float, height: float) -> float:
-    """Return the volume of a cone."""
+    """Return the volume of a cone.
+
+    Raises:
+        ValueError: If radius or height is negative, or if the result is too large
+            to represent as a finite float.
+    """
     radius = _require_number(radius, "radius")
     height = _require_number(height, "height")
     if radius < 0:
         raise ValueError("Radius cannot be negative.")
     if height < 0:
         raise ValueError("Height cannot be negative.")
-    return float((1 / 3) * math.pi * radius**2 * height)
+    try:
+        return float((1 / 3) * math.pi * radius**2 * height)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
-    """Return the Euclidean distance between two points."""
+    """Return the Euclidean distance between two points.
+
+    Raises:
+        TypeError: If p1 or p2 is not a point (x, y).
+        ValueError: If any coordinate is not finite, or if the result is too large
+            to represent as a finite float.
+    """
     if not isinstance(p1, (tuple, list)) or len(p1) != 2:
         raise TypeError("p1 must be a point (x, y)")
     if not isinstance(p2, (tuple, list)) or len(p2) != 2:
@@ -694,7 +784,10 @@ def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     y1 = _require_number(y1, "y1")
     x2 = _require_number(x2, "x2")
     y2 = _require_number(y2, "y2")
-    return float(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
+    try:
+        return float(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
