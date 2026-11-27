@@ -1,5 +1,7 @@
 import datetime
 
+import pytest
+
 import email_utils
 
 
@@ -93,3 +95,65 @@ def test_format_datetime():
     result = email_utils.email_format_datetime(dt)
     assert "2015" in result
     assert "Oct" in result
+
+
+def test_parsedate_rejects_non_string():
+    with pytest.raises(AttributeError):
+        email_utils.email_parsedate(42)  # type: ignore[arg-type]
+
+
+def test_mktime_tz_rejects_short_tuple():
+    with pytest.raises(IndexError):
+        email_utils.email_mktime_tz((2015, 10, 21))  # type: ignore[arg-type]
+
+
+def test_mktime_tz_rejects_empty_tuple():
+    with pytest.raises(IndexError):
+        email_utils.email_mktime_tz(())  # type: ignore[arg-type]
+
+
+def test_mktime_tz_rejects_none():
+    with pytest.raises(TypeError):
+        email_utils.email_mktime_tz(None)  # type: ignore[arg-type]
+
+
+def test_formataddr_rejects_none():
+    with pytest.raises(TypeError):
+        email_utils.email_formataddr(None)  # type: ignore[arg-type]
+
+
+def test_formataddr_rejects_wrong_length_pair():
+    with pytest.raises(ValueError):
+        email_utils.email_formataddr(("User",))  # type: ignore[arg-type]
+
+
+def test_formataddr_rejects_non_string_element():
+    with pytest.raises(AttributeError):
+        email_utils.email_formataddr(("User", 42))  # type: ignore[arg-type]
+
+
+def test_make_msgid_rejects_non_string_idstring():
+    with pytest.raises(TypeError):
+        email_utils.email_make_msgid(idstring=42)  # type: ignore[arg-type]
+
+
+def test_quote_rejects_non_string():
+    with pytest.raises(AttributeError):
+        email_utils.email_quote(None)  # type: ignore[arg-type]
+
+
+def test_unquote_rejects_non_string():
+    with pytest.raises(TypeError):
+        email_utils.email_unquote(None)  # type: ignore[arg-type]
+
+
+def test_getaddresses_rejects_non_iterable():
+    with pytest.raises(TypeError):
+        email_utils.email_getaddresses(None)  # type: ignore[arg-type]
+
+
+def test_format_datetime_rejects_non_datetime():
+    with pytest.raises(AttributeError):
+        email_utils.email_format_datetime(None)  # type: ignore[arg-type]
+    with pytest.raises(AttributeError):
+        email_utils.email_format_datetime("not a datetime")  # type: ignore[arg-type]

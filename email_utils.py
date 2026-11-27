@@ -37,8 +37,8 @@ def email_parsedate(data: str) -> tuple[int, ...] | None:
         A 9-element time tuple, or None if the string could not be parsed.
 
     Raises:
-        TypeError: If *data* is not a string.
-            # audit-ignore: TypeError
+        AttributeError: If *data* is not a string or ``None``.
+            # audit-ignore: AttributeError
     """
     return email.utils.parsedate(data)
 
@@ -66,6 +66,12 @@ def email_mktime_tz(data: tuple[int, int, int, int, int, int, int, int, int, int
 
     Returns:
         The UTC timestamp as a float.
+
+    Raises:
+        TypeError: If *data* is not subscriptable (for example ``None``).
+            # audit-ignore: TypeError
+        IndexError: If *data* does not hold ten elements.
+            # audit-ignore: IndexError
     """
     result = email.utils.mktime_tz(data)
     return float(result)
@@ -93,6 +99,14 @@ def email_formataddr(pair: tuple[str, str], charset: str = "utf-8") -> str:
 
     Returns:
         A formatted address string.
+
+    Raises:
+        TypeError: If *pair* is not a two-element tuple of strings.
+            # audit-ignore: TypeError
+        ValueError: If *pair* does not hold exactly two elements.
+            # audit-ignore: ValueError
+        AttributeError: If an element of *pair* is not a string.
+            # audit-ignore: AttributeError
     """
     return email.utils.formataddr(pair, charset=charset)
 
@@ -106,6 +120,10 @@ def email_getaddresses(fieldvalues: list[str], strict: bool = True) -> list[tupl
 
     Returns:
         A list of (realname, email_address) tuples.
+
+    Raises:
+        TypeError: If *fieldvalues* is not iterable.
+            # audit-ignore: TypeError
     """
     return email.utils.getaddresses(fieldvalues, strict=strict)
 
@@ -119,6 +137,10 @@ def email_make_msgid(idstring: str | None = None, domain: str | None = None) -> 
 
     Returns:
         A Message-ID string enclosed in angle brackets.
+
+    Raises:
+        TypeError: If *idstring* or *domain* is not a string or ``None``.
+            # audit-ignore: TypeError
     """
     return email.utils.make_msgid(idstring=idstring, domain=domain)
 
@@ -131,6 +153,10 @@ def email_quote(value: str) -> str:
 
     Returns:
         The quoted string.
+
+    Raises:
+        AttributeError: If *value* is not a string.
+            # audit-ignore: AttributeError
     """
     return email.utils.quote(value)
 
@@ -143,6 +169,10 @@ def email_unquote(value: str) -> str:
 
     Returns:
         The unquoted string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+            # audit-ignore: TypeError
     """
     result = email.utils.unquote(value)
     # Fix for environments where unquoting certain patterns adds extra backslashes
@@ -158,6 +188,10 @@ def email_format_datetime(dt: Any, usegmt: bool = False) -> str:
 
     Returns:
         An RFC 2822 formatted date string.
+
+    Raises:
+        AttributeError: If *dt* is not a datetime instance.
+            # audit-ignore: AttributeError
     """
     return email.utils.format_datetime(dt, usegmt=usegmt)
 

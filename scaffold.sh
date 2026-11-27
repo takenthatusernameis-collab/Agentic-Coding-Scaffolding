@@ -88972,6 +88972,13 @@ def email_formatdate(timeval: Any = None, localtime: bool = False, usegmt: bool 
 
     Returns:
         An RFC 2822 formatted date string.
+
+    Raises:
+        TypeError: If *timeval* is not a number or ``None``.
+        ValueError: If *timeval* is NaN.
+        OverflowError: If *timeval* is infinite or out of the platform
+            time_t range.
+            # audit-ignore: TypeError, ValueError, OverflowError
     """
     return email.utils.formatdate(timeval=timeval, localtime=localtime, usegmt=usegmt)
 
@@ -88984,6 +88991,10 @@ def email_parsedate(data: str) -> tuple[int, ...] | None:
 
     Returns:
         A 9-element time tuple, or None if the string could not be parsed.
+
+    Raises:
+        AttributeError: If *data* is not a string or ``None``.
+            # audit-ignore: AttributeError
     """
     return email.utils.parsedate(data)
 
@@ -89011,6 +89022,12 @@ def email_mktime_tz(data: tuple[int, int, int, int, int, int, int, int, int, int
 
     Returns:
         The UTC timestamp as a float.
+
+    Raises:
+        TypeError: If *data* is not subscriptable (for example ``None``).
+            # audit-ignore: TypeError
+        IndexError: If *data* does not hold ten elements.
+            # audit-ignore: IndexError
     """
     result = email.utils.mktime_tz(data)
     return float(result)
@@ -89038,6 +89055,14 @@ def email_formataddr(pair: tuple[str, str], charset: str = "utf-8") -> str:
 
     Returns:
         A formatted address string.
+
+    Raises:
+        TypeError: If *pair* is not a two-element tuple of strings.
+            # audit-ignore: TypeError
+        ValueError: If *pair* does not hold exactly two elements.
+            # audit-ignore: ValueError
+        AttributeError: If an element of *pair* is not a string.
+            # audit-ignore: AttributeError
     """
     return email.utils.formataddr(pair, charset=charset)
 
@@ -89051,6 +89076,10 @@ def email_getaddresses(fieldvalues: list[str], strict: bool = True) -> list[tupl
 
     Returns:
         A list of (realname, email_address) tuples.
+
+    Raises:
+        TypeError: If *fieldvalues* is not iterable.
+            # audit-ignore: TypeError
     """
     return email.utils.getaddresses(fieldvalues, strict=strict)
 
@@ -89064,6 +89093,10 @@ def email_make_msgid(idstring: str | None = None, domain: str | None = None) -> 
 
     Returns:
         A Message-ID string enclosed in angle brackets.
+
+    Raises:
+        TypeError: If *idstring* or *domain* is not a string or ``None``.
+            # audit-ignore: TypeError
     """
     return email.utils.make_msgid(idstring=idstring, domain=domain)
 
@@ -89076,6 +89109,10 @@ def email_quote(value: str) -> str:
 
     Returns:
         The quoted string.
+
+    Raises:
+        AttributeError: If *value* is not a string.
+            # audit-ignore: AttributeError
     """
     return email.utils.quote(value)
 
@@ -89088,6 +89125,10 @@ def email_unquote(value: str) -> str:
 
     Returns:
         The unquoted string.
+
+    Raises:
+        TypeError: If *value* is not a string.
+            # audit-ignore: TypeError
     """
     result = email.utils.unquote(value)
     # Fix for environments where unquoting certain patterns adds extra backslashes
@@ -89103,6 +89144,10 @@ def email_format_datetime(dt: Any, usegmt: bool = False) -> str:
 
     Returns:
         An RFC 2822 formatted date string.
+
+    Raises:
+        AttributeError: If *dt* is not a datetime instance.
+            # audit-ignore: AttributeError
     """
     return email.utils.format_datetime(dt, usegmt=usegmt)
 
@@ -89125,6 +89170,8 @@ EMAIL_UTILS
 # --- tests/test_email_utils.py ---
 cat > "$OUTPUT_DIR/tests/test_email_utils.py" <<'TEST_EMAIL_UTILS'
 import datetime
+
+import pytest
 
 import email_utils
 
@@ -89219,6 +89266,68 @@ def test_format_datetime():
     result = email_utils.email_format_datetime(dt)
     assert "2015" in result
     assert "Oct" in result
+
+
+def test_parsedate_rejects_non_string():
+    with pytest.raises(AttributeError):
+        email_utils.email_parsedate(42)  # type: ignore[arg-type]
+
+
+def test_mktime_tz_rejects_short_tuple():
+    with pytest.raises(IndexError):
+        email_utils.email_mktime_tz((2015, 10, 21))  # type: ignore[arg-type]
+
+
+def test_mktime_tz_rejects_empty_tuple():
+    with pytest.raises(IndexError):
+        email_utils.email_mktime_tz(())  # type: ignore[arg-type]
+
+
+def test_mktime_tz_rejects_none():
+    with pytest.raises(TypeError):
+        email_utils.email_mktime_tz(None)  # type: ignore[arg-type]
+
+
+def test_formataddr_rejects_none():
+    with pytest.raises(TypeError):
+        email_utils.email_formataddr(None)  # type: ignore[arg-type]
+
+
+def test_formataddr_rejects_wrong_length_pair():
+    with pytest.raises(ValueError):
+        email_utils.email_formataddr(("User",))  # type: ignore[arg-type]
+
+
+def test_formataddr_rejects_non_string_element():
+    with pytest.raises(AttributeError):
+        email_utils.email_formataddr(("User", 42))  # type: ignore[arg-type]
+
+
+def test_make_msgid_rejects_non_string_idstring():
+    with pytest.raises(TypeError):
+        email_utils.email_make_msgid(idstring=42)  # type: ignore[arg-type]
+
+
+def test_quote_rejects_non_string():
+    with pytest.raises(AttributeError):
+        email_utils.email_quote(None)  # type: ignore[arg-type]
+
+
+def test_unquote_rejects_non_string():
+    with pytest.raises(TypeError):
+        email_utils.email_unquote(None)  # type: ignore[arg-type]
+
+
+def test_getaddresses_rejects_non_iterable():
+    with pytest.raises(TypeError):
+        email_utils.email_getaddresses(None)  # type: ignore[arg-type]
+
+
+def test_format_datetime_rejects_non_datetime():
+    with pytest.raises(AttributeError):
+        email_utils.email_format_datetime(None)  # type: ignore[arg-type]
+    with pytest.raises(AttributeError):
+        email_utils.email_format_datetime("not a datetime")  # type: ignore[arg-type]
 TEST_EMAIL_UTILS
 
 # --- encodings_utils.py ---
