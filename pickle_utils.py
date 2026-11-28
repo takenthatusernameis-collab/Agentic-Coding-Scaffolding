@@ -127,7 +127,7 @@ def is_valid_protocol(protocol) -> bool:
     Returns:
         ``True`` when *protocol* is one of ``-1`` through ``5``.
     """
-    if isinstance(protocol, bool):
+    if isinstance(protocol, bool) or not isinstance(protocol, int):
         return False
     return protocol in _PROTOCOLS
 

@@ -130,3 +130,16 @@ This session's work:
    is unchanged; run targeted tests only after a local change. If you edit a
    wrapper module or its test, run `make refresh-scaffold`. Do not manufacture
    commits.
+
+---
+Session (2026-11-28, HEAD c7d49f36): bug hunt across `pdb_utils`, `pickle_utils`, `pickletools_utils`, `pipes_utils`, `pkgutil_utils`.
+
+This session's work:
+- **`pickle_utils`**: Fixed `is_valid_protocol` to reject non-int protocols (float values such as `2.0`) so it agrees with `validate_protocol`, which raises `TypeError` for them. Added focused regression tests `test_is_valid_protocol_rejects_float` and `test_is_valid_protocol_matches_validate_protocol`.
+- `pdb_utils`, `pickletools_utils`, `pipes_utils`, `pkgutil_utils`: no demonstrable bug found; existing tests pass and edge-case probes matched documented contracts.
+- Ran `make refresh-scaffold` to sync embedded copies in `scaffold.sh`.
+- Full suite ran 12,081 tests; the only 3 errors are pre-existing `ModuleNotFoundError: pytest` loader errors in unrelated modules (`audioop`, `colorsys`, `email`). Lint clean; mypy clean for changed files.
+
+**Next task (real, bounded, non-spinning):**
+1. Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written modules: `plistlib_utils`, `poplib_utils`, `posix_utils`, `posixpath_utils`, and `pprint_utils`. Fix any real, demonstrable bug with a focused test; otherwise record the clean result.
+2. Use `verify_state_delta.py --probe` to skip the redundant battery when state is unchanged; run targeted tests only after a local change. If you edit a wrapper module or its test, run `make refresh-scaffold`. Do not manufacture commits.

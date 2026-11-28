@@ -7124,7 +7124,7 @@ def is_valid_protocol(protocol) -> bool:
     Returns:
         ``True`` when *protocol* is one of ``-1`` through ``5``.
     """
-    if isinstance(protocol, bool):
+    if isinstance(protocol, bool) or not isinstance(protocol, int):
         return False
     return protocol in _PROTOCOLS
 
@@ -7214,6 +7214,27 @@ class TestPickleUtils(unittest.TestCase):
         self.assertFalse(is_valid_protocol("nope"))
         self.assertFalse(is_valid_protocol(99))
         self.assertFalse(is_valid_protocol(True))
+
+    def test_is_valid_protocol_rejects_float(self):
+        # A float that compares equal to a valid protocol must still be rejected:
+        # validate_protocol raises TypeError for it, so is_valid_protocol must
+        # agree instead of claiming the protocol is valid.
+        self.assertFalse(is_valid_protocol(2.0))
+        self.assertFalse(is_valid_protocol(-1.0))
+        self.assertFalse(is_valid_protocol(5.0))
+        with self.assertRaises(TypeError):
+            validate_protocol(2.0)
+
+    def test_is_valid_protocol_matches_validate_protocol(self):
+        # None is the "use default" sentinel for validate_protocol, not a
+        # protocol number, so it is excluded from the agreement check.
+        for protocol in (-1, 0, 1, 2, 3, 4, 5, "nope", 99, True, 2.0, 5.0):
+            try:
+                validate_protocol(protocol)
+                expected = True
+            except (TypeError, ValueError):
+                expected = False
+            self.assertEqual(is_valid_protocol(protocol), expected, protocol)
 
     def test_dump_load_with_explicit_protocol(self):
         buffer = io.BytesIO()
