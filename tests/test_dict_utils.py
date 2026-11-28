@@ -178,6 +178,14 @@ class TestUnflattenDict(unittest.TestCase):
         with self.assertRaises(TypeError):
             unflatten_dict([1, 2])  # type: ignore[arg-type]
 
+    def test_unflatten_scalar_collision_replaced_by_dict(self) -> None:
+        result = unflatten_dict({"a": 1, "a.b": 2})
+        self.assertEqual(result, {"a": {"b": 2}})
+
+    def test_unflatten_scalar_collision_reverse_order(self) -> None:
+        result = unflatten_dict({"a.b": 2, "a": 1})
+        self.assertEqual(result, {"a": 1})
+
 
 class TestSafeGet(unittest.TestCase):
     def test_safe_get_basic(self) -> None:

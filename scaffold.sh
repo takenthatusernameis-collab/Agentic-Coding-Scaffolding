@@ -44839,6 +44839,10 @@ def flatten_dict(d: Dict[str, Any], parent_key: str = "", sep: str = ".") -> Dic
 def unflatten_dict(d: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
     """Unflatten a flat dictionary with keys containing separators.
 
+    When a scalar key collides with a nested path prefix (e.g. both ``"a"``
+    and ``"a.b"`` are present), the scalar is replaced by a nested dictionary
+    so the deeper key can be stored, mirroring :func:`data_utils.set_nested`.
+
     Args:
         d: Flattened dictionary.
         sep: Separator used in keys.
@@ -44856,7 +44860,7 @@ def unflatten_dict(d: Dict[str, Any], sep: str = ".") -> Dict[str, Any]:
         parts = key.split(sep)
         current = result
         for part in parts[:-1]:
-            if part not in current:
+            if part not in current or not isinstance(current[part], dict):
                 current[part] = {}
             current = current[part]
         current[parts[-1]] = value
@@ -59555,6 +59559,14 @@ class TestUnflattenDict(unittest.TestCase):
             unflatten_dict(None)  # type: ignore[arg-type]
         with self.assertRaises(TypeError):
             unflatten_dict([1, 2])  # type: ignore[arg-type]
+
+    def test_unflatten_scalar_collision_replaced_by_dict(self) -> None:
+        result = unflatten_dict({"a": 1, "a.b": 2})
+        self.assertEqual(result, {"a": {"b": 2}})
+
+    def test_unflatten_scalar_collision_reverse_order(self) -> None:
+        result = unflatten_dict({"a.b": 2, "a": 1})
+        self.assertEqual(result, {"a": 1})
 
 
 class TestSafeGet(unittest.TestCase):
