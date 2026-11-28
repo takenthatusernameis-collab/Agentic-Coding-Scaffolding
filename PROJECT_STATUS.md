@@ -3,8 +3,8 @@
 ## Next task (real, bounded, non-spinning)
 
 Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
-modules: `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`, and
-`sndhdr_utils`.
+modules: `socket_utils`, `socketserver_utils`, `sort_utils`, `spwd_utils`, and
+`sqlite3_utils`.
 
 1. Review each module for a real, demonstrable bug. Fix any bug found with a
    focused regression test; otherwise record the clean result.
@@ -16,7 +16,17 @@ modules: `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`, and
 4. Do not manufacture commits or timestamp-only handoffs. A clean batch records
    the result and hands off the next batch; that is sufficient progress.
 
-## This session (2026-11-28, HEAD f40a766a)
+## This session (2026-11-28)
+
+Read-only bug hunt across `signal_utils`, `site_utils`, `slugify_utils`,
+`smtplib_utils`, and `sndhdr_utils`.
+
+- `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`,
+  `sndhdr_utils`: No demonstrable bug found; existing tests pass (185 tests).
+- Ran targeted test suite; all passing.
+
+"""
+
 
 Read-only bug hunt across `semver_utils`, `seq_utils`, `set_utils`,
 `shelve_utils`, and `shlex_utils`.
