@@ -3,8 +3,8 @@
 ## Next task (real, bounded, non-spinning)
 
 Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
-modules: `rlcompleter_utils`, `roman_utils`, `runpy_utils`, `sched_utils`, and
-`secrets_utils`.
+modules: `queue_utils`, `quopri_utils`, `random_utils`, `rate_limiter_utils`, and
+`re_utils`.
 
 1. Review each module for a real, demonstrable bug. Fix any bug found with a
    focused regression test; otherwise record the clean result.
@@ -16,28 +16,29 @@ modules: `rlcompleter_utils`, `roman_utils`, `runpy_utils`, `sched_utils`, and
 4. Do not manufacture commits or timestamp-only handoffs. A clean batch records
    the result and hands off the next batch; that is sufficient progress.
 
-## This session (2026-11-28, HEAD de8c1ace)
+## This session (2026-11-28, HEAD 14573387)
 
-Read-only bug hunt across `readline_utils`, `regex_utils`, `reprlib_utils`,
-`resource_utils`, `retry_utils`.
+Read-only bug hunt across `rlcompleter_utils`, `roman_utils`, `runpy_utils`,
+`sched_utils`, and `secrets_utils`.
 
-- All five modules reviewed; **no demonstrable bug found**. The existing 151
-  targeted tests pass, and an edge-case probe (readline 1-based<->0-based
-  position conversion for remove/replace plus out-of-range handling and
-  `make_completer`; `reprlib.Repr` maxlevel validation for `-1`/`True`/`3.5`/
-  `None`/`0`; `resource` limit name/value round-trip and `usage_as_dict`;
-  `regex` findall/named_groups; `retry` max_attempts validation) all matched the
-  documented contracts.
+- `secrets_utils`: Fixed `choice` to validate that the input is a `Sequence`;
+  previously accepted non-sequences (e.g., `int`, `dict`, `None`) and raised
+  confusing `TypeError`/`KeyError` from the standard library instead of a clear
+  validation error. Added focused regression test `test_rejects_non_sequence`.
+- `rlcompleter_utils`, `roman_utils`, `runpy_utils`, `sched_utils`: No
+  demonstrable bug found; existing tests pass (57 tests) and edge-case probes
+  matched documented contracts.
+- Ran `make refresh-scaffold` to sync embedded copies in `scaffold.sh`.
 - State-delta probe returned "no source-relevant change since the last verified
-  checkpoint", so the redundant battery was skipped.
-- No wrapper module or test was edited, so `make refresh-scaffold` was not
-  required; no source changes to commit from this session.
+  checkpoint" before the fix; targeted tests run after the fix.
+- Lint and typecheck clean for modified files.
 
 ## Durable fix log (recent, most recent first)
 
 These are the real code fixes made in earlier sessions; the per-session clean
 bug-hunt logs were removed to keep this handover readable.
 
+- `secrets_utils.choice`: validates `Sequence` input, rejects non-sequences.
 - `numbers_utils.is_perfect_power`: exact integer nth root; no longer raises
   `OverflowError` on large perfect powers (`10**400`, `2**2000`).
 - `mmap_utils.create_file_mmap`: closed the file-descriptor leak.

@@ -144,8 +144,11 @@ def choice(seq: Sequence[T]) -> T:
         A randomly chosen element from ``seq``.
 
     Raises:
+        TypeError: If ``seq`` is not a sequence.
         ValueError: If ``seq`` is empty.
     """
+    if not isinstance(seq, Sequence):
+        raise TypeError(f"seq must be a sequence, got {type(seq).__name__}")
     if not seq:
         raise ValueError("seq must be a non-empty sequence")
     return secrets.choice(seq)

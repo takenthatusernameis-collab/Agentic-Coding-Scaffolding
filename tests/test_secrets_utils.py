@@ -177,6 +177,14 @@ class TestChoice(unittest.TestCase):
         with self.assertRaises(ValueError):
             choice("")
 
+    def test_rejects_non_sequence(self):
+        with self.assertRaises(TypeError):
+            choice(123)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            choice({"a": 1})  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            choice(None)  # type: ignore[arg-type]
+
 
 class TestExportedTypeVars(unittest.TestCase):
     def test_typevar_exported(self):
