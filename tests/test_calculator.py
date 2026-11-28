@@ -348,6 +348,14 @@ class TestClamp(unittest.TestCase):
         with self.assertRaises(ValueError):
             clamp(5, 10, 0)
 
+    def test_clamp_accepts_huge_int_endpoints(self):
+        # ``math.isnan`` raises ``OverflowError`` for an int too large to
+        # convert to a float; a huge int is a valid real endpoint and must not
+        # crash the NaN guard before clamping runs.
+        self.assertEqual(clamp(15, 0, 10**400), 15)
+        self.assertEqual(clamp(10**400, 0, 10), 10)
+        self.assertEqual(clamp(-(10**400), 0, 10), 0)
+
     def test_reciprocal(self):
         self.assertEqual(reciprocal(2), 0.5)
         with self.assertRaises(ValueError):
@@ -994,6 +1002,13 @@ class TestSign(unittest.TestCase):
     def test_sign_rejects_nan(self):
         with self.assertRaises(ValueError):
             sign(float("nan"))
+
+    def test_sign_accepts_huge_int(self):
+        # ``math.isnan`` raises ``OverflowError`` for an int too large to
+        # convert to a float; the sign of a huge int is well defined and must
+        # not leak that undocumented error.
+        self.assertEqual(sign(10**400), 1)
+        self.assertEqual(sign(-(10**400)), -1)
 
 
 class TestHypotenuse(unittest.TestCase):
