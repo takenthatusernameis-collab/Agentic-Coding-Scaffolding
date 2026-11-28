@@ -128,10 +128,10 @@ def create_file_mmap(
     try:
         if _os.fstat(fd).st_size < length:
             _os.ftruncate(fd, length)
-        return _mmap.mmap(fd, length, access=access, offset=offset)
-    except Exception:
+        mapped = _mmap.mmap(fd, length, access=access, offset=offset)
+    finally:
         _os.close(fd)
-        raise
+    return mapped
 
 
 def is_mmap(obj: Any) -> bool:

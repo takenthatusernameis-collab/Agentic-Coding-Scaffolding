@@ -118,6 +118,18 @@ class TestMmapUtils(unittest.TestCase):
         with self.assertRaises(ValueError):
             create_file_mmap(__file__, 16, offset=-1)
 
+    def test_create_file_mmap_closes_underlying_fd(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "mmap_test.bin")
+            with open(path, "wb") as fh:
+                fh.write(b"\x00" * 64)
+            before = len(os.listdir("/proc/self/fd"))
+            region = create_file_mmap(path, 64)
+            close_mmap(region)
+            after_close = len(os.listdir("/proc/self/fd"))
+            self.assertEqual(after_close, before,
+                             "create_file_mmap leaked a file descriptor")
+
 
 if __name__ == "__main__":
     unittest.main()
