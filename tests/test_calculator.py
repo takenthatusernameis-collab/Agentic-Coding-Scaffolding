@@ -206,6 +206,15 @@ class TestCalculator(unittest.TestCase):
         with self.assertRaises(TypeError):
             sqrt(True)
 
+    def test_sqrt_accepts_huge_int(self):
+        # A huge int whose square root is still too large for a finite float
+        # must surface as ValueError (the documented contract), not a leaked
+        # OverflowError from the float() conversion.
+        with self.assertRaises(ValueError):
+            sqrt(10**400)
+        with self.assertRaises(ValueError):
+            sqrt(2**2000)
+
     def test_negate(self):
         self.assertEqual(negate(5), -5)
         self.assertEqual(negate(-3), 3)
@@ -372,6 +381,19 @@ class TestClamp(unittest.TestCase):
             reciprocal(float("inf"))
         with self.assertRaises(ValueError):
             reciprocal(float("-inf"))
+
+    def test_float_only_conversions_reject_huge_int(self):
+        # Huge ints pass the isinstance((int, float)) + finite checks, so the
+        # float-only result conversions must surface OverflowError as the
+        # documented ValueError rather than leaking it.
+        with self.assertRaises(ValueError):
+            reciprocal(10**400)
+        with self.assertRaises(ValueError):
+            percentage(10**400, 10**400)
+        with self.assertRaises(ValueError):
+            average_of_two(10**400, 10**400)
+        with self.assertRaises(ValueError):
+            round_to(10**400, 0)
 
     def test_percentage(self):
         self.assertEqual(percentage(200, 10), 20.0)

@@ -229,7 +229,8 @@ def sqrt(a: float) -> float:
 
     Raises:
         TypeError: If a is not a real number (int or float).
-        ValueError: If a is negative.
+        ValueError: If a is negative, or if the result is too large to
+            represent as a finite float.
     """
     if isinstance(a, bool) or not isinstance(a, (int, float)):
         raise TypeError("a must be a real number")
@@ -237,7 +238,10 @@ def sqrt(a: float) -> float:
         raise ValueError("a must be a finite number")
     if a < 0:
         raise ValueError("Cannot take square root of negative number.")
-    return float(a**0.5)
+    try:
+        return float(a**0.5)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def negate(a: float) -> float:
@@ -307,14 +311,18 @@ def reciprocal(x: float) -> float:
 
     Raises:
         TypeError: If x is not a real number (int or float).
-        ValueError: If x is zero, NaN, or infinite.
+        ValueError: If x is zero, NaN, infinite, or if the result is too
+            large to represent as a finite float.
     """
     if isinstance(x, bool) or not isinstance(x, (int, float)):
         raise TypeError("x must be a real number")
     _require_finite(x, "x")
     if x == 0:
         raise ValueError("Cannot divide by zero")
-    return float(1.0 / x)
+    try:
+        return float(1.0 / x)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def percentage(value: float, percent: float) -> float:
@@ -322,7 +330,8 @@ def percentage(value: float, percent: float) -> float:
 
     Raises:
         TypeError: If value or percent is not a real number (int or float).
-        ValueError: If value or percent is NaN or infinite.
+        ValueError: If value or percent is NaN or infinite, or if the result
+            is too large to represent as a finite float.
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError("value must be a real number")
@@ -330,7 +339,10 @@ def percentage(value: float, percent: float) -> float:
         raise TypeError("percent must be a real number")
     _require_finite(value, "value")
     _require_finite(percent, "percent")
-    return float((value * percent) / 100.0)
+    try:
+        return float((value * percent) / 100.0)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def average_of_two(a: float, b: float) -> float:
@@ -338,7 +350,8 @@ def average_of_two(a: float, b: float) -> float:
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If either argument is NaN or infinite.
+        ValueError: If either argument is NaN or infinite, or if the result
+            is too large to represent as a finite float.
     """
     if (
         isinstance(a, bool)
@@ -349,7 +362,10 @@ def average_of_two(a: float, b: float) -> float:
         raise TypeError("a and b must be real numbers")
     _require_finite(a, "a")
     _require_finite(b, "b")
-    return float((a + b) / 2.0)
+    try:
+        return float((a + b) / 2.0)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def round_to(value: float, places: int = 0) -> float:
@@ -368,7 +384,8 @@ def round_to(value: float, places: int = 0) -> float:
     Raises:
         TypeError: If *value* is not a real number (int or float) or *places*
             is not an int.
-        ValueError: If *places* is negative.
+        ValueError: If *places* is negative, or if the result is too large
+            to represent as a finite float.
 
     Examples:
         >>> round_to(2.5)
@@ -385,7 +402,10 @@ def round_to(value: float, places: int = 0) -> float:
         raise TypeError(f"places must be an int, got {type(places).__name__}")
     if places < 0:
         raise ValueError("places must be non-negative")
-    return float(round(value, places))
+    try:
+        return float(round(value, places))
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def factorial(n: int) -> int:
