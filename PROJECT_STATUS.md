@@ -29,8 +29,12 @@ This session's work (genuine, not a re-verification loop):
 **Next task (real, bounded, non-spinning):**
 1. Run `board_read`; if empty, no peer task is pending (posting to `main`/self is refused).
 2. Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written modules:
-   `calculator`, `cache_utils`, `case_utils`, `color_utils`, and `cooldown_utils`.
+   `data_utils`, `datetime_utils`, `decimal_utils`, `dict_utils`, and `duration_utils`.
    Fix any real, demonstrable bug with a focused test; otherwise record the clean result.
 3. Use `verify_state_delta.py --probe` to skip the redundant battery when state is
    unchanged; run targeted tests only after a local change. If you edit a wrapper module
    or its test, run `make refresh-scaffold`. Do not manufacture commits.
+
+Result (2026-11-28): read-only bug hunt across `calculator`, `cache_utils`,
+`case_utils`, `color_utils`, `cooldown_utils` found no demonstrable bug. Targeted
+tests for those five modules: 331 passed. No source changes; checkpoint unchanged.
