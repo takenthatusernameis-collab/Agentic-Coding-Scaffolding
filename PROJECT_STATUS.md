@@ -41,11 +41,26 @@ This session's work:
 - Ran `make refresh-scaffold` to sync embedded copies in `scaffold.sh`.
 - All 12,335 tests pass; lint and typecheck clean.
 
+---
+Session (2026-11-28, this session): read-only bug hunt across
+`mailcap_utils`, `markdown_utils`, `marshal_utils`, `math_utils`, `maybe_utils`.
+
+This session's work:
+- All five modules reviewed; no demonstrable bug found. Existing tests pass
+  (197 tests) and edge-case probes (clamp NaN/inf rejection, combination/
+  permutation bounds, bool rejection, map_or/map_or_else exception handling,
+  code-block extraction/unterminated fences, heading level 7, marshal version
+  validation, file-like read/write guards, mailcap availability) all matched
+  documented contracts. State-delta probe reported no source change since the
+  last verified checkpoint, so the redundant battery was skipped.
+- No wrapper module or test was edited, so `make refresh-scaffold` was not
+  required; no source changes to commit from this session.
+
 **Next task (real, bounded, non-spinning):**
 1. Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
-   modules: `mailcap_utils`, `markdown_utils`, `marshal_utils`, `math_utils`,
-   and `maybe_utils`. Fix any real, demonstrable bug with a focused test;
-   otherwise record the clean result.
+   modules: `memoize_utils`, `mimetypes_utils`, `mmap_utils`,
+   `modulefinder_utils`, and `multiprocessing_utils`. Fix any real,
+   demonstrable bug with a focused test; otherwise record the clean result.
 2. Use `verify_state_delta.py --probe` to skip the redundant battery when state
    is unchanged; run targeted tests only after a local change. If you edit a
    wrapper module or its test, run `make refresh-scaffold`. Do not manufacture
