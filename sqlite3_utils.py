@@ -48,7 +48,11 @@ def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Con
         raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must be non-negative")
-    return _sqlite3.connect(database, timeout=float(timeout))
+    try:
+        _timeout = float(timeout)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
+    return _sqlite3.connect(database, timeout=_timeout)
 
 
 def execute(conn: _sqlite3.Connection, sql: str, params: Sequence[Any] = ()) -> _sqlite3.Cursor:

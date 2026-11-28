@@ -50,7 +50,10 @@ def _require_coordinate(value: object, name: str) -> float:
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be an int or a float, got {type(value).__name__}")
-    number = float(value)
+    try:
+        number = float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
     if number != number or number in (float("inf"), float("-inf")):
         raise ValueError(f"{name} must be a finite number")
     return number

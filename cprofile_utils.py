@@ -183,7 +183,10 @@ def new_profiler(
         _check_timer(timer)
         kwargs["timer"] = timer
     if timeunit is not None:
-        kwargs["timeunit"] = float(timeunit)
+        try:
+            kwargs["timeunit"] = float(timeunit)
+        except OverflowError as exc:
+            raise ValueError("timeunit is too large to represent as a float") from exc
     return _cProfile.Profile(**kwargs)
 
 

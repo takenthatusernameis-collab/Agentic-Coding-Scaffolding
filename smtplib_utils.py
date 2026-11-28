@@ -238,7 +238,10 @@ def _require_timeout(value: Any) -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"timeout must be a number or None, got {type(value).__name__}")
-    timeout = float(value)
+    try:
+        timeout = float(value)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
     if not math.isfinite(timeout):
         raise ValueError(f"timeout must be finite, got {timeout}")
     if timeout <= 0:

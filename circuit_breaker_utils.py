@@ -90,7 +90,10 @@ class CircuitBreaker:
             )
 
         self._failure_threshold = failure_threshold
-        self._recovery_timeout = float(recovery_timeout)
+        try:
+            self._recovery_timeout = float(recovery_timeout)
+        except OverflowError as exc:
+            raise ValueError("recovery_timeout is too large to represent as a float") from exc
         self._expected_exceptions = expected_exceptions
         self._lock = threading.Lock()
         self._state = self.CLOSED

@@ -40,7 +40,10 @@ def _require_optional_number(value: object, name: str) -> Optional[float]:
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
     if not math.isfinite(value) or value < 0:
         raise ValueError(f"{name} must not be negative")
-    return float(value)
+    try:
+        return float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
 
 
 def _require_int(value: object, name: str) -> int:

@@ -97,7 +97,10 @@ def _require_optional_float(value: Any, name: str) -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
-    return float(value)
+    try:
+        return float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
 
 
 def _require_port(value: Any, name: str) -> int:
@@ -404,7 +407,11 @@ def format_internaldate(date_time: Any) -> str:
             :class:`datetime.datetime`.  # audit-ignore: ValueError
     """
     if isinstance(date_time, (int, float)) and not isinstance(date_time, bool):
-        return _imaplib.Time2Internaldate(float(date_time))
+        try:
+            _date_time = float(date_time)
+        except OverflowError as exc:
+            raise ValueError("date_time is too large to represent as a float") from exc
+        return _imaplib.Time2Internaldate(_date_time)
     if isinstance(date_time, time.struct_time):
         return _imaplib.Time2Internaldate(date_time)
     if isinstance(date_time, datetime):

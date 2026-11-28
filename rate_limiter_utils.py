@@ -37,8 +37,14 @@ class RateLimiter:
                 raise TypeError("capacity must be a number")
             if not math.isfinite(capacity) or capacity <= 0:
                 raise ValueError("capacity must be positive and finite")
-        self.rate = float(rate)
-        self.capacity = float(capacity if capacity is not None else rate)
+        try:
+            self.rate = float(rate)
+        except OverflowError as exc:
+            raise ValueError("rate is too large to represent as a float") from exc
+        try:
+            self.capacity = float(capacity if capacity is not None else rate)
+        except OverflowError as exc:
+            raise ValueError("capacity is too large to represent as a float") from exc
         self.tokens = self.capacity
         self.last_updated = time.monotonic()
 

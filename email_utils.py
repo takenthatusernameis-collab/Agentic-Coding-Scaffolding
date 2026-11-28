@@ -78,7 +78,10 @@ def email_mktime_tz(data: tuple[int, int, int, int, int, int, int, int, int, int
             # audit-ignore: IndexError
     """
     result = email.utils.mktime_tz(data)
-    return float(result)
+    try:
+        return float(result)
+    except OverflowError as exc:
+        raise ValueError("result is too large to represent as a float") from exc
 
 
 def email_parseaddr(addr: str, strict: bool = True) -> tuple[str, str]:

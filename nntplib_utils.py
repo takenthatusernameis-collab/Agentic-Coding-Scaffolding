@@ -105,7 +105,11 @@ def create_nntp(
             raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP(host, port, user, password, readermode, usenetrc)
-    return NNTP(host, port, user, password, readermode, usenetrc, float(timeout))
+    try:
+        _timeout = float(timeout)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
+    return NNTP(host, port, user, password, readermode, usenetrc, _timeout)
 
 
 def create_nntp_ssl(
@@ -139,4 +143,8 @@ def create_nntp_ssl(
             raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc)
-    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, float(timeout))
+    try:
+        _timeout = float(timeout)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
+    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, _timeout)

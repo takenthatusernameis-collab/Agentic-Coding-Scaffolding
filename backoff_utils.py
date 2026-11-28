@@ -54,7 +54,10 @@ def constant_backoff(delay: float, *, attempt: int = 1) -> float:
         raise ValueError("delay must be finite")
     if delay < 0:
         raise ValueError("delay must be non-negative")
-    return float(delay)
+    try:
+        return float(delay)
+    except OverflowError as exc:
+        raise ValueError("delay is too large to represent as a float") from exc
 
 
 def exponential_backoff(
@@ -111,12 +114,19 @@ def exponential_backoff(
         raise ValueError("initial must be finite")
     if not math.isfinite(factor):
         raise ValueError("factor must be finite")
-    if not math.isfinite(max_delay):
-        raise ValueError("max_delay must be finite")
+    try:
+        if not math.isfinite(max_delay):
+            raise ValueError("max_delay must be finite")
+    except OverflowError as exc:
+        raise ValueError("max_delay is too large to represent as a float") from exc
     if initial < 0:
         raise ValueError("initial must be non-negative")
     if max_delay < 0:
         raise ValueError("max_delay must be non-negative")
+    try:
+        max_delay = float(max_delay)
+    except OverflowError as exc:
+        raise ValueError("max_delay is too large to represent as a float") from exc
     if factor < 1:
         raise ValueError("factor must be >= 1")
     if attempt < 1:

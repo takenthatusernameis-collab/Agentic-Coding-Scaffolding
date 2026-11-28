@@ -470,7 +470,10 @@ def cert_is_valid_at_time(cert: Any, time: Any = None) -> bool:
             raise TypeError(f"time must be a number, got {type(time).__name__}")
         if not math.isfinite(time):
             raise ValueError("time must be finite")
-        check_time = float(time)
+        try:
+            check_time = float(time)
+        except OverflowError as exc:
+            raise ValueError("time is too large to represent as a float") from exc
 
     try:
         not_before = cert_time_to_seconds(str(cert["notBefore"]))

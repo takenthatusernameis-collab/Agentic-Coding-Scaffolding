@@ -130,7 +130,10 @@ def _require_timeout(value: Any, name: str = "timeout") -> Optional[float]:
         raise ValueError(f"{name} must be finite, got {value}")
     if value < 0:
         raise ValueError(f"{name} must be non-negative, got {value}")
-    return float(value)
+    try:
+        return float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
 
 
 def create_socket(

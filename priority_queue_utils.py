@@ -72,7 +72,11 @@ class PriorityQueue(Generic[T]):
             )
         if not math.isfinite(priority):
             raise ValueError(f"priority must be finite, got {priority!r}")
-        heapq.heappush(self._heap, (float(priority), self._counter, item))
+        try:
+            _priority = float(priority)
+        except OverflowError as exc:
+            raise ValueError("priority is too large to represent as a float") from exc
+        heapq.heappush(self._heap, (_priority, self._counter, item))
         self._counter += 1
 
     def pop(self) -> Optional[T]:

@@ -43631,8 +43631,14 @@ class RateLimiter:
                 raise TypeError("capacity must be a number")
             if not math.isfinite(capacity) or capacity <= 0:
                 raise ValueError("capacity must be positive and finite")
-        self.rate = float(rate)
-        self.capacity = float(capacity if capacity is not None else rate)
+        try:
+            self.rate = float(rate)
+        except OverflowError as exc:
+            raise ValueError("rate is too large to represent as a float") from exc
+        try:
+            self.capacity = float(capacity if capacity is not None else rate)
+        except OverflowError as exc:
+            raise ValueError("capacity is too large to represent as a float") from exc
         self.tokens = self.capacity
         self.last_updated = time.monotonic()
 
@@ -44323,7 +44329,11 @@ class PriorityQueue(Generic[T]):
             )
         if not math.isfinite(priority):
             raise ValueError(f"priority must be finite, got {priority!r}")
-        heapq.heappush(self._heap, (float(priority), self._counter, item))
+        try:
+            _priority = float(priority)
+        except OverflowError as exc:
+            raise ValueError("priority is too large to represent as a float") from exc
+        heapq.heappush(self._heap, (_priority, self._counter, item))
         self._counter += 1
 
     def pop(self) -> Optional[T]:
@@ -54422,7 +54432,10 @@ class CircuitBreaker:
             )
 
         self._failure_threshold = failure_threshold
-        self._recovery_timeout = float(recovery_timeout)
+        try:
+            self._recovery_timeout = float(recovery_timeout)
+        except OverflowError as exc:
+            raise ValueError("recovery_timeout is too large to represent as a float") from exc
         self._expected_exceptions = expected_exceptions
         self._lock = threading.Lock()
         self._state = self.CLOSED
@@ -89458,7 +89471,10 @@ def email_mktime_tz(data: tuple[int, int, int, int, int, int, int, int, int, int
             # audit-ignore: IndexError
     """
     result = email.utils.mktime_tz(data)
-    return float(result)
+    try:
+        return float(result)
+    except OverflowError as exc:
+        raise ValueError("result is too large to represent as a float") from exc
 
 
 def email_parseaddr(addr: str, strict: bool = True) -> tuple[str, str]:
@@ -96986,7 +97002,10 @@ def _require_optional_float(value: Any, name: str) -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
-    return float(value)
+    try:
+        return float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
 
 
 def _require_port(value: Any, name: str) -> int:
@@ -97293,7 +97312,11 @@ def format_internaldate(date_time: Any) -> str:
             :class:`datetime.datetime`.  # audit-ignore: ValueError
     """
     if isinstance(date_time, (int, float)) and not isinstance(date_time, bool):
-        return _imaplib.Time2Internaldate(float(date_time))
+        try:
+            _date_time = float(date_time)
+        except OverflowError as exc:
+            raise ValueError("date_time is too large to represent as a float") from exc
+        return _imaplib.Time2Internaldate(_date_time)
     if isinstance(date_time, time.struct_time):
         return _imaplib.Time2Internaldate(date_time)
     if isinstance(date_time, datetime):
@@ -123550,7 +123573,10 @@ def _require_optional_number(value: object, name: str) -> Optional[float]:
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
     if not math.isfinite(value) or value < 0:
         raise ValueError(f"{name} must not be negative")
-    return float(value)
+    try:
+        return float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
 
 
 def _require_int(value: object, name: str) -> int:
@@ -128112,7 +128138,10 @@ def _require_timeout(value: Any) -> Optional[float]:
         return None
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"timeout must be a number or None, got {type(value).__name__}")
-    timeout = float(value)
+    try:
+        timeout = float(value)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
     if not math.isfinite(timeout):
         raise ValueError(f"timeout must be finite, got {timeout}")
     if timeout <= 0:
@@ -129787,7 +129816,10 @@ def _require_timeout(value: Any, name: str = "timeout") -> Optional[float]:
         raise ValueError(f"{name} must be finite, got {value}")
     if value < 0:
         raise ValueError(f"{name} must be non-negative, got {value}")
-    return float(value)
+    try:
+        return float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
 
 
 def create_socket(
@@ -131581,7 +131613,11 @@ def connect(database: str = ":memory:", *, timeout: float = 5.0) -> _sqlite3.Con
         raise ValueError("timeout must be finite")
     if timeout < 0:
         raise ValueError("timeout must be non-negative")
-    return _sqlite3.connect(database, timeout=float(timeout))
+    try:
+        _timeout = float(timeout)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
+    return _sqlite3.connect(database, timeout=_timeout)
 
 
 def execute(conn: _sqlite3.Connection, sql: str, params: Sequence[Any] = ()) -> _sqlite3.Cursor:
@@ -132436,7 +132472,10 @@ def cert_is_valid_at_time(cert: Any, time: Any = None) -> bool:
             raise TypeError(f"time must be a number, got {type(time).__name__}")
         if not math.isfinite(time):
             raise ValueError("time must be finite")
-        check_time = float(time)
+        try:
+            check_time = float(time)
+        except OverflowError as exc:
+            raise ValueError("time is too large to represent as a float") from exc
 
     try:
         not_before = cert_time_to_seconds(str(cert["notBefore"]))
@@ -156472,7 +156511,10 @@ def _require_coordinate(value: object, name: str) -> float:
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         raise TypeError(f"{name} must be an int or a float, got {type(value).__name__}")
-    number = float(value)
+    try:
+        number = float(value)
+    except OverflowError as exc:
+        raise ValueError(f"{name} is too large to represent as a float") from exc
     if number != number or number in (float("inf"), float("-inf")):
         raise ValueError(f"{name} must be a finite number")
     return number
@@ -157580,7 +157622,10 @@ def new_profiler(
         _check_timer(timer)
         kwargs["timer"] = timer
     if timeunit is not None:
-        kwargs["timeunit"] = float(timeunit)
+        try:
+            kwargs["timeunit"] = float(timeunit)
+        except OverflowError as exc:
+            raise ValueError("timeunit is too large to represent as a float") from exc
     return _cProfile.Profile(**kwargs)
 
 
@@ -169397,7 +169442,10 @@ def constant_backoff(delay: float, *, attempt: int = 1) -> float:
         raise ValueError("delay must be finite")
     if delay < 0:
         raise ValueError("delay must be non-negative")
-    return float(delay)
+    try:
+        return float(delay)
+    except OverflowError as exc:
+        raise ValueError("delay is too large to represent as a float") from exc
 
 
 def exponential_backoff(
@@ -169454,12 +169502,19 @@ def exponential_backoff(
         raise ValueError("initial must be finite")
     if not math.isfinite(factor):
         raise ValueError("factor must be finite")
-    if not math.isfinite(max_delay):
-        raise ValueError("max_delay must be finite")
+    try:
+        if not math.isfinite(max_delay):
+            raise ValueError("max_delay must be finite")
+    except OverflowError as exc:
+        raise ValueError("max_delay is too large to represent as a float") from exc
     if initial < 0:
         raise ValueError("initial must be non-negative")
     if max_delay < 0:
         raise ValueError("max_delay must be non-negative")
+    try:
+        max_delay = float(max_delay)
+    except OverflowError as exc:
+        raise ValueError("max_delay is too large to represent as a float") from exc
     if factor < 1:
         raise ValueError("factor must be >= 1")
     if attempt < 1:
@@ -175101,7 +175156,11 @@ def create_nntp(
             raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP(host, port, user, password, readermode, usenetrc)
-    return NNTP(host, port, user, password, readermode, usenetrc, float(timeout))
+    try:
+        _timeout = float(timeout)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
+    return NNTP(host, port, user, password, readermode, usenetrc, _timeout)
 
 
 def create_nntp_ssl(
@@ -175135,7 +175194,11 @@ def create_nntp_ssl(
             raise ValueError("timeout must be non-negative")
     if timeout is None:
         return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc)
-    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, float(timeout))
+    try:
+        _timeout = float(timeout)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a float") from exc
+    return NNTP_SSL(host, port, user, password, ssl_context, readermode, usenetrc, _timeout)
 NNTPLIB_UTILS
 
 # --- pipes_utils.py ---
