@@ -1,6 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-28): cleanup pass. Fixed `PROJECT_STATUS.md`, which had leaked model control tokens and fake tool-call XML appended after its real content (lines 10-22); truncated back to the clean 9-line handover. No source-code change. `verify_state_delta.py --probe` rc=1 (clean tree; checkpoint `31313b72` behind HEAD only on bookkeeping commits — `.kilo/*`, `PROJECT_STATUS.md`; no source-relevant change). No full run needed. All known defect classes (NaN/Infinity, huge-int OverflowError, undocumented stdlib leaks, large-finite-float intermediate overflow in `calculator`/`shapes`) exhausted and test-covered.
+Session (2026-11-28): state-confirmation pass. `verify_state_delta.py --probe` rc=1 (clean tree; no source-relevant change since checkpoint `31313b72`; no full run needed). All known defect classes exhausted and test-covered. No source-code change.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
