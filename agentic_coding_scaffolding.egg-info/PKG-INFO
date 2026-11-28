@@ -4,7 +4,7 @@ Version: 0.1.0
 Summary: A self-evolving scaffolding project for autonomous agentic coding loops powered by Kilo.
 Author-email: kilo-autonomous <kilo-autonomous@users.noreply.github.com>
 License: MIT
-Requires-Python: >=3.10
+Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 License-File: LICENSE
 Provides-Extra: dev
