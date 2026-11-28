@@ -67,3 +67,25 @@ This session's work:
    commits.
 
 (End of file - total 46 lines)
+---
+Session (2026-11-28, this session): read-only bug hunt across
+`netrc_utils`, `networking_utils`, `nntplib_utils`, `ntpath_utils`, `nturl2path_utils`.
+
+This session's work:
+- All five modules reviewed; no demonstrable bug found. Existing tests pass
+  (130 tests) and edge-case probes matched documented contracts.
+- State-delta probe reported a source-relevant change since the last verified
+  checkpoint (mmap fix), so the verification battery ran and advanced the
+  checkpoint; redundant full-suite battery skipped.
+- No wrapper module or test was edited, so `make refresh-scaffold` was not
+  required; no source changes to commit from this session.
+
+**Next task (real, bounded, non-spinning):**
+1. Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
+   modules: `number_utils`, `numbers_utils`, `opcode_utils`, `operator_utils`,
+   and `optparse_utils`. Fix any real, demonstrable bug with a focused test;
+   otherwise record the clean result.
+2. Use `verify_state_delta.py --probe` to skip the redundant battery when state
+   is unchanged; run targeted tests only after a local change. If you edit a
+   wrapper module or its test, run `make refresh-scaffold`. Do not manufacture
+   commits.
