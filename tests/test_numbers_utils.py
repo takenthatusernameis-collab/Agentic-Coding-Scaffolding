@@ -826,6 +826,16 @@ class TestIsPerfectPower(unittest.TestCase):
             with self.assertRaises(TypeError):
                 is_perfect_power(value)
 
+    def test_large_perfect_power_does_not_overflow(self):
+        # Large perfect powers must be classified without leaking OverflowError
+        # from a float ``n ** (1 / b)`` estimate (e.g. 10**400 == (10**200)**2).
+        self.assertTrue(is_perfect_power(10**400))
+        self.assertTrue(is_perfect_power(2**2000))
+        self.assertTrue(is_perfect_power((10**200) ** 2))
+        # One more than a perfect square is not itself a perfect power.
+        self.assertFalse(is_perfect_power(10**400 + 1))
+        self.assertFalse(is_perfect_power(2**2000 + 1))
+
 
 class TestIsPandigitalNumber(unittest.TestCase):
     def test_known_pandigitals_base10(self):

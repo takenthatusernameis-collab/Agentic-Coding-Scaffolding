@@ -89,3 +89,22 @@ This session's work:
    is unchanged; run targeted tests only after a local change. If you edit a
    wrapper module or its test, run `make refresh-scaffold`. Do not manufacture
    commits.
+
+---
+Session (2026-11-28, HEAD a5cf3d28): bug hunt across `number_utils`, `numbers_utils`, `opcode_utils`, `operator_utils`, `optparse_utils`.
+
+This session's work:
+- **`numbers_utils`**: Fixed `is_perfect_power` to use an exact integer nth root; it previously raised `OverflowError` on large perfect powers such as `10**400` and `2**2000` due to a float-based root estimate. Added focused regression test `test_large_perfect_power_does_not_overflow`.
+- `number_utils`, `opcode_utils`, `operator_utils`, `optparse_utils`: no demonstrable bug found; existing tests pass (675 tests including the new regression test) and edge-case probes matched documented contracts.
+- Ran `make refresh-scaffold` to sync embedded copies in `scaffold.sh`; `refresh_scaffold.py --check` reports all embedded copies in sync.
+- All 675 tests pass; lint and typecheck clean.
+
+**Next task (real, bounded, non-spinning):**
+1. Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
+   modules: `os_utils`, `ossaudiodev_utils`, `path_utils`, `pathlib_utils`, and
+   `pattern_utils`. Fix any real, demonstrable bug with a focused test;
+   otherwise record the clean result.
+2. Use `verify_state_delta.py --probe` to skip the redundant battery when state
+   is unchanged; run targeted tests only after a local change. If you edit a
+   wrapper module or its test, run `make refresh-scaffold`. Do not manufacture
+   commits.

@@ -970,6 +970,26 @@ def is_polydivisible_number(n: int) -> bool:
     return True
 
 
+def _integer_nth_root(n: int, b: int) -> tuple[int, bool]:
+    """Return ``(r, exact)`` with ``r**b <= n < (r+1)**b`` for ``n >= 2``.
+
+    Computes the integer *b*-th root exactly via Newton's method on integers,
+    so huge values that would overflow a float ``n ** (1.0 / b)`` estimate are
+    handled without error. *exact* is ``True`` when ``r**b == n``.
+    """
+    r = 1 << ((n.bit_length() + b - 1) // b)
+    while True:
+        r_next = ((b - 1) * r + n // (r ** (b - 1))) // b
+        if r_next >= r:
+            break
+        r = r_next
+    exact = r ** b == n
+    if not exact and (r + 1) ** b <= n:
+        r += 1
+        exact = r ** b == n
+    return r, exact
+
+
 def is_perfect_power(n: int) -> bool:
     """Return ``True`` if *n* is a perfect power.
 
@@ -983,18 +1003,9 @@ def is_perfect_power(n: int) -> bool:
         return False
     max_exp = n.bit_length()
     for b in range(2, max_exp + 1):
-        a_float = n ** (1.0 / b)
-        a = round(a_float)
-        if a < 2:
-            continue
-        for candidate in (a - 1, a, a + 1):
-            if candidate < 2:
-                continue
-            try:
-                if candidate**b == n:
-                    return True
-            except OverflowError:
-                continue
+        root, exact = _integer_nth_root(n, b)
+        if exact and root >= 2:
+            return True
     return False
 
 
