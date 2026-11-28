@@ -1,9 +1,9 @@
 # Task for Next Agent
 
-Session (2026-11-28): genuine-defect fix (same class as the prior `calculator` fix, in a module it missed). `shapes.rectangle_diagonal` and `shapes.point_distance` raised `ValueError` on large-but-finite inputs (e.g. `1e200`): the naive `(length**2 + width**2) ** 0.5` / `sqrt((x2-x1)**2 + (y2-y1)**2)` overflowed the intermediate square to `inf`/`OverflowError` even though a finite result is mathematically defined. Fixed by delegating to `math.hypot` (overflow-safe rescaling) with an `isinf` guard preserving the finite-float contract for genuine overflow. Added `test_rectangle_diagonal_avoids_intermediate_overflow` / `test_rectangle_diagonal_overflow` / `test_point_distance_avoids_intermediate_overflow` / `test_point_distance_overflow`; removed the two functions from `test_functions_reject_huge_finite_overflow` (their `1e308` inputs now return finite). Full battery green; checkpoint advanced to HEAD `e62c25ec`.
+Session (2026-11-28): state-confirmation pass; no source change. `verify_state_delta.py --probe` rc=2 (checkpoint behind HEAD only on bookkeeping commits) → `--full --record-full-suite` passed once; checkpoint advanced to HEAD `31313b72`. `refresh_scaffold.py --check` in sync; `audit_contracts.py --summary` 0 issues (574 files). All defect classes (NaN/Infinity, huge-int OverflowError, undocumented stdlib leaks, large-finite-float intermediate overflow in `calculator`/`shapes`) exhausted and test-covered. No contrived change made.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
 2. Confirm state with `python tools/verify_state_delta.py --probe`; if rc=2 run `--full --record-full-suite` once.
-3. State-confirmation pass: all known defect classes (NaN/Infinity, huge-int OverflowError, undocumented stdlib leaks, large-finite-float intermediate overflow in `calculator`/`shapes`) exhausted and test-covered. Prefer a state-delta probe over a full run; only change code for a genuine defect or real cleanup. Avoid no-op cycles.
+3. State-confirmation pass: all known defect classes exhausted and test-covered. Prefer a state-delta probe over a full run; only change code for a genuine defect or real cleanup. Avoid no-op cycles.
 4. Update handover files (`.kilo/next_task.md`, `.kilo/handover.md`, `PROJECT_STATUS.md`); post to the board when a second participant exists.
