@@ -13998,6 +13998,10 @@ def circle_diameter(radius: float) -> float:
 def rectangle_diagonal(length: float, width: float) -> float:
     """Return the diagonal of a rectangle.
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite sides (for example ``1e200``) do not overflow the intermediate
+    ``length**2 + width**2`` to infinity.
+
     Raises:
         ValueError: If length or width is negative, or if the result is too large
             to represent as a finite float.
@@ -14007,10 +14011,10 @@ def rectangle_diagonal(length: float, width: float) -> float:
     width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
-    try:
-        return float((length**2 + width**2) ** 0.5)
-    except OverflowError:
+    result = math.hypot(length, width)
+    if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
+    return result
 
 
 def sector_area(radius: float, angle_degrees: float) -> float:
@@ -14261,6 +14265,10 @@ def cone_volume(radius: float, height: float) -> float:
 def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     """Return the Euclidean distance between two points.
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite coordinate separations (for example ``1e200``) do not overflow the
+    intermediate squares to infinity.
+
     Raises:
         TypeError: If p1 or p2 is not a point (x, y).
         ValueError: If any coordinate is not finite, or if the result is too large
@@ -14276,10 +14284,10 @@ def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     y1 = _require_number(y1, "y1")
     x2 = _require_number(x2, "x2")
     y2 = _require_number(y2, "y2")
-    try:
-        return float(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
-    except OverflowError:
+    result = math.hypot(x2 - x1, y2 - y1)
+    if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
+    return result
 
 
 def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
@@ -14378,6 +14386,7 @@ from shapes import (
     ellipse_area,
     parallelogram_area,
     parallelogram_perimeter,
+    point_distance,
     polygon_area,
     rectangle_area,
     rectangle_diagonal,
@@ -15268,9 +15277,15 @@ class TestTypeValidation(unittest.TestCase):
                     func(*args)
 
     def test_functions_reject_huge_finite_overflow(self):
-        """Huge-but-finite inputs whose computation overflows must raise
-        ``ValueError`` (not ``OverflowError``), matching ``calculator.power``
-        and ``stats.py``.
+        """Huge-but-finite inputs whose computation genuinely overflows the
+        finite float range must raise ``ValueError`` (not ``OverflowError``),
+        matching ``calculator.power`` and ``stats.py``.
+
+        ``rectangle_diagonal`` and ``point_distance`` are excluded here because
+        they use :func:`math.hypot`, which rescales internally and returns a
+        finite result for large-but-finite inputs; their genuine-overflow
+        behaviour is pinned separately in
+        ``test_rectangle_diagonal_overflow`` / ``test_point_distance_overflow``.
         """
         from shapes import (
             cone_surface_area,
@@ -15279,7 +15294,6 @@ class TestTypeValidation(unittest.TestCase):
             cube_volume,
             cylinder_surface_area,
             cylinder_volume,
-            point_distance,
             sphere_surface_area,
             sphere_volume,
         )
@@ -15287,7 +15301,6 @@ class TestTypeValidation(unittest.TestCase):
         cases = [
             (circle_area, (huge,)),
             (regular_polygon_area, (3, huge)),
-            (rectangle_diagonal, (huge, huge)),
             (sector_area, (huge, 90)),
             (sphere_surface_area, (huge,)),
             (sphere_volume, (huge,)),
@@ -15297,7 +15310,6 @@ class TestTypeValidation(unittest.TestCase):
             (cylinder_volume, (huge, 1)),
             (cone_surface_area, (huge, 1)),
             (cone_volume, (huge, 1)),
-            (point_distance, ((0, 0), (huge, 0))),
         ]
         for func, args in cases:
             with self.subTest(func=func.__name__, args=args):
@@ -15305,6 +15317,50 @@ class TestTypeValidation(unittest.TestCase):
                     ValueError, "result is too large to represent as a finite float"
                 ):
                     func(*args)
+
+    def test_rectangle_diagonal_avoids_intermediate_overflow(self):
+        """Large-but-finite sides must not overflow the intermediate square.
+
+        The naive ``(length**2 + width**2) ** 0.5`` overflows to ``inf`` for
+        sides around ``1e200`` even though the diagonal is finite; ``math.hypot``
+        rescales internally to avoid this.
+        """
+        self.assertAlmostEqual(
+            rectangle_diagonal(1e200, 1e200), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            rectangle_diagonal(1e155, 1e155), math.hypot(1e155, 1e155)
+        )
+        # Ordinary values are unchanged.
+        self.assertEqual(rectangle_diagonal(3, 4), 5.0)
+
+    def test_rectangle_diagonal_overflow(self):
+        """A diagonal whose true value exceeds the finite float range raises
+        ``ValueError`` (the finite-float contract is preserved)."""
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            rectangle_diagonal(1.7e308, 1.7e308)
+
+    def test_point_distance_avoids_intermediate_overflow(self):
+        """Large-but-finite coordinate separations must not overflow the
+        intermediate squares; ``math.hypot`` rescales internally."""
+        self.assertAlmostEqual(
+            point_distance((0.0, 0.0), (1e200, 1e200)), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            point_distance((1e200, 1e200), (0.0, 0.0)), math.hypot(1e200, 1e200)
+        )
+        # Ordinary values are unchanged.
+        self.assertAlmostEqual(point_distance((0, 0), (3, 4)), 5.0)
+
+    def test_point_distance_overflow(self):
+        """A distance whose true value exceeds the finite float range raises
+        ``ValueError`` (the finite-float contract is preserved)."""
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            point_distance((0.0, 0.0), (1.7e308, 1.7e308))
 
 
 if __name__ == "__main__":
@@ -76460,6 +76516,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `shapes.rectangle_diagonal`/`point_distance` avoid intermediate overflow via `math.hypot`
+
+- **Defect — `shapes.rectangle_diagonal` and `shapes.point_distance` raised on large but finite inputs.** Both computed the Euclidean norm directly: `rectangle_diagonal` used `(length**2 + width**2) ** 0.5` and `point_distance` used `math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)`. For sides or coordinate separations around `1e155` and above the intermediate square overflows the finite float range (`OverflowError` from `**`, or `inf` flowing into `sqrt`), so a `ValueError("result is too large to represent as a finite float")` is raised even though the inputs are finite and a finite result is mathematically defined (e.g. the diagonal/distance of two `1e200` legs is `1.414213562373095e+200`). This is the same defect class just fixed in `calculator.hypotenuse`/`calculator.distance`, in a module the prior fix did not touch. The fix delegates to `:func:`math.hypot``, which rescales internally to avoid intermediate overflow/underflow; an `math.isinf` guard preserves the documented finite-float contract for the genuine-overflow case (true result beyond the finite range still raises `ValueError`). Behavior for ordinary values is unchanged (`rectangle_diagonal(3, 4) == 5.0`, `point_distance((0, 0), (3, 4)) == 5.0`).
+- **Functions updated:** `rectangle_diagonal` (now `math.hypot(length, width)` + `isinf` guard), `point_distance` (now `math.hypot(x2 - x1, y2 - y1)` + `isinf` guard); docstrings note the overflow-safe behavior. No validation-layer change.
+- **Tests:** added `test_rectangle_diagonal_avoids_intermediate_overflow`, `test_rectangle_diagonal_overflow`, `test_point_distance_avoids_intermediate_overflow`, and `test_point_distance_overflow` to `tests/test_shapes.py` (pin the finite result for `1e200`/`1e155` against `math.hypot`, and the genuine-overflow `ValueError`); removed `rectangle_diagonal`/`point_distance` from `test_functions_reject_huge_finite_overflow` (their `1e308` inputs now return finite results) and added `point_distance` to the module-level imports.
+- **Defect class:** intermediate-overflow on large finite floats (genuine defect; finite inputs now return the correct finite result).
+- Validation: `python -m unittest tests.test_shapes` — 134 OK; `python -m ruff check shapes.py tests/test_shapes.py` clean; `python -m mypy shapes.py` success; `python tools/audit_contracts.py --summary` — 0 issues (574 files); `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `calculator.hypotenuse`/`distance` avoid intermediate overflow via `math.hypot`
 
 - **Defect — `calculator.hypotenuse` and `calculator.distance` raised on large but finite inputs.** Both computed `sqrt(a * a + b * b)` / `sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)` directly; for legs or coordinate separations around `1e155` and above the intermediate square overflows the finite float range, so `a * a` becomes `inf` (then `sqrt(inf)` raises `ValueError: a must be a finite number`) or `(x2 - x1) ** 2` raises `OverflowError: Numerical result out of range`. The inputs themselves are finite and within range, so the documented contract (`sqrt(a^2 + b^2)`) is violated: a finite result is mathematically defined but an exception is raised instead. The fix delegates to `:func:`math.hypot``, which rescales internally to avoid intermediate overflow/underflow, returning the correct finite result (e.g. `hypotenuse(1e200, 1e200) == 1.414213562373095e+200`). Behavior for ordinary values is unchanged (`hypot(3, 4) == 5.0`).

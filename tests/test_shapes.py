@@ -9,6 +9,7 @@ from shapes import (
     ellipse_area,
     parallelogram_area,
     parallelogram_perimeter,
+    point_distance,
     polygon_area,
     rectangle_area,
     rectangle_diagonal,
@@ -899,9 +900,15 @@ class TestTypeValidation(unittest.TestCase):
                     func(*args)
 
     def test_functions_reject_huge_finite_overflow(self):
-        """Huge-but-finite inputs whose computation overflows must raise
-        ``ValueError`` (not ``OverflowError``), matching ``calculator.power``
-        and ``stats.py``.
+        """Huge-but-finite inputs whose computation genuinely overflows the
+        finite float range must raise ``ValueError`` (not ``OverflowError``),
+        matching ``calculator.power`` and ``stats.py``.
+
+        ``rectangle_diagonal`` and ``point_distance`` are excluded here because
+        they use :func:`math.hypot`, which rescales internally and returns a
+        finite result for large-but-finite inputs; their genuine-overflow
+        behaviour is pinned separately in
+        ``test_rectangle_diagonal_overflow`` / ``test_point_distance_overflow``.
         """
         from shapes import (
             cone_surface_area,
@@ -910,7 +917,6 @@ class TestTypeValidation(unittest.TestCase):
             cube_volume,
             cylinder_surface_area,
             cylinder_volume,
-            point_distance,
             sphere_surface_area,
             sphere_volume,
         )
@@ -918,7 +924,6 @@ class TestTypeValidation(unittest.TestCase):
         cases = [
             (circle_area, (huge,)),
             (regular_polygon_area, (3, huge)),
-            (rectangle_diagonal, (huge, huge)),
             (sector_area, (huge, 90)),
             (sphere_surface_area, (huge,)),
             (sphere_volume, (huge,)),
@@ -928,7 +933,6 @@ class TestTypeValidation(unittest.TestCase):
             (cylinder_volume, (huge, 1)),
             (cone_surface_area, (huge, 1)),
             (cone_volume, (huge, 1)),
-            (point_distance, ((0, 0), (huge, 0))),
         ]
         for func, args in cases:
             with self.subTest(func=func.__name__, args=args):
@@ -936,6 +940,50 @@ class TestTypeValidation(unittest.TestCase):
                     ValueError, "result is too large to represent as a finite float"
                 ):
                     func(*args)
+
+    def test_rectangle_diagonal_avoids_intermediate_overflow(self):
+        """Large-but-finite sides must not overflow the intermediate square.
+
+        The naive ``(length**2 + width**2) ** 0.5`` overflows to ``inf`` for
+        sides around ``1e200`` even though the diagonal is finite; ``math.hypot``
+        rescales internally to avoid this.
+        """
+        self.assertAlmostEqual(
+            rectangle_diagonal(1e200, 1e200), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            rectangle_diagonal(1e155, 1e155), math.hypot(1e155, 1e155)
+        )
+        # Ordinary values are unchanged.
+        self.assertEqual(rectangle_diagonal(3, 4), 5.0)
+
+    def test_rectangle_diagonal_overflow(self):
+        """A diagonal whose true value exceeds the finite float range raises
+        ``ValueError`` (the finite-float contract is preserved)."""
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            rectangle_diagonal(1.7e308, 1.7e308)
+
+    def test_point_distance_avoids_intermediate_overflow(self):
+        """Large-but-finite coordinate separations must not overflow the
+        intermediate squares; ``math.hypot`` rescales internally."""
+        self.assertAlmostEqual(
+            point_distance((0.0, 0.0), (1e200, 1e200)), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            point_distance((1e200, 1e200), (0.0, 0.0)), math.hypot(1e200, 1e200)
+        )
+        # Ordinary values are unchanged.
+        self.assertAlmostEqual(point_distance((0, 0), (3, 4)), 5.0)
+
+    def test_point_distance_overflow(self):
+        """A distance whose true value exceeds the finite float range raises
+        ``ValueError`` (the finite-float contract is preserved)."""
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            point_distance((0.0, 0.0), (1.7e308, 1.7e308))
 
 
 if __name__ == "__main__":

@@ -506,6 +506,10 @@ def circle_diameter(radius: float) -> float:
 def rectangle_diagonal(length: float, width: float) -> float:
     """Return the diagonal of a rectangle.
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite sides (for example ``1e200``) do not overflow the intermediate
+    ``length**2 + width**2`` to infinity.
+
     Raises:
         ValueError: If length or width is negative, or if the result is too large
             to represent as a finite float.
@@ -515,10 +519,10 @@ def rectangle_diagonal(length: float, width: float) -> float:
     width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
-    try:
-        return float((length**2 + width**2) ** 0.5)
-    except OverflowError:
+    result = math.hypot(length, width)
+    if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
+    return result
 
 
 def sector_area(radius: float, angle_degrees: float) -> float:
@@ -769,6 +773,10 @@ def cone_volume(radius: float, height: float) -> float:
 def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     """Return the Euclidean distance between two points.
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite coordinate separations (for example ``1e200``) do not overflow the
+    intermediate squares to infinity.
+
     Raises:
         TypeError: If p1 or p2 is not a point (x, y).
         ValueError: If any coordinate is not finite, or if the result is too large
@@ -784,10 +792,10 @@ def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     y1 = _require_number(y1, "y1")
     x2 = _require_number(x2, "x2")
     y2 = _require_number(y2, "y2")
-    try:
-        return float(math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2))
-    except OverflowError:
+    result = math.hypot(x2 - x1, y2 - y1)
+    if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
+    return result
 
 
 def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
