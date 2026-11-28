@@ -1,3 +1,4 @@
+import math
 import unittest
 
 from calculator import (
@@ -1021,6 +1022,14 @@ class TestHypotenuse(unittest.TestCase):
         with self.assertRaises(ValueError):
             hypotenuse(3, -4)
 
+    def test_hypotenuse_avoids_intermediate_overflow(self):
+        self.assertAlmostEqual(
+            hypotenuse(1e200, 1e200), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            hypotenuse(1e155, 1e155), math.hypot(1e155, 1e155)
+        )
+
 
 class TestDistance(unittest.TestCase):
     def test_basic(self):
@@ -1041,6 +1050,14 @@ class TestDistance(unittest.TestCase):
             distance(True, 0, 3, 4)
         with self.assertRaises(TypeError):
             distance(0, False, 3, 4)
+
+    def test_distance_avoids_intermediate_overflow(self):
+        self.assertAlmostEqual(
+            distance(0, 0, 1e200, 1e200), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            distance(1e200, 1e200, 0, 0), math.hypot(1e200, 1e200)
+        )
 
 
 if __name__ == "__main__":

@@ -11228,6 +11228,10 @@ def hypotenuse(a: float, b: float) -> float:
     Returns:
         sqrt(a^2 + b^2).
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite legs (for example ``1e200``) do not overflow the intermediate
+    ``a * a + b * b`` to infinity.
+
     Raises:
         TypeError: If a or b is not a real number or is a bool.
         ValueError: If a or b is negative.
@@ -11245,7 +11249,7 @@ def hypotenuse(a: float, b: float) -> float:
         raise ValueError("a and b must be finite")
     if a < 0 or b < 0:
         raise ValueError("a and b must be non-negative")
-    return sqrt(a * a + b * b)
+    return math.hypot(a, b)
 
 
 def distance(x1: float, y1: float, x2: float, y2: float) -> float:
@@ -11260,6 +11264,10 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     Returns:
         sqrt((x2 - x1)^2 + (y2 - y1)^2).
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite coordinate separations (for example ``1e200``) do not overflow the
+    intermediate squares to infinity.
+
     Raises:
         TypeError: If any argument is not a real number or is a bool.
     """
@@ -11268,11 +11276,12 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
             raise TypeError("coordinates must be real numbers")
         if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
             raise ValueError("coordinates must be finite")
-    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return math.hypot(x2 - x1, y2 - y1)
 CALCULATOR
 
 # --- tests/test_calculator.py ---
 cat > "$OUTPUT_DIR/tests/test_calculator.py" <<'TESTCALC'
+import math
 import unittest
 
 from calculator import (
@@ -12296,6 +12305,14 @@ class TestHypotenuse(unittest.TestCase):
         with self.assertRaises(ValueError):
             hypotenuse(3, -4)
 
+    def test_hypotenuse_avoids_intermediate_overflow(self):
+        self.assertAlmostEqual(
+            hypotenuse(1e200, 1e200), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            hypotenuse(1e155, 1e155), math.hypot(1e155, 1e155)
+        )
+
 
 class TestDistance(unittest.TestCase):
     def test_basic(self):
@@ -12316,6 +12333,14 @@ class TestDistance(unittest.TestCase):
             distance(True, 0, 3, 4)
         with self.assertRaises(TypeError):
             distance(0, False, 3, 4)
+
+    def test_distance_avoids_intermediate_overflow(self):
+        self.assertAlmostEqual(
+            distance(0, 0, 1e200, 1e200), math.hypot(1e200, 1e200)
+        )
+        self.assertAlmostEqual(
+            distance(1e200, 1e200, 0, 0), math.hypot(1e200, 1e200)
+        )
 
 
 if __name__ == "__main__":
@@ -76435,6 +76460,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `calculator.hypotenuse`/`distance` avoid intermediate overflow via `math.hypot`
+
+- **Defect — `calculator.hypotenuse` and `calculator.distance` raised on large but finite inputs.** Both computed `sqrt(a * a + b * b)` / `sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)` directly; for legs or coordinate separations around `1e155` and above the intermediate square overflows the finite float range, so `a * a` becomes `inf` (then `sqrt(inf)` raises `ValueError: a must be a finite number`) or `(x2 - x1) ** 2` raises `OverflowError: Numerical result out of range`. The inputs themselves are finite and within range, so the documented contract (`sqrt(a^2 + b^2)`) is violated: a finite result is mathematically defined but an exception is raised instead. The fix delegates to `:func:`math.hypot``, which rescales internally to avoid intermediate overflow/underflow, returning the correct finite result (e.g. `hypotenuse(1e200, 1e200) == 1.414213562373095e+200`). Behavior for ordinary values is unchanged (`hypot(3, 4) == 5.0`).
+- **Functions updated:** `hypotenuse` (now `math.hypot(a, b)`), `distance` (now `math.hypot(x2 - x1, y2 - y1)`); docstrings note the overflow-safe behavior. No validation-layer change.
+- **Tests:** added `test_hypotenuse_avoids_intermediate_overflow` and `test_distance_avoids_intermediate_overflow` to `tests/test_calculator.py`, pinning the finite result for `1e200`/`1e155` inputs against `math.hypot`.
+- **Defect class:** intermediate-overflow on large finite floats (genuine defect; finite inputs now return the correct finite result).
+- Validation: `python -m unittest tests.test_calculator` — 161 OK; `python -m ruff check calculator.py tests/test_calculator.py` clean; `python -m mypy calculator.py` success; `python tools/audit_contracts.py --summary` — 0 issues; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `http_utils` drops unreachable finite-float guard in `_validate_status_code`
 
 - **Cleanup — removed dead code and an inaccurate `Raises:` clause in `http_utils._validate_status_code`.** The guard `if isinstance(code, float) and (math.isnan(code) or math.isinf(code)): raise ValueError("code must be finite")` was unreachable: the preceding `if isinstance(code, bool) or not isinstance(code, int): raise TypeError(...)` already rejects every `float` (including `nan`/`inf`) with `TypeError`, so the `float` branch — and the `import math` that only served it — could never execute. The docstring's `Raises:` also claimed `ValueError: If *code* is not finite`, an outcome that cannot occur (non-finite values are floats and raise `TypeError`). The existing tests (`test_status_code_category_rejects_nan`/`_rejects_infinity`/`_rejects_float`) already pin the real contract (`TypeError`), so this aligns the code and docstring with the tested behavior. No behavior change.

@@ -762,6 +762,10 @@ def hypotenuse(a: float, b: float) -> float:
     Returns:
         sqrt(a^2 + b^2).
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite legs (for example ``1e200``) do not overflow the intermediate
+    ``a * a + b * b`` to infinity.
+
     Raises:
         TypeError: If a or b is not a real number or is a bool.
         ValueError: If a or b is negative.
@@ -779,7 +783,7 @@ def hypotenuse(a: float, b: float) -> float:
         raise ValueError("a and b must be finite")
     if a < 0 or b < 0:
         raise ValueError("a and b must be non-negative")
-    return sqrt(a * a + b * b)
+    return math.hypot(a, b)
 
 
 def distance(x1: float, y1: float, x2: float, y2: float) -> float:
@@ -794,6 +798,10 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
     Returns:
         sqrt((x2 - x1)^2 + (y2 - y1)^2).
 
+    Uses :func:`math.hypot`, which rescales internally so that large but
+    finite coordinate separations (for example ``1e200``) do not overflow the
+    intermediate squares to infinity.
+
     Raises:
         TypeError: If any argument is not a real number or is a bool.
     """
@@ -802,4 +810,4 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
             raise TypeError("coordinates must be real numbers")
         if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
             raise ValueError("coordinates must be finite")
-    return sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return math.hypot(x2 - x1, y2 - y1)
