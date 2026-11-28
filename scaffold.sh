@@ -9531,6 +9531,8 @@ def lzma_compress(data: bytes, preset: int = 6) -> bytes:
     """Compress bytes using lzma."""
     if isinstance(preset, bool) or not isinstance(preset, int):
         raise TypeError("preset must be an int")
+    if not 0 <= preset <= 9:
+        raise ValueError("preset must be between 0 and 9")
     return lzma.compress(data, preset=preset)
 
 
@@ -9549,10 +9551,16 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
 
     Returns:
         An lzma file object.
+
+    Raises:
+        TypeError: If preset is not an int or None.
+        ValueError: If preset is not in range 0-9.
     """
     if preset is not None and "r" not in mode:
         if isinstance(preset, bool) or not isinstance(preset, int):
             raise TypeError("preset must be an int")
+        if not 0 <= preset <= 9:
+            raise ValueError("preset must be between 0 and 9")
         return lzma.open(filename, mode, preset=preset)
     return lzma.open(filename, mode)
 
@@ -9561,6 +9569,8 @@ def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:
     """Write data to an lzma file."""
     if isinstance(preset, bool) or not isinstance(preset, int):
         raise TypeError("preset must be an int")
+    if not 0 <= preset <= 9:
+        raise ValueError("preset must be between 0 and 9")
     with lzma.open(filename, "wb", preset=preset) as f:
         f.write(data)
 
@@ -42488,10 +42498,16 @@ def is_valid_locale(value: str) -> bool:
     """Return True if value looks like a valid locale identifier."""
     if not isinstance(value, str):
         return False
-    parts = value.replace("-", "_").split("_")
-    if not parts or not parts[0].isalpha() or len(parts[0]) not in (2, 3):
+    raw_parts = value.replace("-", "_").split("_")
+    # Reject empty parts (from double separators like en--US or en__US)
+    if any(p == "" for p in raw_parts):
         return False
-    if len(parts) > 1 and (not parts[1].isalpha() or len(parts[1]) not in (2, 3)):
+    # Only allow up to 2 parts (language and optional region)
+    if len(raw_parts) > 2:
+        return False
+    if not raw_parts[0].isalpha() or len(raw_parts[0]) not in (2, 3):
+        return False
+    if len(raw_parts) > 1 and (not raw_parts[1].isalpha() or len(raw_parts[1]) not in (2, 3)):
         return False
     return True
 LOCALE_UTILS
@@ -42984,11 +43000,16 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     Returns:
         A :class:`logging.Logger` instance.
 
+    Raises:
+        TypeError: If ``name`` is not a string or ``None``.
+
     Example:
         >>> logger = get_logger("my_app")
         >>> logger.name
         'my_app'
     """
+    if name is not None and not isinstance(name, str):
+        raise TypeError("name must be a string or None")
     return logging.getLogger(name)
 
 

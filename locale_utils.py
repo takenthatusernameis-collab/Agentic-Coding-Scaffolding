@@ -39,9 +39,15 @@ def is_valid_locale(value: str) -> bool:
     """Return True if value looks like a valid locale identifier."""
     if not isinstance(value, str):
         return False
-    parts = value.replace("-", "_").split("_")
-    if not parts or not parts[0].isalpha() or len(parts[0]) not in (2, 3):
+    raw_parts = value.replace("-", "_").split("_")
+    # Reject empty parts (from double separators like en--US or en__US)
+    if any(p == "" for p in raw_parts):
         return False
-    if len(parts) > 1 and (not parts[1].isalpha() or len(parts[1]) not in (2, 3)):
+    # Only allow up to 2 parts (language and optional region)
+    if len(raw_parts) > 2:
+        return False
+    if not raw_parts[0].isalpha() or len(raw_parts[0]) not in (2, 3):
+        return False
+    if len(raw_parts) > 1 and (not raw_parts[1].isalpha() or len(raw_parts[1]) not in (2, 3)):
         return False
     return True

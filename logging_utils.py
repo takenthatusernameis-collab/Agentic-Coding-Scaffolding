@@ -33,11 +33,16 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     Returns:
         A :class:`logging.Logger` instance.
 
+    Raises:
+        TypeError: If ``name`` is not a string or ``None``.
+
     Example:
         >>> logger = get_logger("my_app")
         >>> logger.name
         'my_app'
     """
+    if name is not None and not isinstance(name, str):
+        raise TypeError("name must be a string or None")
     return logging.getLogger(name)
 
 

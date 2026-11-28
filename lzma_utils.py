@@ -18,6 +18,8 @@ def lzma_compress(data: bytes, preset: int = 6) -> bytes:
     """Compress bytes using lzma."""
     if isinstance(preset, bool) or not isinstance(preset, int):
         raise TypeError("preset must be an int")
+    if not 0 <= preset <= 9:
+        raise ValueError("preset must be between 0 and 9")
     return lzma.compress(data, preset=preset)
 
 
@@ -36,10 +38,16 @@ def lzma_open(filename: str, mode: str = "rb", preset: int | None = None) -> IO[
 
     Returns:
         An lzma file object.
+
+    Raises:
+        TypeError: If preset is not an int or None.
+        ValueError: If preset is not in range 0-9.
     """
     if preset is not None and "r" not in mode:
         if isinstance(preset, bool) or not isinstance(preset, int):
             raise TypeError("preset must be an int")
+        if not 0 <= preset <= 9:
+            raise ValueError("preset must be between 0 and 9")
         return lzma.open(filename, mode, preset=preset)
     return lzma.open(filename, mode)
 
@@ -48,6 +56,8 @@ def lzma_write(filename: str, data: bytes, preset: int = 6) -> None:
     """Write data to an lzma file."""
     if isinstance(preset, bool) or not isinstance(preset, int):
         raise TypeError("preset must be an int")
+    if not 0 <= preset <= 9:
+        raise ValueError("preset must be between 0 and 9")
     with lzma.open(filename, "wb", preset=preset) as f:
         f.write(data)
 
