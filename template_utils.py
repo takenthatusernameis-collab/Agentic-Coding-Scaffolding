@@ -193,9 +193,17 @@ def extract_placeholders(template: str) -> list[str]:
     placeholders: list[str] = []
     # Field name excludes the conversion marker (!r/!s/!a) and the format
     # spec (:...). Attribute/item access (a.b, a[0]) stays part of the name.
-    format_pattern = re.compile(r"\{([^}:!]+)(?:![rsa])?(?::[^}]*)?\}")
+    # A doubled brace (``{{`` or ``}}``) is an escaped literal in
+    # ``str.format()`` and must not be reported as a placeholder, so the
+    # alternation consumes it before a real ``{...}`` field can match.
+    format_pattern = re.compile(
+        r"\{\{|\}\}|\{([^}:!]+)(?:![rsa])?(?::[^}]*)?\}"
+    )
     for match in format_pattern.finditer(template):
         name = match.group(1)
+        if name is None:
+            # Escaped brace (``{{`` or ``}}``); not a placeholder.
+            continue
         if name.isdigit():
             continue
         if name not in placeholders:

@@ -74529,9 +74529,17 @@ def extract_placeholders(template: str) -> list[str]:
     placeholders: list[str] = []
     # Field name excludes the conversion marker (!r/!s/!a) and the format
     # spec (:...). Attribute/item access (a.b, a[0]) stays part of the name.
-    format_pattern = re.compile(r"\{([^}:!]+)(?:![rsa])?(?::[^}]*)?\}")
+    # A doubled brace (``{{`` or ``}}``) is an escaped literal in
+    # ``str.format()`` and must not be reported as a placeholder, so the
+    # alternation consumes it before a real ``{...}`` field can match.
+    format_pattern = re.compile(
+        r"\{\{|\}\}|\{([^}:!]+)(?:![rsa])?(?::[^}]*)?\}"
+    )
     for match in format_pattern.finditer(template):
         name = match.group(1)
+        if name is None:
+            # Escaped brace (``{{`` or ``}}``); not a placeholder.
+            continue
         if name.isdigit():
             continue
         if name not in placeholders:
@@ -74732,6 +74740,11 @@ class TestHasPlaceholders(unittest.TestCase):
     def test_mixed_placeholders(self) -> None:
         self.assertTrue(has_placeholders("Hello {name} and $age"))
 
+    def test_escaped_braces_not_placeholders(self) -> None:
+        # ``{{a}}`` renders to the literal ``{a}``; it is not a placeholder.
+        self.assertFalse(has_placeholders("{{a}}"))
+        self.assertTrue(has_placeholders("{{a}} {b}"))
+
     def test_non_string_template(self) -> None:
         with self.assertRaises(TypeError):
             has_placeholders(123)  # type: ignore
@@ -74769,6 +74782,11 @@ class TestCountPlaceholders(unittest.TestCase):
 
     def test_count_skip_numeric_indices(self) -> None:
         self.assertEqual(count_placeholders("Hello {0} and {1}"), 0)
+
+    def test_count_escaped_braces_ignored(self) -> None:
+        # Escaped braces are literals and must not be counted.
+        self.assertEqual(count_placeholders("{{a}}"), 0)
+        self.assertEqual(count_placeholders("a {{b}} c {d}"), 1)
 
     def test_count_consistency_with_has_placeholders(self) -> None:
         for template in ("", "Hello World", "{name}", "$age", "{a} {b} {c}"):
@@ -74831,6 +74849,13 @@ class TestExtractPlaceholders(unittest.TestCase):
         # Attribute and item access are part of the field name.
         self.assertEqual(extract_placeholders("{a.b}"), ["a.b"])
         self.assertEqual(extract_placeholders("{a[0]}"), ["a[0]"])
+
+    def test_extract_escaped_braces_ignored(self) -> None:
+        # ``{{`` and ``}}`` are escaped literals, not placeholders.
+        self.assertEqual(extract_placeholders("{{a}}"), [])
+        self.assertEqual(extract_placeholders("{{}}"), [])
+        self.assertEqual(extract_placeholders("a {{b}} c {d}"), ["d"])
+        self.assertEqual(extract_placeholders("{{a}} {b}"), ["b"])
 
     def test_empty_string(self) -> None:
         result = extract_placeholders("")
