@@ -123821,10 +123821,8 @@ def _require_optional_number(value: object, name: str) -> Optional[float]:
         raise TypeError(f"{name} must be a number or None, got {type(value).__name__}")
     if not math.isfinite(value) or value < 0:
         raise ValueError(f"{name} must not be negative")
-    try:
-        return float(value)
-    except OverflowError as exc:
-        raise ValueError(f"{name} is too large to represent as a float") from exc
+    timeout = float(value)
+    return timeout
 
 
 def _require_int(value: object, name: str) -> int:
@@ -123876,7 +123874,10 @@ def select(
     writes = _require_list(wlist, "wlist")
     exceptions = _require_list(xlist, "xlist")
     timeout_value = _require_optional_number(timeout, "timeout")
-    readable, writable, exceptional = _select.select(reads, writes, exceptions, timeout_value)
+    try:
+        readable, writable, exceptional = _select.select(reads, writes, exceptions, timeout_value)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a timeout") from exc
     return list(readable), list(writable), list(exceptional)
 
 
@@ -123930,7 +123931,10 @@ def poll_poll(poller: _select.poll, timeout: Optional[float] = None) -> List[Tup
     if not hasattr(poller, "poll"):
         raise TypeError("poller must be a select.poll-like object with a poll method")
     timeout_value = _require_optional_number(timeout, "timeout")
-    return poller.poll(timeout_value)
+    try:
+        return poller.poll(timeout_value)
+    except OverflowError as exc:
+        raise ValueError("timeout is too large to represent as a timeout") from exc
 
 
 PIPE_BUF = _select.PIPE_BUF
