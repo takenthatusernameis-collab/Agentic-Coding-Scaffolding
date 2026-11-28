@@ -157,6 +157,11 @@ class TestConnectionHelpers(unittest.TestCase):
         with self.assertRaises(ValueError):
             socket_utils.connect_socket(sock, ("127.0.0.1", 80), timeout=-1)
 
+    def test_connect_socket_rejects_too_large_finite_timeout(self):
+        sock = self._track(socket_utils.create_tcp_socket())
+        with self.assertRaises(ValueError):
+            socket_utils.connect_socket(sock, ("127.0.0.1", 80), timeout=1e300)
+
     def test_bind_socket_requires_socket(self):
         with self.assertRaises(TypeError):
             socket_utils.bind_socket(object(), ("127.0.0.1", 0))  # type: ignore[arg-type]
@@ -186,6 +191,10 @@ class TestConnectionHelpers(unittest.TestCase):
     def test_create_connection_rejects_bad_address(self):
         with self.assertRaises(TypeError):
             socket_utils.create_connection(("127.0.0.1",))  # type: ignore[arg-type]
+
+    def test_create_connection_rejects_too_large_finite_timeout(self):
+        with self.assertRaises(ValueError):
+            socket_utils.create_connection(("127.0.0.1", 80), timeout=1e300)
 
 
 class TestDataTransfer(unittest.TestCase):
@@ -289,6 +298,10 @@ class TestSocketOptions(unittest.TestCase):
             with self.subTest(bad=bad):
                 with self.assertRaises(ValueError):
                     socket_utils.set_timeout(self.sock, bad)
+
+    def test_set_timeout_rejects_too_large_finite_value(self):
+        with self.assertRaises(ValueError):
+            socket_utils.set_timeout(self.sock, 1e300)
 
     def test_set_nonblocking_switches_mode(self):
         socket_utils.set_nonblocking(self.sock)

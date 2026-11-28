@@ -3,8 +3,8 @@
 ## Next task (real, bounded, non-spinning)
 
 Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
-modules: `socket_utils`, `socketserver_utils`, `sort_utils`, `spwd_utils`, and
-`sqlite3_utils`.
+modules: `sre_compile_utils`, `sre_constants_utils`, `sre_parse_utils`,
+`ssl_utils`, and `stat_utils`.
 
 1. Review each module for a real, demonstrable bug. Fix any bug found with a
    focused regression test; otherwise record the clean result.
@@ -17,6 +17,29 @@ modules: `socket_utils`, `socketserver_utils`, `sort_utils`, `spwd_utils`, and
    the result and hands off the next batch; that is sufficient progress.
 
 ## This session (2026-11-28)
+
+Read-only bug hunt across `socket_utils`, `socketserver_utils`, `sort_utils`,
+`spwd_utils`, and `sqlite3_utils`.
+
+- `socket_utils`: **fixed a finite-but-huge timeout leak.** `connect_socket`,
+  `create_connection`, and `set_timeout` accepted a finite `timeout` too large
+  for the platform C `time_t` (e.g. `1e300`); `_require_timeout` only checked
+  finiteness/sign, so the value reached `settimeout`/`socket.create_connection`
+  and raised an opaque `OverflowError: timestamp out of range for platform
+  time_t`. `create_connection` additionally leaked the socket it had already
+  created. Added `_timeout_in_platform_range`, which probes a throwaway socket's
+  `settimeout` and is consulted by `_require_timeout`, so all three helpers now
+  raise a clear `ValueError` before any socket is created. Updated the three
+  `Raises:` docstrings; added `test_set_timeout_rejects_too_large_finite_value`,
+  `test_connect_socket_rejects_too_large_finite_timeout`, and
+  `test_create_connection_rejects_too_large_finite_timeout`.
+- `socketserver_utils`, `sort_utils`, `spwd_utils`, `sqlite3_utils`: No
+  demonstrable bug found; existing tests pass.
+- Ran `make refresh-scaffold` to sync the embedded copies of `socket_utils.py`
+  and its test. Full battery: 143 batch tests OK, `verify_state_delta --full`
+  passed, audit 0 issues.
+
+## Previous session (2026-11-28)
 
 Read-only bug hunt across `signal_utils`, `site_utils`, `slugify_utils`,
 `smtplib_utils`, and `sndhdr_utils`.

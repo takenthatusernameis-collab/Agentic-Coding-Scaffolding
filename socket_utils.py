@@ -131,9 +131,30 @@ def _require_timeout(value: Any, name: str = "timeout") -> Optional[float]:
     if value < 0:
         raise ValueError(f"{name} must be non-negative, got {value}")
     try:
-        return float(value)
+        result = float(value)
     except OverflowError as exc:
         raise ValueError(f"{name} is too large to represent as a float") from exc
+    if not _timeout_in_platform_range(result):
+        raise ValueError(f"{name} {value!r} is too large for the platform")
+    return result
+
+
+def _timeout_in_platform_range(timeout: float) -> bool:
+    """Return ``True`` when *timeout* is accepted by the platform ``settimeout``.
+
+    The standard library stores the timeout in a C ``time_t``; a finite value
+    beyond that range raises ``OverflowError: timestamp out of range for
+    platform time_t``. Probing a throwaway socket keeps that check identical to
+    the real call without leaking a socket in the caller's path.
+    """
+    probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        probe.settimeout(timeout)
+    except OverflowError:
+        return False
+    finally:
+        probe.close()
+    return True
 
 
 def create_socket(
@@ -255,7 +276,8 @@ def connect_socket(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is non-finite or negative.
+        ValueError: If *timeout* is non-finite, negative, or too large for the
+            platform.
         OSError: If the connection fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
@@ -279,7 +301,8 @@ def create_connection(address: Any, timeout: Optional[float] = None) -> socket.s
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is non-finite or negative.
+        ValueError: If *timeout* is non-finite, negative, or too large for the
+            platform.
         OSError: If the connection fails.  # audit-ignore: OSError
     """
     target = _require_address(address)
@@ -446,7 +469,8 @@ def set_timeout(sock: socket.socket, timeout: Optional[float]) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is non-finite or negative.
+        ValueError: If *timeout* is non-finite, negative, or too large for the
+            platform.
     """
     connection = _require_socket(sock)
     wait = _require_timeout(timeout)

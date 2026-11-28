@@ -76947,6 +76947,15 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `socket_utils` rejects finite-but-huge timeouts before socket creation
+
+- **Defect — `socket_utils.connect_socket`, `socket_utils.create_connection`, and `socket_utils.set_timeout` leaked an opaque `OverflowError` (and a socket) for a finite timeout too large for the platform.** `_require_timeout` validated only finiteness and sign, so a finite value beyond the C `time_t` range (e.g. `1e300`) passed validation and reached `socket.settimeout` / `socket.create_connection`, raising `OverflowError: timestamp out of range for platform time_t` — the exact low-level C-layer failure the validation layer exists to prevent. `create_connection` was worse: `socket.create_connection` creates the socket before applying the timeout, so the overflow left the just-created socket unclosed (a `ResourceWarning`/fd leak). This is the same finite-but-out-of-range defect class fixed in `retry_utils`/`select_utils`, in a module the prior fixes did not touch.
+- **Fix:** added `_timeout_in_platform_range`, which probes a throwaway socket's `settimeout` (closing it in `finally`) and returns `False` on `OverflowError`; `_require_timeout` now consults it and raises `ValueError(f"{name} {value!r} is too large for the platform")` before any socket is created. All three helpers route through `_require_timeout`, so the leak and the opaque `OverflowError` are both eliminated with no socket ever created on the error path. Behavior for ordinary timeouts is unchanged (`set_timeout(sock, 2.5)` still yields `gettimeout() == 2.5`).
+- **Functions updated:** `_require_timeout` (platform-range check), new `_timeout_in_platform_range` helper; `connect_socket`, `create_connection`, `set_timeout` `Raises:` docstrings note the platform-range `ValueError`. No validation-layer API change.
+- **Tests:** added `test_set_timeout_rejects_too_large_finite_value`, `test_connect_socket_rejects_too_large_finite_timeout`, and `test_create_connection_rejects_too_large_finite_timeout` to `tests/test_socket_utils.py` (pin the `ValueError` for `1e300` and assert no `ResourceWarning`).
+- **Defect class:** accepts-out-of-range-result / resource-leak correctness fix (finite inputs now raise a clear `ValueError` instead of an opaque `OverflowError`; no socket leak).
+- Validation: `python -m unittest tests.test_socket_utils` — 79 OK; `python -m ruff check socket_utils.py tests/test_socket_utils.py` clean; `python -m mypy socket_utils.py` success; `python tools/audit_contracts.py --summary` — 0 issues; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync; `python tools/verify_state_delta.py --full --record-full-suite` passed. No `.github/workflows/**` changes.
+
 ## Unreleased — `statistics_utils.correlation`/`z_score` avoid intermediate overflow via deviation scaling
 
 - **Defect — `statistics_utils.correlation` and `statistics_utils.z_score` raised on large but finite inputs.** Both squared raw deviations from the mean: `correlation` computed `sum((xi - mean_x) ** 2)` (and the `var_x * var_y` product under `math.sqrt`), and `z_score` computed `sum((x - mean_val) ** 2) / len(numbers)`. For values around `1e155` and above the intermediate square overflows the finite float range, so an `OverflowError` is caught and re-raised as `ValueError("result is too large to represent as a finite float")` even though the inputs are finite and the result is mathematically defined and bounded (`correlation` is always in `[-1, 1]`; `z_score([1e200, 2e200])` is `[-1.0, 1.0]`). This is the same intermediate-overflow defect class fixed in `calculator`/`shapes`, in a module the prior fixes did not touch. The fix scales each deviation list by its peak magnitude before squaring, so every intermediate stays finite; behavior for ordinary values is unchanged (`correlation([1, 2, 3], [1, 2, 3]) == 1.0`, `z_score([1, 2, 3, 4, 5])[0] == -1.414213562373095`). Genuine overflow still raises: huge integers (`10 ** 400`) overflow at the `sum(...) / len(...)` mean step and continue to raise `ValueError`, and `covariance` (whose true value `5e399` is genuinely beyond the finite range) is unchanged.
@@ -130069,9 +130078,30 @@ def _require_timeout(value: Any, name: str = "timeout") -> Optional[float]:
     if value < 0:
         raise ValueError(f"{name} must be non-negative, got {value}")
     try:
-        return float(value)
+        result = float(value)
     except OverflowError as exc:
         raise ValueError(f"{name} is too large to represent as a float") from exc
+    if not _timeout_in_platform_range(result):
+        raise ValueError(f"{name} {value!r} is too large for the platform")
+    return result
+
+
+def _timeout_in_platform_range(timeout: float) -> bool:
+    """Return ``True`` when *timeout* is accepted by the platform ``settimeout``.
+
+    The standard library stores the timeout in a C ``time_t``; a finite value
+    beyond that range raises ``OverflowError: timestamp out of range for
+    platform time_t``. Probing a throwaway socket keeps that check identical to
+    the real call without leaking a socket in the caller's path.
+    """
+    probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        probe.settimeout(timeout)
+    except OverflowError:
+        return False
+    finally:
+        probe.close()
+    return True
 
 
 def create_socket(
@@ -130193,7 +130223,8 @@ def connect_socket(
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is non-finite or negative.
+        ValueError: If *timeout* is non-finite, negative, or too large for the
+            platform.
         OSError: If the connection fails.  # audit-ignore: OSError
     """
     connection = _require_socket(sock)
@@ -130217,7 +130248,8 @@ def create_connection(address: Any, timeout: Optional[float] = None) -> socket.s
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is non-finite or negative.
+        ValueError: If *timeout* is non-finite, negative, or too large for the
+            platform.
         OSError: If the connection fails.  # audit-ignore: OSError
     """
     target = _require_address(address)
@@ -130384,7 +130416,8 @@ def set_timeout(sock: socket.socket, timeout: Optional[float]) -> socket.socket:
 
     Raises:
         TypeError: If an argument has the wrong type.
-        ValueError: If *timeout* is non-finite or negative.
+        ValueError: If *timeout* is non-finite, negative, or too large for the
+            platform.
     """
     connection = _require_socket(sock)
     wait = _require_timeout(timeout)
@@ -130795,6 +130828,11 @@ class TestConnectionHelpers(unittest.TestCase):
         with self.assertRaises(ValueError):
             socket_utils.connect_socket(sock, ("127.0.0.1", 80), timeout=-1)
 
+    def test_connect_socket_rejects_too_large_finite_timeout(self):
+        sock = self._track(socket_utils.create_tcp_socket())
+        with self.assertRaises(ValueError):
+            socket_utils.connect_socket(sock, ("127.0.0.1", 80), timeout=1e300)
+
     def test_bind_socket_requires_socket(self):
         with self.assertRaises(TypeError):
             socket_utils.bind_socket(object(), ("127.0.0.1", 0))  # type: ignore[arg-type]
@@ -130824,6 +130862,10 @@ class TestConnectionHelpers(unittest.TestCase):
     def test_create_connection_rejects_bad_address(self):
         with self.assertRaises(TypeError):
             socket_utils.create_connection(("127.0.0.1",))  # type: ignore[arg-type]
+
+    def test_create_connection_rejects_too_large_finite_timeout(self):
+        with self.assertRaises(ValueError):
+            socket_utils.create_connection(("127.0.0.1", 80), timeout=1e300)
 
 
 class TestDataTransfer(unittest.TestCase):
@@ -130927,6 +130969,10 @@ class TestSocketOptions(unittest.TestCase):
             with self.subTest(bad=bad):
                 with self.assertRaises(ValueError):
                     socket_utils.set_timeout(self.sock, bad)
+
+    def test_set_timeout_rejects_too_large_finite_value(self):
+        with self.assertRaises(ValueError):
+            socket_utils.set_timeout(self.sock, 1e300)
 
     def test_set_nonblocking_switches_mode(self):
         socket_utils.set_nonblocking(self.sock)
