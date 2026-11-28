@@ -10606,7 +10606,8 @@ def divide(a: float, b: float) -> float:
 
     Raises:
         TypeError: If either argument is not a real number (int or float).
-        ValueError: If b is zero or either argument is NaN or infinite.
+        ValueError: If b is zero or either argument is NaN or infinite,
+            or if the result is too large to represent as a finite float.
     """
     if (
         isinstance(a, bool)
@@ -10619,7 +10620,10 @@ def divide(a: float, b: float) -> float:
     _require_finite(b, "b")
     if b == 0:
         raise ValueError("Cannot divide by zero.")
-    return a / b
+    try:
+        return a / b
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def modulo(a: float, b: float) -> float:
@@ -11276,7 +11280,8 @@ def hypotenuse(a: float, b: float) -> float:
 
     Raises:
         TypeError: If a or b is not a real number or is a bool.
-        ValueError: If a or b is negative.
+        ValueError: If a or b is negative, or if the result is too large
+            to represent as a finite float.
     """
     if (
         isinstance(a, bool)
@@ -11291,7 +11296,10 @@ def hypotenuse(a: float, b: float) -> float:
         raise ValueError("a and b must be finite")
     if a < 0 or b < 0:
         raise ValueError("a and b must be non-negative")
-    return math.hypot(a, b)
+    try:
+        return math.hypot(a, b)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def distance(x1: float, y1: float, x2: float, y2: float) -> float:
@@ -11498,6 +11506,14 @@ class TestCalculator(unittest.TestCase):
             divide(float("inf"), 2)
         with self.assertRaises(ValueError):
             divide(10, float("-inf"))
+
+    def test_divide_huge_int_raises_value_error(self):
+        # Division of a huge int by a small int can overflow the float result.
+        # The documented finite-float contract must surface ``ValueError``.
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            divide(10**400, 2)
 
     def test_power_rejects_non_numeric(self):
         with self.assertRaises(TypeError):
@@ -12399,6 +12415,23 @@ class TestHypotenuse(unittest.TestCase):
         self.assertAlmostEqual(
             hypotenuse(1e155, 1e155), math.hypot(1e155, 1e155)
         )
+
+    def test_hypotenuse_huge_int_raises_value_error(self):
+        # ``math.hypot`` converts its arguments to float, so an int too large
+        # to convert (for example ``10 ** 400``) raises ``OverflowError``; the
+        # documented finite-float contract must surface ``ValueError`` instead.
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            hypotenuse(10**400, 0)
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            hypotenuse(0, 10**400)
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            hypotenuse(10**400, 10**400)
 
 
 class TestDistance(unittest.TestCase):
