@@ -60785,7 +60785,7 @@ def format_greeting(name: str, greeting: str = "Hello") -> str:
 
 
 def format_names(names: list[str], greeting: str = "Hello") -> str:
-    """Return a comma-separated list of formatted greetings.
+    """Return a space-separated list of formatted greetings.
 
     Args:
         names: The names to greet.
