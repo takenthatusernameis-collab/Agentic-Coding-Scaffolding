@@ -434,5 +434,57 @@ class TestRetryArgumentValidationExtended(unittest.TestCase):
         )
 
 
+class TestRetrySleepRange(unittest.TestCase):
+    """A finite delay too large for the platform's ``time_t`` must surface a
+    clear ``ValueError`` instead of the low-level ``OverflowError`` that
+    ``time.sleep`` raises for an out-of-range timestamp.
+
+    ``_validate_retry_args`` rejects non-finite ``delay``/``backoff`` at
+    decoration time, but a finite value such as ``1e300`` (or a modest delay
+    amplified by a huge ``backoff``) still reaches ``time.sleep`` and would
+    otherwise raise ``OverflowError: timestamp out of range for platform
+    time_t`` -- the exact opaque C-layer failure the validation exists to
+    prevent.
+    """
+
+    def test_retry_reports_clear_error_for_oversized_delay(self):
+        @retry(max_attempts=3, delay=1e300, exceptions=(ValueError,))
+        def func():
+            raise ValueError("boom")
+
+        with self.assertRaises(ValueError) as ctx:
+            func()
+        self.assertIn("too large", str(ctx.exception))
+
+    def test_retry_reports_clear_error_for_backoff_overflow(self):
+        # A modest delay amplified by a huge backoff overflows the sleep range
+        # on the second attempt even though both inputs are finite.
+        @retry(max_attempts=3, delay=0.01, backoff=1e300, exceptions=(ValueError,))
+        def func():
+            raise ValueError("boom")
+
+        with self.assertRaises(ValueError) as ctx:
+            func()
+        self.assertIn("too large", str(ctx.exception))
+
+    def test_retry_count_reports_clear_error_for_oversized_delay(self):
+        @retry_count(max_attempts=3, delay=1e300, exceptions=(ValueError,))
+        def func():
+            raise ValueError("boom")
+
+        with self.assertRaises(ValueError) as ctx:
+            func()
+        self.assertIn("too large", str(ctx.exception))
+
+    def test_retry_with_backoff_reports_clear_error_for_oversized_delay(self):
+        @retry_with_backoff(max_attempts=3, initial_delay=1e300, jitter=False)
+        def func():
+            raise ValueError("boom")
+
+        with self.assertRaises(ValueError) as ctx:
+            func()
+        self.assertIn("too large", str(ctx.exception))
+
+
 if __name__ == "__main__":
     unittest.main()

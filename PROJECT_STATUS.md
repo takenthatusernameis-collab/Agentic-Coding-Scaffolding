@@ -3,8 +3,8 @@
 ## Next task (real, bounded, non-spinning)
 
 Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
-modules: `readline_utils`, `regex_utils`, `reprlib_utils`, `resource_utils`, and
-`retry_utils`.
+modules: `rlcompleter_utils`, `runpy_utils`, `sched_utils`, `select_utils`, and
+`selectors_utils`.
 
 1. Review each module for a real, demonstrable bug. Fix any bug found with a
    focused regression test; otherwise record the clean result.
@@ -16,29 +16,35 @@ modules: `readline_utils`, `regex_utils`, `reprlib_utils`, `resource_utils`, and
 4. Do not manufacture commits or timestamp-only handoffs. A clean batch records
    the result and hands off the next batch; that is sufficient progress.
 
-## This session (2026-11-28, HEAD add4bd49)
+## This session (2026-11-28, HEAD f40a766a)
 
-Read-only bug hunt across `queue_utils`, `quopri_utils`, `random_utils`,
-`rate_limiter_utils`, and `re_utils`.
+Read-only bug hunt across `readline_utils`, `regex_utils`, `reprlib_utils`,
+`resource_utils`, and `retry_utils`.
 
-- `random_utils.random_gaussian`: `mu` accepted non-finite values (NaN, ±inf)
-  and non-numeric types (str, None, bool), silently returning NaN/±inf or
-  raising unclear stdlib `TypeError` from `gauss`. Added validation that `mu`
-  and `sigma` are numbers (not bool) and finite, matching the existing `sigma`
-  validation and the `random_uniform`/`random_bool` convention. Added focused
-  regression tests `test_non_finite_mu_raises`, `test_non_numeric_mu_raises`,
-  and `test_bool_sigma_raises`.
-- `queue_utils`, `quopri_utils`, `rate_limiter_utils`, `re_utils`: No
-  demonstrable bug found; existing tests pass (136 tests, quopri tests skipped
-  without pytest) and edge-case probes matched documented contracts.
-- Ran `make refresh-scaffold` to sync embedded copies in `scaffold.sh`.
-- Lint and typecheck clean for modified files; doctests pass.
+- `retry_utils`: a *finite* `delay` too large for the platform's `time_t`
+  (e.g. `1e300`, or a modest delay amplified by a huge `backoff`) reached
+  `time.sleep` and raised an opaque `OverflowError: timestamp out of range for
+  platform time_t` -- the exact low-level C-layer failure the finite-delay
+  validation exists to prevent. Added a `_sleep` helper that converts that
+  `OverflowError` into a clear `ValueError` naming the offending delay, and
+  routed all three decorators (`retry`, `retry_with_backoff`, `retry_count`)
+  through it. Added `TestRetrySleepRange` with four focused regression tests.
+- `readline_utils`, `regex_utils`, `reprlib_utils`, `resource_utils`: No
+  demonstrable bug found; existing tests pass and edge-case probes (capturing
+  groups, optional groups, `indent`/`maxlevel` validation, `prlimit` read,
+  `set_rlimit` soft>hard, huge-but-finite delays) matched documented contracts.
+- Ran `make refresh-scaffold` to sync the embedded copies in `scaffold.sh`.
+- Lint clean; typecheck clean for the changed files (the only 4 errors are
+  pre-existing `pytest` import-not-found in unrelated test files). Full suite:
+  12089 tests, only the 3 pre-existing `pytest`-unavailable import errors.
 
 ## Durable fix log (recent, most recent first)
 
 These are the real code fixes made in earlier sessions; the per-session clean
 bug-hunt logs were removed to keep this handover readable.
 
+- `retry_utils`: `_sleep` helper turns a too-large-but-finite delay's
+  `time.sleep` `OverflowError` into a clear `ValueError` (all 3 decorators).
 - `secrets_utils.choice`: validates `Sequence` input, rejects non-sequences.
 - `random_utils.random_gaussian`: validates `mu` is a finite number (not bool,
   not NaN/±inf), matching existing `sigma` validation.

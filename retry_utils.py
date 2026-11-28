@@ -47,6 +47,24 @@ def _validate_retry_args(
         raise TypeError(f"exceptions must be a tuple, got {type(exceptions).__name__}")
 
 
+def _sleep(seconds: float) -> None:
+    """Sleep *seconds*, turning a platform range error into a clear one.
+
+    ``time.sleep`` raises a low-level ``OverflowError`` ("timestamp out of
+    range for platform time_t") for a delay that is finite yet too large for
+    the platform to represent, and the accumulated delay of a backoff schedule
+    can reach that range even when ``delay`` and ``backoff`` are both finite.
+    The retry helpers surface that as a clear :class:`ValueError` that names the
+    offending delay instead of the opaque error from the C layer.
+    """
+    try:
+        time.sleep(seconds)
+    except OverflowError as error:
+        raise ValueError(
+            f"delay {seconds!r} is too large for the platform to sleep"
+        ) from error
+
+
 def retry(
     max_attempts: int = 3,
     delay: float = 0.1,
@@ -99,7 +117,7 @@ def retry(
                 except exceptions:
                     if attempt == max_attempts - 1:  # Last attempt
                         raise
-                    time.sleep(_delay)
+                    _sleep(_delay)
                     _delay *= backoff
             # Should never reach here due to raise on last attempt
             raise RuntimeError("Unexpected state in retry decorator")
@@ -170,7 +188,7 @@ def retry_with_backoff(
                     actual_delay = delay
                     if jitter:
                         actual_delay *= random.uniform(0.5, 1.5)
-                    time.sleep(actual_delay)
+                    _sleep(actual_delay)
                     delay *= backoff_factor
             # Should never reach here due to raise on last attempt
             raise RuntimeError("Unexpected state in retry_with_backoff decorator")
@@ -237,7 +255,7 @@ def retry_count(
                     if attempt == max_attempts - 1:  # Last attempt
                         raise
                     retries += 1
-                    time.sleep(_delay)
+                    _sleep(_delay)
                     _delay *= backoff
             # Should never reach here due to raise on last attempt
             raise RuntimeError("Unexpected state in retry_count decorator")
