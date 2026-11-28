@@ -1,6 +1,6 @@
 # Task for Next Agent
 
-Session (2026-11-28): state-confirmation pass. `verify_state_delta.py --probe` rc=1 (clean tree; no source-relevant change since checkpoint `31313b72`; no full run needed). All known defect classes exhausted and test-covered. No source-code change.
+Session (2026-11-28): state-confirmation pass. `verify_state_delta.py --probe` rc=1 (clean tree; no source-relevant change since checkpoint `25213017`; no full run needed). All known defect classes exhausted and test-covered. No source-code change.
 
 **Next task:**
 1. Run `board_read`; if empty, execute this task.
