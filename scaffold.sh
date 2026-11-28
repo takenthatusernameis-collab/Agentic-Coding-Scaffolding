@@ -38956,14 +38956,19 @@ def random_gaussian(mu: float = 0.0, sigma: float = 1.0, seed: Optional[int] = N
         A random float sampled from ``N(mu, sigma)``.
 
     Raises:
-        ValueError: If ``sigma`` is negative or not finite (NaN or ±inf).
+        TypeError: If ``mu`` or ``sigma`` is not a number (including bool).
+        ValueError: If ``mu`` or ``sigma`` is not finite (NaN or ±inf), or if
+            ``sigma`` is negative.
 
     Examples:
         >>> isinstance(random_gaussian(seed=3), float)
         True
     """
-    if not math.isfinite(sigma):
-        raise ValueError("sigma must be finite")
+    for arg, name in ((mu, "mu"), (sigma, "sigma")):
+        if isinstance(arg, bool) or not isinstance(arg, (int, float)):
+            raise TypeError(f"{name} must be a number, got {type(arg).__name__}")
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
     if sigma < 0:
         raise ValueError("sigma must be non-negative")
     return _seed_rng(seed).gauss(mu, sigma)
@@ -39623,6 +39628,23 @@ class TestRandomGaussian(unittest.TestCase):
         for bad_sigma in (float("nan"), float("inf"), float("-inf")):
             with self.assertRaises(ValueError):
                 random_gaussian(sigma=bad_sigma)
+
+    def test_non_finite_mu_raises(self) -> None:
+        for bad_mu in (float("nan"), float("inf"), float("-inf")):
+            with self.assertRaises(ValueError):
+                random_gaussian(mu=bad_mu, sigma=1.0)
+
+    def test_non_numeric_mu_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            random_gaussian(mu="abc", sigma=1.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_gaussian(mu=None, sigma=1.0)  # type: ignore[arg-type]
+        with self.assertRaises(TypeError):
+            random_gaussian(mu=True, sigma=1.0)  # type: ignore[arg-type]
+
+    def test_bool_sigma_raises(self) -> None:
+        with self.assertRaises(TypeError):
+            random_gaussian(sigma=True)  # type: ignore[arg-type]
 
     def test_seeded_is_reproducible(self) -> None:
         self.assertAlmostEqual(random_gaussian(0, 1, seed=17), random_gaussian(0, 1, seed=17))

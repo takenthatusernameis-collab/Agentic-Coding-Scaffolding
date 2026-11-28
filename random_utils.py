@@ -188,14 +188,19 @@ def random_gaussian(mu: float = 0.0, sigma: float = 1.0, seed: Optional[int] = N
         A random float sampled from ``N(mu, sigma)``.
 
     Raises:
-        ValueError: If ``sigma`` is negative or not finite (NaN or ±inf).
+        TypeError: If ``mu`` or ``sigma`` is not a number (including bool).
+        ValueError: If ``mu`` or ``sigma`` is not finite (NaN or ±inf), or if
+            ``sigma`` is negative.
 
     Examples:
         >>> isinstance(random_gaussian(seed=3), float)
         True
     """
-    if not math.isfinite(sigma):
-        raise ValueError("sigma must be finite")
+    for arg, name in ((mu, "mu"), (sigma, "sigma")):
+        if isinstance(arg, bool) or not isinstance(arg, (int, float)):
+            raise TypeError(f"{name} must be a number, got {type(arg).__name__}")
+        if isinstance(arg, float) and not math.isfinite(arg):
+            raise ValueError(f"{name} must be finite")
     if sigma < 0:
         raise ValueError("sigma must be non-negative")
     return _seed_rng(seed).gauss(mu, sigma)
