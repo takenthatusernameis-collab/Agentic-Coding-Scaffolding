@@ -232,6 +232,19 @@ class TestCorrelation(unittest.TestCase):
             correlation([huge] * 10, [huge] * 10)
         self.assertIn("too large to represent as a finite float", str(cm.exception))
 
+    def test_correlation_avoids_intermediate_overflow(self):
+        # Finite inputs around 1e200 make the raw sum of squared deviations
+        # overflow even though the correlation is bounded to [-1, 1].
+        self.assertAlmostEqual(
+            correlation([1e200, 2e200], [1e200, 2e200]), 1.0
+        )
+        self.assertAlmostEqual(
+            correlation([1e200, 2e200], [2e200, 1e200]), -1.0
+        )
+        result = correlation([1e200, 2e200, 3e200], [1e200, 2e200, 3e200])
+        self.assertTrue(math.isfinite(result))
+        self.assertAlmostEqual(result, 1.0)
+
 
 class TestZScore(unittest.TestCase):
     def test_z_score_basic(self):
@@ -272,6 +285,14 @@ class TestZScore(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             z_score([huge] * 10)
         self.assertIn("too large to represent as a finite float", str(cm.exception))
+
+    def test_z_score_avoids_intermediate_overflow(self):
+        # Finite inputs around 1e200 make the raw variance overflow even though
+        # the z-scores are finite and bounded.
+        result = z_score([1e200, 2e200])
+        self.assertEqual(result, [-1.0, 1.0])
+        for value in z_score([1e200, 2e200, 3e200]):
+            self.assertTrue(math.isfinite(value))
 
 
 class TestNormalize(unittest.TestCase):

@@ -30397,6 +30397,19 @@ class TestCorrelation(unittest.TestCase):
             correlation([huge] * 10, [huge] * 10)
         self.assertIn("too large to represent as a finite float", str(cm.exception))
 
+    def test_correlation_avoids_intermediate_overflow(self):
+        # Finite inputs around 1e200 make the raw sum of squared deviations
+        # overflow even though the correlation is bounded to [-1, 1].
+        self.assertAlmostEqual(
+            correlation([1e200, 2e200], [1e200, 2e200]), 1.0
+        )
+        self.assertAlmostEqual(
+            correlation([1e200, 2e200], [2e200, 1e200]), -1.0
+        )
+        result = correlation([1e200, 2e200, 3e200], [1e200, 2e200, 3e200])
+        self.assertTrue(math.isfinite(result))
+        self.assertAlmostEqual(result, 1.0)
+
 
 class TestZScore(unittest.TestCase):
     def test_z_score_basic(self):
@@ -30437,6 +30450,14 @@ class TestZScore(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             z_score([huge] * 10)
         self.assertIn("too large to represent as a finite float", str(cm.exception))
+
+    def test_z_score_avoids_intermediate_overflow(self):
+        # Finite inputs around 1e200 make the raw variance overflow even though
+        # the z-scores are finite and bounded.
+        result = z_score([1e200, 2e200])
+        self.assertEqual(result, [-1.0, 1.0])
+        for value in z_score([1e200, 2e200, 3e200]):
+            self.assertTrue(math.isfinite(value))
 
 
 class TestNormalize(unittest.TestCase):
@@ -46406,6 +46427,10 @@ def covariance(x: List[T | float], y: List[T | float]) -> float:
 def correlation(x: List[T | float], y: List[T | float]) -> float:
     """Return the Pearson correlation coefficient of two lists.
 
+    The computation scales deviations by their peak magnitude before squaring,
+    so large but finite inputs (around ``1e155`` and above) do not overflow the
+    intermediate sum of squares; the result stays within ``[-1, 1]``.
+
     Args:
         x: First list of numeric values.
         y: Second list of numeric values.
@@ -46435,12 +46460,21 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
     try:
         mean_x = sum(x) / len(x)
         mean_y = sum(y) / len(y)
-        # Compute covariance and variances
-        cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
-        var_x = sum((xi - mean_x) ** 2 for xi in x)
-        var_y = sum((yi - mean_y) ** 2 for yi in y)
-        if var_x == 0 or var_y == 0:
+        # Compute covariance and variances on deviations scaled by their peak
+        # magnitude. Squaring raw deviations around ``1e155`` overflows the
+        # finite float range even though the correlation is bounded to
+        # ``[-1, 1]``; scaling first keeps every intermediate finite.
+        dx = [xi - mean_x for xi in x]
+        dy = [yi - mean_y for yi in y]
+        scale_x = max(abs(v) for v in dx)
+        scale_y = max(abs(v) for v in dy)
+        if scale_x == 0 or scale_y == 0:
             raise ValueError("Correlation is undefined when variance is zero")
+        sx = [v / scale_x for v in dx]
+        sy = [v / scale_y for v in dy]
+        cov = sum(a * b for a, b in zip(sx, sy))
+        var_x = sum(a * a for a in sx)
+        var_y = sum(b * b for b in sy)
         return cov / math.sqrt(var_x * var_y)
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
@@ -46450,6 +46484,10 @@ def z_score(numbers: List[T | float]) -> List[float]:
     """Return the z-scores (standard scores) of a list of numbers.
 
     Each z-score is (x - mean) / population standard deviation.
+
+    The standard deviation is computed on deviations scaled by their peak
+    magnitude, so large but finite inputs (around ``1e155`` and above) do not
+    overflow the intermediate variance.
 
     Args:
         numbers: A list of numeric values.
@@ -46472,12 +46510,18 @@ def z_score(numbers: List[T | float]) -> List[float]:
         raise ValueError("numbers must not contain NaN or infinite values")
     try:
         mean_val = sum(numbers) / len(numbers)
-        # Population standard deviation
-        variance = sum((x - mean_val) ** 2 for x in numbers) / len(numbers)
-        if variance == 0:
+        # Population standard deviation, computed on deviations scaled by their
+        # peak magnitude. Squaring raw deviations around ``1e155`` overflows the
+        # finite float range even though the z-scores are finite; scaling first
+        # keeps every intermediate finite.
+        deviations = [x - mean_val for x in numbers]
+        scale = max(abs(v) for v in deviations)
+        if scale == 0:
             raise ValueError("Standard deviation is zero; cannot compute z-scores")
+        scaled = [v / scale for v in deviations]
+        variance = sum(s * s for s in scaled) / len(numbers)
         std_dev = math.sqrt(variance)
-        return [(x - mean_val) / std_dev for x in numbers]
+        return [s / std_dev for s in scaled]
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
 
@@ -76516,6 +76560,14 @@ TEST_INTERVAL_UTILS
 
 # --- CHANGELOG.md ---
 cat > "$OUTPUT_DIR/CHANGELOG.md" <<'CHANGELOG'
+## Unreleased — `statistics_utils.correlation`/`z_score` avoid intermediate overflow via deviation scaling
+
+- **Defect — `statistics_utils.correlation` and `statistics_utils.z_score` raised on large but finite inputs.** Both squared raw deviations from the mean: `correlation` computed `sum((xi - mean_x) ** 2)` (and the `var_x * var_y` product under `math.sqrt`), and `z_score` computed `sum((x - mean_val) ** 2) / len(numbers)`. For values around `1e155` and above the intermediate square overflows the finite float range, so an `OverflowError` is caught and re-raised as `ValueError("result is too large to represent as a finite float")` even though the inputs are finite and the result is mathematically defined and bounded (`correlation` is always in `[-1, 1]`; `z_score([1e200, 2e200])` is `[-1.0, 1.0]`). This is the same intermediate-overflow defect class fixed in `calculator`/`shapes`, in a module the prior fixes did not touch. The fix scales each deviation list by its peak magnitude before squaring, so every intermediate stays finite; behavior for ordinary values is unchanged (`correlation([1, 2, 3], [1, 2, 3]) == 1.0`, `z_score([1, 2, 3, 4, 5])[0] == -1.414213562373095`). Genuine overflow still raises: huge integers (`10 ** 400`) overflow at the `sum(...) / len(...)` mean step and continue to raise `ValueError`, and `covariance` (whose true value `5e399` is genuinely beyond the finite range) is unchanged.
+- **Functions updated:** `correlation` (scale deviations by `max(abs(...))` before squaring; zero-variance check now on the scale), `z_score` (same scaling; zero-variance check on the scale); docstrings note the overflow-safe behavior. No validation-layer change.
+- **Tests:** added `test_correlation_avoids_intermediate_overflow` and `test_z_score_avoids_intermediate_overflow` to `tests/test_statistics_utils.py` (pin the finite `1.0`/`-1.0`/`[-1.0, 1.0]` results for `1e200` inputs and assert finiteness).
+- **Defect class:** intermediate-overflow on large finite floats (genuine defect; finite inputs now return the correct finite result).
+- Validation: `python -m unittest tests.test_statistics_utils` — 58 OK; `python -m ruff check statistics_utils.py tests/test_statistics_utils.py` clean; `python -m mypy statistics_utils.py` success; `python tools/audit_contracts.py --summary` — 0 issues; `make refresh-scaffold` + `python tools/refresh_scaffold.py --check` in sync. No `.github/workflows/**` changes.
+
 ## Unreleased — `shapes.rectangle_diagonal`/`point_distance` avoid intermediate overflow via `math.hypot`
 
 - **Defect — `shapes.rectangle_diagonal` and `shapes.point_distance` raised on large but finite inputs.** Both computed the Euclidean norm directly: `rectangle_diagonal` used `(length**2 + width**2) ** 0.5` and `point_distance` used `math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)`. For sides or coordinate separations around `1e155` and above the intermediate square overflows the finite float range (`OverflowError` from `**`, or `inf` flowing into `sqrt`), so a `ValueError("result is too large to represent as a finite float")` is raised even though the inputs are finite and a finite result is mathematically defined (e.g. the diagonal/distance of two `1e200` legs is `1.414213562373095e+200`). This is the same defect class just fixed in `calculator.hypotenuse`/`calculator.distance`, in a module the prior fix did not touch. The fix delegates to `:func:`math.hypot``, which rescales internally to avoid intermediate overflow/underflow; an `math.isinf` guard preserves the documented finite-float contract for the genuine-overflow case (true result beyond the finite range still raises `ValueError`). Behavior for ordinary values is unchanged (`rectangle_diagonal(3, 4) == 5.0`, `point_distance((0, 0), (3, 4)) == 5.0`).

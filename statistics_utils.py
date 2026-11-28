@@ -233,6 +233,10 @@ def covariance(x: List[T | float], y: List[T | float]) -> float:
 def correlation(x: List[T | float], y: List[T | float]) -> float:
     """Return the Pearson correlation coefficient of two lists.
 
+    The computation scales deviations by their peak magnitude before squaring,
+    so large but finite inputs (around ``1e155`` and above) do not overflow the
+    intermediate sum of squares; the result stays within ``[-1, 1]``.
+
     Args:
         x: First list of numeric values.
         y: Second list of numeric values.
@@ -262,12 +266,21 @@ def correlation(x: List[T | float], y: List[T | float]) -> float:
     try:
         mean_x = sum(x) / len(x)
         mean_y = sum(y) / len(y)
-        # Compute covariance and variances
-        cov = sum((xi - mean_x) * (yi - mean_y) for xi, yi in zip(x, y))
-        var_x = sum((xi - mean_x) ** 2 for xi in x)
-        var_y = sum((yi - mean_y) ** 2 for yi in y)
-        if var_x == 0 or var_y == 0:
+        # Compute covariance and variances on deviations scaled by their peak
+        # magnitude. Squaring raw deviations around ``1e155`` overflows the
+        # finite float range even though the correlation is bounded to
+        # ``[-1, 1]``; scaling first keeps every intermediate finite.
+        dx = [xi - mean_x for xi in x]
+        dy = [yi - mean_y for yi in y]
+        scale_x = max(abs(v) for v in dx)
+        scale_y = max(abs(v) for v in dy)
+        if scale_x == 0 or scale_y == 0:
             raise ValueError("Correlation is undefined when variance is zero")
+        sx = [v / scale_x for v in dx]
+        sy = [v / scale_y for v in dy]
+        cov = sum(a * b for a, b in zip(sx, sy))
+        var_x = sum(a * a for a in sx)
+        var_y = sum(b * b for b in sy)
         return cov / math.sqrt(var_x * var_y)
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
@@ -277,6 +290,10 @@ def z_score(numbers: List[T | float]) -> List[float]:
     """Return the z-scores (standard scores) of a list of numbers.
 
     Each z-score is (x - mean) / population standard deviation.
+
+    The standard deviation is computed on deviations scaled by their peak
+    magnitude, so large but finite inputs (around ``1e155`` and above) do not
+    overflow the intermediate variance.
 
     Args:
         numbers: A list of numeric values.
@@ -299,12 +316,18 @@ def z_score(numbers: List[T | float]) -> List[float]:
         raise ValueError("numbers must not contain NaN or infinite values")
     try:
         mean_val = sum(numbers) / len(numbers)
-        # Population standard deviation
-        variance = sum((x - mean_val) ** 2 for x in numbers) / len(numbers)
-        if variance == 0:
+        # Population standard deviation, computed on deviations scaled by their
+        # peak magnitude. Squaring raw deviations around ``1e155`` overflows the
+        # finite float range even though the z-scores are finite; scaling first
+        # keeps every intermediate finite.
+        deviations = [x - mean_val for x in numbers]
+        scale = max(abs(v) for v in deviations)
+        if scale == 0:
             raise ValueError("Standard deviation is zero; cannot compute z-scores")
+        scaled = [v / scale for v in deviations]
+        variance = sum(s * s for s in scaled) / len(numbers)
         std_dev = math.sqrt(variance)
-        return [(x - mean_val) / std_dev for x in numbers]
+        return [s / std_dev for s in scaled]
     except OverflowError:
         raise ValueError("result is too large to represent as a finite float")
 
