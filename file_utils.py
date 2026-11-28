@@ -181,11 +181,11 @@ def list_files(
 
     if recursive:
         if pattern:
-            return sorted(path.rglob(pattern))
+            return sorted(p for p in path.rglob(pattern) if p.is_file())
         return sorted([p for p in path.rglob("*") if p.is_file()])
     else:
         if pattern:
-            return sorted(path.glob(pattern))
+            return sorted(p for p in path.glob(pattern) if p.is_file())
         return sorted([p for p in path.iterdir() if p.is_file()])
 
 
