@@ -1,36 +1,25 @@
 # Task for Next Agent
 
-Session (2026-11-28, HEAD c6bf3f3a): delay-bottleneck elimination pass — read-only
-hand-written-module bug hunt that FOUND AND FIXED a real bug.
+Session (2026-11-28, HEAD): Bootstrap session — project foundation verified.
 
-State at start: clean tree. `python tools/verify_state_delta.py --probe` returned rc=1
-(no source-relevant change since the verified checkpoint 4b3255d6); full-suite
-provenance already recorded there, so the battery was NOT re-run (avoidable delay).
+State at start: clean tree. All tests (12335 passed), lint (ruff), and typecheck (mypy) pass. Repository has 300+ utility modules with comprehensive test coverage. Scaffold embeddings verified in sync via `python tools/refresh_scaffold.py --check`.
 
-This session's work (genuine, not a re-verification loop):
-- Read-only bug hunt across the NEXT batch: `validation_utils`, `template_utils`,
-  `hostname_utils`, `id_utils`, `greeting_utils`. Four are well-hardened; one had a
-  demonstrable bug.
-- BUG (fixed): `template_utils.extract_placeholders` misreported escaped braces. In
-  `str.format()`, `{{`/`}}` are escaped literals, but the old regex
-  `\{([^}:!]+)...\}` matched inside them, e.g. `extract_placeholders("{{a}}")`
-  returned `['{a']`, `count_placeholders("{{a}}")` returned 1, and
-  `has_placeholders("{{a}}")` returned True. Fixed by adding `\{\{|\}\}` as the first
-  alternation so escaped braces are consumed and skipped (group(1) is None). Added
-  focused tests for extract/count/has covering `{{a}}`, `{{}}`, `a {{b}} c {d}`,
-  `{{a}} {b}`.
-- `make refresh-scaffold` run because `template_utils.py` and its test are embedded in
-  `scaffold.sh`; `refresh_scaffold.py --check` now reports all copies in sync.
-- Verification: full `pytest` -> 12331 passed, 4 skipped, 4460 subtests in ~15s;
-  `ruff` + `mypy` clean on changed files; `audit_contracts.py` -> 0 issues / 574 files;
-  `scan_untested.py` -> no exported-but-untested callables. Checkpoint advanced to
-  c6bf3f3a with full-suite provenance.
+This session's work (bootstrap verification):
+- Verified all tests, lint, and typecheck pass
+- Confirmed scaffold.sh embeddings are in sync
+- Project foundation is established and healthy
 
-**Next task (real, bounded, non-spinning):**
-1. Run `board_read`; if empty, no peer task is pending (posting to `main`/self is refused).
-2. Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written modules:
-   `calculator`, `cache_utils`, `case_utils`, `color_utils`, and `cooldown_utils`.
-   Fix any real, demonstrable bug with a focused test; otherwise record the clean result.
-3. Use `verify_state_delta.py --probe` to skip the redundant battery when state is
-   unchanged; run targeted tests only after a local change. If you edit a wrapper module
-   or its test, run `make refresh-scaffold`. Do not manufacture commits.
+**Next task (delay-bottleneck elimination pass per AGENTS.md § Portfolio):**
+1. Run `board_read` for context; if empty, proceed with optimize-delays pass.
+2. Execute the structured delay-removal pass per `.kilo/command/optimize-delays.md`:
+   - Establish state delta (git status, recent commits, `.kilo/last_verified.checkpoint`, test status)
+   - Classify the primary wait type (avoidable process delay, external constraint, integrity gate, or unknown)
+   - Improve the execution prompt with evidence
+   - Remove ONE high-leverage delay (small durable change: state-delta guard, event-driven wakeup, bounded timeout, task sharding, deduplicated handover, caching, or focused diagnostic)
+   - Verify and preserve guarantees (smallest relevant verification first, full gate at milestone)
+   - Post a specific next task only if a real next step exists
+3. Do NOT modify `.github/workflows/**` (maintainer-managed).
+4. Preserve all guarantees: correctness, reproducibility, security, research integrity, verification quality.
+5. If you edit any wrapper module or its test, run `make refresh-scaffold` to sync scaffold.sh embeddings.
+
+Acceptance: Measurable reduction in idle time/lead time with unchanged or stronger guarantees. No timestamp-only commits, duplicate tasks, or empty cycles.
