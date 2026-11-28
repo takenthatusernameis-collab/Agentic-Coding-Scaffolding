@@ -3,8 +3,8 @@
 ## Next task (real, bounded, non-spinning)
 
 Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
-modules: `semver_utils`, `seq_utils`, `set_utils`, `shelve_utils`, and
-`shlex_utils`.
+modules: `signal_utils`, `site_utils`, `slugify_utils`, `smtplib_utils`, and
+`sndhdr_utils`.
 
 1. Review each module for a real, demonstrable bug. Fix any bug found with a
    focused regression test; otherwise record the clean result.
@@ -15,6 +15,15 @@ modules: `semver_utils`, `seq_utils`, `set_utils`, `shelve_utils`, and
    copies embedded in `scaffold.sh` stay byte-identical.
 4. Do not manufacture commits or timestamp-only handoffs. A clean batch records
    the result and hands off the next batch; that is sufficient progress.
+
+## This session (2026-11-28, HEAD f40a766a)
+
+Read-only bug hunt across `semver_utils`, `seq_utils`, `set_utils`,
+`shelve_utils`, and `shlex_utils`.
+
+- `semver_utils`, `seq_utils`, `set_utils`, `shelve_utils`, `shlex_utils`: No
+  demonstrable bug found; existing tests pass (458 tests).
+- Ran targeted test suite; all passing.
 
 ## This session (2026-11-28, HEAD f40a766a)
 
