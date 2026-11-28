@@ -41,9 +41,14 @@ def _require_optional_number(value: object, name: str) -> Optional[float]:
     if not math.isfinite(value) or value < 0:
         raise ValueError(f"{name} must not be negative")
     try:
-        return float(value)
+        timeout = float(value)
+        # ``select.select`` and ``poll.poll`` convert the timeout to the platform
+        # ``time_t`` and raise an opaque ``OverflowError`` for a finite value that
+        # is too large. Report the range error through the documented ``ValueError``.
+        _select.select([], [], [], timeout)
+        return timeout
     except OverflowError as exc:
-        raise ValueError(f"{name} is too large to represent as a float") from exc
+        raise ValueError(f"{name} is too large to represent as a timeout") from exc
 
 
 def _require_int(value: object, name: str) -> int:
