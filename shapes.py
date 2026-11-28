@@ -519,7 +519,13 @@ def rectangle_diagonal(length: float, width: float) -> float:
     width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
-    result = math.hypot(length, width)
+    # ``math.hypot`` converts its arguments to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError`` rather than
+    # returning ``inf``. Treat that as the documented finite-float contract.
+    try:
+        result = math.hypot(length, width)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
     if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
     return result
@@ -792,14 +798,26 @@ def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     y1 = _require_number(y1, "y1")
     x2 = _require_number(x2, "x2")
     y2 = _require_number(y2, "y2")
-    result = math.hypot(x2 - x1, y2 - y1)
+    # ``math.hypot`` converts its arguments to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError`` rather than
+    # returning ``inf``. Treat that as the documented finite-float contract.
+    try:
+        result = math.hypot(x2 - x1, y2 - y1)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
     if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
     return result
 
 
 def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
-    """Return the midpoint between two points."""
+    """Return the midpoint between two points.
+
+    Raises:
+        TypeError: If p1 or p2 is not a point (x, y).
+        ValueError: If any coordinate is not finite, or if the result is too
+            large to represent as a finite float.
+    """
     if not isinstance(p1, (tuple, list)) or len(p1) != 2:
         raise TypeError("p1 must be a point (x, y)")
     if not isinstance(p2, (tuple, list)) or len(p2) != 2:
@@ -810,7 +828,13 @@ def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, f
     y1 = _require_number(y1, "y1")
     x2 = _require_number(x2, "x2")
     y2 = _require_number(y2, "y2")
-    return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+    # Dividing by ``2.0`` converts the sum to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError``; treat that
+    # as the documented finite-float contract.
+    try:
+        return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def point_in_circle(point: tuple[float, float], center: tuple[float, float], radius: float) -> bool:

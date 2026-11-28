@@ -1074,6 +1074,15 @@ class TestDistance(unittest.TestCase):
             distance(1e200, 1e200, 0, 0), math.hypot(1e200, 1e200)
         )
 
+    def test_distance_huge_int_raises_value_error(self):
+        # ``math.hypot`` converts its arguments to float, so an int too large
+        # to convert (for example ``10 ** 400``) raises ``OverflowError``; the
+        # documented finite-float contract must surface ``ValueError`` instead.
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            distance(0, 0, 10**400, 0)
+
 
 if __name__ == "__main__":
     unittest.main()

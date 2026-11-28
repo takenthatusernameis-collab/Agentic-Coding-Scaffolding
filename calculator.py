@@ -820,10 +820,18 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
 
     Raises:
         TypeError: If any argument is not a real number or is a bool.
+        ValueError: If any argument is not finite, or if the result is too
+            large to represent as a finite float.
     """
     for value in (x1, y1, x2, y2):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError("coordinates must be real numbers")
         if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
             raise ValueError("coordinates must be finite")
-    return math.hypot(x2 - x1, y2 - y1)
+    # ``math.hypot`` converts its arguments to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError`` rather than
+    # returning ``inf``. Treat that as the documented finite-float contract.
+    try:
+        return math.hypot(x2 - x1, y2 - y1)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")

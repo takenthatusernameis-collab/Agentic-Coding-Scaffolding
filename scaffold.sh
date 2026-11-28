@@ -11286,13 +11286,21 @@ def distance(x1: float, y1: float, x2: float, y2: float) -> float:
 
     Raises:
         TypeError: If any argument is not a real number or is a bool.
+        ValueError: If any argument is not finite, or if the result is too
+            large to represent as a finite float.
     """
     for value in (x1, y1, x2, y2):
         if isinstance(value, bool) or not isinstance(value, (int, float)):
             raise TypeError("coordinates must be real numbers")
         if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
             raise ValueError("coordinates must be finite")
-    return math.hypot(x2 - x1, y2 - y1)
+    # ``math.hypot`` converts its arguments to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError`` rather than
+    # returning ``inf``. Treat that as the documented finite-float contract.
+    try:
+        return math.hypot(x2 - x1, y2 - y1)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 CALCULATOR
 
 # --- tests/test_calculator.py ---
@@ -12372,6 +12380,15 @@ class TestDistance(unittest.TestCase):
         self.assertAlmostEqual(
             distance(1e200, 1e200, 0, 0), math.hypot(1e200, 1e200)
         )
+
+    def test_distance_huge_int_raises_value_error(self):
+        # ``math.hypot`` converts its arguments to float, so an int too large
+        # to convert (for example ``10 ** 400``) raises ``OverflowError``; the
+        # documented finite-float contract must surface ``ValueError`` instead.
+        with self.assertRaisesRegex(
+            ValueError, "result is too large to represent as a finite float"
+        ):
+            distance(0, 0, 10**400, 0)
 
 
 if __name__ == "__main__":
@@ -14042,7 +14059,13 @@ def rectangle_diagonal(length: float, width: float) -> float:
     width = _require_number(width, "width")
     if length < 0 or width < 0:
         raise ValueError("Length and width cannot be negative.")
-    result = math.hypot(length, width)
+    # ``math.hypot`` converts its arguments to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError`` rather than
+    # returning ``inf``. Treat that as the documented finite-float contract.
+    try:
+        result = math.hypot(length, width)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
     if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
     return result
@@ -14315,14 +14338,26 @@ def point_distance(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     y1 = _require_number(y1, "y1")
     x2 = _require_number(x2, "x2")
     y2 = _require_number(y2, "y2")
-    result = math.hypot(x2 - x1, y2 - y1)
+    # ``math.hypot`` converts its arguments to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError`` rather than
+    # returning ``inf``. Treat that as the documented finite-float contract.
+    try:
+        result = math.hypot(x2 - x1, y2 - y1)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
     if math.isinf(result):
         raise ValueError("result is too large to represent as a finite float")
     return result
 
 
 def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
-    """Return the midpoint between two points."""
+    """Return the midpoint between two points.
+
+    Raises:
+        TypeError: If p1 or p2 is not a point (x, y).
+        ValueError: If any coordinate is not finite, or if the result is too
+            large to represent as a finite float.
+    """
     if not isinstance(p1, (tuple, list)) or len(p1) != 2:
         raise TypeError("p1 must be a point (x, y)")
     if not isinstance(p2, (tuple, list)) or len(p2) != 2:
@@ -14333,7 +14368,13 @@ def midpoint(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, f
     y1 = _require_number(y1, "y1")
     x2 = _require_number(x2, "x2")
     y2 = _require_number(y2, "y2")
-    return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+    # Dividing by ``2.0`` converts the sum to float, so an int too large to
+    # convert (for example ``10 ** 400``) raises ``OverflowError``; treat that
+    # as the documented finite-float contract.
+    try:
+        return ((x1 + x2) / 2.0, (y1 + y2) / 2.0)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def point_in_circle(point: tuple[float, float], center: tuple[float, float], radius: float) -> bool:
@@ -15392,6 +15433,26 @@ class TestTypeValidation(unittest.TestCase):
             ValueError, "result is too large to represent as a finite float"
         ):
             point_distance((0.0, 0.0), (1.7e308, 1.7e308))
+
+    def test_huge_int_raises_value_error(self):
+        """An int too large to convert to float (for example ``10 ** 400``)
+        makes ``math.hypot`` / float division raise ``OverflowError``; the
+        documented finite-float contract must surface ``ValueError`` instead.
+        """
+        huge = 10**400
+        from shapes import midpoint
+
+        cases = [
+            (rectangle_diagonal, (huge, 0)),
+            (point_distance, ((0, 0), (huge, 0))),
+            (midpoint, ((0, 0), (huge, 0))),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__):
+                with self.assertRaisesRegex(
+                    ValueError, "result is too large to represent as a finite float"
+                ):
+                    func(*args)
 
 
 if __name__ == "__main__":

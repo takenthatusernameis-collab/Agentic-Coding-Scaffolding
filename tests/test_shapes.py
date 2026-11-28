@@ -985,6 +985,26 @@ class TestTypeValidation(unittest.TestCase):
         ):
             point_distance((0.0, 0.0), (1.7e308, 1.7e308))
 
+    def test_huge_int_raises_value_error(self):
+        """An int too large to convert to float (for example ``10 ** 400``)
+        makes ``math.hypot`` / float division raise ``OverflowError``; the
+        documented finite-float contract must surface ``ValueError`` instead.
+        """
+        huge = 10**400
+        from shapes import midpoint
+
+        cases = [
+            (rectangle_diagonal, (huge, 0)),
+            (point_distance, ((0, 0), (huge, 0))),
+            (midpoint, ((0, 0), (huge, 0))),
+        ]
+        for func, args in cases:
+            with self.subTest(func=func.__name__):
+                with self.assertRaisesRegex(
+                    ValueError, "result is too large to represent as a finite float"
+                ):
+                    func(*args)
+
 
 if __name__ == "__main__":
     unittest.main()
