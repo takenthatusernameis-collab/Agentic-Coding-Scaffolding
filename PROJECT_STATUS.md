@@ -108,3 +108,25 @@ This session's work:
    is unchanged; run targeted tests only after a local change. If you edit a
    wrapper module or its test, run `make refresh-scaffold`. Do not manufacture
    commits.
+
+---
+Session (2026-11-28, HEAD 759a9058): read-only bug hunt across
+`os_utils`, `ossaudiodev_utils`, `path_utils`, `pathlib_utils`, `pattern_utils`.
+
+This session's work:
+- All five modules reviewed; no demonstrable bug found. Existing tests pass
+  (95 tests) and edge-case probes matched documented contracts.
+- State-delta probe reported verification required; battery ran and checkpoint
+  advanced; no source changes to wrapper modules or tests.
+- No `make refresh-scaffold` required; no source changes to commit from this
+  session.
+
+**Next task (real, bounded, non-spinning):**
+1. Continue the read-only bug hunt on the NEXT batch of unreviewed hand-written
+   modules: `pdb_utils`, `pickle_utils`, `pickletools_utils`, `pipes_utils`,
+   and `pkgutil_utils`. Fix any real, demonstrable bug with a focused test;
+   otherwise record the clean result.
+2. Use `verify_state_delta.py --probe` to skip the redundant battery when state
+   is unchanged; run targeted tests only after a local change. If you edit a
+   wrapper module or its test, run `make refresh-scaffold`. Do not manufacture
+   commits.
