@@ -560,9 +560,21 @@ def drop_while(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
 
 
 def average(lst: List[Union[int, float]]) -> float:
-    """Calculate the average of a list."""
+    """Calculate the average of a list.
+
+    Raises:
+        ValueError: If the result is too large to represent as a finite float
+            (for example when a value is an int too large to convert, such as
+            ``10 ** 400``).
+    """
     _require_numbers(lst, "numbers")
-    return sum(lst) / len(lst)
+    # ``sum(lst) / len(lst)`` converts the (possibly huge int) sum to float, so
+    # an int too large to convert raises ``OverflowError``; treat that as the
+    # documented finite-float contract instead of leaking it.
+    try:
+        return sum(lst) / len(lst)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def max_list(lst: List[CT]) -> CT:

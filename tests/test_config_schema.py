@@ -60,6 +60,10 @@ class TestSchemaFieldCoercion(unittest.TestCase):
         with self.assertRaises(ValueError):
             float_validator("inf")
 
+    def test_float_validator_rejects_huge_int(self):
+        with self.assertRaises(ValueError):
+            float_validator(10**400)
+
     def test_str_validator_passthrough(self):
         self.assertEqual(str_validator("hello"), "hello")
 

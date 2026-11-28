@@ -306,6 +306,12 @@ class TestAverage(unittest.TestCase):
         with self.assertRaises(ValueError):
             average([1.0, 2.0, float("-inf")])
 
+    def test_average_accepts_huge_int(self) -> None:
+        with self.assertRaises(ValueError):
+            average([10**400])
+        with self.assertRaises(ValueError):
+            average([10**400, 10**400])
+
 
 class TestConcat(unittest.TestCase):
     def test_concat_basic(self) -> None:

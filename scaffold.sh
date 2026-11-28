@@ -5505,7 +5505,9 @@ def float_validator(value: Any) -> float:
 
     Raises:
         TypeError: If *value* is a bool or otherwise non-numeric.
-        ValueError: If *value* is a string that cannot be parsed as a float.
+        ValueError: If *value* is a string that cannot be parsed as a float, or
+            a number too large to represent as a finite float (for example an
+            int such as ``10 ** 400``).
 
     Examples:
         >>> float_validator("3.14")
@@ -5517,7 +5519,7 @@ def float_validator(value: Any) -> float:
         raise TypeError(f"cannot coerce {value!r} to float")
     try:
         result = float(value)
-    except (ValueError, TypeError) as exc:
+    except (ValueError, TypeError, OverflowError) as exc:
         raise ValueError(f"cannot coerce {value!r} to float") from exc
     if not math.isfinite(result):
         raise ValueError(f"cannot coerce {value!r} to float")
@@ -6088,6 +6090,10 @@ class TestSchemaFieldCoercion(unittest.TestCase):
             float_validator("nan")
         with self.assertRaises(ValueError):
             float_validator("inf")
+
+    def test_float_validator_rejects_huge_int(self):
+        with self.assertRaises(ValueError):
+            float_validator(10**400)
 
     def test_str_validator_passthrough(self):
         self.assertEqual(str_validator("hello"), "hello")
@@ -19436,9 +19442,21 @@ def drop_while(lst: List[T], predicate: Callable[[T], bool]) -> List[T]:
 
 
 def average(lst: List[Union[int, float]]) -> float:
-    """Calculate the average of a list."""
+    """Calculate the average of a list.
+
+    Raises:
+        ValueError: If the result is too large to represent as a finite float
+            (for example when a value is an int too large to convert, such as
+            ``10 ** 400``).
+    """
     _require_numbers(lst, "numbers")
-    return sum(lst) / len(lst)
+    # ``sum(lst) / len(lst)`` converts the (possibly huge int) sum to float, so
+    # an int too large to convert raises ``OverflowError``; treat that as the
+    # documented finite-float contract instead of leaking it.
+    try:
+        return sum(lst) / len(lst)
+    except OverflowError:
+        raise ValueError("result is too large to represent as a finite float")
 
 
 def max_list(lst: List[CT]) -> CT:
@@ -25314,6 +25332,12 @@ class TestAverage(unittest.TestCase):
             average([1.0, 2.0, float("inf")])
         with self.assertRaises(ValueError):
             average([1.0, 2.0, float("-inf")])
+
+    def test_average_accepts_huge_int(self) -> None:
+        with self.assertRaises(ValueError):
+            average([10**400])
+        with self.assertRaises(ValueError):
+            average([10**400, 10**400])
 
 
 class TestConcat(unittest.TestCase):

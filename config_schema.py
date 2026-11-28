@@ -102,7 +102,9 @@ def float_validator(value: Any) -> float:
 
     Raises:
         TypeError: If *value* is a bool or otherwise non-numeric.
-        ValueError: If *value* is a string that cannot be parsed as a float.
+        ValueError: If *value* is a string that cannot be parsed as a float, or
+            a number too large to represent as a finite float (for example an
+            int such as ``10 ** 400``).
 
     Examples:
         >>> float_validator("3.14")
@@ -114,7 +116,7 @@ def float_validator(value: Any) -> float:
         raise TypeError(f"cannot coerce {value!r} to float")
     try:
         result = float(value)
-    except (ValueError, TypeError) as exc:
+    except (ValueError, TypeError, OverflowError) as exc:
         raise ValueError(f"cannot coerce {value!r} to float") from exc
     if not math.isfinite(result):
         raise ValueError(f"cannot coerce {value!r} to float")
